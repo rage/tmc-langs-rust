@@ -1,0 +1,26 @@
+name: Doc
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: cargo doc --verbose
+    - name: If successful, move doc directory
+      if: ${{ success() }}
+      run: mv target/doc ./
+    - name: Checkout doc branch
+      run: git checkout doc
+    - name: Add changes
+      run: git add .
+    - name: Commit
+      run: git commit -m "Updated docs"
+    - name: Push
+      run: git push
