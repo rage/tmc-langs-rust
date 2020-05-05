@@ -1,3 +1,6 @@
+//! Framework documentation
+
+/// domain documentation
 pub mod domain {
     pub struct TestDesc {}
 
@@ -10,4 +13,5 @@ pub mod domain {
     pub struct ExercisePackagingConfiguration {}
 }
 
+/// LanguagePlugin documentation
 pub trait LanguagePlugin {}
