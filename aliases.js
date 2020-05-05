@@ -1,0 +1,10 @@
+var ALIASES = {};
+ALIASES["isolang"] = {};
+ALIASES["phf"] = {};
+ALIASES["phf_shared"] = {};
+ALIASES["siphasher"] = {};
+ALIASES["tmc_langs_abstraction"] = {};
+ALIASES["tmc_langs_cli"] = {};
+ALIASES["tmc_langs_framework"] = {};
+ALIASES["tmc_langs_python3"] = {};
+ALIASES["tmc_langs_util"] = {};

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["ExerciseDesc",""],["ExercisePackagingConfiguration",""],["RunResult",""],["TestDesc",""],["ValidationResult",""]]});
