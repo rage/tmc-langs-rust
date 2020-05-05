@@ -13,14 +13,23 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build
       run: cargo doc --verbose
-    - name: If successful, move doc directory
-      if: ${{ success() }}
+    - name: If successful, remove old doc directory
+      if: success()
+      run: rm -rf doc
+    - name: If successful, move new doc directory
+      if: success()
       run: mv target/doc ./
-    - name: Checkout doc branch
-      run: git checkout doc
+    - name: Checkout gh-pages branch
+      run: git checkout -f gh-pages
     - name: Add changes
-      run: git add .
+      run: git add doc
     - name: Commit
-      run: git commit -m "Updated docs"
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git commit -m "Updated docs"
     - name: Push
-      run: git push
+      uses: ad-m/github-push-action@master
+      with:
+        branch: gh-pages
+        github_token: ${{ secrets.GITHUB_TOKEN }}
