@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ExerciseDesc",""],["ExercisePackagingConfiguration",""],["RunResult",""],["TestDesc",""],["ValidationResult",""]]});
+initSidebarItems({"struct":[["ExerciseDesc",""],["ExercisePackagingConfiguration",""],["MetaSyntaxFilter",""],["RunResult",""],["TestDesc",""],["ValidationResult",""]]});

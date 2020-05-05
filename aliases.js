@@ -1,8 +1,16 @@
 var ALIASES = {};
+ALIASES["aho_corasick"] = {};
+ALIASES["cfg_if"] = {};
 ALIASES["isolang"] = {};
+ALIASES["lazy_static"] = {};
+ALIASES["log"] = {};
+ALIASES["memchr"] = {};
 ALIASES["phf"] = {};
 ALIASES["phf_shared"] = {};
+ALIASES["regex"] = {};
+ALIASES["regex_syntax"] = {};
 ALIASES["siphasher"] = {};
+ALIASES["thread_local"] = {};
 ALIASES["tmc_langs_abstraction"] = {};
 ALIASES["tmc_langs_cli"] = {};
 ALIASES["tmc_langs_framework"] = {};
