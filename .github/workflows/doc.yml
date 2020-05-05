@@ -1,40 +1,27 @@
-name: Doc
+name: Build and deploy docs
 
 on:
   push:
     branches: [ master ]
 
 jobs:
-  update-docs:
-
+  build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
-    - name: Build docs
-      run: cargo doc --verbose
-    - name: Stash docs
-      run: |
-        rm -rf doc
-        mv target/doc ./
-        git add doc
-        git stash
-    - name: Checkout gh-pages
-      run: |
-        git fetch
-        git checkout -f gh-pages
-    - name: Apply changes
-      run: |
-        rm -rf doc
-        git add doc
-        git stash pop
-    - name: Commit
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git commit -m "Updated docs"
-    - name: Push
-      uses: ad-m/github-push-action@master
-      with:
-        branch: gh-pages
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+
+      - name: Install and build
+        run: cargo doc
+
+      - name: Copy index to target/doc
+        run: cp doc_index.html target/doc/index.html
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@releases/v3
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: target/doc
