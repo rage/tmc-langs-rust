@@ -203,136 +203,65 @@
 <span id="203">203</span>
 <span id="204">204</span>
 <span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="kw">mod</span> <span class="ident">meta_syntax</span>;
+
 <span class="kw">use</span> <span class="ident">lazy_static</span>::<span class="ident">lazy_static</span>;
 <span class="kw">use</span> <span class="ident">log</span>::<span class="ident">debug</span>;
+<span class="kw">use</span> <span class="ident">meta_syntax</span>::<span class="ident">MetaSyntaxFilter</span>;
 <span class="kw">use</span> <span class="ident">regex</span>::<span class="ident">Regex</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">BufRead</span>, <span class="ident">BufReader</span>, <span class="ident">Read</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::{<span class="self">self</span>, <span class="ident">File</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">Write</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
+<span class="kw">use</span> <span class="ident">walkdir</span>::{<span class="ident">DirEntry</span>, <span class="ident">WalkDir</span>};
 
 <span class="macro">lazy_static</span><span class="macro">!</span> {
-    <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">META_SYNTAXES_C</span>: [<span class="ident">MetaSyntax</span>; <span class="number">2</span>] <span class="op">=</span>
-        [<span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;//&quot;</span>, <span class="string">&quot;&quot;</span>), <span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;/\\*&quot;</span>, <span class="string">&quot;\\*/&quot;</span>)];
-    <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">META_SYNTAXES_HTML</span>: [<span class="ident">MetaSyntax</span>; <span class="number">1</span>] <span class="op">=</span> [<span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;&lt;!--&quot;</span>, <span class="string">&quot;--&gt;&quot;</span>)];
-    <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">META_SYNTAXES_PY</span>: [<span class="ident">MetaSyntax</span>; <span class="number">1</span>] <span class="op">=</span> [<span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;#&quot;</span>, <span class="string">&quot;&quot;</span>)];
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">MetaSyntax</span> {
-    <span class="ident">solution_file</span>: <span class="ident">Regex</span>,
-    <span class="ident">solution_begin</span>: <span class="ident">Regex</span>,
-    <span class="ident">solution_end</span>: <span class="ident">Regex</span>,
-    <span class="ident">stub_begin</span>: <span class="ident">Regex</span>,
-    <span class="ident">stub_end</span>: <span class="ident">Regex</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">MetaSyntax</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">comment_start</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">comment_end</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">comment_start_pattern</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;^\\s*{}\\s*&quot;</span>, <span class="ident">comment_start</span>);
-        <span class="kw">let</span> <span class="ident">comment_end_pattern</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;\\s*{}\\s*$&quot;</span>, <span class="ident">comment_end</span>);
-        <span class="kw">let</span> <span class="ident">solution_file</span> <span class="op">=</span> <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
-            <span class="string">&quot;{}SOLUTION\\s+FILE{}&quot;</span>,
-            <span class="ident">comment_start_pattern</span>, <span class="ident">comment_end_pattern</span>
-        ))
-        .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">solution_begin</span> <span class="op">=</span> <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
-            <span class="string">&quot;{}BEGIN\\s+SOLUTION{}&quot;</span>,
-            <span class="ident">comment_start_pattern</span>, <span class="ident">comment_end_pattern</span>
-        ))
-        .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">solution_end</span> <span class="op">=</span> <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
-            <span class="string">&quot;{}END\\s+SOLUTION{}&quot;</span>,
-            <span class="ident">comment_start_pattern</span>, <span class="ident">comment_end_pattern</span>
-        ))
-        .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">stub_begin</span> <span class="op">=</span> <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}STUB&quot;</span>, <span class="ident">comment_start_pattern</span>)).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">stub_end</span> <span class="op">=</span> <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">comment_end_pattern</span>).<span class="ident">unwrap</span>();
-
-        <span class="self">Self</span> {
-            <span class="ident">solution_file</span>,
-            <span class="ident">solution_begin</span>,
-            <span class="ident">solution_end</span>,
-            <span class="ident">stub_begin</span>,
-            <span class="ident">stub_end</span>,
-        }
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MetaSyntaxFilter</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">BufRead</span><span class="op">&gt;</span> {
-    <span class="ident">meta_syntaxes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">MetaSyntax</span>],
-    <span class="ident">reader</span>: <span class="ident">B</span>,
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">MetaSyntaxFilter</span><span class="op">&lt;</span><span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">target</span>: <span class="ident">R</span>, <span class="ident">target_extension</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader</span>::<span class="ident">new</span>(<span class="ident">target</span>);
-        <span class="kw">let</span> <span class="ident">meta_syntaxes</span>: <span class="kw-2">&amp;</span>[<span class="ident">MetaSyntax</span>] <span class="op">=</span> <span class="kw">match</span> <span class="ident">target_extension</span> {
-            <span class="string">&quot;java&quot;</span> <span class="op">|</span> <span class="string">&quot;c&quot;</span> <span class="op">|</span> <span class="string">&quot;cpp&quot;</span> <span class="op">|</span> <span class="string">&quot;h&quot;</span> <span class="op">|</span> <span class="string">&quot;hpp&quot;</span> <span class="op">|</span> <span class="string">&quot;js&quot;</span> <span class="op">|</span> <span class="string">&quot;css&quot;</span> <span class="op">|</span> <span class="string">&quot;rs&quot;</span> <span class="op">|</span> <span class="string">&quot;qml&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">META_SYNTAXES_C</span>,
-            <span class="string">&quot;xml&quot;</span> <span class="op">|</span> <span class="string">&quot;http&quot;</span> <span class="op">|</span> <span class="string">&quot;html&quot;</span> <span class="op">|</span> <span class="string">&quot;qrc&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">META_SYNTAXES_HTML</span>,
-            <span class="string">&quot;properties&quot;</span> <span class="op">|</span> <span class="string">&quot;py&quot;</span> <span class="op">|</span> <span class="string">&quot;R&quot;</span> <span class="op">|</span> <span class="string">&quot;pro&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">META_SYNTAXES_PY</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[],
-        };
-        <span class="self">Self</span> {
-            <span class="ident">meta_syntaxes</span>,
-            <span class="ident">reader</span>,
-        }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">BufRead</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">MetaSyntaxFilter</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span>;
-
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
-        <span class="comment">// read lines until a non-skipped line is found or the reader is empty</span>
-        <span class="lifetime">&#39;next_line</span>: <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">read_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>) {
-                <span class="comment">// read 0 bytes = reader empty = iterator empty</span>
-                <span class="prelude-val">Ok</span>(<span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="comment">// check line with each meta syntax</span>
-                    <span class="kw">for</span> <span class="ident">meta_syntax</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">meta_syntaxes</span> {
-                        <span class="kw">if</span> <span class="ident">meta_syntax</span>.<span class="ident">stub_begin</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>) {
-                            <span class="comment">// in STUB block</span>
-                            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stub start: {}&quot;</span>, <span class="ident">s</span>);
-                            <span class="kw">if</span> <span class="ident">meta_syntax</span>.<span class="ident">stub_end</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>) {
-                                <span class="comment">// oneliner</span>
-                                <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stub end: {}&quot;</span>, <span class="ident">s</span>);
-                                <span class="kw">continue</span> <span class="lifetime">&#39;next_line</span>;
-                            }
-                            <span class="comment">// skip STUB block</span>
-                            <span class="kw">loop</span> {
-                                <span class="kw">match</span> <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">read_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>) {
-                                    <span class="prelude-val">Ok</span>(<span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-                                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                                        <span class="kw">if</span> <span class="ident">meta_syntax</span>.<span class="ident">stub_end</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>) {
-                                            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stub end: {}&quot;</span>, <span class="ident">s</span>);
-                                            <span class="kw">continue</span> <span class="lifetime">&#39;next_line</span>;
-                                        }
-                                        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;skip stub: {}&quot;</span>, <span class="ident">s</span>);
-                                    }
-                                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)),
-                                }
-                            }
-                        }
-                        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">meta_syntax</span>.<span class="ident">solution_file</span>.<span class="ident">as_str</span>());
-                        <span class="kw">if</span> <span class="ident">meta_syntax</span>.<span class="ident">solution_file</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>)
-                            <span class="op">|</span> <span class="ident">meta_syntax</span>.<span class="ident">solution_begin</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>)
-                            <span class="op">|</span> <span class="ident">meta_syntax</span>.<span class="ident">solution_end</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>)
-                        {
-                            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;skip solution: {}&quot;</span>, <span class="ident">s</span>);
-                            <span class="comment">// skip SOLUTION_FILE / SOLUTION_BEGIN / SOLUTION_END lines</span>
-                            <span class="kw">continue</span> <span class="lifetime">&#39;next_line</span>;
-                        }
-                    }
-                    <span class="comment">// not filtered by any syntax</span>
-                    <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;OK: {}&quot;</span>, <span class="ident">s</span>);
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">s</span>));
-                }
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)),
-            }
-        }
-    }
+    <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">FILES_TO_SKIP_ALWAYS</span>: <span class="ident">Regex</span> <span class="op">=</span>
+        <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="string">&quot;\\.tmcrc|metadata\\.yml|(.*)Hidden(.*)&quot;</span>).<span class="ident">unwrap</span>();
+    <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">NON_TEXT_TYPES</span>: <span class="ident">Regex</span> <span class="op">=</span>
+        <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="string">&quot;class|jar|exe|jpg|jpeg|gif|png|zip|tar|gz|db|bin|csv|tsv|^$&quot;</span>).<span class="ident">unwrap</span>();
 }
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TestDesc</span> {}
@@ -345,68 +274,223 @@
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExercisePackagingConfiguration</span> {}
 
+<span class="doccomment">/// Walks through each path in ```exercise_map```, processing files and copying them into ```dest_path```.</span>
+<span class="doccomment">/// Skips hidden directories, directories that contain a ```.tmcignore``` file in their root, as well as files matching patterns defined in ```FILES_TO_SKIP_ALWAYS``` and directories and files named ```private```.</span>
+<span class="doccomment">/// Binary files are copied without extra processing, while text files have solution tags and stubs removed.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prepare_solutions</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PathBuf</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+    <span class="ident">exercise_paths</span>: <span class="ident">I</span>,
+    <span class="ident">dest_root</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">is_hidden_dir</span>(<span class="ident">entry</span>: <span class="kw-2">&amp;</span><span class="ident">DirEntry</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">let</span> <span class="ident">skip</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">metadata</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">is_dir</span>()).<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+            <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">entry</span>
+                .<span class="ident">file_name</span>()
+                .<span class="ident">to_str</span>()
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">starts_with</span>(<span class="string">&quot;.&quot;</span>))
+                .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>);
+        <span class="kw">if</span> <span class="ident">skip</span> {
+            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;is hidden dir: {:?}&quot;</span>, <span class="ident">entry</span>.<span class="ident">path</span>());
+        }
+        <span class="ident">skip</span>
+    }
+
+    <span class="kw">fn</span> <span class="ident">on_skip_list</span>(<span class="ident">entry</span>: <span class="kw-2">&amp;</span><span class="ident">DirEntry</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">let</span> <span class="ident">skip</span> <span class="op">=</span> <span class="ident">entry</span>
+            .<span class="ident">file_name</span>()
+            .<span class="ident">to_str</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">FILES_TO_SKIP_ALWAYS</span>.<span class="ident">is_match</span>(<span class="ident">s</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">s</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;private&quot;</span>)
+            .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>);
+        <span class="kw">if</span> <span class="ident">skip</span> {
+            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;on skip list: {:?}&quot;</span>, <span class="ident">entry</span>.<span class="ident">path</span>());
+        }
+        <span class="ident">skip</span>
+    }
+
+    <span class="kw">fn</span> <span class="ident">contains_tmcignore</span>(<span class="ident">entry</span>: <span class="kw-2">&amp;</span><span class="ident">DirEntry</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir</span>::<span class="ident">new</span>(<span class="ident">entry</span>.<span class="ident">path</span>())
+            .<span class="ident">max_depth</span>(<span class="number">1</span>)
+            .<span class="ident">into_iter</span>()
+            .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">ok</span>())
+        {
+            <span class="kw">let</span> <span class="ident">is_file</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">metadata</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">is_file</span>()).<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>);
+            <span class="kw">if</span> <span class="ident">is_file</span> {
+                <span class="kw">let</span> <span class="ident">is_tmcignore</span> <span class="op">=</span> <span class="ident">entry</span>
+                    .<span class="ident">file_name</span>()
+                    .<span class="ident">to_str</span>()
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;.tmcignore&quot;</span>)
+                    .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>);
+                <span class="kw">if</span> <span class="ident">is_tmcignore</span> {
+                    <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;contains .tmcignore: {:?}&quot;</span>, <span class="ident">entry</span>.<span class="ident">path</span>());
+                    <span class="kw">return</span> <span class="bool-val">true</span>;
+                }
+            }
+        }
+        <span class="bool-val">false</span>
+    }
+
+    <span class="kw">for</span> <span class="ident">path</span> <span class="kw">in</span> <span class="ident">exercise_paths</span> {
+        <span class="kw">let</span> <span class="ident">skip_parts</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">components</span>().<span class="ident">count</span>(); <span class="comment">// used to get the relative path of files</span>
+        <span class="kw">let</span> <span class="ident">walker</span> <span class="op">=</span> <span class="ident">WalkDir</span>::<span class="ident">new</span>(<span class="ident">path</span>).<span class="ident">into_iter</span>();
+        <span class="comment">// silently skips over errors, for example when there&#39;s a directory we don&#39;t have permissions for</span>
+        <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">walker</span>
+            .<span class="ident">filter_entry</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="op">!</span><span class="ident">is_hidden_dir</span>(<span class="ident">e</span>) <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="ident">on_skip_list</span>(<span class="ident">e</span>) <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="op">!</span><span class="ident">contains_tmcignore</span>(<span class="ident">e</span>))
+            .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">ok</span>())
+        {
+            <span class="kw">let</span> <span class="ident">is_dir</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">metadata</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">is_dir</span>()).<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>);
+            <span class="kw">if</span> <span class="ident">is_dir</span> {
+                <span class="kw">continue</span>;
+            }
+            <span class="comment">// get relative path</span>
+            <span class="kw">let</span> <span class="ident">relative_path</span> <span class="op">=</span> <span class="ident">entry</span>
+                .<span class="ident">path</span>()
+                .<span class="ident">into_iter</span>()
+                .<span class="ident">skip</span>(<span class="ident">skip_parts</span>)
+                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>();
+            <span class="kw">let</span> <span class="ident">dest_path</span> <span class="op">=</span> <span class="ident">dest_root</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">relative_path</span>);
+            <span class="ident">dest_path</span>
+                .<span class="ident">parent</span>()
+                .<span class="ident">map_or</span>(<span class="prelude-val">Ok</span>(()), <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">fs</span>::<span class="ident">create_dir_all</span>(<span class="ident">p</span>))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">extension</span> <span class="op">=</span> <span class="ident">entry</span>
+                .<span class="ident">path</span>()
+                .<span class="ident">extension</span>()
+                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_str</span>())
+                .<span class="ident">unwrap_or</span>(<span class="string">&quot;&quot;</span>);
+            <span class="kw">let</span> <span class="ident">is_binary</span> <span class="op">=</span> <span class="ident">NON_TEXT_TYPES</span>.<span class="ident">is_match</span>(<span class="ident">extension</span>);
+            <span class="kw">if</span> <span class="ident">is_binary</span> {
+                <span class="comment">// copy binary files</span>
+                <span class="macro">debug</span><span class="macro">!</span>(
+                    <span class="string">&quot;copying binary file from {:?} to {:?}&quot;</span>,
+                    <span class="ident">entry</span>.<span class="ident">path</span>(),
+                    <span class="ident">dest_path</span>
+                );
+                <span class="ident">fs</span>::<span class="ident">copy</span>(<span class="ident">entry</span>.<span class="ident">path</span>(), <span class="ident">dest_path</span>)<span class="question-mark">?</span>;
+            } <span class="kw">else</span> {
+                <span class="comment">// filter text files</span>
+                <span class="macro">debug</span><span class="macro">!</span>(
+                    <span class="string">&quot;filtering text file from {:?} to {:?}&quot;</span>,
+                    <span class="ident">entry</span>.<span class="ident">path</span>(),
+                    <span class="ident">dest_path</span>
+                );
+                <span class="kw">let</span> <span class="ident">source_file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">open</span>(<span class="ident">entry</span>.<span class="ident">path</span>())<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">target_file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">create</span>(<span class="ident">dest_path</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">filter</span> <span class="op">=</span> <span class="ident">MetaSyntaxFilter</span>::<span class="ident">new</span>(<span class="ident">source_file</span>, <span class="ident">extension</span>);
+                <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">filter</span> {
+                    <span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">line</span><span class="question-mark">?</span>;
+                    <span class="ident">target_file</span>.<span class="ident">write_all</span>(<span class="ident">line</span>.<span class="ident">as_bytes</span>())<span class="question-mark">?</span>;
+                }
+            }
+        }
+    }
+
+    <span class="prelude-val">Ok</span>(())
+}
+
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashSet</span>;
+    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span>;
+    <span class="kw">use</span> <span class="ident">tempdir</span>::<span class="ident">TempDir</span>;
+
+    <span class="kw">const</span> <span class="ident">TESTDATA_ROOT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;testdata&quot;</span>;
+    <span class="kw">const</span> <span class="ident">BINARY_REL</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;dir/inner/binary.bin&quot;</span>;
+    <span class="kw">const</span> <span class="ident">TEXT_REL</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;dir/nonbinary.java&quot;</span>;
 
     <span class="kw">fn</span> <span class="ident">init</span>() {
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">env_logger</span>::<span class="ident">builder</span>().<span class="ident">is_test</span>(<span class="bool-val">true</span>).<span class="ident">try_init</span>();
     }
 
-    <span class="kw">const</span> <span class="ident">JAVA_FILE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;
-public class JavaTestCase {
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">prepare_solutions_preserves_structure</span>() {
+        <span class="ident">init</span>();
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercise_set</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+        <span class="ident">exercise_set</span>.<span class="ident">insert</span>(<span class="ident">TESTDATA_ROOT</span>.<span class="ident">into</span>());
+        <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">TempDir</span>::<span class="ident">new</span>(<span class="string">&quot;prepare_solutions_preserves_structure&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">temp_path</span> <span class="op">=</span> <span class="ident">temp</span>.<span class="ident">path</span>();
+
+        <span class="ident">prepare_solutions</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_set</span>, <span class="ident">temp_path</span>).<span class="ident">unwrap</span>();
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dest_files</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+        <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">walkdir</span>::<span class="ident">WalkDir</span>::<span class="ident">new</span>(<span class="ident">temp_path</span>) {
+            <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">unwrap</span>();
+            <span class="ident">dest_files</span>.<span class="ident">insert</span>(<span class="ident">entry</span>.<span class="ident">into_path</span>());
+        }
+
+        <span class="kw">let</span> <span class="ident">exp</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">temp_path</span>.<span class="ident">join</span>(<span class="ident">BINARY_REL</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(
+            <span class="ident">dest_files</span>.<span class="ident">contains</span>(<span class="ident">exp</span>),
+            <span class="string">&quot;{:?} did not contain {:?}&quot;</span>,
+            <span class="ident">dest_files</span>,
+            <span class="ident">exp</span>
+        );
+        <span class="kw">let</span> <span class="ident">exp</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">temp_path</span>.<span class="ident">join</span>(<span class="ident">TEXT_REL</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(
+            <span class="ident">dest_files</span>.<span class="ident">contains</span>(<span class="ident">exp</span>),
+            <span class="string">&quot;{:?} did not contain {:?}&quot;</span>,
+            <span class="ident">dest_files</span>,
+            <span class="ident">exp</span>
+        );
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">prepare_solutions_filters_text_files</span>() {
+        <span class="ident">init</span>();
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercise_set</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+        <span class="ident">exercise_set</span>.<span class="ident">insert</span>(<span class="ident">TESTDATA_ROOT</span>.<span class="ident">into</span>());
+        <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">TempDir</span>::<span class="ident">new</span>(<span class="string">&quot;prepare_solutions_filters_text_files&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">temp_path</span> <span class="op">=</span> <span class="ident">temp</span>.<span class="ident">path</span>();
+
+        <span class="ident">prepare_solutions</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_set</span>, <span class="ident">temp_path</span>).<span class="ident">unwrap</span>();
+
+        <span class="kw">let</span> <span class="ident">exp</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">temp_path</span>.<span class="ident">join</span>(<span class="ident">TEXT_REL</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">open</span>(<span class="ident">exp</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+        <span class="ident">file</span>.<span class="ident">read_to_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">r#&quot;public class JavaTestCase {
     public int foo() {
+        return 3;
+    }
+
+    public void bar() {
+        System.out.println(&quot;hello&quot;);
+    }
+
+    public int xoo() {
         return 3;
     }
 }
 &quot;#</span>;
-
-    <span class="kw">const</span> <span class="ident">JAVA_FILE_SOLUTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;
-/*    SOLUTION  FILE    */
-public class JavaTestCase {
-    // BEGIN SOLUTION
-    public int foo() {
-        return 3;
-    }
-    // END SOLUTION
-}
-&quot;#</span>;
-
-    <span class="kw">const</span> <span class="ident">JAVA_FILE_STUB</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;
-public class JavaTestCase {
-    public int foo() {
-        return 3;
-        // STUB: return 0;
-        /* STUB:
-            stubs
-            stubs
-        */
-    }
-}
-&quot;#</span>;
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">nothing_to_filter</span>() {
-        <span class="ident">init</span>();
-        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">JAVA_FILE</span>.<span class="ident">as_bytes</span>();
-        <span class="kw">let</span> <span class="ident">filter</span> <span class="op">=</span> <span class="ident">MetaSyntaxFilter</span>::<span class="ident">new</span>(<span class="ident">source</span>, <span class="string">&quot;java&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">filter</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">unwrap</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(), <span class="ident">JAVA_FILE</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>, <span class="ident">expected</span>, <span class="string">&quot;expected:\n{:#}\nfound:\n{:#}&quot;</span>, <span class="ident">expected</span>, <span class="ident">s</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">filter_solution_markers</span>() {
+    <span class="kw">fn</span> <span class="ident">prepare_solutions_does_not_filter_binary_files</span>() {
         <span class="ident">init</span>();
-        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">JAVA_FILE_SOLUTION</span>.<span class="ident">as_bytes</span>();
-        <span class="kw">let</span> <span class="ident">filter</span> <span class="op">=</span> <span class="ident">MetaSyntaxFilter</span>::<span class="ident">new</span>(<span class="ident">source</span>, <span class="string">&quot;java&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">filter</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">unwrap</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(), <span class="ident">JAVA_FILE</span>);
-    }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">filter_stubs</span>() {
-        <span class="ident">init</span>();
-        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">JAVA_FILE_STUB</span>.<span class="ident">as_bytes</span>();
-        <span class="kw">let</span> <span class="ident">filter</span> <span class="op">=</span> <span class="ident">MetaSyntaxFilter</span>::<span class="ident">new</span>(<span class="ident">source</span>, <span class="string">&quot;java&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">filter</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">unwrap</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(), <span class="ident">JAVA_FILE</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercise_set</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+        <span class="ident">exercise_set</span>.<span class="ident">insert</span>(<span class="ident">TESTDATA_ROOT</span>.<span class="ident">into</span>());
+        <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">TempDir</span>::<span class="ident">new</span>(<span class="string">&quot;prepare_solutions_does_not_filter_binary_files&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">temp_path</span> <span class="op">=</span> <span class="ident">temp</span>.<span class="ident">path</span>();
+
+        <span class="ident">prepare_solutions</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_set</span>, <span class="ident">temp_path</span>).<span class="ident">unwrap</span>();
+
+        <span class="kw">let</span> <span class="ident">original</span>: <span class="ident">PathBuf</span> <span class="op">=</span> [<span class="ident">TESTDATA_ROOT</span>, <span class="ident">BINARY_REL</span>].<span class="ident">iter</span>().<span class="ident">collect</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">original</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">open</span>(<span class="ident">original</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">original_s</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+        <span class="ident">original</span>.<span class="ident">read_to_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">original_s</span>).<span class="ident">unwrap</span>();
+
+        <span class="kw">let</span> <span class="ident">copied</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">temp_path</span>.<span class="ident">join</span>(<span class="ident">BINARY_REL</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">copied</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">open</span>(<span class="ident">copied</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">copied_s</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+        <span class="ident">copied</span>.<span class="ident">read_to_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">copied_s</span>).<span class="ident">unwrap</span>();
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">original_s</span>, <span class="ident">copied_s</span>,
+            <span class="string">&quot;expected:\n{:#}\nfound:\n{:#}&quot;</span>,
+            <span class="ident">copied_s</span>, <span class="ident">original_s</span>
+        );
     }
 }
 </pre></div>
