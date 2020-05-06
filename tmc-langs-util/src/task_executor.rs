@@ -7,6 +7,7 @@ use std::path::{Path, PathBuf};
 use tmc_langs_abstraction::ValidationResult;
 use tmc_langs_framework::{
     domain::{self, ExerciseDesc, ExercisePackagingConfiguration, RunResult},
+    io::zip,
     LanguagePlugin,
 };
 
@@ -35,51 +36,52 @@ pub fn prepare_stubs(
     domain::prepare_stubs(exercise_map, repo_path, dest_path)
 }
 
-pub fn run_check_code_style(path: PathBuf, locale: Language) -> ValidationResult {
+pub fn run_check_code_style(path: &Path, locale: Language) -> ValidationResult {
+    get_language_plugin(path).check_code_style(path, locale)
+}
+
+pub fn run_tests(path: &Path) -> RunResult {
+    get_language_plugin(path).run_tests(&path)
+}
+
+pub fn scan_exercise(path: &Path, exercise_name: String) -> Option<ExerciseDesc> {
+    get_language_plugin(path).scan_exercise(path, exercise_name)
+}
+
+pub fn is_exercise_root_directory(path: &Path) -> bool {
     todo!()
 }
 
-pub fn run_tests(path: PathBuf) -> RunResult {
-    todo!()
+pub fn extract_project(compressed_project: &Path, target_location: &Path) {
+    get_language_plugin(compressed_project).extract_project(compressed_project, target_location);
+    todo!("implement NoLanguagePluginFoundException")
 }
 
-pub fn scan_exercise(path: PathBuf, exercise_name: String) -> Option<ExerciseDesc> {
-    todo!()
+pub fn extract_project_overwrite(compressed_project: &Path, target_location: &Path) {
+    zip::student_file_aware_unzip((), compressed_project, target_location);
 }
 
-pub fn is_exercise_root_directory(path: PathBuf) -> bool {
-    todo!()
+pub fn compress_project(path: &Path) -> Vec<u8> {
+    get_language_plugin(path).compress_project(path)
 }
 
-pub fn extract_project(compressed_project: PathBuf, target_location: PathBuf) {
-    todo!()
-}
-
-pub fn extract_project_overwrite(compressed_project: PathBuf, target_location: PathBuf) {
-    todo!()
-}
-
-pub fn extract_and_rewrite_everything(compressed_project: PathBuf, target_location: PathBuf) {
-    todo!()
-}
-
-pub fn compress_project(path: PathBuf) -> Vec<u8> {
-    todo!()
-}
-
-pub fn get_exercise_packaging_configuration(path: PathBuf) -> ExercisePackagingConfiguration {
-    todo!()
+pub fn get_exercise_packaging_configuration(path: &Path) -> ExercisePackagingConfiguration {
+    get_language_plugin(path).get_exercise_packaging_configuration(path)
 }
 
 pub fn compress_tar_for_submitting(
-    project_dir: PathBuf,
-    tmc_langs: PathBuf,
-    tmcrun: PathBuf,
-    target_location: PathBuf,
+    project_dir: &Path,
+    tmc_langs: &Path,
+    tmcrun: &Path,
+    target_location: &Path,
 ) {
     todo!()
 }
 
-pub fn clean(path: PathBuf) {
+pub fn clean(path: &Path) {
+    get_language_plugin(path).clean(path);
+}
+
+fn get_language_plugin(path: &Path) -> Box<dyn LanguagePlugin> {
     todo!()
 }
