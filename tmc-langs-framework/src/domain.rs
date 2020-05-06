@@ -1,132 +1,19 @@
+mod meta_syntax;
+
 use lazy_static::lazy_static;
 use log::debug;
+use meta_syntax::MetaSyntaxFilter;
 use regex::Regex;
-use std::io::{self, BufRead, BufReader, Read};
+use std::fs::{self, File};
+use std::io::{self, Write};
+use std::path::{Path, PathBuf};
+use walkdir::{DirEntry, WalkDir};
 
 lazy_static! {
-    static ref META_SYNTAXES_C: [MetaSyntax; 2] =
-        [MetaSyntax::new("//", ""), MetaSyntax::new("/\\*", "\\*/")];
-    static ref META_SYNTAXES_HTML: [MetaSyntax; 1] = [MetaSyntax::new("<!--", "-->")];
-    static ref META_SYNTAXES_PY: [MetaSyntax; 1] = [MetaSyntax::new("#", "")];
-}
-
-#[derive(Debug)]
-struct MetaSyntax {
-    solution_file: Regex,
-    solution_begin: Regex,
-    solution_end: Regex,
-    stub_begin: Regex,
-    stub_end: Regex,
-}
-
-impl MetaSyntax {
-    fn new(comment_start: &'static str, comment_end: &'static str) -> Self {
-        let comment_start_pattern = format!("^\\s*{}\\s*", comment_start);
-        let comment_end_pattern = format!("\\s*{}\\s*$", comment_end);
-        let solution_file = Regex::new(&format!(
-            "{}SOLUTION\\s+FILE{}",
-            comment_start_pattern, comment_end_pattern
-        ))
-        .unwrap();
-        let solution_begin = Regex::new(&format!(
-            "{}BEGIN\\s+SOLUTION{}",
-            comment_start_pattern, comment_end_pattern
-        ))
-        .unwrap();
-        let solution_end = Regex::new(&format!(
-            "{}END\\s+SOLUTION{}",
-            comment_start_pattern, comment_end_pattern
-        ))
-        .unwrap();
-        let stub_begin = Regex::new(&format!("{}STUB", comment_start_pattern)).unwrap();
-        let stub_end = Regex::new(&comment_end_pattern).unwrap();
-
-        Self {
-            solution_file,
-            solution_begin,
-            solution_end,
-            stub_begin,
-            stub_end,
-        }
-    }
-}
-
-#[derive(Debug)]
-pub struct MetaSyntaxFilter<B: BufRead> {
-    meta_syntaxes: &'static [MetaSyntax],
-    reader: B,
-}
-
-impl<R: Read> MetaSyntaxFilter<BufReader<R>> {
-    pub fn new(target: R, target_extension: &str) -> Self {
-        let reader = BufReader::new(target);
-        let meta_syntaxes: &[MetaSyntax] = match target_extension {
-            "java" | "c" | "cpp" | "h" | "hpp" | "js" | "css" | "rs" | "qml" => &*META_SYNTAXES_C,
-            "xml" | "http" | "html" | "qrc" => &*META_SYNTAXES_HTML,
-            "properties" | "py" | "R" | "pro" => &*META_SYNTAXES_PY,
-            _ => &[],
-        };
-        Self {
-            meta_syntaxes,
-            reader,
-        }
-    }
-}
-
-impl<B: BufRead> Iterator for MetaSyntaxFilter<B> {
-    type Item = Result<String, io::Error>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        // read lines until a non-skipped line is found or the reader is empty
-        'next_line: loop {
-            let mut s = String::new();
-            match self.reader.read_line(&mut s) {
-                // read 0 bytes = reader empty = iterator empty
-                Ok(0) => return None,
-                Ok(_) => {
-                    // check line with each meta syntax
-                    for meta_syntax in self.meta_syntaxes {
-                        if meta_syntax.stub_begin.is_match(&s) {
-                            // in STUB block
-                            debug!("stub start: {}", s);
-                            if meta_syntax.stub_end.is_match(&s) {
-                                // oneliner
-                                debug!("stub end: {}", s);
-                                continue 'next_line;
-                            }
-                            // skip STUB block
-                            loop {
-                                match self.reader.read_line(&mut s) {
-                                    Ok(0) => return None,
-                                    Ok(_) => {
-                                        if meta_syntax.stub_end.is_match(&s) {
-                                            debug!("stub end: {}", s);
-                                            continue 'next_line;
-                                        }
-                                        debug!("skip stub: {}", s);
-                                    }
-                                    Err(err) => return Some(Err(err)),
-                                }
-                            }
-                        }
-                        debug!("{}", meta_syntax.solution_file.as_str());
-                        if meta_syntax.solution_file.is_match(&s)
-                            | meta_syntax.solution_begin.is_match(&s)
-                            | meta_syntax.solution_end.is_match(&s)
-                        {
-                            debug!("skip solution: {}", s);
-                            // skip SOLUTION_FILE / SOLUTION_BEGIN / SOLUTION_END lines
-                            continue 'next_line;
-                        }
-                    }
-                    // not filtered by any syntax
-                    debug!("OK: {}", s);
-                    return Some(Ok(s));
-                }
-                Err(err) => return Some(Err(err)),
-            }
-        }
-    }
+    static ref FILES_TO_SKIP_ALWAYS: Regex =
+        Regex::new("\\.tmcrc|metadata\\.yml|(.*)Hidden(.*)").unwrap();
+    static ref NON_TEXT_TYPES: Regex =
+        Regex::new("class|jar|exe|jpg|jpeg|gif|png|zip|tar|gz|db|bin|csv|tsv|^$").unwrap();
 }
 
 pub struct TestDesc {}
@@ -139,67 +26,222 @@ pub struct ValidationResult {}
 
 pub struct ExercisePackagingConfiguration {}
 
+/// Walks through each path in ```exercise_map```, processing files and copying them into ```dest_path```.
+/// Skips hidden directories, directories that contain a ```.tmcignore``` file in their root, as well as files matching patterns defined in ```FILES_TO_SKIP_ALWAYS``` and directories and files named ```private```.
+/// Binary files are copied without extra processing, while text files have solution tags and stubs removed.
+pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
+    exercise_paths: I,
+    dest_root: &Path,
+) -> io::Result<()> {
+    fn is_hidden_dir(entry: &DirEntry) -> bool {
+        let skip = entry.metadata().map(|e| e.is_dir()).unwrap_or(false)
+            && entry
+                .file_name()
+                .to_str()
+                .map(|s| s.starts_with("."))
+                .unwrap_or(false);
+        if skip {
+            debug!("is hidden dir: {:?}", entry.path());
+        }
+        skip
+    }
+
+    fn on_skip_list(entry: &DirEntry) -> bool {
+        let skip = entry
+            .file_name()
+            .to_str()
+            .map(|s| FILES_TO_SKIP_ALWAYS.is_match(s) || s == "private")
+            .unwrap_or(false);
+        if skip {
+            debug!("on skip list: {:?}", entry.path());
+        }
+        skip
+    }
+
+    fn contains_tmcignore(entry: &DirEntry) -> bool {
+        for entry in WalkDir::new(entry.path())
+            .max_depth(1)
+            .into_iter()
+            .filter_map(|e| e.ok())
+        {
+            let is_file = entry.metadata().map(|e| e.is_file()).unwrap_or(false);
+            if is_file {
+                let is_tmcignore = entry
+                    .file_name()
+                    .to_str()
+                    .map(|s| s == ".tmcignore")
+                    .unwrap_or(false);
+                if is_tmcignore {
+                    debug!("contains .tmcignore: {:?}", entry.path());
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    for path in exercise_paths {
+        let skip_parts = path.components().count(); // used to get the relative path of files
+        let walker = WalkDir::new(path).into_iter();
+        // silently skips over errors, for example when there's a directory we don't have permissions for
+        for entry in walker
+            .filter_entry(|e| !is_hidden_dir(e) && !on_skip_list(e) && !contains_tmcignore(e))
+            .filter_map(|e| e.ok())
+        {
+            let is_dir = entry.metadata().map(|e| e.is_dir()).unwrap_or(false);
+            if is_dir {
+                continue;
+            }
+            // get relative path
+            let relative_path = entry
+                .path()
+                .into_iter()
+                .skip(skip_parts)
+                .collect::<PathBuf>();
+            let dest_path = dest_root.join(&relative_path);
+            dest_path
+                .parent()
+                .map_or(Ok(()), |p| fs::create_dir_all(p))?;
+            let extension = entry
+                .path()
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("");
+            let is_binary = NON_TEXT_TYPES.is_match(extension);
+            if is_binary {
+                // copy binary files
+                debug!(
+                    "copying binary file from {:?} to {:?}",
+                    entry.path(),
+                    dest_path
+                );
+                fs::copy(entry.path(), dest_path)?;
+            } else {
+                // filter text files
+                debug!(
+                    "filtering text file from {:?} to {:?}",
+                    entry.path(),
+                    dest_path
+                );
+                let source_file = File::open(entry.path())?;
+                let mut target_file = File::create(dest_path)?;
+                let filter = MetaSyntaxFilter::new(source_file, extension);
+                for line in filter {
+                    let line = line?;
+                    target_file.write_all(line.as_bytes())?;
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::collections::HashSet;
+    use std::io::Read;
+    use tempdir::TempDir;
+
+    const TESTDATA_ROOT: &str = "testdata";
+    const BINARY_REL: &str = "dir/inner/binary.bin";
+    const TEXT_REL: &str = "dir/nonbinary.java";
 
     fn init() {
         let _ = env_logger::builder().is_test(true).try_init();
     }
 
-    const JAVA_FILE: &'static str = r#"
-public class JavaTestCase {
+    #[test]
+    fn prepare_solutions_preserves_structure() {
+        init();
+
+        let mut exercise_set = HashSet::new();
+        exercise_set.insert(TESTDATA_ROOT.into());
+        let temp = TempDir::new("prepare_solutions_preserves_structure").unwrap();
+        let temp_path = temp.path();
+
+        prepare_solutions(&exercise_set, temp_path).unwrap();
+
+        let mut dest_files = HashSet::new();
+        for entry in walkdir::WalkDir::new(temp_path) {
+            let entry = entry.unwrap();
+            dest_files.insert(entry.into_path());
+        }
+
+        let exp = &temp_path.join(BINARY_REL);
+        assert!(
+            dest_files.contains(exp),
+            "{:?} did not contain {:?}",
+            dest_files,
+            exp
+        );
+        let exp = &temp_path.join(TEXT_REL);
+        assert!(
+            dest_files.contains(exp),
+            "{:?} did not contain {:?}",
+            dest_files,
+            exp
+        );
+    }
+
+    #[test]
+    fn prepare_solutions_filters_text_files() {
+        init();
+
+        let mut exercise_set = HashSet::new();
+        exercise_set.insert(TESTDATA_ROOT.into());
+        let temp = TempDir::new("prepare_solutions_filters_text_files").unwrap();
+        let temp_path = temp.path();
+
+        prepare_solutions(&exercise_set, temp_path).unwrap();
+
+        let exp = &temp_path.join(TEXT_REL);
+        let mut file = File::open(exp).unwrap();
+        let mut s = String::new();
+        file.read_to_string(&mut s).unwrap();
+        let expected = r#"public class JavaTestCase {
     public int foo() {
+        return 3;
+    }
+
+    public void bar() {
+        System.out.println("hello");
+    }
+
+    public int xoo() {
         return 3;
     }
 }
 "#;
-
-    const JAVA_FILE_SOLUTION: &'static str = r#"
-/*    SOLUTION  FILE    */
-public class JavaTestCase {
-    // BEGIN SOLUTION
-    public int foo() {
-        return 3;
-    }
-    // END SOLUTION
-}
-"#;
-
-    const JAVA_FILE_STUB: &'static str = r#"
-public class JavaTestCase {
-    public int foo() {
-        return 3;
-        // STUB: return 0;
-        /* STUB:
-            stubs
-            stubs
-        */
-    }
-}
-"#;
-
-    #[test]
-    fn nothing_to_filter() {
-        init();
-        let source = JAVA_FILE.as_bytes();
-        let filter = MetaSyntaxFilter::new(source, "java");
-        assert_eq!(filter.map(|l| l.unwrap()).collect::<String>(), JAVA_FILE);
+        assert_eq!(s, expected, "expected:\n{:#}\nfound:\n{:#}", expected, s);
     }
 
     #[test]
-    fn filter_solution_markers() {
+    fn prepare_solutions_does_not_filter_binary_files() {
         init();
-        let source = JAVA_FILE_SOLUTION.as_bytes();
-        let filter = MetaSyntaxFilter::new(source, "java");
-        assert_eq!(filter.map(|l| l.unwrap()).collect::<String>(), JAVA_FILE);
-    }
 
-    #[test]
-    fn filter_stubs() {
-        init();
-        let source = JAVA_FILE_STUB.as_bytes();
-        let filter = MetaSyntaxFilter::new(source, "java");
-        assert_eq!(filter.map(|l| l.unwrap()).collect::<String>(), JAVA_FILE);
+        let mut exercise_set = HashSet::new();
+        exercise_set.insert(TESTDATA_ROOT.into());
+        let temp = TempDir::new("prepare_solutions_does_not_filter_binary_files").unwrap();
+        let temp_path = temp.path();
+
+        prepare_solutions(&exercise_set, temp_path).unwrap();
+
+        let original: PathBuf = [TESTDATA_ROOT, BINARY_REL].iter().collect();
+        let mut original = File::open(original).unwrap();
+        let mut original_s = String::new();
+        original.read_to_string(&mut original_s).unwrap();
+
+        let copied = &temp_path.join(BINARY_REL);
+        let mut copied = File::open(copied).unwrap();
+        let mut copied_s = String::new();
+        copied.read_to_string(&mut copied_s).unwrap();
+
+        assert_eq!(
+            original_s, copied_s,
+            "expected:\n{:#}\nfound:\n{:#}",
+            copied_s, original_s
+        );
     }
 }
