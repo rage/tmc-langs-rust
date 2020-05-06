@@ -23,8 +23,8 @@ lazy_static! {
 /// Walks through each path in ```exercise_map```, processing files and copying them into ```dest_path```.
 /// Skips hidden directories, directories that contain a ```.tmcignore``` file in their root, as well as files matching patterns defined in ```FILES_TO_SKIP_ALWAYS``` and directories and files named ```private```.
 /// Binary files are copied without extra processing, while text files have solution tags and stubs removed.
-pub fn prepare_solutions(
-    exercise_map: HashMap<PathBuf, Box<dyn LanguagePlugin>>,
+pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
+    exercise_paths: I,
     dest_root: &Path,
 ) -> io::Result<()> {
     fn is_hidden_dir(entry: &DirEntry) -> bool {
@@ -74,7 +74,7 @@ pub fn prepare_solutions(
         false
     }
 
-    for path in exercise_map.keys() {
+    for path in exercise_paths {
         let skip_parts = path.components().count(); // used to get the relative path of files
         let walker = WalkDir::new(path).into_iter();
         // silently skips over errors, for example when there's a directory we don't have permissions for
@@ -211,13 +211,12 @@ mod test {
     fn prepare_solutions_preserves_structure() {
         init();
 
-        let mut exercise_map = HashMap::new();
-        let plugin: Box<dyn LanguagePlugin> = Box::new(MockPlugin {});
-        exercise_map.insert(TESTDATA_ROOT.into(), plugin);
-        let temp = TempDir::new("prepares_solutions").unwrap();
+        let mut exercise_set = HashSet::new();
+        exercise_set.insert(TESTDATA_ROOT.into());
+        let temp = TempDir::new("prepare_solutions_preserves_structure").unwrap();
         let temp_path = temp.path();
 
-        prepare_solutions(exercise_map, temp_path).unwrap();
+        prepare_solutions(&exercise_set, temp_path).unwrap();
 
         let mut dest_files = HashSet::new();
         for entry in walkdir::WalkDir::new(temp_path) {
@@ -245,13 +244,12 @@ mod test {
     fn prepare_solutions_filters_text_files() {
         init();
 
-        let mut exercise_map = HashMap::new();
-        let plugin: Box<dyn LanguagePlugin> = Box::new(MockPlugin {});
-        exercise_map.insert(TESTDATA_ROOT.into(), plugin);
+        let mut exercise_set = HashSet::new();
+        exercise_set.insert(TESTDATA_ROOT.into());
         let temp = TempDir::new("prepare_solutions_filters_text_files").unwrap();
         let temp_path = temp.path();
 
-        prepare_solutions(exercise_map, temp_path).unwrap();
+        prepare_solutions(&exercise_set, temp_path).unwrap();
 
         let exp = &temp_path.join(TEXT_REL);
         let mut file = File::open(exp).unwrap();
@@ -278,13 +276,12 @@ mod test {
     fn prepare_solutions_does_not_filter_binary_files() {
         init();
 
-        let mut exercise_map = HashMap::new();
-        let plugin: Box<dyn LanguagePlugin> = Box::new(MockPlugin {});
-        exercise_map.insert(TESTDATA_ROOT.into(), plugin);
-        let temp = TempDir::new("prepares_solutions").unwrap();
+        let mut exercise_set = HashSet::new();
+        exercise_set.insert(TESTDATA_ROOT.into());
+        let temp = TempDir::new("prepare_solutions_does_not_filter_binary_files").unwrap();
         let temp_path = temp.path();
 
-        prepare_solutions(exercise_map, temp_path).unwrap();
+        prepare_solutions(&exercise_set, temp_path).unwrap();
 
         let original: PathBuf = [TESTDATA_ROOT, BINARY_REL].iter().collect();
         let mut original = File::open(original).unwrap();
