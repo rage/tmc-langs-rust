@@ -1,4 +1,5 @@
 pub mod domain;
+pub mod io;
 
 use domain::{ExerciseDesc, ExercisePackagingConfiguration, RunResult};
 use isolang::Language;
