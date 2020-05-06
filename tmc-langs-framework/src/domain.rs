@@ -169,7 +169,8 @@ pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
 
 /// Walks through each path in ```exercise_map```, processing files and copying them into ```dest_path```.
 /// Skips hidden directories, directories that contain a ```.tmcignore``` file in their root, as well as files matching patterns defined in ```FILES_TO_SKIP_ALWAYS``` and directories and files named ```private```.
-/// Binary files are copied without extra processing, while text files have solution tags and stubs removed.
+/// Binary files are copied without extra processing, while text files have stub tags and solutions removed.
+/// Additionally, may copy some shared files with the language plugin.
 pub fn prepare_stubs(
     exercise_map: HashMap<PathBuf, Box<dyn LanguagePlugin>>,
     repo_path: &Path,
