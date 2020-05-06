@@ -193,17 +193,125 @@
 <span id="193">193</span>
 <span id="194">194</span>
 <span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">lazy_static</span>::<span class="ident">lazy_static</span>;
 <span class="kw">use</span> <span class="ident">log</span>::<span class="ident">debug</span>;
-<span class="kw">use</span> <span class="ident">regex</span>::<span class="ident">Regex</span>;
+<span class="kw">use</span> <span class="ident">regex</span>::{<span class="ident">Captures</span>, <span class="ident">Regex</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">BufRead</span>, <span class="ident">BufReader</span>, <span class="ident">Read</span>};
 
 <span class="macro">lazy_static</span><span class="macro">!</span> {
-    <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">META_SYNTAXES_C</span>: [<span class="ident">MetaSyntax</span>; <span class="number">2</span>] <span class="op">=</span>
-        [<span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;//&quot;</span>, <span class="string">&quot;&quot;</span>), <span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;/\\*&quot;</span>, <span class="string">&quot;\\*/&quot;</span>)];
-    <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">META_SYNTAXES_HTML</span>: [<span class="ident">MetaSyntax</span>; <span class="number">1</span>] <span class="op">=</span> [<span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;&lt;!--&quot;</span>, <span class="string">&quot;--&gt;&quot;</span>)];
-    <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">META_SYNTAXES_PY</span>: [<span class="ident">MetaSyntax</span>; <span class="number">1</span>] <span class="op">=</span> [<span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;#&quot;</span>, <span class="string">&quot;&quot;</span>)];
+    <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">META_SYNTAXES_C</span>: [<span class="ident">MetaSyntax</span>; <span class="number">2</span>] <span class="op">=</span> [
+        <span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;//&quot;</span>, <span class="prelude-val">None</span>),
+        <span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;/\\*&quot;</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;\\*/&quot;</span>))
+    ];
+    <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">META_SYNTAXES_HTML</span>: [<span class="ident">MetaSyntax</span>; <span class="number">1</span>] <span class="op">=</span> [<span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;&lt;!--&quot;</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;--&gt;&quot;</span>))];
+    <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">META_SYNTAXES_PY</span>: [<span class="ident">MetaSyntax</span>; <span class="number">1</span>] <span class="op">=</span> [<span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;#&quot;</span>, <span class="prelude-val">None</span>)];
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MetaString</span> {
+    <span class="ident">String</span>(<span class="ident">String</span>),
+    <span class="ident">Stub</span>(<span class="ident">String</span>),
+    <span class="ident">Solution</span>(<span class="ident">String</span>),
+}
+
+<span class="kw">impl</span> <span class="ident">MetaString</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="self">Self</span>::<span class="ident">String</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">s</span>,
+            <span class="self">Self</span>::<span class="ident">Stub</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">s</span>,
+            <span class="self">Self</span>::<span class="ident">Solution</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">s</span>,
+        }
+    }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -216,9 +324,12 @@
 }
 
 <span class="kw">impl</span> <span class="ident">MetaSyntax</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">comment_start</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">comment_end</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">comment_start_pattern</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;^\\s*{}\\s*&quot;</span>, <span class="ident">comment_start</span>);
-        <span class="kw">let</span> <span class="ident">comment_end_pattern</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;\\s*{}\\s*$&quot;</span>, <span class="ident">comment_end</span>);
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">comment_start</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">comment_end</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">comment_start_pattern</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;^(\\s*){}\\s*&quot;</span>, <span class="ident">comment_start</span>);
+        <span class="kw">let</span> <span class="ident">comment_end_pattern</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">comment_end</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;(.*){}\\s*&quot;</span>, <span class="ident">s</span>),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;(.*)&quot;</span>.<span class="ident">to_string</span>(),
+        };
         <span class="kw">let</span> <span class="ident">solution_file</span> <span class="op">=</span> <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
             <span class="string">&quot;{}SOLUTION\\s+FILE{}&quot;</span>,
             <span class="ident">comment_start_pattern</span>, <span class="ident">comment_end_pattern</span>
@@ -234,7 +345,7 @@
             <span class="ident">comment_start_pattern</span>, <span class="ident">comment_end_pattern</span>
         ))
         .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">stub_begin</span> <span class="op">=</span> <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}STUB&quot;</span>, <span class="ident">comment_start_pattern</span>)).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">stub_begin</span> <span class="op">=</span> <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}STUB:\\s*&quot;</span>, <span class="ident">comment_start_pattern</span>)).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">stub_end</span> <span class="op">=</span> <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">comment_end_pattern</span>).<span class="ident">unwrap</span>();
 
         <span class="self">Self</span> {
@@ -248,12 +359,14 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MetaSyntaxFilter</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">BufRead</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MetaSyntaxParser</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">BufRead</span><span class="op">&gt;</span> {
     <span class="ident">meta_syntaxes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">MetaSyntax</span>],
     <span class="ident">reader</span>: <span class="ident">B</span>,
+    <span class="ident">in_stub</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">MetaSyntax</span><span class="op">&gt;</span>,
+    <span class="ident">in_solution</span>: <span class="ident">bool</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">MetaSyntaxFilter</span><span class="op">&lt;</span><span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">MetaSyntaxParser</span><span class="op">&lt;</span><span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">target</span>: <span class="ident">R</span>, <span class="ident">target_extension</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader</span>::<span class="ident">new</span>(<span class="ident">target</span>);
         <span class="kw">let</span> <span class="ident">meta_syntaxes</span>: <span class="kw-2">&amp;</span>[<span class="ident">MetaSyntax</span>] <span class="op">=</span> <span class="kw">match</span> <span class="ident">target_extension</span> {
@@ -265,62 +378,79 @@
         <span class="self">Self</span> {
             <span class="ident">meta_syntaxes</span>,
             <span class="ident">reader</span>,
+            <span class="ident">in_stub</span>: <span class="prelude-val">None</span>,
+            <span class="ident">in_solution</span>: <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">BufRead</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">MetaSyntaxFilter</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span>;
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">BufRead</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">MetaSyntaxParser</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MetaString</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
-        <span class="comment">// read lines until a non-skipped line is found or the reader is empty</span>
-        <span class="lifetime">&#39;next_line</span>: <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">read_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>) {
-                <span class="comment">// read 0 bytes = reader empty = iterator empty</span>
-                <span class="prelude-val">Ok</span>(<span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="comment">// check line with each meta syntax</span>
-                    <span class="kw">for</span> <span class="ident">meta_syntax</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">meta_syntaxes</span> {
-                        <span class="kw">if</span> <span class="ident">meta_syntax</span>.<span class="ident">stub_begin</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>) {
-                            <span class="comment">// in STUB block</span>
-                            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stub start: {}&quot;</span>, <span class="ident">s</span>);
-                            <span class="kw">if</span> <span class="ident">meta_syntax</span>.<span class="ident">stub_end</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>) {
-                                <span class="comment">// oneliner</span>
-                                <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stub end: {}&quot;</span>, <span class="ident">s</span>);
-                                <span class="kw">continue</span> <span class="lifetime">&#39;next_line</span>;
-                            }
-                            <span class="comment">// skip STUB block</span>
-                            <span class="kw">loop</span> {
-                                <span class="kw">match</span> <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">read_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>) {
-                                    <span class="prelude-val">Ok</span>(<span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-                                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                                        <span class="kw">if</span> <span class="ident">meta_syntax</span>.<span class="ident">stub_end</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>) {
-                                            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stub end: {}&quot;</span>, <span class="ident">s</span>);
-                                            <span class="kw">continue</span> <span class="lifetime">&#39;next_line</span>;
-                                        }
-                                        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;skip stub: {}&quot;</span>, <span class="ident">s</span>);
-                                    }
-                                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)),
-                                }
-                            }
-                        }
-                        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">meta_syntax</span>.<span class="ident">solution_file</span>.<span class="ident">as_str</span>());
-                        <span class="kw">if</span> <span class="ident">meta_syntax</span>.<span class="ident">solution_file</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>)
-                            <span class="op">|</span> <span class="ident">meta_syntax</span>.<span class="ident">solution_begin</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>)
-                            <span class="op">|</span> <span class="ident">meta_syntax</span>.<span class="ident">solution_end</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>)
-                        {
-                            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;skip solution: {}&quot;</span>, <span class="ident">s</span>);
-                            <span class="comment">// skip SOLUTION_FILE / SOLUTION_BEGIN / SOLUTION_END lines</span>
-                            <span class="kw">continue</span> <span class="lifetime">&#39;next_line</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">read_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>) {
+            <span class="comment">// read 0 bytes = reader empty = iterator empty</span>
+            <span class="prelude-val">Ok</span>(<span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// check line with each meta syntax</span>
+                <span class="kw">for</span> <span class="ident">meta_syntax</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">meta_syntaxes</span> {
+                    <span class="comment">// stub</span>
+                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">in_stub</span>.<span class="ident">is_none</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">meta_syntax</span>.<span class="ident">stub_begin</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>) {
+                        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stub start: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
+                        <span class="self">self</span>.<span class="ident">in_stub</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">meta_syntax</span>);
+                        <span class="comment">// remove stub start</span>
+                        <span class="ident">s</span> <span class="op">=</span> <span class="ident">meta_syntax</span>
+                            .<span class="ident">stub_begin</span>
+                            .<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>, <span class="op">|</span><span class="ident">caps</span>: <span class="kw-2">&amp;</span><span class="ident">Captures</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">caps</span>[<span class="number">1</span>]))
+                            .<span class="ident">to_string</span>();
+                        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;parsed: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
+                        <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">trim</span>().<span class="ident">is_empty</span>() {
+                            <span class="comment">// only metadata</span>
+                            <span class="kw">return</span> <span class="self">self</span>.<span class="ident">next</span>();
                         }
                     }
-                    <span class="comment">// not filtered by any syntax</span>
-                    <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;OK: {}&quot;</span>, <span class="ident">s</span>);
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">s</span>));
+                    <span class="kw">if</span> <span class="ident">meta_syntax</span>.<span class="ident">stub_end</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>)
+                        <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">in_stub</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">stub_begin</span>.<span class="ident">as_str</span>())
+                            <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">meta_syntax</span>.<span class="ident">stub_begin</span>.<span class="ident">as_str</span>())
+                    {
+                        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stub end: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
+                        <span class="self">self</span>.<span class="ident">in_stub</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                        <span class="ident">s</span> <span class="op">=</span> <span class="ident">meta_syntax</span>
+                            .<span class="ident">stub_end</span>
+                            .<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>, <span class="op">|</span><span class="ident">caps</span>: <span class="kw-2">&amp;</span><span class="ident">Captures</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">caps</span>[<span class="number">1</span>]))
+                            .<span class="ident">to_string</span>();
+                        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;parsed: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
+                        <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">trim</span>().<span class="ident">is_empty</span>() {
+                            <span class="comment">// only metadata</span>
+                            <span class="kw">return</span> <span class="self">self</span>.<span class="ident">next</span>();
+                        }
+                        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">MetaString</span>::<span class="ident">Stub</span>(<span class="ident">s</span>)));
+                    }
+
+                    <span class="comment">// solution</span>
+                    <span class="kw">if</span> <span class="ident">meta_syntax</span>.<span class="ident">solution_file</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>) {
+                        <span class="kw">return</span> <span class="self">self</span>.<span class="ident">next</span>();
+                    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">meta_syntax</span>.<span class="ident">solution_begin</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>) {
+                        <span class="self">self</span>.<span class="ident">in_solution</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                        <span class="kw">return</span> <span class="self">self</span>.<span class="ident">next</span>();
+                    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">meta_syntax</span>.<span class="ident">solution_end</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>) <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">in_solution</span> {
+                        <span class="self">self</span>.<span class="ident">in_solution</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                        <span class="kw">return</span> <span class="self">self</span>.<span class="ident">next</span>();
+                    }
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)),
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">in_solution</span> {
+                    <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;solution: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">MetaString</span>::<span class="ident">Solution</span>(<span class="ident">s</span>)));
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">in_stub</span>.<span class="ident">is_some</span>() {
+                    <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stub: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">MetaString</span>::<span class="ident">Stub</span>(<span class="ident">s</span>)));
+                } <span class="kw">else</span> {
+                    <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;string: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">MetaString</span>::<span class="ident">String</span>(<span class="ident">s</span>)));
+                }
             }
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)),
         }
     }
 }
@@ -333,15 +463,51 @@
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">env_logger</span>::<span class="ident">builder</span>().<span class="ident">is_test</span>(<span class="bool-val">true</span>).<span class="ident">try_init</span>();
     }
 
-    <span class="kw">const</span> <span class="ident">JAVA_FILE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;
+    <span class="kw">impl</span> <span class="ident">MetaString</span> {
+        <span class="kw">fn</span> <span class="ident">str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="self">Self</span>::<span class="ident">String</span>(<span class="ident">s</span>.<span class="ident">to_string</span>())
+        }
+
+        <span class="kw">fn</span> <span class="ident">solution</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="self">Self</span>::<span class="ident">Solution</span>(<span class="ident">s</span>.<span class="ident">to_string</span>())
+        }
+
+        <span class="kw">fn</span> <span class="ident">stub</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="self">Self</span>::<span class="ident">Stub</span>(<span class="ident">s</span>.<span class="ident">to_string</span>())
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">parse_simple</span>() {
+        <span class="ident">init</span>();
+
+        <span class="kw">const</span> <span class="ident">JAVA_FILE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;
 public class JavaTestCase {
     public int foo() {
         return 3;
     }
 }
 &quot;#</span>;
+        <span class="kw">let</span> <span class="ident">expected</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MetaString</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[
+            <span class="ident">MetaString</span>::<span class="ident">str</span>(<span class="string">&quot;\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">str</span>(<span class="string">&quot;public class JavaTestCase {\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">str</span>(<span class="string">&quot;    public int foo() {\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">str</span>(<span class="string">&quot;        return 3;\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">str</span>(<span class="string">&quot;    }\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">str</span>(<span class="string">&quot;}\n&quot;</span>),
+        ];
 
-    <span class="kw">const</span> <span class="ident">JAVA_FILE_SOLUTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;
+        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">JAVA_FILE</span>.<span class="ident">as_bytes</span>();
+        <span class="kw">let</span> <span class="ident">filter</span> <span class="op">=</span> <span class="ident">MetaSyntaxParser</span>::<span class="ident">new</span>(<span class="ident">source</span>, <span class="string">&quot;java&quot;</span>);
+        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">filter</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">unwrap</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MetaString</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">expected</span>, <span class="ident">actual</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">parse_solution</span>() {
+        <span class="ident">init</span>();
+
+        <span class="kw">const</span> <span class="ident">JAVA_FILE_SOLUTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;
 /*    SOLUTION  FILE    */
 public class JavaTestCase {
     // BEGIN SOLUTION
@@ -351,42 +517,54 @@ public class JavaTestCase {
     // END SOLUTION
 }
 &quot;#</span>;
+        <span class="kw">let</span> <span class="ident">expected</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MetaString</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[
+            <span class="ident">MetaString</span>::<span class="ident">str</span>(<span class="string">&quot;\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">str</span>(<span class="string">&quot;public class JavaTestCase {\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">solution</span>(<span class="string">&quot;    public int foo() {\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">solution</span>(<span class="string">&quot;        return 3;\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">solution</span>(<span class="string">&quot;    }\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">str</span>(<span class="string">&quot;}\n&quot;</span>),
+        ];
 
-    <span class="kw">const</span> <span class="ident">JAVA_FILE_STUB</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;
+        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">JAVA_FILE_SOLUTION</span>.<span class="ident">as_bytes</span>();
+        <span class="kw">let</span> <span class="ident">filter</span> <span class="op">=</span> <span class="ident">MetaSyntaxParser</span>::<span class="ident">new</span>(<span class="ident">source</span>, <span class="string">&quot;java&quot;</span>);
+        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">filter</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">unwrap</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MetaString</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">expected</span>, <span class="ident">actual</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">parse_stubs</span>() {
+        <span class="ident">init</span>();
+
+        <span class="kw">const</span> <span class="ident">JAVA_FILE_STUB</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;
 public class JavaTestCase {
     public int foo() {
         return 3;
         // STUB: return 0;
         /* STUB:
-            stubs
-            stubs
+        stubs
+        stubs
         */
     }
 }
 &quot;#</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">nothing_to_filter</span>() {
-        <span class="ident">init</span>();
-        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">JAVA_FILE</span>.<span class="ident">as_bytes</span>();
-        <span class="kw">let</span> <span class="ident">filter</span> <span class="op">=</span> <span class="ident">MetaSyntaxFilter</span>::<span class="ident">new</span>(<span class="ident">source</span>, <span class="string">&quot;java&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">filter</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">unwrap</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(), <span class="ident">JAVA_FILE</span>);
-    }
+        <span class="kw">let</span> <span class="ident">expected</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MetaString</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[
+            <span class="ident">MetaString</span>::<span class="ident">str</span>(<span class="string">&quot;\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">str</span>(<span class="string">&quot;public class JavaTestCase {\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">str</span>(<span class="string">&quot;    public int foo() {\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">str</span>(<span class="string">&quot;        return 3;\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">stub</span>(<span class="string">&quot;        return 0;\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">stub</span>(<span class="string">&quot;        stubs\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">stub</span>(<span class="string">&quot;        stubs\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">str</span>(<span class="string">&quot;    }\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">str</span>(<span class="string">&quot;}\n&quot;</span>),
+        ];
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">filter_solution_markers</span>() {
-        <span class="ident">init</span>();
-        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">JAVA_FILE_SOLUTION</span>.<span class="ident">as_bytes</span>();
-        <span class="kw">let</span> <span class="ident">filter</span> <span class="op">=</span> <span class="ident">MetaSyntaxFilter</span>::<span class="ident">new</span>(<span class="ident">source</span>, <span class="string">&quot;java&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">filter</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">unwrap</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(), <span class="ident">JAVA_FILE</span>);
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">filter_stubs</span>() {
-        <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">JAVA_FILE_STUB</span>.<span class="ident">as_bytes</span>();
-        <span class="kw">let</span> <span class="ident">filter</span> <span class="op">=</span> <span class="ident">MetaSyntaxFilter</span>::<span class="ident">new</span>(<span class="ident">source</span>, <span class="string">&quot;java&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">filter</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">unwrap</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(), <span class="ident">JAVA_FILE</span>);
+        <span class="kw">let</span> <span class="ident">filter</span> <span class="op">=</span> <span class="ident">MetaSyntaxParser</span>::<span class="ident">new</span>(<span class="ident">source</span>, <span class="string">&quot;java&quot;</span>);
+        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">filter</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">unwrap</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MetaString</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">expected</span>, <span class="ident">actual</span>);
     }
 }
 </pre></div>
