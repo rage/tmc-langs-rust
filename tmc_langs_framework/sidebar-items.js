@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["domain",""]],"trait":[["LanguagePlugin",""]]});
+initSidebarItems({"mod":[["domain",""],["io",""]],"trait":[["LanguagePlugin",""]]});

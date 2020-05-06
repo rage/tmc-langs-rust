@@ -83,6 +83,8 @@
 <span id="83">83</span>
 <span id="84">84</span>
 <span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">isolang</span>::<span class="ident">Language</span>;
 <span class="kw">use</span> <span class="ident">lazy_static</span>::<span class="ident">lazy_static</span>;
@@ -93,6 +95,7 @@
 <span class="kw">use</span> <span class="ident">tmc_langs_abstraction</span>::<span class="ident">ValidationResult</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
     <span class="ident">domain</span>::{<span class="self">self</span>, <span class="ident">ExerciseDesc</span>, <span class="ident">ExercisePackagingConfiguration</span>, <span class="ident">RunResult</span>},
+    <span class="ident">io</span>::<span class="ident">zip</span>,
     <span class="ident">LanguagePlugin</span>,
 };
 
@@ -121,52 +124,53 @@
     <span class="ident">domain</span>::<span class="ident">prepare_stubs</span>(<span class="ident">exercise_map</span>, <span class="ident">repo_path</span>, <span class="ident">dest_path</span>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_check_code_style</span>(<span class="ident">path</span>: <span class="ident">PathBuf</span>, <span class="ident">locale</span>: <span class="ident">Language</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ValidationResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_check_code_style</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">locale</span>: <span class="ident">Language</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ValidationResult</span> {
+    <span class="ident">get_language_plugin</span>(<span class="ident">path</span>).<span class="ident">check_code_style</span>(<span class="ident">path</span>, <span class="ident">locale</span>)
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_tests</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RunResult</span> {
+    <span class="ident">get_language_plugin</span>(<span class="ident">path</span>).<span class="ident">run_tests</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">scan_exercise</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">exercise_name</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span><span class="op">&gt;</span> {
+    <span class="ident">get_language_plugin</span>(<span class="ident">path</span>).<span class="ident">scan_exercise</span>(<span class="ident">path</span>, <span class="ident">exercise_name</span>)
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_exercise_root_directory</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="macro">todo</span><span class="macro">!</span>()
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_tests</span>(<span class="ident">path</span>: <span class="ident">PathBuf</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RunResult</span> {
-    <span class="macro">todo</span><span class="macro">!</span>()
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extract_project</span>(<span class="ident">compressed_project</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">target_location</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) {
+    <span class="ident">get_language_plugin</span>(<span class="ident">compressed_project</span>).<span class="ident">extract_project</span>(<span class="ident">compressed_project</span>, <span class="ident">target_location</span>);
+    <span class="macro">todo</span><span class="macro">!</span>(<span class="string">&quot;implement NoLanguagePluginFoundException&quot;</span>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">scan_exercise</span>(<span class="ident">path</span>: <span class="ident">PathBuf</span>, <span class="ident">exercise_name</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span><span class="op">&gt;</span> {
-    <span class="macro">todo</span><span class="macro">!</span>()
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extract_project_overwrite</span>(<span class="ident">compressed_project</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">target_location</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) {
+    <span class="ident">zip</span>::<span class="ident">student_file_aware_unzip</span>((), <span class="ident">compressed_project</span>, <span class="ident">target_location</span>);
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_exercise_root_directory</span>(<span class="ident">path</span>: <span class="ident">PathBuf</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="macro">todo</span><span class="macro">!</span>()
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compress_project</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
+    <span class="ident">get_language_plugin</span>(<span class="ident">path</span>).<span class="ident">compress_project</span>(<span class="ident">path</span>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extract_project</span>(<span class="ident">compressed_project</span>: <span class="ident">PathBuf</span>, <span class="ident">target_location</span>: <span class="ident">PathBuf</span>) {
-    <span class="macro">todo</span><span class="macro">!</span>()
-}
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extract_project_overwrite</span>(<span class="ident">compressed_project</span>: <span class="ident">PathBuf</span>, <span class="ident">target_location</span>: <span class="ident">PathBuf</span>) {
-    <span class="macro">todo</span><span class="macro">!</span>()
-}
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extract_and_rewrite_everything</span>(<span class="ident">compressed_project</span>: <span class="ident">PathBuf</span>, <span class="ident">target_location</span>: <span class="ident">PathBuf</span>) {
-    <span class="macro">todo</span><span class="macro">!</span>()
-}
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compress_project</span>(<span class="ident">path</span>: <span class="ident">PathBuf</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-    <span class="macro">todo</span><span class="macro">!</span>()
-}
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_exercise_packaging_configuration</span>(<span class="ident">path</span>: <span class="ident">PathBuf</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ExercisePackagingConfiguration</span> {
-    <span class="macro">todo</span><span class="macro">!</span>()
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_exercise_packaging_configuration</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ExercisePackagingConfiguration</span> {
+    <span class="ident">get_language_plugin</span>(<span class="ident">path</span>).<span class="ident">get_exercise_packaging_configuration</span>(<span class="ident">path</span>)
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compress_tar_for_submitting</span>(
-    <span class="ident">project_dir</span>: <span class="ident">PathBuf</span>,
-    <span class="ident">tmc_langs</span>: <span class="ident">PathBuf</span>,
-    <span class="ident">tmcrun</span>: <span class="ident">PathBuf</span>,
-    <span class="ident">target_location</span>: <span class="ident">PathBuf</span>,
+    <span class="ident">project_dir</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+    <span class="ident">tmc_langs</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+    <span class="ident">tmcrun</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+    <span class="ident">target_location</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
 ) {
     <span class="macro">todo</span><span class="macro">!</span>()
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clean</span>(<span class="ident">path</span>: <span class="ident">PathBuf</span>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clean</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) {
+    <span class="ident">get_language_plugin</span>(<span class="ident">path</span>).<span class="ident">clean</span>(<span class="ident">path</span>);
+}
+
+<span class="kw">fn</span> <span class="ident">get_language_plugin</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">LanguagePlugin</span><span class="op">&gt;</span> {
     <span class="macro">todo</span><span class="macro">!</span>()
 }
 </pre></div>
