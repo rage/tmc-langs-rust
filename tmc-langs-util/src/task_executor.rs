@@ -29,10 +29,10 @@ pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
 
 pub fn prepare_stubs(
     exercise_map: HashMap<PathBuf, Box<dyn LanguagePlugin>>,
-    repo_path: PathBuf,
-    dest_path: PathBuf,
-) {
-    todo!()
+    repo_path: &Path,
+    dest_path: &Path,
+) -> io::Result<()> {
+    domain::prepare_stubs(exercise_map, repo_path, dest_path)
 }
 
 pub fn run_check_code_style(path: PathBuf, locale: Language) -> ValidationResult {
