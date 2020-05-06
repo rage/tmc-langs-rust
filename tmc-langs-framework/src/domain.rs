@@ -24,8 +24,6 @@ pub struct ExerciseDesc {}
 
 pub struct RunResult {}
 
-pub struct ValidationResult {}
-
 pub struct ExercisePackagingConfiguration {}
 
 fn is_hidden_dir(entry: &DirEntry) -> bool {
@@ -195,6 +193,7 @@ pub fn prepare_stubs(
 
 #[cfg(test)]
 mod test {
+    use super::super::MockLanguagePlugin;
     use super::*;
     use std::collections::HashSet;
     use std::io::Read;
@@ -301,20 +300,16 @@ mod test {
         );
     }
 
-    struct MockPlugin {}
-
-    impl LanguagePlugin for MockPlugin {
-        fn maybe_copy_shared_stuff(&self, _path: &Path) {}
-    }
-
     #[test]
     fn prepares_stubs() {
         init();
 
         let mut exercise_map = HashMap::new();
+        let mut plugin = MockLanguagePlugin::new();
+        plugin.expect_maybe_copy_shared_stuff().returning(|_| ());
         exercise_map.insert(
             TESTDATA_ROOT.into(),
-            Box::new(MockPlugin {}) as Box<dyn LanguagePlugin>,
+            Box::new(plugin) as Box<dyn LanguagePlugin>,
         );
         let temp = TempDir::new("prepares_stubs").unwrap();
         let temp_path = temp.path();
