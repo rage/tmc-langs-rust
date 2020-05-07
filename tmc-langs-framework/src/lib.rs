@@ -131,13 +131,10 @@ pub trait LanguagePlugin {
             .into_iter()
             .chain(extra_student_files)
             .collect::<HashSet<_>>();
-        let exercise_files = self
+        let exercise_files_without_student_files = self
             .get_default_exercise_file_paths()
             .into_iter()
             .chain(extra_test_files)
-            .collect::<HashSet<_>>();
-        let exercise_files_without_student_files = exercise_files
-            .into_iter()
             .filter(|e| student_files.contains(e))
             .collect();
         ExercisePackagingConfiguration::new(student_files, exercise_files_without_student_files)
