@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["task_executor",""]]});
+initSidebarItems({"enum":[["Error",""]],"mod":[["tar",""],["task_executor","Module for calling different tasks of TMC-langs language plug-ins."]],"struct":[["PLUGINS",""]],"type":[["Result",""]]});

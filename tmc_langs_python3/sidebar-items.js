@@ -1,1 +1,1 @@
-initSidebarItems({});
+initSidebarItems({"struct":[["Python3Plugin",""]]});
