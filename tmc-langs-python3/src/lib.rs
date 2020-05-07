@@ -1,9 +1,8 @@
 use isolang::Language;
-use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use tmc_langs_abstraction::ValidationResult;
 use tmc_langs_framework::{
-    domain::{ExerciseDesc, ExercisePackagingConfiguration, RunResult},
+    domain::{ExerciseDesc, RunResult},
     LanguagePlugin,
 };
 
