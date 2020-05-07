@@ -39,7 +39,7 @@ pub fn prepare_stubs(
 }
 
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::check_code_style`.
-pub fn run_check_code_style(path: &Path, locale: Language) -> Result<ValidationResult> {
+pub fn run_check_code_style(path: &Path, locale: Language) -> Result<Option<ValidationResult>> {
     Ok(get_language_plugin(path)?.check_code_style(path, locale))
 }
 
@@ -49,8 +49,8 @@ pub fn run_tests(path: &Path) -> Result<RunResult> {
 }
 
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::scan_exercise`.
-pub fn scan_exercise(path: &Path, exercise_name: String) -> Result<Option<ExerciseDesc>> {
-    Ok(get_language_plugin(path)?.scan_exercise(path, exercise_name))
+pub fn scan_exercise(path: &Path, exercise_name: String) -> Result<ExerciseDesc> {
+    Ok(get_language_plugin(path)?.scan_exercise(path, exercise_name)?)
 }
 
 /// Figures out if this path contains any exercise that TMC-langs can process.

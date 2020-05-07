@@ -54,9 +54,9 @@ pub trait LanguagePlugin {
     /// This involves finding the test cases and the points offered by the
     /// exercise.
     ///
-    /// Must return `None` if the given path is not a valid exercise directory for
+    /// Must return `Err` if the given path is not a valid exercise directory for
     /// this language.
-    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Option<ExerciseDesc>;
+    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc>;
 
     /// Runs the tests for the exercise.
     fn run_tests(&self, path: &Path) -> RunResult;
@@ -97,7 +97,7 @@ pub trait LanguagePlugin {
     }
 
     /// Run checkstyle or similar plugin to project if applicable
-    fn check_code_style(&self, path: &Path, locale: Language) -> ValidationResult;
+    fn check_code_style(&self, path: &Path, locale: Language) -> Option<ValidationResult>;
 
     /// Compress a given project so that it can be sent to the TestMyCode server.
     fn compress_project(&self, path: &Path) -> Vec<u8> {
@@ -158,6 +158,8 @@ pub enum Error {
     PluginNotFound,
     #[error("Error processing files")]
     FileProcessing(#[from] std::io::Error),
+    #[error(transparent)]
+    Other(Box<dyn std::error::Error>),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

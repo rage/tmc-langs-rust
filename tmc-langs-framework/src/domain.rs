@@ -6,6 +6,7 @@ use lazy_static::lazy_static;
 use log::{debug, info};
 use meta_syntax::{MetaString, MetaSyntaxParser};
 use regex::Regex;
+use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
 use std::fs::{self, File};
 use std::io::{self, Write};
@@ -19,11 +20,64 @@ lazy_static! {
         Regex::new("class|jar|exe|jpg|jpeg|gif|png|zip|tar|gz|db|bin|csv|tsv|^$").unwrap();
 }
 
-pub struct TestDesc {}
+pub struct TestDesc {
+    name: String,
+    points: Vec<String>,
+}
 
-pub struct ExerciseDesc {}
+impl TestDesc {
+    pub fn new(name: String, points: Vec<String>) -> Self {
+        Self { name, points }
+    }
+}
 
-pub struct RunResult {}
+#[derive(Deserialize)]
+pub struct TestResult {
+    name: String,
+    pub passed: bool,
+    points: Vec<String>,
+    message: String,
+    exception: Vec<String>,
+}
+
+pub struct ExerciseDesc {
+    name: String,
+    tests: Vec<TestDesc>,
+}
+
+impl ExerciseDesc {
+    pub fn new(name: String, tests: Vec<TestDesc>) -> Self {
+        Self { name, tests }
+    }
+}
+
+pub struct RunResult {
+    status: RunStatus,
+    test_results: Vec<TestResult>,
+    logs: HashMap<String, Vec<u8>>,
+}
+
+impl RunResult {
+    pub fn new(
+        status: RunStatus,
+        test_results: Vec<TestResult>,
+        logs: HashMap<String, Vec<u8>>,
+    ) -> Self {
+        Self {
+            status,
+            test_results,
+            logs,
+        }
+    }
+}
+
+pub enum RunStatus {
+    Passed,
+    TestsFailed,
+    CompileFailed,
+    TestrunInterrupted,
+    GenericError,
+}
 
 pub struct ExercisePackagingConfiguration {
     student_file_paths: HashSet<PathBuf>,
