@@ -29,7 +29,10 @@ pub trait LanguagePlugin {
     ///
     /// These directories might overlap with directories returned by some other
     /// language plug-in.
-    fn find_exercises(&self, base_path: &Path) -> Vec<PathBuf>;
+    // TODO: rewrite using the exercise finder used by find exercises of the tmc-langs-cli?
+    fn find_exercises(&self, base_path: &Path) -> Vec<PathBuf> {
+        todo!()
+    }
 
     /// Produces an exercise description of an exercise directory.
     ///
@@ -49,7 +52,9 @@ pub trait LanguagePlugin {
     /// appears in the course repository. The implementation should copy over a
     /// selection of files from the submission so that the student cannot e.g.
     /// easily replace the tests.
-    fn prepare_submission(&self, submission_path: &Path, dest_path: &Path);
+    fn prepare_submission(&self, submission_path: &Path, dest_path: &Path) {
+        todo!()
+    }
 
     /// Prepares a stub exercise from the original.
     ///
@@ -60,7 +65,9 @@ pub trait LanguagePlugin {
         exercise_map: HashMap<PathBuf, Box<dyn LanguagePlugin>>,
         repo_path: &Path,
         dest_path: &Path,
-    );
+    ) {
+        todo!()
+    }
 
     /// Prepares a presentable solution from the original.
     ///
@@ -70,28 +77,38 @@ pub trait LanguagePlugin {
         exercise_map: HashMap<PathBuf, Box<dyn LanguagePlugin>>,
         repo_path: &Path,
         dest_path: &Path,
-    );
+    ) {
+        todo!()
+    }
 
     /// Run checkstyle or similar plugin to project if applicable
     fn check_code_style(&self, path: &Path, locale: Language) -> ValidationResult;
 
     /// Compress a given project so that it can be sent to the TestMyCode server.
-    fn compress_project(&self, path: &Path) -> Vec<u8>;
+    fn compress_project(&self, path: &Path) -> Vec<u8> {
+        todo!()
+    }
 
     /// Extract a given archive file containing a compressed project to a target location.
     ///
     /// This will overwrite any existing files as long as they are not specified as student files
     /// by the language dependent student file policy.
-    fn extract_project(&self, compressed_project: &Path, target_location: &Path);
+    fn extract_project(&self, compressed_project: &Path, target_location: &Path) {
+        todo!()
+    }
 
     /// Tells if there's a valid exercise in this path.
     fn is_exercise_type_correct(&self, path: &Path) -> bool;
 
     /// Copy shared stuff to stub or solution used for example for copying tmc-junit-runner.
-    fn maybe_copy_shared_stuff(&self, dest_path: &Path);
+    fn maybe_copy_shared_stuff(&self, dest_path: &Path) {
+        // no op by default
+    }
 
     /// Returns configuration which is used to package submission on tmc-server.
-    fn get_exercise_packaging_configuration(&self, path: &Path) -> ExercisePackagingConfiguration;
+    fn get_exercise_packaging_configuration(&self, path: &Path) -> ExercisePackagingConfiguration {
+        todo!()
+    }
 
     /// Runs clean command e.g `make clean` for make or `mvn clean` for maven.
     fn clean(&self, path: &Path);
