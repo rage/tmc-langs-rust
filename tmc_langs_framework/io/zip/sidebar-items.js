@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["student_file_aware_unzip",""]],"struct":[["UnzipResult",""]]});
+initSidebarItems({"fn":[["student_file_aware_unzip",""],["student_file_aware_zip",""]],"struct":[["UnzipResult",""]]});

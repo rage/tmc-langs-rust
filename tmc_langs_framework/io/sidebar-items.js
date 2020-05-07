@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["zip",""]]});
+initSidebarItems({"mod":[["sandbox",""],["zip",""]]});

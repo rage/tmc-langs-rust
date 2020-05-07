@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["domain",""],["io",""]],"trait":[["LanguagePlugin","The trait that each language plug-in must implement."]]});
+initSidebarItems({"enum":[["Error",""]],"mod":[["domain",""],["io",""]],"trait":[["LanguagePlugin","The trait that each language plug-in must implement."]],"type":[["Result",""]]});
