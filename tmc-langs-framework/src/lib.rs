@@ -6,6 +6,7 @@ use isolang::Language;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use tmc_langs_abstraction::ValidationResult;
+use walkdir::WalkDir;
 
 /// The trait that each language plug-in must implement.
 ///
@@ -31,7 +32,19 @@ pub trait LanguagePlugin {
     /// language plug-in.
     // TODO: rewrite using the exercise finder used by find exercises of the tmc-langs-cli?
     fn find_exercises(&self, base_path: &Path) -> Vec<PathBuf> {
-        todo!()
+        let mut exercises = vec![];
+        if base_path.is_dir() {
+            for entry in WalkDir::new(base_path)
+                .into_iter()
+                .filter_entry(|e| e.path().is_dir())
+                .filter_map(|e| e.ok())
+            {
+                if self.is_exercise_type_correct(entry.path()) {
+                    exercises.push(entry.into_path());
+                }
+            }
+        }
+        exercises
     }
 
     /// Produces an exercise description of an exercise directory.
