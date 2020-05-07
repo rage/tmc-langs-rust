@@ -2,6 +2,7 @@ pub mod domain;
 pub mod io;
 
 use domain::{ExerciseDesc, ExercisePackagingConfiguration, RunResult};
+use io::sandbox;
 use isolang::Language;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -66,7 +67,7 @@ pub trait LanguagePlugin {
     /// selection of files from the submission so that the student cannot e.g.
     /// easily replace the tests.
     fn prepare_submission(&self, submission_path: &Path, dest_path: &Path) {
-        todo!()
+        sandbox::move_files((), submission_path, dest_path);
     }
 
     /// Prepares a stub exercise from the original.
