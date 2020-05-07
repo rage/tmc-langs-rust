@@ -1,8 +1,12 @@
+//! Contains utilities for parsing text files, separating lines into
+//! strings, stubs and solutions so that they can be more easily filtered accordingly
+
 use lazy_static::lazy_static;
 use log::debug;
 use regex::{Captures, Regex};
 use std::io::{self, BufRead, BufReader, Read};
 
+// Meta syntaxes for each comment syntax
 lazy_static! {
     static ref META_SYNTAXES_C: [MetaSyntax; 2] = [
         MetaSyntax::new("//", None),
@@ -20,6 +24,7 @@ pub enum MetaString {
 }
 
 impl MetaString {
+    // Borrows the underlying line of text
     pub fn as_str<'a>(&'a self) -> &'a str {
         match self {
             Self::String(s) => &s,
@@ -29,6 +34,7 @@ impl MetaString {
     }
 }
 
+// Contains the needed regexes for a given comment syntax
 #[derive(Debug)]
 struct MetaSyntax {
     solution_file: Regex,
@@ -73,10 +79,13 @@ impl MetaSyntax {
     }
 }
 
+/// Parses a given text file into an iterator of `MetaString`s
 #[derive(Debug)]
 pub struct MetaSyntaxParser<B: BufRead> {
     meta_syntaxes: &'static [MetaSyntax],
     reader: B,
+    // contains the syntax that started the current stub block
+    // used to make sure only the appropriate terminator ends the block
     in_stub: Option<&'static MetaSyntax>,
     in_solution: bool,
 }
@@ -84,6 +93,7 @@ pub struct MetaSyntaxParser<B: BufRead> {
 impl<R: Read> MetaSyntaxParser<BufReader<R>> {
     pub fn new(target: R, target_extension: &str) -> Self {
         let reader = BufReader::new(target);
+        // Assigns each supported file extension with the proper comment syntax
         let meta_syntaxes: &[MetaSyntax] = match target_extension {
             "java" | "c" | "cpp" | "h" | "hpp" | "js" | "css" | "rs" | "qml" => &*META_SYNTAXES_C,
             "xml" | "http" | "html" | "qrc" => &*META_SYNTAXES_HTML,
@@ -110,9 +120,10 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
             Ok(_) => {
                 // check line with each meta syntax
                 for meta_syntax in self.meta_syntaxes {
-                    // stub
+                    // check for stub
                     if self.in_stub.is_none() && meta_syntax.stub_begin.is_match(&s) {
                         debug!("stub start: '{}'", s);
+                        // save the syntax that started the current stub
                         self.in_stub = Some(meta_syntax);
                         // remove stub start
                         s = meta_syntax
@@ -121,10 +132,12 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                             .to_string();
                         debug!("parsed: '{}'", s);
                         if s.trim().is_empty() {
-                            // only metadata
+                            // only metadata, skip
                             return self.next();
                         }
                     }
+                    // if the line matches stub_end and the saved syntax matches
+                    // the start of the current meta syntax
                     if meta_syntax.stub_end.is_match(&s)
                         && self.in_stub.map(|r| r.stub_begin.as_str())
                             == Some(meta_syntax.stub_begin.as_str())
@@ -137,13 +150,13 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                             .to_string();
                         debug!("parsed: '{}'", s);
                         if s.trim().is_empty() {
-                            // only metadata
+                            // only metadata, skip
                             return self.next();
                         }
                         return Some(Ok(MetaString::Stub(s)));
                     }
 
-                    // solution
+                    // check for solution, skip all markers
                     if meta_syntax.solution_file.is_match(&s) {
                         return self.next();
                     } else if meta_syntax.solution_begin.is_match(&s) {
@@ -154,6 +167,8 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                         return self.next();
                     }
                 }
+                // after processing the line with each meta syntax,
+                // parse the current line accordingly
                 if self.in_solution {
                     debug!("solution: '{}'", s);
                     return Some(Ok(MetaString::Solution(s)));
