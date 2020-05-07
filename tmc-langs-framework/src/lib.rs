@@ -6,6 +6,7 @@ use io::sandbox;
 use isolang::Language;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use thiserror::Error;
 use tmc_langs_abstraction::ValidationResult;
 use walkdir::WalkDir;
 
@@ -127,3 +128,13 @@ pub trait LanguagePlugin {
     /// Runs clean command e.g `make clean` for make or `mvn clean` for maven.
     fn clean(&self, path: &Path);
 }
+
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error("No matching plugin found")]
+    PluginNotFound,
+    #[error("Error processing files")]
+    FileProcessing(#[from] std::io::Error),
+}
+
+pub type Result<T> = std::result::Result<T, Error>;

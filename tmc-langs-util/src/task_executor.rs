@@ -1,8 +1,6 @@
 //! Module for calling different tasks of TMC-langs language plug-ins.
 
-use super::{
-    tar, PLUGINS, {Error, Result},
-};
+use super::{tar, PLUGINS};
 use isolang::Language;
 use lazy_static::lazy_static;
 use log::info;
@@ -13,7 +11,7 @@ use tmc_langs_abstraction::ValidationResult;
 use tmc_langs_framework::{
     domain::{self, ExerciseDesc, ExercisePackagingConfiguration, RunResult},
     io::zip,
-    LanguagePlugin,
+    Error, LanguagePlugin, Result,
 };
 
 lazy_static! {

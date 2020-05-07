@@ -1,6 +1,7 @@
 mod meta_syntax;
 
 use super::LanguagePlugin;
+use super::{Error, Result};
 use lazy_static::lazy_static;
 use log::{debug, info};
 use meta_syntax::{MetaString, MetaSyntaxParser};
