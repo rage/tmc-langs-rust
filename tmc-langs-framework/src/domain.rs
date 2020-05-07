@@ -6,7 +6,7 @@ use lazy_static::lazy_static;
 use log::{debug, info};
 use meta_syntax::{MetaString, MetaSyntaxParser};
 use regex::Regex;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs::{self, File};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
@@ -25,7 +25,38 @@ pub struct ExerciseDesc {}
 
 pub struct RunResult {}
 
-pub struct ExercisePackagingConfiguration {}
+pub struct ExercisePackagingConfiguration {
+    student_file_paths: HashSet<PathBuf>,
+    exercise_file_paths: HashSet<PathBuf>,
+}
+
+impl ExercisePackagingConfiguration {
+    pub fn new(
+        student_file_paths: HashSet<PathBuf>,
+        exercise_file_paths: HashSet<PathBuf>,
+    ) -> Self {
+        Self {
+            student_file_paths,
+            exercise_file_paths,
+        }
+    }
+}
+
+pub struct Configuration {}
+
+impl Configuration {
+    pub fn from(path: &Path) -> Self {
+        todo!()
+    }
+
+    pub fn get_extra_student_files(&self) -> Vec<PathBuf> {
+        todo!()
+    }
+
+    pub fn get_extra_exercise_files(&self) -> Vec<PathBuf> {
+        todo!()
+    }
+}
 
 // Filter for hidden directories (directories with names starting with '.')
 fn is_hidden_dir(entry: &DirEntry) -> bool {

@@ -1,10 +1,10 @@
 pub mod domain;
 pub mod io;
 
-use domain::{ExerciseDesc, ExercisePackagingConfiguration, RunResult};
-use io::sandbox;
+use domain::{Configuration, ExerciseDesc, ExercisePackagingConfiguration, RunResult};
+use io::{sandbox, zip};
 use isolang::Language;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use thiserror::Error;
 use tmc_langs_abstraction::ValidationResult;
@@ -80,8 +80,8 @@ pub trait LanguagePlugin {
         exercise_map: HashMap<PathBuf, Box<dyn LanguagePlugin>>,
         repo_path: &Path,
         dest_path: &Path,
-    ) {
-        todo!()
+    ) -> Result<()> {
+        Ok(domain::prepare_stubs(exercise_map, repo_path, dest_path)?)
     }
 
     /// Prepares a presentable solution from the original.
@@ -92,8 +92,8 @@ pub trait LanguagePlugin {
         exercise_map: HashMap<PathBuf, Box<dyn LanguagePlugin>>,
         repo_path: &Path,
         dest_path: &Path,
-    ) {
-        todo!()
+    ) -> Result<()> {
+        Ok(domain::prepare_solutions(exercise_map.keys(), dest_path)?)
     }
 
     /// Run checkstyle or similar plugin to project if applicable
@@ -101,7 +101,7 @@ pub trait LanguagePlugin {
 
     /// Compress a given project so that it can be sent to the TestMyCode server.
     fn compress_project(&self, path: &Path) -> Vec<u8> {
-        todo!()
+        zip::student_file_aware_zip((), path)
     }
 
     /// Extract a given archive file containing a compressed project to a target location.
@@ -109,7 +109,7 @@ pub trait LanguagePlugin {
     /// This will overwrite any existing files as long as they are not specified as student files
     /// by the language dependent student file policy.
     fn extract_project(&self, compressed_project: &Path, target_location: &Path) {
-        todo!()
+        zip::student_file_aware_unzip((), compressed_project, target_location);
     }
 
     /// Tells if there's a valid exercise in this path.
@@ -122,11 +122,37 @@ pub trait LanguagePlugin {
 
     /// Returns configuration which is used to package submission on tmc-server.
     fn get_exercise_packaging_configuration(&self, path: &Path) -> ExercisePackagingConfiguration {
-        todo!()
+        let configuration = Configuration::from(path);
+        let extra_student_files = configuration.get_extra_student_files();
+        let extra_test_files = configuration.get_extra_exercise_files();
+
+        let student_files = self
+            .get_default_student_file_paths()
+            .into_iter()
+            .chain(extra_student_files)
+            .collect::<HashSet<_>>();
+        let exercise_files = self
+            .get_default_exercise_file_paths()
+            .into_iter()
+            .chain(extra_test_files)
+            .collect::<HashSet<_>>();
+        let exercise_files_without_student_files = exercise_files
+            .into_iter()
+            .filter(|e| student_files.contains(e))
+            .collect();
+        ExercisePackagingConfiguration::new(student_files, exercise_files_without_student_files)
     }
 
     /// Runs clean command e.g `make clean` for make or `mvn clean` for maven.
     fn clean(&self, path: &Path);
+
+    fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
+        vec![PathBuf::from("src")]
+    }
+
+    fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
+        vec![PathBuf::from("test")]
+    }
 }
 
 #[derive(Error, Debug)]
