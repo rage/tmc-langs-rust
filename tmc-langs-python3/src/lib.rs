@@ -16,8 +16,8 @@ impl Python3Plugin {
 }
 
 impl LanguagePlugin for Python3Plugin {
-    fn get_plugin_name(&self) -> String {
-        "python3".to_string()
+    fn get_plugin_name(&self) -> &'static str {
+        "python3"
     }
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Option<ExerciseDesc> {

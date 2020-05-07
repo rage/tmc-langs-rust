@@ -23,7 +23,7 @@ use walkdir::WalkDir;
 #[cfg_attr(test, mockall::automock)]
 pub trait LanguagePlugin {
     /// Returns the name of the plug-in.
-    fn get_plugin_name(&self) -> String;
+    fn get_plugin_name(&self) -> &str;
 
     /// Returns a list of all directories inside that contain an exercise in this
     /// language.
