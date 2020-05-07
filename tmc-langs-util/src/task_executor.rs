@@ -8,7 +8,6 @@ use lazy_static::lazy_static;
 use log::info;
 use regex::Regex;
 use std::collections::HashMap;
-use std::io;
 use std::path::{Path, PathBuf};
 use tmc_langs_abstraction::ValidationResult;
 use tmc_langs_framework::{
@@ -28,8 +27,8 @@ lazy_static! {
 pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
     exercise_paths: I,
     dest_root: &Path,
-) -> io::Result<()> {
-    domain::prepare_solutions(exercise_paths, dest_root)
+) -> Result<()> {
+    Ok(domain::prepare_solutions(exercise_paths, dest_root)?)
 }
 
 /// See `domain::prepare_stubs`.
@@ -37,8 +36,8 @@ pub fn prepare_stubs(
     exercise_map: HashMap<PathBuf, Box<dyn LanguagePlugin>>,
     repo_path: &Path,
     dest_path: &Path,
-) -> io::Result<()> {
-    domain::prepare_stubs(exercise_map, repo_path, dest_path)
+) -> Result<()> {
+    Ok(domain::prepare_stubs(exercise_map, repo_path, dest_path)?)
 }
 
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::check_code_style`.
