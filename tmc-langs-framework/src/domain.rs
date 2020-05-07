@@ -26,6 +26,7 @@ pub struct RunResult {}
 
 pub struct ExercisePackagingConfiguration {}
 
+// Filter for hidden directories (directories with names starting with '.')
 fn is_hidden_dir(entry: &DirEntry) -> bool {
     let skip = entry.metadata().map(|e| e.is_dir()).unwrap_or(false)
         && entry
@@ -39,6 +40,7 @@ fn is_hidden_dir(entry: &DirEntry) -> bool {
     skip
 }
 
+// Filter for skipping directories on `FILES_TO_SKIP_ALWAYS` or named 'private'
 fn on_skip_list(entry: &DirEntry) -> bool {
     let skip = entry
         .file_name()
@@ -51,6 +53,7 @@ fn on_skip_list(entry: &DirEntry) -> bool {
     skip
 }
 
+// Filter for skipping directories that contain a '.tmcignore' file
 fn contains_tmcignore(entry: &DirEntry) -> bool {
     for entry in WalkDir::new(entry.path())
         .max_depth(1)
@@ -73,6 +76,7 @@ fn contains_tmcignore(entry: &DirEntry) -> bool {
     false
 }
 
+// Copies the entry to the destination. Parses and filters text files according to `filter`
 fn copy_file<F: Fn(&MetaString) -> bool>(
     entry: &DirEntry,
     skip_parts: usize,
@@ -130,6 +134,7 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
     Ok(())
 }
 
+// Processes all files in path, copying files in directories that are not skipped
 fn process_files<F: Fn(&MetaString) -> bool>(
     path: &Path,
     dest_root: &Path,
@@ -149,9 +154,12 @@ fn process_files<F: Fn(&MetaString) -> bool>(
     Ok(())
 }
 
-/// Walks through each path in ```exercise_map```, processing files and copying them into ```dest_path```.
-/// Skips hidden directories, directories that contain a ```.tmcignore``` file in their root, as well as files matching patterns defined in ```FILES_TO_SKIP_ALWAYS``` and directories and files named ```private```.
-/// Binary files are copied without extra processing, while text files have solution tags and stubs removed.
+/// Walks through each given path, processing files and copying them into the destination.
+///
+/// Skips hidden directories, directories that contain a `.tmcignore` file in their root, as well as
+/// files matching patterns defined in ```FILES_TO_SKIP_ALWAYS``` and directories and files named ```private```.
+///
+/// Binary files are copied without extra processing, while text files are parsed to remove solution tags and stubs.
 pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
     exercise_paths: I,
     dest_root: &Path,
@@ -165,10 +173,14 @@ pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
     Ok(())
 }
 
-/// Walks through each path in ```exercise_map```, processing files and copying them into ```dest_path```.
-/// Skips hidden directories, directories that contain a ```.tmcignore``` file in their root, as well as files matching patterns defined in ```FILES_TO_SKIP_ALWAYS``` and directories and files named ```private```.
-/// Binary files are copied without extra processing, while text files have stub tags and solutions removed.
-/// Additionally, may copy some shared files with the language plugin.
+/// Walks through each given path, processing files and copying them into the destination.
+///
+/// Skips hidden directories, directories that contain a ```.tmcignore``` file in their root, as well as
+/// files matching patterns defined in ```FILES_TO_SKIP_ALWAYS``` and directories and files named ```private```.
+///
+/// Binary files are copied without extra processing, while text files are parsed to remove stub tags and solutions.
+///
+/// Additionally, copies any shared files with the corresponding language plugins.
 pub fn prepare_stubs(
     exercise_map: HashMap<PathBuf, Box<dyn LanguagePlugin>>,
     repo_path: &Path,
