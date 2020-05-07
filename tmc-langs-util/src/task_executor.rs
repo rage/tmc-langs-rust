@@ -1,5 +1,9 @@
+use super::{
+    tar, PLUGINS, {Error, Result},
+};
 use isolang::Language;
 use lazy_static::lazy_static;
+use log::info;
 use regex::Regex;
 use std::collections::HashMap;
 use std::io;
@@ -36,37 +40,37 @@ pub fn prepare_stubs(
     domain::prepare_stubs(exercise_map, repo_path, dest_path)
 }
 
-pub fn run_check_code_style(path: &Path, locale: Language) -> ValidationResult {
-    get_language_plugin(path).check_code_style(path, locale)
+pub fn run_check_code_style(path: &Path, locale: Language) -> Result<ValidationResult> {
+    Ok(get_language_plugin(path)?.check_code_style(path, locale))
 }
 
-pub fn run_tests(path: &Path) -> RunResult {
-    get_language_plugin(path).run_tests(&path)
+pub fn run_tests(path: &Path) -> Result<RunResult> {
+    Ok(get_language_plugin(path)?.run_tests(&path))
 }
 
-pub fn scan_exercise(path: &Path, exercise_name: String) -> Option<ExerciseDesc> {
-    get_language_plugin(path).scan_exercise(path, exercise_name)
+pub fn scan_exercise(path: &Path, exercise_name: String) -> Result<Option<ExerciseDesc>> {
+    Ok(get_language_plugin(path)?.scan_exercise(path, exercise_name))
 }
 
 pub fn is_exercise_root_directory(path: &Path) -> bool {
-    todo!()
+    get_language_plugin(path).is_ok()
 }
 
-pub fn extract_project(compressed_project: &Path, target_location: &Path) {
-    get_language_plugin(compressed_project).extract_project(compressed_project, target_location);
-    todo!("implement NoLanguagePluginFoundException")
+pub fn extract_project(compressed_project: &Path, target_location: &Path) -> Result<()> {
+    get_language_plugin(compressed_project)?.extract_project(compressed_project, target_location);
+    Ok(())
 }
 
 pub fn extract_project_overwrite(compressed_project: &Path, target_location: &Path) {
     zip::student_file_aware_unzip((), compressed_project, target_location);
 }
 
-pub fn compress_project(path: &Path) -> Vec<u8> {
-    get_language_plugin(path).compress_project(path)
+pub fn compress_project(path: &Path) -> Result<Vec<u8>> {
+    Ok(get_language_plugin(path)?.compress_project(path))
 }
 
-pub fn get_exercise_packaging_configuration(path: &Path) -> ExercisePackagingConfiguration {
-    get_language_plugin(path).get_exercise_packaging_configuration(path)
+pub fn get_exercise_packaging_configuration(path: &Path) -> Result<ExercisePackagingConfiguration> {
+    Ok(get_language_plugin(path)?.get_exercise_packaging_configuration(path))
 }
 
 pub fn compress_tar_for_submitting(
@@ -75,13 +79,21 @@ pub fn compress_tar_for_submitting(
     tmcrun: &Path,
     target_location: &Path,
 ) {
-    todo!()
+    tar::create_tar_from_project(project_dir, tmc_langs, tmcrun, target_location)
 }
 
-pub fn clean(path: &Path) {
-    get_language_plugin(path).clean(path);
+pub fn clean(path: &Path) -> Result<()> {
+    get_language_plugin(path)?.clean(path);
+    Ok(())
 }
 
-fn get_language_plugin(path: &Path) -> Box<dyn LanguagePlugin> {
-    todo!()
+/// Get language plugin for the given path.
+fn get_language_plugin(path: &Path) -> Result<&'static Box<dyn LanguagePlugin + Sync>> {
+    for plugin in PLUGINS.iter() {
+        if plugin.is_exercise_type_correct(path) {
+            info!("Detected project as {}", plugin.get_plugin_name());
+            return Ok(plugin);
+        }
+    }
+    Err(Error::PluginNotFound)
 }

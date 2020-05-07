@@ -9,6 +9,12 @@ use tmc_langs_framework::{
 
 pub struct Python3Plugin {}
 
+impl Python3Plugin {
+    pub fn new() -> Self {
+        todo!()
+    }
+}
+
 impl LanguagePlugin for Python3Plugin {
     fn get_plugin_name(&self) -> String {
         todo!()
