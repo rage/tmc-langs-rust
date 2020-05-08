@@ -7,6 +7,7 @@ use log::{debug, info};
 use meta_syntax::{MetaString, MetaSyntaxParser};
 use regex::Regex;
 use serde::Deserialize;
+use serde_yaml::Value;
 use std::collections::{HashMap, HashSet};
 use std::fs::{self, File};
 use std::io::{self, Write};
@@ -79,9 +80,10 @@ pub enum RunStatus {
     GenericError,
 }
 
+#[derive(Debug)]
 pub struct ExercisePackagingConfiguration {
-    student_file_paths: HashSet<PathBuf>,
-    exercise_file_paths: HashSet<PathBuf>,
+    pub student_file_paths: HashSet<PathBuf>,
+    pub exercise_file_paths: HashSet<PathBuf>,
 }
 
 impl ExercisePackagingConfiguration {
@@ -96,19 +98,28 @@ impl ExercisePackagingConfiguration {
     }
 }
 
-pub struct Configuration {}
+#[derive(Debug, Deserialize)]
+pub struct TmcProjectYml {
+    #[serde(default)]
+    pub extra_student_files: Vec<PathBuf>,
+    #[serde(default)]
+    pub extra_exercise_files: Vec<PathBuf>,
+}
 
-impl Configuration {
-    pub fn from(path: &Path) -> Self {
-        todo!()
+impl TmcProjectYml {
+    pub fn from(path: &Path) -> Result<Self> {
+        let mut config_path = path.to_owned();
+        config_path.push(".tmcproject.yml");
+        let file = File::open(config_path)?;
+        Ok(serde_yaml::from_reader(file)?)
     }
 
-    pub fn get_extra_student_files(&self) -> Vec<PathBuf> {
-        todo!()
+    pub fn get_extra_student_files(&self) -> &Vec<PathBuf> {
+        &self.extra_student_files
     }
 
-    pub fn get_extra_exercise_files(&self) -> Vec<PathBuf> {
-        todo!()
+    pub fn get_extra_exercise_files(&self) -> &Vec<PathBuf> {
+        &self.extra_exercise_files
     }
 }
 
@@ -431,5 +442,25 @@ mod test {
 "#;
 
         assert_eq!(s, expected, "expected:\n{:#}\nfound:\n{:#}", expected, s);
+    }
+
+    #[test]
+    fn tmc_project_yml_parses() {
+        let temp = tempdir::TempDir::new("configuration_parses").unwrap();
+        let mut path = temp.path().to_owned();
+        path.push(".tmcproject.yml");
+        let mut file = File::create(&path).unwrap();
+        file.write_all(
+            r#"
+extra_student_files:
+  - test/StudentTest.java
+  - test/OtherTest.java
+"#
+            .as_bytes(),
+        )
+        .unwrap();
+        let conf = TmcProjectYml::from(&temp.path()).unwrap();
+        assert!(conf.extra_student_files[0] == PathBuf::from("test/StudentTest.java"));
+        assert!(conf.extra_student_files[1] == PathBuf::from("test/OtherTest.java"));
     }
 }

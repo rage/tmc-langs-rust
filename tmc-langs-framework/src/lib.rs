@@ -1,7 +1,7 @@
 pub mod domain;
 pub mod io;
 
-use domain::{Configuration, ExerciseDesc, ExercisePackagingConfiguration, RunResult};
+use domain::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, TmcProjectYml};
 use io::{sandbox, zip};
 use isolang::Language;
 use std::collections::{HashMap, HashSet};
@@ -121,10 +121,13 @@ pub trait LanguagePlugin {
     }
 
     /// Returns configuration which is used to package submission on tmc-server.
-    fn get_exercise_packaging_configuration(&self, path: &Path) -> ExercisePackagingConfiguration {
-        let configuration = Configuration::from(path);
-        let extra_student_files = configuration.get_extra_student_files();
-        let extra_test_files = configuration.get_extra_exercise_files();
+    fn get_exercise_packaging_configuration(
+        &self,
+        path: &Path,
+    ) -> Result<ExercisePackagingConfiguration> {
+        let configuration = TmcProjectYml::from(path)?;
+        let extra_student_files = configuration.extra_student_files;
+        let extra_test_files = configuration.extra_exercise_files;
 
         let student_files = self
             .get_default_student_file_paths()
@@ -135,9 +138,12 @@ pub trait LanguagePlugin {
             .get_default_exercise_file_paths()
             .into_iter()
             .chain(extra_test_files)
-            .filter(|e| student_files.contains(e))
+            .filter(|e| !student_files.contains(e))
             .collect();
-        ExercisePackagingConfiguration::new(student_files, exercise_files_without_student_files)
+        Ok(ExercisePackagingConfiguration::new(
+            student_files,
+            exercise_files_without_student_files,
+        ))
     }
 
     /// Runs clean command e.g `make clean` for make or `mvn clean` for maven.
@@ -158,8 +164,110 @@ pub enum Error {
     PluginNotFound,
     #[error("Error processing files")]
     FileProcessing(#[from] std::io::Error),
+    #[error("Error deserializing YAML")]
+    YamlDeserialization(#[from] serde_yaml::Error),
     #[error(transparent)]
     Other(Box<dyn std::error::Error>),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    struct MockPlugin {}
+
+    impl LanguagePlugin for MockPlugin {
+        fn get_plugin_name(&self) -> &'static str {
+            todo!()
+        }
+
+        fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc> {
+            todo!()
+        }
+
+        fn run_tests(&self, path: &Path) -> RunResult {
+            todo!()
+        }
+
+        fn check_code_style(&self, _path: &Path, _locale: Language) -> Option<ValidationResult> {
+            todo!()
+        }
+
+        fn is_exercise_type_correct(&self, path: &Path) -> bool {
+            !path.to_str().unwrap().contains("ignored")
+        }
+
+        fn clean(&self, _path: &Path) {
+            todo!()
+        }
+    }
+
+    #[test]
+    fn finds_exercises() {
+        let plugin = MockPlugin {};
+        let exercises = plugin.find_exercises(&PathBuf::from("testdata"));
+        assert!(
+            exercises.contains(&PathBuf::from("testdata/dir")),
+            "{:?} did not contain testdata/dir",
+            exercises
+        );
+        assert!(
+            exercises.contains(&PathBuf::from("testdata/dir/inner")),
+            "{:?} did not contain testdata/dir/inner",
+            exercises
+        );
+        assert!(
+            !exercises.contains(&PathBuf::from("testdata/ignored")),
+            "{:?} contained testdata/ignored",
+            exercises
+        );
+        assert!(
+            !exercises.contains(&PathBuf::from("testdata/dir/nonbinary.java")),
+            "{:?} contained testdata/dir/nonbinary.java",
+            exercises
+        );
+    }
+
+    #[test]
+    fn gets_exercise_packaging_configuration() {
+        use std::fs::File;
+        use std::io::Write;
+
+        let plugin = MockPlugin {};
+        let temp = tempdir::TempDir::new("gets_exercise_packaging_configuration").unwrap();
+        let mut path = temp.path().to_owned();
+        path.push(".tmcproject.yml");
+        let mut file = File::create(&path).unwrap();
+        file.write_all(
+            r#"
+extra_student_files:
+  - test/StudentTest.java
+  - test/OtherTest.java
+extra_exercise_files:
+  - test/SomeFile.java
+  - test/OtherTest.java
+"#
+            .as_bytes(),
+        )
+        .unwrap();
+        let conf = plugin
+            .get_exercise_packaging_configuration(&temp.path())
+            .unwrap();
+        assert!(conf.student_file_paths.contains(&PathBuf::from("src")));
+        assert!(conf
+            .student_file_paths
+            .contains(&PathBuf::from("test/StudentTest.java")));
+        assert!(conf
+            .student_file_paths
+            .contains(&PathBuf::from("test/OtherTest.java")));
+        assert!(conf.exercise_file_paths.contains(&PathBuf::from("test")));
+        assert!(conf
+            .exercise_file_paths
+            .contains(&PathBuf::from("test/SomeFile.java")));
+        assert!(!conf
+            .exercise_file_paths
+            .contains(&PathBuf::from("test/OtherTest.java")));
+    }
+}

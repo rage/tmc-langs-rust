@@ -13,14 +13,14 @@ use tmc_langs_framework::{
     Error, LanguagePlugin,
 };
 
-enum LocalPy {
+pub enum LocalPy {
     Unix,
     Windows,
     WindowsConda(String),
 }
 
 lazy_static! {
-    static ref LOCAL_PY: LocalPy = {
+    pub static ref LOCAL_PY: LocalPy = {
         if cfg!(windows) {
             // Check for Conda
             let conda = env::var("CONDA_PYTHON_EXE");

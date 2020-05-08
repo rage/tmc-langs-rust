@@ -80,7 +80,7 @@ pub fn compress_project(path: &Path) -> Result<Vec<u8>> {
 
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::get_exercise_packaging_configuration`.
 pub fn get_exercise_packaging_configuration(path: &Path) -> Result<ExercisePackagingConfiguration> {
-    Ok(get_language_plugin(path)?.get_exercise_packaging_configuration(path))
+    Ok(get_language_plugin(path)?.get_exercise_packaging_configuration(path)?)
 }
 
 /// Creates a tarball that can be submitted to TMC-sandbox.
