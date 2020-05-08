@@ -1,13 +1,12 @@
 mod meta_syntax;
 
 use super::LanguagePlugin;
-use super::{Error, Result};
+use super::Result;
 use lazy_static::lazy_static;
 use log::{debug, info};
 use meta_syntax::{MetaString, MetaSyntaxParser};
 use regex::Regex;
 use serde::Deserialize;
-use serde_yaml::Value;
 use std::collections::{HashMap, HashSet};
 use std::fs::{self, File};
 use std::io::{self, Write};
@@ -107,19 +106,11 @@ pub struct TmcProjectYml {
 }
 
 impl TmcProjectYml {
-    pub fn from(path: &Path) -> Result<Self> {
-        let mut config_path = path.to_owned();
+    pub fn from(project_dir: &Path) -> Result<Self> {
+        let mut config_path = project_dir.to_owned();
         config_path.push(".tmcproject.yml");
         let file = File::open(config_path)?;
         Ok(serde_yaml::from_reader(file)?)
-    }
-
-    pub fn get_extra_student_files(&self) -> &Vec<PathBuf> {
-        &self.extra_student_files
-    }
-
-    pub fn get_extra_exercise_files(&self) -> &Vec<PathBuf> {
-        &self.extra_exercise_files
     }
 }
 

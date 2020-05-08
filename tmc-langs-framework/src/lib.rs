@@ -87,6 +87,7 @@ pub trait LanguagePlugin {
     /// Prepares a presentable solution from the original.
     ///
     /// The solution usually has stubs and special comments stripped.
+    #[allow(unused_variables)]
     fn prepare_solutions(
         &self,
         exercise_map: HashMap<PathBuf, Box<dyn LanguagePlugin>>,
@@ -116,6 +117,7 @@ pub trait LanguagePlugin {
     fn is_exercise_type_correct(&self, path: &Path) -> bool;
 
     /// Copy shared stuff to stub or solution used for example for copying tmc-junit-runner.
+    #[allow(unused_variables)]
     fn maybe_copy_shared_stuff(&self, dest_path: &Path) {
         // no op by default
     }
@@ -183,11 +185,11 @@ mod test {
             todo!()
         }
 
-        fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc> {
+        fn scan_exercise(&self, _path: &Path, _exercise_name: String) -> Result<ExerciseDesc> {
             todo!()
         }
 
-        fn run_tests(&self, path: &Path) -> RunResult {
+        fn run_tests(&self, _path: &Path) -> RunResult {
             todo!()
         }
 
