@@ -1,6 +1,6 @@
 use isolang::Language;
 use lazy_static::lazy_static;
-use log::error;
+use log::{debug, error};
 use std::collections::HashMap;
 use std::env;
 use std::fs::File;
@@ -26,11 +26,14 @@ lazy_static! {
             let conda = env::var("CONDA_PYTHON_EXE");
             if let Ok(conda_path) = conda {
                 if PathBuf::from(&conda_path).exists() {
+                    debug!("detected conda on windows");
                     return LocalPy::WindowsConda(conda_path);
                 }
             }
+            debug!("detected windows");
             LocalPy::Windows
         } else {
+            debug!("detected unix");
             LocalPy::Unix
         }
     };
@@ -98,6 +101,8 @@ impl LanguagePlugin for Python3Plugin {
 }
 
 fn run_tmc_command(path: &Path, extra_args: &[&str]) -> Result<std::process::Output, Error> {
+    let path = path.canonicalize()?;
+    debug!("running tmc command at {:?}", path);
     let common_args = ["-m", "tmc"];
     let result = match &*LOCAL_PY {
         LocalPy::Unix => Command::new("python3")
