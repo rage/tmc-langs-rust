@@ -32,13 +32,14 @@ impl TestDesc {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct TestResult {
-    name: String,
+    pub name: String,
     pub passed: bool,
-    points: Vec<String>,
-    message: String,
-    exception: Vec<String>,
+    pub points: Vec<String>,
+    pub message: String,
+    #[serde(default)]
+    pub exception: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -53,10 +54,11 @@ impl ExerciseDesc {
     }
 }
 
+#[derive(Debug)]
 pub struct RunResult {
-    status: RunStatus,
-    test_results: Vec<TestResult>,
-    logs: HashMap<String, Vec<u8>>,
+    pub status: RunStatus,
+    pub test_results: Vec<TestResult>,
+    pub logs: HashMap<String, Vec<u8>>,
 }
 
 impl RunResult {
@@ -73,6 +75,7 @@ impl RunResult {
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum RunStatus {
     Passed,
     TestsFailed,

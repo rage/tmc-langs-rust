@@ -222,4 +222,62 @@ mod test {
         assert!(ex_desc.tests[0].points.contains(&"2.2".into()));
         assert_eq!(ex_desc.tests[0].points.len(), 3);
     }
+
+    #[test]
+    fn runs_tests() {
+        init();
+        let plugin = Python3Plugin::new();
+
+        let temp = copy_test("testdata/project");
+        let run_result = plugin.run_tests(temp.path());
+        assert_eq!(run_result.status, RunStatus::Passed);
+        assert_eq!(
+            run_result.test_results[0].name,
+            "test.test_points.TestEverything.test_new"
+        );
+        assert!(run_result.test_results[0].passed);
+        assert!(run_result.test_results[0].points.contains(&"1.1".into()));
+        assert!(run_result.test_results[0].points.contains(&"1.2".into()));
+        assert!(run_result.test_results[0].points.contains(&"2.2".into()));
+        assert_eq!(run_result.test_results[0].points.len(), 3);
+        assert!(run_result.test_results[0].message.is_empty());
+        assert!(run_result.test_results[0].exception.is_empty());
+        assert_eq!(run_result.test_results.len(), 1);
+        assert!(run_result.logs.is_empty());
+
+        let temp = copy_test("testdata/failing");
+        let run_result = plugin.run_tests(temp.path());
+        assert_eq!(run_result.status, RunStatus::TestsFailed);
+        assert_eq!(
+            run_result.test_results[0].name,
+            "test.test_failing.TestFailing.test_new"
+        );
+        assert!(!run_result.test_results[0].passed);
+        assert!(run_result.test_results[0].points.contains(&"1.1".into()));
+        assert!(run_result.test_results[0].points.contains(&"1.2".into()));
+        assert!(run_result.test_results[0].points.contains(&"2.2".into()));
+        assert!(run_result.test_results[0].message.starts_with("'a' != 'b'"));
+        assert!(run_result.test_results[0].exception.is_empty());
+        assert_eq!(run_result.test_results.len(), 1);
+        assert!(run_result.logs.is_empty());
+
+        let temp = copy_test("testdata/erroring");
+        let run_result = plugin.run_tests(temp.path());
+        assert_eq!(run_result.status, RunStatus::TestsFailed);
+        assert_eq!(
+            run_result.test_results[0].name,
+            "test.test_erroring.TestErroring.test_erroring"
+        );
+        assert!(!run_result.test_results[0].passed);
+        assert!(run_result.test_results[0].points.contains(&"1.1".into()));
+        assert!(run_result.test_results[0].points.contains(&"1.2".into()));
+        assert!(run_result.test_results[0].points.contains(&"2.2".into()));
+        assert_eq!(
+            run_result.test_results[0].message,
+            "name 'doSomethingIllegal' is not defined"
+        );
+        assert!(run_result.test_results[0].exception.is_empty());
+        assert_eq!(run_result.test_results.len(), 1);
+        assert!(run_result.logs.is_empty());
+    }
 }
