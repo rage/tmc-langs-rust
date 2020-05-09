@@ -280,4 +280,16 @@ mod test {
         assert_eq!(run_result.test_results.len(), 1);
         assert!(run_result.logs.is_empty());
     }
+
+    #[test]
+    fn exercise_type_is_correct() {
+        init();
+        let plugin = Python3Plugin::new();
+
+        let correct = plugin.is_exercise_type_correct(Path::new("testdata"));
+        assert!(correct);
+
+        let correct = plugin.is_exercise_type_correct(Path::new("./"));
+        assert!(!correct);
+    }
 }
