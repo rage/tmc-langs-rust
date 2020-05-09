@@ -89,8 +89,13 @@ pub fn compress_tar_for_submitting(
     tmc_langs: &Path,
     tmcrun: &Path,
     target_location: &Path,
-) {
-    tar::create_tar_from_project(project_dir, tmc_langs, tmcrun, target_location)
+) -> Result<()> {
+    Ok(tar::create_tar_from_project(
+        project_dir,
+        tmc_langs,
+        tmcrun,
+        target_location,
+    )?)
 }
 
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::clean`.
