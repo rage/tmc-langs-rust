@@ -42,7 +42,7 @@ lazy_static! {
 pub struct Python3Plugin {}
 
 impl Python3Plugin {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {}
     }
 }
