@@ -130,6 +130,7 @@ fn parse_exercise_description(path: &Path) -> Result<Vec<TestDesc>, Error> {
     let mut path = path.to_owned();
     path.push(".available_points.json");
     let file = File::open(path)?;
+    // TODO: deserialize directly into Vec<TestDesc>?
     let json: HashMap<String, Vec<String>> = match serde_json::from_reader(BufReader::new(file)) {
         Ok(json) => json,
         Err(error) => return Err(Error::Other(Box::new(error))),
@@ -157,4 +158,68 @@ fn parse_test_result(path: &Path) -> Result<RunResult, Error> {
         }
     }
     Ok(RunResult::new(status, test_results, HashMap::new()))
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    fn init() {
+        let _ = env_logger::builder().is_test(true).try_init();
+    }
+
+    // copies the target exercise and tmc to a temp directory
+    fn copy_test(dir: &str) -> tempdir::TempDir {
+        let path = Path::new(dir);
+        let temp = tempdir::TempDir::new("py").unwrap();
+        for entry in walkdir::WalkDir::new(path) {
+            let entry = entry.unwrap();
+            if entry.path().is_file() {
+                let entry_path: PathBuf = entry
+                    .path()
+                    .components()
+                    .skip(path.components().count())
+                    .collect();
+                let temp_path = temp.path().join(entry_path);
+                temp_path
+                    .parent()
+                    .map(|p| std::fs::create_dir_all(&p).unwrap());
+                log::trace!("copying {:?} -> {:?}", entry.path(), temp_path);
+                std::fs::copy(entry.path(), temp_path).unwrap();
+            }
+        }
+        for entry in walkdir::WalkDir::new("testdata/tmc") {
+            let entry = entry.unwrap();
+            if entry.path().is_file() {
+                let entry_path: PathBuf = entry.path().components().skip(2).collect();
+                let temp_path = temp.path().join("tmc").join(entry_path);
+                temp_path
+                    .parent()
+                    .map(|p| std::fs::create_dir_all(&p).unwrap());
+                log::trace!("copying {:?} -> {:?}", entry.path(), temp_path);
+                std::fs::copy(entry.path(), temp_path).unwrap();
+            }
+        }
+        temp
+    }
+
+    #[test]
+    fn scans_exercise() {
+        init();
+
+        let temp = copy_test("testdata/project");
+        let plugin = Python3Plugin::new();
+        let ex_desc = plugin
+            .scan_exercise(Path::new(temp.path()), "name".into())
+            .unwrap();
+        assert_eq!(ex_desc.name, "name");
+        assert_eq!(
+            &ex_desc.tests[0].name,
+            "test.test_points.TestEverything.test_new"
+        );
+        assert!(ex_desc.tests[0].points.contains(&"1.1".into()));
+        assert!(ex_desc.tests[0].points.contains(&"1.2".into()));
+        assert!(ex_desc.tests[0].points.contains(&"2.2".into()));
+        assert_eq!(ex_desc.tests[0].points.len(), 3);
+    }
 }

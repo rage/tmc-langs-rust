@@ -20,9 +20,10 @@ lazy_static! {
         Regex::new("class|jar|exe|jpg|jpeg|gif|png|zip|tar|gz|db|bin|csv|tsv|^$").unwrap();
 }
 
+#[derive(Debug)]
 pub struct TestDesc {
-    name: String,
-    points: Vec<String>,
+    pub name: String,
+    pub points: Vec<String>,
 }
 
 impl TestDesc {
@@ -40,9 +41,10 @@ pub struct TestResult {
     exception: Vec<String>,
 }
 
+#[derive(Debug)]
 pub struct ExerciseDesc {
-    name: String,
-    tests: Vec<TestDesc>,
+    pub name: String,
+    pub tests: Vec<TestDesc>,
 }
 
 impl ExerciseDesc {
