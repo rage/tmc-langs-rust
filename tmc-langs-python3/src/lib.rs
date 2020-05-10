@@ -10,6 +10,7 @@ use std::process::Command;
 use tmc_langs_abstraction::ValidationResult;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
+    io::StudentFilePolicy,
     Error, LanguagePlugin,
 };
 
@@ -50,6 +51,10 @@ impl Python3Plugin {
 impl LanguagePlugin for Python3Plugin {
     fn get_plugin_name(&self) -> &'static str {
         "python3"
+    }
+
+    fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy> {
+        Box::new(Python3StudentFilePolicy::new(project_path.to_owned()))
     }
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
@@ -158,6 +163,28 @@ fn parse_test_result(path: &Path) -> Result<RunResult, Error> {
         }
     }
     Ok(RunResult::new(status, test_results, HashMap::new()))
+}
+
+pub struct Python3StudentFilePolicy {
+    config_file_parent_path: PathBuf,
+}
+
+impl Python3StudentFilePolicy {
+    pub fn new(config_file_parent_path: PathBuf) -> Self {
+        Self {
+            config_file_parent_path,
+        }
+    }
+}
+
+impl StudentFilePolicy for Python3StudentFilePolicy {
+    fn get_config_file_parent_path(&self) -> &Path {
+        &self.config_file_parent_path
+    }
+
+    fn is_student_source_file(&self, path: &Path) -> bool {
+        path.starts_with("src")
+    }
 }
 
 #[cfg(test)]

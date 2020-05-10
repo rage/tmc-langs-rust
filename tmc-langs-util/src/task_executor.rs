@@ -10,7 +10,7 @@ use std::path::{Path, PathBuf};
 use tmc_langs_abstraction::ValidationResult;
 use tmc_langs_framework::{
     domain::{self, ExerciseDesc, ExercisePackagingConfiguration, RunResult},
-    io::zip,
+    io::{zip, NothingIsStudentFilePolicy},
     Error, LanguagePlugin, Result,
 };
 
@@ -59,9 +59,12 @@ pub fn is_exercise_root_directory(path: &Path) -> bool {
 }
 
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::extract_project`.
-// TODO: Replicate tmc-langs behaviour
 pub fn extract_project(compressed_project: &Path, target_location: &Path) -> Result<()> {
-    get_language_plugin(compressed_project)?.extract_project(compressed_project, target_location);
+    if let Ok(plugin) = get_language_plugin(compressed_project) {
+        plugin.extract_project(compressed_project, target_location);
+    } else {
+        extract_project_overwrite(compressed_project, target_location);
+    }
     Ok(())
 }
 
@@ -70,7 +73,11 @@ pub fn extract_project(compressed_project: &Path, target_location: &Path) -> Res
 /// This will overwrite any existing files as long as they are not specified as student files
 /// by the language dependent student file policy.
 pub fn extract_project_overwrite(compressed_project: &Path, target_location: &Path) {
-    zip::student_file_aware_unzip((), compressed_project, target_location);
+    zip::student_file_aware_unzip(
+        Box::new(NothingIsStudentFilePolicy {}),
+        compressed_project,
+        target_location,
+    );
 }
 
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::compress_project`.
@@ -105,11 +112,11 @@ pub fn clean(path: &Path) -> Result<()> {
 }
 
 // Get language plugin for the given path.
-fn get_language_plugin(path: &Path) -> Result<&'static Box<dyn LanguagePlugin + Sync>> {
+fn get_language_plugin(path: &Path) -> Result<&dyn LanguagePlugin> {
     for plugin in PLUGINS.iter() {
         if plugin.is_exercise_type_correct(path) {
             info!("Detected project as {}", plugin.get_plugin_name());
-            return Ok(plugin);
+            return Ok(*plugin);
         }
     }
     Err(Error::PluginNotFound)

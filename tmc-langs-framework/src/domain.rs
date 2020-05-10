@@ -2,6 +2,7 @@ mod meta_syntax;
 
 use super::LanguagePlugin;
 use super::Result;
+use super::StudentFilePolicy;
 use lazy_static::lazy_static;
 use log::{debug, info};
 use meta_syntax::{MetaString, MetaSyntaxParser};
@@ -298,7 +299,6 @@ pub fn prepare_stubs(
 
 #[cfg(test)]
 mod test {
-    use super::super::MockLanguagePlugin;
     use super::*;
     use std::collections::HashSet;
     use std::io::Read;
@@ -405,13 +405,58 @@ mod test {
         );
     }
 
+    struct MockPlugin {}
+
+    struct MockPolicy {}
+
+    impl StudentFilePolicy for MockPolicy {
+        fn get_config_file_parent_path(&self) -> &Path {
+            todo!()
+        }
+        fn is_student_source_file(&self, path: &Path) -> bool {
+            todo!()
+        }
+    }
+
+    impl LanguagePlugin for MockPlugin {
+        fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy> {
+            todo!()
+        }
+        fn get_plugin_name(&self) -> &'static str {
+            todo!()
+        }
+
+        fn scan_exercise(&self, _path: &Path, _exercise_name: String) -> Result<ExerciseDesc> {
+            todo!()
+        }
+
+        fn run_tests(&self, _path: &Path) -> RunResult {
+            todo!()
+        }
+
+        fn check_code_style(
+            &self,
+            _path: &Path,
+            _locale: isolang::Language,
+        ) -> Option<tmc_langs_abstraction::ValidationResult> {
+            todo!()
+        }
+
+        fn is_exercise_type_correct(&self, path: &Path) -> bool {
+            !path.to_str().unwrap().contains("ignored")
+        }
+
+        fn clean(&self, _path: &Path) {
+            todo!()
+        }
+    }
+
     #[test]
     fn prepares_stubs() {
         init();
 
         let mut exercise_map = HashMap::new();
-        let mut plugin = MockLanguagePlugin::new();
-        plugin.expect_maybe_copy_shared_stuff().returning(|_| ());
+        let mut plugin = MockPlugin {};
         exercise_map.insert(
             TESTDATA_ROOT.into(),
             Box::new(plugin) as Box<dyn LanguagePlugin>,

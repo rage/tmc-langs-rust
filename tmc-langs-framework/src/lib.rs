@@ -2,7 +2,7 @@ pub mod domain;
 pub mod io;
 
 use domain::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, TmcProjectYml};
-use io::{sandbox, zip};
+use io::{sandbox, zip, StudentFilePolicy};
 use isolang::Language;
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -22,7 +22,6 @@ use walkdir::WalkDir;
 ///
 /// Implementations must be thread-safe and preferably fully stateless. Users of
 /// this interface are free to cache results if needed.
-#[cfg_attr(test, mockall::automock)]
 pub trait LanguagePlugin {
     /// Returns the name of the plug-in.
     fn get_plugin_name(&self) -> &str;
@@ -67,8 +66,13 @@ pub trait LanguagePlugin {
     /// appears in the course repository. The implementation should copy over a
     /// selection of files from the submission so that the student cannot e.g.
     /// easily replace the tests.
-    fn prepare_submission(&self, submission_path: &Path, dest_path: &Path) {
-        sandbox::move_files((), submission_path, dest_path);
+    fn prepare_submission(
+        &self,
+        policy: Box<dyn StudentFilePolicy>,
+        submission_path: &Path,
+        dest_path: &Path,
+    ) -> Result<()> {
+        Ok(sandbox::move_files(policy, submission_path, dest_path)?)
     }
 
     /// Prepares a stub exercise from the original.
@@ -102,15 +106,19 @@ pub trait LanguagePlugin {
 
     /// Compress a given project so that it can be sent to the TestMyCode server.
     fn compress_project(&self, path: &Path) -> Vec<u8> {
-        zip::student_file_aware_zip((), path)
+        let policy = self.get_student_file_policy(path);
+        zip::student_file_aware_zip(policy, path)
     }
+
+    fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy>;
 
     /// Extract a given archive file containing a compressed project to a target location.
     ///
     /// This will overwrite any existing files as long as they are not specified as student files
     /// by the language dependent student file policy.
     fn extract_project(&self, compressed_project: &Path, target_location: &Path) {
-        zip::student_file_aware_unzip((), compressed_project, target_location);
+        let policy = self.get_student_file_policy(target_location);
+        zip::student_file_aware_unzip(policy, compressed_project, target_location);
     }
 
     /// Tells if there's a valid exercise in this path.
@@ -180,7 +188,22 @@ mod test {
 
     struct MockPlugin {}
 
+    struct MockPolicy {}
+
+    impl StudentFilePolicy for MockPolicy {
+        fn get_config_file_parent_path(&self) -> &Path {
+            todo!()
+        }
+        fn is_student_source_file(&self, path: &Path) -> bool {
+            todo!()
+        }
+    }
+
     impl LanguagePlugin for MockPlugin {
+        fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy> {
+            todo!()
+        }
+
         fn get_plugin_name(&self) -> &'static str {
             todo!()
         }
