@@ -178,6 +178,8 @@ pub enum Error {
     YamlDeserialization(#[from] serde_yaml::Error),
     #[error("Error reading or writing zip files")]
     ZipError(#[from] zip::ZipError),
+    #[error("No project directory found in archive during unzip")]
+    NoProjectDirInZip,
     #[error(transparent)]
     Other(Box<dyn std::error::Error>),
 }

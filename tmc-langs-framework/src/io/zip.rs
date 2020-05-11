@@ -1,4 +1,4 @@
-use super::super::Result;
+use super::super::{Error, Result};
 use super::StudentFilePolicy;
 use log::debug;
 use std::fs::{self, File};
@@ -93,7 +93,7 @@ fn find_project_dir<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<S
             return Ok(file.name().to_string());
         }
     }
-    todo!("no project dir found in zip")
+    Err(Error::NoProjectDirInZip)
 }
 
 fn contains_tmcnosubmit(entry: &DirEntry) -> bool {
