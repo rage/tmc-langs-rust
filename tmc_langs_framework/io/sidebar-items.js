@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["sandbox",""],["zip",""]]});
+initSidebarItems({"mod":[["sandbox",""],["zip",""]],"struct":[["EverythingIsStudentFilePolicy",""],["NothingIsStudentFilePolicy",""]],"trait":[["StudentFilePolicy",""]]});

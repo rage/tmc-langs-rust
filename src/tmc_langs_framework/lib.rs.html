@@ -271,12 +271,37 @@
 <span id="271">271</span>
 <span id="272">272</span>
 <span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">domain</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">io</span>;
 
 <span class="kw">use</span> <span class="ident">domain</span>::{<span class="ident">ExerciseDesc</span>, <span class="ident">ExercisePackagingConfiguration</span>, <span class="ident">RunResult</span>, <span class="ident">TmcProjectYml</span>};
-<span class="kw">use</span> <span class="ident">io</span>::{<span class="ident">sandbox</span>, <span class="ident">zip</span>};
+<span class="kw">use</span> <span class="ident">io</span>::{<span class="ident">sandbox</span>, <span class="ident">zip</span>, <span class="ident">StudentFilePolicy</span>};
 <span class="kw">use</span> <span class="ident">isolang</span>::<span class="ident">Language</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
@@ -296,7 +321,6 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Implementations must be thread-safe and preferably fully stateless. Users of</span>
 <span class="doccomment">/// this interface are free to cache results if needed.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">test</span>, <span class="ident">mockall</span>::<span class="ident">automock</span>)]</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">LanguagePlugin</span> {
     <span class="doccomment">/// Returns the name of the plug-in.</span>
     <span class="kw">fn</span> <span class="ident">get_plugin_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span>;
@@ -341,8 +365,13 @@
     <span class="doccomment">/// appears in the course repository. The implementation should copy over a</span>
     <span class="doccomment">/// selection of files from the submission so that the student cannot e.g.</span>
     <span class="doccomment">/// easily replace the tests.</span>
-    <span class="kw">fn</span> <span class="ident">prepare_submission</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">submission_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">dest_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) {
-        <span class="ident">sandbox</span>::<span class="ident">move_files</span>((), <span class="ident">submission_path</span>, <span class="ident">dest_path</span>);
+    <span class="kw">fn</span> <span class="ident">prepare_submission</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">policy</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StudentFilePolicy</span><span class="op">&gt;</span>,
+        <span class="ident">submission_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+        <span class="ident">dest_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">sandbox</span>::<span class="ident">move_files</span>(<span class="ident">policy</span>, <span class="ident">submission_path</span>, <span class="ident">dest_path</span>)<span class="question-mark">?</span>)
     }
 
     <span class="doccomment">/// Prepares a stub exercise from the original.</span>
@@ -361,6 +390,7 @@
     <span class="doccomment">/// Prepares a presentable solution from the original.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The solution usually has stubs and special comments stripped.</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
     <span class="kw">fn</span> <span class="ident">prepare_solutions</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">exercise_map</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">LanguagePlugin</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -375,21 +405,26 @@
 
     <span class="doccomment">/// Compress a given project so that it can be sent to the TestMyCode server.</span>
     <span class="kw">fn</span> <span class="ident">compress_project</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-        <span class="ident">zip</span>::<span class="ident">student_file_aware_zip</span>((), <span class="ident">path</span>)
+        <span class="kw">let</span> <span class="ident">policy</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_student_file_policy</span>(<span class="ident">path</span>);
+        <span class="ident">zip</span>::<span class="ident">student_file_aware_zip</span>(<span class="ident">policy</span>, <span class="ident">path</span>)
     }
+
+    <span class="kw">fn</span> <span class="ident">get_student_file_policy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">project_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StudentFilePolicy</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Extract a given archive file containing a compressed project to a target location.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This will overwrite any existing files as long as they are not specified as student files</span>
     <span class="doccomment">/// by the language dependent student file policy.</span>
     <span class="kw">fn</span> <span class="ident">extract_project</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">compressed_project</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">target_location</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) {
-        <span class="ident">zip</span>::<span class="ident">student_file_aware_unzip</span>((), <span class="ident">compressed_project</span>, <span class="ident">target_location</span>);
+        <span class="kw">let</span> <span class="ident">policy</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_student_file_policy</span>(<span class="ident">target_location</span>);
+        <span class="ident">zip</span>::<span class="ident">student_file_aware_unzip</span>(<span class="ident">policy</span>, <span class="ident">compressed_project</span>, <span class="ident">target_location</span>);
     }
 
     <span class="doccomment">/// Tells if there&#39;s a valid exercise in this path.</span>
     <span class="kw">fn</span> <span class="ident">is_exercise_type_correct</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 
     <span class="doccomment">/// Copy shared stuff to stub or solution used for example for copying tmc-junit-runner.</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
     <span class="kw">fn</span> <span class="ident">maybe_copy_shared_stuff</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dest_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) {
         <span class="comment">// no op by default</span>
     }
@@ -452,16 +487,31 @@
 
     <span class="kw">struct</span> <span class="ident">MockPlugin</span> {}
 
+    <span class="kw">struct</span> <span class="ident">MockPolicy</span> {}
+
+    <span class="kw">impl</span> <span class="ident">StudentFilePolicy</span> <span class="kw">for</span> <span class="ident">MockPolicy</span> {
+        <span class="kw">fn</span> <span class="ident">get_config_file_parent_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Path</span> {
+            <span class="macro">todo</span><span class="macro">!</span>()
+        }
+        <span class="kw">fn</span> <span class="ident">is_student_source_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="macro">todo</span><span class="macro">!</span>()
+        }
+    }
+
     <span class="kw">impl</span> <span class="ident">LanguagePlugin</span> <span class="kw">for</span> <span class="ident">MockPlugin</span> {
+        <span class="kw">fn</span> <span class="ident">get_student_file_policy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">project_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StudentFilePolicy</span><span class="op">&gt;</span> {
+            <span class="macro">todo</span><span class="macro">!</span>()
+        }
+
         <span class="kw">fn</span> <span class="ident">get_plugin_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
             <span class="macro">todo</span><span class="macro">!</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">scan_exercise</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">exercise_name</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">scan_exercise</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">_exercise_name</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span><span class="op">&gt;</span> {
             <span class="macro">todo</span><span class="macro">!</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">run_tests</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RunResult</span> {
+        <span class="kw">fn</span> <span class="ident">run_tests</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RunResult</span> {
             <span class="macro">todo</span><span class="macro">!</span>()
         }
 

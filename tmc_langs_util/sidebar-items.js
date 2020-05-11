@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["tar",""],["task_executor","Module for calling different tasks of TMC-langs language plug-ins."]],"struct":[["PLUGINS",""]]});
+initSidebarItems({"mod":[["tar",""],["task_executor","Module for calling different tasks of TMC-langs language plug-ins."]]});
