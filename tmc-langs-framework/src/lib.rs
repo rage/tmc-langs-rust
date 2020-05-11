@@ -105,9 +105,9 @@ pub trait LanguagePlugin {
     fn check_code_style(&self, path: &Path, locale: Language) -> Option<ValidationResult>;
 
     /// Compress a given project so that it can be sent to the TestMyCode server.
-    fn compress_project(&self, path: &Path) -> Vec<u8> {
+    fn compress_project(&self, path: &Path) -> Result<Vec<u8>> {
         let policy = self.get_student_file_policy(path);
-        zip::student_file_aware_zip(policy, path)
+        Ok(zip::student_file_aware_zip(policy, path)?)
     }
 
     fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy>;

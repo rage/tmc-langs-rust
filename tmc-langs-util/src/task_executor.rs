@@ -63,7 +63,7 @@ pub fn extract_project(compressed_project: &Path, target_location: &Path) -> Res
     if let Ok(plugin) = get_language_plugin(compressed_project) {
         plugin.extract_project(compressed_project, target_location);
     } else {
-        extract_project_overwrite(compressed_project, target_location);
+        extract_project_overwrite(compressed_project, target_location)?;
     }
     Ok(())
 }
@@ -72,17 +72,18 @@ pub fn extract_project(compressed_project: &Path, target_location: &Path) -> Res
 ///
 /// This will overwrite any existing files as long as they are not specified as student files
 /// by the language dependent student file policy.
-pub fn extract_project_overwrite(compressed_project: &Path, target_location: &Path) {
+pub fn extract_project_overwrite(compressed_project: &Path, target_location: &Path) -> Result<()> {
     zip::student_file_aware_unzip(
         Box::new(NothingIsStudentFilePolicy {}),
         compressed_project,
         target_location,
-    );
+    )?;
+    Ok(())
 }
 
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::compress_project`.
 pub fn compress_project(path: &Path) -> Result<Vec<u8>> {
-    Ok(get_language_plugin(path)?.compress_project(path))
+    Ok(get_language_plugin(path)?.compress_project(path)?)
 }
 
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::get_exercise_packaging_configuration`.

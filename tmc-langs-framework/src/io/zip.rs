@@ -2,11 +2,11 @@ use super::super::Result;
 use super::StudentFilePolicy;
 use log::debug;
 use std::fs::{self, File};
-use std::io::{BufWriter, Bytes, Read, Seek, Write};
+use std::io::{BufWriter, Cursor, Read, Seek, Write};
 use std::path::Path;
-use walkdir::WalkDir;
+use walkdir::{DirEntry, WalkDir};
 pub use zip::result::ZipError;
-use zip::{ZipArchive, ZipWriter};
+use zip::{write::FileOptions, ZipArchive, ZipWriter};
 
 pub struct UnzipResult {}
 
@@ -96,17 +96,51 @@ fn find_project_dir<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<S
     todo!("no project dir found in zip")
 }
 
-pub fn student_file_aware_zip(
-    policy: Box<dyn StudentFilePolicy>,
-    root_directory: &Path,
-) -> Vec<u8> {
-    for entry in WalkDir::new(root_directory)
+fn contains_tmcnosubmit(entry: &DirEntry) -> bool {
+    for entry in WalkDir::new(entry.path())
+        .max_depth(1)
         .into_iter()
         .filter_map(|e| e.ok())
     {
-        if entry.path().is_dir() {}
+        if entry.file_name() == ".tmcnosubmit" {
+            return true;
+        }
     }
-    todo!()
+    false
+}
+
+pub fn student_file_aware_zip(
+    policy: Box<dyn StudentFilePolicy>,
+    root_directory: &Path,
+) -> Result<Vec<u8>> {
+    let mut writer = ZipWriter::new(Cursor::new(vec![]));
+    for entry in WalkDir::new(root_directory)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|e| !contains_tmcnosubmit(e))
+    {
+        debug!("processing {:?}", entry.path());
+        if policy.is_student_file(entry.path(), &root_directory)? {
+            if entry.path().is_dir() {
+                writer.add_directory_from_path(
+                    entry.path().strip_prefix(root_directory).unwrap(),
+                    FileOptions::default(),
+                )?;
+            } else {
+                let file = File::open(entry.path())?;
+                let bytes = file
+                    .bytes()
+                    .collect::<std::result::Result<Vec<_>, std::io::Error>>()?;
+                writer.start_file_from_path(
+                    entry.path().strip_prefix(root_directory).unwrap(),
+                    FileOptions::default(),
+                )?;
+                writer.write_all(&bytes)?;
+            }
+        }
+    }
+    let cursor = writer.finish()?;
+    Ok(cursor.into_inner())
 }
 
 #[cfg(test)]
@@ -121,7 +155,7 @@ mod test {
     }
 
     #[test]
-    fn test() {
+    fn unzips() {
         init();
 
         let temp = TempDir::new("test").unwrap();
@@ -141,5 +175,26 @@ mod test {
         assert!(paths.contains(&temp.path().join("outer/src/file.py")));
         assert!(paths.contains(&temp.path().join("outer/src/.tmcproject.yml")));
         assert!(!paths.contains(&temp.path().join("other/some file")));
+    }
+
+    #[test]
+    fn zips() {
+        init();
+
+        let temp = TempDir::new("test").unwrap();
+        let student_file_path = temp.path().join("outer/src/file.py");
+        let other_file_path = temp.path().join("other/some file");
+        let other_file_path = temp.path().join("other/.tmcnosubmit");
+        fs::create_dir_all(student_file_path.parent().unwrap()).unwrap();
+        File::create(student_file_path).unwrap();
+        fs::create_dir_all(other_file_path.parent().unwrap()).unwrap();
+        File::create(other_file_path).unwrap();
+
+        let zipped =
+            student_file_aware_zip(Box::new(EverythingIsStudentFilePolicy {}), temp.path())
+                .unwrap();
+        let mut archive = ZipArchive::new(Cursor::new(zipped)).unwrap();
+        assert!(archive.by_name("outer/src/file.py").is_ok());
+        assert!(archive.by_name("other/some file").is_err());
     }
 }
