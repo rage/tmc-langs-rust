@@ -34,7 +34,7 @@ fn add_dir_to_project<W: Write>(
 ) -> Result<()> {
     for entry in WalkDir::new(source).into_iter().filter_map(|e| e.ok()) {
         if entry.path().is_file() {
-            let path_in_project: PathBuf = entry.path().into_iter().skip(skips).collect();
+            let path_in_project: PathBuf = entry.path().iter().skip(skips).collect();
             let path_in_tar: PathBuf = project_name.join(path_in_project);
             debug!("appending {:?} as {:?}", entry.path(), path_in_tar);
             tar.append_path_with_name(entry.path(), path_in_tar)?;

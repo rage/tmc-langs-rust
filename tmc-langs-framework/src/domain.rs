@@ -2,7 +2,6 @@ mod meta_syntax;
 
 use super::LanguagePlugin;
 use super::Result;
-use super::StudentFilePolicy;
 use lazy_static::lazy_static;
 use log::{debug, info};
 use meta_syntax::{MetaString, MetaSyntaxParser};
@@ -128,7 +127,7 @@ fn is_hidden_dir(entry: &DirEntry) -> bool {
         && entry
             .file_name()
             .to_str()
-            .map(|s| s.starts_with("."))
+            .map(|s| s.starts_with('.'))
             .unwrap_or(false);
     if skip {
         debug!("is hidden dir: {:?}", entry.path());
@@ -184,15 +183,9 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
         return Ok(());
     }
     // get relative path
-    let relative_path = entry
-        .path()
-        .into_iter()
-        .skip(skip_parts)
-        .collect::<PathBuf>();
+    let relative_path = entry.path().iter().skip(skip_parts).collect::<PathBuf>();
     let dest_path = dest_root.join(&relative_path);
-    dest_path
-        .parent()
-        .map_or(Ok(()), |p| fs::create_dir_all(p))?;
+    dest_path.parent().map_or(Ok(()), fs::create_dir_all)?;
     let extension = entry
         .path()
         .extension()
@@ -290,7 +283,7 @@ pub fn prepare_stubs(
 
         let relative_path = if repo_path.components().count() < path.iter().count() {
             let skip_count = repo_path.components().count();
-            path.components().into_iter().skip(skip_count).collect()
+            path.components().skip(skip_count).collect()
         } else {
             PathBuf::from("")
         };
@@ -301,6 +294,7 @@ pub fn prepare_stubs(
 
 #[cfg(test)]
 mod test {
+    use super::super::StudentFilePolicy;
     use super::*;
     use std::collections::HashSet;
     use std::io::Read;

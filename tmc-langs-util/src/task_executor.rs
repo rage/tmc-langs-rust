@@ -61,7 +61,7 @@ pub fn is_exercise_root_directory(path: &Path) -> bool {
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::extract_project`.
 pub fn extract_project(compressed_project: &Path, target_location: &Path) -> Result<()> {
     if let Ok(plugin) = get_language_plugin(compressed_project) {
-        plugin.extract_project(compressed_project, target_location);
+        plugin.extract_project(compressed_project, target_location)?;
     } else {
         extract_project_overwrite(compressed_project, target_location)?;
     }

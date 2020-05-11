@@ -116,9 +116,10 @@ pub trait LanguagePlugin {
     ///
     /// This will overwrite any existing files as long as they are not specified as student files
     /// by the language dependent student file policy.
-    fn extract_project(&self, compressed_project: &Path, target_location: &Path) {
+    fn extract_project(&self, compressed_project: &Path, target_location: &Path) -> Result<()> {
         let policy = self.get_student_file_policy(target_location);
-        zip::student_file_aware_unzip(policy, compressed_project, target_location);
+        zip::student_file_aware_unzip(policy, compressed_project, target_location)?;
+        Ok(())
     }
 
     /// Tells if there's a valid exercise in this path.

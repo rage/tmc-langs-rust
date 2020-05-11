@@ -15,9 +15,9 @@ pub trait StudentFilePolicy {
             return Ok(false);
         }
 
-        return Ok(self.is_extra_student_file(path)?
+        Ok(self.is_extra_student_file(path)?
             || project_root_path == path
-            || self.is_student_source_file(path));
+            || self.is_student_source_file(path))
     }
 
     fn get_config_file_parent_path(&self) -> &Path;
@@ -54,7 +54,7 @@ pub trait StudentFilePolicy {
 pub struct NothingIsStudentFilePolicy {}
 
 impl StudentFilePolicy for NothingIsStudentFilePolicy {
-    fn is_student_file(&self, path: &Path, project_root_path: &Path) -> Result<bool> {
+    fn is_student_file(&self, _path: &Path, _project_root_path: &Path) -> Result<bool> {
         Ok(false)
     }
 
@@ -62,11 +62,11 @@ impl StudentFilePolicy for NothingIsStudentFilePolicy {
         unimplemented!()
     }
 
-    fn is_extra_student_file(&self, path: &Path) -> Result<bool> {
+    fn is_extra_student_file(&self, _path: &Path) -> Result<bool> {
         unimplemented!()
     }
 
-    fn is_student_source_file(&self, path: &Path) -> bool {
+    fn is_student_source_file(&self, _path: &Path) -> bool {
         unimplemented!()
     }
 }
@@ -74,7 +74,7 @@ impl StudentFilePolicy for NothingIsStudentFilePolicy {
 pub struct EverythingIsStudentFilePolicy {}
 
 impl StudentFilePolicy for EverythingIsStudentFilePolicy {
-    fn is_student_file(&self, path: &Path, project_root_path: &Path) -> Result<bool> {
+    fn is_student_file(&self, _path: &Path, _project_root_path: &Path) -> Result<bool> {
         Ok(true)
     }
 
@@ -82,11 +82,11 @@ impl StudentFilePolicy for EverythingIsStudentFilePolicy {
         unimplemented!()
     }
 
-    fn is_extra_student_file(&self, path: &Path) -> Result<bool> {
+    fn is_extra_student_file(&self, _path: &Path) -> Result<bool> {
         unimplemented!()
     }
 
-    fn is_student_source_file(&self, path: &Path) -> bool {
+    fn is_student_source_file(&self, _path: &Path) -> bool {
         unimplemented!()
     }
 }

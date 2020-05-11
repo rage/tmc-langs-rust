@@ -25,7 +25,7 @@ pub enum MetaString {
 
 impl MetaString {
     // Borrows the underlying line of text
-    pub fn as_str<'a>(&'a self) -> &'a str {
+    pub fn as_str(&self) -> &str {
         match self {
             Self::String(s) => &s,
             Self::Stub(s) => &s,
@@ -116,7 +116,7 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
         let mut s = String::new();
         match self.reader.read_line(&mut s) {
             // read 0 bytes = reader empty = iterator empty
-            Ok(0) => return None,
+            Ok(0) => None,
             Ok(_) => {
                 // check line with each meta syntax
                 for meta_syntax in self.meta_syntaxes {
@@ -128,7 +128,7 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                         // remove stub start
                         s = meta_syntax
                             .stub_begin
-                            .replace(&s, |caps: &Captures| format!("{}", &caps[1]))
+                            .replace(&s, |caps: &Captures| caps[1].to_string())
                             .to_string();
                         debug!("parsed: '{}'", s);
                         if s.trim().is_empty() {
@@ -146,7 +146,7 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                         self.in_stub = None;
                         s = meta_syntax
                             .stub_end
-                            .replace(&s, |caps: &Captures| format!("{}", &caps[1]))
+                            .replace(&s, |caps: &Captures| caps[1].to_string())
                             .to_string();
                         debug!("parsed: '{}'", s);
                         if s.trim().is_empty() {
@@ -171,16 +171,16 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                 // parse the current line accordingly
                 if self.in_solution {
                     debug!("solution: '{}'", s);
-                    return Some(Ok(MetaString::Solution(s)));
+                    Some(Ok(MetaString::Solution(s)))
                 } else if self.in_stub.is_some() {
                     debug!("stub: '{}'", s);
-                    return Some(Ok(MetaString::Stub(s)));
+                    Some(Ok(MetaString::Stub(s)))
                 } else {
                     debug!("string: '{}'", s);
-                    return Some(Ok(MetaString::String(s)));
+                    Some(Ok(MetaString::String(s)))
                 }
             }
-            Err(err) => return Some(Err(err)),
+            Err(err) => Some(Err(err)),
         }
     }
 }
