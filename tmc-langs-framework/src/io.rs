@@ -35,6 +35,20 @@ pub trait StudentFilePolicy {
     }
 
     fn is_student_source_file(&self, path: &Path) -> bool;
+
+    fn is_updating_forced(&self, path: &Path) -> Result<bool> {
+        let absolute = path.canonicalize()?;
+        let tmc_project_yml = TmcProjectYml::from(self.get_config_file_parent_path())?;
+        for force_update_path in tmc_project_yml.force_update {
+            let force_absolute = force_update_path.canonicalize()?;
+            if (absolute == force_absolute || absolute.starts_with(&force_absolute))
+                && force_absolute.is_dir()
+            {
+                return Ok(true);
+            }
+        }
+        Ok(false)
+    }
 }
 
 pub struct NothingIsStudentFilePolicy {}

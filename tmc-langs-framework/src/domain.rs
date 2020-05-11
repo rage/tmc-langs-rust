@@ -109,6 +109,8 @@ pub struct TmcProjectYml {
     pub extra_student_files: Vec<PathBuf>,
     #[serde(default)]
     pub extra_exercise_files: Vec<PathBuf>,
+    #[serde(default)]
+    pub force_update: Vec<PathBuf>,
 }
 
 impl TmcProjectYml {

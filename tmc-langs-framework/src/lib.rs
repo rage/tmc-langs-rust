@@ -176,6 +176,8 @@ pub enum Error {
     FileProcessing(#[from] std::io::Error),
     #[error("Error deserializing YAML")]
     YamlDeserialization(#[from] serde_yaml::Error),
+    #[error("Error reading or writing zip files")]
+    ZipError(#[from] zip::ZipError),
     #[error(transparent)]
     Other(Box<dyn std::error::Error>),
 }
