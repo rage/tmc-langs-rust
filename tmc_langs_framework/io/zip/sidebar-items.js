@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["student_file_aware_unzip",""],["student_file_aware_zip",""]],"struct":[["UnzipResult",""]]});
+initSidebarItems({"enum":[["ZipError","Error type for Zip"]],"fn":[["student_file_aware_unzip",""],["student_file_aware_zip",""]],"struct":[["UnzipResult",""]]});
