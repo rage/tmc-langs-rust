@@ -196,32 +196,32 @@ mod test {
 
     impl StudentFilePolicy for MockPolicy {
         fn get_config_file_parent_path(&self) -> &Path {
-            todo!()
+            unimplemented!()
         }
         fn is_student_source_file(&self, path: &Path) -> bool {
-            todo!()
+            unimplemented!()
         }
     }
 
     impl LanguagePlugin for MockPlugin {
         fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy> {
-            todo!()
+            unimplemented!()
         }
 
         fn get_plugin_name(&self) -> &'static str {
-            todo!()
+            unimplemented!()
         }
 
         fn scan_exercise(&self, _path: &Path, _exercise_name: String) -> Result<ExerciseDesc> {
-            todo!()
+            unimplemented!()
         }
 
         fn run_tests(&self, _path: &Path) -> RunResult {
-            todo!()
+            unimplemented!()
         }
 
         fn check_code_style(&self, _path: &Path, _locale: Language) -> Option<ValidationResult> {
-            todo!()
+            unimplemented!()
         }
 
         fn is_exercise_type_correct(&self, path: &Path) -> bool {
@@ -229,7 +229,7 @@ mod test {
         }
 
         fn clean(&self, _path: &Path) {
-            todo!()
+            unimplemented!()
         }
     }
 
