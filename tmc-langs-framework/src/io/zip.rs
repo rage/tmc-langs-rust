@@ -116,8 +116,8 @@ pub fn student_file_aware_zip(
     let mut writer = ZipWriter::new(Cursor::new(vec![]));
     for entry in WalkDir::new(root_directory)
         .into_iter()
+        .filter_entry(|e| !contains_tmcnosubmit(e))
         .filter_map(|e| e.ok())
-        .filter(|e| !contains_tmcnosubmit(e))
     {
         debug!("processing {:?}", entry.path());
         if policy.is_student_file(entry.path(), &root_directory)? {
@@ -184,11 +184,13 @@ mod test {
         let temp = TempDir::new("test").unwrap();
         let student_file_path = temp.path().join("outer/src/file.py");
         let other_file_path = temp.path().join("other/some file");
-        let other_file_path = temp.path().join("other/.tmcnosubmit");
+        let tmc_file = temp.path().join("other/.tmcnosubmit");
         fs::create_dir_all(student_file_path.parent().unwrap()).unwrap();
         File::create(student_file_path).unwrap();
         fs::create_dir_all(other_file_path.parent().unwrap()).unwrap();
         File::create(other_file_path).unwrap();
+        fs::create_dir_all(tmc_file.parent().unwrap()).unwrap();
+        File::create(tmc_file).unwrap();
 
         let zipped =
             student_file_aware_zip(Box::new(EverythingIsStudentFilePolicy {}), temp.path())
