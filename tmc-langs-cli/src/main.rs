@@ -11,6 +11,8 @@ use tmc_langs_util::task_executor;
 use walkdir::WalkDir;
 
 fn main() {
+    env_logger::init();
+
     let matches = App::new("TestMyCode")
         .version("0.1.0")
         .author("Daniel Martinez <daniel.x.martinez@helsinki.fi")
