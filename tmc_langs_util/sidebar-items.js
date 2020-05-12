@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["tar",""],["task_executor","Module for calling different tasks of TMC-langs language plug-ins."]]});
+initSidebarItems({"mod":[["tar","Contains a function for creating a tarball from a project."],["task_executor","Module for calling different tasks of TMC-langs language plug-ins."]]});

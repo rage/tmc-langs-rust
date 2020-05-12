@@ -1,0 +1,1 @@
+initSidebarItems({"trait":[["LanguagePlugin","The trait that each language plug-in must implement."]]});

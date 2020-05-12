@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["create_tar_from_project",""]]});
+initSidebarItems({"fn":[["create_tar_from_project","Creates a tarball from the project dir, also adding in tmc_langs and tmcrun."]]});

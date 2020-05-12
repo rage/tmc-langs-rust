@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["EverythingIsStudentFilePolicy",""],["NothingIsStudentFilePolicy",""]],"trait":[["StudentFilePolicy","Specifies which files are student files."]]});

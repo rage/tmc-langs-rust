@@ -320,7 +320,13 @@
 <span id="320">320</span>
 <span id="321">321</span>
 <span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! Implementation of LanguagePlugin for Python 3.</span>
+
 <span class="kw">use</span> <span class="ident">isolang</span>::<span class="ident">Language</span>;
 <span class="kw">use</span> <span class="ident">lazy_static</span>::<span class="ident">lazy_static</span>;
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">error</span>};
@@ -333,8 +339,9 @@
 <span class="kw">use</span> <span class="ident">tmc_langs_abstraction</span>::<span class="ident">ValidationResult</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
     <span class="ident">domain</span>::{<span class="ident">ExerciseDesc</span>, <span class="ident">RunResult</span>, <span class="ident">RunStatus</span>, <span class="ident">TestDesc</span>, <span class="ident">TestResult</span>},
-    <span class="ident">io</span>::<span class="ident">StudentFilePolicy</span>,
-    <span class="ident">Error</span>, <span class="ident">LanguagePlugin</span>,
+    <span class="ident">plugin</span>::<span class="ident">LanguagePlugin</span>,
+    <span class="ident">policy</span>::<span class="ident">StudentFilePolicy</span>,
+    <span class="ident">Error</span>,
 };
 
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LocalPy</span> {
@@ -344,6 +351,7 @@
 }
 
 <span class="macro">lazy_static</span><span class="macro">!</span> {
+    <span class="comment">// the python command is platform-dependent</span>
     <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">LOCAL_PY</span>: <span class="ident">LocalPy</span> <span class="op">=</span> {
         <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">windows</span>) {
             <span class="comment">// Check for Conda</span>

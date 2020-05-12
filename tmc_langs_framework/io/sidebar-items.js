@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["sandbox",""],["zip",""]],"struct":[["EverythingIsStudentFilePolicy",""],["NothingIsStudentFilePolicy",""]],"trait":[["StudentFilePolicy",""]]});
+initSidebarItems({"mod":[["submission_processing","Functions for processing submissions."],["zip","Contains functions for zipping and unzipping projects."]]});
