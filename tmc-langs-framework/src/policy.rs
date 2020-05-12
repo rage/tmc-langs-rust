@@ -1,3 +1,5 @@
+//! Contains StudentFilePolicy.
+
 use super::{Result, TmcProjectYml};
 use std::ffi::OsStr;
 use std::path::Path;

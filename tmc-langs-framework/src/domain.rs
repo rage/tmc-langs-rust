@@ -1,3 +1,5 @@
+//! Contains structs that model data related to exercises.
+
 pub mod meta_syntax;
 
 use super::Result;

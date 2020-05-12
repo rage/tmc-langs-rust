@@ -1,3 +1,5 @@
+//! Contains LanguagePlugin.
+
 use super::domain::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, TmcProjectYml};
 use super::io::{submission_processing, zip};
 use super::policy::StudentFilePolicy;

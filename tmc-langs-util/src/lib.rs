@@ -1,3 +1,5 @@
+//! Contains the task executor and a function for creating a tarball from a project.
+
 pub mod tar;
 pub mod task_executor;
 

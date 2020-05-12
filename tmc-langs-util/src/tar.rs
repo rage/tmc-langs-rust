@@ -1,3 +1,5 @@
+//! Contains a function for creating a tarball from a project.
+
 use log::debug;
 use std::fs::File;
 use std::io::Write;

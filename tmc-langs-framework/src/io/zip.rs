@@ -1,3 +1,5 @@
+//! Contains functions for zipping and unzipping projects.
+
 use crate::policy::StudentFilePolicy;
 use crate::{Error, Result};
 use log::debug;

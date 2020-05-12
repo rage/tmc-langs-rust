@@ -1,3 +1,5 @@
+//! Contains ValidationResult and related structs and enums.
+
 use std::collections::HashMap;
 use std::path::PathBuf;
 

@@ -1,3 +1,5 @@
+//! Implementation of LanguagePlugin for Python 3.
+
 use isolang::Language;
 use lazy_static::lazy_static;
 use log::{debug, error};

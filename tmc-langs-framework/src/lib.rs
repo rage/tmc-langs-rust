@@ -1,3 +1,5 @@
+//! Contains functionality for dealing with projects.
+
 pub mod domain;
 pub mod io;
 pub mod plugin;

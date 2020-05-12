@@ -1,3 +1,5 @@
+//! Functions for processing submissions.
+
 use crate::policy::StudentFilePolicy;
 use crate::Result;
 
