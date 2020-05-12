@@ -11,6 +11,9 @@ use zip::{write::FileOptions, ZipArchive, ZipWriter};
 
 pub struct UnzipResult {}
 
+/// Finds a project directory in the given zip and unzips it, only extracting student files.
+/// Cleans the target directory from files that were not in the zip and are not student files.
+/// Cleaning leaves non-empty directories but deletes their contents.
 pub fn student_file_aware_unzip(
     policy: Box<dyn StudentFilePolicy>,
     zip: &Path,
@@ -132,6 +135,7 @@ fn contains_tmcnosubmit(entry: &DirEntry) -> bool {
     false
 }
 
+/// Zips the given directory, only including student files according to the given policy.
 pub fn student_file_aware_zip(
     policy: Box<dyn StudentFilePolicy>,
     root_directory: &Path,

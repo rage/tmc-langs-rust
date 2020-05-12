@@ -16,6 +16,7 @@ lazy_static! {
     static ref META_SYNTAXES_PY: [MetaSyntax; 1] = [MetaSyntax::new("#", None)];
 }
 
+// Used to classify lines of code based on the annotations in the file
 #[derive(Debug, PartialEq, Eq)]
 pub enum MetaString {
     String(String),
@@ -109,6 +110,7 @@ impl<R: Read> MetaSyntaxParser<BufReader<R>> {
     }
 }
 
+// iterates through the lines in the underlying file, parsing them to MetaStrings
 impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
     type Item = io::Result<MetaString>;
 

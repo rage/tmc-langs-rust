@@ -6,9 +6,17 @@ use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
+/// A description of an exercise's test case.
 #[derive(Debug)]
 pub struct TestDesc {
+    /// The full name of the test.
+    ///
+    /// If the language organises tests into suites or classes, it is customary
+    /// to name the test as "class_name.method_name".
     pub name: String,
+    /// The list of point names that passing this test may give.
+    ///
+    /// To obtain a point X, the user must pass all exercises that require point X.
     pub points: Vec<String>,
 }
 
@@ -18,6 +26,7 @@ impl TestDesc {
     }
 }
 
+/// The result of a single test case.
 #[derive(Debug, Deserialize)]
 pub struct TestResult {
     pub name: String,
@@ -28,9 +37,13 @@ pub struct TestResult {
     pub exception: Vec<String>,
 }
 
+/// A description of an exercise.
 #[derive(Debug)]
 pub struct ExerciseDesc {
+    /// The name of the exercise to be shown to the user.
+    /// Does not necessarily match or even contain the directory name.
     pub name: String,
+    /// Descriptions of the tests that will be run for this exercise.
     pub tests: Vec<TestDesc>,
 }
 
@@ -40,10 +53,15 @@ impl ExerciseDesc {
     }
 }
 
+/// The result of running an exercise's test suite against a submission.
 #[derive(Debug)]
 pub struct RunResult {
+    /// The overall status of a test run.
     pub status: RunStatus,
+    /// Whether each test passed and which points were awarded.
     pub test_results: Vec<TestResult>,
+    /// Logs from the test run.
+    /// The key may be an arbitrary string identifying the type of log.
     pub logs: HashMap<String, Vec<u8>>,
 }
 
@@ -61,18 +79,30 @@ impl RunResult {
     }
 }
 
+/// The overall status of a test run.
 #[derive(Debug, PartialEq, Eq)]
 pub enum RunStatus {
+    /// The submission and tests compiled and all tests passed.
     Passed,
+    /// The submission and tests compiled but some tests failed.
     TestsFailed,
+    /// The submission or tests did not compile.
+    // TODO: "The compiler error should be given in {@code logs[SpecialLogs.COMPILER_OUTPUT]}."
     CompileFailed,
+    /// The submission compiled but testrun was interrupted.
     TestrunInterrupted,
+    /// For when no other status seems suitable, or the language plugin has
+    /// suffered an internal error.
+    // TODO: "Details should be given in {@code logs[SpecialLogs.GENERIC_ERROR_MESSAGE]}.""
     GenericError,
 }
 
+/// Represents configuration based on which submission may be packaged.
 #[derive(Debug)]
 pub struct ExercisePackagingConfiguration {
+    /// Student folders or files which are copied from submission.
     pub student_file_paths: HashSet<PathBuf>,
+    /// Exercise folders or files which are copied from exercise template or clone.
     pub exercise_file_paths: HashSet<PathBuf>,
 }
 
@@ -88,6 +118,7 @@ impl ExercisePackagingConfiguration {
     }
 }
 
+/// Extra data from a `.tmcproject.yml` file.
 #[derive(Debug, Deserialize)]
 pub struct TmcProjectYml {
     #[serde(default)]

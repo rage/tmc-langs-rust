@@ -22,6 +22,7 @@ pub enum LocalPy {
 }
 
 lazy_static! {
+    // the python command is platform-dependent
     pub static ref LOCAL_PY: LocalPy = {
         if cfg!(windows) {
             // Check for Conda

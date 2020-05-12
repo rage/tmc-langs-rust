@@ -6,6 +6,7 @@ use tar::Builder;
 use tmc_langs_framework::Result;
 use walkdir::WalkDir;
 
+/// Creates a tarball from the project dir, also adding in tmc_langs and tmcrun.
 pub fn create_tar_from_project(
     project_dir: &Path,
     tmc_langs: &Path,

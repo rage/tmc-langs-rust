@@ -2,7 +2,19 @@ use super::{Result, TmcProjectYml};
 use std::ffi::OsStr;
 use std::path::Path;
 
+/// Specifies which files are student files.
+///
+/// Student files are any files that are expected to be modified and/or created by the student.
+/// That is, any files that should not be overwritten when when updating an already downloaded
+/// exercise and any files that should be submitted to the server.
 pub trait StudentFilePolicy {
+    /// Determines whether a file is a student source file.
+    ///
+    /// A file should be considered a student source file if it resides in a location the student
+    /// is expected to create his or her own source files in the general case. Any special cases
+    /// are specified as ExtraStudentFiles in a separate configuration.
+    ///
+    /// For example in a Java project that uses Apache Ant, should return `true` for any files in the `src` directory.
     fn is_student_file(&self, path: &Path, project_root_path: &Path) -> Result<bool> {
         if !path.exists() {
             return Ok(false);
@@ -19,6 +31,7 @@ pub trait StudentFilePolicy {
 
     fn get_config_file_parent_path(&self) -> &Path;
 
+    /// Determines whether a file is an extra student file.
     fn is_extra_student_file(&self, path: &Path) -> Result<bool> {
         let absolute = path.canonicalize()?;
         let tmc_project_yml = TmcProjectYml::from(self.get_config_file_parent_path())?;
@@ -33,6 +46,7 @@ pub trait StudentFilePolicy {
 
     fn is_student_source_file(&self, path: &Path) -> bool;
 
+    /// Used to check for files which should always be overwritten.
     fn is_updating_forced(&self, path: &Path) -> Result<bool> {
         let absolute = path.canonicalize()?;
         let tmc_project_yml = TmcProjectYml::from(self.get_config_file_parent_path())?;
