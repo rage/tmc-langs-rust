@@ -1,19 +1,19 @@
 //! Module for calling different tasks of TMC-langs language plug-ins.
 
-use super::{tar, PLUGINS};
+use super::{
+    tar, Error, ExerciseDesc, ExercisePackagingConfiguration, Result, RunResult, ValidationResult,
+    PLUGINS,
+};
 use isolang::Language;
 use lazy_static::lazy_static;
 use log::info;
 use regex::Regex;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use tmc_langs_abstraction::ValidationResult;
 use tmc_langs_framework::{
-    domain::{ExerciseDesc, ExercisePackagingConfiguration, RunResult},
     io::{submission_processing, zip},
     plugin::LanguagePlugin,
     policy::NothingIsStudentFilePolicy,
-    Error, Result,
 };
 
 lazy_static! {
@@ -35,11 +35,16 @@ pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
 }
 
 /// See `domain::prepare_stubs`.
-pub fn prepare_stubs(
-    exercise_map: HashMap<PathBuf, Box<dyn LanguagePlugin>>,
+pub fn prepare_stubs<I: IntoIterator<Item = PathBuf>>(
+    exercise_paths: I,
     repo_path: &Path,
     dest_path: &Path,
 ) -> Result<()> {
+    let mut exercise_map = HashMap::new();
+    for exercise_path in exercise_paths {
+        let plugin = get_language_plugin(&exercise_path)?;
+        exercise_map.insert(exercise_path, Box::new(plugin));
+    }
     Ok(submission_processing::prepare_stubs(
         exercise_map,
         repo_path,
@@ -122,7 +127,7 @@ pub fn clean(path: &Path) -> Result<()> {
 }
 
 // Get language plugin for the given path.
-fn get_language_plugin(path: &Path) -> Result<&dyn LanguagePlugin> {
+fn get_language_plugin(path: &Path) -> Result<&'static (dyn LanguagePlugin + 'static)> {
     for plugin in PLUGINS.iter() {
         if plugin.is_exercise_type_correct(path) {
             info!("Detected project as {}", plugin.get_plugin_name());

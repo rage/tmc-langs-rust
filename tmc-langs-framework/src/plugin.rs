@@ -85,7 +85,7 @@ pub trait LanguagePlugin {
     /// comments have been stripped and stubs like ('return 0') have been added.
     fn prepare_stubs(
         &self,
-        exercise_map: HashMap<PathBuf, Box<dyn LanguagePlugin>>,
+        exercise_map: HashMap<PathBuf, Box<&dyn LanguagePlugin>>,
         repo_path: &Path,
         dest_path: &Path,
     ) -> Result<()> {

@@ -3,13 +3,13 @@
 pub mod meta_syntax;
 
 use super::Result;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
 /// A description of an exercise's test case.
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct TestDesc {
     /// The full name of the test.
     ///
@@ -29,7 +29,7 @@ impl TestDesc {
 }
 
 /// The result of a single test case.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct TestResult {
     pub name: String,
     pub passed: bool,
@@ -40,7 +40,7 @@ pub struct TestResult {
 }
 
 /// A description of an exercise.
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ExerciseDesc {
     /// The name of the exercise to be shown to the user.
     /// Does not necessarily match or even contain the directory name.
@@ -56,7 +56,7 @@ impl ExerciseDesc {
 }
 
 /// The result of running an exercise's test suite against a submission.
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RunResult {
     /// The overall status of a test run.
     pub status: RunStatus,
@@ -82,7 +82,7 @@ impl RunResult {
 }
 
 /// The overall status of a test run.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub enum RunStatus {
     /// The submission and tests compiled and all tests passed.
     Passed,
@@ -100,7 +100,7 @@ pub enum RunStatus {
 }
 
 /// Represents configuration based on which submission may be packaged.
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ExercisePackagingConfiguration {
     /// Student folders or files which are copied from submission.
     pub student_file_paths: HashSet<PathBuf>,

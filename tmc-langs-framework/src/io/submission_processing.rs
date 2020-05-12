@@ -199,7 +199,7 @@ pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
 ///
 /// Additionally, copies any shared files with the corresponding language plugins.
 pub fn prepare_stubs(
-    exercise_map: HashMap<PathBuf, Box<dyn LanguagePlugin>>,
+    exercise_map: HashMap<PathBuf, Box<&dyn LanguagePlugin>>,
     repo_path: &Path,
     dest_root: &Path,
 ) -> io::Result<()> {
@@ -441,7 +441,7 @@ mod test {
         let mut plugin = MockPlugin {};
         exercise_map.insert(
             TESTDATA_ROOT.into(),
-            Box::new(plugin) as Box<dyn LanguagePlugin>,
+            Box::new(&plugin as &dyn LanguagePlugin),
         );
         let temp = TempDir::new("prepares_stubs").unwrap();
         let temp_path = temp.path();
