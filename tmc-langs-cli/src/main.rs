@@ -6,6 +6,7 @@ use serde_json;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use tmc_langs_framework::io::submission_processing;
 use tmc_langs_util::task_executor;
 use walkdir::WalkDir;
 
@@ -212,7 +213,7 @@ fn main() {
         let output_path = matches.value_of("outputPath").unwrap();
         let output_path = Path::new(output_path);
 
-        unimplemented!()
+        unimplemented!("not implemented in the Java CLI")
     } else if let Some(matches) = matches.subcommand_matches("run-tests") {
         let exercise_path = matches.value_of("exercisePath").unwrap();
         let exercise_path = Path::new(exercise_path);
@@ -260,7 +261,26 @@ fn main() {
         let output_path = matches.value_of("outputPath").unwrap();
         let output_path = Path::new(output_path);
 
-        todo!()
+        let mut exercises = vec![];
+        for entry in WalkDir::new(exercise_path)
+            .into_iter()
+            .filter_map(|e| e.ok())
+            .filter(submission_processing::is_hidden_dir)
+            .filter(|e| {
+                e.file_name()
+                    .to_str()
+                    .map(|s| s == "private")
+                    .unwrap_or(false)
+            })
+            .filter(submission_processing::contains_tmcignore)
+        {
+            // TODO: Java implementation doesn't scan root directories
+            if task_executor::is_exercise_root_directory(entry.path()) {
+                exercises.push(entry.into_path());
+            }
+        }
+        let output_file = File::create(output_path).unwrap();
+        serde_json::to_writer(output_file, &exercises).unwrap();
     } else if let Some(matches) = matches.subcommand_matches("get-exercise-packaging-configuration")
     {
         let exercise_path = matches.value_of("exercisePath").unwrap();
@@ -281,17 +301,24 @@ fn main() {
 }
 
 fn find_exercise_directories(exercise_path: &Path) -> Vec<PathBuf> {
-    // TODO: filters from submission_processing
     let mut paths = vec![];
     for entry in WalkDir::new(exercise_path)
         .max_depth(1)
         .into_iter()
         .filter_map(|e| e.ok())
+        .filter(submission_processing::is_hidden_dir)
+        .filter(|e| {
+            e.file_name()
+                .to_str()
+                .map(|s| s == "private")
+                .unwrap_or(false)
+        })
+        .filter(submission_processing::contains_tmcignore)
     {
+        // TODO: Java implementation doesn't scan root directories
         if task_executor::is_exercise_root_directory(entry.path()) {
             paths.push(entry.into_path())
         }
     }
-    todo!();
     paths
 }

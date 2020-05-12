@@ -50,7 +50,7 @@ pub fn move_files(
 }
 
 // Filter for hidden directories (directories with names starting with '.')
-fn is_hidden_dir(entry: &DirEntry) -> bool {
+pub fn is_hidden_dir(entry: &DirEntry) -> bool {
     let skip = entry.metadata().map(|e| e.is_dir()).unwrap_or(false)
         && entry
             .file_name()
@@ -77,7 +77,7 @@ fn on_skip_list(entry: &DirEntry) -> bool {
 }
 
 // Filter for skipping directories that contain a '.tmcignore' file
-fn contains_tmcignore(entry: &DirEntry) -> bool {
+pub fn contains_tmcignore(entry: &DirEntry) -> bool {
     for entry in WalkDir::new(entry.path())
         .max_depth(1)
         .into_iter()
