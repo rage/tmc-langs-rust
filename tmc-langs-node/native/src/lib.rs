@@ -1,3 +1,5 @@
+//! Exports task_executor's API as a Node module.
+
 use isolang::Language;
 use neon::prelude::*;
 use neon_serde::export;
