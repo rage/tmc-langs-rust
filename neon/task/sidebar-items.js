@@ -1,0 +1,1 @@
+initSidebarItems({"trait":[["Task","A Rust task that can be executed in a background thread."]]});

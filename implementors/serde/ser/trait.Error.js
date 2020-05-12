@@ -1,4 +1,5 @@
 (function() {var implementors = {};
+implementors["neon_serde"] = [{"text":"impl <a class=\"trait\" href=\"serde/ser/trait.Error.html\" title=\"trait serde::ser::Error\">Error</a> for <a class=\"struct\" href=\"neon_serde/errors/struct.Error.html\" title=\"struct neon_serde::errors::Error\">Error</a>","synthetic":false,"types":["neon_serde::errors::Error"]}];
 implementors["serde"] = [];
 implementors["serde_json"] = [{"text":"impl <a class=\"trait\" href=\"serde/ser/trait.Error.html\" title=\"trait serde::ser::Error\">Error</a> for <a class=\"struct\" href=\"serde_json/error/struct.Error.html\" title=\"struct serde_json::error::Error\">Error</a>","synthetic":false,"types":["serde_json::error::Error"]}];
 implementors["serde_yaml"] = [{"text":"impl <a class=\"trait\" href=\"serde/ser/trait.Error.html\" title=\"trait serde::ser::Error\">Error</a> for <a class=\"struct\" href=\"serde_yaml/struct.Error.html\" title=\"struct serde_yaml::Error\">Error</a>","synthetic":false,"types":["serde_yaml::error::Error"]}];
