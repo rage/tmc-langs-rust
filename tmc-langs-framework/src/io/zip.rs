@@ -1,5 +1,5 @@
-use super::super::{Error, Result};
-use super::StudentFilePolicy;
+use crate::policy::StudentFilePolicy;
+use crate::{Error, Result};
 use log::debug;
 use std::collections::HashSet;
 use std::fs::{self, File};
@@ -168,8 +168,8 @@ pub fn student_file_aware_zip(
 
 #[cfg(test)]
 mod test {
-    use super::super::{EverythingIsStudentFilePolicy, NothingIsStudentFilePolicy};
     use super::*;
+    use crate::policy::{EverythingIsStudentFilePolicy, NothingIsStudentFilePolicy};
     use std::collections::HashSet;
     use tempdir::TempDir;
 

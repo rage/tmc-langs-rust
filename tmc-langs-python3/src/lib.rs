@@ -10,8 +10,9 @@ use std::process::Command;
 use tmc_langs_abstraction::ValidationResult;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
-    io::StudentFilePolicy,
-    Error, LanguagePlugin,
+    plugin::LanguagePlugin,
+    policy::StudentFilePolicy,
+    Error,
 };
 
 pub enum LocalPy {

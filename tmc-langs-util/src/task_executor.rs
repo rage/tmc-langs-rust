@@ -9,9 +9,11 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use tmc_langs_abstraction::ValidationResult;
 use tmc_langs_framework::{
-    domain::{self, ExerciseDesc, ExercisePackagingConfiguration, RunResult},
-    io::{zip, NothingIsStudentFilePolicy},
-    Error, LanguagePlugin, Result,
+    domain::{ExerciseDesc, ExercisePackagingConfiguration, RunResult},
+    io::{submission_processing, zip},
+    plugin::LanguagePlugin,
+    policy::NothingIsStudentFilePolicy,
+    Error, Result,
 };
 
 lazy_static! {
@@ -26,7 +28,10 @@ pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
     exercise_paths: I,
     dest_root: &Path,
 ) -> Result<()> {
-    Ok(domain::prepare_solutions(exercise_paths, dest_root)?)
+    Ok(submission_processing::prepare_solutions(
+        exercise_paths,
+        dest_root,
+    )?)
 }
 
 /// See `domain::prepare_stubs`.
@@ -35,7 +40,11 @@ pub fn prepare_stubs(
     repo_path: &Path,
     dest_path: &Path,
 ) -> Result<()> {
-    Ok(domain::prepare_stubs(exercise_map, repo_path, dest_path)?)
+    Ok(submission_processing::prepare_stubs(
+        exercise_map,
+        repo_path,
+        dest_path,
+    )?)
 }
 
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::check_code_style`.
