@@ -21,6 +21,7 @@ pub fn student_file_aware_unzip(
 
     let project_dir = find_project_dir(&mut zip_archive)?;
     let project_path = Path::new(&project_dir);
+    fs::create_dir_all(target.join(project_path))?;
 
     let mut unzipped_paths = HashSet::new();
 
@@ -51,7 +52,6 @@ pub fn student_file_aware_unzip(
                 if file_contents == target_file_contents {
                     write = false;
                 } else {
-                    // check "allowed to unzip"? = !is student file || is updating forced ?
                     if policy.is_student_file(&path_in_target, &target)?
                         && !policy.is_updating_forced(&path_in_target)?
                     {
@@ -86,9 +86,9 @@ pub fn student_file_aware_unzip(
                 || !policy.is_student_file(entry.path(), project_path)?
             {
                 if entry.path().is_dir() {
-                    // check for files, if not empty don't delete
+                    // delete if empty
                     if WalkDir::new(entry.path()).max_depth(1).into_iter().count() == 1 {
-                        println!("{:?}", entry.path());
+                        fs::remove_dir(entry.path())?;
                     }
                 } else {
                     fs::remove_file(entry.path())?;
@@ -246,5 +246,29 @@ mod test {
             paths.insert(entry.path().to_owned());
         }
         assert!(!paths.contains(&temp.path().join("outer/src/file.py")));
+    }
+
+    #[test]
+    fn unzip_deletes_empty_non_student_directories() {
+        init();
+
+        let temp = TempDir::new("test").unwrap();
+        let empty_dir = temp.path().join("other");
+        fs::create_dir_all(empty_dir).unwrap();
+
+        let zip_path = Path::new("testdata/zip.zip");
+        student_file_aware_unzip(
+            Box::new(NothingIsStudentFilePolicy {}),
+            zip_path,
+            temp.path(),
+        )
+        .unwrap();
+
+        let mut paths = HashSet::new();
+        for entry in walkdir::WalkDir::new(temp.path()) {
+            let entry = entry.unwrap();
+            paths.insert(entry.path().to_owned());
+        }
+        assert!(!paths.contains(&temp.path().join("other")));
     }
 }
