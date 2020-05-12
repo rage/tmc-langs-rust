@@ -1,6 +1,7 @@
 use super::super::{Error, Result};
 use super::StudentFilePolicy;
 use log::debug;
+use std::collections::HashSet;
 use std::fs::{self, File};
 use std::io::{BufWriter, Cursor, Read, Seek, Write};
 use std::path::Path;
@@ -17,9 +18,11 @@ pub fn student_file_aware_unzip(
 ) -> Result<UnzipResult> {
     let file = File::open(zip)?;
     let mut zip_archive = ZipArchive::new(file)?;
-    // find project dir
+
     let project_dir = find_project_dir(&mut zip_archive)?;
     let project_path = Path::new(&project_dir);
+
+    let mut unzipped_paths = HashSet::new();
 
     for i in 0..zip_archive.len() {
         let file = zip_archive.by_index(i)?;
@@ -35,8 +38,9 @@ pub fn student_file_aware_unzip(
             if policy.is_student_file(&path_in_target, &target)? {
                 debug!("creating {:?}", path_in_target);
                 fs::create_dir_all(&path_in_target)?;
+                unzipped_paths.insert(path_in_target.canonicalize()?);
             }
-        } else {
+        } else if policy.is_student_file(&path_in_target, &target)? {
             let mut write = true;
             let file_contents = file.bytes().collect::<std::result::Result<Vec<_>, _>>()?;
             if path_in_target.exists() {
@@ -57,8 +61,9 @@ pub fn student_file_aware_unzip(
                 }
             }
             if write {
-                let mut overwrite_target = File::create(path_in_target)?;
+                let mut overwrite_target = File::create(&path_in_target)?;
                 overwrite_target.write_all(&file_contents)?;
+                unzipped_paths.insert(path_in_target.canonicalize()?);
             }
         }
     }
@@ -72,6 +77,24 @@ pub fn student_file_aware_unzip(
     for byte in yml_zipped.bytes() {
         let byte = byte?;
         yml_writer.write_all(&[byte])?;
+    }
+
+    // delete non-student files that were not in zip
+    for entry in WalkDir::new(target).into_iter().filter_map(|e| e.ok()) {
+        if !unzipped_paths.contains(&entry.path().canonicalize()?) {
+            if policy.is_updating_forced(entry.path())?
+                || !policy.is_student_file(entry.path(), project_path)?
+            {
+                if entry.path().is_dir() {
+                    // check for files, if not empty don't delete
+                    if WalkDir::new(entry.path()).max_depth(1).into_iter().count() == 1 {
+                        println!("{:?}", entry.path());
+                    }
+                } else {
+                    fs::remove_file(entry.path())?;
+                }
+            }
+        }
     }
 
     Ok(UnzipResult {})
@@ -145,7 +168,7 @@ pub fn student_file_aware_zip(
 
 #[cfg(test)]
 mod test {
-    use super::super::EverythingIsStudentFilePolicy;
+    use super::super::{EverythingIsStudentFilePolicy, NothingIsStudentFilePolicy};
     use super::*;
     use std::collections::HashSet;
     use tempdir::TempDir;
@@ -198,5 +221,30 @@ mod test {
         let mut archive = ZipArchive::new(Cursor::new(zipped)).unwrap();
         assert!(archive.by_name("outer/src/file.py").is_ok());
         assert!(archive.by_name("other/some file").is_err());
+    }
+
+    #[test]
+    fn unzip_deletes_non_student_files() {
+        init();
+
+        let temp = TempDir::new("test").unwrap();
+        let student_file_path = temp.path().join("outer/src/file.py");
+        fs::create_dir_all(student_file_path.parent().unwrap()).unwrap();
+        File::create(student_file_path).unwrap();
+
+        let zip_path = Path::new("testdata/zip.zip");
+        student_file_aware_unzip(
+            Box::new(NothingIsStudentFilePolicy {}),
+            zip_path,
+            temp.path(),
+        )
+        .unwrap();
+
+        let mut paths = HashSet::new();
+        for entry in walkdir::WalkDir::new(temp.path()) {
+            let entry = entry.unwrap();
+            paths.insert(entry.path().to_owned());
+        }
+        assert!(!paths.contains(&temp.path().join("outer/src/file.py")));
     }
 }

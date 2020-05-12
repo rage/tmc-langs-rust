@@ -69,6 +69,10 @@ impl StudentFilePolicy for NothingIsStudentFilePolicy {
     fn is_student_source_file(&self, _path: &Path) -> bool {
         unimplemented!()
     }
+
+    fn is_updating_forced(&self, _path: &Path) -> Result<bool> {
+        Ok(false)
+    }
 }
 
 pub struct EverythingIsStudentFilePolicy {}
@@ -88,5 +92,9 @@ impl StudentFilePolicy for EverythingIsStudentFilePolicy {
 
     fn is_student_source_file(&self, _path: &Path) -> bool {
         unimplemented!()
+    }
+
+    fn is_updating_forced(&self, _path: &Path) -> Result<bool> {
+        Ok(false)
     }
 }
