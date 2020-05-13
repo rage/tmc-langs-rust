@@ -122,7 +122,7 @@ impl ExercisePackagingConfiguration {
 }
 
 /// Extra data from a `.tmcproject.yml` file.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 pub struct TmcProjectYml {
     #[serde(default)]
     pub extra_student_files: Vec<PathBuf>,
@@ -136,6 +136,10 @@ impl TmcProjectYml {
     pub fn from(project_dir: &Path) -> Result<Self> {
         let mut config_path = project_dir.to_owned();
         config_path.push(".tmcproject.yml");
+        if !config_path.exists() {
+            debug!("no config");
+            return Ok(Self::default());
+        }
         debug!("reading .tmcprojectyml from {}", config_path.display());
         let file = File::open(config_path)?;
         Ok(serde_yaml::from_reader(file)?)

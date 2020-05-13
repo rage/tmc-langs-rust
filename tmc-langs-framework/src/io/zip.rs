@@ -28,6 +28,8 @@ pub fn student_file_aware_unzip(
     let project_path = Path::new(&project_dir);
     fs::create_dir_all(target.join(project_path))?;
 
+    let tmc_project_yml = policy.get_tmc_project_yml()?;
+
     let mut unzipped_paths = HashSet::new();
 
     for i in 0..zip_archive.len() {
@@ -41,12 +43,12 @@ pub fn student_file_aware_unzip(
         debug!("processing {:?} -> {:?}", file_path, path_in_target);
 
         if file.is_dir() {
-            if policy.is_student_file(&path_in_target, &target)? {
+            if policy.is_student_file(&path_in_target, &target, &tmc_project_yml)? {
                 debug!("creating {:?}", path_in_target);
                 fs::create_dir_all(&path_in_target)?;
                 unzipped_paths.insert(path_in_target.canonicalize()?);
             }
-        } else if policy.is_student_file(&path_in_target, &target)? {
+        } else if policy.is_student_file(&path_in_target, &target, &tmc_project_yml)? {
             let mut write = true;
             let file_contents = file.bytes().collect::<std::result::Result<Vec<_>, _>>()?;
             if path_in_target.exists() {
@@ -57,8 +59,8 @@ pub fn student_file_aware_unzip(
                 if file_contents == target_file_contents {
                     write = false;
                 } else {
-                    if policy.is_student_file(&path_in_target, &target)?
-                        && !policy.is_updating_forced(&path_in_target)?
+                    if policy.is_student_file(&path_in_target, &target, &tmc_project_yml)?
+                        && !policy.is_updating_forced(&path_in_target, &tmc_project_yml)?
                     {
                         // student file and not a forced update
                         write = false;
@@ -94,8 +96,8 @@ pub fn student_file_aware_unzip(
     debug!("deleting non-student files not in zip");
     for entry in WalkDir::new(target).into_iter().filter_map(|e| e.ok()) {
         if !unzipped_paths.contains(&entry.path().canonicalize()?) {
-            if policy.is_updating_forced(entry.path())?
-                || !policy.is_student_file(entry.path(), project_path)?
+            if policy.is_updating_forced(entry.path(), &tmc_project_yml)?
+                || !policy.is_student_file(entry.path(), project_path, &tmc_project_yml)?
             {
                 if entry.path().is_dir() {
                     // delete if empty
@@ -153,13 +155,14 @@ pub fn student_file_aware_zip(
     root_directory: &Path,
 ) -> Result<Vec<u8>> {
     let mut writer = ZipWriter::new(Cursor::new(vec![]));
+    let tmc_project_yml = policy.get_tmc_project_yml()?;
     for entry in WalkDir::new(root_directory)
         .into_iter()
         .filter_entry(|e| !contains_tmcnosubmit(e))
         .filter_map(|e| e.ok())
     {
         debug!("processing {:?}", entry.path());
-        if policy.is_student_file(entry.path(), &root_directory)? {
+        if policy.is_student_file(entry.path(), &root_directory, &tmc_project_yml)? {
             if entry.path().is_dir() {
                 let path = entry.path().strip_prefix(root_directory).unwrap();
                 debug!("adding directory {}", path.display());

@@ -17,7 +17,12 @@ pub trait StudentFilePolicy {
     /// are specified as ExtraStudentFiles in a separate configuration.
     ///
     /// For example in a Java project that uses Apache Ant, should return `true` for any files in the `src` directory.
-    fn is_student_file(&self, path: &Path, project_root_path: &Path) -> Result<bool> {
+    fn is_student_file(
+        &self,
+        path: &Path,
+        project_root_path: &Path,
+        tmc_project_yml: &TmcProjectYml,
+    ) -> Result<bool> {
         if !path.exists() {
             return Ok(false);
         }
@@ -26,18 +31,21 @@ pub trait StudentFilePolicy {
             return Ok(false);
         }
 
-        Ok(self.is_extra_student_file(path)?
+        Ok(self.is_extra_student_file(path, tmc_project_yml)?
             || project_root_path == path
             || self.is_student_source_file(path))
     }
 
     fn get_config_file_parent_path(&self) -> &Path;
 
+    fn get_tmc_project_yml(&self) -> Result<TmcProjectYml> {
+        Ok(TmcProjectYml::from(self.get_config_file_parent_path())?)
+    }
+
     /// Determines whether a file is an extra student file.
-    fn is_extra_student_file(&self, path: &Path) -> Result<bool> {
+    fn is_extra_student_file(&self, path: &Path, tmc_project_yml: &TmcProjectYml) -> Result<bool> {
         let absolute = path.canonicalize()?;
-        let tmc_project_yml = TmcProjectYml::from(self.get_config_file_parent_path())?;
-        for path in tmc_project_yml.extra_exercise_files {
+        for path in &tmc_project_yml.extra_exercise_files {
             let path = path.canonicalize()?;
             if path.is_dir() && (path == absolute || absolute.starts_with(path)) {
                 return Ok(false);
@@ -49,10 +57,9 @@ pub trait StudentFilePolicy {
     fn is_student_source_file(&self, path: &Path) -> bool;
 
     /// Used to check for files which should always be overwritten.
-    fn is_updating_forced(&self, path: &Path) -> Result<bool> {
+    fn is_updating_forced(&self, path: &Path, tmc_project_yml: &TmcProjectYml) -> Result<bool> {
         let absolute = path.canonicalize()?;
-        let tmc_project_yml = TmcProjectYml::from(self.get_config_file_parent_path())?;
-        for force_update_path in tmc_project_yml.force_update {
+        for force_update_path in &tmc_project_yml.force_update {
             let force_absolute = force_update_path.canonicalize()?;
             if (absolute == force_absolute || absolute.starts_with(&force_absolute))
                 && force_absolute.is_dir()
@@ -67,7 +74,12 @@ pub trait StudentFilePolicy {
 pub struct NothingIsStudentFilePolicy {}
 
 impl StudentFilePolicy for NothingIsStudentFilePolicy {
-    fn is_student_file(&self, _path: &Path, _project_root_path: &Path) -> Result<bool> {
+    fn is_student_file(
+        &self,
+        _path: &Path,
+        _project_root_path: &Path,
+        tmc_project_yml: &TmcProjectYml,
+    ) -> Result<bool> {
         Ok(false)
     }
 
@@ -75,7 +87,7 @@ impl StudentFilePolicy for NothingIsStudentFilePolicy {
         unimplemented!()
     }
 
-    fn is_extra_student_file(&self, _path: &Path) -> Result<bool> {
+    fn is_extra_student_file(&self, _path: &Path, tmc_project_yml: &TmcProjectYml) -> Result<bool> {
         unimplemented!()
     }
 
@@ -83,7 +95,7 @@ impl StudentFilePolicy for NothingIsStudentFilePolicy {
         unimplemented!()
     }
 
-    fn is_updating_forced(&self, _path: &Path) -> Result<bool> {
+    fn is_updating_forced(&self, _path: &Path, tmc_project_yml: &TmcProjectYml) -> Result<bool> {
         Ok(false)
     }
 }
@@ -91,7 +103,12 @@ impl StudentFilePolicy for NothingIsStudentFilePolicy {
 pub struct EverythingIsStudentFilePolicy {}
 
 impl StudentFilePolicy for EverythingIsStudentFilePolicy {
-    fn is_student_file(&self, _path: &Path, _project_root_path: &Path) -> Result<bool> {
+    fn is_student_file(
+        &self,
+        _path: &Path,
+        _project_root_path: &Path,
+        tmc_project_yml: &TmcProjectYml,
+    ) -> Result<bool> {
         Ok(true)
     }
 
@@ -99,7 +116,7 @@ impl StudentFilePolicy for EverythingIsStudentFilePolicy {
         unimplemented!()
     }
 
-    fn is_extra_student_file(&self, _path: &Path) -> Result<bool> {
+    fn is_extra_student_file(&self, _path: &Path, tmc_project_yml: &TmcProjectYml) -> Result<bool> {
         unimplemented!()
     }
 
@@ -107,7 +124,7 @@ impl StudentFilePolicy for EverythingIsStudentFilePolicy {
         unimplemented!()
     }
 
-    fn is_updating_forced(&self, _path: &Path) -> Result<bool> {
+    fn is_updating_forced(&self, _path: &Path, tmc_project_yml: &TmcProjectYml) -> Result<bool> {
         Ok(false)
     }
 }

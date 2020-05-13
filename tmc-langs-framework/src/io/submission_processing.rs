@@ -28,12 +28,13 @@ pub fn move_files(
     source: &Path,
     target: &Path,
 ) -> Result<()> {
+    let tmc_project_yml = student_file_policy.get_tmc_project_yml()?;
     for entry in WalkDir::new(source)
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| {
             student_file_policy
-                .is_student_file(e.path(), source)
+                .is_student_file(e.path(), source, &tmc_project_yml)
                 .unwrap_or(false)
         })
     {
