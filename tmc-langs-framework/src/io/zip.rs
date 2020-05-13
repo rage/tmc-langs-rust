@@ -95,20 +95,19 @@ pub fn student_file_aware_unzip(
     // delete non-student files that were not in zip
     debug!("deleting non-student files not in zip");
     for entry in WalkDir::new(target).into_iter().filter_map(|e| e.ok()) {
-        if !unzipped_paths.contains(&entry.path().canonicalize()?) {
-            if policy.is_updating_forced(entry.path(), &tmc_project_yml)?
-                || !policy.is_student_file(entry.path(), project_path, &tmc_project_yml)?
-            {
-                if entry.path().is_dir() {
-                    // delete if empty
-                    if WalkDir::new(entry.path()).max_depth(1).into_iter().count() == 1 {
-                        debug!("deleting empty directory {}", entry.path().display());
-                        fs::remove_dir(entry.path())?;
-                    }
-                } else {
-                    debug!("removing file {}", entry.path().display());
-                    fs::remove_file(entry.path())?;
+        if !unzipped_paths.contains(&entry.path().canonicalize()?)
+            && (policy.is_updating_forced(entry.path(), &tmc_project_yml)?
+                || !policy.is_student_file(entry.path(), project_path, &tmc_project_yml)?)
+        {
+            if entry.path().is_dir() {
+                // delete if empty
+                if WalkDir::new(entry.path()).max_depth(1).into_iter().count() == 1 {
+                    debug!("deleting empty directory {}", entry.path().display());
+                    fs::remove_dir(entry.path())?;
                 }
+            } else {
+                debug!("removing file {}", entry.path().display());
+                fs::remove_file(entry.path())?;
             }
         }
     }

@@ -78,7 +78,7 @@ impl StudentFilePolicy for NothingIsStudentFilePolicy {
         &self,
         _path: &Path,
         _project_root_path: &Path,
-        tmc_project_yml: &TmcProjectYml,
+        _tmc_project_yml: &TmcProjectYml,
     ) -> Result<bool> {
         Ok(false)
     }
@@ -87,7 +87,11 @@ impl StudentFilePolicy for NothingIsStudentFilePolicy {
         Path::new("")
     }
 
-    fn is_extra_student_file(&self, _path: &Path, tmc_project_yml: &TmcProjectYml) -> Result<bool> {
+    fn is_extra_student_file(
+        &self,
+        _path: &Path,
+        _tmc_project_yml: &TmcProjectYml,
+    ) -> Result<bool> {
         unimplemented!()
     }
 
@@ -95,7 +99,7 @@ impl StudentFilePolicy for NothingIsStudentFilePolicy {
         unimplemented!()
     }
 
-    fn is_updating_forced(&self, _path: &Path, tmc_project_yml: &TmcProjectYml) -> Result<bool> {
+    fn is_updating_forced(&self, _path: &Path, _tmc_project_yml: &TmcProjectYml) -> Result<bool> {
         Ok(false)
     }
 }
@@ -107,7 +111,7 @@ impl StudentFilePolicy for EverythingIsStudentFilePolicy {
         &self,
         _path: &Path,
         _project_root_path: &Path,
-        tmc_project_yml: &TmcProjectYml,
+        _tmc_project_yml: &TmcProjectYml,
     ) -> Result<bool> {
         Ok(true)
     }
@@ -116,7 +120,11 @@ impl StudentFilePolicy for EverythingIsStudentFilePolicy {
         Path::new("")
     }
 
-    fn is_extra_student_file(&self, _path: &Path, tmc_project_yml: &TmcProjectYml) -> Result<bool> {
+    fn is_extra_student_file(
+        &self,
+        _path: &Path,
+        _tmc_project_yml: &TmcProjectYml,
+    ) -> Result<bool> {
         unimplemented!()
     }
 
@@ -124,7 +132,7 @@ impl StudentFilePolicy for EverythingIsStudentFilePolicy {
         unimplemented!()
     }
 
-    fn is_updating_forced(&self, _path: &Path, tmc_project_yml: &TmcProjectYml) -> Result<bool> {
+    fn is_updating_forced(&self, _path: &Path, _tmc_project_yml: &TmcProjectYml) -> Result<bool> {
         Ok(false)
     }
 }

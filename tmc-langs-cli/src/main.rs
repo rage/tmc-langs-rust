@@ -3,7 +3,6 @@
 use clap::{App, Arg, SubCommand};
 use isolang::Language;
 use log::debug;
-use serde_json;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};

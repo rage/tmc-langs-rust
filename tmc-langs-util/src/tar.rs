@@ -23,7 +23,7 @@ pub fn create_tar_from_project(
             .file_name()
             .expect("project directory has no file name"),
     );
-    let root = project_dir.parent().unwrap_or(Path::new(""));
+    let root = project_dir.parent().unwrap_or_else(|| Path::new(""));
     add_dir_to_project(&mut t, &project_dir, project_dir, &project_name)?;
     add_dir_to_project(&mut t, &tmc_langs, root, &project_name)?;
     add_dir_to_project(&mut t, &tmcrun, root, &project_name)?;

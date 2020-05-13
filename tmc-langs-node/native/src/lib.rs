@@ -15,7 +15,7 @@ enum Error {
     PluginNotFound,
     FileProcessing,
     YamlDeserialization,
-    ZipError,
+    Zip,
     NoProjectDirInZip,
     Other,
 }
@@ -28,7 +28,7 @@ impl From<TmcError> for Error {
             TmcError::PluginNotFound => Error::PluginNotFound,
             TmcError::FileProcessing(_) => Error::FileProcessing,
             TmcError::YamlDeserialization(_) => Error::YamlDeserialization,
-            TmcError::ZipError(_) => Error::ZipError,
+            TmcError::ZipError(_) => Error::Zip,
             TmcError::NoProjectDirInZip => Error::NoProjectDirInZip,
             TmcError::Other(_) => Error::Other,
         }
