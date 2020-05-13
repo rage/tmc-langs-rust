@@ -1,6 +1,6 @@
 use std::env;
 use std::process::{Command, Output};
-use tempdir::TempDir;
+use tempfile::tempdir;
 use walkdir::WalkDir;
 
 fn run_cmd(args: &[&str]) -> Output {
@@ -15,14 +15,15 @@ fn test_dir(dir: &str) -> String {
 
 #[test]
 fn compress_project() {
-    let temp = TempDir::new("compress-project").unwrap();
+    let temp = tempdir().unwrap();
     let out = run_cmd(&[
         "compress-project",
         "--exercisePath",
         &test_dir("project"),
         "--outputPath",
-        temp.path().to_str().unwrap(),
+        temp.path().join("zip.zip").to_str().unwrap(),
     ]);
-    println!("out: {}", String::from_utf8(out.stdout).unwrap());
-    println!("err: {}", String::from_utf8(out.stderr).unwrap());
+    println!("out:\n{}", String::from_utf8(out.stdout).unwrap());
+    println!("err:\n{}", String::from_utf8(out.stderr).unwrap());
+    // TODO
 }

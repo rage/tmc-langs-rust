@@ -194,15 +194,16 @@ impl StudentFilePolicy for Python3StudentFilePolicy {
 #[cfg(test)]
 mod test {
     use super::*;
+    use tempfile::{tempdir, TempDir};
 
     fn init() {
         let _ = env_logger::builder().is_test(true).try_init();
     }
 
     // copies the target exercise and tmc to a temp directory
-    fn copy_test(dir: &str) -> tempdir::TempDir {
+    fn copy_test(dir: &str) -> TempDir {
         let path = Path::new(dir);
-        let temp = tempdir::TempDir::new("py").unwrap();
+        let temp = tempdir().unwrap();
         for entry in walkdir::WalkDir::new(path) {
             let entry = entry.unwrap();
             if entry.path().is_file() {

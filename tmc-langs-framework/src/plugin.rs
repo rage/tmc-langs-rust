@@ -261,7 +261,7 @@ mod test {
         use std::io::Write;
 
         let plugin = MockPlugin {};
-        let temp = tempdir::TempDir::new("gets_exercise_packaging_configuration").unwrap();
+        let temp = tempfile::tempdir().unwrap();
         let mut path = temp.path().to_owned();
         path.push(".tmcproject.yml");
         let mut file = File::create(&path).unwrap();

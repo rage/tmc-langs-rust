@@ -235,7 +235,7 @@ mod test {
     };
     use std::collections::HashSet;
     use std::io::Read;
-    use tempdir::TempDir;
+    use tempfile::tempdir;
 
     const TESTDATA_ROOT: &str = "testdata";
     const BINARY_REL: &str = "dir/inner/binary.bin";
@@ -247,8 +247,8 @@ mod test {
 
     #[test]
     fn moves_files() {
-        let source = TempDir::new("moves_files_source").unwrap();
-        let target = TempDir::new("moves_files_target").unwrap();
+        let source = tempdir().unwrap();
+        let target = tempdir().unwrap();
         let mock_file = "a/b/c/d/e/f/g";
         let file_path = source.path().join(mock_file);
         std::fs::create_dir_all(file_path.parent().unwrap()).unwrap();
@@ -277,8 +277,8 @@ mod test {
 
     #[test]
     fn skips_student_files() {
-        let source = TempDir::new("moves_files_source").unwrap();
-        let target = TempDir::new("moves_files_target").unwrap();
+        let source = tempdir().unwrap();
+        let target = tempdir().unwrap();
         let mock_file = "a/b/c/d/e/f/g";
         let file_path = source.path().join(mock_file);
         std::fs::create_dir_all(file_path.parent().unwrap()).unwrap();
@@ -306,7 +306,7 @@ mod test {
 
         let mut exercise_set = HashSet::new();
         exercise_set.insert(TESTDATA_ROOT.into());
-        let temp = TempDir::new("prepare_solutions_preserves_structure").unwrap();
+        let temp = tempdir().unwrap();
         let temp_path = temp.path();
 
         prepare_solutions(&exercise_set, temp_path).unwrap();
@@ -339,7 +339,7 @@ mod test {
 
         let mut exercise_set = HashSet::new();
         exercise_set.insert(TESTDATA_ROOT.into());
-        let temp = TempDir::new("prepare_solutions_filters_text_files").unwrap();
+        let temp = tempdir().unwrap();
         let temp_path = temp.path();
 
         prepare_solutions(&exercise_set, temp_path).unwrap();
@@ -371,7 +371,7 @@ mod test {
 
         let mut exercise_set = HashSet::new();
         exercise_set.insert(TESTDATA_ROOT.into());
-        let temp = TempDir::new("prepare_solutions_does_not_filter_binary_files").unwrap();
+        let temp = tempdir().unwrap();
         let temp_path = temp.path();
 
         prepare_solutions(&exercise_set, temp_path).unwrap();
@@ -449,7 +449,7 @@ mod test {
             TESTDATA_ROOT.into(),
             Box::new(&plugin as &dyn LanguagePlugin),
         );
-        let temp = TempDir::new("prepares_stubs").unwrap();
+        let temp = tempdir().unwrap();
         let temp_path = temp.path();
 
         let repo_path: PathBuf = "".into();
@@ -475,7 +475,7 @@ mod test {
 
     #[test]
     fn tmc_project_yml_parses() {
-        let temp = tempdir::TempDir::new("configuration_parses").unwrap();
+        let temp = tempdir().unwrap();
         let mut path = temp.path().to_owned();
         path.push(".tmcproject.yml");
         let mut file = File::create(&path).unwrap();

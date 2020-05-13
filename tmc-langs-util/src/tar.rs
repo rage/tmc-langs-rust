@@ -18,13 +18,15 @@ pub fn create_tar_from_project(
     let file = File::create(target_location)?;
     let mut t = Builder::new(file);
 
-    let project_skips = project_dir.components().count() - 1;
-    let project_name: PathBuf = project_dir.components().skip(project_skips).collect();
-    add_dir_to_project(&mut t, &project_dir, project_skips, &project_name)?;
-    let langs_skips = tmc_langs.components().count() - 1;
-    add_dir_to_project(&mut t, &tmc_langs, langs_skips, &project_name)?;
-    let run_skips = tmcrun.components().count() - 1;
-    add_dir_to_project(&mut t, &tmcrun, run_skips, &project_name)?;
+    let project_name = Path::new(
+        project_dir
+            .file_name()
+            .expect("project directory has no file name"),
+    );
+    let root = project_dir.parent().unwrap_or(Path::new(""));
+    add_dir_to_project(&mut t, &project_dir, project_dir, &project_name)?;
+    add_dir_to_project(&mut t, &tmc_langs, root, &project_name)?;
+    add_dir_to_project(&mut t, &tmcrun, root, &project_name)?;
     t.finish()?;
     Ok(())
 }
@@ -32,12 +34,12 @@ pub fn create_tar_from_project(
 fn add_dir_to_project<W: Write>(
     tar: &mut Builder<W>,
     source: &Path,
-    skips: usize,
+    root: &Path,
     project_name: &Path,
 ) -> Result<()> {
     for entry in WalkDir::new(source).into_iter().filter_map(|e| e.ok()) {
         if entry.path().is_file() {
-            let path_in_project: PathBuf = entry.path().iter().skip(skips).collect();
+            let path_in_project = entry.path().strip_prefix(root).unwrap();
             let path_in_tar: PathBuf = project_name.join(path_in_project);
             debug!("appending {:?} as {:?}", entry.path(), path_in_tar);
             tar.append_path_with_name(entry.path(), path_in_tar)?;
@@ -51,7 +53,7 @@ mod test {
     use super::*;
     use std::collections::HashSet;
     use tar::Archive;
-    use tempdir::TempDir;
+    use tempfile::tempdir;
 
     fn init() {
         let _ = env_logger::builder().is_test(true).try_init();
@@ -61,7 +63,7 @@ mod test {
     fn creates_tar_from_project() {
         init();
 
-        let temp = TempDir::new("creates_tar_from_project").unwrap();
+        let temp = tempdir().unwrap();
         let tar_path = temp.path().join("tar.tar");
         create_tar_from_project(
             Path::new("testdata/project"),

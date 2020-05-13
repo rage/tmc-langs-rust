@@ -84,7 +84,7 @@ impl StudentFilePolicy for NothingIsStudentFilePolicy {
     }
 
     fn get_config_file_parent_path(&self) -> &Path {
-        unimplemented!()
+        Path::new("")
     }
 
     fn is_extra_student_file(&self, _path: &Path, tmc_project_yml: &TmcProjectYml) -> Result<bool> {
@@ -113,7 +113,7 @@ impl StudentFilePolicy for EverythingIsStudentFilePolicy {
     }
 
     fn get_config_file_parent_path(&self) -> &Path {
-        unimplemented!()
+        Path::new("")
     }
 
     fn is_extra_student_file(&self, _path: &Path, tmc_project_yml: &TmcProjectYml) -> Result<bool> {

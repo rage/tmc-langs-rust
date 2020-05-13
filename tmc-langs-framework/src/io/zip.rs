@@ -188,7 +188,7 @@ mod test {
     use super::*;
     use crate::policy::{EverythingIsStudentFilePolicy, NothingIsStudentFilePolicy};
     use std::collections::HashSet;
-    use tempdir::TempDir;
+    use tempfile::tempdir;
 
     fn init() {
         let _ = env_logger::builder().is_test(true).try_init();
@@ -198,7 +198,7 @@ mod test {
     fn unzips() {
         init();
 
-        let temp = TempDir::new("test").unwrap();
+        let temp = tempdir().unwrap();
         let zip_path = Path::new("testdata/zip.zip");
         student_file_aware_unzip(
             Box::new(EverythingIsStudentFilePolicy {}),
@@ -221,7 +221,7 @@ mod test {
     fn zips() {
         init();
 
-        let temp = TempDir::new("test").unwrap();
+        let temp = tempdir().unwrap();
         let student_file_path = temp.path().join("outer/src/file.py");
         let other_file_path = temp.path().join("other/some file");
         let tmc_file = temp.path().join("other/.tmcnosubmit");
@@ -244,7 +244,7 @@ mod test {
     fn unzip_deletes_non_student_files() {
         init();
 
-        let temp = TempDir::new("test").unwrap();
+        let temp = tempdir().unwrap();
         let student_file_path = temp.path().join("outer/src/file.py");
         fs::create_dir_all(student_file_path.parent().unwrap()).unwrap();
         File::create(student_file_path).unwrap();
@@ -269,7 +269,7 @@ mod test {
     fn unzip_deletes_empty_non_student_directories() {
         init();
 
-        let temp = TempDir::new("test").unwrap();
+        let temp = tempdir().unwrap();
         let empty_dir = temp.path().join("other");
         fs::create_dir_all(empty_dir).unwrap();
 
