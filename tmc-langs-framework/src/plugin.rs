@@ -5,6 +5,7 @@ use super::io::{submission_processing, zip};
 use super::policy::StudentFilePolicy;
 use super::Result;
 use isolang::Language;
+use log::debug;
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use tmc_langs_abstraction::ValidationResult;
@@ -41,6 +42,7 @@ pub trait LanguagePlugin {
                 .filter_map(|e| e.ok())
             {
                 if self.is_exercise_type_correct(entry.path()) {
+                    debug!("found exercise {}", entry.path().display());
                     exercises.push(entry.into_path());
                 }
             }

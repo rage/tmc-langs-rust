@@ -2,6 +2,7 @@
 
 use clap::{App, Arg, SubCommand};
 use isolang::Language;
+use log::debug;
 use serde_json;
 use std::fs::File;
 use std::io::Write;
@@ -172,6 +173,7 @@ fn main() {
         let output_path = Path::new(output_path);
 
         let data = task_executor::compress_project(exercise_path).unwrap();
+        debug!("writing compressed data");
         let mut output_file = File::create(output_path).unwrap();
         output_file.write_all(&data).unwrap();
     } else if let Some(matches) = matches.subcommand_matches("extract-project") {
@@ -225,6 +227,7 @@ fn main() {
         let locale = Language::from_639_3(&locale).expect("invalid locale");
 
         let test_result = task_executor::run_tests(exercise_path).unwrap();
+        debug!("writing test results");
         let output_file = File::create(output_path).unwrap();
         serde_json::to_writer(output_file, &test_result).unwrap();
 
@@ -245,6 +248,7 @@ fn main() {
 
         let scan_result =
             task_executor::scan_exercise(exercise_path, exercise_name.to_string()).unwrap();
+        debug!("writing scan result");
         let output_file = File::create(output_path).unwrap();
         serde_json::to_writer(output_file, &scan_result).unwrap();
     } else if let Some(matches) = matches.subcommand_matches("find-exercises") {
@@ -267,11 +271,13 @@ fn main() {
             })
             .filter(submission_processing::contains_tmcignore)
         {
+            debug!("processing {}", entry.path().display());
             // TODO: Java implementation doesn't scan root directories
             if task_executor::is_exercise_root_directory(entry.path()) {
                 exercises.push(entry.into_path());
             }
         }
+        debug!("writing exercises");
         let output_file = File::create(output_path).unwrap();
         serde_json::to_writer(output_file, &exercises).unwrap();
     } else if let Some(matches) = matches.subcommand_matches("get-exercise-packaging-configuration")
@@ -283,6 +289,7 @@ fn main() {
         let output_path = Path::new(output_path);
 
         let config = task_executor::get_exercise_packaging_configuration(exercise_path).unwrap();
+        debug!("writing package configuration");
         let output_file = File::create(output_path).unwrap();
         serde_json::to_writer(output_file, &config).unwrap();
     } else if let Some(matches) = matches.subcommand_matches("clean") {

@@ -40,6 +40,11 @@ pub fn move_files(
         if entry.path().is_file() {
             let relative = entry.path().strip_prefix(source).unwrap();
             let target_path = target.join(&relative);
+            debug!(
+                "moving: {} -> {}",
+                entry.path().display(),
+                target_path.display()
+            );
             if let Some(parent) = target_path.parent() {
                 fs::create_dir_all(parent)?;
             }

@@ -3,6 +3,7 @@
 pub mod meta_syntax;
 
 use super::Result;
+use log::debug;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
@@ -135,6 +136,7 @@ impl TmcProjectYml {
     pub fn from(project_dir: &Path) -> Result<Self> {
         let mut config_path = project_dir.to_owned();
         config_path.push(".tmcproject.yml");
+        debug!("reading .tmcprojectyml from {}", config_path.display());
         let file = File::open(config_path)?;
         Ok(serde_yaml::from_reader(file)?)
     }

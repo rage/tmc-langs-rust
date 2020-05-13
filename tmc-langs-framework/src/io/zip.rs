@@ -66,6 +66,7 @@ pub fn student_file_aware_unzip(
                 }
             }
             if write {
+                debug!("overwriting {}", path_in_target.display());
                 let mut overwrite_target = File::create(&path_in_target)?;
                 overwrite_target.write_all(&file_contents)?;
                 unzipped_paths.insert(path_in_target.canonicalize()?);
@@ -76,6 +77,11 @@ pub fn student_file_aware_unzip(
     // overwrite .tmcprojectyml
     let yml_path_in_zip = project_path.join(".tmcproject.yml");
     let yml_path_in_target = target.join(&yml_path_in_zip);
+    debug!(
+        "writing .tmcprojectyml: {} -> {}",
+        yml_path_in_zip.display(),
+        yml_path_in_target.display()
+    );
     let yml_zipped = zip_archive.by_name(yml_path_in_zip.to_str().expect("non-UTF-8 name"))?;
     let yml_file = File::create(yml_path_in_target)?;
     let mut yml_writer = BufWriter::new(yml_file);
@@ -85,6 +91,7 @@ pub fn student_file_aware_unzip(
     }
 
     // delete non-student files that were not in zip
+    debug!("deleting non-student files not in zip");
     for entry in WalkDir::new(target).into_iter().filter_map(|e| e.ok()) {
         if !unzipped_paths.contains(&entry.path().canonicalize()?) {
             if policy.is_updating_forced(entry.path())?
@@ -93,9 +100,11 @@ pub fn student_file_aware_unzip(
                 if entry.path().is_dir() {
                     // delete if empty
                     if WalkDir::new(entry.path()).max_depth(1).into_iter().count() == 1 {
+                        debug!("deleting empty directory {}", entry.path().display());
                         fs::remove_dir(entry.path())?;
                     }
                 } else {
+                    debug!("removing file {}", entry.path().display());
                     fs::remove_file(entry.path())?;
                 }
             }
@@ -131,6 +140,7 @@ fn contains_tmcnosubmit(entry: &DirEntry) -> bool {
         .filter_map(|e| e.ok())
     {
         if entry.file_name() == ".tmcnosubmit" {
+            debug!("contains .tmcnosubmit: {}", entry.path().display());
             return true;
         }
     }
@@ -151,19 +161,17 @@ pub fn student_file_aware_zip(
         debug!("processing {:?}", entry.path());
         if policy.is_student_file(entry.path(), &root_directory)? {
             if entry.path().is_dir() {
-                writer.add_directory_from_path(
-                    entry.path().strip_prefix(root_directory).unwrap(),
-                    FileOptions::default(),
-                )?;
+                let path = entry.path().strip_prefix(root_directory).unwrap();
+                debug!("adding directory {}", path.display());
+                writer.add_directory_from_path(path, FileOptions::default())?;
             } else {
                 let file = File::open(entry.path())?;
                 let bytes = file
                     .bytes()
                     .collect::<std::result::Result<Vec<_>, std::io::Error>>()?;
-                writer.start_file_from_path(
-                    entry.path().strip_prefix(root_directory).unwrap(),
-                    FileOptions::default(),
-                )?;
+                let path = entry.path().strip_prefix(root_directory).unwrap();
+                debug!("writing file {}", path.display());
+                writer.start_file_from_path(path, FileOptions::default())?;
                 writer.write_all(&bytes)?;
             }
         }
