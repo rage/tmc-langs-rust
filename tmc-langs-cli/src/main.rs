@@ -163,12 +163,7 @@ fn main() {
         let locale = matches.value_of("locale").unwrap();
         let locale = Language::from_639_3(&locale).expect("invalid locale");
 
-        let check_result =
-            task_executor::run_check_code_style(exercise_path, locale).expect("checkstyle failed");
-        if let Some(check_result) = check_result {
-            let output_file = File::create(output_path).unwrap();
-            serde_json::to_writer(output_file, &check_result).unwrap();
-        }
+        run_checkstyle(exercise_path, output_path, locale);
     } else if let Some(matches) = matches.subcommand_matches("compress-project") {
         let exercise_path = matches.value_of("exercisePath").unwrap();
         let exercise_path = Path::new(exercise_path);
@@ -234,11 +229,7 @@ fn main() {
         serde_json::to_writer(output_file, &test_result).unwrap();
 
         if let Some(checkstyle_output_path) = checkstyle_output_path {
-            let check_result = task_executor::run_check_code_style(exercise_path, locale).unwrap();
-            if let Some(check_result) = check_result {
-                let output_file = File::create(checkstyle_output_path).unwrap();
-                serde_json::to_writer(output_file, &check_result).unwrap();
-            }
+            run_checkstyle(exercise_path, checkstyle_output_path, locale);
         }
     } else if let Some(matches) = matches.subcommand_matches("scan-exercise") {
         let exercise_path = matches.value_of("exercisePath").unwrap();
@@ -323,4 +314,14 @@ fn find_exercise_directories(exercise_path: &Path) -> Vec<PathBuf> {
         }
     }
     paths
+}
+
+fn run_checkstyle(exercise_path: &Path, output_path: &Path, locale: Language) {
+    let check_result =
+        task_executor::run_check_code_style(exercise_path, locale).expect("checkstyle failed");
+    if let Some(check_result) = check_result {
+        debug!("writing checkstyle result");
+        let output_file = File::create(output_path).unwrap();
+        serde_json::to_writer(output_file, &check_result).unwrap();
+    }
 }
