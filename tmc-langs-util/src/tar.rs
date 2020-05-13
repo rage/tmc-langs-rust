@@ -20,7 +20,7 @@ pub fn create_tar_from_project(
 
     let project_skips = project_dir.components().count() - 1;
     let project_name: PathBuf = project_dir.components().skip(project_skips).collect();
-    add_dir_to_project(&mut t, &project_dir, project_skips, &Path::new(""))?;
+    add_dir_to_project(&mut t, &project_dir, project_skips, &project_name)?;
     let langs_skips = tmc_langs.components().count() - 1;
     add_dir_to_project(&mut t, &tmc_langs, langs_skips, &project_name)?;
     let run_skips = tmcrun.components().count() - 1;
