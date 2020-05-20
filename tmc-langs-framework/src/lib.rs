@@ -21,6 +21,10 @@ pub enum Error {
     ZipError(#[from] zip::ZipError),
     #[error("No project directory found in archive during unzip")]
     NoProjectDirInZip,
+    #[error("Running command '{0}' failed")]
+    CommandFailed(&'static str),
+    #[error("Error in plugin: {0}")]
+    Plugin(Box<dyn std::error::Error>),
     #[error(transparent)]
     Other(Box<dyn std::error::Error>),
 }

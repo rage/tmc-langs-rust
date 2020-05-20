@@ -60,7 +60,7 @@ pub trait LanguagePlugin {
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc>;
 
     /// Runs the tests for the exercise.
-    fn run_tests(&self, path: &Path) -> RunResult;
+    fn run_tests(&self, path: &Path) -> Result<RunResult>;
 
     /// Prepares a submission for processing in the sandbox.
     ///
@@ -140,8 +140,9 @@ pub trait LanguagePlugin {
 
     /// Copy shared stuff to stub or solution used for example for copying tmc-junit-runner.
     #[allow(unused_variables)]
-    fn maybe_copy_shared_stuff(&self, dest_path: &Path) {
+    fn maybe_copy_shared_stuff(&self, dest_path: &Path) -> Result<()> {
         // no op by default
+        Ok(())
     }
 
     /// Returns configuration which is used to package submission on tmc-server.
@@ -171,7 +172,7 @@ pub trait LanguagePlugin {
     }
 
     /// Runs clean command e.g `make clean` for make or `mvn clean` for maven.
-    fn clean(&self, path: &Path);
+    fn clean(&self, path: &Path) -> Result<()>;
 
     fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
         vec![PathBuf::from("src")]
@@ -212,7 +213,7 @@ mod test {
             unimplemented!()
         }
 
-        fn run_tests(&self, _path: &Path) -> RunResult {
+        fn run_tests(&self, _path: &Path) -> Result<RunResult> {
             unimplemented!()
         }
 
@@ -224,7 +225,7 @@ mod test {
             !path.to_str().unwrap().contains("ignored")
         }
 
-        fn clean(&self, _path: &Path) {
+        fn clean(&self, _path: &Path) -> Result<()> {
             unimplemented!()
         }
     }

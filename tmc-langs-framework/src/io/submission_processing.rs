@@ -418,7 +418,7 @@ mod test {
             unimplemented!()
         }
 
-        fn run_tests(&self, _path: &Path) -> RunResult {
+        fn run_tests(&self, _path: &Path) -> Result<RunResult> {
             unimplemented!()
         }
 
@@ -434,7 +434,7 @@ mod test {
             !path.to_str().unwrap().contains("ignored")
         }
 
-        fn clean(&self, _path: &Path) {
+        fn clean(&self, _path: &Path) -> Result<()> {
             unimplemented!()
         }
     }

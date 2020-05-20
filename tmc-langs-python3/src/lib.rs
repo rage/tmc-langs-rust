@@ -72,14 +72,14 @@ impl LanguagePlugin for Python3Plugin {
         Ok(ExerciseDesc::new(exercise_name, test_descs))
     }
 
-    fn run_tests(&self, path: &Path) -> RunResult {
+    fn run_tests(&self, path: &Path) -> Result<RunResult, Error> {
         let run_result = run_tmc_command(path, &[]);
 
         if let Err(error) = run_result {
             error!("Failed to parse exercise description. {}", error);
         }
 
-        parse_test_result(path).expect("error parsing test results") // TODO: handle
+        Ok(parse_test_result(path)?)
     }
 
     fn check_code_style(&self, _path: &Path, _locale: Language) -> Option<ValidationResult> {
@@ -104,8 +104,9 @@ impl LanguagePlugin for Python3Plugin {
         setup.exists() || requirements.exists() || test.exists() || tmc.exists()
     }
 
-    fn clean(&self, _path: &Path) {
+    fn clean(&self, _path: &Path) -> Result<(), Error> {
         // no op
+        Ok(())
     }
 }
 
@@ -261,7 +262,7 @@ mod test {
         let plugin = Python3Plugin::new();
 
         let temp = copy_test("testdata/project");
-        let run_result = plugin.run_tests(temp.path());
+        let run_result = plugin.run_tests(temp.path()).unwrap();
         assert_eq!(run_result.status, RunStatus::Passed);
         assert_eq!(
             run_result.test_results[0].name,
@@ -273,12 +274,12 @@ mod test {
         assert!(run_result.test_results[0].points.contains(&"2.2".into()));
         assert_eq!(run_result.test_results[0].points.len(), 3);
         assert!(run_result.test_results[0].message.is_empty());
-        assert!(run_result.test_results[0].exception.is_empty());
+        assert!(run_result.test_results[0].exceptions.is_empty());
         assert_eq!(run_result.test_results.len(), 1);
         assert!(run_result.logs.is_empty());
 
         let temp = copy_test("testdata/failing");
-        let run_result = plugin.run_tests(temp.path());
+        let run_result = plugin.run_tests(temp.path()).unwrap();
         assert_eq!(run_result.status, RunStatus::TestsFailed);
         assert_eq!(
             run_result.test_results[0].name,
@@ -289,12 +290,12 @@ mod test {
         assert!(run_result.test_results[0].points.contains(&"1.2".into()));
         assert!(run_result.test_results[0].points.contains(&"2.2".into()));
         assert!(run_result.test_results[0].message.starts_with("'a' != 'b'"));
-        assert!(run_result.test_results[0].exception.is_empty());
+        assert!(run_result.test_results[0].exceptions.is_empty());
         assert_eq!(run_result.test_results.len(), 1);
         assert!(run_result.logs.is_empty());
 
         let temp = copy_test("testdata/erroring");
-        let run_result = plugin.run_tests(temp.path());
+        let run_result = plugin.run_tests(temp.path()).unwrap();
         assert_eq!(run_result.status, RunStatus::TestsFailed);
         assert_eq!(
             run_result.test_results[0].name,
@@ -308,7 +309,7 @@ mod test {
             run_result.test_results[0].message,
             "name 'doSomethingIllegal' is not defined"
         );
-        assert!(run_result.test_results[0].exception.is_empty());
+        assert!(run_result.test_results[0].exceptions.is_empty());
         assert_eq!(run_result.test_results.len(), 1);
         assert!(run_result.logs.is_empty());
     }

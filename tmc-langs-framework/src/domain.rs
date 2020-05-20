@@ -37,7 +37,7 @@ pub struct TestResult {
     pub points: Vec<String>,
     pub message: String,
     #[serde(default)]
-    pub exception: Vec<String>,
+    pub exceptions: Vec<String>,
 }
 
 /// A description of an exercise.

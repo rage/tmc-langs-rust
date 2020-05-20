@@ -59,7 +59,7 @@ pub fn run_check_code_style(path: &Path, locale: Language) -> Result<Option<Vali
 
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::run_tests`.
 pub fn run_tests(path: &Path) -> Result<RunResult> {
-    Ok(get_language_plugin(path)?.run_tests(&path))
+    get_language_plugin(path)?.run_tests(&path)
 }
 
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::scan_exercise`.

@@ -4,22 +4,26 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "UPPERCASE")]
 pub enum Strategy {
     Fail,
     Warn,
+    Disabled,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ValidationError {
-    column: usize,
-    line: usize,
-    message: String,
-    source: String,
+    pub column: usize,
+    pub line: usize,
+    pub message: String,
+    pub source_name: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ValidationResult {
-    strategy: Strategy,
-    validation_errors: HashMap<PathBuf, Vec<ValidationError>>,
+    pub strategy: Strategy,
+    pub validation_errors: Option<HashMap<PathBuf, Vec<ValidationError>>>,
 }
