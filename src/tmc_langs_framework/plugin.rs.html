@@ -296,6 +296,7 @@
 <span id="296">296</span>
 <span id="297">297</span>
 <span id="298">298</span>
+<span id="299">299</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains LanguagePlugin.</span>
 
@@ -359,7 +360,7 @@
     <span class="kw">fn</span> <span class="ident">scan_exercise</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">exercise_name</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Runs the tests for the exercise.</span>
-    <span class="kw">fn</span> <span class="ident">run_tests</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RunResult</span>;
+    <span class="kw">fn</span> <span class="ident">run_tests</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RunResult</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Prepares a submission for processing in the sandbox.</span>
     <span class="doccomment">///</span>
@@ -439,8 +440,9 @@
 
     <span class="doccomment">/// Copy shared stuff to stub or solution used for example for copying tmc-junit-runner.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">maybe_copy_shared_stuff</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dest_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) {
+    <span class="kw">fn</span> <span class="ident">maybe_copy_shared_stuff</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dest_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// no op by default</span>
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Returns configuration which is used to package submission on tmc-server.</span>
@@ -470,7 +472,7 @@
     }
 
     <span class="doccomment">/// Runs clean command e.g `make clean` for make or `mvn clean` for maven.</span>
-    <span class="kw">fn</span> <span class="ident">clean</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>);
+    <span class="kw">fn</span> <span class="ident">clean</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">get_default_student_file_paths</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
         <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;src&quot;</span>)]
@@ -511,7 +513,7 @@
             <span class="macro">unimplemented</span><span class="macro">!</span>()
         }
 
-        <span class="kw">fn</span> <span class="ident">run_tests</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RunResult</span> {
+        <span class="kw">fn</span> <span class="ident">run_tests</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RunResult</span><span class="op">&gt;</span> {
             <span class="macro">unimplemented</span><span class="macro">!</span>()
         }
 
@@ -523,7 +525,7 @@
             <span class="op">!</span><span class="ident">path</span>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>().<span class="ident">contains</span>(<span class="string">&quot;ignored&quot;</span>)
         }
 
-        <span class="kw">fn</span> <span class="ident">clean</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) {
+        <span class="kw">fn</span> <span class="ident">clean</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
             <span class="macro">unimplemented</span><span class="macro">!</span>()
         }
     }
