@@ -24,9 +24,7 @@ pub enum Error {
     #[error("Running command '{0}' failed")]
     CommandFailed(&'static str),
     #[error("Error in plugin: {0}")]
-    Plugin(Box<dyn std::error::Error>),
-    #[error(transparent)]
-    Other(Box<dyn std::error::Error>),
+    Plugin(Box<dyn std::error::Error + 'static + Send + Sync>),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

@@ -143,7 +143,7 @@ fn parse_exercise_description(path: &Path) -> Result<Vec<TestDesc>, Error> {
     // TODO: deserialize directly into Vec<TestDesc>?
     let json: HashMap<String, Vec<String>> = match serde_json::from_reader(BufReader::new(file)) {
         Ok(json) => json,
-        Err(error) => return Err(Error::Other(Box::new(error))),
+        Err(error) => return Err(Error::Plugin(Box::new(error))),
     };
     for (key, value) in json {
         test_descs.push(TestDesc::new(key, value));
@@ -158,7 +158,7 @@ fn parse_test_result(path: &Path) -> Result<RunResult, Error> {
     let test_results: Vec<TestResult> = match serde_json::from_reader(BufReader::new(results_file))
     {
         Ok(test_results) => test_results,
-        Err(error) => return Err(Error::Other(Box::new(error))),
+        Err(error) => return Err(Error::Plugin(Box::new(error))),
     };
 
     let mut status = RunStatus::Passed;
