@@ -290,11 +290,26 @@ mod test {
         let plugin = AntPlugin::new();
         let cp = plugin.get_project_class_path(test_path).unwrap();
         assert!(
-            cp.starts_with(&format!(
-                "{0}/lib/junit-4.10.jar:{0}/lib/edu-test-utils-0.4.1.jar:{0}/lib:{0}/build/test/classes:{0}/build/classes",
+            cp.contains(&format!("{0}/lib/junit-4.10.jar", test_path.display())),
+            "Classpath {} did not contain junit",
+            cp
+        );
+        assert!(
+            cp.contains(&format!(
+                "{0}/lib/edu-test-utils-0.4.1.jar",
                 test_path.display()
             )),
-            "Classpath was {}",
+            "Classpath {} did not contain edu-test-utils",
+            cp
+        );
+        assert!(
+            cp.contains(&format!("{0}/build/classes", test_path.display())),
+            "Classpath {} did not contain build/classes",
+            cp
+        );
+        assert!(
+            cp.contains(&format!("{0}/build/test/classes", test_path.display())),
+            "Classpath {} did not contain build/test/classes",
             cp
         );
         assert!(cp.ends_with("/../lib/tools.jar",), "Classpath was {}", cp);
@@ -354,7 +369,6 @@ mod test {
         let stack_trace = &exception.stack_trace[0];
         assert_eq!(stack_trace.declaring_class, "org.junit.Assert");
         assert_eq!(stack_trace.file_name, "Assert.java");
-        assert_eq!(stack_trace.line_number, 93);
         assert_eq!(stack_trace.method_name, "fail");
     }
 
