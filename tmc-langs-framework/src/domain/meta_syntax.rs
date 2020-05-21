@@ -1,10 +1,11 @@
 //! Contains utilities for parsing text files, separating lines into
 //! strings, stubs and solutions so that they can be more easily filtered accordingly
 
+use crate::Result;
 use lazy_static::lazy_static;
 use log::debug;
 use regex::{Captures, Regex};
-use std::io::{self, BufRead, BufReader, Read};
+use std::io::{BufRead, BufReader, Read};
 
 // Meta syntaxes for each comment syntax
 lazy_static! {
@@ -112,7 +113,7 @@ impl<R: Read> MetaSyntaxParser<BufReader<R>> {
 
 // iterates through the lines in the underlying file, parsing them to MetaStrings
 impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
-    type Item = io::Result<MetaString>;
+    type Item = Result<MetaString>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let mut s = String::new();
@@ -182,7 +183,7 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                     Some(Ok(MetaString::String(s)))
                 }
             }
-            Err(err) => Some(Err(err)),
+            Err(err) => Some(Err(err.into())),
         }
     }
 }

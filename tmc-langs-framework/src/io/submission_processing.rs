@@ -1,7 +1,7 @@
 //! Functions for processing submissions.
 
 use crate::policy::StudentFilePolicy;
-use crate::Result;
+use crate::{Error, Result};
 
 use crate::domain::meta_syntax::{MetaString, MetaSyntaxParser};
 use crate::plugin::LanguagePlugin;
@@ -41,15 +41,13 @@ pub fn move_files(
         if entry.path().is_file() {
             let relative = entry.path().strip_prefix(source).unwrap();
             let target_path = target.join(&relative);
-            debug!(
-                "moving: {} -> {}",
-                entry.path().display(),
-                target_path.display()
-            );
             if let Some(parent) = target_path.parent() {
-                fs::create_dir_all(parent)?;
+                fs::create_dir_all(parent)
+                    .map_err(|e| Error::CreateDir(parent.to_path_buf(), e))?;
             }
-            fs::rename(entry.path(), target_path)?;
+            fs::rename(entry.path(), &target_path).map_err(|e| {
+                Error::Rename(entry.path().to_path_buf(), target_path.to_path_buf(), e)
+            })?;
         }
     }
     Ok(())
@@ -57,12 +55,12 @@ pub fn move_files(
 
 // Filter for hidden directories (directories with names starting with '.')
 pub fn is_hidden_dir(entry: &DirEntry) -> bool {
-    let skip = entry.metadata().map(|e| e.is_dir()).unwrap_or(false)
+    let skip = entry.metadata().map(|e| e.is_dir()).unwrap_or_default()
         && entry
             .file_name()
             .to_str()
             .map(|s| s.starts_with('.'))
-            .unwrap_or(false);
+            .unwrap_or_default();
     if skip {
         debug!("is hidden dir: {:?}", entry.path());
     }
@@ -75,7 +73,7 @@ fn on_skip_list(entry: &DirEntry) -> bool {
         .file_name()
         .to_str()
         .map(|s| FILES_TO_SKIP_ALWAYS.is_match(s) || s == "private")
-        .unwrap_or(false);
+        .unwrap_or_default();
     if skip {
         debug!("on skip list: {:?}", entry.path());
     }
@@ -89,14 +87,9 @@ pub fn contains_tmcignore(entry: &DirEntry) -> bool {
         .into_iter()
         .filter_map(|e| e.ok())
     {
-        let is_file = entry.metadata().map(|e| e.is_file()).unwrap_or(false);
+        let is_file = entry.metadata().map(|e| e.is_file()).unwrap_or_default();
         if is_file {
-            let is_tmcignore = entry
-                .file_name()
-                .to_str()
-                .map(|s| s == ".tmcignore")
-                .unwrap_or(false);
-            if is_tmcignore {
+            if entry.file_name() == ".tmcignore" {
                 debug!("contains .tmcignore: {:?}", entry.path());
                 return true;
             }
@@ -111,8 +104,8 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
     skip_parts: usize,
     dest_root: &Path,
     filter: &mut F,
-) -> io::Result<()> {
-    let is_dir = entry.metadata().map(|e| e.is_dir()).unwrap_or(false);
+) -> Result<()> {
+    let is_dir = entry.metadata().map(|e| e.is_dir()).unwrap_or_default();
     if is_dir {
         return Ok(());
     }
@@ -120,12 +113,10 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
     let relative_path = entry.path().iter().skip(skip_parts).collect::<PathBuf>();
     let dest_path = dest_root.join(&relative_path);
     dest_path.parent().map_or(Ok(()), fs::create_dir_all)?;
-    let extension = entry
-        .path()
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("");
-    let is_binary = NON_TEXT_TYPES.is_match(extension);
+    let extension = entry.path().extension().and_then(|e| e.to_str());
+    let is_binary = extension
+        .map(|e| NON_TEXT_TYPES.is_match(e))
+        .unwrap_or_default();
     if is_binary {
         // copy binary files
         debug!(
@@ -141,9 +132,14 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
             entry.path(),
             dest_path
         );
-        let source_file = File::open(entry.path())?;
-        let mut target_file = File::create(dest_path)?;
-        let parser = MetaSyntaxParser::new(source_file, extension);
+
+        let source_file =
+            File::open(entry.path()).map_err(|e| Error::OpenFile(entry.path().to_path_buf(), e))?;
+
+        let mut target_file = File::create(dest_path)
+            .map_err(|e| Error::CreateFile(entry.path().to_path_buf(), e))?;
+
+        let parser = MetaSyntaxParser::new(source_file, extension.unwrap_or_default());
         for line in parser {
             let line = line?;
             if filter(&line) {
@@ -162,7 +158,7 @@ fn process_files<F: Fn(&MetaString) -> bool>(
     path: &Path,
     dest_root: &Path,
     mut filter: F,
-) -> io::Result<()> {
+) -> Result<()> {
     info!("Project: {:?}", path);
 
     let skip_parts = path.components().count(); // used to get the relative path of files
@@ -186,7 +182,7 @@ fn process_files<F: Fn(&MetaString) -> bool>(
 pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
     exercise_paths: I,
     dest_root: &Path,
-) -> io::Result<()> {
+) -> Result<()> {
     for path in exercise_paths {
         process_files(path, dest_root, |meta| match meta {
             MetaString::Stub(_) => false,
@@ -208,7 +204,7 @@ pub fn prepare_stubs(
     exercise_map: HashMap<PathBuf, Box<&dyn LanguagePlugin>>,
     repo_path: &Path,
     dest_root: &Path,
-) -> io::Result<()> {
+) -> Result<()> {
     for (path, plugin) in exercise_map {
         process_files(&path, dest_root, |meta| match meta {
             MetaString::Solution(_) => false,
@@ -221,7 +217,7 @@ pub fn prepare_stubs(
         } else {
             PathBuf::from("")
         };
-        plugin.maybe_copy_shared_stuff(&dest_root.join(relative_path));
+        plugin.maybe_copy_shared_stuff(&dest_root.join(relative_path))?;
     }
     Ok(())
 }
