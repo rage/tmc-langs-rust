@@ -1,11 +1,11 @@
 pub mod policy;
 
-use super::{error::JavaPluginError, util, CompileResult, TestMethod, TestRun, SEPARATOR};
+use super::{
+    error::JavaPluginError, plugin::JavaPlugin, CompileResult, TestMethod, TestRun, SEPARATOR,
+};
 use isolang::Language;
-use j4rs::{ClasspathEntry, InvocationArg, Jvm, JvmBuilder};
+use j4rs::{ClasspathEntry, Jvm, JvmBuilder};
 use policy::AntStudentFilePolicy;
-use std::collections::HashMap;
-use std::convert::TryFrom;
 use std::env;
 use std::fs::{self, File};
 use std::io::Write;
@@ -40,7 +40,96 @@ impl AntPlugin {
         }
     }
 
-    // constructs a CLASSPATH for the given path (see https://docs.oracle.com/javase/tutorial/essential/environment/paths.html)
+    fn copy_tmc_junit_runner(&self, path: &Path) -> Result<(), Error> {
+        log::debug!("Copying TMC Junit runner");
+
+        let local_tmc_junit_runner = Path::new("./tmc-junit-runner-0.2.8.jar");
+        let runner_dir = path.join("lib/testrunner");
+        let runner_path = runner_dir.join("tmc-junit-runner.jar");
+
+        // TODO: don't traverse symlinks
+        if !runner_path.exists() {
+            fs::create_dir_all(runner_dir)?;
+            log::debug!(
+                "copying from {} to {}",
+                local_tmc_junit_runner.display(),
+                runner_path.display()
+            );
+            fs::copy(local_tmc_junit_runner, runner_path)?;
+        } else {
+            log::debug!("already exists");
+        }
+        Ok(())
+    }
+}
+
+impl LanguagePlugin for AntPlugin {
+    fn get_plugin_name(&self) -> &str {
+        "apache-ant"
+    }
+
+    fn check_code_style(&self, path: &Path, locale: Language) -> Option<ValidationResult> {
+        self.run_checkstyle(&locale, path)
+    }
+
+    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
+        if !self.is_exercise_type_correct(path) {
+            return JavaPluginError::InvalidExercise.into();
+        }
+
+        let compile_result = self.build(path)?;
+        self.scan_exercise_with_compile_result(path, exercise_name, compile_result)
+    }
+
+    fn run_tests(&self, project_root_path: &Path) -> Result<RunResult, Error> {
+        self.run_java_tests(project_root_path)
+    }
+
+    fn is_exercise_type_correct(&self, path: &Path) -> bool {
+        path.join(BUILD_FILE_NAME).exists()
+            || path.join("test").exists() && path.join("src").exists()
+    }
+
+    fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy> {
+        Box::new(AntStudentFilePolicy::new(project_path.to_path_buf()))
+    }
+
+    fn maybe_copy_shared_stuff(&self, dest_path: &Path) -> Result<(), Error> {
+        self.copy_tmc_junit_runner(dest_path)
+    }
+
+    fn clean(&self, path: &Path) -> Result<(), Error> {
+        log::debug!("Cleaning project at {}", path.display());
+
+        let stdout_path = path.join("build_log.txt");
+        let stdout = File::create(&stdout_path)?;
+        let stderr_path = path.join("build_errors.txt");
+        let stderr = File::create(&stderr_path)?;
+
+        let output = Command::new("ant")
+            .arg("clean")
+            .stdout(stdout)
+            .stderr(stderr)
+            .current_dir(path)
+            .output()?;
+
+        if output.status.success() {
+            fs::remove_file(stdout_path)?;
+            fs::remove_file(stderr_path)?;
+            Ok(())
+        } else {
+            Err(Error::CommandFailed("ant clean"))
+        }
+    }
+}
+
+impl JavaPlugin for AntPlugin {
+    const TEST_DIR: &'static str = "test";
+
+    fn jvm(&self) -> &Jvm {
+        &self.jvm
+    }
+
     fn get_project_class_path(&self, path: &Path) -> Result<String, Error> {
         let mut paths = vec![];
 
@@ -55,7 +144,7 @@ impl AntPlugin {
 
         paths.push(path.join("build/test/classes"));
         paths.push(path.join("build/classes"));
-        let java_home = util::get_java_home()?;
+        let java_home = Self::get_java_home()?;
         paths.push(java_home.join("../lib/tools.jar"));
         let paths = paths
             .into_iter()
@@ -158,218 +247,6 @@ impl AntPlugin {
             stdout: command.stdout,
             stderr: command.stderr,
         })
-    }
-
-    fn scan_exercise_with_compile_result(
-        &self,
-        path: &Path,
-        exercise_name: String,
-        compile_result: CompileResult,
-    ) -> Result<ExerciseDesc, Error> {
-        if !self.is_exercise_type_correct(path) || !compile_result.status_code.success() {
-            return JavaPluginError::InvalidExercise.into();
-        }
-
-        let mut source_files = vec![];
-        for entry in WalkDir::new(path.join("test"))
-            .into_iter()
-            .filter_map(|e| e.ok())
-        {
-            let ext = entry.path().extension();
-            if ext.map_or(false, |o| o == "java" || o == "jar") {
-                source_files.push(entry.into_path());
-            }
-        }
-        let class_path = self.get_project_class_path(path)?;
-
-        log::info!("Class path: {}", class_path);
-        log::info!("Source files: {:?}", source_files);
-
-        let test_scanner = self
-            .jvm
-            .create_instance("fi.helsinki.cs.tmc.testscanner.TestScanner", &[])
-            .expect("failed to instantiate");
-
-        self.jvm
-            .invoke(
-                &test_scanner,
-                "setClassPath",
-                &[InvocationArg::try_from(class_path).expect("failed to convert")],
-            )
-            .expect("failed to invoke");
-
-        for source_file in source_files {
-            let file = self
-                .jvm
-                .create_instance(
-                    "java.io.File",
-                    &[InvocationArg::try_from(&*source_file.to_string_lossy())
-                        .expect("failed to convert")],
-                )
-                .expect("failed to instantiate");
-            self.jvm
-                .invoke(
-                    &test_scanner,
-                    "addSource",
-                    &[InvocationArg::try_from(file).expect("failed to convert")],
-                )
-                .expect("failed to invoke");
-        }
-        let scan_results = self
-            .jvm
-            .invoke(&test_scanner, "findTests", &[])
-            .expect("failed to invoke");
-        self.jvm
-            .invoke(&test_scanner, "clearSources", &[])
-            .expect("failed to invoke");
-
-        let scan_results: Vec<TestMethod> =
-            self.jvm.to_rust(scan_results).expect("failed to convert");
-
-        let tests = scan_results
-            .into_iter()
-            .map(|s| TestDesc {
-                name: format!("{} {}", s.class_name, s.method_name),
-                points: s.points,
-            })
-            .collect();
-
-        Ok(ExerciseDesc {
-            name: exercise_name,
-            tests,
-        })
-    }
-
-    fn run_result_from_failed_compilation(&self, compile_result: CompileResult) -> RunResult {
-        let mut logs = HashMap::new();
-        logs.insert("stdout".to_string(), compile_result.stdout);
-        logs.insert("stderr".to_string(), compile_result.stderr);
-        RunResult {
-            status: RunStatus::CompileFailed,
-            test_results: vec![],
-            logs,
-        }
-    }
-
-    fn copy_tmc_junit_runner(&self, path: &Path) -> Result<(), Error> {
-        log::debug!("Copying TMC Junit runner");
-
-        let local_tmc_junit_runner = Path::new("./tmc-junit-runner-0.2.8.jar");
-        let runner_dir = path.join("lib/testrunner");
-        let runner_path = runner_dir.join("tmc-junit-runner.jar");
-
-        // TODO: don't traverse symlinks
-        if !runner_path.exists() {
-            fs::create_dir_all(runner_dir)?;
-            log::debug!(
-                "copying from {} to {}",
-                local_tmc_junit_runner.display(),
-                runner_path.display()
-            );
-            fs::copy(local_tmc_junit_runner, runner_path)?;
-        } else {
-            log::debug!("already exists");
-        }
-        Ok(())
-    }
-}
-
-impl LanguagePlugin for AntPlugin {
-    fn get_plugin_name(&self) -> &str {
-        "apache-ant"
-    }
-
-    fn check_code_style(&self, path: &Path, locale: Language) -> Option<ValidationResult> {
-        let file = self
-            .jvm
-            .create_instance(
-                "java.io.File",
-                &[InvocationArg::try_from(&*path.to_string_lossy()).expect("failed to convert")],
-            )
-            .expect("failed to instantiate");
-        let locale_code = locale.to_639_1().unwrap_or(locale.to_639_3()); // Java requires 639-1 if one exists
-        let locale = self
-            .jvm
-            .create_instance(
-                "java.util.Locale",
-                &[InvocationArg::try_from(locale_code).expect("failed to convert")],
-            )
-            .expect("failed to instantiate");
-        let checkstyle_runner = self
-            .jvm
-            .create_instance(
-                "fi.helsinki.cs.tmc.stylerunner.CheckstyleRunner",
-                &[InvocationArg::from(file), InvocationArg::from(locale)],
-            )
-            .expect("failed to instantiate");
-        let result = self
-            .jvm
-            .invoke(&checkstyle_runner, "run", &[])
-            .expect("failed to invoke");
-        self.jvm.to_rust(result).expect("failed to convert")
-    }
-
-    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
-        if !self.is_exercise_type_correct(path) {
-            return JavaPluginError::InvalidExercise.into();
-        }
-
-        let compile_result = self.build(path)?;
-        self.scan_exercise_with_compile_result(path, exercise_name, compile_result)
-    }
-
-    fn run_tests(&self, project_root_path: &Path) -> Result<RunResult, Error> {
-        log::info!(
-            "Running tests for project at {}",
-            project_root_path.display()
-        );
-
-        let compile_result = self.build(project_root_path)?;
-        if !compile_result.status_code.success() {
-            return Ok(self.run_result_from_failed_compilation(compile_result));
-        }
-
-        let test_result = self.create_run_result_file(project_root_path, compile_result)?;
-        let result = util::parse_test_result(&test_result);
-        fs::remove_file(test_result.test_results)?;
-        Ok(result?)
-    }
-
-    fn is_exercise_type_correct(&self, path: &Path) -> bool {
-        path.join(BUILD_FILE_NAME).exists()
-            || path.join("test").exists() && path.join("src").exists()
-    }
-
-    fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy> {
-        Box::new(AntStudentFilePolicy::new(project_path.to_path_buf()))
-    }
-
-    fn maybe_copy_shared_stuff(&self, dest_path: &Path) -> Result<(), Error> {
-        self.copy_tmc_junit_runner(dest_path)
-    }
-
-    fn clean(&self, path: &Path) -> Result<(), Error> {
-        log::debug!("Cleaning project at {}", path.display());
-
-        let stdout_path = path.join("build_log.txt");
-        let stdout = File::create(&stdout_path)?;
-        let stderr_path = path.join("build_errors.txt");
-        let stderr = File::create(&stderr_path)?;
-
-        let output = Command::new("ant")
-            .arg("clean")
-            .stdout(stdout)
-            .stderr(stderr)
-            .current_dir(path)
-            .output()?;
-
-        if output.status.success() {
-            fs::remove_file(stdout_path)?;
-            fs::remove_file(stderr_path)?;
-            Ok(())
-        } else {
-            Err(Error::CommandFailed("ant clean"))
-        }
     }
 }
 
