@@ -21,12 +21,13 @@ pub fn student_file_aware_unzip(
     zip: &Path,
     target: &Path,
 ) -> Result<UnzipResult> {
-    let file = File::open(zip)?;
+    let file = File::open(zip).map_err(|e| Error::OpenFile(zip.to_path_buf(), e))?;
     let mut zip_archive = ZipArchive::new(file)?;
 
     let project_dir = find_project_dir(&mut zip_archive)?;
     let project_path = Path::new(&project_dir);
-    fs::create_dir_all(target.join(project_path))?;
+    fs::create_dir_all(target.join(project_path))
+        .map_err(|e| Error::CreateDir(project_path.to_path_buf(), e))?;
 
     let tmc_project_yml = policy.get_tmc_project_yml()?;
 
@@ -45,14 +46,16 @@ pub fn student_file_aware_unzip(
         if file.is_dir() {
             if policy.is_student_file(&path_in_target, &target, &tmc_project_yml)? {
                 debug!("creating {:?}", path_in_target);
-                fs::create_dir_all(&path_in_target)?;
+                fs::create_dir_all(&path_in_target)
+                    .map_err(|e| Error::CreateDir(path_in_target.clone(), e))?;
                 unzipped_paths.insert(path_in_target.canonicalize()?);
             }
         } else if policy.is_student_file(&path_in_target, &target, &tmc_project_yml)? {
             let mut write = true;
             let file_contents = file.bytes().collect::<std::result::Result<Vec<_>, _>>()?;
             if path_in_target.exists() {
-                let target_file = File::open(&path_in_target)?;
+                let target_file = File::open(&path_in_target)
+                    .map_err(|e| Error::OpenFile(path_in_target.clone(), e))?;
                 let target_file_contents = target_file
                     .bytes()
                     .collect::<std::result::Result<Vec<_>, _>>()?;
@@ -69,8 +72,11 @@ pub fn student_file_aware_unzip(
             }
             if write {
                 debug!("overwriting {}", path_in_target.display());
-                let mut overwrite_target = File::create(&path_in_target)?;
-                overwrite_target.write_all(&file_contents)?;
+                let mut overwrite_target = File::create(&path_in_target)
+                    .map_err(|e| Error::CreateFile(path_in_target.clone(), e))?;
+                overwrite_target
+                    .write_all(&file_contents)
+                    .map_err(|e| Error::Write(path_in_target.clone(), e))?;
                 unzipped_paths.insert(path_in_target.canonicalize()?);
             }
         }
@@ -84,8 +90,16 @@ pub fn student_file_aware_unzip(
         yml_path_in_zip.display(),
         yml_path_in_target.display()
     );
-    let yml_zipped = zip_archive.by_name(yml_path_in_zip.to_str().expect("non-UTF-8 name"))?;
-    let yml_file = File::create(yml_path_in_target)?;
+
+    let yml_path_str = yml_path_in_zip
+        .to_str()
+        .ok_or(Error::UTF8(yml_path_in_zip.to_path_buf()))?;
+
+    let yml_zipped = zip_archive.by_name(yml_path_str)?;
+
+    let yml_file = File::create(&yml_path_in_target)
+        .map_err(|e| Error::CreateFile(yml_path_in_target.clone(), e))?;
+
     let mut yml_writer = BufWriter::new(yml_file);
     for byte in yml_zipped.bytes() {
         let byte = byte?;
@@ -174,7 +188,9 @@ pub fn student_file_aware_zip(
                 let path = entry.path().strip_prefix(root_directory).unwrap();
                 debug!("writing file {}", path.display());
                 writer.start_file_from_path(path, FileOptions::default())?;
-                writer.write_all(&bytes)?;
+                writer
+                    .write_all(&bytes)
+                    .map_err(|e| Error::Write(path.to_path_buf(), e))?;
             }
         }
     }

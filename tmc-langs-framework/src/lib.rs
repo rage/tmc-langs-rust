@@ -12,6 +12,7 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum Error {
+    // IO
     #[error("Failed to open file at {0}: {1}")]
     OpenFile(PathBuf, std::io::Error),
     #[error("Failed to create file at {0}: {1}")]
@@ -20,6 +21,12 @@ pub enum Error {
     CreateDir(PathBuf, std::io::Error),
     #[error("Failed to rename {0} to {1}: {2}")]
     Rename(PathBuf, PathBuf, std::io::Error),
+    #[error("Failed to write to {0}: {1}")]
+    Write(PathBuf, std::io::Error),
+
+    #[error("Path {0} contained invalid UTF8")]
+    UTF8(PathBuf),
+
     #[error("No matching plugin found")]
     PluginNotFound,
     #[error("No project directory found in archive during unzip")]

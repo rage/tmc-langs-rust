@@ -2,7 +2,7 @@
 
 pub mod meta_syntax;
 
-use super::Result;
+use super::{Error, Result};
 use log::debug;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -141,7 +141,7 @@ impl TmcProjectYml {
             return Ok(Self::default());
         }
         debug!("reading .tmcprojectyml from {}", config_path.display());
-        let file = File::open(config_path)?;
+        let file = File::open(&config_path).map_err(|e| Error::OpenFile(config_path, e))?;
         Ok(serde_yaml::from_reader(file)?)
     }
 }
