@@ -101,7 +101,7 @@ pub fn contains_tmcignore(entry: &DirEntry) -> bool {
 // Copies the entry to the destination. Parses and filters text files according to `filter`
 fn copy_file<F: Fn(&MetaString) -> bool>(
     entry: &DirEntry,
-    skip_parts: usize,
+    source_root: &Path,
     dest_root: &Path,
     filter: &mut F,
 ) -> Result<()> {
@@ -110,7 +110,10 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
         return Ok(());
     }
     // get relative path
-    let relative_path = entry.path().iter().skip(skip_parts).collect::<PathBuf>();
+    let relative_path = entry
+        .path()
+        .strip_prefix(source_root)
+        .unwrap_or(Path::new(""));
     let dest_path = dest_root.join(&relative_path);
     dest_path.parent().map_or(Ok(()), fs::create_dir_all)?;
     let extension = entry.path().extension().and_then(|e| e.to_str());
@@ -161,14 +164,13 @@ fn process_files<F: Fn(&MetaString) -> bool>(
 ) -> Result<()> {
     info!("Project: {:?}", path);
 
-    let skip_parts = path.components().count(); // used to get the relative path of files
     let walker = WalkDir::new(path).into_iter();
     // silently skips over errors, for example when there's a directory we don't have permissions for
     for entry in walker
         .filter_entry(|e| !is_hidden_dir(e) && !on_skip_list(e) && !contains_tmcignore(e))
         .filter_map(|e| e.ok())
     {
-        copy_file(&entry, skip_parts, dest_root, &mut filter)?;
+        copy_file(&entry, path, dest_root, &mut filter)?;
     }
     Ok(())
 }
@@ -211,12 +213,7 @@ pub fn prepare_stubs(
             _ => true,
         })?;
 
-        let relative_path = if repo_path.components().count() < path.iter().count() {
-            let skip_count = repo_path.components().count();
-            path.components().skip(skip_count).collect()
-        } else {
-            PathBuf::from("")
-        };
+        let relative_path = path.strip_prefix(repo_path).unwrap_or(Path::new(""));
         plugin.maybe_copy_shared_stuff(&dest_root.join(relative_path))?;
     }
     Ok(())
