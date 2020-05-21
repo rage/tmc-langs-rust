@@ -409,6 +409,20 @@
 <span id="409">409</span>
 <span id="410">410</span>
 <span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">policy</span>;
 
@@ -702,11 +716,26 @@
         <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">AntPlugin</span>::<span class="ident">new</span>();
         <span class="kw">let</span> <span class="ident">cp</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">get_project_class_path</span>(<span class="ident">test_path</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert</span><span class="macro">!</span>(
-            <span class="ident">cp</span>.<span class="ident">starts_with</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
-                <span class="string">&quot;{0}/lib/junit-4.10.jar:{0}/lib/edu-test-utils-0.4.1.jar:{0}/lib:{0}/build/test/classes:{0}/build/classes&quot;</span>,
+            <span class="ident">cp</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{0}/lib/junit-4.10.jar&quot;</span>, <span class="ident">test_path</span>.<span class="ident">display</span>())),
+            <span class="string">&quot;Classpath {} did not contain junit&quot;</span>,
+            <span class="ident">cp</span>
+        );
+        <span class="macro">assert</span><span class="macro">!</span>(
+            <span class="ident">cp</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
+                <span class="string">&quot;{0}/lib/edu-test-utils-0.4.1.jar&quot;</span>,
                 <span class="ident">test_path</span>.<span class="ident">display</span>()
             )),
-            <span class="string">&quot;Classpath was {}&quot;</span>,
+            <span class="string">&quot;Classpath {} did not contain edu-test-utils&quot;</span>,
+            <span class="ident">cp</span>
+        );
+        <span class="macro">assert</span><span class="macro">!</span>(
+            <span class="ident">cp</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{0}/build/classes&quot;</span>, <span class="ident">test_path</span>.<span class="ident">display</span>())),
+            <span class="string">&quot;Classpath {} did not contain build/classes&quot;</span>,
+            <span class="ident">cp</span>
+        );
+        <span class="macro">assert</span><span class="macro">!</span>(
+            <span class="ident">cp</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{0}/build/test/classes&quot;</span>, <span class="ident">test_path</span>.<span class="ident">display</span>())),
+            <span class="string">&quot;Classpath {} did not contain build/test/classes&quot;</span>,
             <span class="ident">cp</span>
         );
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">cp</span>.<span class="ident">ends_with</span>(<span class="string">&quot;/../lib/tools.jar&quot;</span>,), <span class="string">&quot;Classpath was {}&quot;</span>, <span class="ident">cp</span>);
@@ -766,7 +795,6 @@
         <span class="kw">let</span> <span class="ident">stack_trace</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">exception</span>.<span class="ident">stack_trace</span>[<span class="number">0</span>];
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">stack_trace</span>.<span class="ident">declaring_class</span>, <span class="string">&quot;org.junit.Assert&quot;</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">stack_trace</span>.<span class="ident">file_name</span>, <span class="string">&quot;Assert.java&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">stack_trace</span>.<span class="ident">line_number</span>, <span class="number">93</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">stack_trace</span>.<span class="ident">method_name</span>, <span class="string">&quot;fail&quot;</span>);
     }
 
