@@ -114,8 +114,10 @@ pub trait LanguagePlugin {
         )?)
     }
 
-    /// Run checkstyle or similar plugin to project if applicable
-    fn check_code_style(&self, path: &Path, locale: Language) -> Option<ValidationResult>;
+    /// Run checkstyle or similar plugin to project if applicable, empty by default
+    fn check_code_style(&self, path: &Path, locale: Language) -> Option<ValidationResult> {
+        None
+    }
 
     /// Compress a given project so that it can be sent to the TestMyCode server.
     fn compress_project(&self, path: &Path) -> Result<Vec<u8>> {

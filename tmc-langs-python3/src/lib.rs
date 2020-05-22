@@ -82,10 +82,6 @@ impl LanguagePlugin for Python3Plugin {
         Ok(parse_test_result(path)?)
     }
 
-    fn check_code_style(&self, _path: &Path, _locale: Language) -> Option<ValidationResult> {
-        None
-    }
-
     fn is_exercise_type_correct(&self, path: &Path) -> bool {
         let mut setup = path.to_owned();
         setup.push("setup.py");
