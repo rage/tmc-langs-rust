@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["error",""],["plugin",""],["policy",""]],"struct":[["CTestCase",""]]});
+initSidebarItems({"mod":[["error",""],["plugin",""],["policy",""],["valgrind_log",""]]});
