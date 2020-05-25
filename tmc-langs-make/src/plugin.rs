@@ -1,16 +1,17 @@
 use crate::check_log::CheckLog;
 use crate::error::MakeError;
 use crate::policy::MakeStudentFilePolicy;
+use crate::valgrind_log::ValgrindLog;
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashMap;
-use std::convert::TryFrom;
 use std::fs::File;
+use std::io;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-use std::process::Command;
+use std::process::{Command, Output};
 use tmc_langs_framework::{
-    domain::{ExerciseDesc, RunResult, RunStatus, TestDesc},
+    domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TmcProjectYml},
     plugin::LanguagePlugin,
     policy::StudentFilePolicy,
     Error,
@@ -27,7 +28,7 @@ impl MakePlugin {
         &self,
         available_points: &Path,
         exercise_name: String,
-    ) -> Result<ExerciseDesc, Error> {
+    ) -> Result<ExerciseDesc, MakeError> {
         lazy_static! {
             static ref RE: Regex =
                 Regex::new(r#"\[(?P<type>.*)\] \[(?P<name>.*)\] (?P<points>.*)"#).unwrap();
@@ -58,7 +59,7 @@ impl MakePlugin {
         })
     }
 
-    fn run_tests_with_valgrind(&self, path: &Path, valgrind: bool) -> Result<(), Error> {
+    fn run_tests_with_valgrind(&self, path: &Path, valgrind: bool) -> Result<(), MakeError> {
         let arg = if valgrind {
             "run-test-with-valgrind"
         } else {
@@ -77,24 +78,25 @@ impl MakePlugin {
 
         if !output.status.success() {
             if valgrind {
-                return MakeError::ValgrindTests.into();
+                return Err(MakeError::ValgrindTests);
             } else {
-                return MakeError::NoValgrindTests.into();
+                return Err(MakeError::NoValgrindTests);
             }
         }
 
         Ok(())
     }
 
-    fn builds(&self, dir: &Path) -> Result<bool, Error> {
+    fn builds(&self, dir: &Path) -> Result<bool, MakeError> {
+        log::debug!("building {}", dir.display());
         let output = Command::new("make")
             .current_dir(dir)
             .arg("test")
             .output()
             .map_err(|e| MakeError::MakeCommand(e))?;
 
-        log::debug!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-        log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+        log::debug!("stdout:\n{}", String::from_utf8_lossy(&output.stdout));
+        log::debug!("stderr:\n{}", String::from_utf8_lossy(&output.stderr));
 
         Ok(output.status.success())
     }
@@ -119,6 +121,7 @@ impl LanguagePlugin for MakePlugin {
         }
 
         self.parse_exercise_desc(&available_points_path, exercise_name)
+            .map_err(|e| Error::Plugin(Box::new(e)))
     }
 
     fn run_tests(&self, path: &Path) -> Result<RunResult, Error> {
@@ -130,29 +133,90 @@ impl LanguagePlugin for MakePlugin {
             });
         }
 
-        if let Err(e) = self.run_tests_with_valgrind(path, true) {
-            log::error!("Running with valgrind failed! {}", e);
-            todo!("run without valgrind")
+        // try to run valgrind
+        let mut ran_valgrind = true;
+        let valgrind_run = self.run_tests_with_valgrind(path, true);
+        if let Err(MakeError::MakeCommand(io_error)) = valgrind_run {
+            if io_error.kind() == io::ErrorKind::PermissionDenied {
+                // failed due to lacking permissions, try to clean and rerun
+                // ignore clean success/failure?
+                let _output = Command::new("make").arg("clean").output()?;
+                if let Err(err) = self.run_tests_with_valgrind(path, false) {
+                    log::error!(
+                        "Running with valgrind failed after trying to clean! {}",
+                        err
+                    );
+                    ran_valgrind = false;
+                    log::info!("Running without valgrind");
+                    self.run_tests_with_valgrind(path, false)?;
+                }
+            } else {
+                // failed due to something else, valgrind might not be installed
+                ran_valgrind = false;
+                log::info!("Running without valgrind");
+                self.run_tests_with_valgrind(path, false)?;
+            }
         }
 
         let base_test_path = path.join("test");
         let test_results_path = base_test_path.join("tmc_test_results.xml");
-
-        // parse .tmcproject.yml for fail_on_valgrind_error, default=true, this.valgrindStrategy
-        // if valgrind was run and fail on valgrind error valgrindparser(valgrindoutput).addoutputs(tests) ??
-
         if !test_results_path.exists() {
-            Ok(RunResult {
+            return Ok(RunResult {
                 status: RunStatus::CompileFailed,
                 test_results: vec![],
                 logs: HashMap::new(),
-            })
-        } else {
-            let file = File::open(&test_results_path)?;
-            let check_log: CheckLog = serde_xml_rs::from_reader(file).unwrap();
-            log::debug!("{:?}", check_log);
-            Ok(check_log.into())
+            });
         }
+
+        // fails on valgrind by default
+        let fail_on_valgrind_error =
+            match TmcProjectYml::from(&base_test_path.join(".tmcproject.yml")) {
+                Ok(parsed) => parsed.fail_on_valgrind_error.unwrap_or(true),
+                Err(_) => true,
+            };
+
+        let valgrind_log = if ran_valgrind && fail_on_valgrind_error {
+            let valgrind_path = base_test_path.join("valgrind.log");
+            Some(ValgrindLog::from(&valgrind_path)?)
+        } else {
+            None
+        };
+
+        let available_points_path = base_test_path.join("tmc_available_points.txt");
+        let tests = self
+            .parse_exercise_desc(&available_points_path, "unused".to_string())?
+            .tests;
+        let mut ids_to_points = HashMap::new();
+        for test in tests {
+            ids_to_points.insert(test.name, test.points);
+        }
+
+        let file = File::open(&test_results_path)?;
+        let check_log: CheckLog = serde_xml_rs::from_reader(file).unwrap();
+        log::debug!("{:?}", check_log);
+        let mut run_result = check_log.into_run_result(ids_to_points);
+
+        if let Some(valgrind_log) = valgrind_log {
+            // valgrind failed
+            if valgrind_log.errors {
+                run_result.status = RunStatus::TestsFailed;
+                todo!("tests and valgrind results are not guaranteed to be in the same order");
+                for (test_result, valgrind_result) in run_result
+                    .test_results
+                    .iter_mut()
+                    .zip(valgrind_log.results.into_iter())
+                {
+                    if valgrind_result.errors {
+                        if test_result.passed {
+                            test_result.message += " - Failed due to errors in valgrind log; see log below. Try submitting to server, some leaks might be platform dependent";
+                        }
+                        test_result.exceptions.extend(valgrind_result.log);
+                    }
+                }
+            }
+        }
+
+        Ok(run_result)
     }
 
     fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy> {
@@ -238,6 +302,65 @@ mod test {
         let temp = copy_test("tests/data/passing");
         let plugin = MakePlugin::new();
         let run_result = plugin.run_tests(temp.path()).unwrap();
-        panic!("{:?}", run_result);
+        assert_eq!(run_result.status, RunStatus::Passed);
+        assert!(run_result.logs.is_empty());
+        let test_results = run_result.test_results;
+        assert_eq!(test_results.len(), 1);
+        let test_result = &test_results[0];
+        assert_eq!(test_result.name, "test_one");
+        assert!(test_result.passed);
+        assert_eq!(test_result.message, "Passed");
+        assert!(test_result.exceptions.is_empty());
+        let points = &test_result.points;
+        assert_eq!(points.len(), 1);
+        let point = &points[0];
+        assert_eq!(point, "1.1");
+    }
+
+    #[test]
+    fn runs_tests_failing() {
+        init();
+
+        let temp = copy_test("tests/data/failing");
+        let plugin = MakePlugin::new();
+        let run_result = plugin.run_tests(temp.path()).unwrap();
+        assert_eq!(run_result.status, RunStatus::TestsFailed);
+        let test_results = &run_result.test_results;
+        assert_eq!(test_results.len(), 1);
+        let test_result = &test_results[0];
+        assert_eq!(test_result.name, "test_one");
+        assert!(!test_result.passed);
+        assert!(test_result.message.contains("Should have returned: 1"));
+        let points = &test_result.points;
+        assert_eq!(points.len(), 1);
+        assert_eq!(points[0], "1.1");
+        let logs = &run_result.logs;
+        assert!(logs.is_empty());
+    }
+
+    //#[test]
+    fn runs_tests_failing_valgrind() {
+        init();
+
+        let temp = copy_test("tests/data/valgrind-failing");
+        let plugin = MakePlugin::new();
+        let run_result = plugin.run_tests(temp.path()).unwrap();
+        assert_eq!(run_result.status, RunStatus::TestsFailed);
+        let test_results = &run_result.test_results;
+        assert_eq!(test_results.len(), 2);
+
+        let test_one = &test_results[0];
+        assert_eq!(test_one.name, "test_one");
+        assert!(test_one.passed);
+        assert_eq!(test_one.points.len(), 1);
+        assert_eq!(test_one.points[0], "1.1");
+
+        let test_two = &test_results[1];
+        assert_eq!(test_two.name, "test_two");
+        assert!(test_two.passed);
+        assert_eq!(test_two.points.len(), 1);
+        assert_eq!(test_two.points[0], "1.2");
+
+        todo!("valgrind results in random order?")
     }
 }
