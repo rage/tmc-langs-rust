@@ -1,3 +1,6 @@
+//! Error type for the plugin.
+
+use serde_xml_rs::Error as XmlError;
 use std::num::ParseIntError;
 use std::path::PathBuf;
 use thiserror::Error;
@@ -7,8 +10,10 @@ use tmc_langs_framework::Error as TmcError;
 pub enum MakeError {
     #[error("No exercise found")]
     NoExerciseFound,
-    #[error("Can't parse exercise description")]
-    CantParseExerciseDesc,
+    #[error("Can't parse exercise description: could not find tmc_available_points.txt")]
+    CantFindAvailablePoints,
+    #[error("Could not find tmc_available_points.xml")]
+    CantFindTestResults,
     #[error("Failed to run tests without valgrind")]
     NoValgrindTests,
     #[error("Failed to run tests with valgrind")]
@@ -18,6 +23,8 @@ pub enum MakeError {
     #[error("Make finished unsuccessfully")]
     MakeFailed,
 
+    #[error("Failed to parse XML at {0}: {1}")]
+    XmlParseError(PathBuf, XmlError),
     #[error("Failed to open file at {0}")]
     FileOpen(PathBuf, std::io::Error),
     #[error("Failed to read file at {0}")]

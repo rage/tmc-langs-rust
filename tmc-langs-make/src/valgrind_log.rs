@@ -1,3 +1,5 @@
+//! Contains a struct representing valgrind's log output.
+
 use crate::error::MakeError;
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -14,6 +16,7 @@ pub struct ValgrindLog {
 }
 
 impl ValgrindLog {
+    /// Attempts to read and parse the log file at the given path.
     pub fn from(valgrind_log_path: &Path) -> Result<Self, MakeError> {
         log::debug!("parsing {}", valgrind_log_path.display());
 

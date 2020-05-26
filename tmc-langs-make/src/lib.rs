@@ -1,3 +1,5 @@
+//! TMC plugin for make.
+
 mod check_log;
 pub mod error;
 pub mod plugin;

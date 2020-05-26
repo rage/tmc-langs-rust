@@ -1,3 +1,5 @@
+//! Contains the language policy for the plugin.
+
 use std::path::{Path, PathBuf};
 use tmc_langs_framework::policy::StudentFilePolicy;
 

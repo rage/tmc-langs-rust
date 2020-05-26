@@ -1,3 +1,5 @@
+//! Contains the main plugin struct.
+
 use crate::check_log::CheckLog;
 use crate::error::MakeError;
 use crate::policy::MakeStudentFilePolicy;
@@ -24,12 +26,15 @@ impl MakePlugin {
         Self {}
     }
 
+    /// Parses tmc_available_points.txt which is output by the TMC tests and
+    /// contains lines like "[test] [test_one] 1.1 1.2 1.3" = "[type] [name] points".
     fn parse_exercise_desc(
         &self,
         available_points: &Path,
         exercise_name: String,
     ) -> Result<ExerciseDesc, MakeError> {
         lazy_static! {
+            // "[test] [test_one] 1.1 1.2 1.3" = "[type] [name] points"
             static ref RE: Regex =
                 Regex::new(r#"\[(?P<type>.*)\] \[(?P<name>.*)\] (?P<points>.*)"#).unwrap();
         }
@@ -40,7 +45,9 @@ impl MakePlugin {
             .map_err(|e| MakeError::FileOpen(available_points.to_path_buf(), e))?;
 
         let reader = BufReader::new(file);
-        for line in reader.lines().filter_map(|l| l.ok()) {
+        for line in reader.lines() {
+            let line = line.map_err(|e| MakeError::FileRead(available_points.to_path_buf(), e))?;
+
             if let Some(captures) = RE.captures(&line) {
                 if &captures["type"] == "test" {
                     let name = captures["name"].to_string();
@@ -59,6 +66,8 @@ impl MakePlugin {
         })
     }
 
+    /// Runs tests with or without valgrind according to the argument.
+    /// Returns an error if the command finishes unsuccessfully.
     fn run_tests_with_valgrind(&self, path: &Path, valgrind: bool) -> Result<(), MakeError> {
         let arg = if valgrind {
             "run-test-with-valgrind"
@@ -87,6 +96,8 @@ impl MakePlugin {
         Ok(())
     }
 
+    /// Tries to build the project at the given directory, returns whether
+    /// the process finished successfully or not.
     fn builds(&self, dir: &Path) -> Result<bool, MakeError> {
         log::debug!("building {}", dir.display());
         let output = Command::new("make")
@@ -117,11 +128,10 @@ impl LanguagePlugin for MakePlugin {
         let available_points_path = path.join("test/tmc_available_points.txt");
 
         if !available_points_path.exists() {
-            return MakeError::CantParseExerciseDesc.into();
+            return MakeError::CantFindAvailablePoints.into();
         }
 
-        self.parse_exercise_desc(&available_points_path, exercise_name)
-            .map_err(|e| Error::Plugin(Box::new(e)))
+        Ok(self.parse_exercise_desc(&available_points_path, exercise_name)?)
     }
 
     fn run_tests(&self, path: &Path) -> Result<RunResult, Error> {
@@ -139,8 +149,7 @@ impl LanguagePlugin for MakePlugin {
         if let Err(MakeError::MakeCommand(io_error)) = valgrind_run {
             if io_error.kind() == io::ErrorKind::PermissionDenied {
                 // failed due to lacking permissions, try to clean and rerun
-                // ignore clean success/failure?
-                let _output = Command::new("make").arg("clean").output()?;
+                let _output = self.clean(path)?;
                 if let Err(err) = self.run_tests_with_valgrind(path, false) {
                     log::error!(
                         "Running with valgrind failed after trying to clean! {}",
@@ -159,14 +168,6 @@ impl LanguagePlugin for MakePlugin {
         }
 
         let base_test_path = path.join("test");
-        let test_results_path = base_test_path.join("tmc_test_results.xml");
-        if !test_results_path.exists() {
-            return Ok(RunResult {
-                status: RunStatus::CompileFailed,
-                test_results: vec![],
-                logs: HashMap::new(),
-            });
-        }
 
         // fails on valgrind by default
         let fail_on_valgrind_error =
@@ -175,6 +176,7 @@ impl LanguagePlugin for MakePlugin {
                 Err(_) => true,
             };
 
+        // valgrind logs are only interesting if fail on valgrind error is on
         let valgrind_log = if ran_valgrind && fail_on_valgrind_error {
             let valgrind_path = base_test_path.join("valgrind.log");
             Some(ValgrindLog::from(&valgrind_path)?)
@@ -182,6 +184,7 @@ impl LanguagePlugin for MakePlugin {
             None
         };
 
+        // parse available points into a mapping from test name to test point list
         let available_points_path = base_test_path.join("tmc_available_points.txt");
         let tests = self
             .parse_exercise_desc(&available_points_path, "unused".to_string())?
@@ -191,16 +194,19 @@ impl LanguagePlugin for MakePlugin {
             ids_to_points.insert(test.name, test.points);
         }
 
-        let file = File::open(&test_results_path)?;
-        let check_log: CheckLog = serde_xml_rs::from_reader(file).unwrap();
-        log::debug!("{:?}", check_log);
+        // parse test results into RunResult
+        let test_results_path = base_test_path.join("tmc_test_results.xml");
+        let file = File::open(&test_results_path)
+            .map_err(|e| MakeError::FileOpen(test_results_path.clone(), e))?;
+        let check_log: CheckLog = serde_xml_rs::from_reader(file)
+            .map_err(|e| MakeError::XmlParseError(test_results_path, e))?;
         let mut run_result = check_log.into_run_result(ids_to_points);
 
         if let Some(valgrind_log) = valgrind_log {
-            // valgrind failed
             if valgrind_log.errors {
+                // valgrind failed
                 run_result.status = RunStatus::TestsFailed;
-                todo!("tests and valgrind results are not guaranteed to be in the same order");
+                // TODO: tests and valgrind results are not guaranteed to be in the same order
                 for (test_result, valgrind_result) in run_result
                     .test_results
                     .iter_mut()
@@ -227,6 +233,7 @@ impl LanguagePlugin for MakePlugin {
         path.join("Makefile").is_file()
     }
 
+    // does not check for success
     fn clean(&self, path: &Path) -> Result<(), Error> {
         let output = Command::new("make")
             .current_dir(path)
