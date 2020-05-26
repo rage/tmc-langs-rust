@@ -32,6 +32,7 @@ impl ValgrindLog {
 
         let mut first_pid = None;
         let mut pid_info = HashMap::new();
+        // parse all lines into a map of pid => ([lines of text], error count)
         for line in valgrind_log.lines() {
             let line = line.map_err(|e| MakeError::FileRead(valgrind_log_path.to_path_buf(), e))?;
             let pid = match PID_REGEX.captures(&line) {
