@@ -39,7 +39,17 @@
 <span id="39">39</span>
 <span id="40">40</span>
 <span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! Error type for the plugin.</span>
+
+<span class="kw">use</span> <span class="ident">serde_xml_rs</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">XmlError</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">num</span>::<span class="ident">ParseIntError</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
 <span class="kw">use</span> <span class="ident">thiserror</span>::<span class="ident">Error</span>;
@@ -49,8 +59,10 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MakeError</span> {
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;No exercise found&quot;</span>)]</span>
     <span class="ident">NoExerciseFound</span>,
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Can&#39;t parse exercise description&quot;</span>)]</span>
-    <span class="ident">CantParseExerciseDesc</span>,
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Can&#39;t parse exercise description: could not find tmc_available_points.txt&quot;</span>)]</span>
+    <span class="ident">CantFindAvailablePoints</span>,
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Could not find tmc_available_points.xml&quot;</span>)]</span>
+    <span class="ident">CantFindTestResults</span>,
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to run tests without valgrind&quot;</span>)]</span>
     <span class="ident">NoValgrindTests</span>,
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to run tests with valgrind&quot;</span>)]</span>
@@ -60,6 +72,8 @@
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Make finished unsuccessfully&quot;</span>)]</span>
     <span class="ident">MakeFailed</span>,
 
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to parse XML at {0}: {1}&quot;</span>)]</span>
+    <span class="ident">XmlParseError</span>(<span class="ident">PathBuf</span>, <span class="ident">XmlError</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to open file at {0}&quot;</span>)]</span>
     <span class="ident">FileOpen</span>(<span class="ident">PathBuf</span>, <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to read file at {0}&quot;</span>)]</span>
