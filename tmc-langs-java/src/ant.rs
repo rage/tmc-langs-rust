@@ -36,7 +36,7 @@ impl AntPlugin {
     fn copy_tmc_junit_runner(&self, path: &Path) -> Result<(), Error> {
         log::debug!("Copying TMC Junit runner");
 
-        let local_tmc_junit_runner = Path::new("./tmc-junit-runner-0.2.8.jar");
+        let local_tmc_junit_runner = Path::new("./jars/tmc-junit-runner-0.2.8.jar");
         let runner_dir = path.join("lib/testrunner");
         let runner_path = runner_dir.join("tmc-junit-runner.jar");
 

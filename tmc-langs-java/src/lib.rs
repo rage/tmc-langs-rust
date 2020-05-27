@@ -23,20 +23,9 @@ const TMC_CHECKSTYLE_RUNNER_BYTES: &[u8] =
     include_bytes!("../jars/tmc-checkstyle-runner-3.0.3-20200520.064542-3.jar");
 const J4RS_BYTES: &[u8] = include_bytes!("../jars/j4rs-0.11.2-jar-with-dependencies.jar");
 
-#[cfg(target_os = "linux")]
 fn tmc_dir() -> Result<PathBuf, JavaPluginError> {
-    let home_dir = dirs::home_dir().ok_or(JavaPluginError::HomeDir)?;
-    Ok(home_dir.join(".tmc"))
-}
-
-#[cfg(target_os = "windows")]
-fn target_os() -> PathBuf {
-    todo!()
-}
-
-#[cfg(target_os = "macos")]
-fn target_os() -> PathBuf {
-    todo!()
+    let home_dir = dirs::cache_dir().ok_or(JavaPluginError::HomeDir)?;
+    Ok(home_dir.join("tmc"))
 }
 
 fn get_junit_runner_path() -> Result<PathBuf, JavaPluginError> {
