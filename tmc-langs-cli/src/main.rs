@@ -118,14 +118,14 @@ fn main() -> Result<()> {
                 .long("outputPath")
                 .required(true)
                 .takes_value(true))
-            .arg(Arg::with_name("locale")
-                .long("locale")
-                .required(true)
-                .takes_value(true))
             .arg(Arg::with_name("checkstyleOutputPath")
                 .long("checkstyleOutputPath")
                 .help("Runs checkstyle if defined")
                 .takes_value(true)))
+            .arg(Arg::with_name("locale")
+                .long("locale")
+                .help("Required if checkstyleOutputPath is defined")
+                .takes_value(true))
 
         .subcommand(SubCommand::with_name("scan-exercise")
             .about("Produce an exercise description of an exercise directory.")
@@ -245,9 +245,14 @@ fn main() -> Result<()> {
         let checkstyle_output_path = matches.value_of("checkstyleOutputPath");
         let checkstyle_output_path: Option<&Path> = checkstyle_output_path.map(Path::new);
 
-        let locale = matches.value_of("locale").unwrap();
-        let locale =
-            Language::from_639_3(&locale).ok_or(CliError::InvalidLocale(locale.to_string()))?;
+        let locale = matches.value_of("locale");
+        let locale = match locale {
+            Some(locale) => {
+                let iso_locale = Language::from_639_3(&locale);
+                Some(iso_locale.ok_or(CliError::InvalidLocale(locale.to_string()))?)
+            }
+            None => None,
+        };
 
         let test_result = task_executor::run_tests(exercise_path).context("Failed to run tests")?;
 
@@ -258,6 +263,9 @@ fn main() -> Result<()> {
             .with_context(|| format!("Failed to write JSON to {}", output_path.display()))?;
 
         if let Some(checkstyle_output_path) = checkstyle_output_path {
+            let locale =
+                locale.with_context(|| "Locale is required when checkstyleOutputPath is set")?;
+
             run_checkstyle(exercise_path, checkstyle_output_path, locale)
                 .context("Failed to run checkstyle")?;
         }

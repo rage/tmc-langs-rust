@@ -1,3 +1,5 @@
+use std::io;
+use std::path::PathBuf;
 use thiserror::Error;
 use tmc_langs_framework::Error as TmcError;
 
@@ -11,11 +13,19 @@ pub enum JavaPluginError {
     InvalidExercise,
     #[error("Failed to run {0}")]
     FailedCommand(&'static str),
+    #[error("Failed to write temporary .jar files: {0}")]
+    JarWrite(String),
+    #[error("IO error with file {0}: {1}")]
+    File(PathBuf, io::Error),
+    #[error("IO error with directory {0}: {1}")]
+    Dir(PathBuf, io::Error),
+    #[error("Failed to find home directory")]
+    HomeDir,
 }
 
-impl Into<TmcError> for JavaPluginError {
-    fn into(self) -> TmcError {
-        TmcError::Plugin(Box::new(self))
+impl From<JavaPluginError> for TmcError {
+    fn from(err: JavaPluginError) -> TmcError {
+        TmcError::Plugin(Box::new(err))
     }
 }
 

@@ -8,6 +8,7 @@ use crate::plugin::LanguagePlugin;
 use lazy_static::lazy_static;
 use log::{debug, info};
 use regex::Regex;
+use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{self, Write};
@@ -202,12 +203,13 @@ pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
 /// Binary files are copied without extra processing, while text files are parsed to remove stub tags and solutions.
 ///
 /// Additionally, copies any shared files with the corresponding language plugins.
-pub fn prepare_stubs(
-    exercise_map: HashMap<PathBuf, Box<&dyn LanguagePlugin>>,
+pub fn prepare_stubs<P: Borrow<Box<dyn LanguagePlugin>>>(
+    exercise_map: HashMap<PathBuf, P>,
     repo_path: &Path,
     dest_root: &Path,
 ) -> Result<()> {
     for (path, plugin) in exercise_map {
+        let plugin = plugin.borrow();
         process_files(&path, dest_root, |meta| match meta {
             MetaString::Solution(_) => false,
             _ => true,
@@ -438,10 +440,8 @@ mod test {
 
         let mut exercise_map = HashMap::new();
         let mut plugin = MockPlugin {};
-        exercise_map.insert(
-            TESTDATA_ROOT.into(),
-            Box::new(&plugin as &dyn LanguagePlugin),
-        );
+        let mock_plugin = Box::new(plugin) as Box<dyn LanguagePlugin>;
+        exercise_map.insert(TESTDATA_ROOT.into(), &mock_plugin);
         let temp = tempdir().unwrap();
         let temp_path = temp.path();
 

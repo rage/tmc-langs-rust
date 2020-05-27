@@ -20,17 +20,9 @@ pub struct MavenPlugin {
 }
 
 impl MavenPlugin {
-    pub fn new() -> Self {
-        let junit_runner = ClasspathEntry::new("tmc-junit-runner-0.2.8.jar");
-        let checkstyle_runner =
-            ClasspathEntry::new("tmc-checkstyle-runner-3.0.3-20200520.064542-3.jar");
-        Self {
-            jvm: JvmBuilder::new()
-                .classpath_entry(junit_runner)
-                .classpath_entry(checkstyle_runner)
-                .build()
-                .expect("failed to build jvm"),
-        }
+    pub fn new() -> Result<Self, JavaPluginError> {
+        let jvm = crate::instantiate_jvm()?;
+        Ok(Self { jvm })
     }
 }
 
@@ -216,7 +208,7 @@ mod test {
 
         let temp_dir = copy_test_dir("tests/data/maven_exercise");
         let test_path = temp_dir.path();
-        let plugin = MavenPlugin::new();
+        let plugin = MavenPlugin::new().unwrap();
         let class_path = plugin.get_project_class_path(test_path).unwrap();
         assert!(class_path.contains("/junit/"));
     }
@@ -225,9 +217,12 @@ mod test {
     fn builds() {
         init();
 
+        use std::path::PathBuf;
+        println!("{}", PathBuf::from(".").canonicalize().unwrap().display());
+
         let temp_dir = copy_test_dir("tests/data/maven_exercise");
         let test_path = temp_dir.path();
-        let plugin = MavenPlugin::new();
+        let plugin = MavenPlugin::new().unwrap();
         let compile_result = plugin.build(test_path).unwrap();
         assert!(compile_result.status_code.success());
     }
@@ -238,7 +233,7 @@ mod test {
 
         let temp_dir = copy_test_dir("tests/data/maven_exercise");
         let test_path = temp_dir.path();
-        let plugin = MavenPlugin::new();
+        let plugin = MavenPlugin::new().unwrap();
         let compile_result = plugin.build(test_path).unwrap();
         let test_run = plugin
             .create_run_result_file(test_path, compile_result)
@@ -269,7 +264,7 @@ mod test {
 
         let temp_dir = copy_test_dir("tests/data/maven_exercise");
         let test_path = temp_dir.path();
-        let plugin = MavenPlugin::new();
+        let plugin = MavenPlugin::new().unwrap();
         let exercises = plugin
             .scan_exercise(&test_path, "test".to_string())
             .unwrap();
@@ -288,7 +283,7 @@ mod test {
 
         let temp_dir = copy_test_dir("tests/data/maven_exercise");
         let test_path = temp_dir.path();
-        let plugin = MavenPlugin::new();
+        let plugin = MavenPlugin::new().unwrap();
         let checkstyle_result = plugin
             .check_code_style(test_path, Language::from_639_3("fin").unwrap())
             .unwrap();

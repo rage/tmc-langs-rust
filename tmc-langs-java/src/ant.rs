@@ -8,6 +8,7 @@ use j4rs::{ClasspathEntry, Jvm, JvmBuilder};
 use policy::AntStudentFilePolicy;
 use std::env;
 use std::fs::{self, File};
+use std::io;
 use std::io::Write;
 use std::path::Path;
 use std::process::Command;
@@ -27,17 +28,9 @@ pub struct AntPlugin {
 }
 
 impl AntPlugin {
-    pub fn new() -> Self {
-        let junit_runner = ClasspathEntry::new("tmc-junit-runner-0.2.8.jar");
-        let checkstyle_runner =
-            ClasspathEntry::new("tmc-checkstyle-runner-3.0.3-20200520.064542-3.jar");
-        Self {
-            jvm: JvmBuilder::new()
-                .classpath_entry(junit_runner)
-                .classpath_entry(checkstyle_runner)
-                .build()
-                .expect("failed to build jvm"),
-        }
+    pub fn new() -> Result<Self, JavaPluginError> {
+        let jvm = crate::instantiate_jvm()?;
+        Ok(Self { jvm })
     }
 
     fn copy_tmc_junit_runner(&self, path: &Path) -> Result<(), Error> {
@@ -287,7 +280,7 @@ mod test {
 
         let temp_dir = copy_test_dir("tests/data/ant_project");
         let test_path = temp_dir.path();
-        let plugin = AntPlugin::new();
+        let plugin = AntPlugin::new().unwrap();
         let cp = plugin.get_project_class_path(test_path).unwrap();
         assert!(
             cp.contains(&format!("{0}/lib/junit-4.10.jar", test_path.display())),
@@ -321,7 +314,7 @@ mod test {
 
         let temp_dir = copy_test_dir("tests/data/ant_project");
         let test_path = temp_dir.path();
-        let plugin = AntPlugin::new();
+        let plugin = AntPlugin::new().unwrap();
         let compile_result = plugin.build(test_path).unwrap();
         assert!(compile_result.status_code.success());
         assert!(!compile_result.stdout.is_empty());
@@ -334,7 +327,7 @@ mod test {
 
         let temp_dir = copy_test_dir("tests/data/ant_project");
         let test_path = temp_dir.path();
-        let plugin = AntPlugin::new();
+        let plugin = AntPlugin::new().unwrap();
         let compile_result = plugin.build(test_path).unwrap();
         let test_run = plugin
             .create_run_result_file(test_path, compile_result)
@@ -378,7 +371,7 @@ mod test {
 
         let temp_dir = copy_test_dir("tests/data/ant_project");
         let test_path = temp_dir.path();
-        let plugin = AntPlugin::new();
+        let plugin = AntPlugin::new().unwrap();
         let exercises = plugin
             .scan_exercise(&test_path, "test".to_string())
             .unwrap();
@@ -394,7 +387,7 @@ mod test {
 
         let temp_dir = copy_test_dir("tests/data/ant_project");
         let test_path = temp_dir.path();
-        let plugin = AntPlugin::new();
+        let plugin = AntPlugin::new().unwrap();
         let checkstyle_result = plugin
             .check_code_style(test_path, Language::from_639_3("fin").unwrap())
             .unwrap();
@@ -419,7 +412,7 @@ mod test {
 
         let temp_dir = copy_test_dir("tests/data/ant_project");
         let test_path = temp_dir.path();
-        let plugin = AntPlugin::new();
+        let plugin = AntPlugin::new().unwrap();
         plugin.clean(test_path).unwrap();
     }
 }

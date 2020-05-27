@@ -1,6 +1,4 @@
-use super::{
-    error::JavaPluginError, CompileResult, Error, TestCase, TestCaseStatus, TestMethod, TestRun,
-};
+use super::{error::JavaPluginError, CompileResult, TestCase, TestCaseStatus, TestMethod, TestRun};
 use isolang::Language;
 use j4rs::{InvocationArg, Jvm};
 use std::collections::HashMap;
@@ -12,6 +10,7 @@ use tmc_langs_abstraction::ValidationResult;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     plugin::LanguagePlugin,
+    Error,
 };
 use walkdir::WalkDir;
 

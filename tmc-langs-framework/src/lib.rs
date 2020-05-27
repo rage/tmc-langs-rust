@@ -27,8 +27,8 @@ pub enum Error {
     #[error("Path {0} contained invalid UTF8")]
     UTF8(PathBuf),
 
-    #[error("No matching plugin found")]
-    PluginNotFound,
+    #[error("No matching plugin found for {0}")]
+    PluginNotFound(PathBuf),
     #[error("No project directory found in archive during unzip")]
     NoProjectDirInZip,
     #[error("Running command '{0}' failed")]
