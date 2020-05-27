@@ -226,13 +226,13 @@ fn main() -> Result<()> {
         task_executor::prepare_stubs(exercises, exercise_path, output_path)?;
     } else if let Some(matches) = matches.subcommand_matches("prepare-submission") {
         let clone_path = matches.value_of("clonePath").unwrap();
-        let clone_path = Path::new(clone_path);
+        let __clone_path = Path::new(clone_path);
 
         let submission_path = matches.value_of("submissionPath").unwrap();
-        let submission_path = Path::new(submission_path);
+        let _submission_path = Path::new(submission_path);
 
         let output_path = matches.value_of("outputPath").unwrap();
-        let output_path = Path::new(output_path);
+        let _output_path = Path::new(output_path);
 
         unimplemented!("not implemented in the Java CLI")
     } else if let Some(matches) = matches.subcommand_matches("run-tests") {

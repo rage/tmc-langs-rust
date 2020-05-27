@@ -129,7 +129,7 @@ pub fn compress_tar_for_submitting(
 
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::clean`.
 pub fn clean(path: &Path) -> Result<(), Error> {
-    get_language_plugin(path)?.clean(path);
+    get_language_plugin(path)?.clean(path)?;
     Ok(())
 }
 

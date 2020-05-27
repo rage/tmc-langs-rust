@@ -5,7 +5,6 @@ pub mod meta_syntax;
 use super::{Error, Result};
 use log::debug;
 use serde::{Deserialize, Serialize};
-use serde_yaml::Value;
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::path::{Path, PathBuf};

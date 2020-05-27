@@ -115,7 +115,7 @@ pub trait LanguagePlugin {
     }
 
     /// Run checkstyle or similar plugin to project if applicable, empty by default
-    fn check_code_style(&self, path: &Path, locale: Language) -> Option<ValidationResult> {
+    fn check_code_style(&self, _path: &Path, _locale: Language) -> Option<ValidationResult> {
         None
     }
 

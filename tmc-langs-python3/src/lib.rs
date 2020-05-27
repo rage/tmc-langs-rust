@@ -1,6 +1,5 @@
 //! Implementation of LanguagePlugin for Python 3.
 
-use isolang::Language;
 use lazy_static::lazy_static;
 use log::{debug, error};
 use std::collections::HashMap;
@@ -9,7 +8,6 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use tmc_langs_abstraction::ValidationResult;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     plugin::LanguagePlugin,

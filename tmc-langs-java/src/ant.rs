@@ -1,20 +1,17 @@
 pub mod policy;
 
-use super::{
-    error::JavaPluginError, plugin::JavaPlugin, CompileResult, TestMethod, TestRun, SEPARATOR,
-};
+use super::{error::JavaPluginError, plugin::JavaPlugin, CompileResult, TestRun, SEPARATOR};
 use isolang::Language;
-use j4rs::{ClasspathEntry, Jvm, JvmBuilder};
+use j4rs::Jvm;
 use policy::AntStudentFilePolicy;
 use std::env;
 use std::fs::{self, File};
-use std::io;
 use std::io::Write;
 use std::path::Path;
 use std::process::Command;
 use tmc_langs_abstraction::ValidationResult;
 use tmc_langs_framework::{
-    domain::{ExerciseDesc, RunResult, RunStatus, TestDesc},
+    domain::{ExerciseDesc, RunResult},
     plugin::LanguagePlugin,
     policy::StudentFilePolicy,
     Error,

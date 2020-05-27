@@ -11,7 +11,7 @@ use std::fs::File;
 use std::io;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-use std::process::{Command, Output};
+use std::process::Command;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TmcProjectYml},
     plugin::LanguagePlugin,
