@@ -416,13 +416,6 @@
 <span id="416">416</span>
 <span id="417">417</span>
 <span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">policy</span>;
 
@@ -434,6 +427,7 @@
 <span class="kw">use</span> <span class="ident">policy</span>::<span class="ident">AntStudentFilePolicy</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">env</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::{<span class="self">self</span>, <span class="ident">File</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">process</span>::<span class="ident">Command</span>;
@@ -453,17 +447,9 @@
 }
 
 <span class="kw">impl</span> <span class="ident">AntPlugin</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">junit_runner</span> <span class="op">=</span> <span class="ident">ClasspathEntry</span>::<span class="ident">new</span>(<span class="string">&quot;tmc-junit-runner-0.2.8.jar&quot;</span>);
-        <span class="kw">let</span> <span class="ident">checkstyle_runner</span> <span class="op">=</span>
-            <span class="ident">ClasspathEntry</span>::<span class="ident">new</span>(<span class="string">&quot;tmc-checkstyle-runner-3.0.3-20200520.064542-3.jar&quot;</span>);
-        <span class="self">Self</span> {
-            <span class="ident">jvm</span>: <span class="ident">JvmBuilder</span>::<span class="ident">new</span>()
-                .<span class="ident">classpath_entry</span>(<span class="ident">junit_runner</span>)
-                .<span class="ident">classpath_entry</span>(<span class="ident">checkstyle_runner</span>)
-                .<span class="ident">build</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;failed to build jvm&quot;</span>),
-        }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">JavaPluginError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">jvm</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">instantiate_jvm</span>()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="self">Self</span> { <span class="ident">jvm</span> })
     }
 
     <span class="kw">fn</span> <span class="ident">copy_tmc_junit_runner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
@@ -713,7 +699,7 @@
 
         <span class="kw">let</span> <span class="ident">temp_dir</span> <span class="op">=</span> <span class="ident">copy_test_dir</span>(<span class="string">&quot;tests/data/ant_project&quot;</span>);
         <span class="kw">let</span> <span class="ident">test_path</span> <span class="op">=</span> <span class="ident">temp_dir</span>.<span class="ident">path</span>();
-        <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">AntPlugin</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">AntPlugin</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">cp</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">get_project_class_path</span>(<span class="ident">test_path</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert</span><span class="macro">!</span>(
             <span class="ident">cp</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{0}/lib/junit-4.10.jar&quot;</span>, <span class="ident">test_path</span>.<span class="ident">display</span>())),
@@ -747,7 +733,7 @@
 
         <span class="kw">let</span> <span class="ident">temp_dir</span> <span class="op">=</span> <span class="ident">copy_test_dir</span>(<span class="string">&quot;tests/data/ant_project&quot;</span>);
         <span class="kw">let</span> <span class="ident">test_path</span> <span class="op">=</span> <span class="ident">temp_dir</span>.<span class="ident">path</span>();
-        <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">AntPlugin</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">AntPlugin</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">compile_result</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">build</span>(<span class="ident">test_path</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">compile_result</span>.<span class="ident">status_code</span>.<span class="ident">success</span>());
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">compile_result</span>.<span class="ident">stdout</span>.<span class="ident">is_empty</span>());
@@ -760,7 +746,7 @@
 
         <span class="kw">let</span> <span class="ident">temp_dir</span> <span class="op">=</span> <span class="ident">copy_test_dir</span>(<span class="string">&quot;tests/data/ant_project&quot;</span>);
         <span class="kw">let</span> <span class="ident">test_path</span> <span class="op">=</span> <span class="ident">temp_dir</span>.<span class="ident">path</span>();
-        <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">AntPlugin</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">AntPlugin</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">compile_result</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">build</span>(<span class="ident">test_path</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">test_run</span> <span class="op">=</span> <span class="ident">plugin</span>
             .<span class="ident">create_run_result_file</span>(<span class="ident">test_path</span>, <span class="ident">compile_result</span>)
@@ -804,7 +790,7 @@
 
         <span class="kw">let</span> <span class="ident">temp_dir</span> <span class="op">=</span> <span class="ident">copy_test_dir</span>(<span class="string">&quot;tests/data/ant_project&quot;</span>);
         <span class="kw">let</span> <span class="ident">test_path</span> <span class="op">=</span> <span class="ident">temp_dir</span>.<span class="ident">path</span>();
-        <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">AntPlugin</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">AntPlugin</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">exercises</span> <span class="op">=</span> <span class="ident">plugin</span>
             .<span class="ident">scan_exercise</span>(<span class="kw-2">&amp;</span><span class="ident">test_path</span>, <span class="string">&quot;test&quot;</span>.<span class="ident">to_string</span>())
             .<span class="ident">unwrap</span>();
@@ -820,7 +806,7 @@
 
         <span class="kw">let</span> <span class="ident">temp_dir</span> <span class="op">=</span> <span class="ident">copy_test_dir</span>(<span class="string">&quot;tests/data/ant_project&quot;</span>);
         <span class="kw">let</span> <span class="ident">test_path</span> <span class="op">=</span> <span class="ident">temp_dir</span>.<span class="ident">path</span>();
-        <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">AntPlugin</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">AntPlugin</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">checkstyle_result</span> <span class="op">=</span> <span class="ident">plugin</span>
             .<span class="ident">check_code_style</span>(<span class="ident">test_path</span>, <span class="ident">Language</span>::<span class="ident">from_639_3</span>(<span class="string">&quot;fin&quot;</span>).<span class="ident">unwrap</span>())
             .<span class="ident">unwrap</span>();
@@ -845,7 +831,7 @@
 
         <span class="kw">let</span> <span class="ident">temp_dir</span> <span class="op">=</span> <span class="ident">copy_test_dir</span>(<span class="string">&quot;tests/data/ant_project&quot;</span>);
         <span class="kw">let</span> <span class="ident">test_path</span> <span class="op">=</span> <span class="ident">temp_dir</span>.<span class="ident">path</span>();
-        <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">AntPlugin</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">AntPlugin</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
         <span class="ident">plugin</span>.<span class="ident">clean</span>(<span class="ident">test_path</span>).<span class="ident">unwrap</span>();
     }
 }
