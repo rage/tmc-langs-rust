@@ -23,7 +23,6 @@ pub fn zip(policy: Box<dyn StudentFilePolicy>, root_directory: &Path) -> Result<
         .filter_map(|e| e.ok())
     {
         debug!("processing {:?}", entry.path());
-        debug!("asdasdasd");
         if policy.is_student_file(entry.path(), &root_directory, &tmc_project_yml)? {
             let path = root_directory
                 .parent()

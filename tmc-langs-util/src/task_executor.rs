@@ -7,7 +7,6 @@ use isolang::Language;
 use lazy_static::lazy_static;
 use log::info;
 use regex::Regex;
-use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use tmc_langs_framework::{
     io::{submission_processing, zip},
@@ -39,16 +38,11 @@ pub fn prepare_stubs<I: IntoIterator<Item = PathBuf>>(
     repo_path: &Path,
     dest_path: &Path,
 ) -> Result<(), Error> {
-    let mut exercise_map = HashMap::new();
     for exercise_path in exercise_paths {
         let plugin = get_language_plugin(&exercise_path)?;
-        exercise_map.insert(exercise_path, plugin);
+        plugin.prepare_stub(&exercise_path, repo_path, dest_path)?;
     }
-    Ok(submission_processing::prepare_stubs(
-        exercise_map,
-        repo_path,
-        dest_path,
-    )?)
+    Ok(())
 }
 
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::check_code_style`.

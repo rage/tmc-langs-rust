@@ -4,12 +4,9 @@ use crate::policy::StudentFilePolicy;
 use crate::{Error, Result};
 
 use crate::domain::meta_syntax::{MetaString, MetaSyntaxParser};
-use crate::plugin::LanguagePlugin;
 use lazy_static::lazy_static;
 use log::{debug, info};
 use regex::Regex;
-use std::borrow::Borrow;
-use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -203,21 +200,11 @@ pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
 /// Binary files are copied without extra processing, while text files are parsed to remove stub tags and solutions.
 ///
 /// Additionally, copies any shared files with the corresponding language plugins.
-pub fn prepare_stubs<P: Borrow<Box<dyn LanguagePlugin>>>(
-    exercise_map: HashMap<PathBuf, P>,
-    repo_path: &Path,
-    dest_root: &Path,
-) -> Result<()> {
-    for (path, plugin) in exercise_map {
-        let plugin = plugin.borrow();
-        process_files(&path, dest_root, |meta| match meta {
-            MetaString::Solution(_) => false,
-            _ => true,
-        })?;
-
-        let relative_path = path.strip_prefix(repo_path).unwrap_or(Path::new(""));
-        plugin.maybe_copy_shared_stuff(&dest_root.join(relative_path))?;
-    }
+pub fn prepare_stub(exercise_path: &Path, dest_root: &Path) -> Result<()> {
+    process_files(&exercise_path, dest_root, |meta| match meta {
+        MetaString::Solution(_) => false,
+        _ => true,
+    })?;
     Ok(())
 }
 
@@ -388,65 +375,14 @@ mod test {
         );
     }
 
-    struct MockPlugin {}
-
-    struct MockPolicy {}
-
-    impl StudentFilePolicy for MockPolicy {
-        fn get_config_file_parent_path(&self) -> &Path {
-            unimplemented!()
-        }
-        fn is_student_source_file(&self, path: &Path) -> bool {
-            unimplemented!()
-        }
-    }
-
-    impl LanguagePlugin for MockPlugin {
-        fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy> {
-            unimplemented!()
-        }
-        fn get_plugin_name(&self) -> &'static str {
-            unimplemented!()
-        }
-
-        fn scan_exercise(&self, _path: &Path, _exercise_name: String) -> Result<ExerciseDesc> {
-            unimplemented!()
-        }
-
-        fn run_tests(&self, _path: &Path) -> Result<RunResult> {
-            unimplemented!()
-        }
-
-        fn check_code_style(
-            &self,
-            _path: &Path,
-            _locale: isolang::Language,
-        ) -> Option<tmc_langs_abstraction::ValidationResult> {
-            unimplemented!()
-        }
-
-        fn is_exercise_type_correct(&self, path: &Path) -> bool {
-            !path.to_str().unwrap().contains("ignored")
-        }
-
-        fn clean(&self, _path: &Path) -> Result<()> {
-            unimplemented!()
-        }
-    }
-
     #[test]
     fn prepares_stubs() {
         init();
 
-        let mut exercise_map = HashMap::new();
-        let mut plugin = MockPlugin {};
-        let mock_plugin = Box::new(plugin) as Box<dyn LanguagePlugin>;
-        exercise_map.insert(TESTDATA_ROOT.into(), &mock_plugin);
         let temp = tempdir().unwrap();
         let temp_path = temp.path();
 
-        let repo_path: PathBuf = "".into();
-        prepare_stubs(exercise_map, &repo_path, &temp_path).unwrap();
+        prepare_stub(Path::new(TESTDATA_ROOT), &temp_path).unwrap();
 
         let exp = &temp_path.join(TEXT_REL);
         let mut file = File::open(exp).unwrap();

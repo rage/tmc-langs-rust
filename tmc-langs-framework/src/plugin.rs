@@ -6,7 +6,7 @@ use super::policy::StudentFilePolicy;
 use super::Result;
 use isolang::Language;
 use log::debug;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use tmc_langs_abstraction::ValidationResult;
 use walkdir::WalkDir;
@@ -85,31 +85,22 @@ pub trait LanguagePlugin {
     ///
     /// The stub is a copy of the original where the model solution and special
     /// comments have been stripped and stubs like ('return 0') have been added.
-    fn prepare_stubs(
-        &self,
-        exercise_map: HashMap<PathBuf, &Box<dyn LanguagePlugin>>,
-        repo_path: &Path,
-        dest_path: &Path,
-    ) -> Result<()> {
-        Ok(submission_processing::prepare_stubs(
-            exercise_map,
-            repo_path,
-            dest_path,
-        )?)
+    fn prepare_stub(&self, exercise_path: &Path, repo_path: &Path, dest_path: &Path) -> Result<()> {
+        submission_processing::prepare_stub(exercise_path, dest_path)?;
+
+        let relative_path = exercise_path
+            .strip_prefix(repo_path)
+            .unwrap_or(exercise_path);
+        self.maybe_copy_shared_stuff(&dest_path.join(relative_path))?;
+        Ok(())
     }
 
     /// Prepares a presentable solution from the original.
     ///
     /// The solution usually has stubs and special comments stripped.
-    #[allow(unused_variables)]
-    fn prepare_solutions(
-        &self,
-        exercise_map: HashMap<PathBuf, Box<dyn LanguagePlugin>>,
-        repo_path: &Path,
-        dest_path: &Path,
-    ) -> Result<()> {
+    fn prepare_solution(&self, exercise_paths: Vec<PathBuf>, dest_path: &Path) -> Result<()> {
         Ok(submission_processing::prepare_solutions(
-            exercise_map.keys(),
+            &exercise_paths,
             dest_path,
         )?)
     }
