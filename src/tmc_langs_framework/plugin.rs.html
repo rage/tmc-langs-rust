@@ -290,15 +290,6 @@
 <span id="290">290</span>
 <span id="291">291</span>
 <span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains LanguagePlugin.</span>
 
@@ -308,7 +299,7 @@
 <span class="kw">use</span> <span class="kw">super</span>::<span class="prelude-ty">Result</span>;
 <span class="kw">use</span> <span class="ident">isolang</span>::<span class="ident">Language</span>;
 <span class="kw">use</span> <span class="ident">log</span>::<span class="ident">debug</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashSet</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
 <span class="kw">use</span> <span class="ident">tmc_langs_abstraction</span>::<span class="ident">ValidationResult</span>;
 <span class="kw">use</span> <span class="ident">walkdir</span>::<span class="ident">WalkDir</span>;
@@ -387,31 +378,22 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The stub is a copy of the original where the model solution and special</span>
     <span class="doccomment">/// comments have been stripped and stubs like (&#39;return 0&#39;) have been added.</span>
-    <span class="kw">fn</span> <span class="ident">prepare_stubs</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">exercise_map</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, <span class="kw-2">&amp;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">LanguagePlugin</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">repo_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-        <span class="ident">dest_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">submission_processing</span>::<span class="ident">prepare_stubs</span>(
-            <span class="ident">exercise_map</span>,
-            <span class="ident">repo_path</span>,
-            <span class="ident">dest_path</span>,
-        )<span class="question-mark">?</span>)
+    <span class="kw">fn</span> <span class="ident">prepare_stub</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">exercise_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">repo_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">dest_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="ident">submission_processing</span>::<span class="ident">prepare_stub</span>(<span class="ident">exercise_path</span>, <span class="ident">dest_path</span>)<span class="question-mark">?</span>;
+
+        <span class="kw">let</span> <span class="ident">relative_path</span> <span class="op">=</span> <span class="ident">exercise_path</span>
+            .<span class="ident">strip_prefix</span>(<span class="ident">repo_path</span>)
+            .<span class="ident">unwrap_or</span>(<span class="ident">exercise_path</span>);
+        <span class="self">self</span>.<span class="ident">maybe_copy_shared_stuff</span>(<span class="kw-2">&amp;</span><span class="ident">dest_path</span>.<span class="ident">join</span>(<span class="ident">relative_path</span>))<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Prepares a presentable solution from the original.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The solution usually has stubs and special comments stripped.</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">prepare_solutions</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">exercise_map</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">LanguagePlugin</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">repo_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-        <span class="ident">dest_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">prepare_solution</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">exercise_paths</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>, <span class="ident">dest_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">submission_processing</span>::<span class="ident">prepare_solutions</span>(
-            <span class="ident">exercise_map</span>.<span class="ident">keys</span>(),
+            <span class="kw-2">&amp;</span><span class="ident">exercise_paths</span>,
             <span class="ident">dest_path</span>,
         )<span class="question-mark">?</span>)
     }
@@ -424,7 +406,7 @@
     <span class="doccomment">/// Compress a given project so that it can be sent to the TestMyCode server.</span>
     <span class="kw">fn</span> <span class="ident">compress_project</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">policy</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_student_file_policy</span>(<span class="ident">path</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">zip</span>::<span class="ident">student_file_aware_zip</span>(<span class="ident">policy</span>, <span class="ident">path</span>)<span class="question-mark">?</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">zip</span>::<span class="ident">zip</span>(<span class="ident">policy</span>, <span class="ident">path</span>)<span class="question-mark">?</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">get_student_file_policy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">project_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StudentFilePolicy</span><span class="op">&gt;</span>;
@@ -435,7 +417,7 @@
     <span class="doccomment">/// by the language dependent student file policy.</span>
     <span class="kw">fn</span> <span class="ident">extract_project</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">compressed_project</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">target_location</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">policy</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_student_file_policy</span>(<span class="ident">target_location</span>);
-        <span class="ident">zip</span>::<span class="ident">student_file_aware_unzip</span>(<span class="ident">policy</span>, <span class="ident">compressed_project</span>, <span class="ident">target_location</span>)<span class="question-mark">?</span>;
+        <span class="ident">zip</span>::<span class="ident">unzip</span>(<span class="ident">policy</span>, <span class="ident">compressed_project</span>, <span class="ident">target_location</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
