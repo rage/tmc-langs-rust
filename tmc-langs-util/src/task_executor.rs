@@ -92,7 +92,7 @@ pub fn extract_project_overwrite(
     compressed_project: &Path,
     target_location: &Path,
 ) -> Result<(), Error> {
-    zip::student_file_aware_unzip(
+    zip::unzip(
         Box::new(NothingIsStudentFilePolicy {}),
         compressed_project,
         target_location,

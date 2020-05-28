@@ -31,9 +31,11 @@ pub trait StudentFilePolicy {
             return Ok(false);
         }
 
+        // try to strip project root prefix
+        let relative = path.strip_prefix(project_root_path).unwrap_or(path);
         Ok(self.is_extra_student_file(path, tmc_project_yml)?
             || project_root_path == path
-            || self.is_student_source_file(path))
+            || self.is_student_source_file(relative))
     }
 
     fn get_config_file_parent_path(&self) -> &Path;
@@ -47,11 +49,12 @@ pub trait StudentFilePolicy {
         let absolute = path.canonicalize()?;
         for path in &tmc_project_yml.extra_exercise_files {
             let path = path.canonicalize()?;
+
             if path.is_dir() && (path == absolute || absolute.starts_with(path)) {
-                return Ok(false);
+                return Ok(true);
             }
         }
-        Ok(true)
+        Ok(false)
     }
 
     fn is_student_source_file(&self, path: &Path) -> bool;

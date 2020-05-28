@@ -122,7 +122,7 @@ pub trait LanguagePlugin {
     /// Compress a given project so that it can be sent to the TestMyCode server.
     fn compress_project(&self, path: &Path) -> Result<Vec<u8>> {
         let policy = self.get_student_file_policy(path);
-        Ok(zip::student_file_aware_zip(policy, path)?)
+        Ok(zip::zip(policy, path)?)
     }
 
     fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy>;
@@ -133,7 +133,7 @@ pub trait LanguagePlugin {
     /// by the language dependent student file policy.
     fn extract_project(&self, compressed_project: &Path, target_location: &Path) -> Result<()> {
         let policy = self.get_student_file_policy(target_location);
-        zip::student_file_aware_unzip(policy, compressed_project, target_location)?;
+        zip::unzip(policy, compressed_project, target_location)?;
         Ok(())
     }
 

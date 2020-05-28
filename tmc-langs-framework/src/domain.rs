@@ -58,6 +58,7 @@ impl ExerciseDesc {
 
 /// The result of running an exercise's test suite against a submission.
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RunResult {
     /// The overall status of a test run.
     pub status: RunStatus,
@@ -84,6 +85,7 @@ impl RunResult {
 
 /// The overall status of a test run.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum RunStatus {
     /// The submission and tests compiled and all tests passed.
     Passed,
