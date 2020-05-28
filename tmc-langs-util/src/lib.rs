@@ -12,6 +12,7 @@ pub use tmc_langs_framework::{
 use tmc_langs_framework::plugin::LanguagePlugin;
 use tmc_langs_java::ant::AntPlugin;
 use tmc_langs_java::maven::MavenPlugin;
+use tmc_langs_make::plugin::MakePlugin;
 use tmc_langs_python3::Python3Plugin;
 
 fn get_plugins() -> Result<Vec<Box<dyn LanguagePlugin>>, Error> {
@@ -19,5 +20,6 @@ fn get_plugins() -> Result<Vec<Box<dyn LanguagePlugin>>, Error> {
         Box::new(Python3Plugin::new()),
         Box::new(MavenPlugin::new()?),
         Box::new(AntPlugin::new()?),
+        Box::new(MakePlugin::new()),
     ])
 }
