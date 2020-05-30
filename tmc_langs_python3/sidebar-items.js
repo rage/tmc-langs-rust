@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["LocalPy",""]],"struct":[["LOCAL_PY",""],["Python3Plugin",""],["Python3StudentFilePolicy",""]]});
+initSidebarItems({"enum":[["PythonError",""]],"struct":[["Python3Plugin",""],["Python3StudentFilePolicy",""]]});

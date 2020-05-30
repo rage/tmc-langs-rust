@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["error","Error type for the plugin."],["plugin","Contains the main plugin struct."],["policy","Contains the language policy for the plugin."],["valgrind_log","Contains a struct representing valgrind's log output."]]});
+initSidebarItems({"enum":[["MakeError",""]],"struct":[["MakePlugin",""]]});

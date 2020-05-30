@@ -34,6 +34,15 @@
 <span id="34">34</span>
 <span id="35">35</span>
 <span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
@@ -41,32 +50,41 @@
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">TmcError</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Error</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">JavaPluginError</span> {
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">JavaError</span> {
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;No java.home found in Java properties&quot;</span>)]</span>
     <span class="ident">NoJavaHome</span>,
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Maven did not output any class path&quot;</span>)]</span>
     <span class="ident">NoMvnClassPath</span>,
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Invalid exercise&quot;</span>)]</span>
     <span class="ident">InvalidExercise</span>,
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to run {0}&quot;</span>)]</span>
-    <span class="ident">FailedCommand</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to run {0}: {1}&quot;</span>)]</span>
+    <span class="ident">FailedToRun</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Command &#39;{0}&#39; exited with an error, stderr: {}&quot;</span>, <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span>.<span class="number">1</span>))]</span>
+    <span class="ident">FailedCommand</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to write temporary .jar files: {0}&quot;</span>)]</span>
     <span class="ident">JarWrite</span>(<span class="ident">String</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;IO error with file {0}: {1}&quot;</span>)]</span>
     <span class="ident">File</span>(<span class="ident">PathBuf</span>, <span class="ident">io</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;IO error with directory {0}: {1}&quot;</span>)]</span>
     <span class="ident">Dir</span>(<span class="ident">PathBuf</span>, <span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;IO error with temporary directory: {0}&quot;</span>)]</span>
+    <span class="ident">TempDir</span>(<span class="ident">io</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to find home directory&quot;</span>)]</span>
     <span class="ident">HomeDir</span>,
+
+    <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
+    <span class="ident">Json</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">serde_json</span>::<span class="ident">Error</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
+    <span class="ident">Inner</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">TmcError</span>),
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JavaPluginError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TmcError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">JavaPluginError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TmcError</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JavaError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TmcError</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">JavaError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TmcError</span> {
         <span class="ident">TmcError</span>::<span class="ident">Plugin</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">err</span>))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">TmcError</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JavaPluginError</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">TmcError</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JavaError</span> {
     <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="prelude-val">Err</span>(<span class="ident">TmcError</span>::<span class="ident">Plugin</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="self">self</span>)))
     }
