@@ -219,7 +219,7 @@ mod test {
     use std::io::Read;
     use tempfile::tempdir;
 
-    const TESTDATA_ROOT: &str = "testdata";
+    const TESTDATA_ROOT: &str = "tests/data";
     const BINARY_REL: &str = "dir/inner/binary.bin";
     const TEXT_REL: &str = "dir/nonbinary.java";
 

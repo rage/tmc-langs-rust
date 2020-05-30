@@ -226,24 +226,24 @@ mod test {
     #[test]
     fn finds_exercises() {
         let plugin = MockPlugin {};
-        let exercises = plugin.find_exercises(&PathBuf::from("testdata"));
+        let exercises = plugin.find_exercises(&PathBuf::from("tests/data"));
         assert!(
-            exercises.contains(&PathBuf::from("testdata/dir")),
+            exercises.contains(&PathBuf::from("tests/data/dir")),
             "{:?} did not contain testdata/dir",
             exercises
         );
         assert!(
-            exercises.contains(&PathBuf::from("testdata/dir/inner")),
+            exercises.contains(&PathBuf::from("tests/data/dir/inner")),
             "{:?} did not contain testdata/dir/inner",
             exercises
         );
         assert!(
-            !exercises.contains(&PathBuf::from("testdata/ignored")),
+            !exercises.contains(&PathBuf::from("tests/data/ignored")),
             "{:?} contained testdata/ignored",
             exercises
         );
         assert!(
-            !exercises.contains(&PathBuf::from("testdata/dir/nonbinary.java")),
+            !exercises.contains(&PathBuf::from("tests/data/dir/nonbinary.java")),
             "{:?} contained testdata/dir/nonbinary.java",
             exercises
         );

@@ -242,12 +242,12 @@ mod test {
         let temp = tempdir().unwrap();
         unzip(
             Box::new(EverythingIsStudentFilePolicy {}),
-            Path::new("testdata/zip/module-trivial.zip"),
+            Path::new("tests/data/zip/module-trivial.zip"),
             temp.path(),
         )
         .unwrap();
 
-        let expected = get_relative_file_paths(Path::new("testdata/zip/module-trivial"));
+        let expected = get_relative_file_paths(Path::new("tests/data/zip/module-trivial"));
         let actual = get_relative_file_paths(temp.path());
         assert_eq!(expected, actual)
     }
@@ -259,12 +259,12 @@ mod test {
         let temp = tempdir().unwrap();
         unzip(
             Box::new(EverythingIsStudentFilePolicy {}),
-            Path::new("testdata/zip/course-module-trivial.zip"),
+            Path::new("tests/data/zip/course-module-trivial.zip"),
             temp.path(),
         )
         .unwrap();
 
-        let expected = get_relative_file_paths(Path::new("testdata/zip/module-trivial"));
+        let expected = get_relative_file_paths(Path::new("tests/data/zip/module-trivial"));
         let actual = get_relative_file_paths(temp.path());
         assert_eq!(expected, actual)
     }
