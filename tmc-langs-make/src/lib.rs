@@ -1,7 +1,10 @@
 //! TMC plugin for make.
 
 mod check_log;
-pub mod error;
-pub mod plugin;
-pub mod policy;
-pub mod valgrind_log;
+mod error;
+mod plugin;
+mod policy;
+mod valgrind_log;
+
+pub use error::MakeError;
+pub use plugin::MakePlugin;

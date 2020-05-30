@@ -13,7 +13,7 @@ use tmc_langs_framework::{
 };
 use tmc_langs_java::ant::AntPlugin;
 use tmc_langs_java::maven::MavenPlugin;
-use tmc_langs_make::plugin::MakePlugin;
+use tmc_langs_make::MakePlugin;
 use tmc_langs_python3::Python3Plugin;
 
 /// See `domain::prepare_solutions`.
