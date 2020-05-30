@@ -1,6 +1,5 @@
 //! Contains a function for creating a tarball from a project.
 
-use log::debug;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -16,7 +15,7 @@ pub fn create_tar_from_project(
     target_location: &Path,
 ) -> Result<()> {
     let file = File::create(target_location)?;
-    let mut t = Builder::new(file);
+    let mut tar = Builder::new(file);
 
     let project_name = Path::new(
         project_dir
@@ -24,10 +23,10 @@ pub fn create_tar_from_project(
             .expect("project directory has no file name"),
     );
     let root = project_dir.parent().unwrap_or_else(|| Path::new(""));
-    add_dir_to_project(&mut t, &project_dir, project_dir, &project_name)?;
-    add_dir_to_project(&mut t, &tmc_langs, root, &project_name)?;
-    add_dir_to_project(&mut t, &tmcrun, root, &project_name)?;
-    t.finish()?;
+    add_dir_to_project(&mut tar, &project_dir, project_dir, &project_name)?;
+    add_dir_to_project(&mut tar, &tmc_langs, root, &project_name)?;
+    add_dir_to_project(&mut tar, &tmcrun, root, &project_name)?;
+    tar.finish()?;
     Ok(())
 }
 
@@ -41,7 +40,7 @@ fn add_dir_to_project<W: Write>(
         if entry.path().is_file() {
             let path_in_project = entry.path().strip_prefix(root).unwrap();
             let path_in_tar: PathBuf = project_name.join(path_in_project);
-            debug!("appending {:?} as {:?}", entry.path(), path_in_tar);
+            log::debug!("appending {:?} as {:?}", entry.path(), path_in_tar);
             tar.append_path_with_name(entry.path(), path_in_tar)?;
         }
     }
@@ -66,9 +65,9 @@ mod test {
         let temp = tempdir().unwrap();
         let tar_path = temp.path().join("tar.tar");
         create_tar_from_project(
-            Path::new("testdata/project"),
-            Path::new("testdata/tmc-langs"),
-            Path::new("testdata/tmcrun"),
+            Path::new("tests/data/project"),
+            Path::new("tests/data/tmc-langs"),
+            Path::new("tests/data/tmcrun"),
             &tar_path,
         )
         .unwrap();
@@ -79,7 +78,7 @@ mod test {
         for file in archive.entries().unwrap() {
             paths.insert(file.unwrap().header().path().unwrap().into_owned());
         }
-        debug!("{:?}", paths);
+        log::debug!("{:?}", paths);
         assert!(paths.contains(Path::new("project/projectfile")));
         assert!(paths.contains(Path::new("project/tmc-langs/langsfile")));
         assert!(paths.contains(Path::new("project/tmcrun/runfile")));
