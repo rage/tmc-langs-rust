@@ -1,6 +1,6 @@
 pub mod policy;
 
-use super::{error::JavaPluginError, plugin::JavaPlugin, CompileResult, TestRun, SEPARATOR};
+use super::{error::JavaError, plugin::JavaPlugin, CompileResult, TestRun, SEPARATOR};
 use isolang::Language;
 use j4rs::Jvm;
 use policy::MavenStudentFilePolicy;
@@ -20,7 +20,7 @@ pub struct MavenPlugin {
 }
 
 impl MavenPlugin {
-    pub fn new() -> Result<Self, JavaPluginError> {
+    pub fn new() -> Result<Self, JavaError> {
         let jvm = crate::instantiate_jvm()?;
         Ok(Self { jvm })
     }
@@ -37,15 +37,15 @@ impl LanguagePlugin for MavenPlugin {
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
         if !self.is_exercise_type_correct(path) {
-            return JavaPluginError::InvalidExercise.into();
+            return JavaError::InvalidExercise.into();
         }
 
         let compile_result = self.build(path)?;
-        self.scan_exercise_with_compile_result(path, exercise_name, compile_result)
+        Ok(self.scan_exercise_with_compile_result(path, exercise_name, compile_result)?)
     }
 
     fn run_tests(&self, project_root_path: &Path) -> Result<RunResult, Error> {
-        self.run_java_tests(project_root_path)
+        Ok(self.run_java_tests(project_root_path)?)
     }
 
     fn is_exercise_type_correct(&self, path: &Path) -> bool {
@@ -68,7 +68,7 @@ impl LanguagePlugin for MavenPlugin {
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 
         if !output.status.success() {
-            return JavaPluginError::FailedCommand("mvn").into();
+            return Err(Error::CommandFailed("mvn"));
         }
 
         Ok(())
@@ -82,10 +82,10 @@ impl JavaPlugin for MavenPlugin {
         &self.jvm
     }
 
-    fn get_project_class_path(&self, path: &Path) -> Result<String, Error> {
+    fn get_project_class_path(&self, path: &Path) -> Result<String, JavaError> {
         log::info!("Building classpath for maven project at {}", path.display());
 
-        let temp = tempfile::tempdir()?;
+        let temp = tempfile::tempdir().map_err(|e| JavaError::TempDir(e))?;
         let class_path_file = temp.path().join("cp.txt");
 
         let output_arg = format!("-Dmdep.outputFile={}", class_path_file.display());
@@ -93,18 +93,20 @@ impl JavaPlugin for MavenPlugin {
             .current_dir(path)
             .arg("dependency:build-classpath")
             .arg(output_arg)
-            .output()?;
+            .output()
+            .map_err(|e| JavaError::FailedToRun("mvn", e))?;
 
         log::debug!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 
         if !output.status.success() {
-            return JavaPluginError::FailedCommand("mvn").into();
+            return Err(JavaError::FailedCommand("mvn", output.stderr));
         }
 
-        let class_path = fs::read_to_string(class_path_file)?;
+        let class_path = fs::read_to_string(&class_path_file)
+            .map_err(|e| JavaError::File(class_path_file, e))?;
         if class_path.is_empty() {
-            return JavaPluginError::NoMvnClassPath.into();
+            return Err(JavaError::NoMvnClassPath);
         }
 
         let mut class_path: Vec<String> = vec![class_path];
@@ -118,7 +120,7 @@ impl JavaPlugin for MavenPlugin {
         Ok(class_path.join(SEPARATOR))
     }
 
-    fn build(&self, project_root_path: &Path) -> Result<CompileResult, Error> {
+    fn build(&self, project_root_path: &Path) -> Result<CompileResult, JavaError> {
         log::info!("Building maven project at {}", project_root_path.display());
 
         let output = Command::new("mvn")
@@ -126,13 +128,14 @@ impl JavaPlugin for MavenPlugin {
             .arg("clean")
             .arg("compile")
             .arg("test-compile")
-            .output()?;
+            .output()
+            .map_err(|e| JavaError::FailedToRun("mvn", e))?;
 
         log::debug!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 
         if !output.status.success() {
-            return JavaPluginError::FailedCommand("mvn").into();
+            return Err(JavaError::FailedCommand("mvn", output.stderr));
         }
 
         Ok(CompileResult {
@@ -146,19 +149,20 @@ impl JavaPlugin for MavenPlugin {
         &self,
         path: &Path,
         _compile_result: CompileResult,
-    ) -> Result<TestRun, Error> {
+    ) -> Result<TestRun, JavaError> {
         log::info!("Running tests for maven project at {}", path.display());
 
         let output = Command::new("mvn")
             .current_dir(path)
             .arg("fi.helsinki.cs.tmc:tmc-maven-plugin:1.12:test")
-            .output()?;
+            .output()
+            .map_err(|e| JavaError::FailedToRun("mvn", e))?;
 
         log::debug!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 
         if !output.status.success() {
-            return JavaPluginError::FailedCommand("mvn").into();
+            return Err(JavaError::FailedCommand("mvn", output.stderr));
         }
 
         Ok(TestRun {

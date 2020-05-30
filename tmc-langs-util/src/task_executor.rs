@@ -11,8 +11,8 @@ use tmc_langs_framework::{
     plugin::LanguagePlugin,
     policy::NothingIsStudentFilePolicy,
 };
-use tmc_langs_java::ant::AntPlugin;
-use tmc_langs_java::maven::MavenPlugin;
+use tmc_langs_java::AntPlugin;
+use tmc_langs_java::MavenPlugin;
 use tmc_langs_make::MakePlugin;
 use tmc_langs_python3::Python3Plugin;
 

@@ -1,6 +1,6 @@
 pub mod policy;
 
-use super::{error::JavaPluginError, plugin::JavaPlugin, CompileResult, TestRun, SEPARATOR};
+use super::{error::JavaError, plugin::JavaPlugin, CompileResult, TestRun, SEPARATOR};
 use isolang::Language;
 use j4rs::Jvm;
 use policy::AntStudentFilePolicy;
@@ -25,7 +25,7 @@ pub struct AntPlugin {
 }
 
 impl AntPlugin {
-    pub fn new() -> Result<Self, JavaPluginError> {
+    pub fn new() -> Result<Self, JavaError> {
         let jvm = crate::instantiate_jvm()?;
         Ok(Self { jvm })
     }
@@ -64,15 +64,15 @@ impl LanguagePlugin for AntPlugin {
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
         if !self.is_exercise_type_correct(path) {
-            return JavaPluginError::InvalidExercise.into();
+            return JavaError::InvalidExercise.into();
         }
 
         let compile_result = self.build(path)?;
-        self.scan_exercise_with_compile_result(path, exercise_name, compile_result)
+        Ok(self.scan_exercise_with_compile_result(path, exercise_name, compile_result)?)
     }
 
     fn run_tests(&self, project_root_path: &Path) -> Result<RunResult, Error> {
-        self.run_java_tests(project_root_path)
+        Ok(self.run_java_tests(project_root_path)?)
     }
 
     fn is_exercise_type_correct(&self, path: &Path) -> bool {
@@ -120,7 +120,7 @@ impl JavaPlugin for AntPlugin {
         &self.jvm
     }
 
-    fn get_project_class_path(&self, path: &Path) -> Result<String, Error> {
+    fn get_project_class_path(&self, path: &Path) -> Result<String, JavaError> {
         let mut paths = vec![];
 
         // add all .jar files in lib
@@ -146,19 +146,22 @@ impl JavaPlugin for AntPlugin {
         Ok(paths.join(SEPARATOR))
     }
 
-    fn build(&self, project_root_path: &Path) -> Result<CompileResult, Error> {
+    fn build(&self, project_root_path: &Path) -> Result<CompileResult, JavaError> {
         log::info!("Building project at {}", project_root_path.display());
 
         let stdout_path = project_root_path.join("build_log.txt");
-        let mut stdout = File::create(&stdout_path)?;
+        let mut stdout =
+            File::create(&stdout_path).map_err(|e| JavaError::File(stdout_path.clone(), e))?;
         let stderr_path = project_root_path.join("build_errors.txt");
-        let mut stderr = File::create(&stderr_path)?;
+        let mut stderr =
+            File::create(&stderr_path).map_err(|e| JavaError::File(stderr_path.clone(), e))?;
 
         // TODO: don't require ant in path?
         let output = Command::new("ant")
             .arg("compile-test")
             .current_dir(project_root_path)
-            .output()?;
+            .output()
+            .map_err(|e| JavaError::FailedToRun("ant", e))?;
 
         log::debug!(
             "Writing stdout: {}",
@@ -168,8 +171,12 @@ impl JavaPlugin for AntPlugin {
             "Writing stderr: {}",
             String::from_utf8_lossy(&output.stderr)
         );
-        stdout.write_all(&output.stdout)?;
-        stderr.write_all(&output.stderr)?;
+        stdout
+            .write_all(&output.stdout)
+            .map_err(|e| JavaError::File(stdout_path, e))?;
+        stderr
+            .write_all(&output.stderr)
+            .map_err(|e| JavaError::File(stderr_path, e))?;
 
         Ok(CompileResult {
             status_code: output.status,
@@ -182,7 +189,7 @@ impl JavaPlugin for AntPlugin {
         &self,
         path: &Path,
         compile_result: CompileResult,
-    ) -> Result<TestRun, Error> {
+    ) -> Result<TestRun, JavaError> {
         log::info!("Running tests for project at {}", path.display());
 
         let exercise = self.scan_exercise_with_compile_result(
@@ -230,7 +237,8 @@ impl JavaPlugin for AntPlugin {
         let command = Command::new("java")
             .current_dir(path)
             .args(arguments.join(" ").split(" ").collect::<Vec<&str>>())
-            .output()?;
+            .output()
+            .map_err(|e| JavaError::FailedToRun("java", e))?;
 
         Ok(TestRun {
             test_results: result_file.to_path_buf(),

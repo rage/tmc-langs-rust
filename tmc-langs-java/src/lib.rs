@@ -1,9 +1,11 @@
-pub mod ant;
-pub mod error;
-pub mod maven;
-pub mod plugin;
+mod ant;
+mod error;
+mod maven;
+mod plugin;
 
-use error::JavaPluginError;
+pub use ant::AntPlugin;
+pub use error::JavaError;
+pub use maven::MavenPlugin;
 
 use j4rs::{ClasspathEntry, Jvm, JvmBuilder};
 use serde::Deserialize;
@@ -23,55 +25,55 @@ const TMC_CHECKSTYLE_RUNNER_BYTES: &[u8] =
     include_bytes!("../jars/tmc-checkstyle-runner-3.0.3-20200520.064542-3.jar");
 const J4RS_BYTES: &[u8] = include_bytes!("../jars/j4rs-0.11.2-jar-with-dependencies.jar");
 
-fn tmc_dir() -> Result<PathBuf, JavaPluginError> {
-    let home_dir = dirs::cache_dir().ok_or(JavaPluginError::HomeDir)?;
+fn tmc_dir() -> Result<PathBuf, JavaError> {
+    let home_dir = dirs::cache_dir().ok_or(JavaError::HomeDir)?;
     Ok(home_dir.join("tmc"))
 }
 
-fn get_junit_runner_path() -> Result<PathBuf, JavaPluginError> {
+fn get_junit_runner_path() -> Result<PathBuf, JavaError> {
     let jar_dir = tmc_dir()?;
 
     let junit_path = jar_dir.join("tmc-junit-runner.jar");
     if !junit_path.exists() {
-        fs::create_dir_all(&jar_dir).map_err(|e| JavaPluginError::Dir(jar_dir, e))?;
+        fs::create_dir_all(&jar_dir).map_err(|e| JavaError::Dir(jar_dir, e))?;
         let mut file =
-            File::create(&junit_path).map_err(|e| JavaPluginError::File(junit_path.clone(), e))?;
+            File::create(&junit_path).map_err(|e| JavaError::File(junit_path.clone(), e))?;
         file.write_all(TMC_JUNIT_RUNNER_BYTES)
-            .map_err(|e| JavaPluginError::File(junit_path.clone(), e))?;
+            .map_err(|e| JavaError::File(junit_path.clone(), e))?;
     }
     Ok(junit_path)
 }
 
-fn get_checkstyle_runner_path() -> Result<PathBuf, JavaPluginError> {
+fn get_checkstyle_runner_path() -> Result<PathBuf, JavaError> {
     let jar_dir = tmc_dir()?;
 
     let checkstyle_path = jar_dir.join("tmc-checkstyle-runner.jar");
     if !checkstyle_path.exists() {
-        fs::create_dir_all(&jar_dir).map_err(|e| JavaPluginError::Dir(jar_dir, e))?;
+        fs::create_dir_all(&jar_dir).map_err(|e| JavaError::Dir(jar_dir, e))?;
         let mut file = File::create(&checkstyle_path)
-            .map_err(|e| JavaPluginError::File(checkstyle_path.clone(), e))?;
+            .map_err(|e| JavaError::File(checkstyle_path.clone(), e))?;
         file.write_all(TMC_CHECKSTYLE_RUNNER_BYTES)
-            .map_err(|e| JavaPluginError::File(checkstyle_path.clone(), e))?;
+            .map_err(|e| JavaError::File(checkstyle_path.clone(), e))?;
     }
     Ok(checkstyle_path)
 }
 
-fn initialize_jassets() -> Result<PathBuf, JavaPluginError> {
+fn initialize_jassets() -> Result<PathBuf, JavaError> {
     let jar_dir = tmc_dir()?;
     let jassets_dir = jar_dir.join("jassets");
 
     let j4rs_path = jassets_dir.join("j4rs.jar");
     if !j4rs_path.exists() {
-        fs::create_dir_all(&jassets_dir).map_err(|e| JavaPluginError::Dir(jassets_dir, e))?;
+        fs::create_dir_all(&jassets_dir).map_err(|e| JavaError::Dir(jassets_dir, e))?;
         let mut file =
-            File::create(&j4rs_path).map_err(|e| JavaPluginError::File(j4rs_path.clone(), e))?;
+            File::create(&j4rs_path).map_err(|e| JavaError::File(j4rs_path.clone(), e))?;
         file.write_all(J4RS_BYTES)
-            .map_err(|e| JavaPluginError::File(j4rs_path.clone(), e))?;
+            .map_err(|e| JavaError::File(j4rs_path.clone(), e))?;
     }
     Ok(j4rs_path)
 }
 
-fn instantiate_jvm() -> Result<Jvm, JavaPluginError> {
+fn instantiate_jvm() -> Result<Jvm, JavaError> {
     let junit_runner_path = crate::get_junit_runner_path()?;
     log::debug!("junit runner at {}", junit_runner_path.display());
     let junit_runner_path = junit_runner_path.to_str().unwrap();
@@ -99,21 +101,21 @@ fn instantiate_jvm() -> Result<Jvm, JavaPluginError> {
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct TestMethod {
+struct TestMethod {
     class_name: String,
     method_name: String,
     points: Vec<String>,
 }
 
 #[derive(Debug)]
-pub struct CompileResult {
+struct CompileResult {
     pub status_code: ExitStatus,
     pub stdout: Vec<u8>,
     pub stderr: Vec<u8>,
 }
 
 #[derive(Debug)]
-pub struct TestRun {
+struct TestRun {
     pub test_results: PathBuf,
     pub stdout: Vec<u8>,
     pub stderr: Vec<u8>,
@@ -121,7 +123,7 @@ pub struct TestRun {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct TestCase {
+struct TestCase {
     class_name: String,
     method_name: String,
     point_names: Vec<String>,
@@ -132,7 +134,7 @@ pub struct TestCase {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CaughtException {
+struct CaughtException {
     class_name: String,
     message: String,
     stack_trace: Vec<StackTrace>,
@@ -141,7 +143,7 @@ pub struct CaughtException {
 
 #[derive(Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "UPPERCASE")]
-pub enum TestCaseStatus {
+enum TestCaseStatus {
     Passed,
     Failed,
     Running,
@@ -150,7 +152,7 @@ pub enum TestCaseStatus {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct StackTrace {
+struct StackTrace {
     declaring_class: String,
     file_name: String,
     line_number: i32,

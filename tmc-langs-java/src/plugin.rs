@@ -1,4 +1,4 @@
-use super::{error::JavaPluginError, CompileResult, TestCase, TestCaseStatus, TestMethod, TestRun};
+use super::{error::JavaError, CompileResult, TestCase, TestCaseStatus, TestMethod, TestRun};
 use isolang::Language;
 use j4rs::{InvocationArg, Jvm};
 use std::collections::HashMap;
@@ -10,21 +10,20 @@ use tmc_langs_abstraction::ValidationResult;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     plugin::LanguagePlugin,
-    Error,
 };
 use walkdir::WalkDir;
 
-pub trait JavaPlugin: LanguagePlugin {
+pub(crate) trait JavaPlugin: LanguagePlugin {
     const TEST_DIR: &'static str;
 
     fn jvm(&self) -> &Jvm;
 
     // constructs a CLASSPATH for the given path (see https://docs.oracle.com/javase/tutorial/essential/environment/paths.html)
-    fn get_project_class_path(&self, path: &Path) -> Result<String, Error>;
+    fn get_project_class_path(&self, path: &Path) -> Result<String, JavaError>;
 
-    fn build(&self, project_root_path: &Path) -> Result<CompileResult, Error>;
+    fn build(&self, project_root_path: &Path) -> Result<CompileResult, JavaError>;
 
-    fn run_java_tests(&self, project_root_path: &Path) -> Result<RunResult, Error> {
+    fn run_java_tests(&self, project_root_path: &Path) -> Result<RunResult, JavaError> {
         log::info!(
             "Running tests for project at {}",
             project_root_path.display()
@@ -37,18 +36,17 @@ pub trait JavaPlugin: LanguagePlugin {
 
         let test_result = self.create_run_result_file(project_root_path, compile_result)?;
         let result = self.parse_test_result(&test_result);
-        fs::remove_file(test_result.test_results)?;
+        fs::remove_file(&test_result.test_results)
+            .map_err(|e| JavaError::File(test_result.test_results, e))?;
         Ok(result?)
     }
 
-    fn parse_test_result(&self, results: &TestRun) -> Result<RunResult, Error> {
-        let json = fs::read_to_string(&results.test_results)?;
+    fn parse_test_result(&self, results: &TestRun) -> Result<RunResult, JavaError> {
+        let json = fs::read_to_string(&results.test_results)
+            .map_err(|e| JavaError::File(results.test_results.to_owned(), e))?;
 
         let mut test_results: Vec<TestResult> = vec![];
-        let test_case_records: Vec<TestCase> = match serde_json::from_str(&json) {
-            Ok(t) => t,
-            Err(err) => return Err(Error::Plugin(Box::new(err))),
-        };
+        let test_case_records: Vec<TestCase> = serde_json::from_str(&json)?;
 
         let mut status = RunStatus::Passed;
         for test_case in test_case_records {
@@ -109,18 +107,15 @@ pub trait JavaPlugin: LanguagePlugin {
         None
     }
 
-    fn get_java_home() -> Result<PathBuf, Error> {
-        let output = match Command::new("java")
+    fn get_java_home() -> Result<PathBuf, JavaError> {
+        let output = Command::new("java")
             .arg("-XshowSettings:properties")
             .arg("-version")
             .output()
-        {
-            Ok(output) => output,
-            Err(err) => return Err(Error::Plugin(Box::new(err))),
-        };
+            .map_err(|e| JavaError::FailedToRun("java", e))?;
 
         if !output.status.success() {
-            return JavaPluginError::FailedCommand("java").into();
+            return Err(JavaError::FailedCommand("java", output.stderr));
         }
 
         // information is printed to stderr
@@ -128,7 +123,7 @@ pub trait JavaPlugin: LanguagePlugin {
 
         match Self::parse_java_home(&stderr) {
             Some(java_home) => Ok(java_home),
-            None => JavaPluginError::NoJavaHome.into(),
+            None => Err(JavaError::NoJavaHome),
         }
     }
 
@@ -136,16 +131,16 @@ pub trait JavaPlugin: LanguagePlugin {
         &self,
         path: &Path,
         compile_result: CompileResult,
-    ) -> Result<TestRun, Error>;
+    ) -> Result<TestRun, JavaError>;
 
     fn scan_exercise_with_compile_result(
         &self,
         path: &Path,
         exercise_name: String,
         compile_result: CompileResult,
-    ) -> Result<ExerciseDesc, Error> {
+    ) -> Result<ExerciseDesc, JavaError> {
         if !self.is_exercise_type_correct(path) || !compile_result.status_code.success() {
-            return JavaPluginError::InvalidExercise.into();
+            return Err(JavaError::InvalidExercise);
         }
 
         let mut source_files = vec![];
