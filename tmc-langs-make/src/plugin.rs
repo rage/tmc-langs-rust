@@ -213,7 +213,7 @@ impl LanguagePlugin for MakePlugin {
                     .zip(valgrind_log.results.into_iter())
                 {
                     if valgrind_result.errors {
-                        if test_result.passed {
+                        if test_result.successful {
                             test_result.message += " - Failed due to errors in valgrind log; see log below. Try submitting to server, some leaks might be platform dependent";
                         }
                         test_result.exceptions.extend(valgrind_result.log);
@@ -315,7 +315,7 @@ mod test {
         assert_eq!(test_results.len(), 1);
         let test_result = &test_results[0];
         assert_eq!(test_result.name, "test_one");
-        assert!(test_result.passed);
+        assert!(test_result.successful);
         assert_eq!(test_result.message, "Passed");
         assert!(test_result.exceptions.is_empty());
         let points = &test_result.points;
@@ -336,7 +336,7 @@ mod test {
         assert_eq!(test_results.len(), 1);
         let test_result = &test_results[0];
         assert_eq!(test_result.name, "test_one");
-        assert!(!test_result.passed);
+        assert!(!test_result.successful);
         assert!(test_result.message.contains("Should have returned: 1"));
         let points = &test_result.points;
         assert_eq!(points.len(), 1);
@@ -358,13 +358,13 @@ mod test {
 
         let test_one = &test_results[0];
         assert_eq!(test_one.name, "test_one");
-        assert!(test_one.passed);
+        assert!(test_one.successful);
         assert_eq!(test_one.points.len(), 1);
         assert_eq!(test_one.points[0], "1.1");
 
         let test_two = &test_results[1];
         assert_eq!(test_two.name, "test_two");
-        assert!(test_two.passed);
+        assert!(test_two.successful);
         assert_eq!(test_two.points.len(), 1);
         assert_eq!(test_two.points[0], "1.2");
 

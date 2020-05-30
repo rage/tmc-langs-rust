@@ -21,8 +21,8 @@ impl CheckLog {
 
         for suite in self.test_suites {
             for test in suite.tests {
-                let passed = test.result == "success";
-                if !passed {
+                let successful = test.result == "success";
+                if !successful {
                     status = RunStatus::TestsFailed;
                 }
 
@@ -30,7 +30,7 @@ impl CheckLog {
                 let exceptions = vec![];
                 test_results.push(TestResult {
                     name: test.description,
-                    passed,
+                    successful,
                     points,
                     message: test.message,
                     exceptions,

@@ -82,12 +82,12 @@ pub trait JavaPlugin: LanguagePlugin {
         points.extend(test_case.point_names);
 
         let name = format!("{} {}", test_case.class_name, test_case.method_name);
-        let passed = test_case.status == TestCaseStatus::Passed;
+        let successful = test_case.status == TestCaseStatus::Passed;
         let message = test_case.message.unwrap_or_default();
 
         TestResult {
             name,
-            passed,
+            successful,
             points,
             message,
             exceptions,

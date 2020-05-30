@@ -33,7 +33,7 @@ impl TestDesc {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct TestResult {
     pub name: String,
-    pub passed: bool,
+    pub successful: bool,
     pub points: Vec<String>,
     pub message: String,
     #[serde(default)]

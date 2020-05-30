@@ -2,6 +2,7 @@
 
 use lazy_static::lazy_static;
 use log::{debug, error};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::env;
 use std::fs::File;
@@ -149,15 +150,19 @@ fn parse_test_result(path: &Path) -> Result<RunResult, Error> {
     let mut path = path.to_owned();
     path.push(".tmc_test_results.json");
     let results_file = File::open(path)?;
-    let test_results: Vec<TestResult> = match serde_json::from_reader(BufReader::new(results_file))
-    {
-        Ok(test_results) => test_results,
-        Err(error) => return Err(Error::Plugin(Box::new(error))),
-    };
+    let test_results: Vec<PythonTestResult> =
+        match serde_json::from_reader(BufReader::new(results_file)) {
+            Ok(test_results) => test_results,
+            Err(error) => return Err(Error::Plugin(Box::new(error))),
+        };
+    let test_results: Vec<TestResult> = test_results
+        .into_iter()
+        .map(PythonTestResult::into_test_result)
+        .collect();
 
     let mut status = RunStatus::Passed;
     for result in &test_results {
-        if !result.passed {
+        if !result.successful {
             status = RunStatus::TestsFailed;
         }
     }
@@ -183,6 +188,28 @@ impl StudentFilePolicy for Python3StudentFilePolicy {
 
     fn is_student_source_file(&self, path: &Path) -> bool {
         path.starts_with("src")
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct PythonTestResult {
+    pub name: String,
+    pub passed: bool,
+    pub points: Vec<String>,
+    pub message: String,
+    #[serde(default)]
+    pub exceptions: Vec<String>,
+}
+
+impl PythonTestResult {
+    fn into_test_result(self) -> TestResult {
+        TestResult {
+            name: self.name,
+            successful: self.passed,
+            message: self.message,
+            points: self.points,
+            exceptions: self.exceptions,
+        }
     }
 }
 
@@ -262,7 +289,7 @@ mod test {
             run_result.test_results[0].name,
             "test.test_points.TestEverything.test_new"
         );
-        assert!(run_result.test_results[0].passed);
+        assert!(run_result.test_results[0].successful);
         assert!(run_result.test_results[0].points.contains(&"1.1".into()));
         assert!(run_result.test_results[0].points.contains(&"1.2".into()));
         assert!(run_result.test_results[0].points.contains(&"2.2".into()));
@@ -279,7 +306,7 @@ mod test {
             run_result.test_results[0].name,
             "test.test_failing.TestFailing.test_new"
         );
-        assert!(!run_result.test_results[0].passed);
+        assert!(!run_result.test_results[0].successful);
         assert!(run_result.test_results[0].points.contains(&"1.1".into()));
         assert!(run_result.test_results[0].points.contains(&"1.2".into()));
         assert!(run_result.test_results[0].points.contains(&"2.2".into()));
@@ -295,7 +322,7 @@ mod test {
             run_result.test_results[0].name,
             "test.test_erroring.TestErroring.test_erroring"
         );
-        assert!(!run_result.test_results[0].passed);
+        assert!(!run_result.test_results[0].successful);
         assert!(run_result.test_results[0].points.contains(&"1.1".into()));
         assert!(run_result.test_results[0].points.contains(&"1.2".into()));
         assert!(run_result.test_results[0].points.contains(&"2.2".into()));
