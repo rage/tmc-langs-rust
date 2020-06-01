@@ -1,7 +1,7 @@
 use std::env;
 use std::process::{Command, Output};
 use tempfile::tempdir;
-use walkdir::WalkDir;
+
 
 fn run_cmd(args: &[&str]) -> Output {
     let path = env::current_exe().unwrap().parent().unwrap().to_path_buf();

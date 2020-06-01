@@ -188,13 +188,13 @@ mod test {
         fn get_config_file_parent_path(&self) -> &Path {
             unimplemented!()
         }
-        fn is_student_source_file(&self, path: &Path) -> bool {
+        fn is_student_source_file(&self, _path: &Path) -> bool {
             unimplemented!()
         }
     }
 
     impl LanguagePlugin for MockPlugin {
-        fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy> {
+        fn get_student_file_policy(&self, _project_path: &Path) -> Box<dyn StudentFilePolicy> {
             unimplemented!()
         }
 

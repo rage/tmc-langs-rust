@@ -172,7 +172,7 @@ fn contains_tmcnosubmit(entry: &DirEntry) -> bool {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::policy::{EverythingIsStudentFilePolicy, NothingIsStudentFilePolicy};
+    use crate::policy::{EverythingIsStudentFilePolicy};
     use std::collections::HashSet;
     use tempfile::tempdir;
 
