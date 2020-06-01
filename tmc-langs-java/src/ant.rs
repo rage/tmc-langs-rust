@@ -254,6 +254,7 @@ impl JavaPlugin for AntPlugin {
 }
 
 #[cfg(test)]
+#[cfg(not(target_os = "macos"))] // ant is not installed on github's macos-latest image
 mod test {
     use super::*;
     use tempfile::{tempdir, TempDir};
