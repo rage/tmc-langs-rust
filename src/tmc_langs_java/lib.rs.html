@@ -167,6 +167,8 @@
 <span id="167">167</span>
 <span id="168">168</span>
 <span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">mod</span> <span class="ident">ant</span>;
 <span class="kw">mod</span> <span class="ident">error</span>;
@@ -179,6 +181,7 @@
 
 <span class="kw">use</span> <span class="ident">j4rs</span>::{<span class="ident">ClasspathEntry</span>, <span class="ident">Jvm</span>, <span class="ident">JvmBuilder</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Deserialize</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Display</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>;
@@ -329,9 +332,10 @@
     <span class="ident">method_name</span>: <span class="ident">String</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">StackTrace</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-        <span class="macro">format</span><span class="macro">!</span>(
+<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">StackTrace</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="macro">write</span><span class="macro">!</span>(
+            <span class="ident">f</span>,
             <span class="string">&quot;{}:{}: {}.{}&quot;</span>,
             <span class="self">self</span>.<span class="ident">file_name</span>, <span class="self">self</span>.<span class="ident">line_number</span>, <span class="self">self</span>.<span class="ident">declaring_class</span>, <span class="self">self</span>.<span class="ident">method_name</span>
         )

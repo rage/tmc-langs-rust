@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["CoreError",""]],"struct":[["Organization",""],["TmcCore","A struct for interacting with the TestMyCode service, including authentication"]]});

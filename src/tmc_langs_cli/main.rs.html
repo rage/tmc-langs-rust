@@ -553,8 +553,8 @@
         <span class="kw">let</span> <span class="ident">output_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">output_path</span>);
 
         <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;locale&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span>
-            <span class="ident">Language</span>::<span class="ident">from_639_3</span>(<span class="kw-2">&amp;</span><span class="ident">locale</span>).<span class="ident">ok_or</span>(<span class="ident">CliError</span>::<span class="ident">InvalidLocale</span>(<span class="ident">locale</span>.<span class="ident">to_string</span>()))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">Language</span>::<span class="ident">from_639_3</span>(<span class="kw-2">&amp;</span><span class="ident">locale</span>)
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">CliError</span>::<span class="ident">InvalidLocale</span>(<span class="ident">locale</span>.<span class="ident">to_string</span>()))<span class="question-mark">?</span>;
 
         <span class="ident">run_checkstyle</span>(<span class="ident">exercise_path</span>, <span class="ident">output_path</span>, <span class="ident">locale</span>)<span class="question-mark">?</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;compress-project&quot;</span>) {
@@ -625,7 +625,7 @@
         <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">locale</span> {
             <span class="prelude-val">Some</span>(<span class="ident">locale</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">iso_locale</span> <span class="op">=</span> <span class="ident">Language</span>::<span class="ident">from_639_3</span>(<span class="kw-2">&amp;</span><span class="ident">locale</span>);
-                <span class="prelude-val">Some</span>(<span class="ident">iso_locale</span>.<span class="ident">ok_or</span>(<span class="ident">CliError</span>::<span class="ident">InvalidLocale</span>(<span class="ident">locale</span>.<span class="ident">to_string</span>()))<span class="question-mark">?</span>)
+                <span class="prelude-val">Some</span>(<span class="ident">iso_locale</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">CliError</span>::<span class="ident">InvalidLocale</span>(<span class="ident">locale</span>.<span class="ident">to_string</span>()))<span class="question-mark">?</span>)
             }
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         };
@@ -654,10 +654,10 @@
 
         <span class="kw">let</span> <span class="ident">exercise_name</span> <span class="op">=</span> <span class="ident">exercise_path</span>
             .<span class="ident">file_name</span>()
-            .<span class="ident">ok_or</span>(<span class="ident">CliError</span>::<span class="ident">NoFileName</span>(<span class="ident">exercise_path</span>.<span class="ident">to_path_buf</span>()))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">CliError</span>::<span class="ident">NoFileName</span>(<span class="ident">exercise_path</span>.<span class="ident">to_path_buf</span>()))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">exercise_name</span> <span class="op">=</span> <span class="ident">exercise_name</span>
             .<span class="ident">to_str</span>()
-            .<span class="ident">ok_or</span>(<span class="ident">CliError</span>::<span class="ident">InvalidUTF8</span>(<span class="ident">exercise_name</span>.<span class="ident">to_os_string</span>()))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">CliError</span>::<span class="ident">InvalidUTF8</span>(<span class="ident">exercise_name</span>.<span class="ident">to_os_string</span>()))<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">scan_result</span> <span class="op">=</span> <span class="ident">task_executor</span>::<span class="ident">scan_exercise</span>(<span class="ident">exercise_path</span>, <span class="ident">exercise_name</span>.<span class="ident">to_string</span>())<span class="question-mark">?</span>;
 
