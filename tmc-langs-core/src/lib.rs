@@ -1,7 +1,7 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}
+mod error;
+mod organization;
+mod tmc_core;
+
+pub use error::CoreError;
+pub use organization::Organization;
+pub use tmc_core::TmcCore;
