@@ -1,0 +1,34 @@
+name: Run tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+env:
+  RUST_LOG: debug,j4rs=warn
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cargo test
+        run: |
+          sudo apt install -y check valgrind  # required for make plugin
+          cargo test --verbose
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cargo test
+        run: cargo test --verbose # TODO: install valgrind and check?
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cargo test
+        run: cargo test --verbose # TODO: install valgrind and check?
