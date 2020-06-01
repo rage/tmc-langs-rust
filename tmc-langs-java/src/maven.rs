@@ -85,7 +85,7 @@ impl JavaPlugin for MavenPlugin {
     fn get_project_class_path(&self, path: &Path) -> Result<String, JavaError> {
         log::info!("Building classpath for maven project at {}", path.display());
 
-        let temp = tempfile::tempdir().map_err(|e| JavaError::TempDir(e))?;
+        let temp = tempfile::tempdir().map_err(JavaError::TempDir)?;
         let class_path_file = temp.path().join("cp.txt");
 
         let output_arg = format!("-Dmdep.outputFile={}", class_path_file.display());

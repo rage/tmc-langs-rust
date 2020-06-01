@@ -86,11 +86,9 @@ pub fn contains_tmcignore(entry: &DirEntry) -> bool {
         .filter_map(|e| e.ok())
     {
         let is_file = entry.metadata().map(|e| e.is_file()).unwrap_or_default();
-        if is_file {
-            if entry.file_name() == ".tmcignore" {
-                debug!("contains .tmcignore: {:?}", entry.path());
-                return true;
-            }
+        if is_file && entry.file_name() == ".tmcignore" {
+            debug!("contains .tmcignore: {:?}", entry.path());
+            return true;
         }
     }
     false
@@ -111,7 +109,7 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
     let relative_path = entry
         .path()
         .strip_prefix(source_root)
-        .unwrap_or(Path::new(""));
+        .unwrap_or_else(|_| Path::new(""));
     let dest_path = dest_root.join(&relative_path);
     dest_path.parent().map_or(Ok(()), fs::create_dir_all)?;
     let extension = entry.path().extension().and_then(|e| e.to_str());

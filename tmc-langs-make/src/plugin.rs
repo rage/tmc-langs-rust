@@ -19,6 +19,7 @@ use tmc_langs_framework::{
     Error,
 };
 
+#[derive(Default)]
 pub struct MakePlugin {}
 
 impl MakePlugin {
@@ -80,7 +81,7 @@ impl MakePlugin {
             .current_dir(path)
             .arg(arg)
             .output()
-            .map_err(|e| MakeError::MakeCommand(e))?;
+            .map_err(MakeError::MakeCommand)?;
 
         log::debug!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
@@ -104,7 +105,7 @@ impl MakePlugin {
             .current_dir(dir)
             .arg("test")
             .output()
-            .map_err(|e| MakeError::MakeCommand(e))?;
+            .map_err(MakeError::MakeCommand)?;
 
         log::debug!("stdout:\n{}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr:\n{}", String::from_utf8_lossy(&output.stderr));
@@ -239,7 +240,7 @@ impl LanguagePlugin for MakePlugin {
             .current_dir(path)
             .arg("clean")
             .output()
-            .map_err(|e| MakeError::MakeCommand(e))?;
+            .map_err(MakeError::MakeCommand)?;
 
         if output.status.success() {
             log::info!("Cleaned make project");

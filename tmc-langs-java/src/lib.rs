@@ -9,6 +9,7 @@ pub use maven::MavenPlugin;
 
 use j4rs::{ClasspathEntry, Jvm, JvmBuilder};
 use serde::Deserialize;
+use std::fmt::Display;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
@@ -159,9 +160,10 @@ struct StackTrace {
     method_name: String,
 }
 
-impl StackTrace {
-    pub fn to_string(&self) -> String {
-        format!(
+impl Display for StackTrace {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
             "{}:{}: {}.{}",
             self.file_name, self.line_number, self.declaring_class, self.method_name
         )

@@ -27,7 +27,7 @@ pub fn zip(policy: Box<dyn StudentFilePolicy>, root_directory: &Path) -> Result<
             let path = root_directory
                 .parent()
                 .map(|p| entry.path().strip_prefix(p).unwrap())
-                .unwrap_or(entry.path());
+                .unwrap_or_else(|| entry.path());
             if entry.path().is_dir() {
                 debug!("adding directory {}", path.display());
                 writer.add_directory_from_path(path, FileOptions::default())?;
@@ -93,20 +93,16 @@ pub fn unzip(policy: Box<dyn StudentFilePolicy>, zip: &Path, target: &Path) -> R
                 let target_file_contents = target_file
                     .bytes()
                     .collect::<std::result::Result<Vec<_>, _>>()?;
-                if file_contents == target_file_contents {
+                if file_contents == target_file_contents
+                    || (policy.is_student_file(&path_in_target, &target, &tmc_project_yml)?
+                        && !policy.is_updating_forced(&path_in_target, &tmc_project_yml)?)
+                {
                     write = false;
-                } else {
-                    if policy.is_student_file(&path_in_target, &target, &tmc_project_yml)?
-                        && !policy.is_updating_forced(&path_in_target, &tmc_project_yml)?
-                    {
-                        // student file and not a forced update
-                        write = false;
-                    }
                 }
             }
             if write {
                 debug!("writing to {}", path_in_target.display());
-                if let Some(res) = path_in_target.parent().map(|p| fs::create_dir_all(p)) {
+                if let Some(res) = path_in_target.parent().map(fs::create_dir_all) {
                     res?;
                 }
                 let mut overwrite_target = File::create(&path_in_target)
@@ -151,7 +147,7 @@ fn find_project_dir<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<P
             || file.is_file()
                 && (file_name == "pom.xml" || file_name == ".idea" || file_name == "Makefile")
         {
-            let parent = file_path.parent().unwrap_or(Path::new(""));
+            let parent = file_path.parent().unwrap_or_else(|| Path::new(""));
             debug!("found project dir {}", parent.display());
             return Ok(parent.to_path_buf());
         }

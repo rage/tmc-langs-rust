@@ -177,8 +177,8 @@ fn main() -> Result<()> {
         let output_path = Path::new(output_path);
 
         let locale = matches.value_of("locale").unwrap();
-        let locale =
-            Language::from_639_3(&locale).ok_or(CliError::InvalidLocale(locale.to_string()))?;
+        let locale = Language::from_639_3(&locale)
+            .ok_or_else(|| CliError::InvalidLocale(locale.to_string()))?;
 
         run_checkstyle(exercise_path, output_path, locale)?;
     } else if let Some(matches) = matches.subcommand_matches("compress-project") {
@@ -249,7 +249,7 @@ fn main() -> Result<()> {
         let locale = match locale {
             Some(locale) => {
                 let iso_locale = Language::from_639_3(&locale);
-                Some(iso_locale.ok_or(CliError::InvalidLocale(locale.to_string()))?)
+                Some(iso_locale.ok_or_else(|| CliError::InvalidLocale(locale.to_string()))?)
             }
             None => None,
         };
@@ -278,10 +278,10 @@ fn main() -> Result<()> {
 
         let exercise_name = exercise_path
             .file_name()
-            .ok_or(CliError::NoFileName(exercise_path.to_path_buf()))?;
+            .ok_or_else(|| CliError::NoFileName(exercise_path.to_path_buf()))?;
         let exercise_name = exercise_name
             .to_str()
-            .ok_or(CliError::InvalidUTF8(exercise_name.to_os_string()))?;
+            .ok_or_else(|| CliError::InvalidUTF8(exercise_name.to_os_string()))?;
 
         let scan_result = task_executor::scan_exercise(exercise_path, exercise_name.to_string())?;
 

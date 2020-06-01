@@ -70,12 +70,12 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         let mut exceptions = vec![];
         let mut points = vec![];
 
-        test_case.exception.map(|e| {
-            exceptions.push(e.message);
-            for stack_trace in e.stack_trace {
+        if let Some(exception) = test_case.exception {
+            exceptions.push(exception.message);
+            for stack_trace in exception.stack_trace {
                 exceptions.push(stack_trace.to_string())
             }
-        });
+        }
 
         points.extend(test_case.point_names);
 
@@ -95,11 +95,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
     fn parse_java_home(properties: &str) -> Option<PathBuf> {
         for line in properties.lines() {
             if line.contains("java.home") {
-                return line
-                    .split("=")
-                    .skip(1)
-                    .next()
-                    .map(|s| PathBuf::from(s.trim()));
+                return line.split('=').nth(1).map(|s| PathBuf::from(s.trim()));
             }
         }
 
@@ -232,7 +228,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
                 &[InvocationArg::try_from(&*path.to_string_lossy()).expect("failed to convert")],
             )
             .expect("failed to instantiate");
-        let locale_code = locale.to_639_1().unwrap_or(locale.to_639_3()); // Java requires 639-1 if one exists
+        let locale_code = locale.to_639_1().unwrap_or_else(|| locale.to_639_3()); // Java requires 639-1 if one exists
         let locale = self
             .jvm()
             .create_instance(

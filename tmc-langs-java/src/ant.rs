@@ -208,7 +208,7 @@ impl JavaPlugin for AntPlugin {
         let class_path = self.get_project_class_path(path)?;
 
         let mut arguments = vec![];
-        env::var("JVM_OPTIONS").ok().map(|jvm_options| {
+        if let Ok(jvm_options) = env::var("JVM_OPTIONS") {
             arguments.extend(
                 jvm_options
                     .split(" +")
@@ -216,7 +216,7 @@ impl JavaPlugin for AntPlugin {
                     .filter(|s| !s.is_empty())
                     .map(|s| s.to_string()),
             )
-        });
+        }
         arguments.push(format!("-Dtmc.test_class_dir={}", test_dir.display()));
         arguments.push(format!("-Dtmc.results_file={}", result_file.display()));
         let endorsed_libs_path = path.join("lib/endorsed");
@@ -241,12 +241,12 @@ impl JavaPlugin for AntPlugin {
         log::debug!("java args {} in {}", arguments.join(" "), path.display());
         let command = Command::new("java")
             .current_dir(path)
-            .args(arguments.join(" ").split(" ").collect::<Vec<&str>>())
+            .args(arguments.join(" ").split(' ').collect::<Vec<&str>>())
             .output()
             .map_err(|e| JavaError::FailedToRun("java", e))?;
 
         Ok(TestRun {
-            test_results: result_file.to_path_buf(),
+            test_results: result_file,
             stdout: command.stdout,
             stderr: command.stderr,
         })
