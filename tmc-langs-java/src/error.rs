@@ -25,6 +25,8 @@ pub enum JavaError {
     TempDir(io::Error),
     #[error("Failed to find home directory")]
     HomeDir,
+    #[error("Failed to copy file from {0} to {1}: {2}")]
+    FileCopy(PathBuf, PathBuf, std::io::Error),
 
     #[error(transparent)]
     Json(#[from] serde_json::Error),

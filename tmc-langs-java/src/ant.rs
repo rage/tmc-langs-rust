@@ -30,7 +30,7 @@ impl AntPlugin {
         Ok(Self { jvm })
     }
 
-    fn copy_tmc_junit_runner(&self, path: &Path) -> Result<(), Error> {
+    fn copy_tmc_junit_runner(&self, path: &Path) -> Result<(), JavaError> {
         log::debug!("Copying TMC Junit runner");
 
         let local_tmc_junit_runner = Path::new("./jars/tmc-junit-runner-0.2.8.jar");
@@ -39,13 +39,15 @@ impl AntPlugin {
 
         // TODO: don't traverse symlinks
         if !runner_path.exists() {
-            fs::create_dir_all(runner_dir)?;
+            fs::create_dir_all(&runner_dir).map_err(|e| JavaError::Dir(runner_dir, e))?;
             log::debug!(
                 "copying from {} to {}",
                 local_tmc_junit_runner.display(),
                 runner_path.display()
             );
-            fs::copy(local_tmc_junit_runner, runner_path)?;
+            fs::copy(local_tmc_junit_runner, &runner_path).map_err(|e| {
+                JavaError::FileCopy(local_tmc_junit_runner.to_path_buf(), runner_path, e)
+            })?;
         } else {
             log::debug!("already exists");
         }
@@ -85,23 +87,26 @@ impl LanguagePlugin for AntPlugin {
     }
 
     fn maybe_copy_shared_stuff(&self, dest_path: &Path) -> Result<(), Error> {
-        self.copy_tmc_junit_runner(dest_path)
+        Ok(self.copy_tmc_junit_runner(dest_path)?)
     }
 
     fn clean(&self, path: &Path) -> Result<(), Error> {
         log::debug!("Cleaning project at {}", path.display());
 
         let stdout_path = path.join("build_log.txt");
-        let stdout = File::create(&stdout_path)?;
+        let stdout =
+            File::create(&stdout_path).map_err(|e| JavaError::File(stdout_path.clone(), e))?;
         let stderr_path = path.join("build_errors.txt");
-        let stderr = File::create(&stderr_path)?;
+        let stderr =
+            File::create(&stderr_path).map_err(|e| JavaError::File(stderr_path.clone(), e))?;
 
         let output = Command::new("ant")
             .arg("clean")
             .stdout(stdout)
             .stderr(stderr)
             .current_dir(path)
-            .output()?;
+            .output()
+            .map_err(|e| JavaError::FailedToRun("ant", e))?;
 
         if output.status.success() {
             fs::remove_file(stdout_path)?;
