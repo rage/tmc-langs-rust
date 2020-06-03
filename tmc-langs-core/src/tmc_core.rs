@@ -272,7 +272,7 @@ mod test {
         panic!("{:#?}", course_exercises);
     }
 
-    #[test]
+    //#[test]
     fn gets_exercise_details() {
         init();
 
