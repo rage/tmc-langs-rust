@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.12.1/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../base64/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/base64-0.9.3/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../base64/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -218,30 +218,13 @@
 <span id="218">218</span>
 <span id="219">219</span>
 <span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
-<span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
-<span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Configs</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! There isn&#39;t just one type of Base64; that would be too simple. You need to choose a character</span>
-<span class="doccomment">//! set (standard, URL-safe, etc) and padding suffix (yes/no).</span>
+<span class="doccomment">//! set (standard or URL-safe), padding suffix (yes/no), and line wrap (line length, line ending).</span>
 <span class="doccomment">//! The `Config` struct encapsulates this info. There are some common configs included: `STANDARD`,</span>
-<span class="doccomment">//! `URL_SAFE`, etc. You can also make your own `Config` if needed.</span>
+<span class="doccomment">//! `MIME`, etc. You can also make your own `Config` if needed.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The functions that don&#39;t have `config` in the name (e.g. `encode()` and `decode()`) use the</span>
 <span class="doccomment">//! `STANDARD` config .</span>
@@ -263,11 +246,15 @@
 <span class="doccomment">//! | `encode_config_buf`     | Appends to provided `String` | Only if `String` needs to grow |</span>
 <span class="doccomment">//! | `encode_config_slice`   | Writes to provided `&amp;[u8]`   | Never                          |</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! All of the encoding functions that take a `Config` will pad as per the config.</span>
+<span class="doccomment">//! All of the encoding functions that take a `Config` will pad, line wrap, etc, as per the config.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Decoding</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Just as for encoding, there are different decoding functions available.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Note that all decode functions that take a config will allocate a copy of the input if you</span>
+<span class="doccomment">//! specify a config that requires whitespace to be stripped. If you care about speed, don&#39;t use</span>
+<span class="doccomment">//! formats that line wrap and then require whitespace stripping.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! | Function                | Output                        | Allocates                      |</span>
 <span class="doccomment">//! | ----------------------- | ----------------------------- | ------------------------------ |</span>
@@ -279,15 +266,9 @@
 <span class="doccomment">//! Unlike encoding, where all possible input is valid, decoding can fail (see `DecodeError`).</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Input can be invalid because it has invalid characters or invalid padding. (No padding at all is</span>
-<span class="doccomment">//! valid, but excess padding is not.) Whitespace in the input is invalid.</span>
+<span class="doccomment">//! valid, but excess padding is not.)</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! # `Read` and `Write`</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! To map a `Read` of b64 bytes to the decoded bytes, wrap a reader (file, network socket, etc)</span>
-<span class="doccomment">//! with `base64::read::DecoderReader`. To write raw bytes and have them b64 encoded on the fly,</span>
-<span class="doccomment">//! wrap a writer with `base64::write::EncoderWriter`. There is some performance overhead (15% or</span>
-<span class="doccomment">//! so) because of the necessary buffer shuffling -- still fast enough that almost nobody cares.</span>
-<span class="doccomment">//! Also, these implementations do not heap allocate.</span>
+<span class="doccomment">//! Whitespace in the input is invalid unless `strip_whitespace` is enabled in the `Config` used.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Panics</span>
 <span class="doccomment">//!</span>
@@ -295,49 +276,25 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `_slice` flavors of encode or decode will panic if the provided output slice is too small,</span>
 
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cargo-clippy&quot;</span>, <span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">cast_lossless</span>))]</span>
 <span class="attribute">#![<span class="ident">deny</span>(
-    <span class="ident">missing_docs</span>,
-    <span class="ident">trivial_casts</span>,
-    <span class="ident">trivial_numeric_casts</span>,
-    <span class="ident">unused_extern_crates</span>,
-    <span class="ident">unused_import_braces</span>,
-    <span class="ident">unused_results</span>,
-    <span class="ident">variant_size_differences</span>,
-    <span class="ident">warnings</span>
+    <span class="ident">missing_docs</span>, <span class="ident">trivial_casts</span>, <span class="ident">trivial_numeric_casts</span>, <span class="ident">unused_extern_crates</span>, <span class="ident">unused_import_braces</span>,
+    <span class="ident">unused_results</span>, <span class="ident">variant_size_differences</span>, <span class="ident">warnings</span>
 )]</span>
-<span class="attribute">#![<span class="ident">forbid</span>(<span class="ident">unsafe_code</span>)]</span>
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>)), <span class="ident">no_std</span>)]</span>
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))))]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">std</span> <span class="kw">as</span> <span class="ident">alloc</span>;
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="attribute">#[<span class="ident">macro_use</span>]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">doc_comment</span>;
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="macro">doctest</span><span class="macro">!</span>(<span class="string">&quot;../README.md&quot;</span>);
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">byteorder</span>;
 
 <span class="kw">mod</span> <span class="ident">chunked_encoder</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">display</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">read</span>;
+<span class="kw">mod</span> <span class="ident">line_wrap</span>;
 <span class="kw">mod</span> <span class="ident">tables</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">write</span>;
+
+<span class="kw">use</span> <span class="ident">line_wrap</span>::{<span class="ident">line_wrap</span>, <span class="ident">line_wrap_parameters</span>};
 
 <span class="kw">mod</span> <span class="ident">encode</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">encode</span>::<span class="ident">encode_config_slice</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">encode</span>::{<span class="ident">encode</span>, <span class="ident">encode_config</span>, <span class="ident">encode_config_buf</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">encode</span>::{<span class="ident">encode</span>, <span class="ident">encode_config</span>, <span class="ident">encode_config_buf</span>, <span class="ident">encode_config_slice</span>};
 
 <span class="kw">mod</span> <span class="ident">decode</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">decode</span>::{<span class="ident">decode</span>, <span class="ident">decode_config</span>, <span class="ident">decode_config_buf</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">decode</span>::{<span class="ident">decode_config_slice</span>, <span class="ident">DecodeError</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">decode</span>::{<span class="ident">decode</span>, <span class="ident">decode_config</span>, <span class="ident">decode_config_buf</span>, <span class="ident">decode_config_slice</span>, <span class="ident">DecodeError</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -345,46 +302,57 @@
 <span class="doccomment">/// Available encoding character sets</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CharacterSet</span> {
-    <span class="doccomment">/// The standard character set (uses `+` and `/`).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See [RFC 3548](https://tools.ietf.org/html/rfc3548#section-3).</span>
+    <span class="doccomment">/// The standard character set (uses `+` and `/`)</span>
     <span class="ident">Standard</span>,
-    <span class="doccomment">/// The URL safe character set (uses `-` and `_`).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See [RFC 3548](https://tools.ietf.org/html/rfc3548#section-4).</span>
+    <span class="doccomment">/// The URL safe character set (uses `-` and `_`)</span>
     <span class="ident">UrlSafe</span>,
-    <span class="doccomment">/// The `crypt(3)` character set (uses `./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Not standardized, but folk wisdom on the net asserts that this alphabet is what crypt uses.</span>
+    <span class="doccomment">/// The `crypt(3)` character set (uses `./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`)</span>
     <span class="ident">Crypt</span>,
-    <span class="doccomment">/// The bcrypt character set (uses `./ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`).</span>
-    <span class="ident">Bcrypt</span>,
-    <span class="doccomment">/// The character set used in IMAP-modified UTF-7 (uses `+` and `,`).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See [RFC 3501](https://tools.ietf.org/html/rfc3501#section-5.1.3)</span>
-    <span class="ident">ImapMutf7</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">CharacterSet</span> {
-    <span class="kw">fn</span> <span class="ident">encode_table</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>; <span class="number">64</span>] {
-        <span class="kw">match</span> <span class="self">self</span> {
+    <span class="kw">fn</span> <span class="ident">encode_table</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>; <span class="number">64</span>] {
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">CharacterSet</span>::<span class="ident">Standard</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tables</span>::<span class="ident">STANDARD_ENCODE</span>,
             <span class="ident">CharacterSet</span>::<span class="ident">UrlSafe</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tables</span>::<span class="ident">URL_SAFE_ENCODE</span>,
             <span class="ident">CharacterSet</span>::<span class="ident">Crypt</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tables</span>::<span class="ident">CRYPT_ENCODE</span>,
-            <span class="ident">CharacterSet</span>::<span class="ident">Bcrypt</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tables</span>::<span class="ident">BCRYPT_ENCODE</span>,
-            <span class="ident">CharacterSet</span>::<span class="ident">ImapMutf7</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tables</span>::<span class="ident">IMAP_MUTF7_ENCODE</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">decode_table</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>; <span class="number">256</span>] {
-        <span class="kw">match</span> <span class="self">self</span> {
+    <span class="kw">fn</span> <span class="ident">decode_table</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>; <span class="number">256</span>] {
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">CharacterSet</span>::<span class="ident">Standard</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tables</span>::<span class="ident">STANDARD_DECODE</span>,
             <span class="ident">CharacterSet</span>::<span class="ident">UrlSafe</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tables</span>::<span class="ident">URL_SAFE_DECODE</span>,
             <span class="ident">CharacterSet</span>::<span class="ident">Crypt</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tables</span>::<span class="ident">CRYPT_DECODE</span>,
-            <span class="ident">CharacterSet</span>::<span class="ident">Bcrypt</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tables</span>::<span class="ident">BCRYPT_DECODE</span>,
-            <span class="ident">CharacterSet</span>::<span class="ident">ImapMutf7</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tables</span>::<span class="ident">IMAP_MUTF7_DECODE</span>,
         }
     }
+}
+
+<span class="doccomment">/// Line ending used in optional line wrapping.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LineEnding</span> {
+    <span class="doccomment">/// Unix-style \n</span>
+    <span class="ident">LF</span>,
+    <span class="doccomment">/// Windows-style \r\n</span>
+    <span class="ident">CRLF</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">LineEnding</span> {
+    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+            <span class="ident">LineEnding</span>::<span class="ident">LF</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
+            <span class="ident">LineEnding</span>::<span class="ident">CRLF</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
+        }
+    }
+}
+
+<span class="doccomment">/// Line wrap configuration.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LineWrap</span> {
+    <span class="doccomment">/// Don&#39;t wrap.</span>
+    <span class="ident">NoWrap</span>,
+    <span class="doccomment">/// Wrap lines with the specified length and line ending. The length must be &gt; 0.</span>
+    <span class="ident">Wrap</span>(<span class="ident">usize</span>, <span class="ident">LineEnding</span>),
 }
 
 <span class="doccomment">/// Contains configuration parameters for base64 encoding</span>
@@ -394,33 +362,32 @@
     <span class="ident">char_set</span>: <span class="ident">CharacterSet</span>,
     <span class="doccomment">/// True to pad output with `=` characters</span>
     <span class="ident">pad</span>: <span class="ident">bool</span>,
-    <span class="doccomment">/// True to ignore excess nonzero bits in the last few symbols, otherwise an error is returned.</span>
-    <span class="ident">decode_allow_trailing_bits</span>: <span class="ident">bool</span>,
+    <span class="doccomment">/// Remove whitespace before decoding, at the cost of an allocation. Whitespace is defined</span>
+    <span class="doccomment">/// according to POSIX-locale `isspace`, meaning \n \r \f \t \v and space.</span>
+    <span class="ident">strip_whitespace</span>: <span class="ident">bool</span>,
+    <span class="doccomment">/// ADT signifying whether to linewrap output, and if so by how many characters and with what</span>
+    <span class="doccomment">/// ending</span>
+    <span class="ident">line_wrap</span>: <span class="ident">LineWrap</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Config</span> {
     <span class="doccomment">/// Create a new `Config`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">char_set</span>: <span class="ident">CharacterSet</span>, <span class="ident">pad</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Config</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
+        <span class="ident">char_set</span>: <span class="ident">CharacterSet</span>,
+        <span class="ident">pad</span>: <span class="ident">bool</span>,
+        <span class="ident">strip_whitespace</span>: <span class="ident">bool</span>,
+        <span class="ident">input_line_wrap</span>: <span class="ident">LineWrap</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Config</span> {
+        <span class="kw">let</span> <span class="ident">line_wrap</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">input_line_wrap</span> {
+            <span class="ident">LineWrap</span>::<span class="ident">Wrap</span>(<span class="number">0</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LineWrap</span>::<span class="ident">NoWrap</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">input_line_wrap</span>,
+        };
+
         <span class="ident">Config</span> {
             <span class="ident">char_set</span>,
             <span class="ident">pad</span>,
-            <span class="ident">decode_allow_trailing_bits</span>: <span class="bool-val">false</span>,
-        }
-    }
-
-    <span class="doccomment">/// Sets whether to pad output with `=` characters.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pad</span>(<span class="self">self</span>, <span class="ident">pad</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Config</span> {
-        <span class="ident">Config</span> { <span class="ident">pad</span>, ..<span class="self">self</span> }
-    }
-
-    <span class="doccomment">/// Sets whether to emit errors for nonzero trailing bits.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is useful when implementing</span>
-    <span class="doccomment">/// [forgiving-base64 decode](https://infra.spec.whatwg.org/#forgiving-base64-decode).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode_allow_trailing_bits</span>(<span class="self">self</span>, <span class="ident">allow</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Config</span> {
-        <span class="ident">Config</span> {
-            <span class="ident">decode_allow_trailing_bits</span>: <span class="ident">allow</span>,
-            ..<span class="self">self</span>
+            <span class="ident">strip_whitespace</span>,
+            <span class="ident">line_wrap</span>,
         }
     }
 }
@@ -429,49 +396,48 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STANDARD</span>: <span class="ident">Config</span> <span class="op">=</span> <span class="ident">Config</span> {
     <span class="ident">char_set</span>: <span class="ident">CharacterSet</span>::<span class="ident">Standard</span>,
     <span class="ident">pad</span>: <span class="bool-val">true</span>,
-    <span class="ident">decode_allow_trailing_bits</span>: <span class="bool-val">false</span>,
+    <span class="ident">strip_whitespace</span>: <span class="bool-val">false</span>,
+    <span class="ident">line_wrap</span>: <span class="ident">LineWrap</span>::<span class="ident">NoWrap</span>,
 };
 
 <span class="doccomment">/// Standard character set without padding.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STANDARD_NO_PAD</span>: <span class="ident">Config</span> <span class="op">=</span> <span class="ident">Config</span> {
     <span class="ident">char_set</span>: <span class="ident">CharacterSet</span>::<span class="ident">Standard</span>,
     <span class="ident">pad</span>: <span class="bool-val">false</span>,
-    <span class="ident">decode_allow_trailing_bits</span>: <span class="bool-val">false</span>,
+    <span class="ident">strip_whitespace</span>: <span class="bool-val">false</span>,
+    <span class="ident">line_wrap</span>: <span class="ident">LineWrap</span>::<span class="ident">NoWrap</span>,
+};
+
+<span class="doccomment">/// As per standards for MIME encoded messages</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MIME</span>: <span class="ident">Config</span> <span class="op">=</span> <span class="ident">Config</span> {
+    <span class="ident">char_set</span>: <span class="ident">CharacterSet</span>::<span class="ident">Standard</span>,
+    <span class="ident">pad</span>: <span class="bool-val">true</span>,
+    <span class="ident">strip_whitespace</span>: <span class="bool-val">true</span>,
+    <span class="ident">line_wrap</span>: <span class="ident">LineWrap</span>::<span class="ident">Wrap</span>(<span class="number">76</span>, <span class="ident">LineEnding</span>::<span class="ident">CRLF</span>),
 };
 
 <span class="doccomment">/// URL-safe character set with padding</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">URL_SAFE</span>: <span class="ident">Config</span> <span class="op">=</span> <span class="ident">Config</span> {
     <span class="ident">char_set</span>: <span class="ident">CharacterSet</span>::<span class="ident">UrlSafe</span>,
     <span class="ident">pad</span>: <span class="bool-val">true</span>,
-    <span class="ident">decode_allow_trailing_bits</span>: <span class="bool-val">false</span>,
+    <span class="ident">strip_whitespace</span>: <span class="bool-val">false</span>,
+    <span class="ident">line_wrap</span>: <span class="ident">LineWrap</span>::<span class="ident">NoWrap</span>,
 };
 
 <span class="doccomment">/// URL-safe character set without padding</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">URL_SAFE_NO_PAD</span>: <span class="ident">Config</span> <span class="op">=</span> <span class="ident">Config</span> {
     <span class="ident">char_set</span>: <span class="ident">CharacterSet</span>::<span class="ident">UrlSafe</span>,
     <span class="ident">pad</span>: <span class="bool-val">false</span>,
-    <span class="ident">decode_allow_trailing_bits</span>: <span class="bool-val">false</span>,
+    <span class="ident">strip_whitespace</span>: <span class="bool-val">false</span>,
+    <span class="ident">line_wrap</span>: <span class="ident">LineWrap</span>::<span class="ident">NoWrap</span>,
 };
 
 <span class="doccomment">/// As per `crypt(3)` requirements</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CRYPT</span>: <span class="ident">Config</span> <span class="op">=</span> <span class="ident">Config</span> {
     <span class="ident">char_set</span>: <span class="ident">CharacterSet</span>::<span class="ident">Crypt</span>,
     <span class="ident">pad</span>: <span class="bool-val">false</span>,
-    <span class="ident">decode_allow_trailing_bits</span>: <span class="bool-val">false</span>,
-};
-
-<span class="doccomment">/// Bcrypt character set</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BCRYPT</span>: <span class="ident">Config</span> <span class="op">=</span> <span class="ident">Config</span> {
-    <span class="ident">char_set</span>: <span class="ident">CharacterSet</span>::<span class="ident">Bcrypt</span>,
-    <span class="ident">pad</span>: <span class="bool-val">false</span>,
-    <span class="ident">decode_allow_trailing_bits</span>: <span class="bool-val">false</span>,
-};
-
-<span class="doccomment">/// IMAP modified UTF-7 requirements</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IMAP_MUTF7</span>: <span class="ident">Config</span> <span class="op">=</span> <span class="ident">Config</span> {
-    <span class="ident">char_set</span>: <span class="ident">CharacterSet</span>::<span class="ident">ImapMutf7</span>,
-    <span class="ident">pad</span>: <span class="bool-val">false</span>,
-    <span class="ident">decode_allow_trailing_bits</span>: <span class="bool-val">false</span>,
+    <span class="ident">strip_whitespace</span>: <span class="bool-val">false</span>,
+    <span class="ident">line_wrap</span>: <span class="ident">LineWrap</span>::<span class="ident">NoWrap</span>,
 };
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "base64";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
