@@ -209,10 +209,8 @@ pub fn prepare_stub(exercise_path: &Path, dest_root: &Path) -> Result<()> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::domain::{TmcProjectYml};
-    use crate::policy::{
-        EverythingIsStudentFilePolicy, NothingIsStudentFilePolicy,
-    };
+    use crate::domain::TmcProjectYml;
+    use crate::policy::{EverythingIsStudentFilePolicy, NothingIsStudentFilePolicy};
     use std::collections::HashSet;
     use std::io::Read;
     use tempfile::tempdir;
