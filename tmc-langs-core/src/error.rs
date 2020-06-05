@@ -17,6 +17,10 @@ pub enum CoreError {
     AlreadyAuthenticated,
     #[error("auth required")]
     AuthRequired,
+    #[error("Failed to find home directory")]
+    HomeDir,
+    #[error("Malformed response from tmc-server")]
+    MalformedResponse,
     #[error(transparent)]
     TmcLangs(#[from] tmc_langs_util::Error),
 }

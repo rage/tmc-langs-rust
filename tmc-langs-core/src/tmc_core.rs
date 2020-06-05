@@ -1,4 +1,4 @@
-use crate::response::{CourseDetailsWrapper, Credentials, Response, Submission};
+use crate::response::*;
 use crate::*;
 
 use tmc_langs_util::task_executor;
@@ -9,12 +9,12 @@ use oauth2::{
     AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword, ResourceOwnerUsername, TokenResponse,
     TokenUrl,
 };
-use reqwest::{blocking::Client, Url};
+use reqwest::{blocking::multipart::Form, blocking::Client, Url};
 use serde::de::DeserializeOwned;
-use std::collections::HashMap;
 use std::fmt::Debug;
-use std::fs::File;
-use std::path::Path;
+use std::io::Write;
+use std::path::{Path, PathBuf};
+use tempfile::NamedTempFile;
 use url1::Url as Url1;
 
 pub type Token =
@@ -23,6 +23,7 @@ pub type Token =
 /// A struct for interacting with the TestMyCode service, including authentication
 pub struct TmcCore {
     client: Client,
+    config_dir: PathBuf,
     api_url: Url,
     auth_url: Url,
     token: Option<Token>,
@@ -30,17 +31,23 @@ pub struct TmcCore {
 
 // TODO: cache API results?
 impl TmcCore {
-    pub fn new(root_url: &'static str) -> Result<Self, CoreError> {
+    pub fn new(config_dir: PathBuf, root_url: &'static str) -> Result<Self, CoreError> {
         // guarantee a trailing slash, otherwise join will drop the last component
         let tmc_url = Url::parse(&format!("{}/", root_url))?;
         let api_url = tmc_url.join("api/v8/")?;
         let auth_url = tmc_url.join("oauth/token")?;
         Ok(Self {
             client: Client::new(),
+            config_dir,
             api_url,
             auth_url,
             token: None,
         })
+    }
+
+    pub fn new_in_config(root_url: &'static str) -> Result<Self, CoreError> {
+        let config_dir = dirs::cache_dir().ok_or(CoreError::HomeDir)?;
+        Self::new(config_dir, root_url)
     }
 
     /// Attempts to log in with the given credentials, returns an error if an authentication token is already present.
@@ -88,6 +95,11 @@ impl TmcCore {
         self.token.is_some()
     }
 
+    pub fn get_user_info(&self) -> Result<User, CoreError> {
+        let url = self.api_url.join("users/current")?;
+        self.request_json(url)
+    }
+
     /// Returns a list of organizations.
     pub fn get_organizations(&self) -> Result<Vec<Organization>, CoreError> {
         let url = self.api_url.join("org.json")?;
@@ -123,8 +135,8 @@ impl TmcCore {
             .api_url
             .join(&format!("core/courses/{}", course_id))
             .unwrap();
-        let wrapper: CourseDetailsWrapper = self.request_json(url)?;
-        Ok(wrapper.course)
+        let course_details: CourseDetails = self.request_json(url)?;
+        Ok(course_details)
     }
 
     pub fn get_course_exercises(&self, course_id: usize) -> Result<Vec<CourseExercise>, CoreError> {
@@ -149,46 +161,114 @@ impl TmcCore {
 
     pub fn download_exercise(
         &self,
-        id: u32,
-        organization_slug: &str,
-        target: &Path,
+        exercise_id: u32,
+        target: &Path, // TODO: get target from settings?
     ) -> Result<(), CoreError> {
         // download zip
-        let archive_path = target.join(format!("{}.zip", id));
-        let mut archive = File::create(archive_path)?;
+        let mut zip_file = NamedTempFile::new()?;
         let url = self
             .api_url
-            .join(&format!("core/exercises/{}/download", id))
+            .join(&format!("core/exercises/{}/download", exercise_id))
             .unwrap();
 
         log::debug!("requesting {}", url);
         let mut res = self.client.get(url).send()?;
-        res.copy_to(&mut archive)?;
+        res.copy_to(&mut zip_file)?; // write response to target file
 
         // extract
-        todo!()
+        task_executor::extract_project(&zip_file.path(), target)?;
+        Ok(())
+    }
+
+    pub fn get_submissions(&self, course_id: usize) -> Result<Vec<Submission>, CoreError> {
+        let url = self
+            .api_url
+            .join(&format!("courses/{}/users/current/submissions", course_id))?;
+        let res: Response<Vec<Submission>> = self.request_json(url)?;
+        let res = res.into_result()?;
+        Ok(res)
+    }
+
+    pub fn download_submission(
+        &self,
+        submission_id: usize,
+        target: &Path,
+    ) -> Result<(), CoreError> {
+        // download zip
+        let mut zip_file = NamedTempFile::new()?;
+        let url = self
+            .api_url
+            .join(&format!("core/submissions/{}/download", submission_id))
+            .unwrap();
+
+        log::debug!("requesting {}", url);
+        let mut res = self.client.get(url).send()?;
+        res.copy_to(&mut zip_file)?; // write response to target file
+
+        // extract
+        task_executor::extract_project(&zip_file.path(), target)?;
+        Ok(())
     }
 
     pub fn submit_exercise(
         &self,
         exercise_id: usize,
-        exercise_path: &Path,
-    ) -> Result<(), CoreError> {
+        exercise_path: &Path, // TODO: get from settings?
+    ) -> Result<NewSubmission, CoreError> {
         // compress
         let compressed = task_executor::compress_project(exercise_path)?;
+        let mut file = NamedTempFile::new()?;
+        file.write_all(&compressed)?;
 
         let url = self
             .api_url
             .join(&format!("core/exercises/{}/submissions", exercise_id))
             .unwrap();
 
-        let mut form = HashMap::new();
-        form.insert("submission[file]", compressed);
-        let res: Response<Submission> = self.client.post(url).form(&form).send()?.json()?;
-        let submission = res.to_result()?;
+        // send
+        let form = Form::new().file("submission[file]", file.path())?;
 
-        todo!();
-        Ok(())
+        log::debug!("posting {}", url);
+        let mut req = self.client.post(url).multipart(form);
+        if let Some(token) = &self.token {
+            req = req.bearer_auth(token.access_token().secret());
+        }
+        let res: Response<NewSubmission> = req.send()?.json()?;
+        log::debug!("received {:?}", res);
+
+        let submission = res.into_result()?;
+        Ok(submission)
+    }
+
+    pub fn check_submission(
+        &self,
+        submission_url: &str,
+    ) -> Result<SubmissionProcessingStatus, CoreError> {
+        let url = Url::parse(submission_url)?;
+        let res: Response<SubmissionProcessingStatus> = self.request_json(url)?;
+        let res = res.into_result()?;
+        Ok(res)
+    }
+
+    pub fn submit_feedback(
+        &self,
+        feedback_url: &str,
+        feedback_answers: Vec<FeedbackAnswer>,
+    ) -> Result<SubmissionFeedbackResponse, CoreError> {
+        let mut req = self.client.post(feedback_url);
+        if let Some(token) = &self.token {
+            req = req.bearer_auth(token.access_token().secret());
+        }
+        for (i, answer) in feedback_answers.into_iter().enumerate() {
+            req = req
+                .query(&[(format!("answers[{}][question_id]", i), answer.question_id)])
+                .query(&[(format!("answers[{}][answer]", i), answer.answer)]);
+        }
+        log::debug!("posting {}", feedback_url);
+        let res: Response<SubmissionFeedbackResponse> = req.send()?.json()?;
+        log::trace!("received {:?}", res);
+        let res = res.into_result()?;
+        Ok(res)
     }
 
     fn request_json<T: DeserializeOwned + Debug>(&self, url: Url) -> Result<T, CoreError> {
@@ -199,7 +279,19 @@ impl TmcCore {
         }
         let res: Response<T> = req.send()?.json()?;
         log::trace!("received {:?}", res);
-        res.to_result()
+        res.into_result()
+    }
+
+    fn download_model_solution(&self) {
+        todo!()
+    }
+
+    fn get_unread_reviews(&self) {
+        todo!()
+    }
+
+    fn get_updateable_exercises(&self) {
+        todo!()
     }
 }
 
@@ -207,6 +299,7 @@ impl TmcCore {
 #[cfg(test)]
 mod test {
     use super::*;
+    use serde_json::Value;
 
     const ROOT_URL: &'static str = "https://tmc.mooc.fi";
 
@@ -218,12 +311,13 @@ mod test {
         dotenv::dotenv().ok();
         let user = std::env::var("TMC_USER").unwrap();
         let pass = std::env::var("TMC_PASS").unwrap();
-        let mut core = TmcCore::new(ROOT_URL).unwrap();
+        let mut core = TmcCore::new_in_config(ROOT_URL).unwrap();
         core.authenticate("vscode_plugin", user, pass).unwrap();
         core
     }
 
-    //#[test]
+    #[test]
+    #[ignore]
     fn authenticates() {
         init();
 
@@ -231,53 +325,144 @@ mod test {
         let user = std::env::var("TMC_USER").unwrap();
         let pass = std::env::var("TMC_PASS").unwrap();
 
-        let mut core = TmcCore::new(ROOT_URL).unwrap();
+        let mut core = TmcCore::new_in_config(ROOT_URL).unwrap();
+        assert!(core.token.is_none());
         core.authenticate("vscode_plugin", user, pass).unwrap();
         assert!(core.token.is_some());
     }
 
-    //#[test]
+    #[test]
+    #[ignore]
+    fn downloads_exercise() {
+        init();
+
+        let core = authenticated_core();
+        let target = Path::new("test-targ");
+        core.download_exercise(81843, target).unwrap();
+        assert!(target.exists());
+    }
+
+    #[test]
+    #[ignore]
+    fn submits_exercise() {
+        init();
+
+        let core = authenticated_core();
+        let exercise_path = Path::new("tests/data/exercise");
+        let submission = core.submit_exercise(83114, exercise_path).unwrap();
+    }
+
+    #[test]
+    //#[ignore]
+    fn submits_feedback() {
+        init();
+
+        let core = authenticated_core();
+        let exercise_path = Path::new("tests/data/exercise");
+        let submission = core.submit_exercise(83114, exercise_path).unwrap();
+        let submission_url = submission.submission_url;
+        let f = loop {
+            let submission_status = core.check_submission(&submission_url).unwrap();
+            match submission_status {
+                SubmissionProcessingStatus::Processing(p) => {
+                    log::debug!("{:?}", p);
+                    std::thread::sleep(std::time::Duration::from_secs(1));
+                    continue;
+                }
+                SubmissionProcessingStatus::Finished(f) => {
+                    log::debug!("{:?}", f);
+                    break f;
+                }
+            }
+        };
+        let questions = f.feedback_questions.unwrap();
+        let mut answers = vec![];
+        for q in questions {
+            match q.kind {
+                SubmissionFeedbackKind::Text => answers.push(FeedbackAnswer {
+                    answer: "test".to_string(),
+                    question_id: q.id,
+                }),
+                SubmissionFeedbackKind::IntRange { upper, lower } => answers.push(FeedbackAnswer {
+                    answer: ((upper + lower) / 2).to_string(),
+                    question_id: q.id,
+                }),
+            }
+        }
+        let res = core
+            .submit_feedback(&f.feedback_answer_url.unwrap(), answers)
+            .unwrap();
+        log::debug!("{:?}", res);
+        panic!()
+    }
+
+    #[test]
+    #[ignore]
     fn gets_organizations() {
         init();
 
-        let core = TmcCore::new(ROOT_URL).unwrap();
+        let core = TmcCore::new_in_config(ROOT_URL).unwrap();
         let orgs = core.get_organization("mooc").unwrap();
-        panic!("{:#?}", orgs);
+        assert_eq!(orgs.name, "MOOC");
     }
 
-    // #[test]
+    #[test]
+    #[ignore]
     fn gets_courses() {
         init();
 
         let core = authenticated_core();
         let courses = core.get_courses("mooc").unwrap();
-        panic!("{:#?}", courses);
+        assert!(!courses.is_empty());
     }
 
-    //#[test]
+    #[test]
+    #[ignore]
     fn gets_course_details() {
         init();
 
         let core = authenticated_core();
         let course = core.get_course_details(588).unwrap();
-        panic!("{:#?}", course);
+        assert_eq!(course.course.name, "mooc-2020-ohjelmointi");
     }
 
-    //#[test]
+    #[test]
+    #[ignore]
     fn gets_course_exercises() {
         init();
 
         let core = authenticated_core();
         let course_exercises = core.get_course_exercises(588).unwrap();
-        panic!("{:#?}", course_exercises);
+        assert!(!course_exercises.is_empty());
     }
 
-    //#[test]
+    #[test]
+    #[ignore]
     fn gets_exercise_details() {
         init();
 
         let core = authenticated_core();
-        let exercise_details = core.get_exercise_details(81842).unwrap();
-        panic!("{:#?}", exercise_details);
+        let exercise_details = core.get_exercise_details(81843).unwrap();
+        assert_eq!(exercise_details.course_name, "mooc-2020-ohjelmointi");
+    }
+
+    //#[test]
+    fn test() {
+        init();
+        let core = authenticated_core();
+        let root = Url::parse("https://tmc.mooc.fi/api/v8/").unwrap();
+
+        let url = root
+            .join("org/mooc/courses/java-programming-i/exercises")
+            .unwrap();
+        let res: Value = core.request_json(url.clone()).unwrap();
+        println!("auth");
+        println!("{:#}", res);
+
+        let core = TmcCore::new_in_config(ROOT_URL).unwrap();
+        let res: Value = core.request_json(url).unwrap();
+        println!("anon");
+        println!("{:#}", res);
+        panic!();
     }
 }
