@@ -142,6 +142,28 @@ fn find_project_dir<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<P
     for i in 0..zip_archive.len() {
         let file = zip_archive.by_index(i)?;
         let file_path = file.sanitized_name();
+
+        // directories may not have entries in the zip, e.g. it may only have
+        // exercise/src/main... without an entry for src, so we need to check
+        // the path components to find src
+        let mut components = file_path.components().peekable();
+        let mut collected = vec![];
+        while let Some(component) = components.next() {
+            if components.peek().is_none() {
+                // do not inspect the last component,
+                // they will have an entry that is
+                // processed in the next step
+                break;
+            }
+
+            let comp = component.as_os_str();
+            if comp == "nbproject" || comp == "src" || comp == "test" {
+                let path: PathBuf = collected.into_iter().collect();
+                return Ok(path);
+            }
+            collected.push(comp);
+        }
+
         let file_name = file_path.file_name().unwrap_or_default();
         if file.is_dir() && (file_name == "nbproject" || file_name == "src" || file_name == "test")
             || file.is_file()
@@ -263,5 +285,19 @@ mod test {
         let expected = get_relative_file_paths(Path::new("tests/data/zip/module-trivial"));
         let actual = get_relative_file_paths(temp.path());
         assert_eq!(expected, actual)
+    }
+
+    #[test]
+    fn no_src_entry() {
+        init();
+
+        let temp = tempdir().unwrap();
+        unzip(
+            Box::new(EverythingIsStudentFilePolicy {}),
+            Path::new("tests/data/zip/no-src-entry.zip"),
+            temp.path(),
+        )
+        .unwrap();
+        assert!(temp.path().join("src").exists());
     }
 }
