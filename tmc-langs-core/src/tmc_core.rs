@@ -2,9 +2,6 @@ mod api;
 
 use crate::error::{CoreError, Result};
 use crate::response::*;
-use crate::*;
-
-use tmc_langs_util::task_executor;
 
 use oauth2::basic::BasicClient;
 use oauth2::prelude::*;
@@ -12,12 +9,10 @@ use oauth2::{
     AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword, ResourceOwnerUsername, TokenResponse,
     TokenUrl,
 };
-use reqwest::{blocking::multipart::Form, blocking::Client, Url};
+use reqwest::{blocking::Client, Url};
 use serde::de::DeserializeOwned;
 use std::fmt::Debug;
-use std::io::Write;
-use std::path::{Path, PathBuf};
-use tempfile::NamedTempFile;
+use std::path::PathBuf;
 use url1::Url as Url1;
 
 pub type Token =
@@ -72,6 +67,7 @@ impl TmcCore {
         let credentials: Credentials = self.request_json(url)?;
 
         let auth_url = Url1::parse(self.auth_url.as_str()).unwrap();
+        log::debug!("authenticating at {}", auth_url);
         let client = BasicClient::new(
             ClientId::new(credentials.application_id),
             Some(ClientSecret::new(credentials.secret)),
@@ -88,18 +84,6 @@ impl TmcCore {
         self.token = Some(token);
         log::debug!("authenticated");
         Ok(())
-    }
-
-    pub fn unauthenticate(&mut self) -> Result<()> {
-        if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
-        }
-        self.token = None;
-        Ok(())
-    }
-
-    pub fn is_authenticated(&self) -> bool {
-        self.token.is_some()
     }
 
     pub fn get_organizations(&self) -> Result<Vec<Organization>> {

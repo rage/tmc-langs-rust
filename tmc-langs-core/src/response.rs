@@ -5,7 +5,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{
     de::{self, Visitor},
-    Deserialize, Deserializer,
+    Deserialize, Deserializer, Serialize,
 };
 use std::fmt;
 use std::str::FromStr;
@@ -61,7 +61,7 @@ pub struct User {
     pub administrator: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Organization {
     pub name: String,
     pub information: String,

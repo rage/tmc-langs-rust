@@ -9,6 +9,7 @@ use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
+use tmc_langs_core::TmcCore;
 use tmc_langs_framework::io::submission_processing;
 use tmc_langs_util::task_executor;
 use walkdir::WalkDir;
@@ -167,8 +168,52 @@ fn main() -> Result<()> {
                 .required(true)
                 .takes_value(true)))
 
+            .subcommand(SubCommand::with_name("core")
+                .about("tmc-core commands")
+                .arg(Arg::with_name("username")
+                    .long("username")
+                    .required(true)
+                    .takes_value(true))
+                .arg(Arg::with_name("password")
+                    .long("password")
+                    .required(true)
+                    .takes_value(true))
+                .subcommand(SubCommand::with_name("get-organizations")
+                    .about("Get organizations."))
+                .subcommand(SubCommand::with_name("send-diagnostics")
+                    .about("Send diagnostics."))
+                .subcommand(SubCommand::with_name("download-or-update-exercises")
+                    .about("Download exercise."))
+                .subcommand(SubCommand::with_name("get-course-details")
+                    .about("Get course details."))
+                .subcommand(SubCommand::with_name("list-courses")
+                    .about("List courses."))
+                .subcommand(SubCommand::with_name("paste-with-comment")
+                    .about("Send exercise to pastebin with comment."))
+                .subcommand(SubCommand::with_name("run-checkstyle")
+                    .about("Run checkstyle."))
+                .subcommand(SubCommand::with_name("run-tests")
+                    .about("Run tests."))
+                .subcommand(SubCommand::with_name("send-feedback")
+                    .about("Send feedback."))
+                .subcommand(SubCommand::with_name("send-snapshot-events")
+                    .about("Send snapshot events(?)."))
+                .subcommand(SubCommand::with_name("submit")
+                    .about("Submit exercise."))
+                .subcommand(SubCommand::with_name("get-exercise-updates")
+                    .about("Get exercise updates."))
+                .subcommand(SubCommand::with_name("mark-review-as-read")
+                    .about("Mark review as read."))
+                .subcommand(SubCommand::with_name("get-unread-reviews")
+                    .about("Get unread reviews."))
+                .subcommand(SubCommand::with_name("request-code-review")
+                    .about("Request code review."))
+                .subcommand(SubCommand::with_name("download-model-solution")
+                    .about("Download model solutions.")))
+
         .get_matches();
 
+    // non-core
     if let Some(matches) = matches.subcommand_matches("checkstyle") {
         let exercise_path = matches.value_of("exercisePath").unwrap();
         let exercise_path = Path::new(exercise_path);
@@ -335,6 +380,55 @@ fn main() -> Result<()> {
         let exercise_path = Path::new(exercise_path);
 
         task_executor::clean(exercise_path)?;
+    }
+
+    // core
+    if let Some(matches) = matches.subcommand_matches("core") {
+        let username = matches.value_of("username").unwrap();
+        let password = matches.value_of("password").unwrap();
+
+        let mut core =
+            TmcCore::new_in_config("https://tmc.mooc.fi").expect("failed to create TmcCore");
+        core.authenticate("vscode_plugin", username.to_string(), password.to_string())
+            .expect("failed to authenticate TmcCore");
+
+        if let Some(matches) = matches.subcommand_matches("get-organizations") {
+            let orgs = core
+                .get_organizations()
+                .expect("failed to fetch organizations");
+            let orgs = serde_json::to_value(&orgs).expect("failed to parse to JSON");
+            println!("{}", orgs);
+        } else if let Some(matches) = matches.subcommand_matches("send-diagnostics") {
+            core.send_diagnostics()
+        } else if let Some(matches) = matches.subcommand_matches("download-or-update-exercises") {
+            core.download_or_update_exercises()
+        } else if let Some(matches) = matches.subcommand_matches("get-course-details") {
+            core.get_course_details()
+        } else if let Some(matches) = matches.subcommand_matches("list-courses") {
+            core.list_courses()
+        } else if let Some(matches) = matches.subcommand_matches("paste-with-comment") {
+            core.paste_with_comment()
+        } else if let Some(matches) = matches.subcommand_matches("run-checkstyle") {
+            core.run_checkstyle()
+        } else if let Some(matches) = matches.subcommand_matches("run-tests") {
+            core.run_tests()
+        } else if let Some(matches) = matches.subcommand_matches("send-feedback") {
+            core.send_feedback()
+        } else if let Some(matches) = matches.subcommand_matches("send-snapshot-events") {
+            core.send_snapshot_events()
+        } else if let Some(matches) = matches.subcommand_matches("submit") {
+            core.submit()
+        } else if let Some(matches) = matches.subcommand_matches("get-exercise-updates") {
+            core.get_exercise_updates()
+        } else if let Some(matches) = matches.subcommand_matches("mark-review-as-read") {
+            core.mark_review_as_read()
+        } else if let Some(matches) = matches.subcommand_matches("get-unread-reviews") {
+            core.get_unread_reviews()
+        } else if let Some(matches) = matches.subcommand_matches("request-code-review") {
+            core.request_code_review()
+        } else if let Some(matches) = matches.subcommand_matches("download-model-solution") {
+            core.download_model_solution()
+        }
     }
 
     Ok(())
