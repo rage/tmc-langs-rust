@@ -11,6 +11,8 @@ use oauth2::{prelude::SecretNewType, TokenResponse};
 use reqwest::blocking::{multipart::Form, RequestBuilder, Response as ReqwestResponse};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
+use std::collections::HashMap;
+use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 use tempfile::NamedTempFile;
@@ -65,11 +67,11 @@ impl TmcCore {
             .json_res()
     }
 
-    fn download_and_extract(&self, url_tail: &str, target: &Path) -> Result<()> {
+    fn download(&self, url_tail: &str, target: &Path) -> Result<()> {
         let url = self.api_url.join(&url_tail)?;
 
         // download zip
-        let mut zip_file = NamedTempFile::new()?;
+        let mut target_file = File::create(target)?;
         log::debug!("downloading {}", url);
         let mut res = self.client.get(url).authenticate(&self.token).send()?;
         // TODO: improve error handling
@@ -81,10 +83,7 @@ impl TmcCore {
             }
             return Err(CoreError::HttpStatus);
         }
-        res.copy_to(&mut zip_file)?; // write response to target file
-
-        // extract
-        task_executor::extract_project(&zip_file.path(), target)?;
+        res.copy_to(&mut target_file)?; // write response to target file
         Ok(())
     }
 
@@ -408,7 +407,7 @@ impl TmcCore {
             percent_encode(course_name),
             percent_encode(exercise_name)
         );
-        self.download_and_extract(&url_tail, target)
+        self.download(&url_tail, target)
     }
 
     pub(super) fn organizations(&self) -> Result<Vec<Organization>> {
@@ -443,7 +442,7 @@ impl TmcCore {
 
     pub(super) fn download_exercise(&self, exercise_id: usize, target: &Path) -> Result<()> {
         let url_tail = format!("core/exercises/{}/download", exercise_id);
-        self.download_and_extract(&url_tail, target)
+        self.download(&url_tail, target)
     }
 
     pub(super) fn core_exercise(&self, exercise_id: usize) -> Result<ExerciseDetails> {
@@ -453,13 +452,47 @@ impl TmcCore {
 
     pub(super) fn download_solution(&self, exercise_id: usize, target: &Path) -> Result<()> {
         let url_tail = format!("core/exercises/{}/solution/download", exercise_id);
-        self.download_and_extract(&url_tail, target)
+        self.download(&url_tail, target)
     }
 
     pub(super) fn post_submission(
         &self,
         exercise_id: usize,
         submission: &Path,
+    ) -> Result<NewSubmission> {
+        self.post_submission_with_params(exercise_id, submission, None)
+    }
+
+    pub(super) fn post_submission_to_paste(
+        &self,
+        exercise_id: usize,
+        submission: &Path,
+        paste_message: String,
+    ) -> Result<NewSubmission> {
+        let mut params = HashMap::new();
+        params.insert("paste".to_string(), "1".to_string());
+        params.insert("message_for_paste".to_string(), paste_message);
+        self.post_submission_with_params(exercise_id, submission, Some(params))
+    }
+
+    pub(super) fn post_submission_for_review(
+        &self,
+        exercise_id: usize,
+        submission: &Path,
+        message_for_reviewer: String,
+    ) -> Result<NewSubmission> {
+        let mut params = HashMap::new();
+        params.insert("request_review".to_string(), "1".to_string());
+        params.insert("message_for_reviewer".to_string(), message_for_reviewer);
+        self.post_submission_with_params(exercise_id, submission, Some(params))
+    }
+
+    // TODO: test with params
+    pub(super) fn post_submission_with_params(
+        &self,
+        exercise_id: usize,
+        submission: &Path,
+        params: Option<HashMap<String, String>>,
     ) -> Result<NewSubmission> {
         if self.token.is_none() {
             return Err(CoreError::AuthRequired);
@@ -476,7 +509,12 @@ impl TmcCore {
             .unwrap();
 
         // send
-        let form = Form::new().file("submission[file]", file.path())?;
+        let mut form = Form::new().file("submission[file]", file.path())?;
+        if let Some(params) = params {
+            for (key, val) in params {
+                form = form.text(key, val);
+            }
+        }
 
         log::debug!("posting {}", url);
         let mut req = self.client.post(url).multipart(form);
@@ -495,7 +533,7 @@ impl TmcCore {
 
     pub(super) fn download_submission(&self, submission_id: usize, target: &Path) -> Result<()> {
         let url_tail = format!("core/submissions/{}/download", submission_id);
-        self.download_and_extract(&url_tail, target)
+        self.download(&url_tail, target)
     }
 
     pub(super) fn post_feedback(

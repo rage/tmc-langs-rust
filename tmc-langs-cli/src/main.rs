@@ -178,12 +178,21 @@ fn main() -> Result<()> {
                     .long("password")
                     .required(true)
                     .takes_value(true))
+
                 .subcommand(SubCommand::with_name("get-organizations")
                     .about("Get organizations."))
+
                 .subcommand(SubCommand::with_name("send-diagnostics")
                     .about("Send diagnostics."))
+
                 .subcommand(SubCommand::with_name("download-or-update-exercises")
-                    .about("Download exercise."))
+                    .about("Download exercise.")
+                    .arg(Arg::with_name("exercises")
+                        .help("A list of exercise ids and the paths where they should be extracted to, formatted as follows: \"123:path/to/exercise,234:another/path\". The paths should not contain the characters ':' or ',' as they are used as separators (TODO: rework)")
+                        .long("exercises")
+                        .required(true)
+                        .takes_value(true)))
+
                 .subcommand(SubCommand::with_name("get-course-details")
                     .about("Get course details."))
                 .subcommand(SubCommand::with_name("list-courses")
@@ -401,33 +410,62 @@ fn main() -> Result<()> {
         } else if let Some(matches) = matches.subcommand_matches("send-diagnostics") {
             core.send_diagnostics()
         } else if let Some(matches) = matches.subcommand_matches("download-or-update-exercises") {
-            core.download_or_update_exercises()
+            let exercises = matches.value_of("exercises").unwrap();
+            let exercises = exercises
+                .split(',')
+                .into_iter()
+                .map(|e| {
+                    let mut split = e.split(':');
+                    let exercise_id = split.next().expect("malformed exercises");
+                    let path = split.next().expect("malformed exercises");
+
+                    let exercise_id =
+                        usize::from_str_radix(exercise_id, 10).expect("malformed exercise id");
+                    let path = Path::new(path);
+                    (exercise_id, path)
+                })
+                .collect();
+
+            core.download_or_update_exercises(exercises).unwrap()
         } else if let Some(matches) = matches.subcommand_matches("get-course-details") {
-            core.get_course_details()
+            //core.get_course_details()
+            todo!()
         } else if let Some(matches) = matches.subcommand_matches("list-courses") {
-            core.list_courses()
+            //core.list_courses()
+            todo!()
         } else if let Some(matches) = matches.subcommand_matches("paste-with-comment") {
-            core.paste_with_comment()
+            //core.paste_with_comment()
+            todo!()
         } else if let Some(matches) = matches.subcommand_matches("run-checkstyle") {
-            core.run_checkstyle()
+            //core.run_checkstyle()
+            todo!()
         } else if let Some(matches) = matches.subcommand_matches("run-tests") {
-            core.run_tests()
+            //core.run_tests()
+            todo!()
         } else if let Some(matches) = matches.subcommand_matches("send-feedback") {
-            core.send_feedback()
+            //core.send_feedback()
+            todo!()
         } else if let Some(matches) = matches.subcommand_matches("send-snapshot-events") {
-            core.send_snapshot_events()
+            //core.send_snapshot_events()
+            todo!()
         } else if let Some(matches) = matches.subcommand_matches("submit") {
-            core.submit()
+            //core.submit()
+            todo!()
         } else if let Some(matches) = matches.subcommand_matches("get-exercise-updates") {
-            core.get_exercise_updates()
+            //core.get_exercise_updates()
+            todo!()
         } else if let Some(matches) = matches.subcommand_matches("mark-review-as-read") {
-            core.mark_review_as_read()
+            //core.mark_review_as_read()
+            todo!()
         } else if let Some(matches) = matches.subcommand_matches("get-unread-reviews") {
-            core.get_unread_reviews()
+            //core.get_unread_reviews()
+            todo!()
         } else if let Some(matches) = matches.subcommand_matches("request-code-review") {
-            core.request_code_review()
+            //core.request_code_review()
+            todo!()
         } else if let Some(matches) = matches.subcommand_matches("download-model-solution") {
-            core.download_model_solution()
+            //core.download_model_solution()
+            todo!()
         }
     }
 

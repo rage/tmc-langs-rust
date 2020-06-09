@@ -1,8 +1,11 @@
 mod api;
 
 use crate::error::{CoreError, Result};
+use crate::request::*;
 use crate::response::*;
 
+use crate::response::{Course, CourseDetails, Organization};
+use isolang::Language;
 use oauth2::basic::BasicClient;
 use oauth2::prelude::*;
 use oauth2::{
@@ -12,7 +15,11 @@ use oauth2::{
 use reqwest::{blocking::Client, Url};
 use serde::de::DeserializeOwned;
 use std::fmt::Debug;
+use std::path::Path;
 use std::path::PathBuf;
+use tempfile::NamedTempFile;
+use tmc_langs_util::task_executor;
+use tmc_langs_util::{RunResult, ValidationResult};
 use url1::Url as Url1;
 
 pub type Token =
@@ -94,60 +101,84 @@ impl TmcCore {
         todo!("https://tmc-bandicoot.testmycode.io?")
     }
 
-    pub fn download_or_update_exercises(&self) {
-        todo!()
+    pub fn download_or_update_exercises(&self, exercises: Vec<(usize, &Path)>) -> Result<()> {
+        for (exercise_id, target) in exercises {
+            let zip_file = NamedTempFile::new()?;
+            self.download_exercise(exercise_id, zip_file.path())?;
+            task_executor::extract_project(zip_file.path(), target)?;
+        }
+        Ok(())
     }
 
-    pub fn get_course_details(&self) {
-        todo!()
+    pub fn get_course_details(&self, course_id: usize) -> Result<CourseDetails> {
+        self.core_course(course_id)
     }
 
-    pub fn list_courses(&self) {
-        todo!()
+    pub fn list_courses(&self, organization_slug: &str) -> Result<Vec<Course>> {
+        self.organization_courses(organization_slug)
     }
 
-    pub fn paste_with_comment(&self) {
-        todo!()
+    pub fn paste_with_comment(
+        &self,
+        exercise_id: usize,
+        submission_path: &Path,
+        paste_message: String,
+    ) -> Result<NewSubmission> {
+        self.post_submission_to_paste(exercise_id, submission_path, paste_message)
     }
 
-    pub fn run_checkstyle(&self) {
-        todo!()
+    pub fn run_checkstyle(
+        &self,
+        path: &Path,
+        locale: Language,
+    ) -> Result<Option<ValidationResult>> {
+        Ok(task_executor::run_check_code_style(path, locale)?)
     }
 
-    pub fn run_tests(&self) {
-        todo!()
+    pub fn run_tests(&self, path: &Path) -> Result<RunResult> {
+        Ok(task_executor::run_tests(path)?)
     }
 
-    pub fn send_feedback(&self) {
-        todo!()
+    pub fn send_feedback(
+        &self,
+        submission_id: usize,
+        feedback: Vec<FeedbackAnswer>,
+    ) -> Result<SubmissionFeedbackResponse> {
+        self.post_feedback(submission_id, feedback)
     }
 
     pub fn send_snapshot_events(&self) {
         todo!("post to spyware urls")
     }
 
-    pub fn submit(&self) {
-        todo!()
+    pub fn submit(&self, exercise_id: usize, submission_path: &Path) -> Result<NewSubmission> {
+        self.post_submission(exercise_id, submission_path)
     }
 
-    pub fn get_exercise_updates(&self) {
-        todo!()
+    pub fn get_exercise_updates(&self, course_id: usize) -> Result<()> {
+        let course = self.core_course(course_id)?;
+        todo!("uses an existing course object")
     }
 
     pub fn mark_review_as_read(&self) {
-        todo!()
+        todo!("review update_url?")
     }
 
-    pub fn get_unread_reviews(&self) {
-        todo!()
+    pub fn get_unread_reviews(&self, course_id: usize) -> Result<Vec<Review>> {
+        self.reviews(course_id)
     }
 
-    pub fn request_code_review(&self) {
-        todo!()
+    pub fn request_code_review(
+        &self,
+        exercise_id: usize,
+        submission_path: &Path,
+        message_for_reviewer: String,
+    ) -> Result<NewSubmission> {
+        self.post_submission_for_review(exercise_id, submission_path, message_for_reviewer)
     }
 
-    pub fn download_model_solution(&self) {
-        todo!()
+    pub fn download_model_solution(&self, exercise_id: usize, target: &Path) -> Result<()> {
+        self.download_solution(exercise_id, target)
     }
 
     pub fn check_submission(&self, submission_url: &str) -> Result<SubmissionProcessingStatus> {
