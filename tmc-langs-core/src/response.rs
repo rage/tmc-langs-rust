@@ -17,6 +17,7 @@ use thiserror::Error;
 #[serde(untagged)]
 pub enum Response<T> {
     Ok(T),
+    Errs(ResponseErrors),
     Err(ResponseError),
 }
 
@@ -26,6 +27,7 @@ impl<T> Response<T> {
         match self {
             Self::Ok(t) => Ok(t),
             Self::Err(err) => Err(err.into()),
+            Self::Errs(errs) => Err(errs.into()),
         }
     }
 }
@@ -33,8 +35,15 @@ impl<T> Response<T> {
 /// Represents an error response from tmc-server
 #[derive(Debug, Error, Deserialize)]
 #[error("Response contained an error: {errors:#?}")]
-pub struct ResponseError {
+pub struct ResponseErrors {
     pub errors: Vec<String>,
+}
+
+/// Represents an error response from tmc-server
+#[derive(Debug, Error, Deserialize)]
+#[error("Response contained an error: {error:#?}")]
+pub struct ResponseError {
+    pub error: String,
 }
 
 /// OAuth2 credentials
@@ -72,6 +81,31 @@ pub struct Course {
     pub reviews_url: String,
     pub comet_url: String,
     pub spyware_urls: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct NuCourse {
+    pub name: String,
+    //pub hide_after
+    pub hidden: bool,
+    pub cache_version: usize,
+    //pub spreadsheet_key
+    //pub hidden_if_registered_after
+    pub refreshed_at: String,
+    pub locked_exercise_points_visible: bool,
+    pub description: String,
+    //pub paste_visibility
+    //pub formal_name
+    pub certificate_downloadable: bool,
+    //pub certificate_unlock_spec
+    pub organization_id: usize,
+    pub disabled_status: String,
+    pub title: String,
+    pub material_url: String,
+    pub course_template_id: usize,
+    pub hide_submission_results: bool,
+    pub external_scoreboard_url: String,
+    pub organization_slug: String,
 }
 
 /// Represents a course details response from tmc-server,
@@ -152,11 +186,38 @@ pub struct CourseExercise {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct NuCourseExercise {
+    pub id: usize,
+    pub available_points: Vec<ExercisePoint>,
+    pub name: String,
+    pub publish_time: Option<String>,
+    pub solution_visible_after: Option<String>,
+    pub deadline: Option<String>,
+    pub disabled: bool,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct ExercisePoint {
     pub id: usize,
     pub exercise_id: usize,
     pub name: String,
     pub requires_review: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct NuExercisePoint {
+    awarded_point: AwardedPoint,
+    exercise_id: usize,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AwardedPoint {
+    id: usize,
+    course_id: usize,
+    user_id: usize,
+    submission_id: usize,
+    name: String,
+    created_at: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -183,9 +244,9 @@ pub struct Submission {
     pub processed: bool,
     pub all_tests_passed: bool,
     pub points: Option<String>,
-    pub processing_tried_at: String,
-    pub processing_began_at: String,
-    pub processing_completed_at: String,
+    pub processing_tried_at: Option<String>,
+    pub processing_began_at: Option<String>,
+    pub processing_completed_at: Option<String>,
     pub times_sent_to_sandbox: usize,
     pub processing_attempts_started_at: String,
     pub params_json: Option<String>,
@@ -335,6 +396,22 @@ impl<'de> Visitor<'de> for SubmissionFeedbackKindVisitor {
             Err(E::custom("expected \"text\" or \"intrange[x..y]\""))
         }
     }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Review {
+    pub submission_id: String,
+    pub exercise_name: String,
+    pub id: usize,
+    pub marked_as_read: bool,
+    pub reviewer_name: String,
+    pub review_body: String,
+    pub points: Vec<String>,
+    pub points_not_awarded: Vec<String>,
+    pub url: String,
+    pub update_url: String,
+    pub created_at: String,
+    pub updated_at: String,
 }
 
 #[cfg(test)]

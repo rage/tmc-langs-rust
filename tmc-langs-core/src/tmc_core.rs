@@ -1,3 +1,5 @@
+mod api;
+
 use crate::response::*;
 use crate::*;
 
@@ -151,19 +153,27 @@ impl TmcCore {
         self.request_json(url)
     }
 
-    pub fn get_exercise_details(&self, course_id: usize) -> Result<ExerciseDetails, CoreError> {
+    pub fn get_exercise_details(&self, exercise_id: usize) -> Result<ExerciseDetails, CoreError> {
+        if self.token.is_none() {
+            return Err(CoreError::AuthRequired);
+        }
+
         let url = self
             .api_url
-            .join(&format!("core/exercises/{}", course_id))
+            .join(&format!("core/exercises/{}", exercise_id))
             .unwrap();
         self.request_json(url)
     }
 
-    pub fn download_exercise(
+    pub fn download_exercise_old(
         &self,
         exercise_id: u32,
         target: &Path, // TODO: get target from settings?
     ) -> Result<(), CoreError> {
+        if self.token.is_none() {
+            return Err(CoreError::AuthRequired);
+        }
+
         // download zip
         let mut zip_file = NamedTempFile::new()?;
         let url = self
@@ -181,6 +191,10 @@ impl TmcCore {
     }
 
     pub fn get_submissions(&self, course_id: usize) -> Result<Vec<Submission>, CoreError> {
+        if self.token.is_none() {
+            return Err(CoreError::AuthRequired);
+        }
+
         let url = self
             .api_url
             .join(&format!("courses/{}/users/current/submissions", course_id))?;
@@ -189,11 +203,15 @@ impl TmcCore {
         Ok(res)
     }
 
-    pub fn download_submission(
+    pub fn download_submission_old(
         &self,
         submission_id: usize,
         target: &Path,
     ) -> Result<(), CoreError> {
+        if self.token.is_none() {
+            return Err(CoreError::AuthRequired);
+        }
+
         // download zip
         let mut zip_file = NamedTempFile::new()?;
         let url = self
@@ -215,6 +233,10 @@ impl TmcCore {
         exercise_id: usize,
         exercise_path: &Path, // TODO: get from settings?
     ) -> Result<NewSubmission, CoreError> {
+        if self.token.is_none() {
+            return Err(CoreError::AuthRequired);
+        }
+
         // compress
         let compressed = task_executor::compress_project(exercise_path)?;
         let mut file = NamedTempFile::new()?;
@@ -244,6 +266,10 @@ impl TmcCore {
         &self,
         submission_url: &str,
     ) -> Result<SubmissionProcessingStatus, CoreError> {
+        if self.token.is_none() {
+            return Err(CoreError::AuthRequired);
+        }
+
         let url = Url::parse(submission_url)?;
         let res: Response<SubmissionProcessingStatus> = self.request_json(url)?;
         let res = res.into_result()?;
@@ -255,6 +281,10 @@ impl TmcCore {
         feedback_url: &str,
         feedback_answers: Vec<FeedbackAnswer>,
     ) -> Result<SubmissionFeedbackResponse, CoreError> {
+        if self.token.is_none() {
+            return Err(CoreError::AuthRequired);
+        }
+
         let mut req = self.client.post(feedback_url);
         if let Some(token) = &self.token {
             req = req.bearer_auth(token.access_token().secret());
@@ -282,15 +312,63 @@ impl TmcCore {
         res.into_result()
     }
 
-    fn download_model_solution(&self) {
+    pub fn download_model_solution(
+        &self,
+        exercise_id: usize,
+        target: &Path,
+    ) -> Result<(), CoreError> {
+        // download zip
+        let mut zip_file = NamedTempFile::new()?;
+        let url = self
+            .api_url
+            .join(&format!("exercises/{}/solution", exercise_id))?;
+
+        log::debug!("requesting {}", url);
+        let mut res = self.client.get(url).send()?;
+        res.copy_to(&mut zip_file)?; // write response to target file
+
+        // extract
+        task_executor::extract_project(&zip_file.path(), target)?;
+        Ok(())
+    }
+
+    pub fn get_unread_reviews(&self, course_id: usize) -> Result<Vec<Review>, CoreError> {
+        let url = self
+            .api_url
+            .join(&format!("core/courses/{}/reviews", course_id))?;
+
+        let res: Response<Vec<Review>> = self.request_json(url)?;
+        let res = res.into_result()?;
+        Ok(res)
+    }
+
+    pub fn get_updateable_exercises(&self, course_id: usize) -> Result<(), CoreError> {
+        let details = self.get_course_details(course_id)?;
+
         todo!()
     }
 
-    fn get_unread_reviews(&self) {
+    fn submit_to_pastebin(&self) {
         todo!()
     }
 
-    fn get_updateable_exercises(&self) {
+    fn request_code_review(&self) {
+        todo!()
+    }
+
+    fn mark_review_as_read(&self) {
+        todo!()
+    }
+
+    fn run_tests(&self) {
+        todo!()
+    }
+
+    fn run_checkstyle(&self) {
+        todo!()
+    }
+
+    fn send_diagnostics(&self) {
         todo!()
     }
 }
@@ -338,7 +416,7 @@ mod test {
 
         let core = authenticated_core();
         let target = Path::new("test-targ");
-        core.download_exercise(81843, target).unwrap();
+        core.download_exercise_old(81843, target).unwrap();
         assert!(target.exists());
     }
 
@@ -353,7 +431,7 @@ mod test {
     }
 
     #[test]
-    //#[ignore]
+    #[ignore]
     fn submits_feedback() {
         init();
 
@@ -444,25 +522,5 @@ mod test {
         let core = authenticated_core();
         let exercise_details = core.get_exercise_details(81843).unwrap();
         assert_eq!(exercise_details.course_name, "mooc-2020-ohjelmointi");
-    }
-
-    //#[test]
-    fn test() {
-        init();
-        let core = authenticated_core();
-        let root = Url::parse("https://tmc.mooc.fi/api/v8/").unwrap();
-
-        let url = root
-            .join("org/mooc/courses/java-programming-i/exercises")
-            .unwrap();
-        let res: Value = core.request_json(url.clone()).unwrap();
-        println!("auth");
-        println!("{:#}", res);
-
-        let core = TmcCore::new_in_config(ROOT_URL).unwrap();
-        let res: Value = core.request_json(url).unwrap();
-        println!("anon");
-        println!("{:#}", res);
-        panic!();
     }
 }

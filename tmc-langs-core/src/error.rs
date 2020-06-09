@@ -1,6 +1,8 @@
 use crate::response;
 use thiserror::Error;
 
+pub(crate) type Result<T> = std::result::Result<T, CoreError>;
+
 #[derive(Debug, Error)]
 pub enum CoreError {
     #[error(transparent)]
@@ -11,6 +13,10 @@ pub enum CoreError {
     Parse(#[from] url::ParseError),
     #[error(transparent)]
     Response(#[from] response::ResponseError),
+    #[error(transparent)]
+    ResponseErrors(#[from] response::ResponseErrors),
+    #[error("todo http status error")]
+    HttpStatus,
     #[error("token error todo {0}")]
     Token(oauth2::RequestTokenError<oauth2::basic::BasicErrorResponseType>),
     #[error("already authenticated")]
