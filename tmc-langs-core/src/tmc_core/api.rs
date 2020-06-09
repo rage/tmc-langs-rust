@@ -88,30 +88,34 @@ impl TmcCore {
         Ok(())
     }
 
-    pub fn user(&self, user_id: usize) -> Result<User> {
+    pub(super) fn user(&self, user_id: usize) -> Result<User> {
         let url_tail = format!("users/{}", user_id);
         self.get_json(&url_tail)
     }
 
-    pub fn user_current(&self) -> Result<User> {
+    pub(super) fn user_current(&self) -> Result<User> {
         let url_tail = "users/current";
         self.get_json(url_tail)
     }
 
-    pub fn basic_info_by_usernames(&self) -> Result<Vec<User>> {
+    pub(super) fn basic_info_by_usernames(&self) -> Result<Vec<User>> {
         todo!("needs admin")
     }
 
-    pub fn basic_info_by_emails(&self) -> Result<Vec<User>> {
+    pub(super) fn basic_info_by_emails(&self) -> Result<Vec<User>> {
         todo!("needs admin")
     }
 
-    pub fn course(&self, course_id: usize) -> Result<NuCourse> {
+    pub(super) fn course(&self, course_id: usize) -> Result<NuCourse> {
         let url_tail = format!("courses/{}", course_id);
         self.get_json(&url_tail)
     }
 
-    pub fn course_by_name(&self, organization_slug: &str, course_name: &str) -> Result<NuCourse> {
+    pub(super) fn course_by_name(
+        &self,
+        organization_slug: &str,
+        course_name: &str,
+    ) -> Result<NuCourse> {
         let url_tail = format!(
             "org/{}/courses/{}",
             percent_encode(organization_slug),
@@ -120,12 +124,12 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub fn course_points(&self, course_id: usize) -> Result<()> {
+    pub(super) fn course_points(&self, course_id: usize) -> Result<()> {
         let url_tail = format!("courses/{}/points", course_id);
         todo!("times out")
     }
 
-    pub fn exercise_points(
+    pub(super) fn exercise_points(
         &self,
         course_id: usize,
         exercise_name: &str,
@@ -138,7 +142,7 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub fn exercise_points_for_user(
+    pub(super) fn exercise_points_for_user(
         &self,
         course_id: usize,
         exercise_name: &str,
@@ -153,7 +157,7 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub fn exercise_points_for_current_user(
+    pub(super) fn exercise_points_for_current_user(
         &self,
         course_id: usize,
         exercise_name: &str,
@@ -166,7 +170,7 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub fn course_points_for_user(
+    pub(super) fn course_points_for_user(
         &self,
         course_id: usize,
         user_id: usize,
@@ -175,12 +179,15 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub fn course_points_for_current_user(&self, course_id: usize) -> Result<Vec<NuExercisePoint>> {
+    pub(super) fn course_points_for_current_user(
+        &self,
+        course_id: usize,
+    ) -> Result<Vec<NuExercisePoint>> {
         let url_tail = format!("courses/{}/users/current/points", course_id);
         self.get_json(&url_tail)
     }
 
-    pub fn course_points_by_name(
+    pub(super) fn course_points_by_name(
         &self,
         organization_slug: &str,
         course_name: &str,
@@ -193,7 +200,11 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub fn eligible_students(&self, organization_slug: &str, course_name: &str) -> Result<()> {
+    pub(super) fn eligible_students(
+        &self,
+        organization_slug: &str,
+        course_name: &str,
+    ) -> Result<()> {
         todo!("This feature is only for MOOC-organization's 2019 programming MOOC");
         let url_tail = format!(
             "org/{}/courses/{}/eligible_students",
@@ -203,7 +214,7 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub fn exercise_points_by_name(
+    pub(super) fn exercise_points_by_name(
         &self,
         organization_slug: &str,
         course_name: &str,
@@ -218,7 +229,7 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub fn exercise_points_by_name_for_current_user(
+    pub(super) fn exercise_points_by_name_for_current_user(
         &self,
         organization_slug: &str,
         course_name: &str,
@@ -233,7 +244,7 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub fn exercise_points_by_name_for_user(
+    pub(super) fn exercise_points_by_name_for_user(
         &self,
         organization_slug: &str,
         course_name: &str,
@@ -250,7 +261,7 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub fn course_points_by_name_for_user(
+    pub(super) fn course_points_by_name_for_user(
         &self,
         organization_slug: &str,
         course_name: &str,
@@ -265,7 +276,7 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub fn course_points_by_name_for_current_user(
+    pub(super) fn course_points_by_name_for_current_user(
         &self,
         organization_slug: &str,
         course_name: &str,
@@ -278,17 +289,20 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub fn course_submissions(&self, course_id: usize) -> Result<Vec<Submission>> {
+    pub(super) fn course_submissions(&self, course_id: usize) -> Result<Vec<Submission>> {
         let url_tail = format!("courses/{}/submissions", course_id);
         self.get_json(&url_tail)
     }
 
-    pub fn course_submissions_in_last_hour(&self, course_id: usize) -> Result<Vec<Submission>> {
+    pub(super) fn course_submissions_in_last_hour(
+        &self,
+        course_id: usize,
+    ) -> Result<Vec<Submission>> {
         let url_tail = format!("courses/{}/submissions/last_hour", course_id);
         self.get_json(&url_tail)
     }
 
-    pub fn course_submissions_for_user(
+    pub(super) fn course_submissions_for_user(
         &self,
         course_id: usize,
         user_id: usize,
@@ -297,12 +311,15 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub fn course_submissions_for_current_user(&self, course_id: usize) -> Result<Vec<Submission>> {
+    pub(super) fn course_submissions_for_current_user(
+        &self,
+        course_id: usize,
+    ) -> Result<Vec<Submission>> {
         let url_tail = format!("courses/{}/users/current/submissions", course_id);
         self.get_json(&url_tail)
     }
 
-    pub fn exercise_submissions_for_user(
+    pub(super) fn exercise_submissions_for_user(
         &self,
         exercise_id: usize,
         user_id: usize,
@@ -311,7 +328,7 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub fn exercise_submissions_for_current_user(
+    pub(super) fn exercise_submissions_for_current_user(
         &self,
         exercise_id: usize,
     ) -> Result<Vec<Submission>> {
@@ -319,7 +336,7 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub fn exercise_submissions_by_name(
+    pub(super) fn exercise_submissions_by_name(
         &self,
         organization_slug: &str,
         course_name: &str,
@@ -332,7 +349,7 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub fn exercise_submissions_by_name_for_user(
+    pub(super) fn exercise_submissions_by_name_for_user(
         &self,
         organization_slug: &str,
         course_name: &str,
@@ -347,7 +364,7 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub fn exercise_submissions_by_name_for_currrent_user(
+    pub(super) fn exercise_submissions_by_name_for_currrent_user(
         &self,
         organization_slug: &str,
         course_name: &str,
@@ -360,12 +377,12 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub fn exercises(&self, course_id: usize) -> Result<Vec<CourseExercise>> {
+    pub(super) fn exercises(&self, course_id: usize) -> Result<Vec<CourseExercise>> {
         let url_tail = format!("courses/{}/exercises", course_id);
         self.get_json(&url_tail)
     }
 
-    pub fn exercises_by_name(
+    pub(super) fn exercises_by_name(
         &self,
         organization_slug: &str,
         course_name: &str,
@@ -378,7 +395,7 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub fn download_exercise_by_name(
+    pub(super) fn download_exercise_by_name(
         &self,
         organization_slug: &str,
         course_name: &str,
@@ -394,52 +411,56 @@ impl TmcCore {
         self.download_and_extract(&url_tail, target)
     }
 
-    pub fn organizations(&self) -> Result<Vec<Organization>> {
+    pub(super) fn organizations(&self) -> Result<Vec<Organization>> {
         let url_tail = "org.json";
         self.get_json(url_tail)
     }
 
-    pub fn organization(&self, organization_slug: &str) -> Result<Organization> {
+    pub(super) fn organization(&self, organization_slug: &str) -> Result<Organization> {
         let url_tail = format!("org/{}.json", organization_slug);
         self.get_json(&url_tail)
     }
 
-    pub fn core_course(&self, course_id: usize) -> Result<CourseDetails> {
+    pub(super) fn core_course(&self, course_id: usize) -> Result<CourseDetails> {
         let url_tail = format!("core/courses/{}", course_id);
         self.get_json(&url_tail)
     }
 
-    pub fn reviews(&self, course_id: usize) -> Result<Vec<Review>> {
+    pub(super) fn reviews(&self, course_id: usize) -> Result<Vec<Review>> {
         let url_tail = format!("core/courses/{}/reviews", course_id);
         self.get_json(&url_tail)
     }
 
-    pub fn review(&self, course_id: usize, review_id: usize) -> Result<Vec<Review>> {
+    pub(super) fn review(&self, course_id: usize, review_id: usize) -> Result<Vec<Review>> {
         let url_tail = format!("core/courses/{}/reviews/{}", course_id, review_id);
         self.get_json(&url_tail)
     }
 
-    pub fn unlock(&self, course_id: usize) -> Result<()> {
+    pub(super) fn unlock(&self, course_id: usize) -> Result<()> {
         let url_tail = format!("core/courses/{}", course_id);
         todo!()
     }
 
-    pub fn download_exercise(&self, exercise_id: usize, target: &Path) -> Result<()> {
+    pub(super) fn download_exercise(&self, exercise_id: usize, target: &Path) -> Result<()> {
         let url_tail = format!("core/exercises/{}/download", exercise_id);
         self.download_and_extract(&url_tail, target)
     }
 
-    pub fn core_exercise(&self, exercise_id: usize) -> Result<ExerciseDetails> {
+    pub(super) fn core_exercise(&self, exercise_id: usize) -> Result<ExerciseDetails> {
         let url_tail = format!("core/exercises/{}", exercise_id);
         self.get_json(&url_tail)
     }
 
-    pub fn download_solution(&self, exercise_id: usize, target: &Path) -> Result<()> {
+    pub(super) fn download_solution(&self, exercise_id: usize, target: &Path) -> Result<()> {
         let url_tail = format!("core/exercises/{}/solution/download", exercise_id);
         self.download_and_extract(&url_tail, target)
     }
 
-    pub fn post_submission(&self, exercise_id: usize, submission: &Path) -> Result<NewSubmission> {
+    pub(super) fn post_submission(
+        &self,
+        exercise_id: usize,
+        submission: &Path,
+    ) -> Result<NewSubmission> {
         if self.token.is_none() {
             return Err(CoreError::AuthRequired);
         }
@@ -467,17 +488,17 @@ impl TmcCore {
         Ok(res)
     }
 
-    pub fn organization_courses(&self, organization_slug: &str) -> Result<Vec<Course>> {
+    pub(super) fn organization_courses(&self, organization_slug: &str) -> Result<Vec<Course>> {
         let url_tail = format!("core/org/{}/courses", organization_slug);
         self.get_json(&url_tail)
     }
 
-    pub fn download_submission(&self, submission_id: usize, target: &Path) -> Result<()> {
+    pub(super) fn download_submission(&self, submission_id: usize, target: &Path) -> Result<()> {
         let url_tail = format!("core/submissions/{}/download", submission_id);
         self.download_and_extract(&url_tail, target)
     }
 
-    pub fn post_feedback(
+    pub(super) fn post_feedback(
         &self,
         submission_id: usize,
         feedback: Vec<FeedbackAnswer>,
@@ -500,7 +521,7 @@ impl TmcCore {
         Ok(res)
     }
 
-    pub fn post_review(
+    pub(super) fn post_review(
         &self,
         submission_id: usize,
         review_body: &str,
