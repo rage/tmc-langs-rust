@@ -47,8 +47,8 @@ trait GetExt {
 
 impl GetExt for RequestBuilder {
     fn authenticate(self, token: &Option<Token>) -> RequestBuilder {
-        if let Some(token) = token.as_ref().map(|t| t.access_token().secret()) {
-            self.bearer_auth(token)
+        if let Some(token) = token {
+            self.bearer_auth(token.access_token().secret())
         } else {
             self
         }
@@ -517,11 +517,13 @@ impl TmcCore {
         }
 
         log::debug!("posting {}", url);
-        let mut req = self.client.post(url).multipart(form);
-        if let Some(token) = &self.token {
-            req = req.bearer_auth(token.access_token().secret());
-        }
-        let res: NewSubmission = req.send()?.json_res()?;
+        let res: NewSubmission = self
+            .client
+            .post(url)
+            .multipart(form)
+            .authenticate(&self.token)
+            .send()?
+            .json_res()?;
         log::debug!("received {:?}", res);
         Ok(res)
     }
@@ -569,16 +571,14 @@ impl TmcCore {
         let url = self.api_url.join(&url_tail)?;
 
         log::debug!("posting {}", url);
-        let mut req = self
+        let res: Value = self
             .client
             .post(url)
             .query(&[("review[review_body]", review_body)])
-            .query(&[("review[points]", review_points)]);
-        if let Some(token) = &self.token {
-            req = req.bearer_auth(token.access_token().secret());
-        }
-
-        let res: Value = req.send()?.json_res()?;
+            .query(&[("review[points]", review_points)])
+            .authenticate(&self.token)
+            .send()?
+            .json_res()?;
         log::trace!("received {:?}", res);
         todo!()
     }

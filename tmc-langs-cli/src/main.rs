@@ -15,7 +15,7 @@ use tmc_langs_util::task_executor;
 use walkdir::WalkDir;
 
 #[derive(Error, Debug)]
-pub enum CliError {
+enum CliError {
     #[error("Invalid locale {0}")]
     InvalidLocale(String),
 
@@ -169,13 +169,10 @@ fn main() -> Result<()> {
                 .takes_value(true)))
 
             .subcommand(SubCommand::with_name("core")
-                .about("tmc-core commands")
-                .arg(Arg::with_name("username")
-                    .long("username")
-                    .required(true)
-                    .takes_value(true))
-                .arg(Arg::with_name("password")
-                    .long("password")
+                .about("tmc-core commands. The program will ask for your TMC password through stdin.")
+                .arg(Arg::with_name("email")
+                    .help("The email associated with your TMC account.")
+                    .long("email")
                     .required(true)
                     .takes_value(true))
 
@@ -393,12 +390,13 @@ fn main() -> Result<()> {
 
     // core
     if let Some(matches) = matches.subcommand_matches("core") {
-        let username = matches.value_of("username").unwrap();
-        let password = matches.value_of("password").unwrap();
-
         let mut core =
             TmcCore::new_in_config("https://tmc.mooc.fi").expect("failed to create TmcCore");
-        core.authenticate("vscode_plugin", username.to_string(), password.to_string())
+
+        let email = matches.value_of("email").unwrap();
+        // TODO: "Please enter password" and quiet param
+        let password = rpassword::read_password().expect("failed to read password");
+        core.authenticate("vscode_plugin", email.to_string(), password)
             .expect("failed to authenticate TmcCore");
 
         if let Some(matches) = matches.subcommand_matches("get-organizations") {

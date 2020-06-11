@@ -60,7 +60,7 @@ impl TmcCore {
     pub fn authenticate(
         &mut self,
         client_name: &str,
-        username: String,
+        email: String,
         password: String,
     ) -> Result<()> {
         if self.token.is_some() {
@@ -84,7 +84,7 @@ impl TmcCore {
 
         let token = client
             .exchange_password(
-                &ResourceOwnerUsername::new(username),
+                &ResourceOwnerUsername::new(email),
                 &ResourceOwnerPassword::new(password),
             )
             .map_err(|e| CoreError::Token(e))?;
