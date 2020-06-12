@@ -191,9 +191,21 @@ fn main() -> Result<()> {
                         .takes_value(true)))
 
                 .subcommand(SubCommand::with_name("get-course-details")
-                    .about("Get course details."))
+                    .about("Get course details.")
+                    .arg(Arg::with_name("courseId")
+                        .help("Course ID")
+                        .long("courseId")
+                        .required(true)
+                        .takes_value(true)))
+
                 .subcommand(SubCommand::with_name("list-courses")
-                    .about("List courses."))
+                    .about("List courses.")
+                    .arg(Arg::with_name("organization")
+                        .help("Organization slug (e.g. mooc, hy).")
+                        .long("organization")
+                        .required(true)
+                        .takes_value(true)))
+
                 .subcommand(SubCommand::with_name("paste-with-comment")
                     .about("Send exercise to pastebin with comment."))
                 .subcommand(SubCommand::with_name("run-checkstyle")
@@ -426,11 +438,21 @@ fn main() -> Result<()> {
 
             core.download_or_update_exercises(exercises).unwrap()
         } else if let Some(matches) = matches.subcommand_matches("get-course-details") {
-            //core.get_course_details()
-            todo!()
+            let course_id = matches.value_of("courseId").unwrap();
+            let course_id = usize::from_str_radix(course_id, 10).expect("malformed course id");
+            let course_details = core
+                .get_course_details(course_id)
+                .expect("failed to get course details");
+            let course_details =
+                serde_json::to_value(&course_details).expect("failed to parse to JSON");
+            println!("{}", course_details);
         } else if let Some(matches) = matches.subcommand_matches("list-courses") {
-            //core.list_courses()
-            todo!()
+            let organization_slug = matches.value_of("organization").unwrap();
+            let courses = core
+                .list_courses(organization_slug)
+                .expect("failed to get courses");
+            let courses = serde_json::to_string(&courses).expect("failed to parse to JSON");
+            println!("{}", courses);
         } else if let Some(matches) = matches.subcommand_matches("paste-with-comment") {
             //core.paste_with_comment()
             todo!()

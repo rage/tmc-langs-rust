@@ -70,7 +70,7 @@ pub struct Organization {
     pub pinned: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Course {
     pub id: usize,
     pub name: String,
@@ -124,7 +124,7 @@ struct CourseDetailsInner {
     pub exercises: Vec<Exercise>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(from = "CourseDetailsWrapper")]
 pub struct CourseDetails {
     #[serde(flatten)]
@@ -143,7 +143,7 @@ impl From<CourseDetailsWrapper> for CourseDetails {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Exercise {
     pub id: usize,
     pub name: String,
