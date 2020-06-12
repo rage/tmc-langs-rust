@@ -1,32 +1,17 @@
 //! CLI client for TMC
 
-use anyhow::{Context, Result};
-use clap::{App, Arg, SubCommand};
+use clap::{App, Arg, Error, ErrorKind, SubCommand};
 use isolang::Language;
 use log::debug;
-use std::ffi::OsString;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use thiserror::Error;
 use tmc_langs_core::TmcCore;
 use tmc_langs_framework::io::submission_processing;
 use tmc_langs_util::task_executor;
 use walkdir::WalkDir;
 
-#[derive(Error, Debug)]
-enum CliError {
-    #[error("Invalid locale {0}")]
-    InvalidLocale(String),
-
-    #[error("No file name in {0}")]
-    NoFileName(PathBuf),
-
-    #[error("{0:?} is not valid UTF-8")]
-    InvalidUTF8(OsString),
-}
-
-fn main() -> Result<()> {
+fn main() {
     env_logger::init();
 
     let matches = App::new("TestMyCode")
@@ -95,7 +80,7 @@ fn main() -> Result<()> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("prepare-submission")
-            .about("Prepares from submission and solution project for which the tests can be run in sandbox.")
+            .about("UNIMPLEMENTED. Prepares from submission and solution project for which the tests can be run in sandbox.")
             .arg(Arg::with_name("clonePath")
                 .long("clonePath")
                 .required(true)
@@ -240,10 +225,15 @@ fn main() -> Result<()> {
         let output_path = Path::new(output_path);
 
         let locale = matches.value_of("locale").unwrap();
-        let locale = Language::from_639_3(&locale)
-            .ok_or_else(|| CliError::InvalidLocale(locale.to_string()))?;
+        let locale = Language::from_639_3(&locale).unwrap_or_else(|| {
+            Error::with_description(
+                &format!("Invalid locale: {}", locale),
+                ErrorKind::InvalidValue,
+            )
+            .exit()
+        });
 
-        run_checkstyle(exercise_path, output_path, locale)?;
+        run_checkstyle(exercise_path, output_path, locale)
     } else if let Some(matches) = matches.subcommand_matches("compress-project") {
         let exercise_path = matches.value_of("exercisePath").unwrap();
         let exercise_path = Path::new(exercise_path);
@@ -251,16 +241,33 @@ fn main() -> Result<()> {
         let output_path = matches.value_of("outputPath").unwrap();
         let output_path = Path::new(output_path);
 
-        let data = task_executor::compress_project(exercise_path).with_context(|| {
-            format!("Failed to compress project at {}", exercise_path.display())
-        })?;
+        let data = task_executor::compress_project(exercise_path).unwrap_or_else(|e| {
+            Error::with_description(
+                &format!(
+                    "Failed to compress project at {}: {}",
+                    exercise_path.display(),
+                    e
+                ),
+                ErrorKind::Io,
+            )
+            .exit()
+        });
 
-        let mut output_file = File::create(output_path)
-            .with_context(|| format!("Failed to open {}", output_path.display()))?;
+        let mut output_file = File::create(output_path).unwrap_or_else(|e| {
+            Error::with_description(
+                &format!("Failed to create file at {}: {}", output_path.display(), e),
+                ErrorKind::Io,
+            )
+            .exit()
+        });
 
-        output_file
-            .write_all(&data)
-            .with_context(|| format!("Failed to write to {}", output_path.display()))?;
+        output_file.write_all(&data).unwrap_or_else(|e| {
+            Error::with_description(
+                &format!("Failed to write to {}: {}", output_path.display(), e),
+                ErrorKind::Io,
+            )
+            .exit()
+        });
     } else if let Some(matches) = matches.subcommand_matches("extract-project") {
         let exercise_path = matches.value_of("exercisePath").unwrap();
         let exercise_path = Path::new(exercise_path);
@@ -268,7 +275,17 @@ fn main() -> Result<()> {
         let output_path = matches.value_of("outputPath").unwrap();
         let output_path = Path::new(output_path);
 
-        task_executor::extract_project(exercise_path, output_path)?;
+        task_executor::extract_project(exercise_path, output_path).unwrap_or_else(|e| {
+            Error::with_description(
+                &format!(
+                    "Failed to extract project at {}: {}",
+                    output_path.display(),
+                    e
+                ),
+                ErrorKind::Io,
+            )
+            .exit()
+        });
     } else if let Some(matches) = matches.subcommand_matches("prepare-solutions") {
         let exercise_path = matches.value_of("exercisePath").unwrap();
         let exercise_path = Path::new(exercise_path);
@@ -276,7 +293,18 @@ fn main() -> Result<()> {
         let output_path = matches.value_of("outputPath").unwrap();
         let output_path = Path::new(output_path);
 
-        task_executor::prepare_solutions(&[exercise_path.to_path_buf()], output_path)?;
+        task_executor::prepare_solutions(&[exercise_path.to_path_buf()], output_path)
+            .unwrap_or_else(|e| {
+                Error::with_description(
+                    &format!(
+                        "Failed to prepare solutions for exercise {}: {}",
+                        exercise_path.display(),
+                        e
+                    ),
+                    ErrorKind::Io,
+                )
+                .exit()
+            });
     } else if let Some(matches) = matches.subcommand_matches("prepare-stubs") {
         let exercise_path = matches.value_of("exercisePath").unwrap();
         let exercise_path = Path::new(exercise_path);
@@ -286,7 +314,17 @@ fn main() -> Result<()> {
 
         let exercises = find_exercise_directories(exercise_path);
 
-        task_executor::prepare_stubs(exercises, exercise_path, output_path)?;
+        task_executor::prepare_stubs(exercises, exercise_path, output_path).unwrap_or_else(|e| {
+            Error::with_description(
+                &format!(
+                    "Failed to prepare stubs for exercise {}: {}",
+                    exercise_path.display(),
+                    e
+                ),
+                ErrorKind::Io,
+            )
+            .exit()
+        });
     } else if let Some(matches) = matches.subcommand_matches("prepare-submission") {
         let clone_path = matches.value_of("clonePath").unwrap();
         let __clone_path = Path::new(clone_path);
@@ -297,7 +335,11 @@ fn main() -> Result<()> {
         let output_path = matches.value_of("outputPath").unwrap();
         let _output_path = Path::new(output_path);
 
-        unimplemented!("not implemented in the Java CLI")
+        Error::with_description(
+            "This command is unimplemented.",
+            ErrorKind::InvalidSubcommand,
+        )
+        .exit();
     } else if let Some(matches) = matches.subcommand_matches("run-tests") {
         let exercise_path = matches.value_of("exercisePath").unwrap();
         let exercise_path = Path::new(exercise_path);
@@ -312,25 +354,59 @@ fn main() -> Result<()> {
         let locale = match locale {
             Some(locale) => {
                 let iso_locale = Language::from_639_3(&locale);
-                Some(iso_locale.ok_or_else(|| CliError::InvalidLocale(locale.to_string()))?)
+                Some(iso_locale.unwrap_or_else(|| {
+                    Error::with_description(
+                        &format!("Invalid locale: {}", locale),
+                        ErrorKind::InvalidValue,
+                    )
+                    .exit()
+                }))
             }
             None => None,
         };
 
-        let test_result = task_executor::run_tests(exercise_path).context("Failed to run tests")?;
+        let test_result = task_executor::run_tests(exercise_path).unwrap_or_else(|e| {
+            Error::with_description(
+                &format!(
+                    "Failed to run tests for exercise {}: {}",
+                    exercise_path.display(),
+                    e
+                ),
+                ErrorKind::Io,
+            )
+            .exit()
+        });
 
-        let output_file = File::create(output_path)
-            .with_context(|| format!("Failed to create {}", output_path.display()))?;
+        let output_file = File::create(output_path).unwrap_or_else(|e| {
+            Error::with_description(
+                &format!("Failed to create file at {}: {}", output_path.display(), e),
+                ErrorKind::Io,
+            )
+            .exit()
+        });
 
-        serde_json::to_writer(output_file, &test_result)
-            .with_context(|| format!("Failed to write JSON to {}", output_path.display()))?;
+        serde_json::to_writer(output_file, &test_result).unwrap_or_else(|e| {
+            Error::with_description(
+                &format!(
+                    "Failed to write test results as JSON to {}: {}",
+                    output_path.display(),
+                    e
+                ),
+                ErrorKind::Io,
+            )
+            .exit()
+        });
 
         if let Some(checkstyle_output_path) = checkstyle_output_path {
-            let locale =
-                locale.with_context(|| "Locale is required when checkstyleOutputPath is set")?;
+            let locale = locale.unwrap_or_else(|| {
+                Error::with_description(
+                    "Locale must be given if checkstyleOutputPath is given.",
+                    ErrorKind::ArgumentNotFound,
+                )
+                .exit()
+            });
 
-            run_checkstyle(exercise_path, checkstyle_output_path, locale)
-                .context("Failed to run checkstyle")?;
+            run_checkstyle(exercise_path, checkstyle_output_path, locale);
         }
     } else if let Some(matches) = matches.subcommand_matches("scan-exercise") {
         let exercise_path = matches.value_of("exercisePath").unwrap();
@@ -339,20 +415,60 @@ fn main() -> Result<()> {
         let output_path = matches.value_of("outputPath").unwrap();
         let output_path = Path::new(output_path);
 
-        let exercise_name = exercise_path
-            .file_name()
-            .ok_or_else(|| CliError::NoFileName(exercise_path.to_path_buf()))?;
-        let exercise_name = exercise_name
-            .to_str()
-            .ok_or_else(|| CliError::InvalidUTF8(exercise_name.to_os_string()))?;
+        let exercise_name = exercise_path.file_name().unwrap_or_else(|| {
+            Error::with_description(
+                &format!(
+                    "No file name found in exercise path {}",
+                    exercise_path.display()
+                ),
+                ErrorKind::ValueValidation,
+            )
+            .exit()
+        });
 
-        let scan_result = task_executor::scan_exercise(exercise_path, exercise_name.to_string())?;
+        let exercise_name = exercise_name.to_str().unwrap_or_else(|| {
+            Error::with_description(
+                &format!(
+                    "Exercise path's file name  '{:?}' was not valid UTF8",
+                    exercise_name
+                ),
+                ErrorKind::InvalidUtf8,
+            )
+            .exit()
+        });
 
-        let output_file = File::create(output_path)
-            .with_context(|| format!("Failed to create file at {}", output_path.display()))?;
+        let scan_result = task_executor::scan_exercise(exercise_path, exercise_name.to_string())
+            .unwrap_or_else(|e| {
+                Error::with_description(
+                    &format!(
+                        "Failed to scan exercise at {}: {}",
+                        exercise_path.display(),
+                        e
+                    ),
+                    ErrorKind::Io,
+                )
+                .exit()
+            });
 
-        serde_json::to_writer(output_file, &scan_result)
-            .with_context(|| format!("Failed to write JSON to {}", output_path.display()))?;
+        let output_file = File::create(output_path).unwrap_or_else(|e| {
+            Error::with_description(
+                &format!("Failed to create file at {}: {}", output_path.display(), e),
+                ErrorKind::Io,
+            )
+            .exit()
+        });
+
+        serde_json::to_writer(output_file, &scan_result).unwrap_or_else(|e| {
+            Error::with_description(
+                &format!(
+                    "Failed to write scan result as JSON to {}: {}",
+                    output_path.display(),
+                    e
+                ),
+                ErrorKind::Io,
+            )
+            .exit()
+        });
     } else if let Some(matches) = matches.subcommand_matches("find-exercises") {
         let exercise_path = matches.value_of("exercisePath").unwrap();
         let exercise_path = Path::new(exercise_path);
@@ -374,10 +490,26 @@ fn main() -> Result<()> {
                 exercises.push(entry.into_path());
             }
         }
-        let output_file = File::create(output_path)
-            .with_context(|| format!("Failed to create file at {}", output_path.display()))?;
-        serde_json::to_writer(output_file, &exercises)
-            .with_context(|| format!("Failed to write JSON to {}", output_path.display()))?;
+
+        let output_file = File::create(output_path).unwrap_or_else(|e| {
+            Error::with_description(
+                &format!("Failed to create file at {}: {}", output_path.display(), e),
+                ErrorKind::Io,
+            )
+            .exit()
+        });
+
+        serde_json::to_writer(output_file, &exercises).unwrap_or_else(|e| {
+            Error::with_description(
+                &format!(
+                    "Failed to write exercises as JSON to {}: {}",
+                    output_path.display(),
+                    e
+                ),
+                ErrorKind::Io,
+            )
+            .exit()
+        });
     } else if let Some(matches) = matches.subcommand_matches("get-exercise-packaging-configuration")
     {
         let exercise_path = matches.value_of("exercisePath").unwrap();
@@ -386,36 +518,94 @@ fn main() -> Result<()> {
         let output_path = matches.value_of("outputPath").unwrap();
         let output_path = Path::new(output_path);
 
-        let config = task_executor::get_exercise_packaging_configuration(exercise_path)?;
+        let config = task_executor::get_exercise_packaging_configuration(exercise_path)
+            .unwrap_or_else(|e| {
+                Error::with_description(
+                    &format!(
+                        "Failed to get exercise packaging configuration for exercise {}: {}",
+                        exercise_path.display(),
+                        e
+                    ),
+                    ErrorKind::Io,
+                )
+                .exit()
+            });
 
-        let output_file = File::create(output_path)
-            .with_context(|| format!("Failed to create file at {}", output_path.display()))?;
+        let output_file = File::create(output_path).unwrap_or_else(|e| {
+            Error::with_description(
+                &format!("Failed to create file at {}: {}", output_path.display(), e),
+                ErrorKind::Io,
+            )
+            .exit()
+        });
 
-        serde_json::to_writer(output_file, &config)
-            .with_context(|| format!("Failed to write JSON to {}", output_path.display()))?;
+        serde_json::to_writer(output_file, &config).unwrap_or_else(|e| {
+            Error::with_description(
+                &format!(
+                    "Failed to write exercise package config as JSON to {}: {}",
+                    output_path.display(),
+                    e
+                ),
+                ErrorKind::Io,
+            )
+            .exit()
+        });
     } else if let Some(matches) = matches.subcommand_matches("clean") {
         let exercise_path = matches.value_of("exercisePath").unwrap();
         let exercise_path = Path::new(exercise_path);
 
-        task_executor::clean(exercise_path)?;
+        task_executor::clean(exercise_path).unwrap_or_else(|e| {
+            Error::with_description(
+                &format!(
+                    "Failed to clean exercise at {}: {}",
+                    exercise_path.display(),
+                    e
+                ),
+                ErrorKind::Io,
+            )
+            .exit()
+        });
     }
 
     // core
     if let Some(matches) = matches.subcommand_matches("core") {
-        let mut core =
-            TmcCore::new_in_config("https://tmc.mooc.fi").expect("failed to create TmcCore");
+        let mut core = TmcCore::new_in_config("https://tmc.mooc.fi").unwrap_or_else(|e| {
+            Error::with_description(&format!("Failed to create TmcCore: {}", e), ErrorKind::Io)
+                .exit()
+        });
 
         let email = matches.value_of("email").unwrap();
         // TODO: "Please enter password" and quiet param
-        let password = rpassword::read_password().expect("failed to read password");
+        let password = rpassword::read_password().unwrap_or_else(|e| {
+            Error::with_description(&format!("Failed to read password: {}", e), ErrorKind::Io)
+                .exit()
+        });
+
         core.authenticate("vscode_plugin", email.to_string(), password)
-            .expect("failed to authenticate TmcCore");
+            .unwrap_or_else(|e| {
+                Error::with_description(
+                    &format!("Failed to authenticate with TMC: {}", e),
+                    ErrorKind::Io,
+                )
+                .exit()
+            });
 
         if let Some(matches) = matches.subcommand_matches("get-organizations") {
-            let orgs = core
-                .get_organizations()
-                .expect("failed to fetch organizations");
-            let orgs = serde_json::to_value(&orgs).expect("failed to parse to JSON");
+            let orgs = core.get_organizations().unwrap_or_else(|e| {
+                Error::with_description(
+                    &format!("Failed to get organizations: {}", e),
+                    ErrorKind::Io,
+                )
+                .exit()
+            });
+
+            let orgs = serde_json::to_value(&orgs).unwrap_or_else(|e| {
+                Error::with_description(
+                    &format!("Failed to convert organizations to JSON: {}", e),
+                    ErrorKind::Io,
+                )
+                .exit()
+            });
             println!("{}", orgs);
         } else if let Some(matches) = matches.subcommand_matches("send-diagnostics") {
             core.send_diagnostics()
@@ -426,32 +616,84 @@ fn main() -> Result<()> {
                 .into_iter()
                 .map(|e| {
                     let mut split = e.split(':');
-                    let exercise_id = split.next().expect("malformed exercises");
-                    let path = split.next().expect("malformed exercises");
+                    let exercise_id = split.next().unwrap_or_else(|| {
+                        Error::with_description(
+                            "Malformed exercise list",
+                            ErrorKind::ValueValidation,
+                        )
+                        .exit()
+                    });
 
-                    let exercise_id =
-                        usize::from_str_radix(exercise_id, 10).expect("malformed exercise id");
+                    let path = split.next().unwrap_or_else(|| {
+                        Error::with_description(
+                            "Malformed exercise list",
+                            ErrorKind::ValueValidation,
+                        )
+                        .exit()
+                    });
+
+                    let exercise_id = usize::from_str_radix(exercise_id, 10).unwrap_or_else(|e| {
+                        Error::with_description(
+                            &format!("Malformed exercise id {}: {}", exercise_id, e),
+                            ErrorKind::ValueValidation,
+                        )
+                        .exit()
+                    });
+
                     let path = Path::new(path);
                     (exercise_id, path)
                 })
                 .collect();
 
-            core.download_or_update_exercises(exercises).unwrap()
+            core.download_or_update_exercises(exercises)
+                .unwrap_or_else(|e| {
+                    Error::with_description(
+                        &format!("Failed to download exercises: {}", e),
+                        ErrorKind::Io,
+                    )
+                    .exit()
+                });
         } else if let Some(matches) = matches.subcommand_matches("get-course-details") {
             let course_id = matches.value_of("courseId").unwrap();
-            let course_id = usize::from_str_radix(course_id, 10).expect("malformed course id");
-            let course_details = core
-                .get_course_details(course_id)
-                .expect("failed to get course details");
-            let course_details =
-                serde_json::to_value(&course_details).expect("failed to parse to JSON");
+            let course_id = usize::from_str_radix(course_id, 10).unwrap_or_else(|e| {
+                Error::with_description(
+                    &format!("Malformed course id {}: {}", course_id, e),
+                    ErrorKind::Io,
+                )
+                .exit()
+            });
+            let course_details = core.get_course_details(course_id).unwrap_or_else(|e| {
+                Error::with_description(
+                    &format!("Failed to get course details: {}", e),
+                    ErrorKind::Io,
+                )
+                .exit()
+            });
+
+            let course_details = serde_json::to_value(&course_details).unwrap_or_else(|e| {
+                Error::with_description(
+                    &format!("Failed to convert course details to JSON: {}", e),
+                    ErrorKind::Io,
+                )
+                .exit()
+            });
+
             println!("{}", course_details);
         } else if let Some(matches) = matches.subcommand_matches("list-courses") {
             let organization_slug = matches.value_of("organization").unwrap();
-            let courses = core
-                .list_courses(organization_slug)
-                .expect("failed to get courses");
-            let courses = serde_json::to_string(&courses).expect("failed to parse to JSON");
+            let courses = core.list_courses(organization_slug).unwrap_or_else(|e| {
+                Error::with_description(&format!("Failed to get courses: {}", e), ErrorKind::Io)
+                    .exit()
+            });
+
+            let courses = serde_json::to_string(&courses).unwrap_or_else(|e| {
+                Error::with_description(
+                    &format!("Failed to convert courses to JSON: {}", e),
+                    ErrorKind::Io,
+                )
+                .exit()
+            });
+
             println!("{}", courses);
         } else if let Some(matches) = matches.subcommand_matches("paste-with-comment") {
             //core.paste_with_comment()
@@ -488,8 +730,6 @@ fn main() -> Result<()> {
             todo!()
         }
     }
-
-    Ok(())
 }
 
 fn find_exercise_directories(exercise_path: &Path) -> Vec<PathBuf> {
@@ -515,13 +755,32 @@ fn find_exercise_directories(exercise_path: &Path) -> Vec<PathBuf> {
     paths
 }
 
-fn run_checkstyle(exercise_path: &Path, output_path: &Path, locale: Language) -> Result<()> {
-    let check_result = task_executor::run_check_code_style(exercise_path, locale)?;
+fn run_checkstyle(exercise_path: &Path, output_path: &Path, locale: Language) {
+    let check_result =
+        task_executor::run_check_code_style(exercise_path, locale).unwrap_or_else(|e| {
+            Error::with_description(
+                &format!("Failed to check code style at {}", exercise_path.display()),
+                ErrorKind::Io,
+            )
+            .exit()
+        });
     if let Some(check_result) = check_result {
-        let output_file = File::create(output_path)
-            .with_context(|| format!("Failed to create file at {}", output_path.display()))?;
-        serde_json::to_writer(output_file, &check_result)
-            .with_context(|| format!("Failed to write JSON to {}", output_path.display()))?;
+        let output_file = File::create(output_path).unwrap_or_else(|e| {
+            Error::with_description(
+                &format!("Failed to create file at {}", output_path.display()),
+                ErrorKind::Io,
+            )
+            .exit()
+        });
+        serde_json::to_writer(output_file, &check_result).unwrap_or_else(|e| {
+            Error::with_description(
+                &format!(
+                    "Failed to write check results as JSON to {}",
+                    output_path.display()
+                ),
+                ErrorKind::Io,
+            )
+            .exit()
+        });
     }
-    Ok(())
 }
