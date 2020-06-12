@@ -71,17 +71,23 @@ impl TmcCore {
         let url = self.api_url.join(&url_tail)?;
 
         // download zip
-        let mut target_file = File::create(target)?;
+        let mut target_file =
+            File::create(target).map_err(|e| CoreError::FileCreate(target.to_path_buf(), e))?;
         log::debug!("downloading {}", url);
-        let mut res = self.client.get(url).authenticate(&self.token).send()?;
+        let mut res = self
+            .client
+            .get(url.clone())
+            .authenticate(&self.token)
+            .send()?;
         // TODO: improve error handling
-        if !res.status().is_success() {
+        let status_code = res.status();
+        if !status_code.is_success() {
             if let Ok(value) = res.json::<Value>() {
                 log::error!("HTTP Error: {}", value);
             } else {
-                log::error!("HTTP Error");
+                log::error!("HTTP Error, failed to parse response as JSON");
             }
-            return Err(CoreError::HttpStatus);
+            return Err(CoreError::HttpStatus(url, status_code));
         }
         res.copy_to(&mut target_file)?; // write response to target file
         Ok(())
@@ -500,8 +506,9 @@ impl TmcCore {
 
         // compress
         let compressed = task_executor::compress_project(submission)?;
-        let mut file = NamedTempFile::new()?;
-        file.write_all(&compressed)?;
+        let mut file = NamedTempFile::new().map_err(|e| CoreError::TempFile(e))?;
+        file.write_all(&compressed)
+            .map_err(|e| CoreError::Write(file.path().to_path_buf(), e))?;
 
         let url = self
             .api_url
@@ -509,7 +516,10 @@ impl TmcCore {
             .unwrap();
 
         // send
-        let mut form = Form::new().file("submission[file]", file.path())?;
+        let mut form = Form::new()
+            .file("submission[file]", file.path())
+            .map_err(|e| CoreError::FileOpen(file.path().to_path_buf(), e))?;
+
         if let Some(params) = params {
             for (key, val) in params {
                 form = form.text(key, val);

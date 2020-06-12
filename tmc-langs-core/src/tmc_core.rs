@@ -51,7 +51,7 @@ impl TmcCore {
     }
 
     pub fn new_in_config(root_url: &'static str) -> Result<Self> {
-        let config_dir = dirs::cache_dir().ok_or(CoreError::HomeDir)?;
+        let config_dir = dirs::cache_dir().ok_or(CoreError::CacheDir)?;
         Self::new(config_dir, root_url)
     }
 
@@ -102,7 +102,7 @@ impl TmcCore {
 
     pub fn download_or_update_exercises(&self, exercises: Vec<(usize, &Path)>) -> Result<()> {
         for (exercise_id, target) in exercises {
-            let zip_file = NamedTempFile::new()?;
+            let zip_file = NamedTempFile::new().map_err(|e| CoreError::TempFile(e))?;
             self.download_exercise(exercise_id, zip_file.path())?;
             task_executor::extract_project(zip_file.path(), target)?;
         }
