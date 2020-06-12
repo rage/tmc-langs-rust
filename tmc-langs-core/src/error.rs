@@ -29,4 +29,6 @@ pub enum CoreError {
     MalformedResponse,
     #[error(transparent)]
     TmcLangs(#[from] tmc_langs_util::Error),
+    #[error(transparent)]
+    Parse1(#[from] url1::ParseError),
 }

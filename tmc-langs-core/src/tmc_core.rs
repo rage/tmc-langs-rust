@@ -69,11 +69,10 @@ impl TmcCore {
 
         let url = self
             .api_url
-            .join(&format!("application/{}/credentials", client_name))
-            .unwrap();
+            .join(&format!("application/{}/credentials", client_name))?;
         let credentials: Credentials = self.request_json(url)?;
 
-        let auth_url = Url1::parse(self.auth_url.as_str()).unwrap();
+        let auth_url = Url1::parse(self.auth_url.as_str())?;
         log::debug!("authenticating at {}", auth_url);
         let client = BasicClient::new(
             ClientId::new(credentials.application_id),
