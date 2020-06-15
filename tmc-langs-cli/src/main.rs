@@ -3,10 +3,11 @@
 use clap::{App, Arg, Error, ErrorKind, SubCommand};
 use isolang::Language;
 use log::debug;
+use std::env;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use tmc_langs_core::TmcCore;
+use tmc_langs_core::{FeedbackAnswer, TmcCore};
 use tmc_langs_framework::io::submission_processing;
 use tmc_langs_util::task_executor;
 use walkdir::WalkDir;
@@ -153,66 +154,133 @@ fn main() {
                 .required(true)
                 .takes_value(true)))
 
-            .subcommand(SubCommand::with_name("core")
-                .about("tmc-core commands. The program will ask for your TMC password through stdin.")
-                .arg(Arg::with_name("email")
-                    .help("The email associated with your TMC account.")
-                    .long("email")
+        .subcommand(SubCommand::with_name("core")
+            .about("tmc-core commands. The program will ask for your TMC password through stdin.")
+            .arg(Arg::with_name("email")
+                .help("The email associated with your TMC account.")
+                .long("email")
+                .required(true)
+                .takes_value(true))
+
+            .subcommand(SubCommand::with_name("get-organizations")
+                .about("Get organizations."))
+
+            .subcommand(SubCommand::with_name("send-diagnostics")
+                .about("Send diagnostics."))
+
+            .subcommand(SubCommand::with_name("download-or-update-exercises")
+                .about("Download exercise.")
+                .arg(Arg::with_name("exercises")
+                    .help("A list of exercise ids and the paths where they should be extracted to, formatted as follows: \"123:path/to/exercise,234:another/path\". The paths should not contain the characters ':' or ',' as they are used as separators (TODO: rework)")
+                    .long("exercises")
+                    .required(true)
+                    .takes_value(true)))
+
+            .subcommand(SubCommand::with_name("get-course-details")
+                .about("Get course details.")
+                .arg(Arg::with_name("courseId")
+                    .help("Course ID")
+                    .long("courseId")
+                    .required(true)
+                    .takes_value(true)))
+
+            .subcommand(SubCommand::with_name("list-courses")
+                .about("List courses.")
+                .arg(Arg::with_name("organization")
+                    .help("Organization slug (e.g. mooc, hy).")
+                    .long("organization")
+                    .required(true)
+                    .takes_value(true)))
+
+            .subcommand(SubCommand::with_name("paste-with-comment")
+                .about("Send exercise to pastebin with comment.")
+                .arg(Arg::with_name("exerciseId")
+                    .long("exerciseId")
                     .required(true)
                     .takes_value(true))
+                .arg(Arg::with_name("submissionPath")
+                    .long("submissionPath")
+                    .required(true)
+                    .takes_value(true))
+                .arg(Arg::with_name("pasteMessage")
+                    .long("organipasteMessagezation")
+                    .required(true)
+                    .takes_value(true)))
 
-                .subcommand(SubCommand::with_name("get-organizations")
-                    .about("Get organizations."))
+            .subcommand(SubCommand::with_name("run-checkstyle")
+                .about("Run checkstyle.")
+                .arg(Arg::with_name("exercisePath")
+                    .long("exercisePath")
+                    .required(true)
+                    .takes_value(true))
+                .arg(Arg::with_name("locale")
+                    .long("locale")
+                    .required(true)
+                    .takes_value(true)))
 
-                .subcommand(SubCommand::with_name("send-diagnostics")
-                    .about("Send diagnostics."))
+            .subcommand(SubCommand::with_name("run-tests")
+                .about("Run tests.")
+                .arg(Arg::with_name("exercisePath")
+                    .long("exercisePath")
+                    .required(true)
+                    .takes_value(true)))
 
-                .subcommand(SubCommand::with_name("download-or-update-exercises")
-                    .about("Download exercise.")
-                    .arg(Arg::with_name("exercises")
-                        .help("A list of exercise ids and the paths where they should be extracted to, formatted as follows: \"123:path/to/exercise,234:another/path\". The paths should not contain the characters ':' or ',' as they are used as separators (TODO: rework)")
-                        .long("exercises")
-                        .required(true)
-                        .takes_value(true)))
+            .subcommand(SubCommand::with_name("send-feedback")
+                .about("Send feedback.")
+                .arg(Arg::with_name("submissionId")
+                    .long("submissionId")
+                    .required(true)
+                    .takes_value(true))
+                .arg(Arg::with_name("feedback")
+                    .help("List of feedback answers formatted as id1:answer1,id2:answer2,...")
+                    .long("feedback")
+                    .required(true)
+                    .takes_value(true)))
 
-                .subcommand(SubCommand::with_name("get-course-details")
-                    .about("Get course details.")
-                    .arg(Arg::with_name("courseId")
-                        .help("Course ID")
-                        .long("courseId")
-                        .required(true)
-                        .takes_value(true)))
+            .subcommand(SubCommand::with_name("send-snapshot-events")
+                .about("UNIMPLEMENTED. Send snapshot events."))
 
-                .subcommand(SubCommand::with_name("list-courses")
-                    .about("List courses.")
-                    .arg(Arg::with_name("organization")
-                        .help("Organization slug (e.g. mooc, hy).")
-                        .long("organization")
-                        .required(true)
-                        .takes_value(true)))
+            .subcommand(SubCommand::with_name("submit")
+                .about("Submit exercise.")
+                .arg(Arg::with_name("exerciseId")
+                    .long("exerciseId")
+                    .required(true)
+                    .takes_value(true)))
 
-                .subcommand(SubCommand::with_name("paste-with-comment")
-                    .about("Send exercise to pastebin with comment."))
-                .subcommand(SubCommand::with_name("run-checkstyle")
-                    .about("Run checkstyle."))
-                .subcommand(SubCommand::with_name("run-tests")
-                    .about("Run tests."))
-                .subcommand(SubCommand::with_name("send-feedback")
-                    .about("Send feedback."))
-                .subcommand(SubCommand::with_name("send-snapshot-events")
-                    .about("Send snapshot events(?)."))
-                .subcommand(SubCommand::with_name("submit")
-                    .about("Submit exercise."))
-                .subcommand(SubCommand::with_name("get-exercise-updates")
-                    .about("Get exercise updates."))
-                .subcommand(SubCommand::with_name("mark-review-as-read")
-                    .about("Mark review as read."))
-                .subcommand(SubCommand::with_name("get-unread-reviews")
-                    .about("Get unread reviews."))
-                .subcommand(SubCommand::with_name("request-code-review")
-                    .about("Request code review."))
-                .subcommand(SubCommand::with_name("download-model-solution")
-                    .about("Download model solutions.")))
+            .subcommand(SubCommand::with_name("get-exercise-updates")
+                .about("Get exercise updates."))
+
+            .subcommand(SubCommand::with_name("mark-review-as-read")
+                .about("Mark review as read."))
+
+            .subcommand(SubCommand::with_name("get-unread-reviews")
+                .about("Get unread reviews."))
+
+            .subcommand(SubCommand::with_name("request-code-review")
+                .about("Request code review.")
+                .arg(Arg::with_name("exerciseId")
+                    .long("exerciseId")
+                    .required(true)
+                    .takes_value(true))
+                .arg(Arg::with_name("submissionPath")
+                    .long("submissionPath")
+                    .required(true)
+                    .takes_value(true))
+                .arg(Arg::with_name("messageForReviewer")
+                    .long("messageForReviewer")
+                    .required(true)
+                    .takes_value(true)))
+
+            .subcommand(SubCommand::with_name("download-model-solution")
+                .about("Download model solutions.")
+                .arg(Arg::with_name("exerciseId")
+                    .long("exerciseId")
+                    .required(true)
+                    .takes_value(true))
+                .arg(Arg::with_name("target")
+                    .long("target")
+                    .required(true)
+                    .takes_value(true))))
 
         .get_matches();
 
@@ -569,7 +637,8 @@ fn main() {
 
     // core
     if let Some(matches) = matches.subcommand_matches("core") {
-        let mut core = TmcCore::new_in_config("https://tmc.mooc.fi").unwrap_or_else(|e| {
+        let root_url = env::var("TMC_CORE_ROOT_URL").unwrap_or("https://tmc.mooc.fi".to_string());
+        let mut core = TmcCore::new_in_config(root_url).unwrap_or_else(|e| {
             Error::with_description(&format!("Failed to create TmcCore: {}", e), ErrorKind::Io)
                 .exit()
         });
@@ -608,7 +677,7 @@ fn main() {
             });
             println!("{}", orgs);
         } else if let Some(matches) = matches.subcommand_matches("send-diagnostics") {
-            core.send_diagnostics()
+            unimplemented!()
         } else if let Some(matches) = matches.subcommand_matches("download-or-update-exercises") {
             let exercises = matches.value_of("exercises").unwrap();
             let exercises = exercises
@@ -662,6 +731,7 @@ fn main() {
                 )
                 .exit()
             });
+
             let course_details = core.get_course_details(course_id).unwrap_or_else(|e| {
                 Error::with_description(
                     &format!("Failed to get course details: {}", e),
@@ -669,7 +739,6 @@ fn main() {
                 )
                 .exit()
             });
-
             let course_details = serde_json::to_value(&course_details).unwrap_or_else(|e| {
                 Error::with_description(
                     &format!("Failed to convert course details to JSON: {}", e),
@@ -696,38 +765,219 @@ fn main() {
 
             println!("{}", courses);
         } else if let Some(matches) = matches.subcommand_matches("paste-with-comment") {
-            //core.paste_with_comment()
-            todo!()
+            let exercise_id = matches.value_of("exerciseId").unwrap();
+            let exercise_id = usize::from_str_radix(exercise_id, 10).unwrap_or_else(|e| {
+                Error::with_description(
+                    &format!("Malformed exercise id {}: {}", exercise_id, e),
+                    ErrorKind::Io,
+                )
+                .exit()
+            });
+            let submission_path = matches.value_of("submissionPath").unwrap();
+            let submission_path = Path::new(submission_path);
+            let paste_message = matches.value_of("pasteMessage").unwrap();
+
+            let new_submission = core
+                .paste_with_comment(exercise_id, submission_path, paste_message.to_string())
+                .unwrap_or_else(|e| {
+                    Error::with_description(&format!("Failed to get courses: {}", e), ErrorKind::Io)
+                        .exit()
+                });
+            let new_submission = serde_json::to_string(&new_submission).unwrap();
+            println!("{}", new_submission);
         } else if let Some(matches) = matches.subcommand_matches("run-checkstyle") {
-            //core.run_checkstyle()
-            todo!()
+            let exercise_path = matches.value_of("exercisePath").unwrap();
+            let exercise_path = Path::new(exercise_path);
+            let locale = matches.value_of("locale").unwrap();
+            let locale = Language::from_639_3(locale).unwrap_or_else(|| {
+                Error::with_description(
+                    &format!("Invalid locale: {}", locale),
+                    ErrorKind::InvalidValue,
+                )
+                .exit()
+            });
+
+            let validation_result =
+                core.run_checkstyle(exercise_path, locale)
+                    .unwrap_or_else(|e| {
+                        Error::with_description(
+                            &format!("Failed to run checkstyle: {}", e),
+                            ErrorKind::Io,
+                        )
+                        .exit()
+                    });
+            let validation_result = serde_json::to_string(&validation_result).unwrap();
+            println!("{}", validation_result);
         } else if let Some(matches) = matches.subcommand_matches("run-tests") {
-            //core.run_tests()
-            todo!()
+            let exercise_path = matches.value_of("exercisePath").unwrap();
+            let exercise_path = Path::new(exercise_path);
+
+            let run_result = core.run_tests(exercise_path).unwrap_or_else(|e| {
+                Error::with_description(&format!("Failed to run checkstyle: {}", e), ErrorKind::Io)
+                    .exit()
+            });
+            let run_result = serde_json::to_string(&run_result).unwrap();
+            println!("{}", run_result);
         } else if let Some(matches) = matches.subcommand_matches("send-feedback") {
-            //core.send_feedback()
-            todo!()
+            let submission_id = matches.value_of("submissionId").unwrap();
+            let submission_id = usize::from_str_radix(submission_id, 10).unwrap_or_else(|e| {
+                Error::with_description(
+                    &format!("Malformed submission id {}: {}", submission_id, e),
+                    ErrorKind::Io,
+                )
+                .exit()
+            });
+
+            let feedback = matches.value_of("submissionId").unwrap();
+            let feedback = feedback
+                .split(":")
+                .into_iter()
+                .map(|f| {
+                    let mut split = f.split(':');
+
+                    let question_id = split.next().unwrap_or_else(|| {
+                        Error::with_description(
+                            "Malformed feedback list",
+                            ErrorKind::ValueValidation,
+                        )
+                        .exit()
+                    });
+                    let question_id = usize::from_str_radix(question_id, 10).unwrap_or_else(|e| {
+                        Error::with_description(
+                            &format!("Malformed question id {}: {}", question_id, e),
+                            ErrorKind::ValueValidation,
+                        )
+                        .exit()
+                    });
+
+                    let answer = split
+                        .next()
+                        .unwrap_or_else(|| {
+                            Error::with_description(
+                                "Malformed feedback list",
+                                ErrorKind::ValueValidation,
+                            )
+                            .exit()
+                        })
+                        .to_string();
+
+                    FeedbackAnswer {
+                        question_id,
+                        answer,
+                    }
+                })
+                .collect();
+
+            let response = core
+                .send_feedback(submission_id, feedback)
+                .unwrap_or_else(|e| {
+                    Error::with_description(
+                        &format!("Failed to send feedback: {}", e),
+                        ErrorKind::Io,
+                    )
+                    .exit()
+                });
+            let response = serde_json::to_string(&response).unwrap();
+            println!("{}", response);
         } else if let Some(matches) = matches.subcommand_matches("send-snapshot-events") {
-            //core.send_snapshot_events()
-            todo!()
+            unimplemented!()
         } else if let Some(matches) = matches.subcommand_matches("submit") {
-            //core.submit()
-            todo!()
+            let exercise_id = matches.value_of("exerciseId").unwrap();
+            let exercise_id = usize::from_str_radix(exercise_id, 10).unwrap_or_else(|e| {
+                Error::with_description(
+                    &format!("Malformed exercise id {}: {}", exercise_id, e),
+                    ErrorKind::Io,
+                )
+                .exit()
+            });
+
+            let submission_path = matches.value_of("submissionPath").unwrap();
+            let submission_path = Path::new(submission_path);
+
+            let new_submission = core
+                .submit(exercise_id, submission_path)
+                .unwrap_or_else(|e| {
+                    Error::with_description(&format!("Failed to submit: {}", e), ErrorKind::Io)
+                        .exit()
+                });
+            let new_submission = serde_json::to_string(&new_submission).unwrap();
+            println!("{}", new_submission);
         } else if let Some(matches) = matches.subcommand_matches("get-exercise-updates") {
-            //core.get_exercise_updates()
-            todo!()
+            //core.get_exercise_updates();
+            todo!("uses an existing course object")
         } else if let Some(matches) = matches.subcommand_matches("mark-review-as-read") {
             //core.mark_review_as_read()
             todo!()
         } else if let Some(matches) = matches.subcommand_matches("get-unread-reviews") {
-            //core.get_unread_reviews()
-            todo!()
+            let exercise_id = matches.value_of("exerciseId").unwrap();
+            let exercise_id = usize::from_str_radix(exercise_id, 10).unwrap_or_else(|e| {
+                Error::with_description(
+                    &format!("Malformed exercise id {}: {}", exercise_id, e),
+                    ErrorKind::Io,
+                )
+                .exit()
+            });
+
+            let reviews = core.get_unread_reviews(exercise_id).unwrap_or_else(|e| {
+                Error::with_description(
+                    &format!("Failed to get unread reviews: {}", e),
+                    ErrorKind::Io,
+                )
+                .exit()
+            });
+            let reviews = serde_json::to_string(&reviews).unwrap();
+            println!("{}", reviews);
         } else if let Some(matches) = matches.subcommand_matches("request-code-review") {
-            //core.request_code_review()
-            todo!()
+            let exercise_id = matches.value_of("exerciseId").unwrap();
+            let exercise_id = usize::from_str_radix(exercise_id, 10).unwrap_or_else(|e| {
+                Error::with_description(
+                    &format!("Malformed exercise id {}: {}", exercise_id, e),
+                    ErrorKind::Io,
+                )
+                .exit()
+            });
+
+            let submission_path = matches.value_of("submissionPath").unwrap();
+            let submission_path = Path::new(submission_path);
+
+            let message_for_reviewer = matches.value_of("messageForReviewer").unwrap();
+
+            let new_submission = core
+                .request_code_review(
+                    exercise_id,
+                    submission_path,
+                    message_for_reviewer.to_string(),
+                )
+                .unwrap_or_else(|e| {
+                    Error::with_description(
+                        &format!("Failed to get unread reviews: {}", e),
+                        ErrorKind::Io,
+                    )
+                    .exit()
+                });
+            let new_submission = serde_json::to_string(&new_submission).unwrap();
+            println!("{}", new_submission);
         } else if let Some(matches) = matches.subcommand_matches("download-model-solution") {
-            //core.download_model_solution()
-            todo!()
+            let exercise_id = matches.value_of("exerciseId").unwrap();
+            let exercise_id = usize::from_str_radix(exercise_id, 10).unwrap_or_else(|e| {
+                Error::with_description(
+                    &format!("Malformed exercise id {}: {}", exercise_id, e),
+                    ErrorKind::Io,
+                )
+                .exit()
+            });
+
+            let target = matches.value_of("target").unwrap();
+            let target = Path::new(target);
+
+            core.download_model_solution(exercise_id, target)
+                .unwrap_or_else(|e| {
+                    Error::with_description(
+                        &format!("Failed to download model solution: {}", e),
+                        ErrorKind::Io,
+                    )
+                    .exit()
+                });
         }
     }
 }

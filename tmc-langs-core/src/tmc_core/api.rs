@@ -17,13 +17,17 @@ use std::io::Write;
 use std::path::Path;
 use tempfile::NamedTempFile;
 use tmc_langs_util::task_executor;
+use url::Url;
 
 /// Provides a wrapper for reqwest Response's json that deserializes into Response<T> and converts it into a result
-trait JsonExt {
+trait CoreExt {
     fn json_res<T: DeserializeOwned>(self) -> Result<T>;
+    fn check_error(self, url: Url) -> Result<Self>
+    where
+        Self: Sized;
 }
 
-impl JsonExt for ReqwestResponse {
+impl CoreExt for ReqwestResponse {
     #[cfg(not(test))]
     fn json_res<T: DeserializeOwned>(self) -> Result<T> {
         let res: Response<T> = self.json()?;
@@ -37,6 +41,16 @@ impl JsonExt for ReqwestResponse {
         log::debug!("JSON {}", res);
         let res: Response<T> = serde_json::from_value(res).unwrap();
         res.into_result()
+    }
+
+    fn check_error(self, url: Url) -> Result<Self> {
+        let status = self.status();
+        if status.is_success() {
+            Ok(self)
+        } else {
+            log::error!("HTTP Error: {}", self.text()?);
+            Err(CoreError::HttpStatus(url, status))
+        }
     }
 }
 
@@ -61,9 +75,10 @@ impl TmcCore {
         let url = self.api_url.join(url_tail)?;
         log::debug!("get {}", url);
         self.client
-            .get(url)
+            .get(url.clone())
             .authenticate(&self.token)
             .send()?
+            .check_error(url)?
             .json_res()
     }
 
@@ -74,22 +89,12 @@ impl TmcCore {
         let mut target_file =
             File::create(target).map_err(|e| CoreError::FileCreate(target.to_path_buf(), e))?;
         log::debug!("downloading {}", url);
-        let mut res = self
-            .client
+        self.client
             .get(url.clone())
             .authenticate(&self.token)
-            .send()?;
-        // TODO: improve error handling
-        let status_code = res.status();
-        if !status_code.is_success() {
-            if let Ok(value) = res.json::<Value>() {
-                log::error!("HTTP Error: {}", value);
-            } else {
-                log::error!("HTTP Error, failed to parse response as JSON");
-            }
-            return Err(CoreError::HttpStatus(url, status_code));
-        }
-        res.copy_to(&mut target_file)?; // write response to target file
+            .send()?
+            .check_error(url)?
+            .copy_to(&mut target_file)?;
         Ok(())
     }
 
@@ -529,10 +534,11 @@ impl TmcCore {
         log::debug!("posting {}", url);
         let res: NewSubmission = self
             .client
-            .post(url)
+            .post(url.clone())
             .multipart(form)
             .authenticate(&self.token)
             .send()?
+            .check_error(url)?
             .json_res()?;
         log::debug!("received {:?}", res);
         Ok(res)
@@ -557,18 +563,22 @@ impl TmcCore {
         let url = self.api_url.join(&url_tail)?;
 
         log::debug!("posting {}", url);
-        let mut req = self.client.post(url);
-        if let Some(token) = &self.token {
-            req = req.bearer_auth(token.access_token().secret());
-        }
+        let mut form = Form::new();
         for (i, answer) in feedback.into_iter().enumerate() {
-            req = req
-                .query(&[(format!("answers[{}][question_id]", i), answer.question_id)])
-                .query(&[(format!("answers[{}][answer]", i), answer.answer)]);
+            form = form.text(
+                format!("answers[{}][question_id]", i),
+                answer.question_id.to_string(),
+            );
+            form = form.text(format!("answers[{}][answer]", i), answer.answer);
         }
-        let res: SubmissionFeedbackResponse = req.send()?.json_res()?;
-        log::trace!("received {:?}", res);
-        Ok(res)
+
+        self.client
+            .post(url.clone())
+            .multipart(form)
+            .authenticate(&self.token)
+            .send()?
+            .check_error(url)?
+            .json_res()
     }
 
     pub(super) fn post_review(
@@ -583,11 +593,12 @@ impl TmcCore {
         log::debug!("posting {}", url);
         let res: Value = self
             .client
-            .post(url)
+            .post(url.clone())
             .query(&[("review[review_body]", review_body)])
             .query(&[("review[points]", review_points)])
             .authenticate(&self.token)
             .send()?
+            .check_error(url)?
             .json_res()?;
         log::trace!("received {:?}", res);
         todo!()
@@ -607,7 +618,7 @@ mod test {
         dotenv::dotenv().ok();
         let user = std::env::var("TMC_USER").unwrap();
         let pass = std::env::var("TMC_PASS").unwrap();
-        let mut core = TmcCore::new_in_config(ROOT_URL).unwrap();
+        let mut core = TmcCore::new_in_config(ROOT_URL.to_string()).unwrap();
         core.authenticate("vscode_plugin", user, pass).unwrap();
         core
     }

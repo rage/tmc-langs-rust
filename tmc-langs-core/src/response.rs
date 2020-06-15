@@ -261,7 +261,7 @@ pub struct Submission {
     pub paste_key: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct NewSubmission {
     pub show_submission_url: String,
     pub paste_url: String, // use Option and serde_with::string_empty_as_none ?
@@ -281,7 +281,7 @@ pub struct SubmissionProcessing {
     pub sandbox_status: SandboxStatus,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum SandboxStatus {
     Created,
@@ -316,7 +316,7 @@ pub struct SubmissionFinished {
     // validations: unknown;
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum SubmissionStatus {
     Processing,
@@ -325,7 +325,7 @@ pub enum SubmissionStatus {
     Error,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct SubmissionFeedbackResponse {
     pub api_version: usize,
     pub status: SubmissionStatus,
@@ -398,7 +398,7 @@ impl<'de> Visitor<'de> for SubmissionFeedbackKindVisitor {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Review {
     pub submission_id: String,
     pub exercise_name: String,

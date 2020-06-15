@@ -1,3 +1,5 @@
+//! Used to communicate with the TMC server.
+
 mod error;
 mod request;
 mod response;

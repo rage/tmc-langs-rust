@@ -36,7 +36,7 @@ pub struct TmcCore {
 
 // TODO: cache API results?
 impl TmcCore {
-    pub fn new(config_dir: PathBuf, root_url: &'static str) -> Result<Self> {
+    pub fn new(config_dir: PathBuf, root_url: String) -> Result<Self> {
         // guarantee a trailing slash, otherwise join will drop the last component
         let tmc_url = Url::parse(&format!("{}/", root_url))?;
         let api_url = tmc_url.join("api/v8/")?;
@@ -50,7 +50,7 @@ impl TmcCore {
         })
     }
 
-    pub fn new_in_config(root_url: &'static str) -> Result<Self> {
+    pub fn new_in_config(root_url: String) -> Result<Self> {
         let config_dir = dirs::cache_dir().ok_or(CoreError::CacheDir)?;
         Self::new(config_dir, root_url)
     }
@@ -97,7 +97,7 @@ impl TmcCore {
     }
 
     pub fn send_diagnostics(&self) {
-        todo!("https://tmc-bandicoot.testmycode.io?")
+        unimplemented!()
     }
 
     pub fn download_or_update_exercises(&self, exercises: Vec<(usize, &Path)>) -> Result<()> {
@@ -147,7 +147,7 @@ impl TmcCore {
     }
 
     pub fn send_snapshot_events(&self) {
-        todo!("post to spyware urls")
+        unimplemented!()
     }
 
     pub fn submit(&self, exercise_id: usize, submission_path: &Path) -> Result<NewSubmission> {
@@ -177,7 +177,10 @@ impl TmcCore {
     }
 
     pub fn download_model_solution(&self, exercise_id: usize, target: &Path) -> Result<()> {
-        self.download_solution(exercise_id, target)
+        let zip_file = NamedTempFile::new().map_err(|e| CoreError::TempFile(e))?;
+        self.download_solution(exercise_id, zip_file.path())?;
+        task_executor::extract_project(zip_file.path(), target)?;
+        Ok(())
     }
 
     pub fn check_submission(&self, submission_url: &str) -> Result<SubmissionProcessingStatus> {
@@ -203,39 +206,429 @@ impl TmcCore {
     }
 }
 
-// TODO: use mock server
 #[cfg(test)]
 mod test {
     use super::*;
-    use serde_json::Value;
+    use mockito::{mock, Matcher};
+    use std::env;
 
-    const ROOT_URL: &'static str = "https://tmc.mooc.fi";
-
-    fn init() {
+    // sets up mock-authenticated TmcCore and logging
+    fn init() -> (TmcCore, String) {
+        if env::var("RUST_LOG").is_err() {
+            env::set_var("RUST_LOG", "debug,hyper=warn,tokio_reactor=warn");
+        }
         let _ = env_logger::builder().is_test(true).try_init();
-    }
 
-    fn authenticated_core() -> TmcCore {
-        dotenv::dotenv().ok();
-        let user = std::env::var("TMC_USER").unwrap();
-        let pass = std::env::var("TMC_PASS").unwrap();
-        let mut core = TmcCore::new_in_config(ROOT_URL).unwrap();
-        core.authenticate("vscode_plugin", user, pass).unwrap();
-        core
+        let _m = mock("GET", "/api/v8/application/client_name/credentials")
+            .with_status(200)
+            .with_body(
+                serde_json::json!({
+                    "application_id": "id",
+                    "secret": "secret",
+                })
+                .to_string(),
+            )
+            .create();
+        let _m = mock("POST", "/oauth/token")
+            .with_status(200)
+            .with_body(
+                serde_json::json!({
+                    "access_token": "token",
+                    "token_type": "bearer",
+                })
+                .to_string(),
+            )
+            .create();
+        let local_server = mockito::server_url();
+        log::debug!("local {}", local_server);
+        let mut core = TmcCore::new_in_config(local_server.to_string()).unwrap();
+        core.authenticate("client_name", "email".to_string(), "password".to_string())
+            .unwrap();
+        (core, local_server)
     }
 
     #[test]
-    #[ignore]
-    fn authenticates() {
-        init();
+    fn get_organizations() {
+        let (core, addr) = init();
+        let _m = mock("GET", "/api/v8/org.json")
+            .with_status(200)
+            .with_body(
+                serde_json::json!([
+                    {
+                        "information": "University of Helsinki's Massive Open Online Courses. All new courses from mooc.fi live here.",
+                        "logo_path": "/system/organizations/logos/000/000/021/original/mooc-logo.png?1513356394",
+                        "name": "MOOC",
+                        "pinned": true,
+                        "slug": "mooc"
+                    }
+                ]).to_string()
+            )
+            .create();
 
-        dotenv::dotenv().ok();
-        let user = std::env::var("TMC_USER").unwrap();
-        let pass = std::env::var("TMC_PASS").unwrap();
+        let orgs = core.get_organizations().unwrap();
+        assert_eq!(orgs[0].name, "MOOC");
+    }
 
-        let mut core = TmcCore::new_in_config(ROOT_URL).unwrap();
-        assert!(core.token.is_none());
-        core.authenticate("vscode_plugin", user, pass).unwrap();
-        assert!(core.token.is_some());
+    #[test]
+    fn download_or_update_exercises() {
+        let (core, addr) = init();
+        let _m = mock("GET", "/api/v8/core/exercises/1234/download")
+            .with_body_from_file(Path::new("tests/data/81842.zip"))
+            .create();
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        let target = temp_dir.path().join("temp");
+        assert!(!target.exists());
+        let exercises = vec![(1234, target.as_path())];
+        core.download_or_update_exercises(exercises).unwrap();
+        assert!(target.join("src/main/java/Hiekkalaatikko.java").exists());
+    }
+
+    #[test]
+    fn get_course_details() {
+        let (core, addr) = init();
+        let _m = mock("GET", "/api/v8/core/courses/1234")
+            .with_body(serde_json::json!({
+                "course": {
+                    "id": 588,
+                    "name": "mooc-2020-ohjelmointi",
+                    "title": "Ohjelmoinnin MOOC 2020, Ohjelmoinnin perusteet",
+                    "description": "Aikataulutettu Ohjelmoinnin MOOC 2020. Kurssin ensimmäinen puolisko. Tästä kurssista voi hakea opinto-oikeutta Helsingin yliopiston tietojenkäsittelytieteen osastolle.",
+                    "details_url": "https://tmc.mooc.fi/api/v8/core/courses/588",
+                    "unlock_url": "https://tmc.mooc.fi/api/v8/core/courses/588/unlock",
+                    "reviews_url": "https://tmc.mooc.fi/api/v8/core/courses/588/reviews",
+                    "comet_url": "https://tmc.mooc.fi:8443/comet",
+                    "spyware_urls": [
+                    "http://snapshots01.mooc.fi/"
+                    ],
+                    "unlockables": [],
+                    "exercises": [
+                    {
+                        "id": 81842,
+                        "name": "osa01-Osa01_01.Hiekkalaatikko",
+                        "locked": false,
+                        "deadline_description": "2020-01-20 23:59:59 +0200",
+                        "deadline": "2020-01-20T23:59:59.999+02:00",
+                        "soft_deadline": null,
+                        "soft_deadline_description": null,
+                        "checksum": "cb78336824109de610ce3d91d43a9954",
+                        "return_url": "https://tmc.mooc.fi/api/v8/core/exercises/81842/submissions",
+                        "zip_url": "https://tmc.mooc.fi/api/v8/core/exercises/81842/download",
+                        "returnable": true,
+                        "requires_review": false,
+                        "attempted": false,
+                        "completed": false,
+                        "reviewed": false,
+                        "all_review_points_given": true,
+                        "memory_limit": null,
+                        "runtime_params": [],
+                        "valgrind_strategy": "fail",
+                        "code_review_requests_enabled": false,
+                        "run_tests_locally_action_enabled": true
+                    }]
+                }
+            }).to_string())
+            .create();
+
+        let course_details = core.get_course_details(1234).unwrap();
+        assert_eq!(course_details.course.name, "mooc-2020-ohjelmointi");
+    }
+
+    #[test]
+    fn list_courses() {
+        let (core, addr) = init();
+        let _m = mock("GET", "/api/v8/core/org/slug/courses")
+            .with_body(serde_json::json!([
+                    {
+                        "id": 277,
+                        "name": "mooc-2013-OOProgrammingWithJava-PART1",
+                        "title": "2013 Object-oriented programming, part 1",
+                        "description": "2013 Object Oriented Programming with Java.  If you're not finding your old submissions, they're probably on our old server https://tmc.mooc.fi/mooc.",
+                        "details_url": "https://tmc.mooc.fi/api/v8/core/courses/277",
+                        "unlock_url": "https://tmc.mooc.fi/api/v8/core/courses/277/unlock",
+                        "reviews_url": "https://tmc.mooc.fi/api/v8/core/courses/277/reviews",
+                        "comet_url": "https://tmc.mooc.fi:8443/comet",
+                        "spyware_urls": [
+                        "http://snapshots01.mooc.fi/"
+                        ]
+                    },
+                ]).to_string())
+            .create();
+
+        let courses = core.list_courses("slug").unwrap();
+        assert_eq!(courses.len(), 1);
+        assert_eq!(courses[0].name, "mooc-2013-OOProgrammingWithJava-PART1");
+    }
+
+    #[test]
+    fn paste_with_comment() {
+        let (core, addr) = init();
+        let _m = mock("POST", "/api/v8/core/exercises/1234/submissions")
+            .match_body(Matcher::Regex("paste".to_string()))
+            .match_body(Matcher::Regex("message_for_paste".to_string()))
+            .match_body(Matcher::Regex("abcdefg".to_string()))
+            .with_body(
+                serde_json::json!({
+                    "submission_url": "https://tmc.mooc.fi/api/v8/core/submissions/7399658",
+                    "paste_url": "https://tmc.mooc.fi/paste/dYbznt87x_00deB9LBSuNQ",
+                    "show_submission_url": "https://tmc.mooc.fi/submissions/7399658"
+                })
+                .to_string(),
+            )
+            .create();
+
+        let new_submission = core
+            .paste_with_comment(
+                1234,
+                Path::new("tests/data/exercise"),
+                "abcdefg".to_string(),
+            )
+            .unwrap();
+        assert_eq!(
+            new_submission.submission_url,
+            "https://tmc.mooc.fi/api/v8/core/submissions/7399658"
+        );
+    }
+
+    #[test]
+    fn run_checkstyle() {
+        // todo, just calls task executor
+    }
+
+    #[test]
+    fn run_tests() {
+        // todo, just calls task executor
+    }
+
+    #[test]
+    fn send_feedback() {
+        let (core, addr) = init();
+        let _m = mock("POST", "/api/v8/core/submissions/1234/feedback")
+            .match_body(Matcher::AllOf(vec![
+                Matcher::Regex(r#"answers\[0\]\[question_id\]"#.to_string()),
+                Matcher::Regex(r#"answers\[0\]\[answer\]"#.to_string()),
+                Matcher::Regex(r#"answers\[1\]\[question_id\]"#.to_string()),
+                Matcher::Regex(r#"answers\[1\]\[answer\]"#.to_string()),
+                Matcher::Regex("1234".to_string()),
+                Matcher::Regex("5678".to_string()),
+                Matcher::Regex("ans0".to_string()),
+                Matcher::Regex("ans1".to_string()),
+            ]))
+            .with_body(
+                serde_json::json!({
+                    "api_version": 8,
+                    "status": "ok",
+                })
+                .to_string(),
+            )
+            .create();
+
+        let submission_feedback_response = core
+            .send_feedback(
+                1234,
+                vec![
+                    FeedbackAnswer {
+                        question_id: 1234,
+                        answer: "ans0".to_string(),
+                    },
+                    FeedbackAnswer {
+                        question_id: 5678,
+                        answer: "ans1".to_string(),
+                    },
+                ],
+            )
+            .unwrap();
+        assert_eq!(submission_feedback_response.api_version, 8);
+    }
+
+    #[test]
+    fn submit() {
+        let (core, addr) = init();
+        let _m = mock("POST", "/api/v8/core/exercises/1234/submissions")
+            .match_body(Matcher::Regex(r#"submission\[file\]"#.to_string()))
+            .with_body(
+                serde_json::json!({
+                    "submission_url": "https://tmc.mooc.fi/api/v8/core/submissions/7400888",
+                    "paste_url": "",
+                    "show_submission_url": "https://tmc.mooc.fi/submissions/7400888"
+                })
+                .to_string(),
+            )
+            .create();
+
+        let new_submission = core.submit(1234, Path::new("tests/data/exercise")).unwrap();
+        assert_eq!(
+            new_submission.submission_url,
+            "https://tmc.mooc.fi/api/v8/core/submissions/7400888"
+        );
+    }
+
+    #[test]
+    fn get_exercise_updates() {
+        // todo
+    }
+
+    #[test]
+    fn mark_review_as_read() {
+        // todo
+    }
+
+    #[test]
+    fn get_unread_reviews() {
+        let (core, addr) = init();
+        let _m = mock("GET", "/api/v8/core/courses/1234/reviews")
+            .with_body(
+                serde_json::json!([
+                    {
+                        "submission_id": "5678",
+                        "exercise_name": "en",
+                        "id": 90,
+                        "marked_as_read": true,
+                        "reviewer_name": "rn",
+                        "review_body": "rb",
+                        "points": ["1.1", "1.2"],
+                        "points_not_awarded": ["1.3"],
+                        "url": "ur",
+                        "update_url": "uu",
+                        "created_at": "ca",
+                        "updated_at": "ua",
+                    }
+                ])
+                .to_string(),
+            )
+            .create();
+
+        let reviews = core.get_unread_reviews(1234).unwrap();
+        assert_eq!(reviews.len(), 1);
+        assert_eq!(reviews[0].submission_id, "5678");
+    }
+
+    #[test]
+    fn request_code_review() {
+        let (core, addr) = init();
+        let _m = mock("POST", "/api/v8/core/exercises/1234/submissions")
+            .match_body(Matcher::Regex("request_review".to_string()))
+            .match_body(Matcher::Regex("message_for_reviewer".to_string()))
+            .match_body(Matcher::Regex("abcdefg".to_string()))
+            .with_body(
+                serde_json::json!({
+                    "submission_url": "https://tmc.mooc.fi/api/v8/core/submissions/7402793",
+                    "paste_url": "",
+                    "show_submission_url": "https://tmc.mooc.fi/submissions/7402793"
+                })
+                .to_string(),
+            )
+            .create();
+
+        let new_submission = core
+            .request_code_review(
+                1234,
+                Path::new("tests/data/exercise"),
+                "abcdefg".to_string(),
+            )
+            .unwrap();
+        assert_eq!(
+            new_submission.submission_url,
+            "https://tmc.mooc.fi/api/v8/core/submissions/7402793"
+        );
+    }
+
+    #[test]
+    fn download_model_solution() {
+        let (core, addr) = init();
+        let _m = mock("GET", "/api/v8/core/exercises/1234/solution/download")
+            .with_body_from_file(Path::new("tests/data/81842.zip"))
+            .create();
+
+        let temp = tempfile::tempdir().unwrap();
+        let target = temp.path().join("temp");
+        assert!(!target.exists());
+        core.download_model_solution(1234, &target).unwrap();
+        assert!(target.join("src/main/java/Hiekkalaatikko.java").exists());
+    }
+
+    #[test]
+    fn check_submission_processing() {
+        let (core, addr) = init();
+        let _m = mock("GET", "/submission-url")
+            .with_body(
+                serde_json::json!({
+                  "status": "processing",
+                  "sandbox_status": "processing_on_sandbox"
+                })
+                .to_string(),
+            )
+            .create();
+
+        let sub_url = format!("{}/submission-url", addr);
+        let submission_processing_status = core.check_submission(&sub_url).unwrap();
+        match submission_processing_status {
+            SubmissionProcessingStatus::Finished(_) => panic!("wrong status"),
+            SubmissionProcessingStatus::Processing(p) => {
+                assert_eq!(p.sandbox_status, SandboxStatus::ProcessingOnSandbox)
+            }
+        }
+    }
+
+    #[test]
+    fn check_submission_finished() {
+        let (core, addr) = init();
+        let _m = mock("GET", "/submission-url").with_body(serde_json::json!({
+            "api_version": 7,
+            "all_tests_passed": true,
+            "user_id": 3232,
+            "login": "014464865",
+            "course": "mooc-java-programming-i",
+            "exercise_name": "part01-Part01_01.Sandbox",
+            "status": "ok",
+            "points": [
+                "01-01"
+            ],
+            "validations": {
+                "strategy": "DISABLED",
+                "validationErrors": {}
+            },
+            "valgrind": "",
+            "submission_url": "https://tmc.mooc.fi/submissions/7402793",
+            "solution_url": "https://tmc.mooc.fi/exercises/83113/solution",
+            "submitted_at": "2020-06-15T16:05:08.105+03:00",
+            "processing_time": 13,
+            "reviewed": false,
+            "requests_review": true,
+            "paste_url": null,
+            "message_for_paste": null,
+            "missing_review_points": [],
+            "test_cases": [
+                {
+                    "name": "SandboxTest freePoints",
+                    "successful": true,
+                    "message": "",
+                    "exception": [],
+                    "detailed_message": null
+                }
+            ],
+            "feedback_questions": [
+                {
+                    "id": 389,
+                    "question": "How well did you concentrate doing this exercise? (1: not at all, 5: very well)",
+                    "kind": "intrange[1..5]"
+                },
+                {
+                    "id": 390,
+                    "question": "How much do you feel you learned doing this exercise? (1: Did not learn anything, 5: Learned a lot)",
+                    "kind": "intrange[1..5]"
+                },
+            ],
+            "feedback_answer_url": "https://tmc.mooc.fi/api/v8/core/submissions/7402793/feedback"
+        }).to_string()).create();
+
+        let sub_url = format!("{}/submission-url", addr);
+        let submission_processing_status = core.check_submission(&sub_url).unwrap();
+        match submission_processing_status {
+            SubmissionProcessingStatus::Finished(f) => {
+                assert_eq!(f.all_tests_passed, Some(true));
+            }
+            SubmissionProcessingStatus::Processing(_) => panic!("wrong status"),
+        }
     }
 }
