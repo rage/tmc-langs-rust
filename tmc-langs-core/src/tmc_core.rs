@@ -591,9 +591,15 @@ mod test {
         assert_eq!(updated[0].checksum, "zz");
     }
 
-    #[test]
+    //#[test]
     fn mark_review_as_read() {
         // todo
+        let (core, addr) = init();
+        let update_url = Url::parse(&addr).unwrap().join("update-url").unwrap();
+
+        let _m = mock("POST", "/update-url.json").create();
+
+        core.mark_review_as_read(update_url.to_string()).unwrap();
     }
 
     #[test]

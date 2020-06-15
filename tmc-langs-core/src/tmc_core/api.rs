@@ -605,7 +605,9 @@ impl TmcCore {
     }
 
     pub(super) fn mark_review(&self, review_update_url: String, read: bool) -> Result<()> {
-        let url = Url::parse(&review_update_url)?.join(".json")?;
+        todo!("awkward to test");
+
+        let url = Url::parse(&format!("{}.json", review_update_url))?;
 
         let mut form = Form::new().text("_method", "put");
         if read {
