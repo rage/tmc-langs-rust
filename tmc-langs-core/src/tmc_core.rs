@@ -3,8 +3,8 @@ mod api;
 use crate::error::{CoreError, Result};
 use crate::request::*;
 use crate::response::*;
-
 use crate::response::{Course, CourseDetails, Organization};
+
 use isolang::Language;
 use oauth2::basic::BasicClient;
 use oauth2::prelude::*;
@@ -14,6 +14,7 @@ use oauth2::{
 };
 use reqwest::{blocking::Client, Url};
 use serde::de::DeserializeOwned;
+use std::collections::HashMap;
 use std::fmt::Debug;
 use std::path::Path;
 use std::path::PathBuf;
@@ -154,13 +155,36 @@ impl TmcCore {
         self.post_submission(exercise_id, submission_path)
     }
 
-    pub fn get_exercise_updates(&self, course_id: usize) -> Result<()> {
+    /// Fetches the course's exercises from the server,
+    /// and finds new or updated exercises.
+    /// If an exercise's id is not found in the checksum map, it is considered new.
+    /// If an id is found, it is compared to the current one. If they are different,
+    /// it is considered updated.
+    pub fn get_exercise_updates(
+        &self,
+        course_id: usize,
+        checksums: HashMap<usize, String>,
+    ) -> Result<(Vec<Exercise>, Vec<Exercise>)> {
+        let mut new_exercises = vec![];
+        let mut updated_exercises = vec![];
+
         let course = self.core_course(course_id)?;
-        todo!("uses an existing course object")
+        for exercise in course.exercises {
+            if let Some(old_checksum) = checksums.get(&exercise.id) {
+                if &exercise.checksum != old_checksum {
+                    // updated
+                    updated_exercises.push(exercise);
+                }
+            } else {
+                // new
+                new_exercises.push(exercise);
+            }
+        }
+        Ok((new_exercises, updated_exercises))
     }
 
-    pub fn mark_review_as_read(&self) {
-        todo!("review update_url?")
+    pub fn mark_review_as_read(&self, review_update_url: String) -> Result<()> {
+        self.mark_review(review_update_url, true)
     }
 
     pub fn get_unread_reviews(&self, course_id: usize) -> Result<Vec<Review>> {
@@ -465,7 +489,106 @@ mod test {
 
     #[test]
     fn get_exercise_updates() {
-        // todo
+        let (core, addr) = init();
+        let _m = mock("GET", "/api/v8/core/courses/1234")
+            .with_body(serde_json::json!({
+                "course": {
+                    "id": 588,
+                    "name": "mooc-2020-ohjelmointi",
+                    "title": "Ohjelmoinnin MOOC 2020, Ohjelmoinnin perusteet",
+                    "description": "Aikataulutettu Ohjelmoinnin MOOC 2020. Kurssin ensimmäinen puolisko. Tästä kurssista voi hakea opinto-oikeutta Helsingin yliopiston tietojenkäsittelytieteen osastolle.",
+                    "details_url": "https://tmc.mooc.fi/api/v8/core/courses/588",
+                    "unlock_url": "https://tmc.mooc.fi/api/v8/core/courses/588/unlock",
+                    "reviews_url": "https://tmc.mooc.fi/api/v8/core/courses/588/reviews",
+                    "comet_url": "https://tmc.mooc.fi:8443/comet",
+                    "spyware_urls": [
+                    "http://snapshots01.mooc.fi/"
+                    ],
+                    "unlockables": [],
+                    "exercises": [
+                    {
+                        "id": 12,
+                        "name": "unchanged",
+                        "locked": false,
+                        "deadline_description": "2020-01-20 23:59:59 +0200",
+                        "deadline": "2020-01-20T23:59:59.999+02:00",
+                        "soft_deadline": null,
+                        "soft_deadline_description": null,
+                        "checksum": "ab",
+                        "return_url": "https://tmc.mooc.fi/api/v8/core/exercises/81842/submissions",
+                        "zip_url": "https://tmc.mooc.fi/api/v8/core/exercises/81842/download",
+                        "returnable": true,
+                        "requires_review": false,
+                        "attempted": false,
+                        "completed": false,
+                        "reviewed": false,
+                        "all_review_points_given": true,
+                        "memory_limit": null,
+                        "runtime_params": [],
+                        "valgrind_strategy": "fail",
+                        "code_review_requests_enabled": false,
+                        "run_tests_locally_action_enabled": true
+                    },
+                    {
+                        "id": 23,
+                        "name": "updated",
+                        "locked": false,
+                        "deadline_description": "2020-01-20 23:59:59 +0200",
+                        "deadline": "2020-01-20T23:59:59.999+02:00",
+                        "soft_deadline": null,
+                        "soft_deadline_description": null,
+                        "checksum": "zz",
+                        "return_url": "https://tmc.mooc.fi/api/v8/core/exercises/81842/submissions",
+                        "zip_url": "https://tmc.mooc.fi/api/v8/core/exercises/81842/download",
+                        "returnable": true,
+                        "requires_review": false,
+                        "attempted": false,
+                        "completed": false,
+                        "reviewed": false,
+                        "all_review_points_given": true,
+                        "memory_limit": null,
+                        "runtime_params": [],
+                        "valgrind_strategy": "fail",
+                        "code_review_requests_enabled": false,
+                        "run_tests_locally_action_enabled": true
+                    },
+                    {
+                        "id": 34,
+                        "name": "new",
+                        "locked": false,
+                        "deadline_description": "2020-01-20 23:59:59 +0200",
+                        "deadline": "2020-01-20T23:59:59.999+02:00",
+                        "soft_deadline": null,
+                        "soft_deadline_description": null,
+                        "checksum": "cd",
+                        "return_url": "https://tmc.mooc.fi/api/v8/core/exercises/81842/submissions",
+                        "zip_url": "https://tmc.mooc.fi/api/v8/core/exercises/81842/download",
+                        "returnable": true,
+                        "requires_review": false,
+                        "attempted": false,
+                        "completed": false,
+                        "reviewed": false,
+                        "all_review_points_given": true,
+                        "memory_limit": null,
+                        "runtime_params": [],
+                        "valgrind_strategy": "fail",
+                        "code_review_requests_enabled": false,
+                        "run_tests_locally_action_enabled": true
+                    },]
+                }
+            }).to_string())
+            .create();
+
+        let mut checksums = HashMap::new();
+        checksums.insert(12, "ab".to_string());
+        checksums.insert(23, "bc".to_string());
+        let (new, updated) = core.get_exercise_updates(1234, checksums).unwrap();
+
+        assert_eq!(new.len(), 1);
+        assert_eq!(new[0].id, 34);
+
+        assert_eq!(updated.len(), 1);
+        assert_eq!(updated[0].checksum, "zz");
     }
 
     #[test]

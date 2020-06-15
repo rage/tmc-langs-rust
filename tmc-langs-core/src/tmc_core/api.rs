@@ -447,8 +447,8 @@ impl TmcCore {
     }
 
     pub(super) fn unlock(&self, course_id: usize) -> Result<()> {
+        todo!("needs admin?");
         let url_tail = format!("core/courses/{}", course_id);
-        todo!()
     }
 
     pub(super) fn download_exercise(&self, exercise_id: usize, target: &Path) -> Result<()> {
@@ -498,7 +498,6 @@ impl TmcCore {
         self.post_submission_with_params(exercise_id, submission, Some(params))
     }
 
-    // TODO: test with params
     pub(super) fn post_submission_with_params(
         &self,
         exercise_id: usize,
@@ -587,6 +586,8 @@ impl TmcCore {
         review_body: &str,
         review_points: &str,
     ) -> Result<()> {
+        todo!("awkward to test");
+
         let url_tail = format!("core/submissions/{}/reviews", submission_id);
         let url = self.api_url.join(&url_tail)?;
 
@@ -601,7 +602,24 @@ impl TmcCore {
             .check_error(url)?
             .json_res()?;
         log::trace!("received {:?}", res);
-        todo!()
+    }
+
+    pub(super) fn mark_review(&self, review_update_url: String, read: bool) -> Result<()> {
+        let url = Url::parse(&review_update_url)?.join(".json")?;
+
+        let mut form = Form::new().text("_method", "put");
+        if read {
+            form = form.text("mark_as_read", "1");
+        } else {
+            form = form.text("mark_as_unread", "1");
+        }
+
+        self.client
+            .post(url.clone())
+            .multipart(form)
+            .send()?
+            .check_error(url)?
+            .json_res()
     }
 }
 
