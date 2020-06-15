@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["CliError",""]],"fn":[["find_exercise_directories",""],["main",""],["run_checkstyle",""]]});
+initSidebarItems({"fn":[["find_exercise_directories",""],["main",""],["run_checkstyle",""]]});
