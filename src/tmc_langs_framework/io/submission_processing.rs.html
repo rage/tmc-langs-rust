@@ -418,6 +418,11 @@
 <span id="418">418</span>
 <span id="419">419</span>
 <span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Functions for processing submissions.</span>
 
@@ -805,7 +810,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">open</span>(<span class="ident">exp</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
         <span class="ident">file</span>.<span class="ident">read_to_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">r#&quot;public class JavaTestCase {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">r#&quot;public class JavaTestCase {
 
     public void bar() {
     }
@@ -814,7 +819,12 @@
         return 0;
     }
 }
-&quot;#</span>;
+&quot;#</span>
+        .<span class="ident">to_string</span>();
+
+        <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">windows</span>) {
+            <span class="ident">expected</span> <span class="op">=</span> <span class="ident">expected</span>.<span class="ident">replace</span>(<span class="string">&quot;\n&quot;</span>, <span class="string">&quot;\r\n&quot;</span>);
+        }
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>, <span class="ident">expected</span>, <span class="string">&quot;expected:\n{:#}\nfound:\n{:#}&quot;</span>, <span class="ident">expected</span>, <span class="ident">s</span>);
     }
