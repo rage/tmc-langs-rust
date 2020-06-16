@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["find_exercise_directories",""],["main",""],["run_checkstyle",""]]});
+initSidebarItems({"fn":[["find_exercise_directories",""],["into_locale",""],["into_url",""],["into_usize",""],["main",""],["run_checkstyle",""]]});
