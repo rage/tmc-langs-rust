@@ -166,7 +166,7 @@ fn main() {
                 .about("Get organizations."))
 
             .subcommand(SubCommand::with_name("send-diagnostics")
-                .about("Send diagnostics."))
+                .about("UNIMPLEMENTED. Send diagnostics."))
 
             .subcommand(SubCommand::with_name("download-or-update-exercises")
                 .about("Download exercise.")
@@ -179,7 +179,6 @@ fn main() {
             .subcommand(SubCommand::with_name("get-course-details")
                 .about("Get course details.")
                 .arg(Arg::with_name("courseId")
-                    .help("Course ID")
                     .long("courseId")
                     .required(true)
                     .takes_value(true)))

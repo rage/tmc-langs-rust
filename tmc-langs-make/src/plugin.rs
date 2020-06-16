@@ -253,6 +253,7 @@ impl LanguagePlugin for MakePlugin {
 }
 
 #[cfg(test)]
+#[cfg(not(target_os = "macos"))] // check not installed
 mod test {
     use super::*;
     use std::path::PathBuf;
