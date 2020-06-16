@@ -174,6 +174,7 @@ impl JavaPlugin for MavenPlugin {
 }
 
 #[cfg(test)]
+#[cfg(not(target_os = "macos"))] // issues with maven dependencies
 mod test {
     use super::super::{TestCase, TestCaseStatus};
     use super::*;
