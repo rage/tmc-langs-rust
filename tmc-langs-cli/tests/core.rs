@@ -10,7 +10,7 @@ fn init() -> (Mock, Mock) {
         env::set_var("RUST_LOG", "debug,hyper=warn,tokio_reactor=warn");
     }
     let _ = env_logger::builder().is_test(true).try_init();
-    env::set_var("TMC_CORE_ROOT_URL", mockito::server_url());
+    env::set_var("TMC_CORE_CLI_ROOT_URL", mockito::server_url());
 
     let m1 = mock("GET", "/api/v8/application/vscode_plugin/credentials")
         .with_body(

@@ -637,7 +637,8 @@ fn main() {
 
     // core
     if let Some(matches) = matches.subcommand_matches("core") {
-        let root_url = env::var("TMC_CORE_ROOT_URL").unwrap_or("https://tmc.mooc.fi".to_string());
+        let root_url =
+            env::var("TMC_CORE_CLI_ROOT_URL").unwrap_or("https://tmc.mooc.fi".to_string());
         let mut core = TmcCore::new_in_config(root_url).unwrap_or_else(|e| {
             Error::with_description(&format!("Failed to create TmcCore: {}", e), ErrorKind::Io)
                 .exit()
