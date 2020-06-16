@@ -384,7 +384,7 @@ mod test {
         let mut file = File::open(exp).unwrap();
         let mut s = String::new();
         file.read_to_string(&mut s).unwrap();
-        let expected = r#"public class JavaTestCase {
+        let mut expected = r#"public class JavaTestCase {
 
     public void bar() {
     }
@@ -393,7 +393,12 @@ mod test {
         return 0;
     }
 }
-"#;
+"#
+        .to_string();
+
+        if cfg!(windows) {
+            expected = expected.replace("\n", "\r\n");
+        }
 
         assert_eq!(s, expected, "expected:\n{:#}\nfound:\n{:#}", expected, s);
     }
