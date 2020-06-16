@@ -3,6 +3,7 @@
 use clap::{App, Arg, Error, ErrorKind, SubCommand};
 use isolang::Language;
 use log::debug;
+use std::collections::HashMap;
 use std::env;
 use std::fs::File;
 use std::io::Write;
@@ -10,6 +11,7 @@ use std::path::{Path, PathBuf};
 use tmc_langs_core::{FeedbackAnswer, TmcCore};
 use tmc_langs_framework::io::submission_processing;
 use tmc_langs_util::task_executor;
+use url::Url;
 use walkdir::WalkDir;
 
 fn main() {
@@ -165,16 +167,15 @@ fn main() {
             .subcommand(SubCommand::with_name("get-organizations")
                 .about("Get organizations."))
 
-            .subcommand(SubCommand::with_name("send-diagnostics")
-                .about("UNIMPLEMENTED. Send diagnostics."))
-
             .subcommand(SubCommand::with_name("download-or-update-exercises")
                 .about("Download exercise.")
-                .arg(Arg::with_name("exercises")
-                    .help("A list of exercise ids and the paths where they should be extracted to, formatted as follows: \"123:path/to/exercise,234:another/path\". The paths should not contain the characters ':' or ',' as they are used as separators (TODO: rework)")
-                    .long("exercises")
+                .arg(Arg::with_name("exercise")
+                    .help("An exercise. Takes two values, an exercise id and an exercise path. Multiple exercises can be given.")
+                    .long("exercise")
                     .required(true)
-                    .takes_value(true)))
+                    .takes_value(true)
+                    .number_of_values(2)
+                    .multiple(true)))
 
             .subcommand(SubCommand::with_name("get-course-details")
                 .about("Get course details.")
@@ -193,8 +194,8 @@ fn main() {
 
             .subcommand(SubCommand::with_name("paste-with-comment")
                 .about("Send exercise to pastebin with comment.")
-                .arg(Arg::with_name("exerciseId")
-                    .long("exerciseId")
+                .arg(Arg::with_name("submissionUrl")
+                    .long("submissionUrl")
                     .required(true)
                     .takes_value(true))
                 .arg(Arg::with_name("submissionPath")
@@ -226,39 +227,57 @@ fn main() {
 
             .subcommand(SubCommand::with_name("send-feedback")
                 .about("Send feedback.")
-                .arg(Arg::with_name("submissionId")
-                    .long("submissionId")
+                .arg(Arg::with_name("feedbackUrl")
+                    .long("feedbackUrl")
                     .required(true)
                     .takes_value(true))
                 .arg(Arg::with_name("feedback")
-                    .help("List of feedback answers formatted as id1:answer1,id2:answer2,...")
+                    .help("A feedback answer. Takes two values, a feedback answer id and the answer. Multiple feedback arguments can be given.")
                     .long("feedback")
                     .required(true)
-                    .takes_value(true)))
-
-            .subcommand(SubCommand::with_name("send-snapshot-events")
-                .about("UNIMPLEMENTED. Send snapshot events."))
+                    .takes_value(true)
+                    .number_of_values(2)
+                    .multiple(true)))
 
             .subcommand(SubCommand::with_name("submit")
                 .about("Submit exercise.")
-                .arg(Arg::with_name("exerciseId")
-                    .long("exerciseId")
+                .arg(Arg::with_name("submissionUrl")
+                    .long("submissionUrl")
+                    .required(true)
+                    .takes_value(true))
+                .arg(Arg::with_name("submissionPath")
+                    .long("submissionPath")
                     .required(true)
                     .takes_value(true)))
 
             .subcommand(SubCommand::with_name("get-exercise-updates")
-                .about("Get exercise updates."))
+                .about("Get exercise updates.")
+                .arg(Arg::with_name("courseId")
+                    .long("courseId")
+                    .required(true)
+                    .takes_value(true))
+                .arg(Arg::with_name("exercise")
+                    .help("An exercise. Takes two values, an exercise id and a checksum. Multiple exercises can be given.")
+                    .long("feedback")
+                    .required(true)
+                    .takes_value(true)
+                    .number_of_values(2)
+                    .multiple(true)))
 
             .subcommand(SubCommand::with_name("mark-review-as-read")
-                .about("Mark review as read."))
+                .about("Mark review as read.")
+                .arg(Arg::with_name("reviewUpdateUrl")
+                    .long("reviewUpdateUrl")
+                    .required(true)
+                    .takes_value(true)))
 
             .subcommand(SubCommand::with_name("get-unread-reviews")
                 .about("Get unread reviews."))
 
             .subcommand(SubCommand::with_name("request-code-review")
                 .about("Request code review.")
-                .arg(Arg::with_name("exerciseId")
-                    .long("exerciseId")
+                .arg(Arg::with_name("submissionUrl")
+                    .long("submissionUrl")
                     .required(true)
                     .takes_value(true))
                 .arg(Arg::with_name("submissionPath")
@@ -272,8 +291,8 @@ fn main() {
 
             .subcommand(SubCommand::with_name("download-model-solution")
                 .about("Download model solutions.")
-                .arg(Arg::with_name("exerciseId")
-                    .long("exerciseId")
+                .arg(Arg::with_name("solutionDownloadUrl")
+                    .long("solutionDownloadUrl")
                     .required(true)
                     .takes_value(true))
                 .arg(Arg::with_name("target")
@@ -292,13 +311,7 @@ fn main() {
         let output_path = Path::new(output_path);
 
         let locale = matches.value_of("locale").unwrap();
-        let locale = Language::from_639_3(&locale).unwrap_or_else(|| {
-            Error::with_description(
-                &format!("Invalid locale: {}", locale),
-                ErrorKind::InvalidValue,
-            )
-            .exit()
-        });
+        let locale = into_locale(locale);
 
         run_checkstyle(exercise_path, output_path, locale)
     } else if let Some(matches) = matches.subcommand_matches("compress-project") {
@@ -418,19 +431,7 @@ fn main() {
         let checkstyle_output_path: Option<&Path> = checkstyle_output_path.map(Path::new);
 
         let locale = matches.value_of("locale");
-        let locale = match locale {
-            Some(locale) => {
-                let iso_locale = Language::from_639_3(&locale);
-                Some(iso_locale.unwrap_or_else(|| {
-                    Error::with_description(
-                        &format!("Invalid locale: {}", locale),
-                        ErrorKind::InvalidValue,
-                    )
-                    .exit()
-                }))
-            }
-            None => None,
-        };
+        let locale = locale.map(|l| into_locale(l));
 
         let test_result = task_executor::run_tests(exercise_path).unwrap_or_else(|e| {
             Error::with_description(
@@ -677,43 +678,15 @@ fn main() {
                 .exit()
             });
             println!("{}", orgs);
-        } else if let Some(_matches) = matches.subcommand_matches("send-diagnostics") {
-            unimplemented!()
         } else if let Some(matches) = matches.subcommand_matches("download-or-update-exercises") {
-            let exercises = matches.value_of("exercises").unwrap();
-            let exercises = exercises
-                .split(',')
-                .into_iter()
-                .map(|e| {
-                    let mut split = e.split(':');
-                    let exercise_id = split.next().unwrap_or_else(|| {
-                        Error::with_description(
-                            "Malformed exercise list",
-                            ErrorKind::ValueValidation,
-                        )
-                        .exit()
-                    });
-
-                    let path = split.next().unwrap_or_else(|| {
-                        Error::with_description(
-                            "Malformed exercise list",
-                            ErrorKind::ValueValidation,
-                        )
-                        .exit()
-                    });
-
-                    let exercise_id = usize::from_str_radix(exercise_id, 10).unwrap_or_else(|e| {
-                        Error::with_description(
-                            &format!("Malformed exercise id {}: {}", exercise_id, e),
-                            ErrorKind::ValueValidation,
-                        )
-                        .exit()
-                    });
-
-                    let path = Path::new(path);
-                    (exercise_id, path)
-                })
-                .collect();
+            let mut exercise_args = matches.values_of("exercise").unwrap().into_iter();
+            let mut exercises = vec![];
+            while let Some(exercise_id) = exercise_args.next() {
+                let exercise_id = into_usize(exercise_id);
+                let exercise_path = exercise_args.next().unwrap(); // safe unwrap because each --exercise takes 2 arguments
+                let exercise_path = Path::new(exercise_path);
+                exercises.push((exercise_id, exercise_path));
+            }
 
             core.download_or_update_exercises(exercises)
                 .unwrap_or_else(|e| {
@@ -725,13 +698,7 @@ fn main() {
                 });
         } else if let Some(matches) = matches.subcommand_matches("get-course-details") {
             let course_id = matches.value_of("courseId").unwrap();
-            let course_id = usize::from_str_radix(course_id, 10).unwrap_or_else(|e| {
-                Error::with_description(
-                    &format!("Malformed course id {}: {}", course_id, e),
-                    ErrorKind::Io,
-                )
-                .exit()
-            });
+            let course_id = into_usize(course_id);
 
             let course_details = core.get_course_details(course_id).unwrap_or_else(|e| {
                 Error::with_description(
@@ -766,20 +733,15 @@ fn main() {
 
             println!("{}", courses);
         } else if let Some(matches) = matches.subcommand_matches("paste-with-comment") {
-            let exercise_id = matches.value_of("exerciseId").unwrap();
-            let exercise_id = usize::from_str_radix(exercise_id, 10).unwrap_or_else(|e| {
-                Error::with_description(
-                    &format!("Malformed exercise id {}: {}", exercise_id, e),
-                    ErrorKind::Io,
-                )
-                .exit()
-            });
+            let submission_url = matches.value_of("submissionUrl").unwrap();
+            let submission_url = into_url(submission_url);
+
             let submission_path = matches.value_of("submissionPath").unwrap();
             let submission_path = Path::new(submission_path);
             let paste_message = matches.value_of("pasteMessage").unwrap();
 
             let new_submission = core
-                .paste_with_comment(exercise_id, submission_path, paste_message.to_string())
+                .paste_with_comment(submission_url, submission_path, paste_message.to_string())
                 .unwrap_or_else(|e| {
                     Error::with_description(&format!("Failed to get courses: {}", e), ErrorKind::Io)
                         .exit()
@@ -790,13 +752,7 @@ fn main() {
             let exercise_path = matches.value_of("exercisePath").unwrap();
             let exercise_path = Path::new(exercise_path);
             let locale = matches.value_of("locale").unwrap();
-            let locale = Language::from_639_3(locale).unwrap_or_else(|| {
-                Error::with_description(
-                    &format!("Invalid locale: {}", locale),
-                    ErrorKind::InvalidValue,
-                )
-                .exit()
-            });
+            let locale = into_locale(locale);
 
             let validation_result =
                 core.run_checkstyle(exercise_path, locale)
@@ -820,57 +776,22 @@ fn main() {
             let run_result = serde_json::to_string(&run_result).unwrap();
             println!("{}", run_result);
         } else if let Some(matches) = matches.subcommand_matches("send-feedback") {
-            let submission_id = matches.value_of("submissionId").unwrap();
-            let submission_id = usize::from_str_radix(submission_id, 10).unwrap_or_else(|e| {
-                Error::with_description(
-                    &format!("Malformed submission id {}: {}", submission_id, e),
-                    ErrorKind::Io,
-                )
-                .exit()
-            });
+            let feedback_url = matches.value_of("feedbackUrl").unwrap();
+            let feedback_url = into_url(feedback_url);
 
-            let feedback = matches.value_of("submissionId").unwrap();
-            let feedback = feedback
-                .split(":")
-                .into_iter()
-                .map(|f| {
-                    let mut split = f.split(':');
-
-                    let question_id = split.next().unwrap_or_else(|| {
-                        Error::with_description(
-                            "Malformed feedback list",
-                            ErrorKind::ValueValidation,
-                        )
-                        .exit()
-                    });
-                    let question_id = usize::from_str_radix(question_id, 10).unwrap_or_else(|e| {
-                        Error::with_description(
-                            &format!("Malformed question id {}: {}", question_id, e),
-                            ErrorKind::ValueValidation,
-                        )
-                        .exit()
-                    });
-
-                    let answer = split
-                        .next()
-                        .unwrap_or_else(|| {
-                            Error::with_description(
-                                "Malformed feedback list",
-                                ErrorKind::ValueValidation,
-                            )
-                            .exit()
-                        })
-                        .to_string();
-
-                    FeedbackAnswer {
-                        question_id,
-                        answer,
-                    }
-                })
-                .collect();
+            let mut feedback_answers = matches.values_of("feedback").unwrap().into_iter();
+            let mut feedback = vec![];
+            while let Some(feedback_id) = feedback_answers.next() {
+                let question_id = into_usize(feedback_id);
+                let answer = feedback_answers.next().unwrap().to_string();
+                feedback.push(FeedbackAnswer {
+                    question_id,
+                    answer,
+                });
+            }
 
             let response = core
-                .send_feedback(submission_id, feedback)
+                .send_feedback(feedback_url, feedback)
                 .unwrap_or_else(|e| {
                     Error::with_description(
                         &format!("Failed to send feedback: {}", e),
@@ -880,23 +801,15 @@ fn main() {
                 });
             let response = serde_json::to_string(&response).unwrap();
             println!("{}", response);
-        } else if let Some(_matches) = matches.subcommand_matches("send-snapshot-events") {
-            unimplemented!()
         } else if let Some(matches) = matches.subcommand_matches("submit") {
-            let exercise_id = matches.value_of("exerciseId").unwrap();
-            let exercise_id = usize::from_str_radix(exercise_id, 10).unwrap_or_else(|e| {
-                Error::with_description(
-                    &format!("Malformed exercise id {}: {}", exercise_id, e),
-                    ErrorKind::Io,
-                )
-                .exit()
-            });
+            let submission_url = matches.value_of("submissionUrl").unwrap();
+            let submission_url = into_url(submission_url);
 
             let submission_path = matches.value_of("submissionPath").unwrap();
             let submission_path = Path::new(submission_path);
 
             let new_submission = core
-                .submit(exercise_id, submission_path)
+                .submit(submission_url, submission_path)
                 .unwrap_or_else(|e| {
                     Error::with_description(&format!("Failed to submit: {}", e), ErrorKind::Io)
                         .exit()
@@ -904,20 +817,42 @@ fn main() {
             let new_submission = serde_json::to_string(&new_submission).unwrap();
             println!("{}", new_submission);
         } else if let Some(_matches) = matches.subcommand_matches("get-exercise-updates") {
-            //core.get_exercise_updates();
-            todo!("uses an existing course object")
+            let course_id = matches.value_of("courseId").unwrap();
+            let course_id = into_usize(course_id);
+
+            let mut exercise_checksums = matches.values_of("checksum").unwrap().into_iter();
+            let mut checksums = HashMap::new();
+            while let Some(exercise_id) = exercise_checksums.next() {
+                let exercise_id = into_usize(exercise_id);
+                let checksum = exercise_checksums.next().unwrap();
+                checksums.insert(exercise_id, checksum.to_string());
+            }
+
+            let update_result = core
+                .get_exercise_updates(course_id, checksums)
+                .unwrap_or_else(|e| {
+                    Error::with_description(
+                        &format!("Failed to get exercise updates: {}", e),
+                        ErrorKind::Io,
+                    )
+                    .exit()
+                });
+            let update_result = serde_json::to_string(&update_result).unwrap();
+            println!("{}", update_result);
         } else if let Some(_matches) = matches.subcommand_matches("mark-review-as-read") {
-            //core.mark_review_as_read()
+            let review_update_url = matches.value_of("reviewUpdateUrl").unwrap();
+            core.mark_review_as_read(review_update_url.to_string())
+                .unwrap_or_else(|e| {
+                    Error::with_description(
+                        &format!("Failed to mark review as read: {}", e),
+                        ErrorKind::Io,
+                    )
+                    .exit()
+                });
             todo!()
         } else if let Some(matches) = matches.subcommand_matches("get-unread-reviews") {
             let exercise_id = matches.value_of("exerciseId").unwrap();
-            let exercise_id = usize::from_str_radix(exercise_id, 10).unwrap_or_else(|e| {
-                Error::with_description(
-                    &format!("Malformed exercise id {}: {}", exercise_id, e),
-                    ErrorKind::Io,
-                )
-                .exit()
-            });
+            let exercise_id = into_usize(exercise_id);
 
             let reviews = core.get_unread_reviews(exercise_id).unwrap_or_else(|e| {
                 Error::with_description(
@@ -929,14 +864,8 @@ fn main() {
             let reviews = serde_json::to_string(&reviews).unwrap();
             println!("{}", reviews);
         } else if let Some(matches) = matches.subcommand_matches("request-code-review") {
-            let exercise_id = matches.value_of("exerciseId").unwrap();
-            let exercise_id = usize::from_str_radix(exercise_id, 10).unwrap_or_else(|e| {
-                Error::with_description(
-                    &format!("Malformed exercise id {}: {}", exercise_id, e),
-                    ErrorKind::Io,
-                )
-                .exit()
-            });
+            let submission_url = matches.value_of("submissionUrl").unwrap();
+            let submission_url = into_url(submission_url);
 
             let submission_path = matches.value_of("submissionPath").unwrap();
             let submission_path = Path::new(submission_path);
@@ -945,7 +874,7 @@ fn main() {
 
             let new_submission = core
                 .request_code_review(
-                    exercise_id,
+                    submission_url,
                     submission_path,
                     message_for_reviewer.to_string(),
                 )
@@ -959,19 +888,13 @@ fn main() {
             let new_submission = serde_json::to_string(&new_submission).unwrap();
             println!("{}", new_submission);
         } else if let Some(matches) = matches.subcommand_matches("download-model-solution") {
-            let exercise_id = matches.value_of("exerciseId").unwrap();
-            let exercise_id = usize::from_str_radix(exercise_id, 10).unwrap_or_else(|e| {
-                Error::with_description(
-                    &format!("Malformed exercise id {}: {}", exercise_id, e),
-                    ErrorKind::Io,
-                )
-                .exit()
-            });
+            let solution_download_url = matches.value_of("solutionDownloadUrl").unwrap();
+            let solution_download_url = into_url(solution_download_url);
 
             let target = matches.value_of("target").unwrap();
             let target = Path::new(target);
 
-            core.download_model_solution(exercise_id, target)
+            core.download_model_solution(solution_download_url, target)
                 .unwrap_or_else(|e| {
                     Error::with_description(
                         &format!("Failed to download model solution: {}", e),
@@ -981,6 +904,31 @@ fn main() {
                 });
         }
     }
+}
+
+fn into_usize(arg: &str) -> usize {
+    usize::from_str_radix(arg, 10).unwrap_or_else(|e| {
+        Error::with_description(
+            &format!(
+                "Failed to convert argument to a non-negative integer {}: {}",
+                arg, e
+            ),
+            ErrorKind::Io,
+        )
+        .exit()
+    })
+}
+
+fn into_locale(arg: &str) -> Language {
+    Language::from_639_3(arg).unwrap_or_else(|| {
+        Error::with_description(&format!("Invalid locale: {}", arg), ErrorKind::InvalidValue).exit()
+    })
+}
+
+fn into_url(arg: &str) -> Url {
+    Url::parse(arg).unwrap_or_else(|e| {
+        Error::with_description(&format!("Failed to url {}: {}", arg, e), ErrorKind::Io).exit()
+    })
 }
 
 fn find_exercise_directories(exercise_path: &Path) -> Vec<PathBuf> {

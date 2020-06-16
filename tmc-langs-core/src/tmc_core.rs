@@ -16,6 +16,7 @@ use reqwest::{blocking::Client, Url};
 use serde::de::DeserializeOwned;
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::io::Write;
 use std::path::Path;
 use std::path::PathBuf;
 use tempfile::NamedTempFile;
@@ -120,11 +121,17 @@ impl TmcCore {
 
     pub fn paste_with_comment(
         &self,
-        exercise_id: usize,
+        submission_url: Url,
         submission_path: &Path,
         paste_message: String,
     ) -> Result<NewSubmission> {
-        self.post_submission_to_paste(exercise_id, submission_path, paste_message)
+        // compress
+        let compressed = task_executor::compress_project(submission_path)?;
+        let mut file = NamedTempFile::new().map_err(|e| CoreError::TempFile(e))?;
+        file.write_all(&compressed)
+            .map_err(|e| CoreError::Write(file.path().to_path_buf(), e))?;
+
+        self.post_submission_to_paste(submission_url, file.path(), paste_message)
     }
 
     pub fn run_checkstyle(
@@ -141,18 +148,24 @@ impl TmcCore {
 
     pub fn send_feedback(
         &self,
-        submission_id: usize,
+        feedback_url: Url,
         feedback: Vec<FeedbackAnswer>,
     ) -> Result<SubmissionFeedbackResponse> {
-        self.post_feedback(submission_id, feedback)
+        self.post_feedback(feedback_url, feedback)
     }
 
     pub fn send_snapshot_events(&self) {
         unimplemented!()
     }
 
-    pub fn submit(&self, exercise_id: usize, submission_path: &Path) -> Result<NewSubmission> {
-        self.post_submission(exercise_id, submission_path)
+    pub fn submit(&self, submission_url: Url, submission_path: &Path) -> Result<NewSubmission> {
+        // compress
+        let compressed = task_executor::compress_project(submission_path)?;
+        let mut file = NamedTempFile::new().map_err(|e| CoreError::TempFile(e))?;
+        file.write_all(&compressed)
+            .map_err(|e| CoreError::Write(file.path().to_path_buf(), e))?;
+
+        self.post_submission(submission_url, file.path())
     }
 
     /// Fetches the course's exercises from the server,
@@ -164,7 +177,7 @@ impl TmcCore {
         &self,
         course_id: usize,
         checksums: HashMap<usize, String>,
-    ) -> Result<(Vec<Exercise>, Vec<Exercise>)> {
+    ) -> Result<UpdateResult> {
         let mut new_exercises = vec![];
         let mut updated_exercises = vec![];
 
@@ -180,7 +193,10 @@ impl TmcCore {
                 new_exercises.push(exercise);
             }
         }
-        Ok((new_exercises, updated_exercises))
+        Ok(UpdateResult {
+            created: new_exercises,
+            updated: updated_exercises,
+        })
     }
 
     pub fn mark_review_as_read(&self, review_update_url: String) -> Result<()> {
@@ -193,16 +209,22 @@ impl TmcCore {
 
     pub fn request_code_review(
         &self,
-        exercise_id: usize,
+        submission_url: Url,
         submission_path: &Path,
         message_for_reviewer: String,
     ) -> Result<NewSubmission> {
-        self.post_submission_for_review(exercise_id, submission_path, message_for_reviewer)
+        // compress
+        let compressed = task_executor::compress_project(submission_path)?;
+        let mut file = NamedTempFile::new().map_err(|e| CoreError::TempFile(e))?;
+        file.write_all(&compressed)
+            .map_err(|e| CoreError::Write(file.path().to_path_buf(), e))?;
+
+        self.post_submission_for_review(submission_url, file.path(), message_for_reviewer)
     }
 
-    pub fn download_model_solution(&self, exercise_id: usize, target: &Path) -> Result<()> {
+    pub fn download_model_solution(&self, solution_download_url: Url, target: &Path) -> Result<()> {
         let zip_file = NamedTempFile::new().map_err(|e| CoreError::TempFile(e))?;
-        self.download_solution(exercise_id, zip_file.path())?;
+        self.download_from(solution_download_url, zip_file.path())?;
         task_executor::extract_project(zip_file.path(), target)?;
         Ok(())
     }
@@ -383,8 +405,9 @@ mod test {
 
     #[test]
     fn paste_with_comment() {
-        let (core, addr) = init();
-        let _m = mock("POST", "/api/v8/core/exercises/1234/submissions")
+        let (core, url) = init();
+        let submission_url = Url::parse(&format!("{}/submission", url)).unwrap();
+        let _m = mock("POST", "/submission")
             .match_body(Matcher::Regex("paste".to_string()))
             .match_body(Matcher::Regex("message_for_paste".to_string()))
             .match_body(Matcher::Regex("abcdefg".to_string()))
@@ -400,7 +423,7 @@ mod test {
 
         let new_submission = core
             .paste_with_comment(
-                1234,
+                submission_url,
                 Path::new("tests/data/exercise"),
                 "abcdefg".to_string(),
             )
@@ -423,8 +446,9 @@ mod test {
 
     #[test]
     fn send_feedback() {
-        let (core, addr) = init();
-        let _m = mock("POST", "/api/v8/core/submissions/1234/feedback")
+        let (core, url) = init();
+        let feedback_url = Url::parse(&format!("{}/feedback", url)).unwrap();
+        let _m = mock("POST", "/feedback")
             .match_body(Matcher::AllOf(vec![
                 Matcher::Regex(r#"answers\[0\]\[question_id\]"#.to_string()),
                 Matcher::Regex(r#"answers\[0\]\[answer\]"#.to_string()),
@@ -446,7 +470,7 @@ mod test {
 
         let submission_feedback_response = core
             .send_feedback(
-                1234,
+                feedback_url,
                 vec![
                     FeedbackAnswer {
                         question_id: 1234,
@@ -464,8 +488,9 @@ mod test {
 
     #[test]
     fn submit() {
-        let (core, addr) = init();
-        let _m = mock("POST", "/api/v8/core/exercises/1234/submissions")
+        let (core, url) = init();
+        let submission_url = Url::parse(&format!("{}/submission", url)).unwrap();
+        let _m = mock("POST", "/submission")
             .match_body(Matcher::Regex(r#"submission\[file\]"#.to_string()))
             .with_body(
                 serde_json::json!({
@@ -477,7 +502,9 @@ mod test {
             )
             .create();
 
-        let new_submission = core.submit(1234, Path::new("tests/data/exercise")).unwrap();
+        let new_submission = core
+            .submit(submission_url, Path::new("tests/data/exercise"))
+            .unwrap();
         assert_eq!(
             new_submission.submission_url,
             "https://tmc.mooc.fi/api/v8/core/submissions/7400888"
@@ -579,13 +606,13 @@ mod test {
         let mut checksums = HashMap::new();
         checksums.insert(12, "ab".to_string());
         checksums.insert(23, "bc".to_string());
-        let (new, updated) = core.get_exercise_updates(1234, checksums).unwrap();
+        let update_result = core.get_exercise_updates(1234, checksums).unwrap();
 
-        assert_eq!(new.len(), 1);
-        assert_eq!(new[0].id, 34);
+        assert_eq!(update_result.created.len(), 1);
+        assert_eq!(update_result.created[0].id, 34);
 
-        assert_eq!(updated.len(), 1);
-        assert_eq!(updated[0].checksum, "zz");
+        assert_eq!(update_result.updated.len(), 1);
+        assert_eq!(update_result.updated[0].checksum, "zz");
     }
 
     //#[test]
@@ -631,8 +658,9 @@ mod test {
 
     #[test]
     fn request_code_review() {
-        let (core, addr) = init();
-        let _m = mock("POST", "/api/v8/core/exercises/1234/submissions")
+        let (core, url) = init();
+        let submission_url = Url::parse(&format!("{}/submission", url)).unwrap();
+        let _m = mock("POST", "/submission")
             .match_body(Matcher::Regex("request_review".to_string()))
             .match_body(Matcher::Regex("message_for_reviewer".to_string()))
             .match_body(Matcher::Regex("abcdefg".to_string()))
@@ -648,7 +676,7 @@ mod test {
 
         let new_submission = core
             .request_code_review(
-                1234,
+                submission_url,
                 Path::new("tests/data/exercise"),
                 "abcdefg".to_string(),
             )
@@ -662,14 +690,15 @@ mod test {
     #[test]
     fn download_model_solution() {
         let (core, addr) = init();
-        let _m = mock("GET", "/api/v8/core/exercises/1234/solution/download")
+        let solution_url = Url::parse(&format!("{}/solution", addr)).unwrap();
+        let _m = mock("GET", "/solution")
             .with_body_from_file(Path::new("tests/data/81842.zip"))
             .create();
 
         let temp = tempfile::tempdir().unwrap();
         let target = temp.path().join("temp");
         assert!(!target.exists());
-        core.download_model_solution(1234, &target).unwrap();
+        core.download_model_solution(solution_url, &target).unwrap();
         assert!(target.join("src/main/java/Hiekkalaatikko.java").exists());
     }
 

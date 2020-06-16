@@ -69,8 +69,28 @@ fn get_organizations() {
         )
         .create();
     let out = run_cmd(&["core", "--email", "email", "get-organizations"]);
+    assert!(out.status.success());
     let out = String::from_utf8(out.stdout).unwrap();
     let orgs: Vec<Organization> = serde_json::from_str(&out).unwrap();
     assert_eq!(orgs.len(), 1);
     assert_eq!(orgs[0].name, "org name");
+}
+
+#[test]
+fn download_or_update_exercises() {
+    let _m = init();
+    let out = run_cmd(&[
+        "core",
+        "--email",
+        "email",
+        "download-or-update-exercises",
+        "--exercise",
+        "id1",
+        "path1",
+        "--exercise",
+        "id2",
+        "path2",
+    ]);
+    assert!(out.status.success());
+    let out = String::from_utf8(out.stdout).unwrap();
 }

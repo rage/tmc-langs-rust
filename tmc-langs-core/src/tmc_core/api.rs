@@ -13,7 +13,6 @@ use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::Write;
 use std::path::Path;
 use tempfile::NamedTempFile;
 use tmc_langs_util::task_executor;
@@ -85,6 +84,20 @@ impl TmcCore {
     fn download(&self, url_tail: &str, target: &Path) -> Result<()> {
         let url = self.api_url.join(&url_tail)?;
 
+        // download zip
+        let mut target_file =
+            File::create(target).map_err(|e| CoreError::FileCreate(target.to_path_buf(), e))?;
+        log::debug!("downloading {}", url);
+        self.client
+            .get(url.clone())
+            .authenticate(&self.token)
+            .send()?
+            .check_error(url)?
+            .copy_to(&mut target_file)?;
+        Ok(())
+    }
+
+    pub fn download_from(&self, url: Url, target: &Path) -> Result<()> {
         // download zip
         let mut target_file =
             File::create(target).map_err(|e| CoreError::FileCreate(target.to_path_buf(), e))?;
@@ -468,39 +481,39 @@ impl TmcCore {
 
     pub(super) fn post_submission(
         &self,
-        exercise_id: usize,
+        submission_url: Url,
         submission: &Path,
     ) -> Result<NewSubmission> {
-        self.post_submission_with_params(exercise_id, submission, None)
+        self.post_submission_with_params(submission_url, submission, None)
     }
 
     pub(super) fn post_submission_to_paste(
         &self,
-        exercise_id: usize,
+        submission_url: Url,
         submission: &Path,
         paste_message: String,
     ) -> Result<NewSubmission> {
         let mut params = HashMap::new();
         params.insert("paste".to_string(), "1".to_string());
         params.insert("message_for_paste".to_string(), paste_message);
-        self.post_submission_with_params(exercise_id, submission, Some(params))
+        self.post_submission_with_params(submission_url, submission, Some(params))
     }
 
     pub(super) fn post_submission_for_review(
         &self,
-        exercise_id: usize,
+        submission_url: Url,
         submission: &Path,
         message_for_reviewer: String,
     ) -> Result<NewSubmission> {
         let mut params = HashMap::new();
         params.insert("request_review".to_string(), "1".to_string());
         params.insert("message_for_reviewer".to_string(), message_for_reviewer);
-        self.post_submission_with_params(exercise_id, submission, Some(params))
+        self.post_submission_with_params(submission_url, submission, Some(params))
     }
 
-    pub(super) fn post_submission_with_params(
+    fn post_submission_with_params(
         &self,
-        exercise_id: usize,
+        submission_url: Url,
         submission: &Path,
         params: Option<HashMap<String, String>>,
     ) -> Result<NewSubmission> {
@@ -508,21 +521,17 @@ impl TmcCore {
             return Err(CoreError::AuthRequired);
         }
 
-        // compress
-        let compressed = task_executor::compress_project(submission)?;
-        let mut file = NamedTempFile::new().map_err(|e| CoreError::TempFile(e))?;
-        file.write_all(&compressed)
-            .map_err(|e| CoreError::Write(file.path().to_path_buf(), e))?;
-
+        /*
         let url = self
             .api_url
             .join(&format!("core/exercises/{}/submissions", exercise_id))
             .unwrap();
+        */
 
         // send
         let mut form = Form::new()
-            .file("submission[file]", file.path())
-            .map_err(|e| CoreError::FileOpen(file.path().to_path_buf(), e))?;
+            .file("submission[file]", submission)
+            .map_err(|e| CoreError::FileOpen(submission.to_path_buf(), e))?;
 
         if let Some(params) = params {
             for (key, val) in params {
@@ -530,14 +539,14 @@ impl TmcCore {
             }
         }
 
-        log::debug!("posting {}", url);
+        log::debug!("posting submission to {}", submission_url);
         let res: NewSubmission = self
             .client
-            .post(url.clone())
+            .post(submission_url.clone())
             .multipart(form)
             .authenticate(&self.token)
             .send()?
-            .check_error(url)?
+            .check_error(submission_url)?
             .json_res()?;
         log::debug!("received {:?}", res);
         Ok(res)
@@ -555,13 +564,13 @@ impl TmcCore {
 
     pub(super) fn post_feedback(
         &self,
-        submission_id: usize,
+        feedback_url: Url,
         feedback: Vec<FeedbackAnswer>,
     ) -> Result<SubmissionFeedbackResponse> {
-        let url_tail = format!("core/submissions/{}/feedback", submission_id);
-        let url = self.api_url.join(&url_tail)?;
+        // let url_tail = format!("core/submissions/{}/feedback", submission_id);
+        // let url = self.api_url.join(&url_tail)?;
 
-        log::debug!("posting {}", url);
+        log::debug!("posting feedback to {}", feedback_url);
         let mut form = Form::new();
         for (i, answer) in feedback.into_iter().enumerate() {
             form = form.text(
@@ -572,11 +581,11 @@ impl TmcCore {
         }
 
         self.client
-            .post(url.clone())
+            .post(feedback_url.clone())
             .multipart(form)
             .authenticate(&self.token)
             .send()?
-            .check_error(url)?
+            .check_error(feedback_url)?
             .json_res()
     }
 
@@ -586,8 +595,6 @@ impl TmcCore {
         review_body: &str,
         review_points: &str,
     ) -> Result<()> {
-        todo!("awkward to test");
-
         let url_tail = format!("core/submissions/{}/reviews", submission_id);
         let url = self.api_url.join(&url_tail)?;
 
@@ -602,11 +609,10 @@ impl TmcCore {
             .check_error(url)?
             .json_res()?;
         log::trace!("received {:?}", res);
+        Ok(())
     }
 
     pub(super) fn mark_review(&self, review_update_url: String, read: bool) -> Result<()> {
-        todo!("awkward to test");
-
         let url = Url::parse(&format!("{}.json", review_update_url))?;
 
         let mut form = Form::new().text("_method", "put");

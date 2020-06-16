@@ -414,6 +414,12 @@ pub struct Review {
     pub updated_at: String,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct UpdateResult {
+    pub created: Vec<Exercise>,
+    pub updated: Vec<Exercise>,
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
