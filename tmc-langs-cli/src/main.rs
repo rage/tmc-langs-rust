@@ -667,6 +667,7 @@ fn main() {
                 )
                 .exit()
             });
+            log::debug!("orgs: {:?}", orgs);
 
             let orgs = serde_json::to_value(&orgs).unwrap_or_else(|e| {
                 Error::with_description(

@@ -1,57 +1,76 @@
-use httpmock::Method;
-use httpmock::{mock, with_mock_server};
+use mockito::{mock, Mock};
 use std::env;
+use std::io::Write;
+use std::process::Stdio;
 use std::process::{Command, Output};
 use tmc_langs_core::Organization;
 
-fn init() {
+fn init() -> (Mock, Mock) {
+    if env::var("RUST_LOG").is_err() {
+        env::set_var("RUST_LOG", "debug,hyper=warn,tokio_reactor=warn");
+    }
     let _ = env_logger::builder().is_test(true).try_init();
-    env::set_var("TMC_CORE_ROOT_URL", "http://localhost:5000");
-    mock(Method::GET, "/api/v8/application/vscode_plugin/credentials")
-        .return_status(200)
-        .return_json_body(&serde_json::json!({
-            "application_id": "id",
-            "secret": "s",
-        }))
+    env::set_var("TMC_CORE_ROOT_URL", mockito::server_url());
+
+    let m1 = mock("GET", "/api/v8/application/vscode_plugin/credentials")
+        .with_body(
+            serde_json::json!({
+                "application_id": "id",
+                "secret": "secret",
+            })
+            .to_string(),
+        )
         .create();
-    mock(Method::POST, "/oauth/token")
-        .return_status(200)
-        .return_json_body(&serde_json::json!({
-            "access_token": "a",
-            "token_type": "bearer",
-        }))
+    let m2 = mock("POST", "/oauth/token")
+        .with_body(
+            serde_json::json!({
+                "access_token": "token",
+                "token_type": "bearer",
+            })
+            .to_string(),
+        )
         .create();
+    (m1, m2)
 }
 
 fn run_cmd(args: &[&str]) -> Output {
     let path = env::current_exe().unwrap().parent().unwrap().to_path_buf();
     let path = path.parent().unwrap().join("tmc-langs-cli");
-    let out = Command::new(path).args(args).output().unwrap();
+    let mut child = Command::new(path)
+        .stdout(Stdio::piped())
+        .stdin(Stdio::piped())
+        .args(args)
+        .spawn()
+        .unwrap();
+    let child_stdin = child.stdin.as_mut().unwrap();
+    child_stdin.write_all("password\n".as_bytes()).unwrap();
+    let out = child.wait_with_output().unwrap();
+
     log::debug!("stdout: {}", String::from_utf8_lossy(&out.stdout));
     log::debug!("stderr: {}", String::from_utf8_lossy(&out.stderr));
     out
 }
 
-//#[test]
-#[with_mock_server]
-fn core() {
-    init();
-    mock(Method::GET, "/api/v8/org.json")
-        .return_status(200)
-        .return_json_body(
-            &serde_json::to_value(&serde_json::json!([
+#[test]
+fn get_organizations() {
+    let _m = init();
+    let _m = mock("GET", "/api/v8/org.json")
+        .with_body(
+            serde_json::json!([
                 {
-                    "name": "n",
-                    "information": "i",
-                    "slug": "s",
-                    "logo_path": "l",
-                    "pinned": "p",
+                    "name": "org name",
+                    "information": "info",
+                    "slug": "slg",
+                    "logo_path": "path",
+                    "pinned": false,
                 }
-            ]))
-            .unwrap(),
+            ])
+            .to_string(),
         )
         .create();
     let out = run_cmd(&["core", "--email", "email", "get-organizations"]);
     let out = String::from_utf8(out.stdout).unwrap();
-    let _orgs: Vec<Organization> = serde_json::from_str(&out).unwrap();
+    let orgs: Vec<Organization> = serde_json::from_str(&out).unwrap();
+    assert_eq!(orgs.len(), 1);
+    assert_eq!(orgs[0].name, "org name");
 }

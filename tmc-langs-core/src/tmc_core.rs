@@ -244,7 +244,6 @@ mod test {
         let _ = env_logger::builder().is_test(true).try_init();
 
         let _m = mock("GET", "/api/v8/application/client_name/credentials")
-            .with_status(200)
             .with_body(
                 serde_json::json!({
                     "application_id": "id",
@@ -254,7 +253,6 @@ mod test {
             )
             .create();
         let _m = mock("POST", "/oauth/token")
-            .with_status(200)
             .with_body(
                 serde_json::json!({
                     "access_token": "token",
@@ -275,7 +273,6 @@ mod test {
     fn get_organizations() {
         let (core, addr) = init();
         let _m = mock("GET", "/api/v8/org.json")
-            .with_status(200)
             .with_body(
                 serde_json::json!([
                     {
