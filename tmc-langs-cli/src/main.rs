@@ -659,7 +659,7 @@ fn main() {
                 .exit()
             });
 
-        if let Some(matches) = matches.subcommand_matches("get-organizations") {
+        if let Some(_matches) = matches.subcommand_matches("get-organizations") {
             let orgs = core.get_organizations().unwrap_or_else(|e| {
                 Error::with_description(
                     &format!("Failed to get organizations: {}", e),
@@ -676,7 +676,7 @@ fn main() {
                 .exit()
             });
             println!("{}", orgs);
-        } else if let Some(matches) = matches.subcommand_matches("send-diagnostics") {
+        } else if let Some(_matches) = matches.subcommand_matches("send-diagnostics") {
             unimplemented!()
         } else if let Some(matches) = matches.subcommand_matches("download-or-update-exercises") {
             let exercises = matches.value_of("exercises").unwrap();
@@ -879,7 +879,7 @@ fn main() {
                 });
             let response = serde_json::to_string(&response).unwrap();
             println!("{}", response);
-        } else if let Some(matches) = matches.subcommand_matches("send-snapshot-events") {
+        } else if let Some(_matches) = matches.subcommand_matches("send-snapshot-events") {
             unimplemented!()
         } else if let Some(matches) = matches.subcommand_matches("submit") {
             let exercise_id = matches.value_of("exerciseId").unwrap();
@@ -902,10 +902,10 @@ fn main() {
                 });
             let new_submission = serde_json::to_string(&new_submission).unwrap();
             println!("{}", new_submission);
-        } else if let Some(matches) = matches.subcommand_matches("get-exercise-updates") {
+        } else if let Some(_matches) = matches.subcommand_matches("get-exercise-updates") {
             //core.get_exercise_updates();
             todo!("uses an existing course object")
-        } else if let Some(matches) = matches.subcommand_matches("mark-review-as-read") {
+        } else if let Some(_matches) = matches.subcommand_matches("mark-review-as-read") {
             //core.mark_review_as_read()
             todo!()
         } else if let Some(matches) = matches.subcommand_matches("get-unread-reviews") {
@@ -1009,7 +1009,11 @@ fn run_checkstyle(exercise_path: &Path, output_path: &Path, locale: Language) {
     let check_result =
         task_executor::run_check_code_style(exercise_path, locale).unwrap_or_else(|e| {
             Error::with_description(
-                &format!("Failed to check code style at {}", exercise_path.display()),
+                &format!(
+                    "Failed to check code style at {}: {}",
+                    exercise_path.display(),
+                    e
+                ),
                 ErrorKind::Io,
             )
             .exit()
@@ -1017,7 +1021,7 @@ fn run_checkstyle(exercise_path: &Path, output_path: &Path, locale: Language) {
     if let Some(check_result) = check_result {
         let output_file = File::create(output_path).unwrap_or_else(|e| {
             Error::with_description(
-                &format!("Failed to create file at {}", output_path.display()),
+                &format!("Failed to create file at {}: {}", output_path.display(), e,),
                 ErrorKind::Io,
             )
             .exit()
@@ -1025,8 +1029,9 @@ fn run_checkstyle(exercise_path: &Path, output_path: &Path, locale: Language) {
         serde_json::to_writer(output_file, &check_result).unwrap_or_else(|e| {
             Error::with_description(
                 &format!(
-                    "Failed to write check results as JSON to {}",
-                    output_path.display()
+                    "Failed to write check results as JSON to {}: {}",
+                    output_path.display(),
+                    e
                 ),
                 ErrorKind::Io,
             )
