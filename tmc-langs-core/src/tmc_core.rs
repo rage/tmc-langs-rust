@@ -88,7 +88,7 @@ impl TmcCore {
                 &ResourceOwnerUsername::new(email),
                 &ResourceOwnerPassword::new(password),
             )
-            .map_err(|e| CoreError::Token(e))?;
+            .map_err(CoreError::Token)?;
         self.token = Some(token);
         log::debug!("authenticated");
         Ok(())
@@ -104,7 +104,7 @@ impl TmcCore {
 
     pub fn download_or_update_exercises(&self, exercises: Vec<(usize, &Path)>) -> Result<()> {
         for (exercise_id, target) in exercises {
-            let zip_file = NamedTempFile::new().map_err(|e| CoreError::TempFile(e))?;
+            let zip_file = NamedTempFile::new().map_err(CoreError::TempFile)?;
             self.download_exercise(exercise_id, zip_file.path())?;
             task_executor::extract_project(zip_file.path(), target)?;
         }
@@ -127,7 +127,7 @@ impl TmcCore {
     ) -> Result<NewSubmission> {
         // compress
         let compressed = task_executor::compress_project(submission_path)?;
-        let mut file = NamedTempFile::new().map_err(|e| CoreError::TempFile(e))?;
+        let mut file = NamedTempFile::new().map_err(CoreError::TempFile)?;
         file.write_all(&compressed)
             .map_err(|e| CoreError::Write(file.path().to_path_buf(), e))?;
 
@@ -161,7 +161,7 @@ impl TmcCore {
     pub fn submit(&self, submission_url: Url, submission_path: &Path) -> Result<NewSubmission> {
         // compress
         let compressed = task_executor::compress_project(submission_path)?;
-        let mut file = NamedTempFile::new().map_err(|e| CoreError::TempFile(e))?;
+        let mut file = NamedTempFile::new().map_err(CoreError::TempFile)?;
         file.write_all(&compressed)
             .map_err(|e| CoreError::Write(file.path().to_path_buf(), e))?;
 
@@ -215,7 +215,7 @@ impl TmcCore {
     ) -> Result<NewSubmission> {
         // compress
         let compressed = task_executor::compress_project(submission_path)?;
-        let mut file = NamedTempFile::new().map_err(|e| CoreError::TempFile(e))?;
+        let mut file = NamedTempFile::new().map_err(CoreError::TempFile)?;
         file.write_all(&compressed)
             .map_err(|e| CoreError::Write(file.path().to_path_buf(), e))?;
 
@@ -223,7 +223,7 @@ impl TmcCore {
     }
 
     pub fn download_model_solution(&self, solution_download_url: Url, target: &Path) -> Result<()> {
-        let zip_file = NamedTempFile::new().map_err(|e| CoreError::TempFile(e))?;
+        let zip_file = NamedTempFile::new().map_err(CoreError::TempFile)?;
         self.download_from(solution_download_url, zip_file.path())?;
         task_executor::extract_project(zip_file.path(), target)?;
         Ok(())

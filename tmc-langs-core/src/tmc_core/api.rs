@@ -14,8 +14,6 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::fs::File;
 use std::path::Path;
-use tempfile::NamedTempFile;
-use tmc_langs_util::task_executor;
 use url::Url;
 
 /// Provides a wrapper for reqwest Response's json that deserializes into Response<T> and converts it into a result

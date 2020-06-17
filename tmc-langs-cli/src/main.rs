@@ -398,7 +398,7 @@ fn main() {
             )
             .exit()
         });
-    } else if let Some(matches) = matches.subcommand_matches("prepare-submission") {
+    } else if let Some(_matches) = matches.subcommand_matches("prepare-submission") {
         Error::with_description(
             "This command is unimplemented.",
             ErrorKind::InvalidSubcommand,
@@ -550,7 +550,7 @@ fn main() {
     // core
     if let Some(matches) = matches.subcommand_matches("core") {
         let root_url =
-            env::var("TMC_CORE_CLI_ROOT_URL").unwrap_or("https://tmc.mooc.fi".to_string());
+            env::var("TMC_CORE_CLI_ROOT_URL").unwrap_or_else(|_| "https://tmc.mooc.fi".to_string());
         let mut core = TmcCore::new_in_config(root_url).unwrap_or_else(|e| {
             Error::with_description(&format!("Failed to create TmcCore: {}", e), ErrorKind::Io)
                 .exit()
@@ -583,7 +583,7 @@ fn main() {
 
             print_result_as_json(&orgs);
         } else if let Some(matches) = matches.subcommand_matches("download-or-update-exercises") {
-            let mut exercise_args = matches.values_of("exercise").unwrap().into_iter();
+            let mut exercise_args = matches.values_of("exercise").unwrap();
             let mut exercises = vec![];
             while let Some(exercise_id) = exercise_args.next() {
                 let exercise_id = into_usize(exercise_id);
@@ -668,7 +668,7 @@ fn main() {
             let feedback_url = matches.value_of("feedbackUrl").unwrap();
             let feedback_url = into_url(feedback_url);
 
-            let mut feedback_answers = matches.values_of("feedback").unwrap().into_iter();
+            let mut feedback_answers = matches.values_of("feedback").unwrap();
             let mut feedback = vec![];
             while let Some(feedback_id) = feedback_answers.next() {
                 let question_id = into_usize(feedback_id);
@@ -709,7 +709,7 @@ fn main() {
             let course_id = matches.value_of("courseId").unwrap();
             let course_id = into_usize(course_id);
 
-            let mut exercise_checksums = matches.values_of("exercise").unwrap().into_iter();
+            let mut exercise_checksums = matches.values_of("exercise").unwrap();
             let mut checksums = HashMap::new();
             while let Some(exercise_id) = exercise_checksums.next() {
                 let exercise_id = into_usize(exercise_id);

@@ -272,7 +272,7 @@ pub struct NewSubmission {
 #[serde(untagged)] // TODO: tag
 pub enum SubmissionProcessingStatus {
     Processing(SubmissionProcessing),
-    Finished(SubmissionFinished),
+    Finished(Box<SubmissionFinished>),
 }
 
 #[derive(Debug, Deserialize)]
