@@ -739,10 +739,10 @@ fn main() {
                     .exit()
                 });
         } else if let Some(matches) = matches.subcommand_matches("get-unread-reviews") {
-            let exercise_id = matches.value_of("exerciseId").unwrap();
-            let exercise_id = into_usize(exercise_id);
+            let reviews_url = matches.value_of("reviewsUrl").unwrap();
+            let reviews_url = into_url(reviews_url);
 
-            let reviews = core.get_unread_reviews(exercise_id).unwrap_or_else(|e| {
+            let reviews = core.get_unread_reviews(reviews_url).unwrap_or_else(|e| {
                 Error::with_description(
                     &format!("Failed to get unread reviews: {}", e),
                     ErrorKind::Io,

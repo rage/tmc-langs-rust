@@ -203,8 +203,8 @@ impl TmcCore {
         self.mark_review(review_update_url, true)
     }
 
-    pub fn get_unread_reviews(&self, course_id: usize) -> Result<Vec<Review>> {
-        self.reviews(course_id)
+    pub fn get_unread_reviews(&self, reviews_url: Url) -> Result<Vec<Review>> {
+        self.get_json_from_url(reviews_url)
     }
 
     pub fn request_code_review(
@@ -629,7 +629,8 @@ mod test {
     #[test]
     fn get_unread_reviews() {
         let (core, addr) = init();
-        let _m = mock("GET", "/api/v8/core/courses/1234/reviews")
+        let reviews_url = Url::parse(&format!("{}/reviews", addr)).unwrap();
+        let _m = mock("GET", "/reviews")
             .with_body(
                 serde_json::json!([
                     {
@@ -651,7 +652,7 @@ mod test {
             )
             .create();
 
-        let reviews = core.get_unread_reviews(1234).unwrap();
+        let reviews = core.get_unread_reviews(reviews_url).unwrap();
         assert_eq!(reviews.len(), 1);
         assert_eq!(reviews[0].submission_id, "5678");
     }

@@ -70,6 +70,10 @@ impl TmcCore {
     // convenience function
     fn get_json<T: DeserializeOwned>(&self, url_tail: &str) -> Result<T> {
         let url = self.api_url.join(url_tail)?;
+        self.get_json_from_url(url)
+    }
+    // convenience function
+    pub fn get_json_from_url<T: DeserializeOwned>(&self, url: Url) -> Result<T> {
         log::debug!("get {}", url);
         self.client
             .get(url.clone())
