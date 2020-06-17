@@ -124,6 +124,7 @@ impl TmcCore {
         submission_url: Url,
         submission_path: &Path,
         paste_message: String,
+        locale: Language,
     ) -> Result<NewSubmission> {
         // compress
         let compressed = task_executor::compress_project(submission_path)?;
@@ -131,7 +132,7 @@ impl TmcCore {
         file.write_all(&compressed)
             .map_err(|e| CoreError::Write(file.path().to_path_buf(), e))?;
 
-        self.post_submission_to_paste(submission_url, file.path(), paste_message)
+        self.post_submission_to_paste(submission_url, file.path(), paste_message, locale)
     }
 
     pub fn run_checkstyle(
@@ -158,14 +159,19 @@ impl TmcCore {
         unimplemented!()
     }
 
-    pub fn submit(&self, submission_url: Url, submission_path: &Path) -> Result<NewSubmission> {
+    pub fn submit(
+        &self,
+        submission_url: Url,
+        submission_path: &Path,
+        locale: Language,
+    ) -> Result<NewSubmission> {
         // compress
         let compressed = task_executor::compress_project(submission_path)?;
         let mut file = NamedTempFile::new().map_err(CoreError::TempFile)?;
         file.write_all(&compressed)
             .map_err(|e| CoreError::Write(file.path().to_path_buf(), e))?;
 
-        self.post_submission(submission_url, file.path())
+        self.post_submission(submission_url, file.path(), locale)
     }
 
     /// Fetches the course's exercises from the server,
@@ -212,6 +218,7 @@ impl TmcCore {
         submission_url: Url,
         submission_path: &Path,
         message_for_reviewer: String,
+        locale: Language,
     ) -> Result<NewSubmission> {
         // compress
         let compressed = task_executor::compress_project(submission_path)?;
@@ -219,7 +226,7 @@ impl TmcCore {
         file.write_all(&compressed)
             .map_err(|e| CoreError::Write(file.path().to_path_buf(), e))?;
 
-        self.post_submission_for_review(submission_url, file.path(), message_for_reviewer)
+        self.post_submission_for_review(submission_url, file.path(), message_for_reviewer, locale)
     }
 
     pub fn download_model_solution(&self, solution_download_url: Url, target: &Path) -> Result<()> {
@@ -426,6 +433,7 @@ mod test {
                 submission_url,
                 Path::new("tests/data/exercise"),
                 "abcdefg".to_string(),
+                Language::from_639_3("eng").unwrap(),
             )
             .unwrap();
         assert_eq!(
@@ -503,7 +511,11 @@ mod test {
             .create();
 
         let new_submission = core
-            .submit(submission_url, Path::new("tests/data/exercise"))
+            .submit(
+                submission_url,
+                Path::new("tests/data/exercise"),
+                Language::from_639_3("eng").unwrap(),
+            )
             .unwrap();
         assert_eq!(
             new_submission.submission_url,
@@ -680,6 +692,7 @@ mod test {
                 submission_url,
                 Path::new("tests/data/exercise"),
                 "abcdefg".to_string(),
+                Language::from_639_3("eng").unwrap(),
             )
             .unwrap();
         assert_eq!(

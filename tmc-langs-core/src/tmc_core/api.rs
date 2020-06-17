@@ -7,6 +7,7 @@ use crate::{
     SubmissionFeedbackResponse, TmcCore, User,
 };
 
+use isolang::Language;
 use oauth2::{prelude::SecretNewType, TokenResponse};
 use reqwest::blocking::{multipart::Form, RequestBuilder, Response as ReqwestResponse};
 use serde::de::DeserializeOwned;
@@ -485,8 +486,9 @@ impl TmcCore {
         &self,
         submission_url: Url,
         submission: &Path,
+        locale: Language,
     ) -> Result<NewSubmission> {
-        self.post_submission_with_params(submission_url, submission, None)
+        self.post_submission_with_params(submission_url, submission, None, locale)
     }
 
     pub(super) fn post_submission_to_paste(
@@ -494,11 +496,12 @@ impl TmcCore {
         submission_url: Url,
         submission: &Path,
         paste_message: String,
+        locale: Language,
     ) -> Result<NewSubmission> {
         let mut params = HashMap::new();
         params.insert("paste".to_string(), "1".to_string());
         params.insert("message_for_paste".to_string(), paste_message);
-        self.post_submission_with_params(submission_url, submission, Some(params))
+        self.post_submission_with_params(submission_url, submission, Some(params), locale)
     }
 
     pub(super) fn post_submission_for_review(
@@ -506,11 +509,12 @@ impl TmcCore {
         submission_url: Url,
         submission: &Path,
         message_for_reviewer: String,
+        locale: Language,
     ) -> Result<NewSubmission> {
         let mut params = HashMap::new();
         params.insert("request_review".to_string(), "1".to_string());
         params.insert("message_for_reviewer".to_string(), message_for_reviewer);
-        self.post_submission_with_params(submission_url, submission, Some(params))
+        self.post_submission_with_params(submission_url, submission, Some(params), locale)
     }
 
     fn post_submission_with_params(
@@ -518,6 +522,7 @@ impl TmcCore {
         submission_url: Url,
         submission: &Path,
         params: Option<HashMap<String, String>>,
+        locale: Language,
     ) -> Result<NewSubmission> {
         if self.token.is_none() {
             return Err(CoreError::AuthRequired);
@@ -532,6 +537,7 @@ impl TmcCore {
 
         // send
         let mut form = Form::new()
+            .text("error_msg_locale", locale.to_string()) // TODO: verify server accepts 639-3
             .file("submission[file]", submission)
             .map_err(|e| CoreError::FileOpen(submission.to_path_buf(), e))?;
 

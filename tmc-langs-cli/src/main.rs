@@ -34,8 +34,8 @@ fn main() {
                 .required(true)
                 .takes_value(true))
             .arg(Arg::with_name("locale")
-                .long("locale")
                 .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")
+                .long("locale")
                 .required(true)
                 .takes_value(true)))
 
@@ -101,6 +101,7 @@ fn main() {
                 .help("Runs checkstyle if defined")
                 .takes_value(true)))
             .arg(Arg::with_name("locale")
+                .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")
                 .long("locale")
                 .help("Required if checkstyleOutputPath is defined")
                 .takes_value(true))
@@ -194,6 +195,11 @@ fn main() {
                 .arg(Arg::with_name("pasteMessage")
                     .long("pasteMessage")
                     .required(true)
+                    .takes_value(true))
+                .arg(Arg::with_name("locale")
+                    .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")
+                    .long("locale")
+                    .required(true)
                     .takes_value(true)))
 
             .subcommand(SubCommand::with_name("run-checkstyle")
@@ -203,6 +209,7 @@ fn main() {
                     .required(true)
                     .takes_value(true))
                 .arg(Arg::with_name("locale")
+                    .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")
                     .long("locale")
                     .required(true)
                     .takes_value(true)))
@@ -236,6 +243,11 @@ fn main() {
                     .takes_value(true))
                 .arg(Arg::with_name("submissionPath")
                     .long("submissionPath")
+                    .required(true)
+                    .takes_value(true))
+                .arg(Arg::with_name("locale")
+                    .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")                    
+                    .long("locale")
                     .required(true)
                     .takes_value(true)))
 
@@ -279,6 +291,11 @@ fn main() {
                     .takes_value(true))
                 .arg(Arg::with_name("messageForReviewer")
                     .long("messageForReviewer")
+                    .required(true)
+                    .takes_value(true))
+                .arg(Arg::with_name("locale")
+                    .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")
+                    .long("locale")
                     .required(true)
                     .takes_value(true)))
 
@@ -629,8 +646,16 @@ fn main() {
             let submission_path = Path::new(submission_path);
             let paste_message = matches.value_of("pasteMessage").unwrap();
 
+            let locale = matches.value_of("locale").unwrap();
+            let locale = into_locale(locale);
+
             let new_submission = core
-                .paste_with_comment(submission_url, submission_path, paste_message.to_string())
+                .paste_with_comment(
+                    submission_url,
+                    submission_path,
+                    paste_message.to_string(),
+                    locale,
+                )
                 .unwrap_or_else(|e| {
                     Error::with_description(&format!("Failed to get courses: {}", e), ErrorKind::Io)
                         .exit()
@@ -697,8 +722,11 @@ fn main() {
             let submission_path = matches.value_of("submissionPath").unwrap();
             let submission_path = Path::new(submission_path);
 
+            let locale = matches.value_of("locale").unwrap();
+            let locale = into_locale(locale);
+
             let new_submission = core
-                .submit(submission_url, submission_path)
+                .submit(submission_url, submission_path, locale)
                 .unwrap_or_else(|e| {
                     Error::with_description(&format!("Failed to submit: {}", e), ErrorKind::Io)
                         .exit()
@@ -760,11 +788,15 @@ fn main() {
 
             let message_for_reviewer = matches.value_of("messageForReviewer").unwrap();
 
+            let locale = matches.value_of("locale").unwrap();
+            let locale = into_locale(locale);
+
             let new_submission = core
                 .request_code_review(
                     submission_url,
                     submission_path,
                     message_for_reviewer.to_string(),
+                    locale,
                 )
                 .unwrap_or_else(|e| {
                     Error::with_description(
