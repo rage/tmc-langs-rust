@@ -15,6 +15,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::fs::File;
 use std::path::Path;
+use std::time::SystemTime;
 use url::Url;
 
 /// Provides a wrapper for reqwest Response's json that deserializes into Response<T> and converts it into a result
@@ -537,6 +538,14 @@ impl TmcCore {
 
         // send
         let mut form = Form::new()
+            .text(
+                "client_time",
+                SystemTime::UNIX_EPOCH.elapsed()?.as_secs().to_string(),
+            )
+            .text(
+                "client_nanotime",
+                SystemTime::UNIX_EPOCH.elapsed()?.as_nanos().to_string(),
+            )
             .text("error_msg_locale", locale.to_string()) // TODO: verify server accepts 639-3
             .file("submission[file]", submission)
             .map_err(|e| CoreError::FileOpen(submission.to_path_buf(), e))?;

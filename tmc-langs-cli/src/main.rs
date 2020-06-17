@@ -259,7 +259,7 @@ fn main() {
                     .takes_value(true))
                 .arg(Arg::with_name("exercise")
                     .help("An exercise. Takes two values, an exercise id and a checksum. Multiple exercises can be given.")
-                    .long("feedback")
+                    .long("exercise")
                     .required(true)
                     .takes_value(true)
                     .number_of_values(2)
@@ -274,8 +274,8 @@ fn main() {
 
             .subcommand(SubCommand::with_name("get-unread-reviews")
                 .about("Get unread reviews.")
-                .arg(Arg::with_name("exerciseId")
-                    .long("exerciseId")
+                .arg(Arg::with_name("reviewsUrl")
+                    .long("reviewsUrl")
                     .required(true)
                     .takes_value(true)))
 
