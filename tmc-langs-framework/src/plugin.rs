@@ -1,14 +1,15 @@
 //! Contains LanguagePlugin.
 
+pub use isolang::Language;
+pub use tmc_langs_abstraction::ValidationResult;
+
 use super::domain::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, TmcProjectYml};
 use super::io::{submission_processing, zip};
 use super::policy::StudentFilePolicy;
 use super::Result;
-use isolang::Language;
 use log::debug;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
-use tmc_langs_abstraction::ValidationResult;
 use walkdir::WalkDir;
 
 /// The trait that each language plug-in must implement.
@@ -207,10 +208,6 @@ mod test {
         }
 
         fn run_tests(&self, _path: &Path) -> Result<RunResult> {
-            unimplemented!()
-        }
-
-        fn check_code_style(&self, _path: &Path, _locale: Language) -> Option<ValidationResult> {
             unimplemented!()
         }
 
