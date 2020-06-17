@@ -3,6 +3,7 @@
 use clap::{App, Arg, Error, ErrorKind, SubCommand};
 use isolang::Language;
 use log::debug;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::env;
 use std::fs::File;
@@ -83,19 +84,7 @@ fn main() {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("prepare-submission")
-            .about("UNIMPLEMENTED. Prepares from submission and solution project for which the tests can be run in sandbox.")
-            .arg(Arg::with_name("clonePath")
-                .long("clonePath")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("submissionPath")
-                .long("submissionPath")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("outputPath")
-                .long("outputPath")
-                .required(true)
-                .takes_value(true)))
+            .about("UNIMPLEMENTED. Prepares from submission and solution project for which the tests can be run in sandbox."))
 
         .subcommand(SubCommand::with_name("run-tests")
             .about("Run the tests for the exercise.")
@@ -203,7 +192,7 @@ fn main() {
                     .required(true)
                     .takes_value(true))
                 .arg(Arg::with_name("pasteMessage")
-                    .long("organipasteMessagezation")
+                    .long("pasteMessage")
                     .required(true)
                     .takes_value(true)))
 
@@ -272,7 +261,11 @@ fn main() {
                     .takes_value(true)))
 
             .subcommand(SubCommand::with_name("get-unread-reviews")
-                .about("Get unread reviews."))
+                .about("Get unread reviews.")
+                .arg(Arg::with_name("exerciseId")
+                    .long("exerciseId")
+                    .required(true)
+                    .takes_value(true)))
 
             .subcommand(SubCommand::with_name("request-code-review")
                 .about("Request code review.")
@@ -406,15 +399,6 @@ fn main() {
             .exit()
         });
     } else if let Some(matches) = matches.subcommand_matches("prepare-submission") {
-        let clone_path = matches.value_of("clonePath").unwrap();
-        let __clone_path = Path::new(clone_path);
-
-        let submission_path = matches.value_of("submissionPath").unwrap();
-        let _submission_path = Path::new(submission_path);
-
-        let output_path = matches.value_of("outputPath").unwrap();
-        let _output_path = Path::new(output_path);
-
         Error::with_description(
             "This command is unimplemented.",
             ErrorKind::InvalidSubcommand,
@@ -431,7 +415,7 @@ fn main() {
         let checkstyle_output_path: Option<&Path> = checkstyle_output_path.map(Path::new);
 
         let locale = matches.value_of("locale");
-        let locale = locale.map(|l| into_locale(l));
+        let locale = locale.map(into_locale);
 
         let test_result = task_executor::run_tests(exercise_path).unwrap_or_else(|e| {
             Error::with_description(
@@ -445,25 +429,7 @@ fn main() {
             .exit()
         });
 
-        let output_file = File::create(output_path).unwrap_or_else(|e| {
-            Error::with_description(
-                &format!("Failed to create file at {}: {}", output_path.display(), e),
-                ErrorKind::Io,
-            )
-            .exit()
-        });
-
-        serde_json::to_writer(output_file, &test_result).unwrap_or_else(|e| {
-            Error::with_description(
-                &format!(
-                    "Failed to write test results as JSON to {}: {}",
-                    output_path.display(),
-                    e
-                ),
-                ErrorKind::Io,
-            )
-            .exit()
-        });
+        write_result_to_file_as_json(&test_result, output_path);
 
         if let Some(checkstyle_output_path) = checkstyle_output_path {
             let locale = locale.unwrap_or_else(|| {
@@ -497,7 +463,7 @@ fn main() {
         let exercise_name = exercise_name.to_str().unwrap_or_else(|| {
             Error::with_description(
                 &format!(
-                    "Exercise path's file name  '{:?}' was not valid UTF8",
+                    "Exercise path's file name '{:?}' was not valid UTF8",
                     exercise_name
                 ),
                 ErrorKind::InvalidUtf8,
@@ -518,25 +484,7 @@ fn main() {
                 .exit()
             });
 
-        let output_file = File::create(output_path).unwrap_or_else(|e| {
-            Error::with_description(
-                &format!("Failed to create file at {}: {}", output_path.display(), e),
-                ErrorKind::Io,
-            )
-            .exit()
-        });
-
-        serde_json::to_writer(output_file, &scan_result).unwrap_or_else(|e| {
-            Error::with_description(
-                &format!(
-                    "Failed to write scan result as JSON to {}: {}",
-                    output_path.display(),
-                    e
-                ),
-                ErrorKind::Io,
-            )
-            .exit()
-        });
+        write_result_to_file_as_json(&scan_result, output_path);
     } else if let Some(matches) = matches.subcommand_matches("find-exercises") {
         let exercise_path = matches.value_of("exercisePath").unwrap();
         let exercise_path = Path::new(exercise_path);
@@ -559,25 +507,7 @@ fn main() {
             }
         }
 
-        let output_file = File::create(output_path).unwrap_or_else(|e| {
-            Error::with_description(
-                &format!("Failed to create file at {}: {}", output_path.display(), e),
-                ErrorKind::Io,
-            )
-            .exit()
-        });
-
-        serde_json::to_writer(output_file, &exercises).unwrap_or_else(|e| {
-            Error::with_description(
-                &format!(
-                    "Failed to write exercises as JSON to {}: {}",
-                    output_path.display(),
-                    e
-                ),
-                ErrorKind::Io,
-            )
-            .exit()
-        });
+        write_result_to_file_as_json(&exercises, output_path);
     } else if let Some(matches) = matches.subcommand_matches("get-exercise-packaging-configuration")
     {
         let exercise_path = matches.value_of("exercisePath").unwrap();
@@ -599,25 +529,7 @@ fn main() {
                 .exit()
             });
 
-        let output_file = File::create(output_path).unwrap_or_else(|e| {
-            Error::with_description(
-                &format!("Failed to create file at {}: {}", output_path.display(), e),
-                ErrorKind::Io,
-            )
-            .exit()
-        });
-
-        serde_json::to_writer(output_file, &config).unwrap_or_else(|e| {
-            Error::with_description(
-                &format!(
-                    "Failed to write exercise package config as JSON to {}: {}",
-                    output_path.display(),
-                    e
-                ),
-                ErrorKind::Io,
-            )
-            .exit()
-        });
+        write_result_to_file_as_json(&config, output_path);
     } else if let Some(matches) = matches.subcommand_matches("clean") {
         let exercise_path = matches.value_of("exercisePath").unwrap();
         let exercise_path = Path::new(exercise_path);
@@ -668,16 +580,8 @@ fn main() {
                 )
                 .exit()
             });
-            log::debug!("orgs: {:?}", orgs);
 
-            let orgs = serde_json::to_value(&orgs).unwrap_or_else(|e| {
-                Error::with_description(
-                    &format!("Failed to convert organizations to JSON: {}", e),
-                    ErrorKind::Io,
-                )
-                .exit()
-            });
-            println!("{}", orgs);
+            print_result_as_json(&orgs);
         } else if let Some(matches) = matches.subcommand_matches("download-or-update-exercises") {
             let mut exercise_args = matches.values_of("exercise").unwrap().into_iter();
             let mut exercises = vec![];
@@ -707,15 +611,8 @@ fn main() {
                 )
                 .exit()
             });
-            let course_details = serde_json::to_value(&course_details).unwrap_or_else(|e| {
-                Error::with_description(
-                    &format!("Failed to convert course details to JSON: {}", e),
-                    ErrorKind::Io,
-                )
-                .exit()
-            });
 
-            println!("{}", course_details);
+            print_result_as_json(&course_details);
         } else if let Some(matches) = matches.subcommand_matches("list-courses") {
             let organization_slug = matches.value_of("organization").unwrap();
             let courses = core.list_courses(organization_slug).unwrap_or_else(|e| {
@@ -723,15 +620,7 @@ fn main() {
                     .exit()
             });
 
-            let courses = serde_json::to_string(&courses).unwrap_or_else(|e| {
-                Error::with_description(
-                    &format!("Failed to convert courses to JSON: {}", e),
-                    ErrorKind::Io,
-                )
-                .exit()
-            });
-
-            println!("{}", courses);
+            print_result_as_json(&courses);
         } else if let Some(matches) = matches.subcommand_matches("paste-with-comment") {
             let submission_url = matches.value_of("submissionUrl").unwrap();
             let submission_url = into_url(submission_url);
@@ -746,8 +635,8 @@ fn main() {
                     Error::with_description(&format!("Failed to get courses: {}", e), ErrorKind::Io)
                         .exit()
                 });
-            let new_submission = serde_json::to_string(&new_submission).unwrap();
-            println!("{}", new_submission);
+
+            print_result_as_json(&new_submission);
         } else if let Some(matches) = matches.subcommand_matches("run-checkstyle") {
             let exercise_path = matches.value_of("exercisePath").unwrap();
             let exercise_path = Path::new(exercise_path);
@@ -763,8 +652,8 @@ fn main() {
                         )
                         .exit()
                     });
-            let validation_result = serde_json::to_string(&validation_result).unwrap();
-            println!("{}", validation_result);
+
+            print_result_as_json(&validation_result);
         } else if let Some(matches) = matches.subcommand_matches("run-tests") {
             let exercise_path = matches.value_of("exercisePath").unwrap();
             let exercise_path = Path::new(exercise_path);
@@ -773,8 +662,8 @@ fn main() {
                 Error::with_description(&format!("Failed to run checkstyle: {}", e), ErrorKind::Io)
                     .exit()
             });
-            let run_result = serde_json::to_string(&run_result).unwrap();
-            println!("{}", run_result);
+
+            print_result_as_json(&run_result);
         } else if let Some(matches) = matches.subcommand_matches("send-feedback") {
             let feedback_url = matches.value_of("feedbackUrl").unwrap();
             let feedback_url = into_url(feedback_url);
@@ -783,7 +672,7 @@ fn main() {
             let mut feedback = vec![];
             while let Some(feedback_id) = feedback_answers.next() {
                 let question_id = into_usize(feedback_id);
-                let answer = feedback_answers.next().unwrap().to_string();
+                let answer = feedback_answers.next().unwrap().to_string(); // safe unwrap because --feedback always takes 2 values
                 feedback.push(FeedbackAnswer {
                     question_id,
                     answer,
@@ -799,8 +688,8 @@ fn main() {
                     )
                     .exit()
                 });
-            let response = serde_json::to_string(&response).unwrap();
-            println!("{}", response);
+
+            print_result_as_json(&response);
         } else if let Some(matches) = matches.subcommand_matches("submit") {
             let submission_url = matches.value_of("submissionUrl").unwrap();
             let submission_url = into_url(submission_url);
@@ -814,13 +703,13 @@ fn main() {
                     Error::with_description(&format!("Failed to submit: {}", e), ErrorKind::Io)
                         .exit()
                 });
-            let new_submission = serde_json::to_string(&new_submission).unwrap();
-            println!("{}", new_submission);
+
+            print_result_as_json(&new_submission);
         } else if let Some(_matches) = matches.subcommand_matches("get-exercise-updates") {
             let course_id = matches.value_of("courseId").unwrap();
             let course_id = into_usize(course_id);
 
-            let mut exercise_checksums = matches.values_of("checksum").unwrap().into_iter();
+            let mut exercise_checksums = matches.values_of("exercise").unwrap().into_iter();
             let mut checksums = HashMap::new();
             while let Some(exercise_id) = exercise_checksums.next() {
                 let exercise_id = into_usize(exercise_id);
@@ -837,8 +726,8 @@ fn main() {
                     )
                     .exit()
                 });
-            let update_result = serde_json::to_string(&update_result).unwrap();
-            println!("{}", update_result);
+
+            print_result_as_json(&update_result);
         } else if let Some(_matches) = matches.subcommand_matches("mark-review-as-read") {
             let review_update_url = matches.value_of("reviewUpdateUrl").unwrap();
             core.mark_review_as_read(review_update_url.to_string())
@@ -849,7 +738,6 @@ fn main() {
                     )
                     .exit()
                 });
-            todo!()
         } else if let Some(matches) = matches.subcommand_matches("get-unread-reviews") {
             let exercise_id = matches.value_of("exerciseId").unwrap();
             let exercise_id = into_usize(exercise_id);
@@ -861,8 +749,8 @@ fn main() {
                 )
                 .exit()
             });
-            let reviews = serde_json::to_string(&reviews).unwrap();
-            println!("{}", reviews);
+
+            print_result_as_json(&reviews);
         } else if let Some(matches) = matches.subcommand_matches("request-code-review") {
             let submission_url = matches.value_of("submissionUrl").unwrap();
             let submission_url = into_url(submission_url);
@@ -885,8 +773,8 @@ fn main() {
                     )
                     .exit()
                 });
-            let new_submission = serde_json::to_string(&new_submission).unwrap();
-            println!("{}", new_submission);
+
+            print_result_as_json(&new_submission);
         } else if let Some(matches) = matches.subcommand_matches("download-model-solution") {
             let solution_download_url = matches.value_of("solutionDownloadUrl").unwrap();
             let solution_download_url = into_url(solution_download_url);
@@ -904,6 +792,40 @@ fn main() {
                 });
         }
     }
+}
+
+fn print_result_as_json<T: Serialize>(result: &T) {
+    let result = serde_json::to_string(&result).unwrap_or_else(|e| {
+        Error::with_description(
+            &format!("Failed to convert result to JSON: {}", e),
+            ErrorKind::Io,
+        )
+        .exit()
+    });
+
+    println!("{}", result);
+}
+
+fn write_result_to_file_as_json<T: Serialize>(result: &T, output_path: &Path) {
+    let output_file = File::create(output_path).unwrap_or_else(|e| {
+        Error::with_description(
+            &format!("Failed to create file at {}: {}", output_path.display(), e),
+            ErrorKind::Io,
+        )
+        .exit()
+    });
+
+    serde_json::to_writer(output_file, result).unwrap_or_else(|e| {
+        Error::with_description(
+            &format!(
+                "Failed to write result as JSON to {}: {}",
+                output_path.display(),
+                e
+            ),
+            ErrorKind::Io,
+        )
+        .exit()
+    });
 }
 
 fn into_usize(arg: &str) -> usize {
