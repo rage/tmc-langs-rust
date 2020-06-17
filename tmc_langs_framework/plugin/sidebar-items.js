@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["LanguagePlugin","The trait that each language plug-in must implement."]]});
+initSidebarItems({"enum":[["Language",""]],"struct":[["ValidationResult",""]],"trait":[["LanguagePlugin","The trait that each language plug-in must implement."]]});
