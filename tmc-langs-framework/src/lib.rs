@@ -5,6 +5,9 @@ pub mod io;
 pub mod plugin;
 pub mod policy;
 
+pub use plugin::LanguagePlugin;
+pub use policy::StudentFilePolicy;
+
 use domain::TmcProjectYml;
 use io::zip;
 use std::path::PathBuf;

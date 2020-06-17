@@ -226,9 +226,10 @@ mod test {
         fs::create_dir_all(missing_file_path.parent().unwrap()).unwrap();
         File::create(missing_file_path).unwrap();
 
+        let path = temp.path().join("exercise-name");
         let zipped = zip(
-            Box::new(EverythingIsStudentFilePolicy {}),
-            &temp.path().join("exercise-name"),
+            Box::new(EverythingIsStudentFilePolicy::new(path.clone())),
+            &path,
         )
         .unwrap();
         let mut archive = ZipArchive::new(Cursor::new(zipped)).unwrap();
@@ -246,7 +247,7 @@ mod test {
         init();
 
         assert!(unzip(
-            Box::new(EverythingIsStudentFilePolicy {}),
+            Box::new(EverythingIsStudentFilePolicy::new(PathBuf::new())),
             Path::new("nonexistent"),
             Path::new(""),
         )
@@ -259,7 +260,9 @@ mod test {
 
         let temp = tempdir().unwrap();
         unzip(
-            Box::new(EverythingIsStudentFilePolicy {}),
+            Box::new(EverythingIsStudentFilePolicy::new(
+                temp.path().to_path_buf(),
+            )),
             Path::new("tests/data/zip/module-trivial.zip"),
             temp.path(),
         )
@@ -276,7 +279,9 @@ mod test {
 
         let temp = tempdir().unwrap();
         unzip(
-            Box::new(EverythingIsStudentFilePolicy {}),
+            Box::new(EverythingIsStudentFilePolicy::new(
+                temp.path().to_path_buf(),
+            )),
             Path::new("tests/data/zip/course-module-trivial.zip"),
             temp.path(),
         )
@@ -293,7 +298,9 @@ mod test {
 
         let temp = tempdir().unwrap();
         unzip(
-            Box::new(EverythingIsStudentFilePolicy {}),
+            Box::new(EverythingIsStudentFilePolicy::new(
+                temp.path().to_path_buf(),
+            )),
             Path::new("tests/data/zip/no-src-entry.zip"),
             temp.path(),
         )

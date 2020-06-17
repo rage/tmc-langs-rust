@@ -132,6 +132,9 @@ pub struct TmcProjectYml {
     pub extra_exercise_files: Vec<PathBuf>,
     #[serde(default)]
     pub force_update: Vec<PathBuf>,
+    #[serde(default)]
+    #[serde(rename = "no-tests")]
+    pub no_tests: Option<NoTests>,
 
     pub fail_on_valgrind_error: Option<bool>,
 }
@@ -140,12 +143,80 @@ impl TmcProjectYml {
     pub fn from(project_dir: &Path) -> Result<Self> {
         let mut config_path = project_dir.to_owned();
         config_path.push(".tmcproject.yml");
+
         if !config_path.exists() {
-            debug!("no config");
+            debug!("no config found at {}", config_path.display());
             return Ok(Self::default());
         }
-        debug!("reading .tmcprojectyml from {}", config_path.display());
+        debug!("reading .tmcproject.yml from {}", config_path.display());
         let file = File::open(&config_path).map_err(|e| Error::OpenFile(config_path, e))?;
         Ok(serde_yaml::from_reader(file)?)
+    }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(from = "NoTestsWrapper")]
+pub struct NoTests {
+    pub flag: bool,
+    pub points: Vec<String>,
+}
+
+impl From<NoTestsWrapper> for NoTests {
+    fn from(wrapper: NoTestsWrapper) -> Self {
+        match wrapper {
+            NoTestsWrapper::Flag(flag) => Self {
+                flag,
+                points: vec![],
+            },
+            NoTestsWrapper::Points(no_tests_points) => Self {
+                flag: true,
+                points: no_tests_points
+                    .points
+                    .into_iter()
+                    .map(|v| match v {
+                        IntOrString::Int(i) => i.to_string(),
+                        IntOrString::String(s) => s,
+                    })
+                    .collect(),
+            },
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub enum NoTestsWrapper {
+    Flag(bool),
+    Points(NoTestsPoints),
+}
+
+#[derive(Debug, Deserialize)]
+pub struct NoTestsPoints {
+    pub points: Vec<IntOrString>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub enum IntOrString {
+    Int(isize),
+    String(String),
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn deserialize_no_tests() {
+        let no_tests_yml = r#"no-tests:
+  points:
+    - 1
+    - notests
+"#;
+
+        let cfg: TmcProjectYml = serde_yaml::from_str(no_tests_yml).unwrap();
+        let no_tests = cfg.no_tests.unwrap();
+        assert!(no_tests.flag);
+        assert!(!no_tests.points.is_empty());
     }
 }

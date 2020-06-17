@@ -232,7 +232,9 @@ mod test {
         std::fs::create_dir_all(file_path.parent().unwrap()).unwrap();
         let _file = std::fs::File::create(&file_path).unwrap();
         move_files(
-            Box::new(EverythingIsStudentFilePolicy {}),
+            Box::new(EverythingIsStudentFilePolicy::new(
+                source.path().to_path_buf(),
+            )),
             source.path(),
             target.path(),
         )

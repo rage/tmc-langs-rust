@@ -2,7 +2,7 @@
 
 use super::{Result, TmcProjectYml};
 use std::ffi::OsStr;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 /// Specifies which files are student files.
 ///
@@ -107,7 +107,17 @@ impl StudentFilePolicy for NothingIsStudentFilePolicy {
     }
 }
 
-pub struct EverythingIsStudentFilePolicy {}
+pub struct EverythingIsStudentFilePolicy {
+    config_file_parent_path: PathBuf,
+}
+
+impl EverythingIsStudentFilePolicy {
+    pub fn new(config_file_parent_path: PathBuf) -> Self {
+        Self {
+            config_file_parent_path,
+        }
+    }
+}
 
 impl StudentFilePolicy for EverythingIsStudentFilePolicy {
     fn is_student_file(
@@ -120,7 +130,7 @@ impl StudentFilePolicy for EverythingIsStudentFilePolicy {
     }
 
     fn get_config_file_parent_path(&self) -> &Path {
-        Path::new("")
+        &self.config_file_parent_path
     }
 
     fn is_extra_student_file(
