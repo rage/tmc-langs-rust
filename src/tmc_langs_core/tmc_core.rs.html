@@ -787,6 +787,20 @@
 <span id="787">787</span>
 <span id="788">788</span>
 <span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">mod</span> <span class="ident">api</span>;
 
@@ -878,7 +892,7 @@
                 <span class="kw-2">&amp;</span><span class="ident">ResourceOwnerUsername</span>::<span class="ident">new</span>(<span class="ident">email</span>),
                 <span class="kw-2">&amp;</span><span class="ident">ResourceOwnerPassword</span>::<span class="ident">new</span>(<span class="ident">password</span>),
             )
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">Token</span>(<span class="ident">e</span>))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="ident">CoreError</span>::<span class="ident">Token</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">token</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>);
         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;authenticated&quot;</span>);
         <span class="prelude-val">Ok</span>(())
@@ -894,7 +908,7 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">download_or_update_exercises</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">exercises</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="ident">Path</span>)<span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">for</span> (<span class="ident">exercise_id</span>, <span class="ident">target</span>) <span class="kw">in</span> <span class="ident">exercises</span> {
-            <span class="kw">let</span> <span class="ident">zip_file</span> <span class="op">=</span> <span class="ident">NamedTempFile</span>::<span class="ident">new</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">TempFile</span>(<span class="ident">e</span>))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">zip_file</span> <span class="op">=</span> <span class="ident">NamedTempFile</span>::<span class="ident">new</span>().<span class="ident">map_err</span>(<span class="ident">CoreError</span>::<span class="ident">TempFile</span>)<span class="question-mark">?</span>;
             <span class="self">self</span>.<span class="ident">download_exercise</span>(<span class="ident">exercise_id</span>, <span class="ident">zip_file</span>.<span class="ident">path</span>())<span class="question-mark">?</span>;
             <span class="ident">task_executor</span>::<span class="ident">extract_project</span>(<span class="ident">zip_file</span>.<span class="ident">path</span>(), <span class="ident">target</span>)<span class="question-mark">?</span>;
         }
@@ -914,14 +928,15 @@
         <span class="ident">submission_url</span>: <span class="ident">Url</span>,
         <span class="ident">submission_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
         <span class="ident">paste_message</span>: <span class="ident">String</span>,
+        <span class="ident">locale</span>: <span class="ident">Language</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NewSubmission</span><span class="op">&gt;</span> {
         <span class="comment">// compress</span>
         <span class="kw">let</span> <span class="ident">compressed</span> <span class="op">=</span> <span class="ident">task_executor</span>::<span class="ident">compress_project</span>(<span class="ident">submission_path</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">NamedTempFile</span>::<span class="ident">new</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">TempFile</span>(<span class="ident">e</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">NamedTempFile</span>::<span class="ident">new</span>().<span class="ident">map_err</span>(<span class="ident">CoreError</span>::<span class="ident">TempFile</span>)<span class="question-mark">?</span>;
         <span class="ident">file</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">compressed</span>)
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">Write</span>(<span class="ident">file</span>.<span class="ident">path</span>().<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
-        <span class="self">self</span>.<span class="ident">post_submission_to_paste</span>(<span class="ident">submission_url</span>, <span class="ident">file</span>.<span class="ident">path</span>(), <span class="ident">paste_message</span>)
+        <span class="self">self</span>.<span class="ident">post_submission_to_paste</span>(<span class="ident">submission_url</span>, <span class="ident">file</span>.<span class="ident">path</span>(), <span class="ident">paste_message</span>, <span class="ident">locale</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_checkstyle</span>(
@@ -948,14 +963,19 @@
         <span class="macro">unimplemented</span><span class="macro">!</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">submit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">submission_url</span>: <span class="ident">Url</span>, <span class="ident">submission_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NewSubmission</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">submit</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">submission_url</span>: <span class="ident">Url</span>,
+        <span class="ident">submission_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+        <span class="ident">locale</span>: <span class="ident">Language</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NewSubmission</span><span class="op">&gt;</span> {
         <span class="comment">// compress</span>
         <span class="kw">let</span> <span class="ident">compressed</span> <span class="op">=</span> <span class="ident">task_executor</span>::<span class="ident">compress_project</span>(<span class="ident">submission_path</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">NamedTempFile</span>::<span class="ident">new</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">TempFile</span>(<span class="ident">e</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">NamedTempFile</span>::<span class="ident">new</span>().<span class="ident">map_err</span>(<span class="ident">CoreError</span>::<span class="ident">TempFile</span>)<span class="question-mark">?</span>;
         <span class="ident">file</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">compressed</span>)
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">Write</span>(<span class="ident">file</span>.<span class="ident">path</span>().<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
-        <span class="self">self</span>.<span class="ident">post_submission</span>(<span class="ident">submission_url</span>, <span class="ident">file</span>.<span class="ident">path</span>())
+        <span class="self">self</span>.<span class="ident">post_submission</span>(<span class="ident">submission_url</span>, <span class="ident">file</span>.<span class="ident">path</span>(), <span class="ident">locale</span>)
     }
 
     <span class="doccomment">/// Fetches the course&#39;s exercises from the server,</span>
@@ -993,8 +1013,8 @@
         <span class="self">self</span>.<span class="ident">mark_review</span>(<span class="ident">review_update_url</span>, <span class="bool-val">true</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_unread_reviews</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">course_id</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Review</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">reviews</span>(<span class="ident">course_id</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_unread_reviews</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">reviews_url</span>: <span class="ident">Url</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Review</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">get_json_from_url</span>(<span class="ident">reviews_url</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">request_code_review</span>(
@@ -1002,18 +1022,19 @@
         <span class="ident">submission_url</span>: <span class="ident">Url</span>,
         <span class="ident">submission_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
         <span class="ident">message_for_reviewer</span>: <span class="ident">String</span>,
+        <span class="ident">locale</span>: <span class="ident">Language</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NewSubmission</span><span class="op">&gt;</span> {
         <span class="comment">// compress</span>
         <span class="kw">let</span> <span class="ident">compressed</span> <span class="op">=</span> <span class="ident">task_executor</span>::<span class="ident">compress_project</span>(<span class="ident">submission_path</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">NamedTempFile</span>::<span class="ident">new</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">TempFile</span>(<span class="ident">e</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">NamedTempFile</span>::<span class="ident">new</span>().<span class="ident">map_err</span>(<span class="ident">CoreError</span>::<span class="ident">TempFile</span>)<span class="question-mark">?</span>;
         <span class="ident">file</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">compressed</span>)
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">Write</span>(<span class="ident">file</span>.<span class="ident">path</span>().<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
-        <span class="self">self</span>.<span class="ident">post_submission_for_review</span>(<span class="ident">submission_url</span>, <span class="ident">file</span>.<span class="ident">path</span>(), <span class="ident">message_for_reviewer</span>)
+        <span class="self">self</span>.<span class="ident">post_submission_for_review</span>(<span class="ident">submission_url</span>, <span class="ident">file</span>.<span class="ident">path</span>(), <span class="ident">message_for_reviewer</span>, <span class="ident">locale</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">download_model_solution</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">solution_download_url</span>: <span class="ident">Url</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">zip_file</span> <span class="op">=</span> <span class="ident">NamedTempFile</span>::<span class="ident">new</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">TempFile</span>(<span class="ident">e</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">zip_file</span> <span class="op">=</span> <span class="ident">NamedTempFile</span>::<span class="ident">new</span>().<span class="ident">map_err</span>(<span class="ident">CoreError</span>::<span class="ident">TempFile</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">download_from</span>(<span class="ident">solution_download_url</span>, <span class="ident">zip_file</span>.<span class="ident">path</span>())<span class="question-mark">?</span>;
         <span class="ident">task_executor</span>::<span class="ident">extract_project</span>(<span class="ident">zip_file</span>.<span class="ident">path</span>(), <span class="ident">target</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -1216,6 +1237,7 @@
                 <span class="ident">submission_url</span>,
                 <span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;tests/data/exercise&quot;</span>),
                 <span class="string">&quot;abcdefg&quot;</span>.<span class="ident">to_string</span>(),
+                <span class="ident">Language</span>::<span class="ident">from_639_3</span>(<span class="string">&quot;eng&quot;</span>).<span class="ident">unwrap</span>(),
             )
             .<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(
@@ -1293,7 +1315,11 @@
             .<span class="ident">create</span>();
 
         <span class="kw">let</span> <span class="ident">new_submission</span> <span class="op">=</span> <span class="ident">core</span>
-            .<span class="ident">submit</span>(<span class="ident">submission_url</span>, <span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;tests/data/exercise&quot;</span>))
+            .<span class="ident">submit</span>(
+                <span class="ident">submission_url</span>,
+                <span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;tests/data/exercise&quot;</span>),
+                <span class="ident">Language</span>::<span class="ident">from_639_3</span>(<span class="string">&quot;eng&quot;</span>).<span class="ident">unwrap</span>(),
+            )
             .<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="ident">new_submission</span>.<span class="ident">submission_url</span>,
@@ -1419,7 +1445,8 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">get_unread_reviews</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">addr</span>) <span class="op">=</span> <span class="ident">init</span>();
-        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/courses/1234/reviews&quot;</span>)
+        <span class="kw">let</span> <span class="ident">reviews_url</span> <span class="op">=</span> <span class="ident">Url</span>::<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}/reviews&quot;</span>, <span class="ident">addr</span>)).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/reviews&quot;</span>)
             .<span class="ident">with_body</span>(
                 <span class="ident">serde_json</span>::<span class="macro">json</span><span class="macro">!</span>([
                     {
@@ -1441,7 +1468,7 @@
             )
             .<span class="ident">create</span>();
 
-        <span class="kw">let</span> <span class="ident">reviews</span> <span class="op">=</span> <span class="ident">core</span>.<span class="ident">get_unread_reviews</span>(<span class="number">1234</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">reviews</span> <span class="op">=</span> <span class="ident">core</span>.<span class="ident">get_unread_reviews</span>(<span class="ident">reviews_url</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">reviews</span>.<span class="ident">len</span>(), <span class="number">1</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">reviews</span>[<span class="number">0</span>].<span class="ident">submission_id</span>, <span class="string">&quot;5678&quot;</span>);
     }
@@ -1469,6 +1496,7 @@
                 <span class="ident">submission_url</span>,
                 <span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;tests/data/exercise&quot;</span>),
                 <span class="string">&quot;abcdefg&quot;</span>.<span class="ident">to_string</span>(),
+                <span class="ident">Language</span>::<span class="ident">from_639_3</span>(<span class="string">&quot;eng&quot;</span>).<span class="ident">unwrap</span>(),
             )
             .<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(

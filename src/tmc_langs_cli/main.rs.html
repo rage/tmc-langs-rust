@@ -942,58 +942,13 @@
 <span id="942">942</span>
 <span id="943">943</span>
 <span id="944">944</span>
-<span id="945">945</span>
-<span id="946">946</span>
-<span id="947">947</span>
-<span id="948">948</span>
-<span id="949">949</span>
-<span id="950">950</span>
-<span id="951">951</span>
-<span id="952">952</span>
-<span id="953">953</span>
-<span id="954">954</span>
-<span id="955">955</span>
-<span id="956">956</span>
-<span id="957">957</span>
-<span id="958">958</span>
-<span id="959">959</span>
-<span id="960">960</span>
-<span id="961">961</span>
-<span id="962">962</span>
-<span id="963">963</span>
-<span id="964">964</span>
-<span id="965">965</span>
-<span id="966">966</span>
-<span id="967">967</span>
-<span id="968">968</span>
-<span id="969">969</span>
-<span id="970">970</span>
-<span id="971">971</span>
-<span id="972">972</span>
-<span id="973">973</span>
-<span id="974">974</span>
-<span id="975">975</span>
-<span id="976">976</span>
-<span id="977">977</span>
-<span id="978">978</span>
-<span id="979">979</span>
-<span id="980">980</span>
-<span id="981">981</span>
-<span id="982">982</span>
-<span id="983">983</span>
-<span id="984">984</span>
-<span id="985">985</span>
-<span id="986">986</span>
-<span id="987">987</span>
-<span id="988">988</span>
-<span id="989">989</span>
-<span id="990">990</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! CLI client for TMC</span>
 
 <span class="kw">use</span> <span class="ident">clap</span>::{<span class="ident">App</span>, <span class="ident">Arg</span>, <span class="ident">Error</span>, <span class="ident">ErrorKind</span>, <span class="ident">SubCommand</span>};
 <span class="kw">use</span> <span class="ident">isolang</span>::<span class="ident">Language</span>;
 <span class="kw">use</span> <span class="ident">log</span>::<span class="ident">debug</span>;
+<span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Serialize</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">env</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
@@ -1024,8 +979,8 @@
                 .<span class="ident">required</span>(<span class="bool-val">true</span>)
                 .<span class="ident">takes_value</span>(<span class="bool-val">true</span>))
             .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;locale&quot;</span>)
-                .<span class="ident">long</span>(<span class="string">&quot;locale&quot;</span>)
                 .<span class="ident">help</span>(<span class="string">&quot;Language as a three letter ISO 639-3 code, e.g. &#39;eng&#39; or &#39;fin&#39;.&quot;</span>)
+                .<span class="ident">long</span>(<span class="string">&quot;locale&quot;</span>)
                 .<span class="ident">required</span>(<span class="bool-val">true</span>)
                 .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)))
 
@@ -1074,19 +1029,7 @@
                 .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)))
 
         .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;prepare-submission&quot;</span>)
-            .<span class="ident">about</span>(<span class="string">&quot;UNIMPLEMENTED. Prepares from submission and solution project for which the tests can be run in sandbox.&quot;</span>)
-            .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;clonePath&quot;</span>)
-                .<span class="ident">long</span>(<span class="string">&quot;clonePath&quot;</span>)
-                .<span class="ident">required</span>(<span class="bool-val">true</span>)
-                .<span class="ident">takes_value</span>(<span class="bool-val">true</span>))
-            .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;submissionPath&quot;</span>)
-                .<span class="ident">long</span>(<span class="string">&quot;submissionPath&quot;</span>)
-                .<span class="ident">required</span>(<span class="bool-val">true</span>)
-                .<span class="ident">takes_value</span>(<span class="bool-val">true</span>))
-            .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;outputPath&quot;</span>)
-                .<span class="ident">long</span>(<span class="string">&quot;outputPath&quot;</span>)
-                .<span class="ident">required</span>(<span class="bool-val">true</span>)
-                .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)))
+            .<span class="ident">about</span>(<span class="string">&quot;UNIMPLEMENTED. Prepares from submission and solution project for which the tests can be run in sandbox.&quot;</span>))
 
         .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;run-tests&quot;</span>)
             .<span class="ident">about</span>(<span class="string">&quot;Run the tests for the exercise.&quot;</span>)
@@ -1103,6 +1046,7 @@
                 .<span class="ident">help</span>(<span class="string">&quot;Runs checkstyle if defined&quot;</span>)
                 .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)))
             .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;locale&quot;</span>)
+                .<span class="ident">help</span>(<span class="string">&quot;Language as a three letter ISO 639-3 code, e.g. &#39;eng&#39; or &#39;fin&#39;.&quot;</span>)
                 .<span class="ident">long</span>(<span class="string">&quot;locale&quot;</span>)
                 .<span class="ident">help</span>(<span class="string">&quot;Required if checkstyleOutputPath is defined&quot;</span>)
                 .<span class="ident">takes_value</span>(<span class="bool-val">true</span>))
@@ -1194,7 +1138,12 @@
                     .<span class="ident">required</span>(<span class="bool-val">true</span>)
                     .<span class="ident">takes_value</span>(<span class="bool-val">true</span>))
                 .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;pasteMessage&quot;</span>)
-                    .<span class="ident">long</span>(<span class="string">&quot;organipasteMessagezation&quot;</span>)
+                    .<span class="ident">long</span>(<span class="string">&quot;pasteMessage&quot;</span>)
+                    .<span class="ident">required</span>(<span class="bool-val">true</span>)
+                    .<span class="ident">takes_value</span>(<span class="bool-val">true</span>))
+                .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;locale&quot;</span>)
+                    .<span class="ident">help</span>(<span class="string">&quot;Language as a three letter ISO 639-3 code, e.g. &#39;eng&#39; or &#39;fin&#39;.&quot;</span>)
+                    .<span class="ident">long</span>(<span class="string">&quot;locale&quot;</span>)
                     .<span class="ident">required</span>(<span class="bool-val">true</span>)
                     .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)))
 
@@ -1205,6 +1154,7 @@
                     .<span class="ident">required</span>(<span class="bool-val">true</span>)
                     .<span class="ident">takes_value</span>(<span class="bool-val">true</span>))
                 .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;locale&quot;</span>)
+                    .<span class="ident">help</span>(<span class="string">&quot;Language as a three letter ISO 639-3 code, e.g. &#39;eng&#39; or &#39;fin&#39;.&quot;</span>)
                     .<span class="ident">long</span>(<span class="string">&quot;locale&quot;</span>)
                     .<span class="ident">required</span>(<span class="bool-val">true</span>)
                     .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)))
@@ -1239,6 +1189,11 @@
                 .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;submissionPath&quot;</span>)
                     .<span class="ident">long</span>(<span class="string">&quot;submissionPath&quot;</span>)
                     .<span class="ident">required</span>(<span class="bool-val">true</span>)
+                    .<span class="ident">takes_value</span>(<span class="bool-val">true</span>))
+                .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;locale&quot;</span>)
+                    .<span class="ident">help</span>(<span class="string">&quot;Language as a three letter ISO 639-3 code, e.g. &#39;eng&#39; or &#39;fin&#39;.&quot;</span>)                    
+                    .<span class="ident">long</span>(<span class="string">&quot;locale&quot;</span>)
+                    .<span class="ident">required</span>(<span class="bool-val">true</span>)
                     .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)))
 
             .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;get-exercise-updates&quot;</span>)
@@ -1263,7 +1218,11 @@
                     .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)))
 
             .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;get-unread-reviews&quot;</span>)
-                .<span class="ident">about</span>(<span class="string">&quot;Get unread reviews.&quot;</span>))
+                .<span class="ident">about</span>(<span class="string">&quot;Get unread reviews.&quot;</span>)
+                .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;exerciseId&quot;</span>)
+                    .<span class="ident">long</span>(<span class="string">&quot;exerciseId&quot;</span>)
+                    .<span class="ident">required</span>(<span class="bool-val">true</span>)
+                    .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)))
 
             .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;request-code-review&quot;</span>)
                 .<span class="ident">about</span>(<span class="string">&quot;Request code review.&quot;</span>)
@@ -1277,6 +1236,11 @@
                     .<span class="ident">takes_value</span>(<span class="bool-val">true</span>))
                 .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;messageForReviewer&quot;</span>)
                     .<span class="ident">long</span>(<span class="string">&quot;messageForReviewer&quot;</span>)
+                    .<span class="ident">required</span>(<span class="bool-val">true</span>)
+                    .<span class="ident">takes_value</span>(<span class="bool-val">true</span>))
+                .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;locale&quot;</span>)
+                    .<span class="ident">help</span>(<span class="string">&quot;Language as a three letter ISO 639-3 code, e.g. &#39;eng&#39; or &#39;fin&#39;.&quot;</span>)
+                    .<span class="ident">long</span>(<span class="string">&quot;locale&quot;</span>)
                     .<span class="ident">required</span>(<span class="bool-val">true</span>)
                     .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)))
 
@@ -1396,16 +1360,7 @@
             )
             .<span class="ident">exit</span>()
         });
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;prepare-submission&quot;</span>) {
-        <span class="kw">let</span> <span class="ident">clone_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;clonePath&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">__clone_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">clone_path</span>);
-
-        <span class="kw">let</span> <span class="ident">submission_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;submissionPath&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">_submission_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">submission_path</span>);
-
-        <span class="kw">let</span> <span class="ident">output_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;outputPath&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">_output_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">output_path</span>);
-
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">_matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;prepare-submission&quot;</span>) {
         <span class="ident">Error</span>::<span class="ident">with_description</span>(
             <span class="string">&quot;This command is unimplemented.&quot;</span>,
             <span class="ident">ErrorKind</span>::<span class="ident">InvalidSubcommand</span>,
@@ -1422,7 +1377,7 @@
         <span class="kw">let</span> <span class="ident">checkstyle_output_path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Path</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">checkstyle_output_path</span>.<span class="ident">map</span>(<span class="ident">Path</span>::<span class="ident">new</span>);
 
         <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;locale&quot;</span>);
-        <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">into_locale</span>(<span class="ident">l</span>));
+        <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">map</span>(<span class="ident">into_locale</span>);
 
         <span class="kw">let</span> <span class="ident">test_result</span> <span class="op">=</span> <span class="ident">task_executor</span>::<span class="ident">run_tests</span>(<span class="ident">exercise_path</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
             <span class="ident">Error</span>::<span class="ident">with_description</span>(
@@ -1436,25 +1391,7 @@
             .<span class="ident">exit</span>()
         });
 
-        <span class="kw">let</span> <span class="ident">output_file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">create</span>(<span class="ident">output_path</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-            <span class="ident">Error</span>::<span class="ident">with_description</span>(
-                <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to create file at {}: {}&quot;</span>, <span class="ident">output_path</span>.<span class="ident">display</span>(), <span class="ident">e</span>),
-                <span class="ident">ErrorKind</span>::<span class="ident">Io</span>,
-            )
-            .<span class="ident">exit</span>()
-        });
-
-        <span class="ident">serde_json</span>::<span class="ident">to_writer</span>(<span class="ident">output_file</span>, <span class="kw-2">&amp;</span><span class="ident">test_result</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-            <span class="ident">Error</span>::<span class="ident">with_description</span>(
-                <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
-                    <span class="string">&quot;Failed to write test results as JSON to {}: {}&quot;</span>,
-                    <span class="ident">output_path</span>.<span class="ident">display</span>(),
-                    <span class="ident">e</span>
-                ),
-                <span class="ident">ErrorKind</span>::<span class="ident">Io</span>,
-            )
-            .<span class="ident">exit</span>()
-        });
+        <span class="ident">write_result_to_file_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">test_result</span>, <span class="ident">output_path</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">checkstyle_output_path</span>) <span class="op">=</span> <span class="ident">checkstyle_output_path</span> {
             <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
@@ -1488,7 +1425,7 @@
         <span class="kw">let</span> <span class="ident">exercise_name</span> <span class="op">=</span> <span class="ident">exercise_name</span>.<span class="ident">to_str</span>().<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="ident">Error</span>::<span class="ident">with_description</span>(
                 <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
-                    <span class="string">&quot;Exercise path&#39;s file name  &#39;{:?}&#39; was not valid UTF8&quot;</span>,
+                    <span class="string">&quot;Exercise path&#39;s file name &#39;{:?}&#39; was not valid UTF8&quot;</span>,
                     <span class="ident">exercise_name</span>
                 ),
                 <span class="ident">ErrorKind</span>::<span class="ident">InvalidUtf8</span>,
@@ -1509,25 +1446,7 @@
                 .<span class="ident">exit</span>()
             });
 
-        <span class="kw">let</span> <span class="ident">output_file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">create</span>(<span class="ident">output_path</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-            <span class="ident">Error</span>::<span class="ident">with_description</span>(
-                <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to create file at {}: {}&quot;</span>, <span class="ident">output_path</span>.<span class="ident">display</span>(), <span class="ident">e</span>),
-                <span class="ident">ErrorKind</span>::<span class="ident">Io</span>,
-            )
-            .<span class="ident">exit</span>()
-        });
-
-        <span class="ident">serde_json</span>::<span class="ident">to_writer</span>(<span class="ident">output_file</span>, <span class="kw-2">&amp;</span><span class="ident">scan_result</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-            <span class="ident">Error</span>::<span class="ident">with_description</span>(
-                <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
-                    <span class="string">&quot;Failed to write scan result as JSON to {}: {}&quot;</span>,
-                    <span class="ident">output_path</span>.<span class="ident">display</span>(),
-                    <span class="ident">e</span>
-                ),
-                <span class="ident">ErrorKind</span>::<span class="ident">Io</span>,
-            )
-            .<span class="ident">exit</span>()
-        });
+        <span class="ident">write_result_to_file_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">scan_result</span>, <span class="ident">output_path</span>);
     } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;find-exercises&quot;</span>) {
         <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercisePath&quot;</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">exercise_path</span>);
@@ -1550,25 +1469,7 @@
             }
         }
 
-        <span class="kw">let</span> <span class="ident">output_file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">create</span>(<span class="ident">output_path</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-            <span class="ident">Error</span>::<span class="ident">with_description</span>(
-                <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to create file at {}: {}&quot;</span>, <span class="ident">output_path</span>.<span class="ident">display</span>(), <span class="ident">e</span>),
-                <span class="ident">ErrorKind</span>::<span class="ident">Io</span>,
-            )
-            .<span class="ident">exit</span>()
-        });
-
-        <span class="ident">serde_json</span>::<span class="ident">to_writer</span>(<span class="ident">output_file</span>, <span class="kw-2">&amp;</span><span class="ident">exercises</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-            <span class="ident">Error</span>::<span class="ident">with_description</span>(
-                <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
-                    <span class="string">&quot;Failed to write exercises as JSON to {}: {}&quot;</span>,
-                    <span class="ident">output_path</span>.<span class="ident">display</span>(),
-                    <span class="ident">e</span>
-                ),
-                <span class="ident">ErrorKind</span>::<span class="ident">Io</span>,
-            )
-            .<span class="ident">exit</span>()
-        });
+        <span class="ident">write_result_to_file_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">exercises</span>, <span class="ident">output_path</span>);
     } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;get-exercise-packaging-configuration&quot;</span>)
     {
         <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercisePath&quot;</span>).<span class="ident">unwrap</span>();
@@ -1590,25 +1491,7 @@
                 .<span class="ident">exit</span>()
             });
 
-        <span class="kw">let</span> <span class="ident">output_file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">create</span>(<span class="ident">output_path</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-            <span class="ident">Error</span>::<span class="ident">with_description</span>(
-                <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to create file at {}: {}&quot;</span>, <span class="ident">output_path</span>.<span class="ident">display</span>(), <span class="ident">e</span>),
-                <span class="ident">ErrorKind</span>::<span class="ident">Io</span>,
-            )
-            .<span class="ident">exit</span>()
-        });
-
-        <span class="ident">serde_json</span>::<span class="ident">to_writer</span>(<span class="ident">output_file</span>, <span class="kw-2">&amp;</span><span class="ident">config</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-            <span class="ident">Error</span>::<span class="ident">with_description</span>(
-                <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
-                    <span class="string">&quot;Failed to write exercise package config as JSON to {}: {}&quot;</span>,
-                    <span class="ident">output_path</span>.<span class="ident">display</span>(),
-                    <span class="ident">e</span>
-                ),
-                <span class="ident">ErrorKind</span>::<span class="ident">Io</span>,
-            )
-            .<span class="ident">exit</span>()
-        });
+        <span class="ident">write_result_to_file_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="ident">output_path</span>);
     } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;clean&quot;</span>) {
         <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercisePath&quot;</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">exercise_path</span>);
@@ -1629,7 +1512,7 @@
     <span class="comment">// core</span>
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;core&quot;</span>) {
         <span class="kw">let</span> <span class="ident">root_url</span> <span class="op">=</span>
-            <span class="ident">env</span>::<span class="ident">var</span>(<span class="string">&quot;TMC_CORE_CLI_ROOT_URL&quot;</span>).<span class="ident">unwrap_or</span>(<span class="string">&quot;https://tmc.mooc.fi&quot;</span>.<span class="ident">to_string</span>());
+            <span class="ident">env</span>::<span class="ident">var</span>(<span class="string">&quot;TMC_CORE_CLI_ROOT_URL&quot;</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="string">&quot;https://tmc.mooc.fi&quot;</span>.<span class="ident">to_string</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">core</span> <span class="op">=</span> <span class="ident">TmcCore</span>::<span class="ident">new_in_config</span>(<span class="ident">root_url</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
             <span class="ident">Error</span>::<span class="ident">with_description</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to create TmcCore: {}&quot;</span>, <span class="ident">e</span>), <span class="ident">ErrorKind</span>::<span class="ident">Io</span>)
                 .<span class="ident">exit</span>()
@@ -1659,18 +1542,10 @@
                 )
                 .<span class="ident">exit</span>()
             });
-            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;orgs: {:?}&quot;</span>, <span class="ident">orgs</span>);
 
-            <span class="kw">let</span> <span class="ident">orgs</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">to_value</span>(<span class="kw-2">&amp;</span><span class="ident">orgs</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="ident">Error</span>::<span class="ident">with_description</span>(
-                    <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to convert organizations to JSON: {}&quot;</span>, <span class="ident">e</span>),
-                    <span class="ident">ErrorKind</span>::<span class="ident">Io</span>,
-                )
-                .<span class="ident">exit</span>()
-            });
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">orgs</span>);
+            <span class="ident">print_result_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">orgs</span>);
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;download-or-update-exercises&quot;</span>) {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercise_args</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">values_of</span>(<span class="string">&quot;exercise&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">into_iter</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercise_args</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">values_of</span>(<span class="string">&quot;exercise&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercises</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
             <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">exercise_id</span>) <span class="op">=</span> <span class="ident">exercise_args</span>.<span class="ident">next</span>() {
                 <span class="kw">let</span> <span class="ident">exercise_id</span> <span class="op">=</span> <span class="ident">into_usize</span>(<span class="ident">exercise_id</span>);
@@ -1698,15 +1573,8 @@
                 )
                 .<span class="ident">exit</span>()
             });
-            <span class="kw">let</span> <span class="ident">course_details</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">to_value</span>(<span class="kw-2">&amp;</span><span class="ident">course_details</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="ident">Error</span>::<span class="ident">with_description</span>(
-                    <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to convert course details to JSON: {}&quot;</span>, <span class="ident">e</span>),
-                    <span class="ident">ErrorKind</span>::<span class="ident">Io</span>,
-                )
-                .<span class="ident">exit</span>()
-            });
 
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">course_details</span>);
+            <span class="ident">print_result_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">course_details</span>);
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;list-courses&quot;</span>) {
             <span class="kw">let</span> <span class="ident">organization_slug</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;organization&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">courses</span> <span class="op">=</span> <span class="ident">core</span>.<span class="ident">list_courses</span>(<span class="ident">organization_slug</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
@@ -1714,15 +1582,7 @@
                     .<span class="ident">exit</span>()
             });
 
-            <span class="kw">let</span> <span class="ident">courses</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">courses</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="ident">Error</span>::<span class="ident">with_description</span>(
-                    <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to convert courses to JSON: {}&quot;</span>, <span class="ident">e</span>),
-                    <span class="ident">ErrorKind</span>::<span class="ident">Io</span>,
-                )
-                .<span class="ident">exit</span>()
-            });
-
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">courses</span>);
+            <span class="ident">print_result_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">courses</span>);
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;paste-with-comment&quot;</span>) {
             <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;submissionUrl&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">into_url</span>(<span class="ident">submission_url</span>);
@@ -1731,14 +1591,22 @@
             <span class="kw">let</span> <span class="ident">submission_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">submission_path</span>);
             <span class="kw">let</span> <span class="ident">paste_message</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;pasteMessage&quot;</span>).<span class="ident">unwrap</span>();
 
+            <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;locale&quot;</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">into_locale</span>(<span class="ident">locale</span>);
+
             <span class="kw">let</span> <span class="ident">new_submission</span> <span class="op">=</span> <span class="ident">core</span>
-                .<span class="ident">paste_with_comment</span>(<span class="ident">submission_url</span>, <span class="ident">submission_path</span>, <span class="ident">paste_message</span>.<span class="ident">to_string</span>())
+                .<span class="ident">paste_with_comment</span>(
+                    <span class="ident">submission_url</span>,
+                    <span class="ident">submission_path</span>,
+                    <span class="ident">paste_message</span>.<span class="ident">to_string</span>(),
+                    <span class="ident">locale</span>,
+                )
                 .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
                     <span class="ident">Error</span>::<span class="ident">with_description</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to get courses: {}&quot;</span>, <span class="ident">e</span>), <span class="ident">ErrorKind</span>::<span class="ident">Io</span>)
                         .<span class="ident">exit</span>()
                 });
-            <span class="kw">let</span> <span class="ident">new_submission</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">new_submission</span>).<span class="ident">unwrap</span>();
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">new_submission</span>);
+
+            <span class="ident">print_result_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">new_submission</span>);
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;run-checkstyle&quot;</span>) {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercisePath&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">exercise_path</span>);
@@ -1754,8 +1622,8 @@
                         )
                         .<span class="ident">exit</span>()
                     });
-            <span class="kw">let</span> <span class="ident">validation_result</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">validation_result</span>).<span class="ident">unwrap</span>();
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">validation_result</span>);
+
+            <span class="ident">print_result_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">validation_result</span>);
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;run-tests&quot;</span>) {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercisePath&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">exercise_path</span>);
@@ -1764,17 +1632,17 @@
                 <span class="ident">Error</span>::<span class="ident">with_description</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to run checkstyle: {}&quot;</span>, <span class="ident">e</span>), <span class="ident">ErrorKind</span>::<span class="ident">Io</span>)
                     .<span class="ident">exit</span>()
             });
-            <span class="kw">let</span> <span class="ident">run_result</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">run_result</span>).<span class="ident">unwrap</span>();
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">run_result</span>);
+
+            <span class="ident">print_result_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">run_result</span>);
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;send-feedback&quot;</span>) {
             <span class="kw">let</span> <span class="ident">feedback_url</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;feedbackUrl&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">feedback_url</span> <span class="op">=</span> <span class="ident">into_url</span>(<span class="ident">feedback_url</span>);
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">feedback_answers</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">values_of</span>(<span class="string">&quot;feedback&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">into_iter</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">feedback_answers</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">values_of</span>(<span class="string">&quot;feedback&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">feedback</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
             <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">feedback_id</span>) <span class="op">=</span> <span class="ident">feedback_answers</span>.<span class="ident">next</span>() {
                 <span class="kw">let</span> <span class="ident">question_id</span> <span class="op">=</span> <span class="ident">into_usize</span>(<span class="ident">feedback_id</span>);
-                <span class="kw">let</span> <span class="ident">answer</span> <span class="op">=</span> <span class="ident">feedback_answers</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">to_string</span>();
+                <span class="kw">let</span> <span class="ident">answer</span> <span class="op">=</span> <span class="ident">feedback_answers</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">to_string</span>(); <span class="comment">// safe unwrap because --feedback always takes 2 values</span>
                 <span class="ident">feedback</span>.<span class="ident">push</span>(<span class="ident">FeedbackAnswer</span> {
                     <span class="ident">question_id</span>,
                     <span class="ident">answer</span>,
@@ -1790,8 +1658,8 @@
                     )
                     .<span class="ident">exit</span>()
                 });
-            <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">response</span>).<span class="ident">unwrap</span>();
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">response</span>);
+
+            <span class="ident">print_result_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">response</span>);
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;submit&quot;</span>) {
             <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;submissionUrl&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">into_url</span>(<span class="ident">submission_url</span>);
@@ -1799,19 +1667,22 @@
             <span class="kw">let</span> <span class="ident">submission_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;submissionPath&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">submission_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">submission_path</span>);
 
+            <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;locale&quot;</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">into_locale</span>(<span class="ident">locale</span>);
+
             <span class="kw">let</span> <span class="ident">new_submission</span> <span class="op">=</span> <span class="ident">core</span>
-                .<span class="ident">submit</span>(<span class="ident">submission_url</span>, <span class="ident">submission_path</span>)
+                .<span class="ident">submit</span>(<span class="ident">submission_url</span>, <span class="ident">submission_path</span>, <span class="ident">locale</span>)
                 .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
                     <span class="ident">Error</span>::<span class="ident">with_description</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to submit: {}&quot;</span>, <span class="ident">e</span>), <span class="ident">ErrorKind</span>::<span class="ident">Io</span>)
                         .<span class="ident">exit</span>()
                 });
-            <span class="kw">let</span> <span class="ident">new_submission</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">new_submission</span>).<span class="ident">unwrap</span>();
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">new_submission</span>);
+
+            <span class="ident">print_result_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">new_submission</span>);
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">_matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;get-exercise-updates&quot;</span>) {
             <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;courseId&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">into_usize</span>(<span class="ident">course_id</span>);
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercise_checksums</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">values_of</span>(<span class="string">&quot;checksum&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">into_iter</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercise_checksums</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">values_of</span>(<span class="string">&quot;exercise&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">checksums</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
             <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">exercise_id</span>) <span class="op">=</span> <span class="ident">exercise_checksums</span>.<span class="ident">next</span>() {
                 <span class="kw">let</span> <span class="ident">exercise_id</span> <span class="op">=</span> <span class="ident">into_usize</span>(<span class="ident">exercise_id</span>);
@@ -1828,8 +1699,8 @@
                     )
                     .<span class="ident">exit</span>()
                 });
-            <span class="kw">let</span> <span class="ident">update_result</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">update_result</span>).<span class="ident">unwrap</span>();
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">update_result</span>);
+
+            <span class="ident">print_result_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">update_result</span>);
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">_matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;mark-review-as-read&quot;</span>) {
             <span class="kw">let</span> <span class="ident">review_update_url</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;reviewUpdateUrl&quot;</span>).<span class="ident">unwrap</span>();
             <span class="ident">core</span>.<span class="ident">mark_review_as_read</span>(<span class="ident">review_update_url</span>.<span class="ident">to_string</span>())
@@ -1840,20 +1711,19 @@
                     )
                     .<span class="ident">exit</span>()
                 });
-            <span class="macro">todo</span><span class="macro">!</span>()
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;get-unread-reviews&quot;</span>) {
-            <span class="kw">let</span> <span class="ident">exercise_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exerciseId&quot;</span>).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">exercise_id</span> <span class="op">=</span> <span class="ident">into_usize</span>(<span class="ident">exercise_id</span>);
+            <span class="kw">let</span> <span class="ident">reviews_url</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;reviewsUrl&quot;</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">reviews_url</span> <span class="op">=</span> <span class="ident">into_url</span>(<span class="ident">reviews_url</span>);
 
-            <span class="kw">let</span> <span class="ident">reviews</span> <span class="op">=</span> <span class="ident">core</span>.<span class="ident">get_unread_reviews</span>(<span class="ident">exercise_id</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">reviews</span> <span class="op">=</span> <span class="ident">core</span>.<span class="ident">get_unread_reviews</span>(<span class="ident">reviews_url</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
                 <span class="ident">Error</span>::<span class="ident">with_description</span>(
                     <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to get unread reviews: {}&quot;</span>, <span class="ident">e</span>),
                     <span class="ident">ErrorKind</span>::<span class="ident">Io</span>,
                 )
                 .<span class="ident">exit</span>()
             });
-            <span class="kw">let</span> <span class="ident">reviews</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">reviews</span>).<span class="ident">unwrap</span>();
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">reviews</span>);
+
+            <span class="ident">print_result_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">reviews</span>);
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;request-code-review&quot;</span>) {
             <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;submissionUrl&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">into_url</span>(<span class="ident">submission_url</span>);
@@ -1863,11 +1733,15 @@
 
             <span class="kw">let</span> <span class="ident">message_for_reviewer</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;messageForReviewer&quot;</span>).<span class="ident">unwrap</span>();
 
+            <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;locale&quot;</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">into_locale</span>(<span class="ident">locale</span>);
+
             <span class="kw">let</span> <span class="ident">new_submission</span> <span class="op">=</span> <span class="ident">core</span>
                 .<span class="ident">request_code_review</span>(
                     <span class="ident">submission_url</span>,
                     <span class="ident">submission_path</span>,
                     <span class="ident">message_for_reviewer</span>.<span class="ident">to_string</span>(),
+                    <span class="ident">locale</span>,
                 )
                 .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
                     <span class="ident">Error</span>::<span class="ident">with_description</span>(
@@ -1876,8 +1750,8 @@
                     )
                     .<span class="ident">exit</span>()
                 });
-            <span class="kw">let</span> <span class="ident">new_submission</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">new_submission</span>).<span class="ident">unwrap</span>();
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">new_submission</span>);
+
+            <span class="ident">print_result_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">new_submission</span>);
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;download-model-solution&quot;</span>) {
             <span class="kw">let</span> <span class="ident">solution_download_url</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;solutionDownloadUrl&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">solution_download_url</span> <span class="op">=</span> <span class="ident">into_url</span>(<span class="ident">solution_download_url</span>);
@@ -1895,6 +1769,40 @@
                 });
         }
     }
+}
+
+<span class="kw">fn</span> <span class="ident">print_result_as_json</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Serialize</span><span class="op">&gt;</span>(<span class="ident">result</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) {
+    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+        <span class="ident">Error</span>::<span class="ident">with_description</span>(
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to convert result to JSON: {}&quot;</span>, <span class="ident">e</span>),
+            <span class="ident">ErrorKind</span>::<span class="ident">Io</span>,
+        )
+        .<span class="ident">exit</span>()
+    });
+
+    <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">result</span>);
+}
+
+<span class="kw">fn</span> <span class="ident">write_result_to_file_as_json</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Serialize</span><span class="op">&gt;</span>(<span class="ident">result</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">output_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) {
+    <span class="kw">let</span> <span class="ident">output_file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">create</span>(<span class="ident">output_path</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+        <span class="ident">Error</span>::<span class="ident">with_description</span>(
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to create file at {}: {}&quot;</span>, <span class="ident">output_path</span>.<span class="ident">display</span>(), <span class="ident">e</span>),
+            <span class="ident">ErrorKind</span>::<span class="ident">Io</span>,
+        )
+        .<span class="ident">exit</span>()
+    });
+
+    <span class="ident">serde_json</span>::<span class="ident">to_writer</span>(<span class="ident">output_file</span>, <span class="ident">result</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+        <span class="ident">Error</span>::<span class="ident">with_description</span>(
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
+                <span class="string">&quot;Failed to write result as JSON to {}: {}&quot;</span>,
+                <span class="ident">output_path</span>.<span class="ident">display</span>(),
+                <span class="ident">e</span>
+            ),
+            <span class="ident">ErrorKind</span>::<span class="ident">Io</span>,
+        )
+        .<span class="ident">exit</span>()
+    });
 }
 
 <span class="kw">fn</span> <span class="ident">into_usize</span>(<span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
