@@ -3,7 +3,7 @@ use crate::policy::Python3StudentFilePolicy;
 use crate::{LocalPy, PythonTestResult, LOCAL_PY};
 
 use std::collections::HashMap;
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::BufReader;
 use std::path::Path;
 use std::process::Command;
@@ -13,6 +13,7 @@ use tmc_langs_framework::{
     policy::StudentFilePolicy,
     Error,
 };
+use walkdir::WalkDir;
 
 pub struct Python3Plugin {}
 
@@ -70,8 +71,18 @@ impl LanguagePlugin for Python3Plugin {
         setup.exists() || requirements.exists() || test.exists() || tmc.exists()
     }
 
-    fn clean(&self, _path: &Path) -> Result<(), Error> {
-        // no op
+    fn clean(&self, path: &Path) -> Result<(), Error> {
+        for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
+            if entry.file_name() == ".available_points.json"
+                || entry.file_name() == ".tmc_test_results.json"
+            {
+                fs::remove_file(entry.path())
+                    .map_err(|e| PythonError::FileRemove(entry.path().to_path_buf(), e))?;
+            } else if entry.file_name() == "__pycache__" {
+                fs::remove_dir_all(entry.path())
+                    .map_err(|e| PythonError::DirRemove(entry.path().to_path_buf(), e))?;
+            }
+        }
         Ok(())
     }
 }
@@ -275,5 +286,31 @@ mod test {
 
         let correct = plugin.is_exercise_type_correct(Path::new("./"));
         assert!(!correct);
+    }
+
+    #[test]
+    fn clean() {
+        init();
+        let plugin = Python3Plugin::new();
+
+        let temp = copy_test("tests/data/clean_target");
+        let temp_path = temp.path();
+
+        assert!(temp_path.join(".available_points.json").exists());
+        assert!(temp_path
+            .join("subdirectory/.tmc_test_results.json")
+            .exists());
+        assert!(temp_path
+            .join("subdirectory/__pycache__/cachefile")
+            .exists());
+        plugin.clean(temp.path()).unwrap();
+        assert!(!temp_path.join(".available_points.json").exists());
+        assert!(!temp_path
+            .join("subdirectory/.tmc_test_results.json")
+            .exists());
+        assert!(!temp_path
+            .join("subdirectory/__pycache__/cachefile")
+            .exists());
+        assert!(temp_path.join("leave").exists());
     }
 }

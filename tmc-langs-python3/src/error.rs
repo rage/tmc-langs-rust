@@ -13,6 +13,10 @@ pub enum PythonError {
     FileOpen(PathBuf, std::io::Error),
     #[error("Failed to deserialize file at {0} to JSON: {1}")]
     Deserialize(PathBuf, JsonError),
+    #[error("Failed to remove file {0}: {1}")]
+    FileRemove(PathBuf, std::io::Error),
+    #[error("Failed to remove directory {0}: {1}")]
+    DirRemove(PathBuf, std::io::Error),
 }
 
 impl From<PythonError> for TmcError {
