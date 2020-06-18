@@ -1,4 +1,4 @@
-//! Error type for the plugin.
+//! Error type for the make plugin.
 
 use serde_xml_rs::Error as XmlError;
 use std::num::ParseIntError;

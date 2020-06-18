@@ -1,3 +1,5 @@
+// Python plugin error type
+
 use serde_json::Error as JsonError;
 use std::path::PathBuf;
 use thiserror::Error;

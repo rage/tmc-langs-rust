@@ -1,3 +1,5 @@
+//! The core error type.
+
 use crate::response;
 use reqwest::StatusCode;
 use std::path::PathBuf;

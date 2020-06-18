@@ -1,6 +1,7 @@
 //! Contains types which model the JSON responses from tmc-server
 
 use crate::CoreError;
+
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{
@@ -12,7 +13,7 @@ use std::str::FromStr;
 use thiserror::Error;
 
 /// Models the responses from tmc-server, which can either
-/// be some successful response or a list of errors
+/// be some successful response, a single error or a list of errors
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 pub enum Response<T> {
@@ -34,7 +35,7 @@ impl<T> Response<T> {
 
 /// Represents an error response from tmc-server
 #[derive(Debug, Error, Deserialize)]
-#[error("Response contained an error: {errors:#?}")]
+#[error("Response contained errors: {errors:#?}")]
 pub struct ResponseErrors {
     pub errors: Vec<String>,
 }
@@ -84,7 +85,7 @@ pub struct Course {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct NuCourse {
+pub struct CourseData {
     pub name: String,
     //pub hide_after
     pub hidden: bool,
@@ -186,7 +187,7 @@ pub struct CourseExercise {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct NuCourseExercise {
+pub struct CourseDataExercise {
     pub id: usize,
     pub available_points: Vec<ExercisePoint>,
     pub name: String,
@@ -205,7 +206,7 @@ pub struct ExercisePoint {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct NuExercisePoint {
+pub struct CourseDataExercisePoint {
     awarded_point: AwardedPoint,
     exercise_id: usize,
 }
@@ -353,21 +354,18 @@ pub enum SubmissionFeedbackKind {
     IntRange { lower: usize, upper: usize },
 }
 
-// parses "text" into Text, and intrange[x..y] into IntRange {lower: x, upper: y}
 impl<'de> Deserialize<'de> for SubmissionFeedbackKind {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        log::debug!("res");
-        let res = deserializer.deserialize_string(SubmissionFeedbackKindVisitor {});
-        log::debug!("{:?}", res);
-        res
+        deserializer.deserialize_string(SubmissionFeedbackKindVisitor {})
     }
 }
 
 struct SubmissionFeedbackKindVisitor {}
 
+// parses "text" into Text, and "intrange[x..y]" into IntRange {lower: x, upper: y}
 impl<'de> Visitor<'de> for SubmissionFeedbackKindVisitor {
     type Value = SubmissionFeedbackKind;
 
@@ -386,11 +384,19 @@ impl<'de> Visitor<'de> for SubmissionFeedbackKindVisitor {
             Ok(SubmissionFeedbackKind::Text)
         } else if let Some(captures) = RANGE.captures(&value) {
             let lower = &captures[1];
-            let lower = usize::from_str(lower)
-                .map_err(|e| E::custom(format!("error parsing lower bound {}: {}", lower, e)))?;
+            let lower = usize::from_str(lower).map_err(|e| {
+                E::custom(format!(
+                    "error parsing intrange lower bound {}: {}",
+                    lower, e
+                ))
+            })?;
             let upper = &captures[2];
-            let upper = usize::from_str(upper)
-                .map_err(|e| E::custom(format!("error parsing upper bound {}: {}", upper, e)))?;
+            let upper = usize::from_str(upper).map_err(|e| {
+                E::custom(format!(
+                    "error parsing intrange upper bound {}: {}",
+                    upper, e
+                ))
+            })?;
             Ok(SubmissionFeedbackKind::IntRange { lower, upper })
         } else {
             Err(E::custom("expected \"text\" or \"intrange[x..y]\""))
@@ -460,10 +466,16 @@ mod test {
 
         let text = serde_json::json!("text");
         let text: SubmissionFeedbackKind = serde_json::from_value(text).unwrap();
-        log::debug!("{:?}", text);
+        if let SubmissionFeedbackKind::Text = text {
+        } else {
+            panic!("wrong type")
+        }
 
         let intrange = serde_json::json!("intrange[1..5]");
         let intrange: SubmissionFeedbackKind = serde_json::from_value(intrange).unwrap();
-        log::debug!("{:?}", intrange);
+        if let SubmissionFeedbackKind::IntRange { lower: 1, upper: 5 } = intrange {
+        } else {
+            panic!("wrong type")
+        }
     }
 }

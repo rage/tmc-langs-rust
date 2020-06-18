@@ -1,7 +1,7 @@
 //! Contains LanguagePlugin.
 
 pub use isolang::Language;
-pub use tmc_langs_abstraction::ValidationResult;
+pub use tmc_langs_abstraction::{Strategy, ValidationError, ValidationResult};
 
 use super::domain::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, TmcProjectYml};
 use super::io::{submission_processing, zip};

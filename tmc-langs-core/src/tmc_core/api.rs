@@ -1,9 +1,11 @@
+//! Contains and additional impl for TmcCore for calling the TMC Server API.
+
 use crate::error::{CoreError, Result};
 use crate::response::Response;
 use crate::tmc_core::Token;
 use crate::{
-    Course, CourseDetails, CourseExercise, ExerciseDetails, FeedbackAnswer, NewSubmission,
-    NuCourse, NuCourseExercise, NuExercisePoint, Organization, Review, Submission,
+    Course, CourseData, CourseDataExercise, CourseDataExercisePoint, CourseDetails, CourseExercise,
+    ExerciseDetails, FeedbackAnswer, NewSubmission, Organization, Review, Submission,
     SubmissionFeedbackResponse, TmcCore, User,
 };
 
@@ -133,7 +135,7 @@ impl TmcCore {
         todo!("needs admin")
     }
 
-    pub(super) fn course(&self, course_id: usize) -> Result<NuCourse> {
+    pub(super) fn course(&self, course_id: usize) -> Result<CourseData> {
         let url_tail = format!("courses/{}", course_id);
         self.get_json(&url_tail)
     }
@@ -142,7 +144,7 @@ impl TmcCore {
         &self,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<NuCourse> {
+    ) -> Result<CourseData> {
         let url_tail = format!(
             "org/{}/courses/{}",
             percent_encode(organization_slug),
@@ -160,7 +162,7 @@ impl TmcCore {
         &self,
         course_id: usize,
         exercise_name: &str,
-    ) -> Result<Vec<NuExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>> {
         let url_tail = format!(
             "courses/{}/exercises/{}/points",
             course_id,
@@ -174,7 +176,7 @@ impl TmcCore {
         course_id: usize,
         exercise_name: &str,
         user_id: usize,
-    ) -> Result<Vec<NuExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>> {
         let url_tail = format!(
             "courses/{}/exercises/{}/users/{}/points",
             course_id,
@@ -188,7 +190,7 @@ impl TmcCore {
         &self,
         course_id: usize,
         exercise_name: &str,
-    ) -> Result<Vec<NuExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>> {
         let url_tail = format!(
             "courses/{}/exercises/{}/users/current/points",
             course_id,
@@ -201,7 +203,7 @@ impl TmcCore {
         &self,
         course_id: usize,
         user_id: usize,
-    ) -> Result<Vec<NuExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>> {
         let url_tail = format!("courses/{}/users/{}/points", course_id, user_id);
         self.get_json(&url_tail)
     }
@@ -209,7 +211,7 @@ impl TmcCore {
     pub(super) fn course_points_for_current_user(
         &self,
         course_id: usize,
-    ) -> Result<Vec<NuExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>> {
         let url_tail = format!("courses/{}/users/current/points", course_id);
         self.get_json(&url_tail)
     }
@@ -218,7 +220,7 @@ impl TmcCore {
         &self,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<Vec<NuExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>> {
         let url_tail = format!(
             "org/{}/courses/{}/points",
             percent_encode(organization_slug),
@@ -261,7 +263,7 @@ impl TmcCore {
         organization_slug: &str,
         course_name: &str,
         exercise_name: &str,
-    ) -> Result<Vec<NuExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>> {
         let url_tail = format!(
             "org/{}/courses/{}/exercises/{}/users/current/points",
             percent_encode(organization_slug),
@@ -277,7 +279,7 @@ impl TmcCore {
         course_name: &str,
         exercise_name: &str,
         user_id: usize,
-    ) -> Result<Vec<NuExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>> {
         let url_tail = format!(
             "org/{}/courses/{}/exercises/{}/users/{}/points",
             percent_encode(organization_slug),
@@ -293,7 +295,7 @@ impl TmcCore {
         organization_slug: &str,
         course_name: &str,
         user_id: usize,
-    ) -> Result<Vec<NuExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>> {
         let url_tail = format!(
             "org/{}/courses/{}/users/{}/points",
             percent_encode(organization_slug),
@@ -307,7 +309,7 @@ impl TmcCore {
         &self,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<Vec<NuExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>> {
         let url_tail = format!(
             "org/{}/courses/{}/users/current/points",
             percent_encode(organization_slug),
@@ -413,7 +415,7 @@ impl TmcCore {
         &self,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<Vec<NuCourseExercise>> {
+    ) -> Result<Vec<CourseDataExercise>> {
         let url_tail = format!(
             "org/{}/courses/{}/exercises",
             percent_encode(organization_slug),

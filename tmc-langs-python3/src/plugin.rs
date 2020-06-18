@@ -1,3 +1,5 @@
+//! Contains the Python3Plugin struct
+
 use crate::error::PythonError;
 use crate::policy::Python3StudentFilePolicy;
 use crate::{LocalPy, PythonTestResult, LOCAL_PY};

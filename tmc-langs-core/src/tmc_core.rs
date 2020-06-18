@@ -4,8 +4,8 @@ use crate::error::{CoreError, Result};
 use crate::request::*;
 use crate::response::*;
 use crate::response::{Course, CourseDetails, Organization};
+use crate::{Language, RunResult, ValidationResult};
 
-use isolang::Language;
 use oauth2::basic::BasicClient;
 use oauth2::prelude::*;
 use oauth2::{
@@ -21,7 +21,6 @@ use std::path::Path;
 use std::path::PathBuf;
 use tempfile::NamedTempFile;
 use tmc_langs_util::task_executor;
-use tmc_langs_util::{RunResult, ValidationResult};
 use url1::Url as Url1;
 
 pub type Token =
@@ -40,7 +39,12 @@ pub struct TmcCore {
 impl TmcCore {
     pub fn new(config_dir: PathBuf, root_url: String) -> Result<Self> {
         // guarantee a trailing slash, otherwise join will drop the last component
-        let tmc_url = Url::parse(&format!("{}/", root_url))?;
+        let root_url = if root_url.ends_with('/') {
+            root_url
+        } else {
+            format!("{}/", root_url)
+        };
+        let tmc_url = Url::parse(&root_url)?;
         let api_url = tmc_url.join("api/v8/")?;
         let auth_url = tmc_url.join("oauth/token")?;
         Ok(Self {
@@ -94,14 +98,17 @@ impl TmcCore {
         Ok(())
     }
 
+    /// Fetches all organizations.
     pub fn get_organizations(&self) -> Result<Vec<Organization>> {
         self.organizations()
     }
 
+    /// UNIMPLEMENTED
     pub fn send_diagnostics(&self) {
         unimplemented!()
     }
 
+    /// Downloads the given exercises.
     pub fn download_or_update_exercises(&self, exercises: Vec<(usize, &Path)>) -> Result<()> {
         for (exercise_id, target) in exercises {
             let zip_file = NamedTempFile::new().map_err(CoreError::TempFile)?;
@@ -111,14 +118,17 @@ impl TmcCore {
         Ok(())
     }
 
+    /// Fetches the course's information.
     pub fn get_course_details(&self, course_id: usize) -> Result<CourseDetails> {
         self.core_course(course_id)
     }
 
+    /// Fetches all courses under the given organization.
     pub fn list_courses(&self, organization_slug: &str) -> Result<Vec<Course>> {
         self.organization_courses(organization_slug)
     }
 
+    /// Sends the given submission as a paste.
     pub fn paste_with_comment(
         &self,
         submission_url: Url,
@@ -135,6 +145,7 @@ impl TmcCore {
         self.post_submission_to_paste(submission_url, file.path(), paste_message, locale)
     }
 
+    /// Runs checkstyle for the project.
     pub fn run_checkstyle(
         &self,
         path: &Path,
@@ -143,10 +154,12 @@ impl TmcCore {
         Ok(task_executor::run_check_code_style(path, locale)?)
     }
 
+    /// Runs tests for the project.
     pub fn run_tests(&self, path: &Path) -> Result<RunResult> {
         Ok(task_executor::run_tests(path)?)
     }
 
+    /// Sends feedback.
     pub fn send_feedback(
         &self,
         feedback_url: Url,
@@ -155,10 +168,12 @@ impl TmcCore {
         self.post_feedback(feedback_url, feedback)
     }
 
+    /// UNIMPLEMENTED
     pub fn send_snapshot_events(&self) {
         unimplemented!()
     }
 
+    /// Sends the submission to the server.
     pub fn submit(
         &self,
         submission_url: Url,
@@ -205,14 +220,17 @@ impl TmcCore {
         })
     }
 
+    /// Mark the review as read on the server.
     pub fn mark_review_as_read(&self, review_update_url: String) -> Result<()> {
         self.mark_review(review_update_url, true)
     }
 
+    /// Fetches all reviews.
     pub fn get_unread_reviews(&self, reviews_url: Url) -> Result<Vec<Review>> {
         self.get_json_from_url(reviews_url)
     }
 
+    /// Request code review.
     pub fn request_code_review(
         &self,
         submission_url: Url,
@@ -229,6 +247,7 @@ impl TmcCore {
         self.post_submission_for_review(submission_url, file.path(), message_for_reviewer, locale)
     }
 
+    /// Downloads the model solution from the given url.
     pub fn download_model_solution(&self, solution_download_url: Url, target: &Path) -> Result<()> {
         let zip_file = NamedTempFile::new().map_err(CoreError::TempFile)?;
         self.download_from(solution_download_url, zip_file.path())?;
@@ -236,6 +255,7 @@ impl TmcCore {
         Ok(())
     }
 
+    /// Checks the status of a submission on the server.
     pub fn check_submission(&self, submission_url: &str) -> Result<SubmissionProcessingStatus> {
         if self.token.is_none() {
             return Err(CoreError::AuthRequired);
@@ -247,6 +267,7 @@ impl TmcCore {
         Ok(res)
     }
 
+    // convenience function for requesting JSON data from the TMC server
     fn request_json<T: DeserializeOwned + Debug>(&self, url: Url) -> Result<T> {
         log::debug!("requesting {}", url);
         let mut req = self.client.get(url);

@@ -1,3 +1,5 @@
+//! Language plugin for the R language
+
 mod error;
 mod plugin;
 mod policy;

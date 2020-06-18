@@ -1,4 +1,7 @@
+//! Common functionality for all Java plugins
+
 use super::{error::JavaError, CompileResult, TestCase, TestCaseStatus, TestMethod, TestRun};
+
 use isolang::Language;
 use j4rs::{InvocationArg, Jvm};
 use std::collections::HashMap;
@@ -6,23 +9,25 @@ use std::convert::TryFrom;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use tmc_langs_abstraction::ValidationResult;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
-    plugin::LanguagePlugin,
+    plugin::{LanguagePlugin, ValidationResult},
 };
 use walkdir::WalkDir;
 
 pub(crate) trait JavaPlugin: LanguagePlugin {
     const TEST_DIR: &'static str;
 
+    /// Returns a reference to the inner Jvm.
     fn jvm(&self) -> &Jvm;
 
-    // constructs a CLASSPATH for the given path (see https://docs.oracle.com/javase/tutorial/essential/environment/paths.html)
+    /// Constructs a CLASSPATH for the given path (see https://docs.oracle.com/javase/tutorial/essential/environment/paths.html).
     fn get_project_class_path(&self, path: &Path) -> Result<String, JavaError>;
 
+    /// Builds the Java project.
     fn build(&self, project_root_path: &Path) -> Result<CompileResult, JavaError>;
 
+    /// Runs the tests for the given project.
     fn run_java_tests(&self, project_root_path: &Path) -> Result<RunResult, JavaError> {
         log::info!(
             "Running tests for project at {}",
@@ -41,6 +46,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         Ok(result?)
     }
 
+    /// Parses test results.
     fn parse_test_result(&self, results: &TestRun) -> Result<RunResult, JavaError> {
         let json = fs::read_to_string(&results.test_results)
             .map_err(|e| JavaError::File(results.test_results.to_owned(), e))?;
@@ -66,6 +72,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         })
     }
 
+    /// Converts a Java test case into a tmc-langs test result.
     fn convert_test_case_result(&self, test_case: TestCase) -> TestResult {
         let mut exceptions = vec![];
         let mut points = vec![];
@@ -92,6 +99,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         }
     }
 
+    /// Tries to parse the java.home property.
     fn parse_java_home(properties: &str) -> Option<PathBuf> {
         for line in properties.lines() {
             if line.contains("java.home") {
@@ -103,6 +111,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         None
     }
 
+    /// Tries to find the java.home property.
     fn get_java_home() -> Result<PathBuf, JavaError> {
         let output = Command::new("java")
             .arg("-XshowSettings:properties")
@@ -123,12 +132,14 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         }
     }
 
+    /// Runs tests and writes the results into a file.
     fn create_run_result_file(
         &self,
         path: &Path,
         compile_result: CompileResult,
     ) -> Result<TestRun, JavaError>;
 
+    /// Checks the compile result and scans an exercise.
     fn scan_exercise_with_compile_result(
         &self,
         path: &Path,
@@ -209,6 +220,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         })
     }
 
+    /// Creates a run result from a failed compilation.
     fn run_result_from_failed_compilation(&self, compile_result: CompileResult) -> RunResult {
         let mut logs = HashMap::new();
         logs.insert("stdout".to_string(), compile_result.stdout);
@@ -220,6 +232,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         }
     }
 
+    /// Runs checkstyle.
     fn run_checkstyle(&self, locale: &Language, path: &Path) -> Option<ValidationResult> {
         let file = self
             .jvm()

@@ -1,3 +1,5 @@
+//! Java error type
+
 use std::io;
 use std::path::PathBuf;
 use thiserror::Error;

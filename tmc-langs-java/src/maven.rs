@@ -1,3 +1,5 @@
+//! Java maven plugin
+
 pub mod policy;
 
 use super::{error::JavaError, plugin::JavaPlugin, CompileResult, TestRun, SEPARATOR};
@@ -9,10 +11,9 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 use std::time::Duration;
-use tmc_langs_abstraction::ValidationResult;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult},
-    plugin::LanguagePlugin,
+    plugin::{LanguagePlugin, ValidationResult},
     policy::StudentFilePolicy,
     Error,
 };
@@ -185,7 +186,7 @@ mod test {
     use super::super::{TestCase, TestCaseStatus};
     use super::*;
     use tempfile::{tempdir, TempDir};
-    use tmc_langs_abstraction::Strategy;
+    use tmc_langs_framework::plugin::Strategy;
     use walkdir::WalkDir;
 
     fn init() {

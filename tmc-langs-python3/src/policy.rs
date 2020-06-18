@@ -1,3 +1,5 @@
+//! Contains the Python3 student file policy
+
 use std::path::{Path, PathBuf};
 use tmc_langs_framework::policy::StudentFilePolicy;
 

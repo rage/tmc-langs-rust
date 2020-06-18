@@ -1,3 +1,5 @@
+//! Java ant plugin
+
 pub mod policy;
 
 use super::{error::JavaError, plugin::JavaPlugin, CompileResult, TestRun, SEPARATOR};
@@ -11,10 +13,9 @@ use std::io::Write;
 use std::path::Path;
 use std::process::Command;
 use std::time::Duration;
-use tmc_langs_abstraction::ValidationResult;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult},
-    plugin::LanguagePlugin,
+    plugin::{LanguagePlugin, ValidationResult},
     policy::StudentFilePolicy,
     Error,
 };
@@ -264,7 +265,7 @@ impl JavaPlugin for AntPlugin {
 mod test {
     use super::*;
     use tempfile::{tempdir, TempDir};
-    use tmc_langs_abstraction::Strategy;
+    use tmc_langs_framework::plugin::Strategy;
 
     fn init() {
         let _ = env_logger::builder().is_test(true).try_init();

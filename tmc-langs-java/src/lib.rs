@@ -1,3 +1,5 @@
+//! Java plugins for ant and maven
+
 mod ant;
 mod error;
 mod maven;
@@ -21,6 +23,7 @@ const SEPARATOR: &str = ";";
 #[cfg(not(windows))]
 const SEPARATOR: &str = ":";
 
+// these jars are required for the plugin to function
 const TMC_JUNIT_RUNNER_BYTES: &[u8] = include_bytes!("../jars/tmc-junit-runner-0.2.8.jar");
 const TMC_CHECKSTYLE_RUNNER_BYTES: &[u8] =
     include_bytes!("../jars/tmc-checkstyle-runner-3.0.3-20200520.064542-3.jar");
@@ -31,6 +34,7 @@ fn tmc_dir() -> Result<PathBuf, JavaError> {
     Ok(home_dir.join("tmc"))
 }
 
+/// Returns the tmc-junit-runner path, creating it if it doesn't exist yet.
 fn get_junit_runner_path() -> Result<PathBuf, JavaError> {
     let jar_dir = tmc_dir()?;
 
@@ -45,6 +49,7 @@ fn get_junit_runner_path() -> Result<PathBuf, JavaError> {
     Ok(junit_path)
 }
 
+/// Returns the tmc-checkstyle-runner path, creating it if it doesn't exist yet.
 fn get_checkstyle_runner_path() -> Result<PathBuf, JavaError> {
     let jar_dir = tmc_dir()?;
 
@@ -59,6 +64,7 @@ fn get_checkstyle_runner_path() -> Result<PathBuf, JavaError> {
     Ok(checkstyle_path)
 }
 
+/// Returns the j4rs path, creating it if it doesn't exist yet.
 fn initialize_jassets() -> Result<PathBuf, JavaError> {
     let jar_dir = tmc_dir()?;
     let jassets_dir = jar_dir.join("jassets");
@@ -74,6 +80,7 @@ fn initialize_jassets() -> Result<PathBuf, JavaError> {
     Ok(j4rs_path)
 }
 
+/// Initializes the J4RS JVM.
 fn instantiate_jvm() -> Result<Jvm, JavaError> {
     let junit_runner_path = crate::get_junit_runner_path()?;
     log::debug!("junit runner at {}", junit_runner_path.display());
