@@ -9,7 +9,6 @@ use crate::{
     SubmissionFeedbackResponse, TmcCore, User,
 };
 
-use isolang::Language;
 use oauth2::{prelude::SecretNewType, TokenResponse};
 use reqwest::blocking::{multipart::Form, RequestBuilder, Response as ReqwestResponse};
 use serde::de::DeserializeOwned;
@@ -18,6 +17,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::path::Path;
 use std::time::SystemTime;
+use tmc_langs_util::Language;
 use url::Url;
 
 /// Provides a wrapper for reqwest Response's json that deserializes into Response<T> and converts it into a result

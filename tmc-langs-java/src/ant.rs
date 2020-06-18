@@ -4,7 +4,6 @@ pub mod policy;
 
 use super::{error::JavaError, plugin::JavaPlugin, CompileResult, TestRun, SEPARATOR};
 
-use isolang::Language;
 use j4rs::Jvm;
 use policy::AntStudentFilePolicy;
 use std::env;
@@ -15,7 +14,7 @@ use std::process::Command;
 use std::time::Duration;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult},
-    plugin::{LanguagePlugin, ValidationResult},
+    plugin::{Language, LanguagePlugin, ValidationResult},
     policy::StudentFilePolicy,
     Error,
 };

@@ -6,7 +6,6 @@ mod response;
 mod tmc_core;
 
 pub use error::CoreError;
-pub use isolang::Language;
 pub use request::FeedbackAnswer;
 pub use response::{
     Course, CourseData, CourseDataExercise, CourseDataExercisePoint, CourseDetails, CourseExercise,
@@ -14,4 +13,4 @@ pub use response::{
     User,
 };
 pub use tmc_core::TmcCore;
-pub use tmc_langs_util::{RunResult, ValidationResult};
+pub use tmc_langs_util::{Language, RunResult, ValidationResult};

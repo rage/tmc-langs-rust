@@ -1,7 +1,6 @@
 //! CLI client for TMC
 
 use clap::{App, Arg, Error, ErrorKind, SubCommand};
-use isolang::Language;
 use log::debug;
 use serde::Serialize;
 use std::collections::HashMap;
@@ -11,7 +10,7 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use tmc_langs_core::{FeedbackAnswer, TmcCore};
 use tmc_langs_framework::io::submission_processing;
-use tmc_langs_util::task_executor;
+use tmc_langs_util::{task_executor, Language};
 use url::Url;
 use walkdir::WalkDir;
 

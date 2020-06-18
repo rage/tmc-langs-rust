@@ -3,12 +3,11 @@
 use super::{
     tar, Error, ExerciseDesc, ExercisePackagingConfiguration, RunResult, ValidationResult,
 };
-use isolang::Language;
 use log::info;
 use std::path::{Path, PathBuf};
 use tmc_langs_framework::{
     io::{submission_processing, zip},
-    plugin::LanguagePlugin,
+    plugin::{Language, LanguagePlugin},
     policy::NothingIsStudentFilePolicy,
 };
 use tmc_langs_java::AntPlugin;

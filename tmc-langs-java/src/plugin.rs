@@ -2,7 +2,6 @@
 
 use super::{error::JavaError, CompileResult, TestCase, TestCaseStatus, TestMethod, TestRun};
 
-use isolang::Language;
 use j4rs::{InvocationArg, Jvm};
 use std::collections::HashMap;
 use std::convert::TryFrom;
@@ -11,7 +10,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
-    plugin::{LanguagePlugin, ValidationResult},
+    plugin::{Language, LanguagePlugin, ValidationResult},
 };
 use walkdir::WalkDir;
 
