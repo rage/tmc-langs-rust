@@ -1,6 +1,7 @@
 pub mod policy;
 
 use super::{error::JavaError, plugin::JavaPlugin, CompileResult, TestRun, SEPARATOR};
+
 use isolang::Language;
 use j4rs::Jvm;
 use policy::AntStudentFilePolicy;
@@ -9,6 +10,7 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
 use std::process::Command;
+use std::time::Duration;
 use tmc_langs_abstraction::ValidationResult;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult},
@@ -73,7 +75,11 @@ impl LanguagePlugin for AntPlugin {
         Ok(self.scan_exercise_with_compile_result(path, exercise_name, compile_result)?)
     }
 
-    fn run_tests(&self, project_root_path: &Path) -> Result<RunResult, Error> {
+    fn run_tests_with_timeout(
+        &self,
+        project_root_path: &Path,
+        _timeout: Option<Duration>,
+    ) -> Result<RunResult, Error> {
         Ok(self.run_java_tests(project_root_path)?)
     }
 

@@ -10,6 +10,7 @@ use super::Result;
 use log::debug;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 use walkdir::WalkDir;
 
 /// The trait that each language plug-in must implement.
@@ -61,7 +62,17 @@ pub trait LanguagePlugin {
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc>;
 
     /// Runs the tests for the exercise.
-    fn run_tests(&self, path: &Path) -> Result<RunResult>;
+    fn run_tests(&self, path: &Path) -> Result<RunResult> {
+        let timeout = self
+            .get_student_file_policy(path)
+            .get_tmc_project_yml()
+            .ok()
+            .and_then(|t| t.tests_timeout_ms.map(Duration::from_millis));
+        self.run_tests_with_timeout(path, timeout)
+    }
+
+    /// Runs the tests for the exercise with the given timeout.
+    fn run_tests_with_timeout(&self, path: &Path, timeout: Option<Duration>) -> Result<RunResult>;
 
     /// Prepares a submission for processing in the sandbox.
     ///
@@ -207,7 +218,11 @@ mod test {
             unimplemented!()
         }
 
-        fn run_tests(&self, _path: &Path) -> Result<RunResult> {
+        fn run_tests_with_timeout(
+            &self,
+            _path: &Path,
+            _timeout: Option<Duration>,
+        ) -> Result<RunResult> {
             unimplemented!()
         }
 

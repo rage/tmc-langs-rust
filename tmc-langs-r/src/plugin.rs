@@ -12,8 +12,15 @@ use std::collections::HashMap;
 use std::fs::{self, File};
 use std::path::Path;
 use std::process::Command;
+use std::time::Duration;
 
 pub struct RPlugin {}
+
+impl RPlugin {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
 
 impl LanguagePlugin for RPlugin {
     fn get_plugin_name(&self) -> &str {
@@ -54,7 +61,11 @@ impl LanguagePlugin for RPlugin {
         })
     }
 
-    fn run_tests(&self, path: &Path) -> Result<RunResult, Error> {
+    fn run_tests_with_timeout(
+        &self,
+        path: &Path,
+        _timeout: Option<Duration>,
+    ) -> Result<RunResult, Error> {
         // delete results json
         let results_path = path.join(".results.json");
         if results_path.exists() {

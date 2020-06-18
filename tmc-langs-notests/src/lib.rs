@@ -6,10 +6,15 @@ use tmc_langs_framework::{
 
 use std::collections::HashMap;
 use std::path::Path;
+use std::time::Duration;
 
 pub struct NoTestsPlugin {}
 
 impl NoTestsPlugin {
+    pub fn new() -> Self {
+        Self {}
+    }
+
     fn get_points(&self, path: &Path) -> Vec<String> {
         self.get_student_file_policy(path)
             .get_tmc_project_yml()
@@ -35,7 +40,11 @@ impl LanguagePlugin for NoTestsPlugin {
         })
     }
 
-    fn run_tests(&self, path: &Path) -> Result<RunResult, Error> {
+    fn run_tests_with_timeout(
+        &self,
+        path: &Path,
+        _timeout: Option<Duration>,
+    ) -> Result<RunResult, Error> {
         Ok(RunResult {
             status: RunStatus::Passed,
             test_results: vec![TestResult {

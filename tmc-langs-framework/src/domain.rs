@@ -128,14 +128,21 @@ impl ExercisePackagingConfiguration {
 pub struct TmcProjectYml {
     #[serde(default)]
     pub extra_student_files: Vec<PathBuf>,
+
     #[serde(default)]
     pub extra_exercise_files: Vec<PathBuf>,
+
     #[serde(default)]
     pub force_update: Vec<PathBuf>,
+
+    #[serde(default)]
+    pub tests_timeout_ms: Option<u64>,
+
     #[serde(default)]
     #[serde(rename = "no-tests")]
     pub no_tests: Option<NoTests>,
 
+    #[serde(default)]
     pub fail_on_valgrind_error: Option<bool>,
 }
 

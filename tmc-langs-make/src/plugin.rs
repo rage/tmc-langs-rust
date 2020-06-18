@@ -4,6 +4,7 @@ use crate::check_log::CheckLog;
 use crate::error::MakeError;
 use crate::policy::MakeStudentFilePolicy;
 use crate::valgrind_log::ValgrindLog;
+
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashMap;
@@ -12,6 +13,7 @@ use std::io;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 use std::process::Command;
+use std::time::Duration;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TmcProjectYml},
     plugin::LanguagePlugin,
@@ -135,7 +137,11 @@ impl LanguagePlugin for MakePlugin {
         Ok(self.parse_exercise_desc(&available_points_path, exercise_name)?)
     }
 
-    fn run_tests(&self, path: &Path) -> Result<RunResult, Error> {
+    fn run_tests_with_timeout(
+        &self,
+        path: &Path,
+        _timeout: Option<Duration>,
+    ) -> Result<RunResult, Error> {
         if !self.builds(path)? {
             return Ok(RunResult {
                 status: RunStatus::CompileFailed,

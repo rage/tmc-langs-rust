@@ -7,11 +7,12 @@ use std::fs::{self, File};
 use std::io::BufReader;
 use std::path::Path;
 use std::process::Command;
+use std::time::Duration;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     plugin::LanguagePlugin,
     policy::StudentFilePolicy,
-    Error,
+    CommandWithTimeout, Error,
 };
 use walkdir::WalkDir;
 
@@ -33,7 +34,7 @@ impl LanguagePlugin for Python3Plugin {
     }
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
-        let run_result = run_tmc_command(path, &["available_points"]);
+        let run_result = run_tmc_command(path, &["available_points"], None);
 
         if let Err(error) = run_result {
             log::error!("Failed to scan exercise. {}", error);
@@ -43,8 +44,12 @@ impl LanguagePlugin for Python3Plugin {
         Ok(ExerciseDesc::new(exercise_name, test_descs))
     }
 
-    fn run_tests(&self, path: &Path) -> Result<RunResult, Error> {
-        let run_result = run_tmc_command(path, &[]);
+    fn run_tests_with_timeout(
+        &self,
+        path: &Path,
+        timeout: Option<Duration>,
+    ) -> Result<RunResult, Error> {
+        let run_result = run_tmc_command(path, &[], timeout);
 
         if let Err(error) = run_result {
             log::error!("Failed to parse exercise description. {}", error);
@@ -87,37 +92,45 @@ impl LanguagePlugin for Python3Plugin {
     }
 }
 
-fn run_tmc_command(path: &Path, extra_args: &[&str]) -> Result<std::process::Output, PythonError> {
+fn run_tmc_command(
+    path: &Path,
+    extra_args: &[&str],
+    timeout: Option<Duration>,
+) -> Result<std::process::Output, PythonError> {
     let path = path
         .canonicalize()
         .map_err(|e| PythonError::Path(path.to_path_buf(), e))?;
     log::debug!("running tmc command at {}", path.display());
     let common_args = ["-m", "tmc"];
-    let result = match &*LOCAL_PY {
-        LocalPy::Unix => Command::new("python3")
+
+    let (name, mut command) = match &*LOCAL_PY {
+        LocalPy::Unix => ("python3", Command::new("python3")),
+        LocalPy::Windows => ("py", Command::new("py")),
+        //.map_err(|e| PythonError::Command("py", e))?,
+        LocalPy::WindowsConda { conda_path } => ("conda", Command::new(conda_path)),
+    };
+    let command = match &*LOCAL_PY {
+        LocalPy::Unix => command
             .args(&common_args)
             .args(extra_args)
-            .current_dir(path)
-            .output()
-            .map_err(|e| PythonError::Command("python3", e))?,
-        LocalPy::Windows => Command::new("py")
+            .current_dir(path),
+        LocalPy::Windows => command
             .args(&["-3"])
             .args(&common_args)
             .args(extra_args)
-            .current_dir(path)
-            .output()
-            .map_err(|e| PythonError::Command("py", e))?,
-        LocalPy::WindowsConda { conda_path } => Command::new(conda_path)
+            .current_dir(path),
+        LocalPy::WindowsConda { .. } => command
             .args(&common_args)
             .args(extra_args)
-            .current_dir(path)
-            .output()
-            .map_err(|e| PythonError::Command(conda_path, e))?,
+            .current_dir(path),
     };
+    let output = CommandWithTimeout(command)
+        .wait_with_timeout(name, timeout)
+        .unwrap();
 
-    log::debug!("stdout: {}", String::from_utf8_lossy(&result.stdout));
-    log::debug!("stderr: {}", String::from_utf8_lossy(&result.stderr));
-    Ok(result)
+    log::debug!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+    log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+    Ok(output)
 }
 
 fn parse_exercise_description(path: &Path) -> Result<Vec<TestDesc>, PythonError> {

@@ -14,7 +14,9 @@ use tmc_langs_framework::{
 use tmc_langs_java::AntPlugin;
 use tmc_langs_java::MavenPlugin;
 use tmc_langs_make::MakePlugin;
+use tmc_langs_notests::NoTestsPlugin;
 use tmc_langs_python3::Python3Plugin;
+use tmc_langs_r::RPlugin;
 
 /// See `domain::prepare_solutions`.
 pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
@@ -120,10 +122,12 @@ pub fn clean(path: &Path) -> Result<(), Error> {
 // Get language plugin for the given path.
 fn get_language_plugin(path: &Path) -> Result<Box<dyn LanguagePlugin>, Error> {
     let plugins: Vec<Box<dyn LanguagePlugin>> = vec![
-        Box::new(Python3Plugin::new()),
-        Box::new(MavenPlugin::new()?),
         Box::new(AntPlugin::new()?),
         Box::new(MakePlugin::new()),
+        Box::new(MavenPlugin::new()?),
+        Box::new(NoTestsPlugin::new()),
+        Box::new(Python3Plugin::new()),
+        Box::new(RPlugin::new()),
     ];
 
     for plugin in plugins {

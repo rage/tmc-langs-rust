@@ -11,6 +11,9 @@ pub use policy::StudentFilePolicy;
 use domain::TmcProjectYml;
 use io::zip;
 use std::path::PathBuf;
+use std::process::{Command, Output};
+use std::thread;
+use std::time::{Duration, Instant};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -37,6 +40,11 @@ pub enum Error {
     #[error("Running command '{0}' failed")]
     CommandFailed(&'static str),
 
+    #[error("Failed to spawn command: {0}")]
+    CommandSpawn(std::io::Error),
+    #[error("Test timed out")]
+    TestTimeout,
+
     #[error("Error in plugin: {0}")]
     Plugin(Box<dyn std::error::Error + 'static + Send + Sync>),
 
@@ -49,3 +57,60 @@ pub enum Error {
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
+
+pub struct CommandWithTimeout<'a>(pub &'a mut Command);
+
+impl CommandWithTimeout<'_> {
+    pub fn wait_with_timeout(
+        &mut self,
+        name: &'static str,
+        timeout: Option<Duration>,
+    ) -> Result<Output> {
+        match timeout {
+            Some(timeout) => {
+                // spawn process and init timer
+                let mut child = self.0.spawn().map_err(|e| Error::CommandSpawn(e))?;
+                let timer = Instant::now();
+                loop {
+                    match child.try_wait()? {
+                        Some(_exit_status) => {
+                            // done, get output
+                            return child
+                                .wait_with_output()
+                                .map_err(|_| Error::CommandFailed(name));
+                        }
+                        None => {
+                            // still running, check timeout
+                            if timer.elapsed() > timeout {
+                                child.kill()?;
+                                return Err(Error::TestTimeout);
+                            }
+
+                            // TODO: gradually increase sleep duration?
+                            thread::sleep(Duration::from_millis(100));
+                        }
+                    }
+                }
+            }
+            // no timeout, block forever
+            None => self.0.output().map_err(|_| Error::CommandFailed(name)),
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn timeout() {
+        let mut command = Command::new("sleep");
+        let mut command = command.arg("1");
+        let mut out = CommandWithTimeout(&mut command);
+        let res = out.wait_with_timeout("sleep", Some(Duration::from_millis(100)));
+        if let Err(Error::TestTimeout) = res {
+        } else {
+            panic!("unexpected result: {:?}", res);
+        }
+    }
+}
