@@ -17,10 +17,10 @@ use walkdir::WalkDir;
 fn main() {
     env_logger::init();
 
-    let matches = App::new("TestMyCode")
-        .version("0.1.0")
-        .author("Daniel Martinez <daniel.x.martinez@helsinki.fi")
-        .about("CLI client for TMC")
+    let matches = App::new(env!("CARGO_PKG_NAME"))
+        .version(env!("CARGO_PKG_VERSION"))
+        .author(env!("CARGO_PKG_AUTHORS"))
+        .about(env!("CARGO_PKG_DESCRIPTION"))
 
         .subcommand(SubCommand::with_name("checkstyle")
             .about("Run checkstyle or similar plugin to project if applicable.")
