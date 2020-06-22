@@ -873,9 +873,13 @@ fn into_usize(arg: &str) -> usize {
 }
 
 fn into_locale(arg: &str) -> Language {
-    Language::from_639_3(arg).unwrap_or_else(|| {
-        Error::with_description(&format!("Invalid locale: {}", arg), ErrorKind::InvalidValue).exit()
-    })
+    Language::from_locale(arg)
+        .or(Language::from_639_1(arg))
+        .or(Language::from_639_3(arg))
+        .unwrap_or_else(|| {
+            Error::with_description(&format!("Invalid locale: {}", arg), ErrorKind::InvalidValue)
+                .exit()
+        })
 }
 
 fn into_url(arg: &str) -> Url {
