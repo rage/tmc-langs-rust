@@ -34,8 +34,7 @@ fn init() -> (Mock, Mock) {
 }
 
 fn run_cmd(args: &[&str]) -> Output {
-    let path = env::current_exe().unwrap().parent().unwrap().to_path_buf();
-    let path = path.parent().unwrap().join("tmc-langs-cli");
+    let path = env!("CARGO_BIN_EXE_tmc-langs-cli");
     let mut child = Command::new(path)
         .stdout(Stdio::piped())
         .stdin(Stdio::piped())
