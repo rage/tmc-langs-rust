@@ -169,7 +169,16 @@
 <span id="169">169</span>
 <span id="170">170</span>
 <span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! Java plugins for ant and maven</span>
+
 <span class="kw">mod</span> <span class="ident">ant</span>;
 <span class="kw">mod</span> <span class="ident">error</span>;
 <span class="kw">mod</span> <span class="ident">maven</span>;
@@ -193,6 +202,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">windows</span>))]</span>
 <span class="kw">const</span> <span class="ident">SEPARATOR</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;:&quot;</span>;
 
+<span class="comment">// these jars are required for the plugin to function</span>
 <span class="kw">const</span> <span class="ident">TMC_JUNIT_RUNNER_BYTES</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="macro">include_bytes</span><span class="macro">!</span>(<span class="string">&quot;../jars/tmc-junit-runner-0.2.8.jar&quot;</span>);
 <span class="kw">const</span> <span class="ident">TMC_CHECKSTYLE_RUNNER_BYTES</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span>
     <span class="macro">include_bytes</span><span class="macro">!</span>(<span class="string">&quot;../jars/tmc-checkstyle-runner-3.0.3-20200520.064542-3.jar&quot;</span>);
@@ -203,6 +213,7 @@
     <span class="prelude-val">Ok</span>(<span class="ident">home_dir</span>.<span class="ident">join</span>(<span class="string">&quot;tmc&quot;</span>))
 }
 
+<span class="doccomment">/// Returns the tmc-junit-runner path, creating it if it doesn&#39;t exist yet.</span>
 <span class="kw">fn</span> <span class="ident">get_junit_runner_path</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, <span class="ident">JavaError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">jar_dir</span> <span class="op">=</span> <span class="ident">tmc_dir</span>()<span class="question-mark">?</span>;
 
@@ -217,6 +228,7 @@
     <span class="prelude-val">Ok</span>(<span class="ident">junit_path</span>)
 }
 
+<span class="doccomment">/// Returns the tmc-checkstyle-runner path, creating it if it doesn&#39;t exist yet.</span>
 <span class="kw">fn</span> <span class="ident">get_checkstyle_runner_path</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, <span class="ident">JavaError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">jar_dir</span> <span class="op">=</span> <span class="ident">tmc_dir</span>()<span class="question-mark">?</span>;
 
@@ -231,6 +243,7 @@
     <span class="prelude-val">Ok</span>(<span class="ident">checkstyle_path</span>)
 }
 
+<span class="doccomment">/// Returns the j4rs path, creating it if it doesn&#39;t exist yet.</span>
 <span class="kw">fn</span> <span class="ident">initialize_jassets</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, <span class="ident">JavaError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">jar_dir</span> <span class="op">=</span> <span class="ident">tmc_dir</span>()<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">jassets_dir</span> <span class="op">=</span> <span class="ident">jar_dir</span>.<span class="ident">join</span>(<span class="string">&quot;jassets&quot;</span>);
@@ -246,6 +259,7 @@
     <span class="prelude-val">Ok</span>(<span class="ident">j4rs_path</span>)
 }
 
+<span class="doccomment">/// Initializes the J4RS JVM.</span>
 <span class="kw">fn</span> <span class="ident">instantiate_jvm</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Jvm</span>, <span class="ident">JavaError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">junit_runner_path</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">get_junit_runner_path</span>()<span class="question-mark">?</span>;
     <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;junit runner at {}&quot;</span>, <span class="ident">junit_runner_path</span>.<span class="ident">display</span>());

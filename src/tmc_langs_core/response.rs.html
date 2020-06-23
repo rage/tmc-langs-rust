@@ -467,10 +467,23 @@
 <span id="467">467</span>
 <span id="468">468</span>
 <span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains types which model the JSON responses from tmc-server</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">CoreError</span>;
+
 <span class="kw">use</span> <span class="ident">lazy_static</span>::<span class="ident">lazy_static</span>;
 <span class="kw">use</span> <span class="ident">regex</span>::<span class="ident">Regex</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{
@@ -482,7 +495,7 @@
 <span class="kw">use</span> <span class="ident">thiserror</span>::<span class="ident">Error</span>;
 
 <span class="doccomment">/// Models the responses from tmc-server, which can either</span>
-<span class="doccomment">/// be some successful response or a list of errors</span>
+<span class="doccomment">/// be some successful response, a single error or a list of errors</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">untagged</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Response</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
@@ -504,7 +517,7 @@
 
 <span class="doccomment">/// Represents an error response from tmc-server</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Error</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Response contained an error: {errors:#?}&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Response contained errors: {errors:#?}&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ResponseErrors</span> {
     <span class="kw">pub</span> <span class="ident">errors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
@@ -554,7 +567,7 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NuCourse</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CourseData</span> {
     <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">String</span>,
     <span class="comment">//pub hide_after</span>
     <span class="kw">pub</span> <span class="ident">hidden</span>: <span class="ident">bool</span>,
@@ -656,7 +669,7 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NuCourseExercise</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CourseDataExercise</span> {
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">available_points</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ExercisePoint</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">String</span>,
@@ -675,7 +688,7 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NuExercisePoint</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CourseDataExercisePoint</span> {
     <span class="ident">awarded_point</span>: <span class="ident">AwardedPoint</span>,
     <span class="ident">exercise_id</span>: <span class="ident">usize</span>,
 }
@@ -823,21 +836,18 @@
     <span class="ident">IntRange</span> { <span class="ident">lower</span>: <span class="ident">usize</span>, <span class="ident">upper</span>: <span class="ident">usize</span> },
 }
 
-<span class="comment">// parses &quot;text&quot; into Text, and intrange[x..y] into IntRange {lower: x, upper: y}</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SubmissionFeedbackKind</span> {
     <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D</span>::<span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;res&quot;</span>);
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">deserializer</span>.<span class="ident">deserialize_string</span>(<span class="ident">SubmissionFeedbackKindVisitor</span> {});
-        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">res</span>);
-        <span class="ident">res</span>
+        <span class="ident">deserializer</span>.<span class="ident">deserialize_string</span>(<span class="ident">SubmissionFeedbackKindVisitor</span> {})
     }
 }
 
 <span class="kw">struct</span> <span class="ident">SubmissionFeedbackKindVisitor</span> {}
 
+<span class="comment">// parses &quot;text&quot; into Text, and &quot;intrange[x..y]&quot; into IntRange {lower: x, upper: y}</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SubmissionFeedbackKindVisitor</span> {
     <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">SubmissionFeedbackKind</span>;
 
@@ -856,11 +866,19 @@
             <span class="prelude-val">Ok</span>(<span class="ident">SubmissionFeedbackKind</span>::<span class="ident">Text</span>)
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">captures</span>) <span class="op">=</span> <span class="ident">RANGE</span>.<span class="ident">captures</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>) {
             <span class="kw">let</span> <span class="ident">lower</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">captures</span>[<span class="number">1</span>];
-            <span class="kw">let</span> <span class="ident">lower</span> <span class="op">=</span> <span class="ident">usize</span>::<span class="ident">from_str</span>(<span class="ident">lower</span>)
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">E</span>::<span class="ident">custom</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;error parsing lower bound {}: {}&quot;</span>, <span class="ident">lower</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">lower</span> <span class="op">=</span> <span class="ident">usize</span>::<span class="ident">from_str</span>(<span class="ident">lower</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+                <span class="ident">E</span>::<span class="ident">custom</span>(<span class="macro">format</span><span class="macro">!</span>(
+                    <span class="string">&quot;error parsing intrange lower bound {}: {}&quot;</span>,
+                    <span class="ident">lower</span>, <span class="ident">e</span>
+                ))
+            })<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">upper</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">captures</span>[<span class="number">2</span>];
-            <span class="kw">let</span> <span class="ident">upper</span> <span class="op">=</span> <span class="ident">usize</span>::<span class="ident">from_str</span>(<span class="ident">upper</span>)
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">E</span>::<span class="ident">custom</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;error parsing upper bound {}: {}&quot;</span>, <span class="ident">upper</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">upper</span> <span class="op">=</span> <span class="ident">usize</span>::<span class="ident">from_str</span>(<span class="ident">upper</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+                <span class="ident">E</span>::<span class="ident">custom</span>(<span class="macro">format</span><span class="macro">!</span>(
+                    <span class="string">&quot;error parsing intrange upper bound {}: {}&quot;</span>,
+                    <span class="ident">upper</span>, <span class="ident">e</span>
+                ))
+            })<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<span class="ident">SubmissionFeedbackKind</span>::<span class="ident">IntRange</span> { <span class="ident">lower</span>, <span class="ident">upper</span> })
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">E</span>::<span class="ident">custom</span>(<span class="string">&quot;expected \&quot;text\&quot; or \&quot;intrange[x..y]\&quot;&quot;</span>))
@@ -930,11 +948,17 @@
 
         <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="macro">json</span><span class="macro">!</span>(<span class="string">&quot;text&quot;</span>);
         <span class="kw">let</span> <span class="ident">text</span>: <span class="ident">SubmissionFeedbackKind</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">from_value</span>(<span class="ident">text</span>).<span class="ident">unwrap</span>();
-        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">text</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">SubmissionFeedbackKind</span>::<span class="ident">Text</span> <span class="op">=</span> <span class="ident">text</span> {
+        } <span class="kw">else</span> {
+            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;wrong type&quot;</span>)
+        }
 
         <span class="kw">let</span> <span class="ident">intrange</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="macro">json</span><span class="macro">!</span>(<span class="string">&quot;intrange[1..5]&quot;</span>);
         <span class="kw">let</span> <span class="ident">intrange</span>: <span class="ident">SubmissionFeedbackKind</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">from_value</span>(<span class="ident">intrange</span>).<span class="ident">unwrap</span>();
-        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">intrange</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">SubmissionFeedbackKind</span>::<span class="ident">IntRange</span> { <span class="ident">lower</span>: <span class="number">1</span>, <span class="ident">upper</span>: <span class="number">5</span> } <span class="op">=</span> <span class="ident">intrange</span> {
+        } <span class="kw">else</span> {
+            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;wrong type&quot;</span>)
+        }
     }
 }
 </pre></div>
