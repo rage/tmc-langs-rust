@@ -101,6 +101,7 @@ fn instantiate_jvm() -> Result<Jvm, JavaError> {
         .with_base_path(tmc_dir.to_str().unwrap())
         .classpath_entry(junit_runner)
         .classpath_entry(checkstyle_runner)
+        .skip_setting_native_lib()
         .build()
         .expect("failed to build jvm");
 
