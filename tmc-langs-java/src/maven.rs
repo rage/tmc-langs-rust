@@ -102,7 +102,7 @@ impl JavaPlugin for MavenPlugin {
             .output()
             .map_err(|e| JavaError::FailedToRun("mvn", e))?;
 
-        log::debug!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 
         if !output.status.success() {
@@ -164,7 +164,7 @@ impl JavaPlugin for MavenPlugin {
             .output()
             .map_err(|e| JavaError::FailedToRun("mvn", e))?;
 
-        log::debug!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 
         if !output.status.success() {
