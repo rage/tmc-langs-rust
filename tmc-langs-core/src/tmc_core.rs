@@ -76,7 +76,7 @@ impl TmcCore {
         let url = self
             .api_url
             .join(&format!("application/{}/credentials", client_name))?;
-        let credentials: Credentials = self.request_json(url)?;
+        let credentials: Credentials = self.get_json_from_url(url)?;
 
         let auth_url = Url1::parse(self.auth_url.as_str())?;
         log::debug!("authenticating at {}", auth_url);
@@ -92,7 +92,12 @@ impl TmcCore {
                 &ResourceOwnerUsername::new(email),
                 &ResourceOwnerPassword::new(password),
             )
-            .map_err(CoreError::Token)?;
+            .map_err(|e| match e {
+                oauth2::RequestTokenError::Parse(e, msg) => {
+                    CoreError::TokenParse(e, String::from_utf8_lossy(&msg).into_owned())
+                }
+                _ => CoreError::Token(e),
+            })?;
         self.token = Some(token);
         log::debug!("authenticated");
         Ok(())
@@ -262,21 +267,9 @@ impl TmcCore {
         }
 
         let url = Url::parse(submission_url)?;
-        let res: Response<SubmissionProcessingStatus> = self.request_json(url)?;
+        let res: Response<SubmissionProcessingStatus> = self.get_json_from_url(url)?;
         let res = res.into_result()?;
         Ok(res)
-    }
-
-    // convenience function for requesting JSON data from the TMC server
-    fn request_json<T: DeserializeOwned + Debug>(&self, url: Url) -> Result<T> {
-        log::debug!("requesting {}", url);
-        let mut req = self.client.get(url);
-        if let Some(token) = &self.token {
-            req = req.bearer_auth(token.access_token().secret());
-        }
-        let res: Response<T> = req.send()?.json()?;
-        log::trace!("received {:?}", res);
-        res.into_result()
     }
 }
 

@@ -22,6 +22,8 @@ pub enum CoreError {
     HttpStatus(Url, StatusCode),
     #[error("OAuth2 password exchange error: {0}")]
     Token(oauth2::RequestTokenError<oauth2::basic::BasicErrorResponseType>),
+    #[error("OAuth2 unexpected token response {1}: {0}")]
+    TokenParse(serde_json::error::Error, String),
     #[error("Already authenticated")]
     AlreadyAuthenticated,
     #[error("Authentication required")]
