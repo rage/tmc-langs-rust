@@ -264,7 +264,7 @@ mod test {
         assert!(exception.message.as_ref().unwrap().starts_with("expected"));
         let stack_trace = &exception.stack_trace[0];
         assert_eq!(stack_trace.declaring_class, "org.junit.Assert");
-        assert_eq!(stack_trace.file_name, "Assert.java");
+        assert_eq!(stack_trace.file_name.as_ref().unwrap(), "Assert.java");
         assert_eq!(stack_trace.line_number, 115);
         assert_eq!(stack_trace.method_name, "assertEquals");
     }

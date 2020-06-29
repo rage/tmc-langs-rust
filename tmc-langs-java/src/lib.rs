@@ -163,17 +163,24 @@ enum TestCaseStatus {
 #[serde(rename_all = "camelCase")]
 struct StackTrace {
     declaring_class: String,
-    file_name: String,
+    file_name: Option<String>,
     line_number: i32,
     method_name: String,
 }
 
 impl Display for StackTrace {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let start = self
+            .file_name
+            .as_ref()
+            .map(|f| format!("{}:{}", f, self.line_number))
+            .unwrap_or_else(|| self.line_number.to_string());
+        // string either starts with file_name:line_number or line_number
+
         write!(
             f,
-            "{}:{}: {}.{}",
-            self.file_name, self.line_number, self.declaring_class, self.method_name
+            "{}: {}.{}",
+            start, self.declaring_class, self.method_name
         )
     }
 }
