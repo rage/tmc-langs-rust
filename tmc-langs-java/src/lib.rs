@@ -145,7 +145,7 @@ struct TestCase {
 #[serde(rename_all = "camelCase")]
 struct CaughtException {
     class_name: String,
-    message: String,
+    message: Option<String>,
     stack_trace: Vec<StackTrace>,
     cause: Option<Box<CaughtException>>,
 }

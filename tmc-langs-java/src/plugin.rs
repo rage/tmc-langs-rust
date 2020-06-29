@@ -77,7 +77,9 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         let mut points = vec![];
 
         if let Some(exception) = test_case.exception {
-            exceptions.push(exception.message);
+            if let Some(message) = exception.message {
+                exceptions.push(message);
+            }
             for stack_trace in exception.stack_trace {
                 exceptions.push(stack_trace.to_string())
             }

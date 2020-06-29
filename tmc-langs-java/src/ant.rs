@@ -373,7 +373,7 @@ mod test {
 
         let exception = test_case.exception.as_ref().unwrap();
         assert_eq!(exception.class_name, "java.lang.AssertionError");
-        assert!(exception.message.starts_with("expected:"));
+        assert!(exception.message.as_ref().unwrap().starts_with("expected:"));
         assert!(exception.cause.is_none());
 
         let stack_trace = &exception.stack_trace[0];
