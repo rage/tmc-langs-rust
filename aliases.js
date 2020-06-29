@@ -1,5 +1,6 @@
 var ALIASES = {};
 ALIASES["addr2line"] = {};
+ALIASES["adler"] = {};
 ALIASES["adler32"] = {};
 ALIASES["aho_corasick"] = {};
 ALIASES["ansi_term"] = {};
