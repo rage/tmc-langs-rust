@@ -2,7 +2,6 @@
 
 use crate::policy::StudentFilePolicy;
 use crate::{Error, Result};
-use log::debug;
 use std::collections::HashSet;
 use std::fs::{self, File};
 use std::io::{Cursor, Read, Seek, Write};
@@ -22,21 +21,21 @@ pub fn zip(policy: Box<dyn StudentFilePolicy>, root_directory: &Path) -> Result<
         .filter_entry(|e| !contains_tmcnosubmit(e))
         .filter_map(|e| e.ok())
     {
-        debug!("processing {:?}", entry.path());
+        log::trace!("processing {:?}", entry.path());
         if policy.is_student_file(entry.path(), &root_directory, &tmc_project_yml)? {
             let path = root_directory
                 .parent()
                 .map(|p| entry.path().strip_prefix(p).unwrap())
                 .unwrap_or_else(|| entry.path());
             if entry.path().is_dir() {
-                debug!("adding directory {}", path.display());
+                log::trace!("adding directory {}", path.display());
                 writer.add_directory_from_path(path, FileOptions::default())?;
             } else {
                 let file = File::open(entry.path())?;
                 let bytes = file
                     .bytes()
                     .collect::<std::result::Result<Vec<_>, std::io::Error>>()?;
-                debug!("writing file {}", path.display());
+                log::trace!("writing file {}", path.display());
                 writer.start_file_from_path(path, FileOptions::default())?;
                 writer
                     .write_all(&bytes)
@@ -50,13 +49,13 @@ pub fn zip(policy: Box<dyn StudentFilePolicy>, root_directory: &Path) -> Result<
 
 /// Finds a project directory in the given zip and unzips it.
 pub fn unzip(policy: Box<dyn StudentFilePolicy>, zip: &Path, target: &Path) -> Result<()> {
-    debug!("Unzipping {} to {}", zip.display(), target.display());
+    log::debug!("Unzipping {} to {}", zip.display(), target.display());
 
     let file = File::open(zip).map_err(|e| Error::OpenFile(zip.to_path_buf(), e))?;
     let mut zip_archive = ZipArchive::new(file)?;
 
     let project_dir = find_project_dir(&mut zip_archive)?;
-    debug!("Project dir in zip: {}", project_dir.display());
+    log::debug!("Project dir in zip: {}", project_dir.display());
 
     let tmc_project_yml = policy.get_tmc_project_yml()?;
 
@@ -66,15 +65,15 @@ pub fn unzip(policy: Box<dyn StudentFilePolicy>, zip: &Path, target: &Path) -> R
         let file = zip_archive.by_index(i)?;
         let file_path = file.sanitized_name();
         if !file_path.starts_with(&project_dir) {
-            debug!("skip {}, not in project dir", file.name());
+            log::trace!("skip {}, not in project dir", file.name());
             continue;
         }
         let relative = file_path.strip_prefix(&project_dir).unwrap();
         let path_in_target = target.join(&relative);
-        debug!("processing {:?} -> {:?}", file_path, path_in_target);
+        log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
 
         if file.is_dir() {
-            debug!("creating {:?}", path_in_target);
+            log::trace!("creating {:?}", path_in_target);
             fs::create_dir_all(&path_in_target)
                 .map_err(|e| Error::CreateDir(path_in_target.clone(), e))?;
             unzipped_paths.insert(path_in_target.canonicalize()?);
@@ -101,7 +100,7 @@ pub fn unzip(policy: Box<dyn StudentFilePolicy>, zip: &Path, target: &Path) -> R
                 }
             }
             if write {
-                debug!("writing to {}", path_in_target.display());
+                log::trace!("writing to {}", path_in_target.display());
                 if let Some(res) = path_in_target.parent().map(fs::create_dir_all) {
                     res?;
                 }
@@ -116,7 +115,7 @@ pub fn unzip(policy: Box<dyn StudentFilePolicy>, zip: &Path, target: &Path) -> R
     }
 
     // delete non-student files that were not in zip
-    debug!("deleting non-student files not in zip");
+    log::debug!("deleting non-student files not in zip");
     for entry in WalkDir::new(target).into_iter().filter_map(|e| e.ok()) {
         if !unzipped_paths.contains(&entry.path().canonicalize()?)
             && (policy.is_updating_forced(entry.path(), &tmc_project_yml)?
@@ -125,11 +124,11 @@ pub fn unzip(policy: Box<dyn StudentFilePolicy>, zip: &Path, target: &Path) -> R
             if entry.path().is_dir() {
                 // delete if empty
                 if WalkDir::new(entry.path()).max_depth(1).into_iter().count() == 1 {
-                    debug!("deleting empty directory {}", entry.path().display());
+                    log::debug!("deleting empty directory {}", entry.path().display());
                     fs::remove_dir(entry.path())?;
                 }
             } else {
-                debug!("removing file {}", entry.path().display());
+                log::debug!("removing file {}", entry.path().display());
                 fs::remove_file(entry.path())?;
             }
         }
@@ -170,7 +169,7 @@ fn find_project_dir<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<P
                 && (file_name == "pom.xml" || file_name == ".idea" || file_name == "Makefile")
         {
             let parent = file_path.parent().unwrap_or_else(|| Path::new(""));
-            debug!("found project dir {}", parent.display());
+            log::debug!("found project dir {}", parent.display());
             return Ok(parent.to_path_buf());
         }
     }
@@ -184,7 +183,7 @@ fn contains_tmcnosubmit(entry: &DirEntry) -> bool {
         .filter_map(|e| e.ok())
     {
         if entry.file_name() == ".tmcnosubmit" {
-            debug!("contains .tmcnosubmit: {}", entry.path().display());
+            log::debug!("contains .tmcnosubmit: {}", entry.path().display());
             return true;
         }
     }
