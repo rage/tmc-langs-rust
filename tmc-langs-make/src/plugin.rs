@@ -71,8 +71,8 @@ impl MakePlugin {
 
     /// Runs tests with or without valgrind according to the argument.
     /// Returns an error if the command finishes unsuccessfully.
-    fn run_tests_with_valgrind(&self, path: &Path, valgrind: bool) -> Result<(), MakeError> {
-        let arg = if valgrind {
+    fn run_tests_with_valgrind(&self, path: &Path, run_valgrind: bool) -> Result<(), MakeError> {
+        let arg = if run_valgrind {
             "run-test-with-valgrind"
         } else {
             "run-test"
@@ -89,10 +89,10 @@ impl MakePlugin {
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 
         if !output.status.success() {
-            if valgrind {
-                return Err(MakeError::ValgrindTests);
+            if run_valgrind {
+                return Err(MakeError::RunningTestsWithValgrind);
             } else {
-                return Err(MakeError::NoValgrindTests);
+                return Err(MakeError::RunningTests);
             }
         }
 
@@ -153,35 +153,42 @@ impl LanguagePlugin for MakePlugin {
         // try to run valgrind
         let mut ran_valgrind = true;
         let valgrind_run = self.run_tests_with_valgrind(path, true);
-        if let Err(MakeError::MakeCommand(io_error)) = valgrind_run {
-            if io_error.kind() == io::ErrorKind::PermissionDenied {
-                // failed due to lacking permissions, try to clean and rerun
-                let _output = self.clean(path)?;
-                if let Err(err) = self.run_tests_with_valgrind(path, false) {
-                    log::error!(
-                        "Running with valgrind failed after trying to clean! {}",
-                        err
-                    );
+        if let Err(error) = valgrind_run {
+            match error {
+                MakeError::MakeCommand(io_error)
+                    if io_error.kind() == io::ErrorKind::PermissionDenied =>
+                {
+                    // failed due to lacking permissions, try to clean and rerun
+                    let _output = self.clean(path)?;
+                    if let Err(err) = self.run_tests_with_valgrind(path, false) {
+                        log::error!(
+                            "Running with valgrind failed after trying to clean! {}",
+                            err
+                        );
+                        ran_valgrind = false;
+                        log::info!("Running without valgrind");
+                        self.run_tests_with_valgrind(path, false)?;
+                    }
+                }
+                MakeError::MakeCommand(_) | MakeError::RunningTestsWithValgrind => {
                     ran_valgrind = false;
                     log::info!("Running without valgrind");
                     self.run_tests_with_valgrind(path, false)?;
                 }
-            } else {
-                // failed due to something else, valgrind might not be installed
-                ran_valgrind = false;
-                log::info!("Running without valgrind");
-                self.run_tests_with_valgrind(path, false)?;
+                err => {
+                    log::warn!("unexpected error {:?}", err);
+                    return Err(err.into());
+                }
             }
         }
 
         let base_test_path = path.join("test");
 
         // fails on valgrind by default
-        let fail_on_valgrind_error =
-            match TmcProjectYml::from(&base_test_path.join(".tmcproject.yml")) {
-                Ok(parsed) => parsed.fail_on_valgrind_error.unwrap_or(true),
-                Err(_) => true,
-            };
+        let fail_on_valgrind_error = match TmcProjectYml::from(&path) {
+            Ok(parsed) => parsed.fail_on_valgrind_error.unwrap_or(true),
+            Err(_) => true,
+        };
 
         // valgrind logs are only interesting if fail on valgrind error is on
         let valgrind_log = if ran_valgrind && fail_on_valgrind_error {

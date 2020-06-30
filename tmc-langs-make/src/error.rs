@@ -15,9 +15,9 @@ pub enum MakeError {
     #[error("Could not find tmc_available_points.xml")]
     CantFindTestResults,
     #[error("Failed to run tests without valgrind")]
-    NoValgrindTests,
+    RunningTests,
     #[error("Failed to run tests with valgrind")]
-    ValgrindTests,
+    RunningTestsWithValgrind,
     #[error("Failed to parse valgrind logs")]
     ValgrindParse,
     #[error("Make finished unsuccessfully")]
