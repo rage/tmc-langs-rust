@@ -6,9 +6,7 @@ use std::env;
 use std::path::Path;
 use std::thread;
 use std::time::Duration;
-use tmc_langs_core::{
-    CoreError, Exercise, SubmissionFinished, SubmissionProcessingStatus, TmcCore,
-};
+use tmc_langs_core::{CoreError, Exercise, SubmissionProcessingStatus, SubmissionStatus, TmcCore};
 use tmc_langs_util::{Language, RunStatus};
 use url::Url;
 
@@ -16,7 +14,10 @@ const TMC_ROOT: &str = "https://tmc.mooc.fi/";
 
 fn init() {
     if env::var("RUST_LOG").is_err() {
-        env::set_var("RUST_LOG", "debug,j4rs=warn,hyper=warn,reqwest=warn");
+        env::set_var(
+            "RUST_LOG",
+            "debug,j4rs=warn,hyper=warn,reqwest=warn,serde_xml_rs=warn",
+        );
     }
     let _ = env_logger::builder().is_test(true).try_init();
     dotenv().ok();
@@ -34,44 +35,38 @@ fn authenticated_core() -> TmcCore {
 fn dl_test_submit_course_templates(course_id: usize) {
     init();
 
-    fn submitter(core: &TmcCore, exercise: Exercise) -> SubmissionFinished {
+    fn submitter(core: &TmcCore, exercise: Exercise) {
         let id = exercise.id;
-        dl_test_submit_exercise(
-            &core,
-            exercise,
-            |target| core.download_or_update_exercises(vec![(id, target)]),
-            false,
-        )
+        dl_test_submit_exercise(&core, exercise, |target| {
+            core.download_or_update_exercises(vec![(id, target)])
+        });
     }
 
-    dl_test_submit_course_exercises(course_id, submitter, false);
+    dl_test_submit_course_exercises(course_id, submitter);
 }
 
 // downloads and submits all exercise solutions for course, asserts that tests pass
 fn dl_test_submit_course_solutions(course_id: usize) {
     init();
 
-    fn submitter(core: &TmcCore, exercise: Exercise) -> SubmissionFinished {
+    fn submitter(core: &TmcCore, exercise: Exercise) {
         let solution_url = Url::parse(&exercise.return_url)
             .unwrap()
             .join("solution/download")
             .unwrap();
-        dl_test_submit_exercise(
-            &core,
-            exercise,
-            |target| core.download_model_solution(solution_url, target),
-            true,
-        )
+        dl_test_submit_exercise(&core, exercise, |target| {
+            core.download_model_solution(solution_url, target)
+        });
     }
 
-    dl_test_submit_course_exercises(course_id, submitter, true);
+    dl_test_submit_course_exercises(course_id, submitter);
 }
 
 // fetches course exercises and runs submitter on each one
 // tester_submitter should test and submit the exercise
-fn dl_test_submit_course_exercises<F>(course_id: usize, tester_submitter: F, should_pass: bool)
+fn dl_test_submit_course_exercises<F>(course_id: usize, tester_submitter: F)
 where
-    F: Fn(&TmcCore, Exercise) -> SubmissionFinished,
+    F: Fn(&TmcCore, Exercise),
 {
     log::debug!("fetching course {}", course_id);
     let core = authenticated_core();
@@ -82,38 +77,36 @@ where
     );
 
     for exercise in course_details.exercises {
-        if exercise.name.contains("osa01")
-            || exercise.name.contains("osa02")
-            || exercise.name.contains("osa03")
-            || exercise.name.contains("osa04")
-            || exercise.name.contains("osa05")
+        if exercise.name.contains("Week1") || exercise.name.contains("Week2") {
+            // temp, checked with make
+            continue;
+        }
+        if exercise.name.contains("osa12")
+            || exercise.name.contains("osa13")
+            || exercise.name.contains("osa14")
         {
-            // temp, these parts have been checked already for java
+            // java mooc requires javafx
             continue;
         }
-        if [93659, 92964, 92960, 82587].contains(&exercise.id) {
-            log::info!("skipping {}: solution does not pass tests", exercise.id);
+        if [94743, 94765, 94800].contains(&exercise.id) {
+            // bugged template
             continue;
         }
-        if [94570, 94726].contains(&exercise.id) {
-            log::info!("skipping {}: template always passes", exercise.id);
+        if [95097].contains(&exercise.id) {
+            // bugged solution
             continue;
         }
 
-        let finished = tester_submitter(&core, exercise);
-        log::debug!("finished {:#?}", finished);
-        assert_eq!(should_pass, finished.all_tests_passed.unwrap());
+        tester_submitter(&core, exercise);
     }
 }
 
 // submits the exercise
 // downloader should download the submission target to the path arg
-fn dl_test_submit_exercise<F: FnOnce(&Path) -> Result<(), CoreError>>(
-    core: &TmcCore,
-    exercise: Exercise,
-    downloader: F,
-    should_pass: bool,
-) -> SubmissionFinished {
+fn dl_test_submit_exercise<F>(core: &TmcCore, exercise: Exercise, downloader: F)
+where
+    F: FnOnce(&Path) -> Result<(), CoreError>,
+{
     log::debug!("submitting exercise {:#?}", exercise);
     let temp = tempfile::tempdir().unwrap();
     let submission_path = temp.path().join(exercise.id.to_string());
@@ -122,11 +115,8 @@ fn dl_test_submit_exercise<F: FnOnce(&Path) -> Result<(), CoreError>>(
 
     log::debug!("testing locally {}", submission_path.display());
     let test_results = core.run_tests(&submission_path).unwrap();
-    if should_pass {
-        assert_eq!(test_results.status, RunStatus::Passed);
-    } else {
-        assert_eq!(test_results.status, RunStatus::TestsFailed);
-    }
+    let expected = test_results.status;
+    log::debug!("expecting {:?}", expected);
 
     let submission_url = Url::parse(&exercise.return_url).unwrap();
     log::debug!("submitting to {}", submission_url);
@@ -144,7 +134,21 @@ fn dl_test_submit_exercise<F: FnOnce(&Path) -> Result<(), CoreError>>(
         }
     };
     log::debug!("got {:#?}", finished);
-    finished
+    match expected {
+        RunStatus::Passed => {
+            assert_eq!(finished.status, SubmissionStatus::Ok);
+            assert!(finished.all_tests_passed.unwrap());
+        }
+        RunStatus::TestsFailed => {
+            assert_eq!(finished.status, SubmissionStatus::Fail);
+            assert!(!finished.all_tests_passed.unwrap());
+        }
+        RunStatus::CompileFailed => {
+            assert_eq!(finished.status, SubmissionStatus::Error);
+            assert!(!finished.all_tests_passed.unwrap());
+        }
+        _ => panic!("something went wrong"),
+    }
 }
 
 mod python {
@@ -174,31 +178,70 @@ mod java {
 
     #[test]
     #[ignore]
+    // passed 30.6.2020
     fn templates() {
         dl_test_submit_course_templates(JAVA_COURSE_ID)
     }
 
     #[test]
     #[ignore]
+    // passed 30.6.2020
     fn solutions() {
         dl_test_submit_course_solutions(JAVA_COURSE_ID)
     }
 }
 
-mod csharp {
+mod r {
     use super::*;
 
-    const CSHARP_COURSE_ID: usize = 651;
+    const R_COURSE_ID: usize = 0; // TODO
 
     #[test]
     #[ignore]
     fn templates() {
-        dl_test_submit_course_templates(CSHARP_COURSE_ID)
+        dl_test_submit_course_templates(R_COURSE_ID)
     }
 
     #[test]
     #[ignore]
     fn solutions() {
-        dl_test_submit_course_solutions(CSHARP_COURSE_ID)
+        dl_test_submit_course_solutions(R_COURSE_ID)
+    }
+}
+
+mod make {
+    use super::*;
+
+    const C_COURSE_ID: usize = 668; // TODO
+
+    #[test]
+    #[ignore]
+    // fails due to invalid utf8 in test msg
+    fn templates() {
+        dl_test_submit_course_templates(C_COURSE_ID)
+    }
+
+    #[test]
+    #[ignore]
+    fn solutions() {
+        dl_test_submit_course_solutions(C_COURSE_ID)
+    }
+}
+
+mod notests {
+    use super::*;
+
+    const NOTESTS_COURSE_ID: usize = 0; // TODO
+
+    #[test]
+    #[ignore]
+    fn templates() {
+        dl_test_submit_course_templates(NOTESTS_COURSE_ID)
+    }
+
+    #[test]
+    #[ignore]
+    fn solutions() {
+        dl_test_submit_course_solutions(NOTESTS_COURSE_ID)
     }
 }
