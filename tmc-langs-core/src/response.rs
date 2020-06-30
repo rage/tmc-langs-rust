@@ -317,7 +317,7 @@ pub struct SubmissionFinished {
     // validations: unknown;
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum SubmissionStatus {
     Processing,
