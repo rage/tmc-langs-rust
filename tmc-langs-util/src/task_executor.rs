@@ -121,12 +121,13 @@ pub fn clean(path: &Path) -> Result<(), Error> {
 // Get language plugin for the given path.
 fn get_language_plugin(path: &Path) -> Result<Box<dyn LanguagePlugin>, Error> {
     let plugins: Vec<Box<dyn LanguagePlugin>> = vec![
-        Box::new(AntPlugin::new()?),
         Box::new(MakePlugin::new()),
         Box::new(MavenPlugin::new()?),
         Box::new(NoTestsPlugin::new()),
         Box::new(Python3Plugin::new()),
         Box::new(RPlugin::new()),
+        // TODO: currently, ant needs to be last because any project with src and test are recognized as ant
+        Box::new(AntPlugin::new()?),
     ];
 
     for plugin in plugins {
