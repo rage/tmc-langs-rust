@@ -117,6 +117,7 @@ impl LanguagePlugin for RPlugin {
 }
 
 #[cfg(test)]
+#[cfg(linux)]
 mod test {
     use super::*;
     use std::path::PathBuf;
