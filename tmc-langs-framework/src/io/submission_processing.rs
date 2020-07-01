@@ -342,6 +342,12 @@ mod test {
     }
 }
 "#;
+
+        let expected = if cfg!(windows) {
+            expected.replace('\n', "\r\n")
+        } else {
+            expected.to_string()
+        };
         assert_eq!(s, expected, "expected:\n{:#}\nfound:\n{:#}", expected, s);
     }
 
