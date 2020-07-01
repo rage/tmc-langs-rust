@@ -36,7 +36,7 @@ impl AntPlugin {
         log::debug!("Copying TMC Junit runner");
 
         let local_tmc_junit_runner = Path::new("./jars/tmc-junit-runner-0.2.8.jar");
-        let runner_dir = path.join("lib/testrunner");
+        let runner_dir = path.join("lib").join("testrunner");
         let runner_path = runner_dir.join("tmc-junit-runner.jar");
 
         // TODO: don't traverse symlinks
@@ -143,10 +143,10 @@ impl JavaPlugin for AntPlugin {
         }
         paths.push(lib_dir);
 
-        paths.push(path.join("build/test/classes"));
-        paths.push(path.join("build/classes"));
+        paths.push(path.join("build").join("test").join("classes"));
+        paths.push(path.join("build").join("classes"));
         let java_home = Self::get_java_home()?;
-        paths.push(java_home.join("../lib/tools.jar"));
+        paths.push(java_home.join("..").join("lib").join("tools.jar"));
         let paths = paths
             .into_iter()
             .map(|p| p.into_os_string().to_str().map(|s| s.to_string()))
@@ -174,14 +174,8 @@ impl JavaPlugin for AntPlugin {
             .output()
             .map_err(|e| JavaError::FailedToRun("ant", e))?;
 
-        log::debug!(
-            "Writing stdout: {}",
-            String::from_utf8_lossy(&output.stdout)
-        );
-        log::debug!(
-            "Writing stderr: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
+        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+        log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
         stdout
             .write_all(&output.stdout)
             .map_err(|e| JavaError::File(stdout_path, e))?;
@@ -299,30 +293,45 @@ mod test {
         let test_path = temp_dir.path();
         let plugin = AntPlugin::new().unwrap();
         let cp = plugin.get_project_class_path(test_path).unwrap();
+
+        let sep = std::path::MAIN_SEPARATOR;
         assert!(
-            cp.contains(&format!("{0}/lib/junit-4.10.jar", test_path.display())),
+            cp.contains(&format!(
+                "{0}{1}lib{1}junit-4.10.jar",
+                test_path.display(),
+                sep
+            )),
             "Classpath {} did not contain junit",
             cp
         );
         assert!(
             cp.contains(&format!(
-                "{0}/lib/edu-test-utils-0.4.1.jar",
-                test_path.display()
+                "{0}{1}lib{1}edu-test-utils-0.4.1.jar",
+                test_path.display(),
+                sep
             )),
             "Classpath {} did not contain edu-test-utils",
             cp
         );
         assert!(
-            cp.contains(&format!("{0}/build/classes", test_path.display())),
+            cp.contains(&format!("{0}{1}build{1}classes", test_path.display(), sep)),
             "Classpath {} did not contain build/classes",
             cp
         );
         assert!(
-            cp.contains(&format!("{0}/build/test/classes", test_path.display())),
+            cp.contains(&format!(
+                "{0}{1}build{1}test{1}classes",
+                test_path.display(),
+                sep
+            )),
             "Classpath {} did not contain build/test/classes",
             cp
         );
-        assert!(cp.ends_with("/../lib/tools.jar",), "Classpath was {}", cp);
+        assert!(
+            cp.ends_with(&format!("{0}..{0}lib{0}tools.jar", sep)),
+            "Classpath was {}",
+            cp
+        );
     }
 
     #[test]
@@ -349,7 +358,7 @@ mod test {
         let test_run = plugin
             .create_run_result_file(test_path, compile_result)
             .unwrap();
-        log::debug!("stdout: {}", String::from_utf8_lossy(&test_run.stdout));
+        log::trace!("stdout: {}", String::from_utf8_lossy(&test_run.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&test_run.stderr));
         assert!(test_run.stdout.is_empty());
         assert!(test_run.stderr.is_empty());

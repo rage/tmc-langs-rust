@@ -137,7 +137,7 @@ impl JavaPlugin for MavenPlugin {
             .output()
             .map_err(|e| JavaError::FailedToRun("mvn", e))?;
 
-        log::debug!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 
         if !output.status.success() {
@@ -199,10 +199,10 @@ mod test {
         for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
             let target = temp.path().join(entry.path().strip_prefix(path).unwrap());
             if entry.path().is_dir() {
-                log::debug!("creating dirs {}", entry.path().display());
+                log::trace!("creating dirs {}", entry.path().display());
                 fs::create_dir_all(target).unwrap();
             } else {
-                log::debug!(
+                log::trace!(
                     "copy from {} to {}",
                     entry.path().display(),
                     target.display()
