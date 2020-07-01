@@ -10,7 +10,7 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Read};
 use std::path::Path;
 use std::process::Command;
 use std::time::Duration;
@@ -210,9 +210,17 @@ impl LanguagePlugin for MakePlugin {
 
         // parse test results into RunResult
         let test_results_path = base_test_path.join("tmc_test_results.xml");
-        let file = File::open(&test_results_path)
+
+        let mut file = File::open(&test_results_path)
             .map_err(|e| MakeError::FileOpen(test_results_path.clone(), e))?;
-        let check_log: CheckLog = serde_xml_rs::from_reader(file)
+        let mut file_bytes = vec![];
+        file.read_to_end(&mut file_bytes)
+            .map_err(|e| MakeError::FileRead(test_results_path.clone(), e))?;
+
+        // xml may contain invalid utf-8, ignore invalid characters
+        let file_string = String::from_utf8_lossy(&file_bytes);
+
+        let check_log: CheckLog = serde_xml_rs::from_str(&file_string)
             .map_err(|e| MakeError::XmlParseError(test_results_path, e))?;
         let mut run_result = check_log.into_run_result(ids_to_points);
 
@@ -266,7 +274,7 @@ impl LanguagePlugin for MakePlugin {
 }
 
 #[cfg(test)]
-#[cfg(linux)] // check not installed
+#[cfg(target_os = "linux")] // check not installed on other platforms
 mod test {
     use super::*;
     use std::path::PathBuf;
