@@ -77,10 +77,6 @@ where
     );
 
     for exercise in course_details.exercises {
-        if exercise.name.contains("Week1") || exercise.name.contains("Week2") {
-            // temp, checked with make
-            continue;
-        }
         if exercise.name.contains("osa12")
             || exercise.name.contains("osa13")
             || exercise.name.contains("osa14")
@@ -92,7 +88,7 @@ where
             // bugged template
             continue;
         }
-        if [95097].contains(&exercise.id) {
+        if [95097, 95123].contains(&exercise.id) {
             // bugged solution
             continue;
         }
@@ -212,17 +208,18 @@ mod r {
 mod make {
     use super::*;
 
-    const C_COURSE_ID: usize = 668; // TODO
+    const C_COURSE_ID: usize = 668;
 
     #[test]
     #[ignore]
-    // fails due to invalid utf8 in test msg
+    // failed due to invalid utf8 in test msg, should be fixed now
     fn templates() {
         dl_test_submit_course_templates(C_COURSE_ID)
     }
 
     #[test]
     #[ignore]
+    // passed 1.7.2020
     fn solutions() {
         dl_test_submit_course_solutions(C_COURSE_ID)
     }
