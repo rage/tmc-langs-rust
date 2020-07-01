@@ -379,6 +379,13 @@
 <span id="379">379</span>
 <span id="380">380</span>
 <span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains the main plugin struct.</span>
 
@@ -453,8 +460,8 @@
 
     <span class="doccomment">/// Runs tests with or without valgrind according to the argument.</span>
     <span class="doccomment">/// Returns an error if the command finishes unsuccessfully.</span>
-    <span class="kw">fn</span> <span class="ident">run_tests_with_valgrind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">valgrind</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MakeError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">valgrind</span> {
+    <span class="kw">fn</span> <span class="ident">run_tests_with_valgrind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">run_valgrind</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MakeError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">run_valgrind</span> {
             <span class="string">&quot;run-test-with-valgrind&quot;</span>
         } <span class="kw">else</span> {
             <span class="string">&quot;run-test&quot;</span>
@@ -471,10 +478,10 @@
         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stderr: {}&quot;</span>, <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stderr</span>));
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">output</span>.<span class="ident">status</span>.<span class="ident">success</span>() {
-            <span class="kw">if</span> <span class="ident">valgrind</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MakeError</span>::<span class="ident">ValgrindTests</span>);
+            <span class="kw">if</span> <span class="ident">run_valgrind</span> {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MakeError</span>::<span class="ident">RunningTestsWithValgrind</span>);
             } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MakeError</span>::<span class="ident">NoValgrindTests</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MakeError</span>::<span class="ident">RunningTests</span>);
             }
         }
 
@@ -535,35 +542,42 @@
         <span class="comment">// try to run valgrind</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ran_valgrind</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="kw">let</span> <span class="ident">valgrind_run</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">true</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">MakeError</span>::<span class="ident">MakeCommand</span>(<span class="ident">io_error</span>)) <span class="op">=</span> <span class="ident">valgrind_run</span> {
-            <span class="kw">if</span> <span class="ident">io_error</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">PermissionDenied</span> {
-                <span class="comment">// failed due to lacking permissions, try to clean and rerun</span>
-                <span class="kw">let</span> <span class="ident">_output</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clean</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">false</span>) {
-                    <span class="ident">log</span>::<span class="macro">error</span><span class="macro">!</span>(
-                        <span class="string">&quot;Running with valgrind failed after trying to clean! {}&quot;</span>,
-                        <span class="ident">err</span>
-                    );
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span> <span class="ident">valgrind_run</span> {
+            <span class="kw">match</span> <span class="ident">error</span> {
+                <span class="ident">MakeError</span>::<span class="ident">MakeCommand</span>(<span class="ident">io_error</span>)
+                    <span class="kw">if</span> <span class="ident">io_error</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">PermissionDenied</span> <span class="op">=</span><span class="op">&gt;</span>
+                {
+                    <span class="comment">// failed due to lacking permissions, try to clean and rerun</span>
+                    <span class="kw">let</span> <span class="ident">_output</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clean</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">false</span>) {
+                        <span class="ident">log</span>::<span class="macro">error</span><span class="macro">!</span>(
+                            <span class="string">&quot;Running with valgrind failed after trying to clean! {}&quot;</span>,
+                            <span class="ident">err</span>
+                        );
+                        <span class="ident">ran_valgrind</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                        <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Running without valgrind&quot;</span>);
+                        <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                    }
+                }
+                <span class="ident">MakeError</span>::<span class="ident">MakeCommand</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">MakeError</span>::<span class="ident">RunningTestsWithValgrind</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">ran_valgrind</span> <span class="op">=</span> <span class="bool-val">false</span>;
                     <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Running without valgrind&quot;</span>);
                     <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
                 }
-            } <span class="kw">else</span> {
-                <span class="comment">// failed due to something else, valgrind might not be installed</span>
-                <span class="ident">ran_valgrind</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Running without valgrind&quot;</span>);
-                <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                <span class="ident">err</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">log</span>::<span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;unexpected error {:?}&quot;</span>, <span class="ident">err</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>.<span class="ident">into</span>());
+                }
             }
         }
 
         <span class="kw">let</span> <span class="ident">base_test_path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">join</span>(<span class="string">&quot;test&quot;</span>);
 
         <span class="comment">// fails on valgrind by default</span>
-        <span class="kw">let</span> <span class="ident">fail_on_valgrind_error</span> <span class="op">=</span>
-            <span class="kw">match</span> <span class="ident">TmcProjectYml</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">base_test_path</span>.<span class="ident">join</span>(<span class="string">&quot;.tmcproject.yml&quot;</span>)) {
-                <span class="prelude-val">Ok</span>(<span class="ident">parsed</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parsed</span>.<span class="ident">fail_on_valgrind_error</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>),
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            };
+        <span class="kw">let</span> <span class="ident">fail_on_valgrind_error</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">TmcProjectYml</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>) {
+            <span class="prelude-val">Ok</span>(<span class="ident">parsed</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parsed</span>.<span class="ident">fail_on_valgrind_error</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+        };
 
         <span class="comment">// valgrind logs are only interesting if fail on valgrind error is on</span>
         <span class="kw">let</span> <span class="ident">valgrind_log</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">ran_valgrind</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">fail_on_valgrind_error</span> {
