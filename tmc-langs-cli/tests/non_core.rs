@@ -2,7 +2,7 @@ use std::env;
 use std::process::{Command, Output};
 use tempfile::tempdir;
 
-fn run_cmd(args: &[&str]) -> Output {
+pub fn run_cmd(args: &[&str]) -> Output {
     let path = env::current_exe().unwrap().parent().unwrap().to_path_buf();
     let path = path.parent().unwrap().join("tmc-langs-cli");
     Command::new(path).args(args).output().unwrap()
