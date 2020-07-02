@@ -9,13 +9,10 @@ use crate::{Language, RunResult, ValidationResult};
 use oauth2::basic::BasicClient;
 use oauth2::prelude::*;
 use oauth2::{
-    AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword, ResourceOwnerUsername, TokenResponse,
-    TokenUrl,
+    AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword, ResourceOwnerUsername, TokenUrl,
 };
 use reqwest::{blocking::Client, Url};
-use serde::de::DeserializeOwned;
 use std::collections::HashMap;
-use std::fmt::Debug;
 use std::io::Write;
 use std::path::Path;
 use std::path::PathBuf;
@@ -29,7 +26,7 @@ pub type Token =
 /// A struct for interacting with the TestMyCode service, including authentication
 pub struct TmcCore {
     client: Client,
-    config_dir: PathBuf,
+    config_dir: PathBuf, // not used yet
     api_url: Url,
     auth_url: Url,
     token: Option<Token>,
@@ -37,6 +34,15 @@ pub struct TmcCore {
 
 // TODO: cache API results?
 impl TmcCore {
+    /// Creates a new TmcCore with the given config directory and root URL.
+    ///
+    /// # Errors
+    /// This function will return an error if parsing the root_url fails.
+    ///
+    /// # Examples
+    /// ```rust,no_run
+    /// let core = TmcCore::new(Path::new("./config"), "https://tmc.mooc.fi".to_string()).unwrap();
+    /// ```
     pub fn new(config_dir: PathBuf, root_url: String) -> Result<Self> {
         // guarantee a trailing slash, otherwise join will drop the last component
         let root_url = if root_url.ends_with('/') {
@@ -56,6 +62,15 @@ impl TmcCore {
         })
     }
 
+    /// Creates a new TmcCore with the given root URL. The config directory is set according to dirs::cache_dir.
+    ///
+    /// # Errors
+    /// This function will return an error if parsing the root_url fails, or if fetching the cache directory fails (see dirs::cache_dir()).
+    ///
+    /// # Examples
+    /// ```rust,no_run
+    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
+    /// ```
     pub fn new_in_config(root_url: String) -> Result<Self> {
         let config_dir = dirs::cache_dir().ok_or(CoreError::CacheDir)?;
         Self::new(config_dir, root_url)
@@ -63,6 +78,17 @@ impl TmcCore {
 
     /// Attempts to log in with the given credentials, returns an error if an authentication token is already present.
     /// Username can be the user's username or email.
+    ///
+    /// # Errors
+    /// This function will return an error if the core has already been authenticated,
+    /// if the client_name is malformed and leads to a malformed URL,
+    /// or if there is some error during the token exchange (see oauth2::Client::excange_password).
+    ///
+    /// # Examples
+    /// ```rust,no_run
+    /// let mut core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
+    /// core.authenticate("client", "user".to_string(), "pass".to_string()).unwrap();
+    /// ```
     pub fn authenticate(
         &mut self,
         client_name: &str,
@@ -104,16 +130,34 @@ impl TmcCore {
     }
 
     /// Fetches all organizations.
+    ///
+    /// # Errors
+    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
     pub fn get_organizations(&self) -> Result<Vec<Organization>> {
         self.organizations()
     }
 
-    /// UNIMPLEMENTED
+    #[deprecated = "unimplemented"]
     pub fn send_diagnostics(&self) {
         unimplemented!()
     }
 
-    /// Downloads the given exercises.
+    /// Downloads the given exercises. Overwrites existing exercises if they exist.
+    ///
+    /// # Errors
+    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
+    /// The method extracts zip archives, which may fail.
+    ///
+    ///
+    /// # Examples
+    /// ```rust,no_run
+    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
+    /// // authenticate
+    /// core.download_or_update_exercises(vec![
+    ///     (1234, Path::new("./exercises/1234")),
+    ///     (2345, Path::new("./exercises/2345")),
+    /// ]);
+    /// ```
     pub fn download_or_update_exercises(&self, exercises: Vec<(usize, &Path)>) -> Result<()> {
         for (exercise_id, target) in exercises {
             let zip_file = NamedTempFile::new().map_err(CoreError::TempFile)?;
@@ -124,16 +168,25 @@ impl TmcCore {
     }
 
     /// Fetches the course's information.
+    ///
+    /// # Errors
+    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
     pub fn get_course_details(&self, course_id: usize) -> Result<CourseDetails> {
         self.core_course(course_id)
     }
 
     /// Fetches all courses under the given organization.
+    ///
+    /// # Errors
+    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
     pub fn list_courses(&self, organization_slug: &str) -> Result<Vec<Course>> {
         self.organization_courses(organization_slug)
     }
 
     /// Sends the given submission as a paste.
+    ///
+    /// # Errors
+    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
     pub fn paste_with_comment(
         &self,
         submission_url: Url,
@@ -150,7 +203,11 @@ impl TmcCore {
         self.post_submission_to_paste(submission_url, file.path(), paste_message, locale)
     }
 
-    /// Runs checkstyle for the project.
+    /// Checks the coding style for the project.
+    ///
+    /// # Errors
+    /// Returns an error if no matching language plugin for the project is found,
+    /// or if the plugin returns an error while trying to run the style check.
     pub fn run_checkstyle(
         &self,
         path: &Path,
@@ -160,11 +217,18 @@ impl TmcCore {
     }
 
     /// Runs tests for the project.
+    ///
+    /// # Errors
+    /// Returns an error if no matching language plugin for the project is found,
+    /// or if the plugin returns an error while trying to run the tests.
     pub fn run_tests(&self, path: &Path) -> Result<RunResult> {
         Ok(task_executor::run_tests(path)?)
     }
 
     /// Sends feedback.
+    ///
+    /// # Errors
+    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
     pub fn send_feedback(
         &self,
         feedback_url: Url,
@@ -173,12 +237,16 @@ impl TmcCore {
         self.post_feedback(feedback_url, feedback)
     }
 
-    /// UNIMPLEMENTED
+    #[deprecated = "unimplemented"]
     pub fn send_snapshot_events(&self) {
         unimplemented!()
     }
 
     /// Sends the submission to the server.
+    ///
+    /// # Errors
+    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
+    /// The method compresses the submission and writes it into a temporary archive, which may fail.
     pub fn submit(
         &self,
         submission_url: Url,
@@ -199,6 +267,18 @@ impl TmcCore {
     /// If an exercise's id is not found in the checksum map, it is considered new.
     /// If an id is found, it is compared to the current one. If they are different,
     /// it is considered updated.
+    ///
+    /// # Errors
+    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
+    ///
+    /// # Examples
+    /// ```rust,no_run
+    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
+    /// // authenticate
+    /// let mut checksums = std::collections::HashMap::new();
+    /// checksums.insert(1234, "exercisechecksum");
+    /// let update_result = core.get_exercise_updates(600, checksums).unwrap();
+    /// ```
     pub fn get_exercise_updates(
         &self,
         course_id: usize,
@@ -226,16 +306,26 @@ impl TmcCore {
     }
 
     /// Mark the review as read on the server.
+    ///
+    /// # Errors
+    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
     pub fn mark_review_as_read(&self, review_update_url: String) -> Result<()> {
         self.mark_review(review_update_url, true)
     }
 
     /// Fetches all reviews.
+    ///
+    /// # Errors
+    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
     pub fn get_unread_reviews(&self, reviews_url: Url) -> Result<Vec<Review>> {
         self.get_json_from_url(reviews_url)
     }
 
     /// Request code review.
+    ///
+    /// # Errors
+    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
+    /// The method compresses the project and writes a temporary archive, which may fail.
     pub fn request_code_review(
         &self,
         submission_url: Url,
@@ -253,6 +343,10 @@ impl TmcCore {
     }
 
     /// Downloads the model solution from the given url.
+    ///
+    /// # Errors
+    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
+    /// The method extracts the downloaded model solution archive, which may fail.
     pub fn download_model_solution(&self, solution_download_url: Url, target: &Path) -> Result<()> {
         let zip_file = NamedTempFile::new().map_err(CoreError::TempFile)?;
         self.download_from(solution_download_url, zip_file.path())?;
@@ -261,6 +355,10 @@ impl TmcCore {
     }
 
     /// Checks the status of a submission on the server.
+    ///
+    /// # Errors
+    /// Returns an error if the core has not been authenticated,
+    /// or if there's some problem reaching the API, or if the API returns an error.
     pub fn check_submission(&self, submission_url: &str) -> Result<SubmissionProcessingStatus> {
         if self.token.is_none() {
             return Err(CoreError::AuthRequired);
