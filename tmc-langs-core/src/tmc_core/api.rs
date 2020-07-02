@@ -70,6 +70,7 @@ impl GetExt for RequestBuilder {
     }
 }
 
+#[allow(dead_code)]
 impl TmcCore {
     // convenience function
     fn get_json<T: DeserializeOwned>(&self, url_tail: &str) -> Result<T> {
@@ -154,7 +155,7 @@ impl TmcCore {
     }
 
     pub(super) fn course_points(&self, course_id: usize) -> Result<()> {
-        let url_tail = format!("courses/{}/points", course_id);
+        let _url_tail = format!("courses/{}/points", course_id);
         todo!("times out")
     }
 
@@ -234,13 +235,12 @@ impl TmcCore {
         organization_slug: &str,
         course_name: &str,
     ) -> Result<()> {
-        todo!("This feature is only for MOOC-organization's 2019 programming MOOC");
-        let url_tail = format!(
+        let _url_tail = format!(
             "org/{}/courses/{}/eligible_students",
             percent_encode(organization_slug),
             percent_encode(course_name)
         );
-        self.get_json(&url_tail)
+        todo!("This feature is only for MOOC-organization's 2019 programming MOOC");
     }
 
     pub(super) fn exercise_points_by_name(
@@ -466,8 +466,8 @@ impl TmcCore {
     }
 
     pub(super) fn unlock(&self, course_id: usize) -> Result<()> {
+        let _url_tail = format!("core/courses/{}", course_id);
         todo!("needs admin?");
-        let url_tail = format!("core/courses/{}", course_id);
     }
 
     pub(super) fn download_exercise(&self, exercise_id: usize, target: &Path) -> Result<()> {

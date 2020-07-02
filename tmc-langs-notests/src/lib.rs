@@ -1,7 +1,7 @@
 //! Language plugin for no_tests exercises
 
 use tmc_langs_framework::{
-    domain::{ExerciseDesc, NoTests, NoTestsPoints, RunResult, RunStatus, TestDesc, TestResult},
+    domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     policy::EverythingIsStudentFilePolicy,
     Error, LanguagePlugin, StudentFilePolicy,
 };

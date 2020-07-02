@@ -26,6 +26,7 @@ pub type Token =
 /// A struct for interacting with the TestMyCode service, including authentication
 pub struct TmcCore {
     client: Client,
+    #[allow(dead_code)]
     config_dir: PathBuf, // not used yet
     api_url: Url,
     auth_url: Url,
