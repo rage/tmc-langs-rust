@@ -103,7 +103,7 @@ impl TmcCore {
         Ok(())
     }
 
-    pub fn download_from(&self, url: Url, target: &Path) -> Result<()> {
+    pub(crate) fn download_from(&self, url: Url, target: &Path) -> Result<()> {
         // download zip
         let mut target_file =
             File::create(target).map_err(|e| CoreError::FileCreate(target.to_path_buf(), e))?;

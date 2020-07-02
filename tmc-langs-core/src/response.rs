@@ -36,6 +36,7 @@ impl<T> Response<T> {
 /// Represents an error response from tmc-server
 #[derive(Debug, Error, Deserialize)]
 #[error("Response contained errors: {errors:#?}")]
+#[serde(deny_unknown_fields)] // prevents responses with an errors field from being parsed as an error
 pub struct ResponseErrors {
     pub errors: Vec<String>,
 }
@@ -43,6 +44,7 @@ pub struct ResponseErrors {
 /// Represents an error response from tmc-server
 #[derive(Debug, Error, Deserialize)]
 #[error("Response contained an error: {error:#?}")]
+#[serde(deny_unknown_fields)] // prevents responses with an error field from being parsed as an error
 pub struct ResponseError {
     pub error: String,
 }
@@ -304,7 +306,7 @@ pub struct SubmissionFinished {
     pub submission_url: String,
     pub solution_url: Option<String>,
     pub submitted_at: String,
-    pub processing_time: usize,
+    pub processing_time: Option<usize>,
     pub reviewed: bool,
     pub requests_review: bool,
     pub paste_url: Option<String>,
