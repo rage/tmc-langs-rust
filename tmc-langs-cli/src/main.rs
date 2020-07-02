@@ -164,6 +164,7 @@ fn main() {
                     .required(true)
                     .takes_value(true)
                     .number_of_values(2)
+                    .value_names(&["exerciseId", "exercisePath"])
                     .multiple(true)))
 
             .subcommand(SubCommand::with_name("get-course-details")
@@ -232,6 +233,7 @@ fn main() {
                     .required(true)
                     .takes_value(true)
                     .number_of_values(2)
+                    .value_names(&["feedbackAnswerId", "answer"])
                     .multiple(true)))
 
             .subcommand(SubCommand::with_name("submit")
@@ -262,6 +264,7 @@ fn main() {
                     .required(true)
                     .takes_value(true)
                     .number_of_values(2)
+                    .value_names(&["exerciseId", "checksum"])
                     .multiple(true)))
 
             .subcommand(SubCommand::with_name("mark-review-as-read")
