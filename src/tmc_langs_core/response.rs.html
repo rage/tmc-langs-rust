@@ -479,6 +479,8 @@
 <span id="479">479</span>
 <span id="480">480</span>
 <span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains types which model the JSON responses from tmc-server</span>
 
@@ -518,6 +520,7 @@
 <span class="doccomment">/// Represents an error response from tmc-server</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Error</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Response contained errors: {errors:#?}&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">deny_unknown_fields</span>)]</span> <span class="comment">// prevents responses with an errors field from being parsed as an error</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ResponseErrors</span> {
     <span class="kw">pub</span> <span class="ident">errors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
@@ -525,6 +528,7 @@
 <span class="doccomment">/// Represents an error response from tmc-server</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Error</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Response contained an error: {error:#?}&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">deny_unknown_fields</span>)]</span> <span class="comment">// prevents responses with an error field from being parsed as an error</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ResponseError</span> {
     <span class="kw">pub</span> <span class="ident">error</span>: <span class="ident">String</span>,
 }
@@ -786,7 +790,7 @@
     <span class="kw">pub</span> <span class="ident">submission_url</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">solution_url</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">submitted_at</span>: <span class="ident">String</span>,
-    <span class="kw">pub</span> <span class="ident">processing_time</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span> <span class="ident">processing_time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">reviewed</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span> <span class="ident">requests_review</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span> <span class="ident">paste_url</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
