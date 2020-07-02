@@ -78,7 +78,7 @@ pub struct Course {
     pub id: usize,
     pub name: String,
     pub title: String,
-    pub description: String,
+    pub description: Option<String>,
     pub details_url: String,
     pub unlock_url: String,
     pub reviews_url: String,
