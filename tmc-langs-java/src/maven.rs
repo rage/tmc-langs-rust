@@ -11,7 +11,7 @@ use std::ffi::OsString;
 use std::fs::{self, File};
 use std::io::{Cursor, Write};
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::time::Duration;
 use tar::Archive;
 use tmc_langs_framework::{
@@ -39,7 +39,12 @@ impl MavenPlugin {
     // finally, return the path to the extracted executable
     fn get_mvn_command(&self) -> Result<OsString, JavaError> {
         // check if mvn is in PATH
-        if let Ok(status) = Command::new("mvn").arg("--version").status() {
+        if let Ok(status) = Command::new("mvn")
+            .arg("--version")
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .status()
+        {
             if status.success() {
                 return Ok(OsString::from("mvn"));
             }
