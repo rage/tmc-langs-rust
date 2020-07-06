@@ -145,8 +145,15 @@ impl JavaPlugin for AntPlugin {
 
         paths.push(path.join("build").join("test").join("classes"));
         paths.push(path.join("build").join("classes"));
+
         let java_home = Self::get_java_home()?;
-        paths.push(java_home.join("..").join("lib").join("tools.jar"));
+        let tools_jar_path = java_home.join("..").join("lib").join("tools.jar");
+        if tools_jar_path.exists() {
+            paths.push(tools_jar_path);
+        } else {
+            log::warn!("no tools.jar found; skip adding to class path");
+        }
+
         let paths = paths
             .into_iter()
             .map(|p| p.into_os_string().to_str().map(|s| s.to_string()))
