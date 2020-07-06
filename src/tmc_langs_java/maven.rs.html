@@ -376,6 +376,11 @@
 <span id="376">376</span>
 <span id="377">377</span>
 <span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Java maven plugin</span>
 
@@ -390,7 +395,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::{<span class="self">self</span>, <span class="ident">File</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="ident">Cursor</span>, <span class="ident">Write</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">process</span>::<span class="ident">Command</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">process</span>::{<span class="ident">Command</span>, <span class="ident">Stdio</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 <span class="kw">use</span> <span class="ident">tar</span>::<span class="ident">Archive</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
@@ -418,7 +423,12 @@
     <span class="comment">// finally, return the path to the extracted executable</span>
     <span class="kw">fn</span> <span class="ident">get_mvn_command</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OsString</span>, <span class="ident">JavaError</span><span class="op">&gt;</span> {
         <span class="comment">// check if mvn is in PATH</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">status</span>) <span class="op">=</span> <span class="ident">Command</span>::<span class="ident">new</span>(<span class="string">&quot;mvn&quot;</span>).<span class="ident">arg</span>(<span class="string">&quot;--version&quot;</span>).<span class="ident">status</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">status</span>) <span class="op">=</span> <span class="ident">Command</span>::<span class="ident">new</span>(<span class="string">&quot;mvn&quot;</span>)
+            .<span class="ident">arg</span>(<span class="string">&quot;--version&quot;</span>)
+            .<span class="ident">stdout</span>(<span class="ident">Stdio</span>::<span class="ident">piped</span>())
+            .<span class="ident">stderr</span>(<span class="ident">Stdio</span>::<span class="ident">piped</span>())
+            .<span class="ident">status</span>()
+        {
             <span class="kw">if</span> <span class="ident">status</span>.<span class="ident">success</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">OsString</span>::<span class="ident">from</span>(<span class="string">&quot;mvn&quot;</span>));
             }
@@ -743,7 +753,7 @@
     }
 
     <span class="comment">// TODO: currently will extract maven to your cache directory</span>
-    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="comment">// #[test] TODO: changing PATH breaks other tests</span>
     <span class="kw">fn</span> <span class="ident">unpack_bundled_mvn</span>() {
         <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">MavenPlugin</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
         <span class="ident">std</span>::<span class="ident">env</span>::<span class="ident">set_var</span>(<span class="string">&quot;PATH&quot;</span>, <span class="string">&quot;&quot;</span>);
