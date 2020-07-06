@@ -369,7 +369,7 @@ mod test {
     }
 
     // TODO: currently will extract maven to your cache directory
-    #[test]
+    // #[test] TODO: changing PATH breaks other tests
     fn unpack_bundled_mvn() {
         let plugin = MavenPlugin::new().unwrap();
         std::env::set_var("PATH", "");
