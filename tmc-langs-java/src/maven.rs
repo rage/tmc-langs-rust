@@ -4,18 +4,24 @@ pub mod policy;
 
 use super::{error::JavaError, plugin::JavaPlugin, CompileResult, TestRun, SEPARATOR};
 
+use flate2::read::GzDecoder;
 use j4rs::Jvm;
 use policy::MavenStudentFilePolicy;
-use std::fs;
-use std::path::Path;
+use std::ffi::OsString;
+use std::fs::{self, File};
+use std::io::{Cursor, Write};
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::Duration;
+use tar::Archive;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult},
     plugin::{Language, LanguagePlugin, ValidationResult},
     policy::StudentFilePolicy,
     Error,
 };
+
+const MVN_ARCHIVE: &[u8] = include_bytes!("../apache-maven-3.6.3-bin.tar.gz");
 
 pub struct MavenPlugin {
     jvm: Jvm,
@@ -25,6 +31,30 @@ impl MavenPlugin {
     pub fn new() -> Result<Self, JavaError> {
         let jvm = crate::instantiate_jvm()?;
         Ok(Self { jvm })
+    }
+
+    // check if mvn is in PATH, if yes return mvn
+    // if not, check if the bundled maven has been extracted already,
+    // if not, extract
+    // finally, return the path to the extracted executable
+    fn get_mvn_command(&self) -> Result<OsString, JavaError> {
+        // check if mvn is in PATH
+        if let Ok(status) = Command::new("mvn").arg("--version").status() {
+            if status.success() {
+                return Ok(OsString::from("mvn"));
+            }
+        }
+        log::debug!("could not execute mvn");
+        let tmc_path = dirs::cache_dir().ok_or(JavaError::CacheDir)?.join("tmc");
+        let mvn_exec = tmc_path.join("apache-maven-3.6.3").join("bin").join("mvn");
+        if !mvn_exec.exists() {
+            log::debug!("extracting bundled tar");
+            let tar = GzDecoder::new(Cursor::new(MVN_ARCHIVE));
+            let mut tar = Archive::new(tar);
+            tar.unpack(&tmc_path)
+                .map_err(|e| JavaError::MvnUnpack(tmc_path, e))?;
+        }
+        Ok(mvn_exec.as_os_str().to_os_string())
     }
 }
 
@@ -95,18 +125,24 @@ impl JavaPlugin for MavenPlugin {
         let class_path_file = temp.path().join("cp.txt");
 
         let output_arg = format!("-Dmdep.outputFile={}", class_path_file.display());
-        let output = Command::new("mvn")
+        let mvn_path = self.get_mvn_command()?;
+        let output = Command::new(&mvn_path)
             .current_dir(path)
             .arg("dependency:build-classpath")
             .arg(output_arg)
             .output()
-            .map_err(|e| JavaError::FailedToRun("mvn", e))?;
+            .map_err(|e| {
+                JavaError::FailedToRun(mvn_path.as_os_str().to_string_lossy().to_string(), e)
+            })?;
 
         log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 
         if !output.status.success() {
-            return Err(JavaError::FailedCommand("mvn", output.stderr));
+            return Err(JavaError::FailedCommand(
+                mvn_path.as_os_str().to_string_lossy().to_string(),
+                output.stderr,
+            ));
         }
 
         let class_path = fs::read_to_string(&class_path_file)
@@ -129,19 +165,25 @@ impl JavaPlugin for MavenPlugin {
     fn build(&self, project_root_path: &Path) -> Result<CompileResult, JavaError> {
         log::info!("Building maven project at {}", project_root_path.display());
 
-        let output = Command::new("mvn")
+        let mvn_path = self.get_mvn_command()?;
+        let output = Command::new(&mvn_path)
             .current_dir(project_root_path)
             .arg("clean")
             .arg("compile")
             .arg("test-compile")
             .output()
-            .map_err(|e| JavaError::FailedToRun("mvn", e))?;
+            .map_err(|e| {
+                JavaError::FailedToRun(mvn_path.as_os_str().to_string_lossy().to_string(), e)
+            })?;
 
         log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 
         if !output.status.success() {
-            return Err(JavaError::FailedCommand("mvn", output.stderr));
+            return Err(JavaError::FailedCommand(
+                mvn_path.as_os_str().to_string_lossy().to_string(),
+                output.stderr,
+            ));
         }
 
         Ok(CompileResult {
@@ -158,17 +200,23 @@ impl JavaPlugin for MavenPlugin {
     ) -> Result<TestRun, JavaError> {
         log::info!("Running tests for maven project at {}", path.display());
 
-        let output = Command::new("mvn")
+        let mvn_path = self.get_mvn_command()?;
+        let output = Command::new(&mvn_path)
             .current_dir(path)
             .arg("fi.helsinki.cs.tmc:tmc-maven-plugin:1.12:test")
             .output()
-            .map_err(|e| JavaError::FailedToRun("mvn", e))?;
+            .map_err(|e| {
+                JavaError::FailedToRun(mvn_path.as_os_str().to_string_lossy().to_string(), e)
+            })?;
 
         log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 
         if !output.status.success() {
-            return Err(JavaError::FailedCommand("mvn", output.stderr));
+            return Err(JavaError::FailedCommand(
+                mvn_path.as_os_str().to_string_lossy().to_string(),
+                output.stderr,
+            ));
         }
 
         Ok(TestRun {
@@ -313,5 +361,18 @@ mod test {
             error.source_name,
             "com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"
         );
+    }
+
+    // TODO: currently will extract maven to your cache directory
+    #[test]
+    fn unpack_bundled_mvn() {
+        let plugin = MavenPlugin::new().unwrap();
+        std::env::set_var("PATH", "");
+        let cmd = plugin.get_mvn_command().unwrap();
+        let expected = format!(
+            "tmc{0}apache-maven-3.6.3{0}bin{0}mvn",
+            std::path::MAIN_SEPARATOR
+        );
+        assert!(cmd.to_string_lossy().ends_with(&expected))
     }
 }

@@ -14,9 +14,9 @@ pub enum JavaError {
     #[error("Invalid exercise")]
     InvalidExercise,
     #[error("Failed to run {0}: {1}")]
-    FailedToRun(&'static str, std::io::Error),
+    FailedToRun(String, std::io::Error),
     #[error("Command '{0}' exited with an error, stderr: {}", String::from_utf8_lossy(&.1))]
-    FailedCommand(&'static str, Vec<u8>),
+    FailedCommand(String, Vec<u8>),
     #[error("Failed to write temporary .jar files: {0}")]
     JarWrite(String),
     #[error("IO error with file {0}: {1}")]
@@ -29,6 +29,10 @@ pub enum JavaError {
     HomeDir,
     #[error("Failed to copy file from {0} to {1}: {2}")]
     FileCopy(PathBuf, PathBuf, std::io::Error),
+    #[error("Failed to find cache directory")]
+    CacheDir,
+    #[error("Failed to unpack bundled mvn to {0}: {1}")]
+    MvnUnpack(PathBuf, std::io::Error),
 
     #[error(transparent)]
     Json(#[from] serde_json::Error),

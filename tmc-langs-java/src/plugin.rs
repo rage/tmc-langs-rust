@@ -118,10 +118,10 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
             .arg("-XshowSettings:properties")
             .arg("-version")
             .output()
-            .map_err(|e| JavaError::FailedToRun("java", e))?;
+            .map_err(|e| JavaError::FailedToRun("java".to_string(), e))?;
 
         if !output.status.success() {
-            return Err(JavaError::FailedCommand("java", output.stderr));
+            return Err(JavaError::FailedCommand("java".to_string(), output.stderr));
         }
 
         // information is printed to stderr

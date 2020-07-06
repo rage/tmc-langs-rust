@@ -112,7 +112,7 @@ impl LanguagePlugin for AntPlugin {
             .stderr(stderr)
             .current_dir(path)
             .output()
-            .map_err(|e| JavaError::FailedToRun("ant", e))?;
+            .map_err(|e| JavaError::FailedToRun("ant".to_string(), e))?;
 
         if output.status.success() {
             fs::remove_file(stdout_path)?;
@@ -179,7 +179,7 @@ impl JavaPlugin for AntPlugin {
             .arg("compile-test")
             .current_dir(project_root_path)
             .output()
-            .map_err(|e| JavaError::FailedToRun("ant", e))?;
+            .map_err(|e| JavaError::FailedToRun("ant".to_string(), e))?;
 
         log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
@@ -250,7 +250,7 @@ impl JavaPlugin for AntPlugin {
             .current_dir(path)
             .args(arguments.join(" ").split(' ').collect::<Vec<&str>>())
             .output()
-            .map_err(|e| JavaError::FailedToRun("java", e))?;
+            .map_err(|e| JavaError::FailedToRun("java".to_string(), e))?;
 
         Ok(TestRun {
             test_results: result_file,
