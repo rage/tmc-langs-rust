@@ -46,6 +46,28 @@
 <span id="46">46</span>
 <span id="47">47</span>
 <span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The core error type.</span>
 
@@ -56,6 +78,10 @@
 <span class="kw">use</span> <span class="ident">url</span>::<span class="ident">Url</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">CoreError</span><span class="op">&gt;</span>;
+<span class="kw">type</span> <span class="ident">TokenError</span> <span class="op">=</span> <span class="ident">oauth2</span>::<span class="ident">RequestTokenError</span><span class="op">&lt;</span>
+    <span class="ident">CoreError</span>,
+    <span class="ident">oauth2</span>::<span class="ident">StandardErrorResponse</span><span class="op">&lt;</span><span class="ident">oauth2</span>::<span class="ident">basic</span>::<span class="ident">BasicErrorResponseType</span><span class="op">&gt;</span>,
+<span class="op">&gt;</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Error</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CoreError</span> {
@@ -70,7 +96,7 @@
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;HTTP error for {0}: {1}&quot;</span>)]</span>
     <span class="ident">HttpStatus</span>(<span class="ident">Url</span>, <span class="ident">StatusCode</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;OAuth2 password exchange error: {0}&quot;</span>)]</span>
-    <span class="ident">Token</span>(<span class="ident">oauth2</span>::<span class="ident">RequestTokenError</span><span class="op">&lt;</span><span class="ident">oauth2</span>::<span class="ident">basic</span>::<span class="ident">BasicErrorResponseType</span><span class="op">&gt;</span>),
+    <span class="ident">Token</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">TokenError</span><span class="op">&gt;</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;OAuth2 unexpected token response {1}: {0}&quot;</span>)]</span>
     <span class="ident">TokenParse</span>(<span class="ident">serde_json</span>::<span class="ident">error</span>::<span class="ident">Error</span>, <span class="ident">String</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Already authenticated&quot;</span>)]</span>
@@ -80,6 +106,18 @@
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to find cache directory&quot;</span>)]</span>
     <span class="ident">CacheDir</span>,
 
+    <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
+    <span class="ident">InvalidMethod</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">http</span>::<span class="ident">method</span>::<span class="ident">InvalidMethod</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
+    <span class="ident">InvalidHeaderName</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">http</span>::<span class="ident">header</span>::<span class="ident">InvalidHeaderName</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
+    <span class="ident">InvalidHeaderValue</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">http</span>::<span class="ident">header</span>::<span class="ident">InvalidHeaderValue</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
+    <span class="ident">InvalidStatusCode</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">http1</span>::<span class="ident">status</span>::<span class="ident">InvalidStatusCode</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
+    <span class="ident">InvalidHeaderName1</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">http1</span>::<span class="ident">header</span>::<span class="ident">InvalidHeaderName</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
+    <span class="ident">InvalidHeaderValue1</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">http1</span>::<span class="ident">header</span>::<span class="ident">InvalidHeaderValue</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
     <span class="ident">TmcLangs</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">tmc_langs_util</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
@@ -94,6 +132,12 @@
     <span class="ident">ResponseErrors</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">response</span>::<span class="ident">ResponseErrors</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
     <span class="ident">SystemTime</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">SystemTimeError</span>),
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TokenError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CoreError</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">TokenError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>::<span class="ident">Token</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">err</span>))
+    }
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "tmc_langs_core";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
