@@ -9,7 +9,7 @@ use crate::{
     SubmissionFeedbackResponse, TmcCore, User,
 };
 
-use oauth2::{prelude::SecretNewType, TokenResponse};
+use oauth2::TokenResponse;
 use reqwest::blocking::{multipart::Form, RequestBuilder, Response as ReqwestResponse};
 use serde::de::DeserializeOwned;
 use serde_json::Value;

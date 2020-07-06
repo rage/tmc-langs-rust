@@ -7,7 +7,6 @@ use crate::response::{Course, CourseDetails, Organization};
 use crate::{Language, RunResult, ValidationResult};
 
 use oauth2::basic::BasicClient;
-use oauth2::prelude::*;
 use oauth2::{
     AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword, ResourceOwnerUsername, TokenUrl,
 };
@@ -18,7 +17,6 @@ use std::path::Path;
 use std::path::PathBuf;
 use tempfile::NamedTempFile;
 use tmc_langs_util::task_executor;
-use url1::Url as Url1;
 
 pub type Token =
     oauth2::StandardTokenResponse<oauth2::EmptyExtraTokenFields, oauth2::basic::BasicTokenType>;
@@ -42,7 +40,10 @@ impl TmcCore {
     ///
     /// # Examples
     /// ```rust,no_run
-    /// let core = TmcCore::new(Path::new("./config"), "https://tmc.mooc.fi".to_string()).unwrap();
+    /// use tmc_langs_core::TmcCore;
+    /// use std::path::PathBuf;
+    ///
+    /// let core = TmcCore::new(PathBuf::from("./config"), "https://tmc.mooc.fi".to_string()).unwrap();
     /// ```
     pub fn new(config_dir: PathBuf, root_url: String) -> Result<Self> {
         // guarantee a trailing slash, otherwise join will drop the last component
@@ -70,6 +71,8 @@ impl TmcCore {
     ///
     /// # Examples
     /// ```rust,no_run
+    /// use tmc_langs_core::TmcCore;
+    ///
     /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
     /// ```
     pub fn new_in_config(root_url: String) -> Result<Self> {
@@ -87,6 +90,8 @@ impl TmcCore {
     ///
     /// # Examples
     /// ```rust,no_run
+    /// use tmc_langs_core::TmcCore;
+    ///
     /// let mut core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
     /// core.authenticate("client", "user".to_string(), "pass".to_string()).unwrap();
     /// ```
@@ -96,6 +101,59 @@ impl TmcCore {
         email: String,
         password: String,
     ) -> Result<()> {
+        // required until oauth 4.x.x
+        fn custom_client<'a>(
+            client: &'a Client,
+        ) -> impl FnOnce(oauth2::HttpRequest) -> Result<oauth2::HttpResponse> + 'a {
+            move |req| {
+                // convert httprequest fields
+                let method = http::method::Method::from_bytes(req.method.as_str().as_bytes())?;
+                let mut headers = http::HeaderMap::new();
+                let mut next_key = None;
+                for (key, val) in req.headers {
+                    // if key is none, keep using previous next key
+                    if key.is_some() {
+                        // update next key
+                        next_key = key;
+                    }
+                    let header_name = if let Some(name) = next_key.as_ref() {
+                        // use next key
+                        name
+                    } else {
+                        log::error!("invalid header map, found None key first");
+                        continue;
+                    };
+                    let header_name =
+                        http::header::HeaderName::from_bytes(header_name.as_str().as_bytes())?;
+                    let header_value = http::header::HeaderValue::from_bytes(val.as_bytes())?;
+                    headers.insert(header_name, header_value);
+                }
+                let res = client
+                    .request(method, req.url)
+                    .headers(headers)
+                    .body(req.body)
+                    .send()?;
+
+                // convert response to httpresponse
+                let status_code = http1::StatusCode::from_bytes(res.status().as_str().as_bytes())?;
+                let mut headers = http1::HeaderMap::new();
+                for (key, val) in res.headers() {
+                    let header_name =
+                        http1::header::HeaderName::from_bytes(key.as_str().as_bytes())?;
+                    let header_value = http1::header::HeaderValue::from_bytes(val.as_bytes())?;
+                    headers.insert(header_name, header_value);
+                }
+                let body = res.bytes()?.to_vec();
+                let res = oauth2::HttpResponse {
+                    status_code,
+                    headers,
+                    body,
+                };
+
+                Ok(res)
+            }
+        }
+
         if self.token.is_some() {
             return Err(CoreError::AlreadyAuthenticated);
         }
@@ -105,13 +163,12 @@ impl TmcCore {
             .join(&format!("application/{}/credentials", client_name))?;
         let credentials: Credentials = self.get_json_from_url(url)?;
 
-        let auth_url = Url1::parse(self.auth_url.as_str())?;
-        log::debug!("authenticating at {}", auth_url);
+        log::debug!("authenticating at {}", self.auth_url);
         let client = BasicClient::new(
             ClientId::new(credentials.application_id),
             Some(ClientSecret::new(credentials.secret)),
-            AuthUrl::new(auth_url.clone()), // not used in the Resource Owner Password Credentials Grant
-            Some(TokenUrl::new(auth_url)),
+            AuthUrl::new(self.auth_url.as_str().to_string())?, // not used in the Resource Owner Password Credentials Grant
+            Some(TokenUrl::new(self.auth_url.as_str().to_string())?),
         );
 
         let token = client
@@ -119,12 +176,7 @@ impl TmcCore {
                 &ResourceOwnerUsername::new(email),
                 &ResourceOwnerPassword::new(password),
             )
-            .map_err(|e| match e {
-                oauth2::RequestTokenError::Parse(e, msg) => {
-                    CoreError::TokenParse(e, String::from_utf8_lossy(&msg).into_owned())
-                }
-                _ => CoreError::Token(e),
-            })?;
+            .request(custom_client(&self.client))?;
         self.token = Some(token);
         log::debug!("authenticated");
         Ok(())
@@ -152,6 +204,9 @@ impl TmcCore {
     ///
     /// # Examples
     /// ```rust,no_run
+    /// use tmc_langs_core::TmcCore;
+    /// use std::path::Path;
+    ///
     /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
     /// // authenticate
     /// core.download_or_update_exercises(vec![
@@ -274,10 +329,12 @@ impl TmcCore {
     ///
     /// # Examples
     /// ```rust,no_run
+    /// use tmc_langs_core::TmcCore;
+    ///
     /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
     /// // authenticate
     /// let mut checksums = std::collections::HashMap::new();
-    /// checksums.insert(1234, "exercisechecksum");
+    /// checksums.insert(1234, "exercisechecksum".to_string());
     /// let update_result = core.get_exercise_updates(600, checksums).unwrap();
     /// ```
     pub fn get_exercise_updates(
