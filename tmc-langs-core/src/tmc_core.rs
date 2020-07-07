@@ -190,6 +190,7 @@ impl TmcCore {
         self.organizations()
     }
 
+    /// Unimplemented.
     #[deprecated = "unimplemented"]
     pub fn send_diagnostics(&self) {
         unimplemented!()
@@ -227,6 +228,15 @@ impl TmcCore {
     ///
     /// # Errors
     /// Returns an error if there's some problem reaching the API, or if the API returns an error.
+    ///
+    /// # Examples
+    /// ```rust,no_run
+    /// use tmc_langs_core::TmcCore;
+    ///
+    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
+    /// // authenticate
+    /// let course_details = core.get_course_details(600).unwrap();
+    /// ```
     pub fn get_course_details(&self, course_id: usize) -> Result<CourseDetails> {
         self.core_course(course_id)
     }
@@ -235,6 +245,15 @@ impl TmcCore {
     ///
     /// # Errors
     /// Returns an error if there's some problem reaching the API, or if the API returns an error.
+    ///
+    /// # Examples
+    /// ```rust,no_run
+    /// use tmc_langs_core::TmcCore;
+    ///
+    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
+    /// // authenticate
+    /// let courses = core.list_courses("hy").unwrap();
+    /// ```
     pub fn list_courses(&self, organization_slug: &str) -> Result<Vec<Course>> {
         self.organization_courses(organization_slug)
     }
@@ -243,6 +262,24 @@ impl TmcCore {
     ///
     /// # Errors
     /// Returns an error if there's some problem reaching the API, or if the API returns an error.
+    ///
+    /// # Examples
+    /// ```rust,no_run
+    /// use tmc_langs_core::{TmcCore, Language};
+    /// use url::Url;
+    /// use std::path::Path;
+    ///
+    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
+    /// // authenticate
+    /// let course_details = core.get_course_details(600).unwrap();
+    /// let submission_url = &course_details.exercises[0].return_url;
+    /// let submission_url = Url::parse(&submission_url).unwrap();
+    /// let new_submission = core.paste_with_comment(
+    ///     submission_url,
+    ///     Path::new("./exercises/python/123"),
+    ///     "my python solution".to_string(),
+    ///     Language::Eng).unwrap();
+    /// ```
     pub fn paste_with_comment(
         &self,
         submission_url: Url,
@@ -264,6 +301,24 @@ impl TmcCore {
     /// # Errors
     /// Returns an error if no matching language plugin for the project is found,
     /// or if the plugin returns an error while trying to run the style check.
+    ///
+    /// # Examples
+    /// ```rust,no_run
+    /// use tmc_langs_core::{TmcCore, Language};
+    /// use std::path::Path;
+    ///
+    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
+    /// // authenticate
+    /// let validation_result = core.run_checkstyle(Path::new("./exercises/python/123"), Language::Eng).unwrap();
+    /// match validation_result {
+    ///     Some(validation_result) => if let Some(validation_errors) = validation_result.validation_errors {
+    ///         println!("found validation errors: {:?}", validation_errors);
+    ///     } else {
+    ///         println!("no errors");
+    ///     }
+    ///     None => println!("no style checks"),
+    /// }
+    /// ```
     pub fn run_checkstyle(
         &self,
         path: &Path,
