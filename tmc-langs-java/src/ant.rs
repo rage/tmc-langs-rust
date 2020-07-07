@@ -10,7 +10,7 @@ use std::env;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::time::Duration;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult},
@@ -34,7 +34,12 @@ impl AntPlugin {
 
     fn get_ant_executable(&self) -> &'static str {
         if cfg!(windows) {
-            if let Ok(status) = Command::new("ant").arg("-version").status() {
+            if let Ok(status) = Command::new("ant")
+                .arg("-version")
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped())
+                .status()
+            {
                 if status.success() {
                     return "ant";
                 }
