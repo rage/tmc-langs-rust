@@ -283,7 +283,9 @@ mod test {
         let test_path = temp_dir.path();
         let plugin = MavenPlugin::new().unwrap();
         let class_path = plugin.get_project_class_path(test_path).unwrap();
-        assert!(class_path.contains("/junit/"));
+        println!("{}", class_path);
+        let expected = format!("{0}junit{0}", std::path::MAIN_SEPARATOR);
+        assert!(class_path.contains(&expected));
     }
 
     #[test]

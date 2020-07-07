@@ -32,6 +32,14 @@ impl AntPlugin {
         Ok(Self { jvm })
     }
 
+    fn get_ant_executable(&self) -> &'static str {
+        if cfg!(windows) {
+            "ant.bat"
+        } else {
+            "ant"
+        }
+    }
+
     fn copy_tmc_junit_runner(&self, path: &Path) -> Result<(), JavaError> {
         log::debug!("Copying TMC Junit runner");
 
@@ -106,13 +114,14 @@ impl LanguagePlugin for AntPlugin {
         let stderr =
             File::create(&stderr_path).map_err(|e| JavaError::File(stderr_path.clone(), e))?;
 
-        let output = Command::new("ant")
+        let ant_exec = self.get_ant_executable();
+        let output = Command::new(ant_exec)
             .arg("clean")
             .stdout(stdout)
             .stderr(stderr)
             .current_dir(path)
             .output()
-            .map_err(|e| JavaError::FailedToRun("ant".to_string(), e))?;
+            .map_err(|e| JavaError::FailedToRun(ant_exec.to_string(), e))?;
 
         if output.status.success() {
             fs::remove_file(stdout_path)?;
@@ -175,13 +184,14 @@ impl JavaPlugin for AntPlugin {
             File::create(&stderr_path).map_err(|e| JavaError::File(stderr_path.clone(), e))?;
 
         // TODO: don't require ant in path?
-        let output = Command::new("ant")
+        let ant_exec = self.get_ant_executable();
+        let output = Command::new(ant_exec)
             .arg("compile-test")
             .current_dir(project_root_path)
             .output()
-            .map_err(|e| JavaError::FailedToRun("ant".to_string(), e))?;
+            .map_err(|e| JavaError::FailedToRun(ant_exec.to_string(), e))?;
 
-        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+        log::debug!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
         stdout
             .write_all(&output.stdout)
