@@ -19,6 +19,8 @@ pub enum PythonError {
     FileRemove(PathBuf, std::io::Error),
     #[error("Failed to remove directory {0}: {1}")]
     DirRemove(PathBuf, std::io::Error),
+    #[error(transparent)]
+    Framework(#[from] tmc_langs_framework::Error),
 }
 
 impl From<PythonError> for TmcError {

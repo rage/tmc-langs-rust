@@ -108,27 +108,18 @@ fn run_tmc_command(
     let (name, mut command) = match &*LOCAL_PY {
         LocalPy::Unix => ("python3", Command::new("python3")),
         LocalPy::Windows => ("py", Command::new("py")),
-        //.map_err(|e| PythonError::Command("py", e))?,
         LocalPy::WindowsConda { conda_path } => ("conda", Command::new(conda_path)),
     };
     let command = match &*LOCAL_PY {
-        LocalPy::Unix => command
-            .args(&common_args)
-            .args(extra_args)
-            .current_dir(path),
-        LocalPy::Windows => command
-            .args(&["-3"])
-            .args(&common_args)
-            .args(extra_args)
-            .current_dir(path),
-        LocalPy::WindowsConda { .. } => command
-            .args(&common_args)
-            .args(extra_args)
-            .current_dir(path),
+        LocalPy::Unix => &mut command,
+        LocalPy::Windows => command.args(&["-3"]),
+        LocalPy::WindowsConda { .. } => &mut command,
     };
-    let output = CommandWithTimeout(command)
-        .wait_with_timeout(name, timeout)
-        .unwrap();
+    let command = command
+        .args(&common_args)
+        .args(extra_args)
+        .current_dir(path);
+    let output = CommandWithTimeout(command).wait_with_timeout(name, timeout)?;
 
     log::debug!("stdout: {}", String::from_utf8_lossy(&output.stdout));
     log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
@@ -194,17 +185,26 @@ mod test {
                     .collect();
                 let temp_path = temp.path().join(entry_path);
                 temp_path.parent().map(|p| std::fs::create_dir_all(&p)); // ignore result, errors on windows
-                log::trace!("copying {:?} -> {:?}", entry.path(), temp_path);
+                log::trace!(
+                    "copying {} -> {}",
+                    entry.path().display(),
+                    temp_path.display()
+                );
                 std::fs::copy(entry.path(), temp_path).unwrap();
             }
         }
+        let _ = fs::remove_file(temp.path().join("tmc")); // delete symlink
         for entry in walkdir::WalkDir::new("tests/data/tmc") {
             let entry = entry.unwrap();
             if entry.path().is_file() {
                 let entry_path: PathBuf = entry.path().components().skip(2).collect();
                 let temp_path = temp.path().join(entry_path);
                 temp_path.parent().map(|p| std::fs::create_dir_all(&p)); // ignore result, errors on windows
-                log::trace!("copying {:?} -> {:?}", entry.path(), temp_path);
+                log::trace!(
+                    "copying {} -> {}",
+                    entry.path().display(),
+                    temp_path.display()
+                );
                 std::fs::copy(entry.path(), temp_path).unwrap();
             }
         }
