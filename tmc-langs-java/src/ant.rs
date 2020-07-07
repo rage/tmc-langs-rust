@@ -34,6 +34,12 @@ impl AntPlugin {
 
     fn get_ant_executable(&self) -> &'static str {
         if cfg!(windows) {
+            if let Ok(status) = Command::new("ant").arg("-version").status() {
+                if status.success() {
+                    return "ant";
+                }
+            }
+            // if ant not found on windows, try ant.bat
             "ant.bat"
         } else {
             "ant"
