@@ -381,6 +381,15 @@
 <span id="381">381</span>
 <span id="382">382</span>
 <span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Java maven plugin</span>
 
@@ -435,15 +444,24 @@
         }
         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;could not execute mvn&quot;</span>);
         <span class="kw">let</span> <span class="ident">tmc_path</span> <span class="op">=</span> <span class="ident">dirs</span>::<span class="ident">cache_dir</span>().<span class="ident">ok_or</span>(<span class="ident">JavaError</span>::<span class="ident">CacheDir</span>)<span class="question-mark">?</span>.<span class="ident">join</span>(<span class="string">&quot;tmc&quot;</span>);
-        <span class="kw">let</span> <span class="ident">mvn_exec</span> <span class="op">=</span> <span class="ident">tmc_path</span>.<span class="ident">join</span>(<span class="string">&quot;apache-maven-3.6.3&quot;</span>).<span class="ident">join</span>(<span class="string">&quot;bin&quot;</span>).<span class="ident">join</span>(<span class="string">&quot;mvn&quot;</span>);
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">mvn_exec</span>.<span class="ident">exists</span>() {
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
+        <span class="kw">let</span> <span class="ident">mvn_exec</span> <span class="op">=</span> <span class="string">&quot;mvn.cmd&quot;</span>;
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">windows</span>))]</span>
+        <span class="kw">let</span> <span class="ident">mvn_exec</span> <span class="op">=</span> <span class="string">&quot;mvn&quot;</span>;
+
+        <span class="kw">let</span> <span class="ident">mvn_exec_path</span> <span class="op">=</span> <span class="ident">tmc_path</span>
+            .<span class="ident">join</span>(<span class="string">&quot;apache-maven-3.6.3&quot;</span>)
+            .<span class="ident">join</span>(<span class="string">&quot;bin&quot;</span>)
+            .<span class="ident">join</span>(<span class="ident">mvn_exec</span>);
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">mvn_exec_path</span>.<span class="ident">exists</span>() {
             <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;extracting bundled tar&quot;</span>);
             <span class="kw">let</span> <span class="ident">tar</span> <span class="op">=</span> <span class="ident">GzDecoder</span>::<span class="ident">new</span>(<span class="ident">Cursor</span>::<span class="ident">new</span>(<span class="ident">MVN_ARCHIVE</span>));
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tar</span> <span class="op">=</span> <span class="ident">Archive</span>::<span class="ident">new</span>(<span class="ident">tar</span>);
             <span class="ident">tar</span>.<span class="ident">unpack</span>(<span class="kw-2">&amp;</span><span class="ident">tmc_path</span>)
                 .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JavaError</span>::<span class="ident">MvnUnpack</span>(<span class="ident">tmc_path</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">mvn_exec</span>.<span class="ident">as_os_str</span>().<span class="ident">to_os_string</span>())
+        <span class="prelude-val">Ok</span>(<span class="ident">mvn_exec_path</span>.<span class="ident">as_os_str</span>().<span class="ident">to_os_string</span>())
     }
 }
 
