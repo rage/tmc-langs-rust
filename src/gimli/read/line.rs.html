@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.21.0/src/read/line.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>line.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../gimli/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.22.0/src/read/line.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>line.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../gimli/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2998,9 +2998,45 @@
 <span id="2998">2998</span>
 <span id="2999">2999</span>
 <span id="3000">3000</span>
+<span id="3001">3001</span>
+<span id="3002">3002</span>
+<span id="3003">3003</span>
+<span id="3004">3004</span>
+<span id="3005">3005</span>
+<span id="3006">3006</span>
+<span id="3007">3007</span>
+<span id="3008">3008</span>
+<span id="3009">3009</span>
+<span id="3010">3010</span>
+<span id="3011">3011</span>
+<span id="3012">3012</span>
+<span id="3013">3013</span>
+<span id="3014">3014</span>
+<span id="3015">3015</span>
+<span id="3016">3016</span>
+<span id="3017">3017</span>
+<span id="3018">3018</span>
+<span id="3019">3019</span>
+<span id="3020">3020</span>
+<span id="3021">3021</span>
+<span id="3022">3022</span>
+<span id="3023">3023</span>
+<span id="3024">3024</span>
+<span id="3025">3025</span>
+<span id="3026">3026</span>
+<span id="3027">3027</span>
+<span id="3028">3028</span>
+<span id="3029">3029</span>
+<span id="3030">3030</span>
+<span id="3031">3031</span>
+<span id="3032">3032</span>
+<span id="3033">3033</span>
+<span id="3034">3034</span>
+<span id="3035">3035</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">vec</span>::<span class="ident">Vec</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
+<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">num</span>::<span class="ident">Wrapping</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">result</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">common</span>::{
@@ -3635,10 +3671,10 @@
 <span class="doccomment">/// Each row is a copy of the registers of the state machine, as defined in section 6.2.2.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LineRow</span> {
-    <span class="ident">address</span>: <span class="ident">u64</span>,
-    <span class="ident">op_index</span>: <span class="ident">u64</span>,
+    <span class="ident">address</span>: <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+    <span class="ident">op_index</span>: <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
     <span class="ident">file</span>: <span class="ident">u64</span>,
-    <span class="ident">line</span>: <span class="ident">u64</span>,
+    <span class="ident">line</span>: <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
     <span class="ident">column</span>: <span class="ident">u64</span>,
     <span class="ident">is_stmt</span>: <span class="ident">bool</span>,
     <span class="ident">basic_block</span>: <span class="ident">bool</span>,
@@ -3655,10 +3691,10 @@
         <span class="ident">LineRow</span> {
             <span class="comment">// &quot;At the beginning of each sequence within a line number program, the</span>
             <span class="comment">// state of the registers is:&quot; -- Section 6.2.2</span>
-            <span class="ident">address</span>: <span class="number">0</span>,
-            <span class="ident">op_index</span>: <span class="number">0</span>,
+            <span class="ident">address</span>: <span class="ident">Wrapping</span>(<span class="number">0</span>),
+            <span class="ident">op_index</span>: <span class="ident">Wrapping</span>(<span class="number">0</span>),
             <span class="ident">file</span>: <span class="number">1</span>,
-            <span class="ident">line</span>: <span class="number">1</span>,
+            <span class="ident">line</span>: <span class="ident">Wrapping</span>(<span class="number">1</span>),
             <span class="ident">column</span>: <span class="number">0</span>,
             <span class="comment">// &quot;determined by default_is_stmt in the line number program header&quot;</span>
             <span class="ident">is_stmt</span>: <span class="ident">header</span>.<span class="ident">line_encoding</span>.<span class="ident">default_is_stmt</span>,
@@ -3679,7 +3715,7 @@
     <span class="doccomment">/// generated by the compiler.&quot;</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">address</span>
+        <span class="self">self</span>.<span class="ident">address</span>.<span class="number">0</span>
     }
 
     <span class="doccomment">/// &gt; An unsigned integer representing the index of an operation within a VLIW</span>
@@ -3691,7 +3727,7 @@
     <span class="doccomment">/// &gt; instruction stream.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">op_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">op_index</span>
+        <span class="self">self</span>.<span class="ident">op_index</span>.<span class="number">0</span>
     }
 
     <span class="doccomment">/// &quot;An unsigned integer indicating the identity of the source file</span>
@@ -3715,10 +3751,10 @@
     <span class="doccomment">/// instruction cannot be attributed to any source line.&quot;</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">line</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">line</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">line</span>.<span class="number">0</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="prelude-val">None</span>
         } <span class="kw">else</span> {
-            <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">line</span>)
+            <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">line</span>.<span class="number">0</span>)
         }
     }
 
@@ -3859,8 +3895,8 @@
             }
 
             <span class="ident">LineInstruction</span>::<span class="ident">FixedAddPc</span>(<span class="ident">operand</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">address</span> <span class="op">+</span><span class="op">=</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">operand</span>);
-                <span class="self">self</span>.<span class="ident">op_index</span> <span class="op">=</span> <span class="number">0</span>;
+                <span class="self">self</span>.<span class="ident">address</span> <span class="op">+</span><span class="op">=</span> <span class="ident">Wrapping</span>(<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">operand</span>));
+                <span class="self">self</span>.<span class="ident">op_index</span>.<span class="number">0</span> <span class="op">=</span> <span class="number">0</span>;
                 <span class="bool-val">false</span>
             }
 
@@ -3885,8 +3921,8 @@
             }
 
             <span class="ident">LineInstruction</span>::<span class="ident">SetAddress</span>(<span class="ident">address</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">address</span> <span class="op">=</span> <span class="ident">address</span>;
-                <span class="self">self</span>.<span class="ident">op_index</span> <span class="op">=</span> <span class="number">0</span>;
+                <span class="self">self</span>.<span class="ident">address</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">address</span>;
+                <span class="self">self</span>.<span class="ident">op_index</span>.<span class="number">0</span> <span class="op">=</span> <span class="number">0</span>;
                 <span class="bool-val">false</span>
             }
 
@@ -3931,13 +3967,13 @@
     <span class="kw">fn</span> <span class="ident">apply_line_advance</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">line_increment</span>: <span class="ident">i64</span>) {
         <span class="kw">if</span> <span class="ident">line_increment</span> <span class="op">&lt;</span> <span class="number">0</span> {
             <span class="kw">let</span> <span class="ident">decrement</span> <span class="op">=</span> <span class="op">-</span><span class="ident">line_increment</span> <span class="kw">as</span> <span class="ident">u64</span>;
-            <span class="kw">if</span> <span class="ident">decrement</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">line</span> {
-                <span class="self">self</span>.<span class="ident">line</span> <span class="op">-</span><span class="op">=</span> <span class="ident">decrement</span>;
+            <span class="kw">if</span> <span class="ident">decrement</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">line</span>.<span class="number">0</span> {
+                <span class="self">self</span>.<span class="ident">line</span>.<span class="number">0</span> <span class="op">-</span><span class="op">=</span> <span class="ident">decrement</span>;
             } <span class="kw">else</span> {
-                <span class="self">self</span>.<span class="ident">line</span> <span class="op">=</span> <span class="number">0</span>;
+                <span class="self">self</span>.<span class="ident">line</span>.<span class="number">0</span> <span class="op">=</span> <span class="number">0</span>;
             }
         } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">line</span> <span class="op">+</span><span class="op">=</span> <span class="ident">line_increment</span> <span class="kw">as</span> <span class="ident">u64</span>;
+            <span class="self">self</span>.<span class="ident">line</span> <span class="op">+</span><span class="op">=</span> <span class="ident">Wrapping</span>(<span class="ident">line_increment</span> <span class="kw">as</span> <span class="ident">u64</span>);
         }
     }
 
@@ -3947,13 +3983,18 @@
         <span class="ident">operation_advance</span>: <span class="ident">u64</span>,
         <span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="ident">LineProgramHeader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
     ) {
+        <span class="kw">let</span> <span class="ident">operation_advance</span> <span class="op">=</span> <span class="ident">Wrapping</span>(<span class="ident">operation_advance</span>);
+
         <span class="kw">let</span> <span class="ident">minimum_instruction_length</span> <span class="op">=</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">header</span>.<span class="ident">line_encoding</span>.<span class="ident">minimum_instruction_length</span>);
+        <span class="kw">let</span> <span class="ident">minimum_instruction_length</span> <span class="op">=</span> <span class="ident">Wrapping</span>(<span class="ident">minimum_instruction_length</span>);
+
         <span class="kw">let</span> <span class="ident">maximum_operations_per_instruction</span> <span class="op">=</span>
             <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">header</span>.<span class="ident">line_encoding</span>.<span class="ident">maximum_operations_per_instruction</span>);
+        <span class="kw">let</span> <span class="ident">maximum_operations_per_instruction</span> <span class="op">=</span> <span class="ident">Wrapping</span>(<span class="ident">maximum_operations_per_instruction</span>);
 
-        <span class="kw">if</span> <span class="ident">maximum_operations_per_instruction</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">if</span> <span class="ident">maximum_operations_per_instruction</span>.<span class="number">0</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
             <span class="self">self</span>.<span class="ident">address</span> <span class="op">+</span><span class="op">=</span> <span class="ident">minimum_instruction_length</span> <span class="op">*</span> <span class="ident">operation_advance</span>;
-            <span class="self">self</span>.<span class="ident">op_index</span> <span class="op">=</span> <span class="number">0</span>;
+            <span class="self">self</span>.<span class="ident">op_index</span>.<span class="number">0</span> <span class="op">=</span> <span class="number">0</span>;
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">op_index_with_advance</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">op_index</span> <span class="op">+</span> <span class="ident">operation_advance</span>;
             <span class="self">self</span>.<span class="ident">address</span> <span class="op">+</span><span class="op">=</span> <span class="ident">minimum_instruction_length</span>
@@ -4887,6 +4928,7 @@
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">endianity</span>::<span class="ident">LittleEndian</span>;
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">read</span>::{<span class="ident">EndianSlice</span>, <span class="ident">Error</span>};
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">test_util</span>::<span class="ident">GimliSectionMethods</span>;
+    <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">u64</span>;
     <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">u8</span>;
     <span class="kw">use</span> <span class="ident">test_assembler</span>::{<span class="ident">Endian</span>, <span class="ident">Label</span>, <span class="ident">LabelMaker</span>, <span class="ident">Section</span>};
 
@@ -5471,12 +5513,12 @@
         <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">make_test_header</span>(<span class="ident">EndianSlice</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span>[], <span class="ident">LittleEndian</span>));
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">initial_registers</span> <span class="op">=</span> <span class="ident">LineRow</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">header</span>);
-        <span class="ident">initial_registers</span>.<span class="ident">line</span> <span class="op">=</span> <span class="number">10</span>;
+        <span class="ident">initial_registers</span>.<span class="ident">line</span>.<span class="number">0</span> <span class="op">=</span> <span class="number">10</span>;
 
         <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="ident">LineInstruction</span>::<span class="ident">Special</span>(<span class="number">13</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected_registers</span> <span class="op">=</span> <span class="ident">initial_registers</span>;
-        <span class="ident">expected_registers</span>.<span class="ident">line</span> <span class="op">-</span><span class="op">=</span> <span class="number">3</span>;
+        <span class="ident">expected_registers</span>.<span class="ident">line</span>.<span class="number">0</span> <span class="op">-</span><span class="op">=</span> <span class="number">3</span>;
 
         <span class="ident">assert_exec_opcode</span>(<span class="ident">header</span>, <span class="ident">initial_registers</span>, <span class="ident">opcode</span>, <span class="ident">expected_registers</span>, <span class="bool-val">true</span>);
     }
@@ -5490,7 +5532,7 @@
         <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="ident">LineInstruction</span>::<span class="ident">Special</span>(<span class="number">19</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected_registers</span> <span class="op">=</span> <span class="ident">initial_registers</span>;
-        <span class="ident">expected_registers</span>.<span class="ident">line</span> <span class="op">+</span><span class="op">=</span> <span class="number">3</span>;
+        <span class="ident">expected_registers</span>.<span class="ident">line</span>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <span class="number">3</span>;
 
         <span class="ident">assert_exec_opcode</span>(<span class="ident">header</span>, <span class="ident">initial_registers</span>, <span class="ident">opcode</span>, <span class="ident">expected_registers</span>, <span class="bool-val">true</span>);
     }
@@ -5504,7 +5546,7 @@
         <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="ident">LineInstruction</span>::<span class="ident">Special</span>(<span class="number">52</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected_registers</span> <span class="op">=</span> <span class="ident">initial_registers</span>;
-        <span class="ident">expected_registers</span>.<span class="ident">address</span> <span class="op">+</span><span class="op">=</span> <span class="number">3</span>;
+        <span class="ident">expected_registers</span>.<span class="ident">address</span>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <span class="number">3</span>;
 
         <span class="ident">assert_exec_opcode</span>(<span class="ident">header</span>, <span class="ident">initial_registers</span>, <span class="ident">opcode</span>, <span class="ident">expected_registers</span>, <span class="bool-val">true</span>);
     }
@@ -5518,8 +5560,8 @@
         <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="ident">LineInstruction</span>::<span class="ident">Special</span>(<span class="number">55</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected_registers</span> <span class="op">=</span> <span class="ident">initial_registers</span>;
-        <span class="ident">expected_registers</span>.<span class="ident">address</span> <span class="op">+</span><span class="op">=</span> <span class="number">3</span>;
-        <span class="ident">expected_registers</span>.<span class="ident">line</span> <span class="op">+</span><span class="op">=</span> <span class="number">3</span>;
+        <span class="ident">expected_registers</span>.<span class="ident">address</span>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <span class="number">3</span>;
+        <span class="ident">expected_registers</span>.<span class="ident">line</span>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <span class="number">3</span>;
 
         <span class="ident">assert_exec_opcode</span>(<span class="ident">header</span>, <span class="ident">initial_registers</span>, <span class="ident">opcode</span>, <span class="ident">expected_registers</span>, <span class="bool-val">true</span>);
     }
@@ -5529,13 +5571,13 @@
         <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">make_test_header</span>(<span class="ident">EndianSlice</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span>[], <span class="ident">LittleEndian</span>));
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">initial_registers</span> <span class="op">=</span> <span class="ident">LineRow</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">header</span>);
-        <span class="ident">initial_registers</span>.<span class="ident">line</span> <span class="op">=</span> <span class="number">10</span>;
+        <span class="ident">initial_registers</span>.<span class="ident">line</span>.<span class="number">0</span> <span class="op">=</span> <span class="number">10</span>;
 
         <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="ident">LineInstruction</span>::<span class="ident">Special</span>(<span class="number">49</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected_registers</span> <span class="op">=</span> <span class="ident">initial_registers</span>;
-        <span class="ident">expected_registers</span>.<span class="ident">address</span> <span class="op">+</span><span class="op">=</span> <span class="number">3</span>;
-        <span class="ident">expected_registers</span>.<span class="ident">line</span> <span class="op">-</span><span class="op">=</span> <span class="number">3</span>;
+        <span class="ident">expected_registers</span>.<span class="ident">address</span>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <span class="number">3</span>;
+        <span class="ident">expected_registers</span>.<span class="ident">line</span>.<span class="number">0</span> <span class="op">-</span><span class="op">=</span> <span class="number">3</span>;
 
         <span class="ident">assert_exec_opcode</span>(<span class="ident">header</span>, <span class="ident">initial_registers</span>, <span class="ident">opcode</span>, <span class="ident">expected_registers</span>, <span class="bool-val">true</span>);
     }
@@ -5545,7 +5587,7 @@
         <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">make_test_header</span>(<span class="ident">EndianSlice</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span>[], <span class="ident">LittleEndian</span>));
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">initial_registers</span> <span class="op">=</span> <span class="ident">LineRow</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">header</span>);
-        <span class="ident">initial_registers</span>.<span class="ident">line</span> <span class="op">=</span> <span class="number">2</span>;
+        <span class="ident">initial_registers</span>.<span class="ident">line</span>.<span class="number">0</span> <span class="op">=</span> <span class="number">2</span>;
 
         <span class="comment">// -3 line advance.</span>
         <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="ident">LineInstruction</span>::<span class="ident">Special</span>(<span class="number">13</span>);
@@ -5553,7 +5595,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected_registers</span> <span class="op">=</span> <span class="ident">initial_registers</span>;
         <span class="comment">// Clamp at 0. No idea if this is the best way to handle this situation</span>
         <span class="comment">// or not...</span>
-        <span class="ident">expected_registers</span>.<span class="ident">line</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="ident">expected_registers</span>.<span class="ident">line</span>.<span class="number">0</span> <span class="op">=</span> <span class="number">0</span>;
 
         <span class="ident">assert_exec_opcode</span>(<span class="ident">header</span>, <span class="ident">initial_registers</span>, <span class="ident">opcode</span>, <span class="ident">expected_registers</span>, <span class="bool-val">true</span>);
     }
@@ -5563,8 +5605,8 @@
         <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">make_test_header</span>(<span class="ident">EndianSlice</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span>[], <span class="ident">LittleEndian</span>));
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">initial_registers</span> <span class="op">=</span> <span class="ident">LineRow</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">header</span>);
-        <span class="ident">initial_registers</span>.<span class="ident">address</span> <span class="op">=</span> <span class="number">1337</span>;
-        <span class="ident">initial_registers</span>.<span class="ident">line</span> <span class="op">=</span> <span class="number">42</span>;
+        <span class="ident">initial_registers</span>.<span class="ident">address</span>.<span class="number">0</span> <span class="op">=</span> <span class="number">1337</span>;
+        <span class="ident">initial_registers</span>.<span class="ident">line</span>.<span class="number">0</span> <span class="op">=</span> <span class="number">42</span>;
 
         <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="ident">LineInstruction</span>::<span class="ident">Copy</span>;
 
@@ -5580,7 +5622,21 @@
         <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="ident">LineInstruction</span>::<span class="ident">AdvancePc</span>(<span class="number">42</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected_registers</span> <span class="op">=</span> <span class="ident">initial_registers</span>;
-        <span class="ident">expected_registers</span>.<span class="ident">address</span> <span class="op">+</span><span class="op">=</span> <span class="number">42</span>;
+        <span class="ident">expected_registers</span>.<span class="ident">address</span>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <span class="number">42</span>;
+
+        <span class="ident">assert_exec_opcode</span>(<span class="ident">header</span>, <span class="ident">initial_registers</span>, <span class="ident">opcode</span>, <span class="ident">expected_registers</span>, <span class="bool-val">false</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_exec_advance_pc_overflow</span>() {
+        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">make_test_header</span>(<span class="ident">EndianSlice</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span>[], <span class="ident">LittleEndian</span>));
+        <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="ident">LineInstruction</span>::<span class="ident">AdvancePc</span>(<span class="number">42</span>);
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">initial_registers</span> <span class="op">=</span> <span class="ident">LineRow</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">header</span>);
+        <span class="ident">initial_registers</span>.<span class="ident">address</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">u64</span>::<span class="ident">MAX</span>;
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected_registers</span> <span class="op">=</span> <span class="ident">initial_registers</span>;
+        <span class="ident">expected_registers</span>.<span class="ident">address</span>.<span class="number">0</span> <span class="op">=</span> <span class="number">41</span>;
 
         <span class="ident">assert_exec_opcode</span>(<span class="ident">header</span>, <span class="ident">initial_registers</span>, <span class="ident">opcode</span>, <span class="ident">expected_registers</span>, <span class="bool-val">false</span>);
     }
@@ -5592,7 +5648,21 @@
         <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="ident">LineInstruction</span>::<span class="ident">AdvanceLine</span>(<span class="number">42</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected_registers</span> <span class="op">=</span> <span class="ident">initial_registers</span>;
-        <span class="ident">expected_registers</span>.<span class="ident">line</span> <span class="op">+</span><span class="op">=</span> <span class="number">42</span>;
+        <span class="ident">expected_registers</span>.<span class="ident">line</span>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <span class="number">42</span>;
+
+        <span class="ident">assert_exec_opcode</span>(<span class="ident">header</span>, <span class="ident">initial_registers</span>, <span class="ident">opcode</span>, <span class="ident">expected_registers</span>, <span class="bool-val">false</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_exec_advance_line_overflow</span>() {
+        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">make_test_header</span>(<span class="ident">EndianSlice</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span>[], <span class="ident">LittleEndian</span>));
+        <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="ident">LineInstruction</span>::<span class="ident">AdvanceLine</span>(<span class="number">42</span>);
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">initial_registers</span> <span class="op">=</span> <span class="ident">LineRow</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">header</span>);
+        <span class="ident">initial_registers</span>.<span class="ident">line</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">u64</span>::<span class="ident">MAX</span>;
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected_registers</span> <span class="op">=</span> <span class="ident">initial_registers</span>;
+        <span class="ident">expected_registers</span>.<span class="ident">line</span>.<span class="number">0</span> <span class="op">=</span> <span class="number">41</span>;
 
         <span class="ident">assert_exec_opcode</span>(<span class="ident">header</span>, <span class="ident">initial_registers</span>, <span class="ident">opcode</span>, <span class="ident">expected_registers</span>, <span class="bool-val">false</span>);
     }
@@ -5701,7 +5771,7 @@
         <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="ident">LineInstruction</span>::<span class="ident">ConstAddPc</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected_registers</span> <span class="op">=</span> <span class="ident">initial_registers</span>;
-        <span class="ident">expected_registers</span>.<span class="ident">address</span> <span class="op">+</span><span class="op">=</span> <span class="number">20</span>;
+        <span class="ident">expected_registers</span>.<span class="ident">address</span>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <span class="number">20</span>;
 
         <span class="ident">assert_exec_opcode</span>(<span class="ident">header</span>, <span class="ident">initial_registers</span>, <span class="ident">opcode</span>, <span class="ident">expected_registers</span>, <span class="bool-val">false</span>);
     }
@@ -5711,13 +5781,13 @@
         <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">make_test_header</span>(<span class="ident">EndianSlice</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span>[], <span class="ident">LittleEndian</span>));
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">initial_registers</span> <span class="op">=</span> <span class="ident">LineRow</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">header</span>);
-        <span class="ident">initial_registers</span>.<span class="ident">op_index</span> <span class="op">=</span> <span class="number">1</span>;
+        <span class="ident">initial_registers</span>.<span class="ident">op_index</span>.<span class="number">0</span> <span class="op">=</span> <span class="number">1</span>;
 
         <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="ident">LineInstruction</span>::<span class="ident">FixedAddPc</span>(<span class="number">10</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected_registers</span> <span class="op">=</span> <span class="ident">initial_registers</span>;
-        <span class="ident">expected_registers</span>.<span class="ident">address</span> <span class="op">+</span><span class="op">=</span> <span class="number">10</span>;
-        <span class="ident">expected_registers</span>.<span class="ident">op_index</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="ident">expected_registers</span>.<span class="ident">address</span>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <span class="number">10</span>;
+        <span class="ident">expected_registers</span>.<span class="ident">op_index</span>.<span class="number">0</span> <span class="op">=</span> <span class="number">0</span>;
 
         <span class="ident">assert_exec_opcode</span>(<span class="ident">header</span>, <span class="ident">initial_registers</span>, <span class="ident">opcode</span>, <span class="ident">expected_registers</span>, <span class="bool-val">false</span>);
     }
@@ -5798,7 +5868,7 @@
         <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="ident">LineInstruction</span>::<span class="ident">SetAddress</span>(<span class="number">3030</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected_registers</span> <span class="op">=</span> <span class="ident">initial_registers</span>;
-        <span class="ident">expected_registers</span>.<span class="ident">address</span> <span class="op">=</span> <span class="number">3030</span>;
+        <span class="ident">expected_registers</span>.<span class="ident">address</span>.<span class="number">0</span> <span class="op">=</span> <span class="number">3030</span>;
 
         <span class="ident">assert_exec_opcode</span>(<span class="ident">header</span>, <span class="ident">initial_registers</span>, <span class="ident">opcode</span>, <span class="ident">expected_registers</span>, <span class="bool-val">false</span>);
     }

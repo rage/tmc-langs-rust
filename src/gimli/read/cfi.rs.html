@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.21.0/src/read/cfi.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cfi.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../gimli/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.22.0/src/read/cfi.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cfi.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../gimli/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -7290,12 +7290,25 @@
 <span id="7290">7290</span>
 <span id="7291">7291</span>
 <span id="7292">7292</span>
+<span id="7293">7293</span>
+<span id="7294">7294</span>
+<span id="7295">7295</span>
+<span id="7296">7296</span>
+<span id="7297">7297</span>
+<span id="7298">7298</span>
+<span id="7299">7299</span>
+<span id="7300">7300</span>
+<span id="7301">7301</span>
+<span id="7302">7302</span>
+<span id="7303">7303</span>
+<span id="7304">7304</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">boxed</span>::<span class="ident">Box</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">cmp</span>::{<span class="ident">Ord</span>, <span class="ident">Ordering</span>};
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>};
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">iter</span>::<span class="ident">FromIterator</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">mem</span>::{<span class="self">self</span>, <span class="ident">MaybeUninit</span>};
+<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">num</span>::<span class="ident">Wrapping</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ptr</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">common</span>::{<span class="ident">DebugFrameOffset</span>, <span class="ident">EhFrameOffset</span>, <span class="ident">Encoding</span>, <span class="ident">Format</span>, <span class="ident">Register</span>, <span class="ident">SectionId</span>};
@@ -9300,8 +9313,8 @@
 <span class="doccomment">/// &gt; subroutine in the program.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnwindTable</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <span class="ident">Reader</span><span class="op">&gt;</span> {
-    <span class="ident">code_alignment_factor</span>: <span class="ident">u64</span>,
-    <span class="ident">data_alignment_factor</span>: <span class="ident">i64</span>,
+    <span class="ident">code_alignment_factor</span>: <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+    <span class="ident">data_alignment_factor</span>: <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>,
     <span class="ident">next_start_address</span>: <span class="ident">u64</span>,
     <span class="ident">last_end_address</span>: <span class="ident">u64</span>,
     <span class="ident">returned_last_row</span>: <span class="ident">bool</span>,
@@ -9334,10 +9347,10 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UnwindTable</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">ctx</span>.<span class="ident">stack</span>().<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>);
         <span class="ident">UnwindTable</span> {
-            <span class="ident">code_alignment_factor</span>: <span class="ident">fde</span>.<span class="ident">cie</span>().<span class="ident">code_alignment_factor</span>(),
-            <span class="ident">data_alignment_factor</span>: <span class="ident">fde</span>.<span class="ident">cie</span>().<span class="ident">data_alignment_factor</span>(),
+            <span class="ident">code_alignment_factor</span>: <span class="ident">Wrapping</span>(<span class="ident">fde</span>.<span class="ident">cie</span>().<span class="ident">code_alignment_factor</span>()),
+            <span class="ident">data_alignment_factor</span>: <span class="ident">Wrapping</span>(<span class="ident">fde</span>.<span class="ident">cie</span>().<span class="ident">data_alignment_factor</span>()),
             <span class="ident">next_start_address</span>: <span class="ident">fde</span>.<span class="ident">initial_address</span>(),
-            <span class="ident">last_end_address</span>: <span class="ident">fde</span>.<span class="ident">initial_address</span>() <span class="op">+</span> <span class="ident">fde</span>.<span class="ident">len</span>(),
+            <span class="ident">last_end_address</span>: <span class="ident">fde</span>.<span class="ident">initial_address</span>().<span class="ident">wrapping_add</span>(<span class="ident">fde</span>.<span class="ident">len</span>()),
             <span class="ident">returned_last_row</span>: <span class="bool-val">false</span>,
             <span class="ident">instructions</span>: <span class="ident">fde</span>.<span class="ident">instructions</span>(<span class="ident">section</span>, <span class="ident">bases</span>),
             <span class="ident">ctx</span>,
@@ -9352,8 +9365,8 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UnwindTable</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">ctx</span>.<span class="ident">stack</span>().<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>);
         <span class="ident">UnwindTable</span> {
-            <span class="ident">code_alignment_factor</span>: <span class="ident">cie</span>.<span class="ident">code_alignment_factor</span>(),
-            <span class="ident">data_alignment_factor</span>: <span class="ident">cie</span>.<span class="ident">data_alignment_factor</span>(),
+            <span class="ident">code_alignment_factor</span>: <span class="ident">Wrapping</span>(<span class="ident">cie</span>.<span class="ident">code_alignment_factor</span>()),
+            <span class="ident">data_alignment_factor</span>: <span class="ident">Wrapping</span>(<span class="ident">cie</span>.<span class="ident">data_alignment_factor</span>()),
             <span class="ident">next_start_address</span>: <span class="number">0</span>,
             <span class="ident">last_end_address</span>: <span class="number">0</span>,
             <span class="ident">returned_last_row</span>: <span class="bool-val">false</span>,
@@ -9414,8 +9427,8 @@
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
             }
             <span class="ident">AdvanceLoc</span> { <span class="ident">delta</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">delta</span> <span class="op">=</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">delta</span>) <span class="op">*</span> <span class="self">self</span>.<span class="ident">code_alignment_factor</span>;
-                <span class="self">self</span>.<span class="ident">next_start_address</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ctx</span>.<span class="ident">start_address</span>() <span class="op">+</span> <span class="ident">delta</span>;
+                <span class="kw">let</span> <span class="ident">delta</span> <span class="op">=</span> <span class="ident">Wrapping</span>(<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">delta</span>)) <span class="op">*</span> <span class="self">self</span>.<span class="ident">code_alignment_factor</span>;
+                <span class="self">self</span>.<span class="ident">next_start_address</span> <span class="op">=</span> (<span class="ident">Wrapping</span>(<span class="self">self</span>.<span class="ident">ctx</span>.<span class="ident">start_address</span>()) <span class="op">+</span> <span class="ident">delta</span>).<span class="number">0</span>;
                 <span class="self">self</span>.<span class="ident">ctx</span>.<span class="ident">row_mut</span>().<span class="ident">end_address</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_start_address</span>;
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
             }
@@ -9434,7 +9447,7 @@
                 <span class="kw">let</span> <span class="ident">data_align</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data_alignment_factor</span>;
                 <span class="self">self</span>.<span class="ident">ctx</span>.<span class="ident">set_cfa</span>(<span class="ident">CfaRule</span>::<span class="ident">RegisterAndOffset</span> {
                     <span class="ident">register</span>,
-                    <span class="ident">offset</span>: <span class="ident">factored_offset</span> <span class="op">*</span> <span class="ident">data_align</span>,
+                    <span class="ident">offset</span>: (<span class="ident">Wrapping</span>(<span class="ident">factored_offset</span>) <span class="op">*</span> <span class="ident">data_align</span>).<span class="number">0</span>,
                 });
             }
             <span class="ident">DefCfaRegister</span> { <span class="ident">register</span> } <span class="op">=</span><span class="op">&gt;</span> {
@@ -9466,7 +9479,7 @@
                 } <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">ctx</span>.<span class="ident">cfa_mut</span>()
                 {
                     <span class="kw">let</span> <span class="ident">data_align</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data_alignment_factor</span>;
-                    <span class="kw-2">*</span><span class="ident">off</span> <span class="op">=</span> <span class="ident">factored_offset</span> <span class="op">*</span> <span class="ident">data_align</span>;
+                    <span class="kw-2">*</span><span class="ident">off</span> <span class="op">=</span> (<span class="ident">Wrapping</span>(<span class="ident">factored_offset</span>) <span class="op">*</span> <span class="ident">data_align</span>).<span class="number">0</span>;
                 } <span class="kw">else</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">CfiInstructionInInvalidContext</span>);
                 }
@@ -9488,33 +9501,33 @@
                 <span class="ident">register</span>,
                 <span class="ident">factored_offset</span>,
             } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">factored_offset</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">*</span> <span class="self">self</span>.<span class="ident">data_alignment_factor</span>;
+                <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">Wrapping</span>(<span class="ident">factored_offset</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="op">*</span> <span class="self">self</span>.<span class="ident">data_alignment_factor</span>;
                 <span class="self">self</span>.<span class="ident">ctx</span>
-                    .<span class="ident">set_register_rule</span>(<span class="ident">register</span>, <span class="ident">RegisterRule</span>::<span class="ident">Offset</span>(<span class="ident">offset</span>))<span class="question-mark">?</span>;
+                    .<span class="ident">set_register_rule</span>(<span class="ident">register</span>, <span class="ident">RegisterRule</span>::<span class="ident">Offset</span>(<span class="ident">offset</span>.<span class="number">0</span>))<span class="question-mark">?</span>;
             }
             <span class="ident">OffsetExtendedSf</span> {
                 <span class="ident">register</span>,
                 <span class="ident">factored_offset</span>,
             } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">factored_offset</span> <span class="op">*</span> <span class="self">self</span>.<span class="ident">data_alignment_factor</span>;
+                <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">Wrapping</span>(<span class="ident">factored_offset</span>) <span class="op">*</span> <span class="self">self</span>.<span class="ident">data_alignment_factor</span>;
                 <span class="self">self</span>.<span class="ident">ctx</span>
-                    .<span class="ident">set_register_rule</span>(<span class="ident">register</span>, <span class="ident">RegisterRule</span>::<span class="ident">Offset</span>(<span class="ident">offset</span>))<span class="question-mark">?</span>;
+                    .<span class="ident">set_register_rule</span>(<span class="ident">register</span>, <span class="ident">RegisterRule</span>::<span class="ident">Offset</span>(<span class="ident">offset</span>.<span class="number">0</span>))<span class="question-mark">?</span>;
             }
             <span class="ident">ValOffset</span> {
                 <span class="ident">register</span>,
                 <span class="ident">factored_offset</span>,
             } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">factored_offset</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">*</span> <span class="self">self</span>.<span class="ident">data_alignment_factor</span>;
+                <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">Wrapping</span>(<span class="ident">factored_offset</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="op">*</span> <span class="self">self</span>.<span class="ident">data_alignment_factor</span>;
                 <span class="self">self</span>.<span class="ident">ctx</span>
-                    .<span class="ident">set_register_rule</span>(<span class="ident">register</span>, <span class="ident">RegisterRule</span>::<span class="ident">ValOffset</span>(<span class="ident">offset</span>))<span class="question-mark">?</span>;
+                    .<span class="ident">set_register_rule</span>(<span class="ident">register</span>, <span class="ident">RegisterRule</span>::<span class="ident">ValOffset</span>(<span class="ident">offset</span>.<span class="number">0</span>))<span class="question-mark">?</span>;
             }
             <span class="ident">ValOffsetSf</span> {
                 <span class="ident">register</span>,
                 <span class="ident">factored_offset</span>,
             } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">factored_offset</span> <span class="op">*</span> <span class="self">self</span>.<span class="ident">data_alignment_factor</span>;
+                <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">Wrapping</span>(<span class="ident">factored_offset</span>) <span class="op">*</span> <span class="self">self</span>.<span class="ident">data_alignment_factor</span>;
                 <span class="self">self</span>.<span class="ident">ctx</span>
-                    .<span class="ident">set_register_rule</span>(<span class="ident">register</span>, <span class="ident">RegisterRule</span>::<span class="ident">ValOffset</span>(<span class="ident">offset</span>))<span class="question-mark">?</span>;
+                    .<span class="ident">set_register_rule</span>(<span class="ident">register</span>, <span class="ident">RegisterRule</span>::<span class="ident">ValOffset</span>(<span class="ident">offset</span>.<span class="number">0</span>))<span class="question-mark">?</span>;
             }
             <span class="ident">Register</span> {
                 <span class="ident">dest_register</span>,
@@ -9706,7 +9719,7 @@
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> (<span class="ident">reg</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">old_rule</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">rules_mut</span>() {
             <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">old_rule</span>.<span class="ident">is_defined</span>());
             <span class="kw">if</span> <span class="ident">reg</span> <span class="op">=</span><span class="op">=</span> <span class="ident">register</span> {
-                <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="ident">old_rule</span>, <span class="ident">rule</span>);
+                <span class="kw-2">*</span><span class="ident">old_rule</span> <span class="op">=</span> <span class="ident">rule</span>;
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
             }
         }
@@ -12388,6 +12401,17 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">clone</span>();
         <span class="ident">expected</span>.<span class="ident">row_mut</span>().<span class="ident">end_address</span> <span class="op">=</span> <span class="number">3</span> <span class="op">+</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">cie</span>.<span class="ident">code_alignment_factor</span>;
         <span class="kw">let</span> <span class="ident">instructions</span> <span class="op">=</span> [(<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>), <span class="ident">CallFrameInstruction</span>::<span class="ident">AdvanceLoc</span> { <span class="ident">delta</span>: <span class="number">2</span> })];
+        <span class="ident">assert_eval</span>(<span class="ident">ctx</span>, <span class="ident">expected</span>, <span class="ident">cie</span>, <span class="prelude-val">None</span>, <span class="ident">instructions</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_eval_advance_loc_overflow</span>() {
+        <span class="kw">let</span> <span class="ident">cie</span> <span class="op">=</span> <span class="ident">make_test_cie</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">UnwindContext</span>::<span class="ident">new</span>();
+        <span class="ident">ctx</span>.<span class="ident">row_mut</span>().<span class="ident">start_address</span> <span class="op">=</span> <span class="ident">u64</span>::<span class="ident">MAX</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">clone</span>();
+        <span class="ident">expected</span>.<span class="ident">row_mut</span>().<span class="ident">end_address</span> <span class="op">=</span> <span class="number">42</span> <span class="op">*</span> <span class="ident">cie</span>.<span class="ident">code_alignment_factor</span> <span class="op">-</span> <span class="number">1</span>;
+        <span class="kw">let</span> <span class="ident">instructions</span> <span class="op">=</span> [(<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>), <span class="ident">CallFrameInstruction</span>::<span class="ident">AdvanceLoc</span> { <span class="ident">delta</span>: <span class="number">42</span> })];
         <span class="ident">assert_eval</span>(<span class="ident">ctx</span>, <span class="ident">expected</span>, <span class="ident">cie</span>, <span class="prelude-val">None</span>, <span class="ident">instructions</span>);
     }
 
