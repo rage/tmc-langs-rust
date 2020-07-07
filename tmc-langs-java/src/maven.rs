@@ -51,15 +51,24 @@ impl MavenPlugin {
         }
         log::debug!("could not execute mvn");
         let tmc_path = dirs::cache_dir().ok_or(JavaError::CacheDir)?.join("tmc");
-        let mvn_exec = tmc_path.join("apache-maven-3.6.3").join("bin").join("mvn");
-        if !mvn_exec.exists() {
+
+        #[cfg(windows)]
+        let mvn_exec = "mvn.cmd";
+        #[cfg(not(windows))]
+        let mvn_exec = "mvn";
+
+        let mvn_exec_path = tmc_path
+            .join("apache-maven-3.6.3")
+            .join("bin")
+            .join(mvn_exec);
+        if !mvn_exec_path.exists() {
             log::debug!("extracting bundled tar");
             let tar = GzDecoder::new(Cursor::new(MVN_ARCHIVE));
             let mut tar = Archive::new(tar);
             tar.unpack(&tmc_path)
                 .map_err(|e| JavaError::MvnUnpack(tmc_path, e))?;
         }
-        Ok(mvn_exec.as_os_str().to_os_string())
+        Ok(mvn_exec_path.as_os_str().to_os_string())
     }
 }
 
