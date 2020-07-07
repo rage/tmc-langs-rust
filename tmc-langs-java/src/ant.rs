@@ -248,7 +248,7 @@ impl JavaPlugin for AntPlugin {
         log::debug!("java args {} in {}", arguments.join(" "), path.display());
         let command = Command::new("java")
             .current_dir(path)
-            .args(arguments.join(" ").split(' ').collect::<Vec<&str>>())
+            .args(arguments)
             .output()
             .map_err(|e| JavaError::FailedToRun("java".to_string(), e))?;
 
