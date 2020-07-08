@@ -37,11 +37,11 @@ pub enum Error {
     PluginNotFound(PathBuf),
     #[error("No project directory found in archive during unzip")]
     NoProjectDirInZip,
-    #[error("Running command '{0}' failed")]
-    CommandFailed(&'static str),
+    #[error("Running command '{0}' failed: {1}")]
+    CommandFailed(&'static str, std::io::Error),
 
     #[error("Failed to spawn command: {0}")]
-    CommandSpawn(std::io::Error),
+    CommandSpawn(&'static str, std::io::Error),
     #[error("Test timed out")]
     TestTimeout,
 
@@ -69,7 +69,7 @@ impl CommandWithTimeout<'_> {
         match timeout {
             Some(timeout) => {
                 // spawn process and init timer
-                let mut child = self.0.spawn().map_err(|e| Error::CommandSpawn(e))?;
+                let mut child = self.0.spawn().map_err(|e| Error::CommandSpawn(name, e))?;
                 let timer = Instant::now();
                 loop {
                     match child.try_wait()? {
@@ -77,7 +77,7 @@ impl CommandWithTimeout<'_> {
                             // done, get output
                             return child
                                 .wait_with_output()
-                                .map_err(|_| Error::CommandFailed(name));
+                                .map_err(|e| Error::CommandFailed(name, e));
                         }
                         None => {
                             // still running, check timeout
@@ -93,7 +93,7 @@ impl CommandWithTimeout<'_> {
                 }
             }
             // no timeout, block forever
-            None => self.0.output().map_err(|_| Error::CommandFailed(name)),
+            None => self.0.output().map_err(|e| Error::CommandFailed(name, e)),
         }
     }
 }
