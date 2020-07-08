@@ -6,7 +6,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{
     de::{self, Visitor},
-    Deserialize, Deserializer, Serialize,
+    Deserialize, Deserializer, Serialize, Serializer,
 };
 use std::fmt;
 use std::str::FromStr;
@@ -236,7 +236,7 @@ pub struct ExerciseDetails {
     pub submissions: Vec<ExerciseSubmission>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Submission {
     pub id: usize,
     pub user_id: usize,
@@ -287,20 +287,20 @@ pub struct NewSubmission {
     pub submission_url: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(untagged)] // TODO: tag
 pub enum SubmissionProcessingStatus {
     Processing(SubmissionProcessing),
     Finished(Box<SubmissionFinished>),
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct SubmissionProcessing {
     // pub status: SubmissionStatus // always Processing
     pub sandbox_status: SandboxStatus,
 }
 
-#[derive(Debug, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SandboxStatus {
     Created,
@@ -308,7 +308,7 @@ pub enum SandboxStatus {
     ProcessingOnSandbox,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct SubmissionFinished {
     pub api_version: usize,
     pub all_tests_passed: Option<bool>,
@@ -350,7 +350,7 @@ pub struct SubmissionFeedbackResponse {
     pub status: SubmissionStatus,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct TestCase {
     pub name: String,
     pub successful: bool,
@@ -359,14 +359,14 @@ pub struct TestCase {
     pub detailed_message: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct SubmissionFeedbackQuestion {
     pub id: usize,
     pub question: String,
     pub kind: SubmissionFeedbackKind,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum SubmissionFeedbackKind {
     Text,
     IntRange { lower: usize, upper: usize },
@@ -378,6 +378,19 @@ impl<'de> Deserialize<'de> for SubmissionFeedbackKind {
         D: Deserializer<'de>,
     {
         deserializer.deserialize_string(SubmissionFeedbackKindVisitor {})
+    }
+}
+
+impl Serialize for SubmissionFeedbackKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let s = match self {
+            Self::Text => "text".to_string(),
+            Self::IntRange { lower, upper } => format!("intrange[{}..{}]", lower, upper),
+        };
+        serializer.serialize_str(&s)
     }
 }
 
@@ -494,6 +507,51 @@ mod test {
         if let SubmissionFeedbackKind::IntRange { lower: 1, upper: 5 } = intrange {
         } else {
             panic!("wrong type")
+        }
+    }
+
+    #[test]
+    fn feedback_kind_se() {
+        init();
+        use serde_json::Value;
+
+        let text = SubmissionFeedbackKind::Text;
+        let text = serde_json::to_value(&text).unwrap();
+        assert_eq!(text, Value::String("text".to_string()));
+
+        let range = SubmissionFeedbackKind::IntRange { lower: 1, upper: 5 };
+        let range = serde_json::to_value(&range).unwrap();
+        assert_eq!(range, Value::String("intrange[1..5]".to_string()));
+    }
+
+    #[test]
+    fn deserializes_struct_with_error_field() {
+        let json = r#"{
+  "api_version": 7,
+  "all_tests_passed": false,
+  "user_id": 123,
+  "login": "log",
+  "course": "cou",
+  "exercise_name": "exe",
+  "status": "error",
+  "points": [],
+  "validations": null,
+  "valgrind": null,
+  "submission_url": "sub",
+  "solution_url": "sol",
+  "submitted_at": "sat",
+  "processing_time": null,
+  "reviewed": false,
+  "requests_review": false,
+  "paste_url": null,
+  "message_for_paste": null,
+  "missing_review_points": [],
+  "error": "error msg"
+}"#;
+        let s: Response<SubmissionProcessingStatus> = serde_json::from_str(json).unwrap();
+        if let Response::Ok(_) = s {
+        } else {
+            panic!("parse failed")
         }
     }
 }
