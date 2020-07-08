@@ -231,6 +231,14 @@ impl TmcCore {
         self.core_course(course_id)
     }
 
+    pub fn get_exercise_details(&self, exercise_id: usize) -> Result<ExerciseDetails> {
+        self.core_exercise(exercise_id)
+    }
+
+    pub fn get_course_submissions(&self, course_id: usize) -> Result<Vec<Submission>> {
+        self.course_submissions(course_id)
+    }
+
     /// Fetches all courses under the given organization.
     ///
     /// # Errors

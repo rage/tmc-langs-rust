@@ -223,7 +223,7 @@ pub struct AwardedPoint {
     created_at: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ExerciseDetails {
     pub course_name: String,
     pub course_id: usize,
@@ -233,7 +233,7 @@ pub struct ExerciseDetails {
     pub exercise_id: usize,
     pub unlocked_at: Option<String>,
     pub deadline: Option<String>,
-    // submissions: Vec<Submission>, // not used?
+    pub submissions: Vec<ExerciseSubmission>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -262,6 +262,22 @@ pub struct Submission {
     pub paste_available: bool,
     pub message_for_paste: String,
     pub paste_key: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ExerciseSubmission {
+    pub exercise_name: String,
+    pub id: usize,
+    pub user_id: usize,
+    pub course_id: usize,
+    pub created_at: String,
+    pub all_tests_passed: bool,
+    pub points: Option<String>,
+    pub submitted_zip_url: String,
+    pub paste_url: Option<String>,
+    pub processing_time: Option<usize>,
+    pub reviewed: bool,
+    pub requests_review: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
