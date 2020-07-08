@@ -118,7 +118,9 @@ impl LanguagePlugin for MavenPlugin {
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 
         if !output.status.success() {
-            return Err(Error::CommandFailed("mvn"));
+            return Err(
+                JavaError::FailedCommand("mvn".to_string(), output.stdout, output.stderr).into(),
+            );
         }
 
         Ok(())
@@ -155,6 +157,7 @@ impl JavaPlugin for MavenPlugin {
         if !output.status.success() {
             return Err(JavaError::FailedCommand(
                 mvn_path.as_os_str().to_string_lossy().to_string(),
+                output.stdout,
                 output.stderr,
             ));
         }
@@ -196,6 +199,7 @@ impl JavaPlugin for MavenPlugin {
         if !output.status.success() {
             return Err(JavaError::FailedCommand(
                 mvn_path.as_os_str().to_string_lossy().to_string(),
+                output.stdout,
                 output.stderr,
             ));
         }
@@ -229,6 +233,7 @@ impl JavaPlugin for MavenPlugin {
         if !output.status.success() {
             return Err(JavaError::FailedCommand(
                 mvn_path.as_os_str().to_string_lossy().to_string(),
+                output.stdout,
                 output.stderr,
             ));
         }

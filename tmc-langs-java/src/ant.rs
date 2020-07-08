@@ -134,7 +134,10 @@ impl LanguagePlugin for AntPlugin {
             fs::remove_file(stderr_path)?;
             Ok(())
         } else {
-            Err(Error::CommandFailed("ant clean"))
+            Err(
+                JavaError::FailedCommand("ant clean".to_string(), output.stdout, output.stderr)
+                    .into(),
+            )
         }
     }
 }
