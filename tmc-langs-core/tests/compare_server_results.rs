@@ -16,7 +16,7 @@ fn init() {
     if env::var("RUST_LOG").is_err() {
         env::set_var(
             "RUST_LOG",
-            "debug,j4rs=warn,hyper=warn,reqwest=warn,serde_xml_rs=warn",
+            "debug,j4rs=warn,hyper=warn,reqwest=warn,serde_xml_rs=warn,rustls=warn",
         );
     }
     let _ = env_logger::builder().is_test(true).try_init();
