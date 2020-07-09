@@ -481,6 +481,81 @@
 <span id="481">481</span>
 <span id="482">482</span>
 <span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains types which model the JSON responses from tmc-server</span>
 
@@ -490,11 +565,12 @@
 <span class="kw">use</span> <span class="ident">regex</span>::<span class="ident">Regex</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{
     <span class="ident">de</span>::{<span class="self">self</span>, <span class="ident">Visitor</span>},
-    <span class="ident">Deserialize</span>, <span class="ident">Deserializer</span>, <span class="ident">Serialize</span>,
+    <span class="ident">Deserialize</span>, <span class="ident">Deserializer</span>, <span class="ident">Serialize</span>, <span class="ident">Serializer</span>,
 };
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">FromStr</span>;
 <span class="kw">use</span> <span class="ident">thiserror</span>::<span class="ident">Error</span>;
+<span class="kw">use</span> <span class="ident">tmc_langs_util</span>::<span class="ident">ValidationResult</span>;
 
 <span class="doccomment">/// Models the responses from tmc-server, which can either</span>
 <span class="doccomment">/// be some successful response, a single error or a list of errors</span>
@@ -707,7 +783,7 @@
     <span class="ident">created_at</span>: <span class="ident">String</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExerciseDetails</span> {
     <span class="kw">pub</span> <span class="ident">course_name</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">course_id</span>: <span class="ident">usize</span>,
@@ -717,10 +793,10 @@
     <span class="kw">pub</span> <span class="ident">exercise_id</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">unlocked_at</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">deadline</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="comment">// submissions: Vec&lt;Submission&gt;, // not used?</span>
+    <span class="kw">pub</span> <span class="ident">submissions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ExerciseSubmission</span><span class="op">&gt;</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Submission</span> {
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">user_id</span>: <span class="ident">usize</span>,
@@ -749,26 +825,42 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExerciseSubmission</span> {
+    <span class="kw">pub</span> <span class="ident">exercise_name</span>: <span class="ident">String</span>,
+    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span> <span class="ident">user_id</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span> <span class="ident">course_id</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span> <span class="ident">created_at</span>: <span class="ident">String</span>,
+    <span class="kw">pub</span> <span class="ident">all_tests_passed</span>: <span class="ident">bool</span>,
+    <span class="kw">pub</span> <span class="ident">points</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">submitted_zip_url</span>: <span class="ident">String</span>,
+    <span class="kw">pub</span> <span class="ident">paste_url</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">processing_time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">reviewed</span>: <span class="ident">bool</span>,
+    <span class="kw">pub</span> <span class="ident">requests_review</span>: <span class="ident">bool</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NewSubmission</span> {
     <span class="kw">pub</span> <span class="ident">show_submission_url</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">paste_url</span>: <span class="ident">String</span>, <span class="comment">// use Option and serde_with::string_empty_as_none ?</span>
     <span class="kw">pub</span> <span class="ident">submission_url</span>: <span class="ident">String</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">untagged</span>)]</span> <span class="comment">// TODO: tag</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SubmissionProcessingStatus</span> {
     <span class="ident">Processing</span>(<span class="ident">SubmissionProcessing</span>),
     <span class="ident">Finished</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">SubmissionFinished</span><span class="op">&gt;</span>),
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SubmissionProcessing</span> {
     <span class="comment">// pub status: SubmissionStatus // always Processing</span>
     <span class="kw">pub</span> <span class="ident">sandbox_status</span>: <span class="ident">SandboxStatus</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Serialize</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;snake_case&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SandboxStatus</span> {
     <span class="ident">Created</span>,
@@ -776,7 +868,7 @@
     <span class="ident">ProcessingOnSandbox</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SubmissionFinished</span> {
     <span class="kw">pub</span> <span class="ident">api_version</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">all_tests_passed</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
@@ -800,7 +892,7 @@
     <span class="kw">pub</span> <span class="ident">feedback_questions</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SubmissionFeedbackQuestion</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">feedback_answer_url</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">error</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="comment">// validations: unknown;</span>
+    <span class="kw">pub</span> <span class="ident">validations</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationResult</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
@@ -818,7 +910,7 @@
     <span class="kw">pub</span> <span class="ident">status</span>: <span class="ident">SubmissionStatus</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TestCase</span> {
     <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">successful</span>: <span class="ident">bool</span>,
@@ -827,14 +919,14 @@
     <span class="kw">pub</span> <span class="ident">detailed_message</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SubmissionFeedbackQuestion</span> {
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">question</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">SubmissionFeedbackKind</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SubmissionFeedbackKind</span> {
     <span class="ident">Text</span>,
     <span class="ident">IntRange</span> { <span class="ident">lower</span>: <span class="ident">usize</span>, <span class="ident">upper</span>: <span class="ident">usize</span> },
@@ -846,6 +938,19 @@
         <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
         <span class="ident">deserializer</span>.<span class="ident">deserialize_string</span>(<span class="ident">SubmissionFeedbackKindVisitor</span> {})
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Serialize</span> <span class="kw">for</span> <span class="ident">SubmissionFeedbackKind</span> {
+    <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="prelude-val">Ok</span>, <span class="ident">S</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">S</span>: <span class="ident">Serializer</span>,
+    {
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
+            <span class="self">Self</span>::<span class="ident">Text</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;text&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">IntRange</span> { <span class="ident">lower</span>, <span class="ident">upper</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;intrange[{}..{}]&quot;</span>, <span class="ident">lower</span>, <span class="ident">upper</span>),
+        };
+        <span class="ident">serializer</span>.<span class="ident">serialize_str</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>)
     }
 }
 
@@ -962,6 +1067,51 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">SubmissionFeedbackKind</span>::<span class="ident">IntRange</span> { <span class="ident">lower</span>: <span class="number">1</span>, <span class="ident">upper</span>: <span class="number">5</span> } <span class="op">=</span> <span class="ident">intrange</span> {
         } <span class="kw">else</span> {
             <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;wrong type&quot;</span>)
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">feedback_kind_se</span>() {
+        <span class="ident">init</span>();
+        <span class="kw">use</span> <span class="ident">serde_json</span>::<span class="ident">Value</span>;
+
+        <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">SubmissionFeedbackKind</span>::<span class="ident">Text</span>;
+        <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">to_value</span>(<span class="kw-2">&amp;</span><span class="ident">text</span>).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">text</span>, <span class="ident">Value</span>::<span class="ident">String</span>(<span class="string">&quot;text&quot;</span>.<span class="ident">to_string</span>()));
+
+        <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">SubmissionFeedbackKind</span>::<span class="ident">IntRange</span> { <span class="ident">lower</span>: <span class="number">1</span>, <span class="ident">upper</span>: <span class="number">5</span> };
+        <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">to_value</span>(<span class="kw-2">&amp;</span><span class="ident">range</span>).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">range</span>, <span class="ident">Value</span>::<span class="ident">String</span>(<span class="string">&quot;intrange[1..5]&quot;</span>.<span class="ident">to_string</span>()));
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">deserializes_struct_with_error_field</span>() {
+        <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="string">r#&quot;{
+  &quot;api_version&quot;: 7,
+  &quot;all_tests_passed&quot;: false,
+  &quot;user_id&quot;: 123,
+  &quot;login&quot;: &quot;log&quot;,
+  &quot;course&quot;: &quot;cou&quot;,
+  &quot;exercise_name&quot;: &quot;exe&quot;,
+  &quot;status&quot;: &quot;error&quot;,
+  &quot;points&quot;: [],
+  &quot;validations&quot;: null,
+  &quot;valgrind&quot;: null,
+  &quot;submission_url&quot;: &quot;sub&quot;,
+  &quot;solution_url&quot;: &quot;sol&quot;,
+  &quot;submitted_at&quot;: &quot;sat&quot;,
+  &quot;processing_time&quot;: null,
+  &quot;reviewed&quot;: false,
+  &quot;requests_review&quot;: false,
+  &quot;paste_url&quot;: null,
+  &quot;message_for_paste&quot;: null,
+  &quot;missing_review_points&quot;: [],
+  &quot;error&quot;: &quot;error msg&quot;
+}&quot;#</span>;
+        <span class="kw">let</span> <span class="ident">s</span>: <span class="ident">Response</span><span class="op">&lt;</span><span class="ident">SubmissionProcessingStatus</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">from_str</span>(<span class="ident">json</span>).<span class="ident">unwrap</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Response</span>::<span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">s</span> {
+        } <span class="kw">else</span> {
+            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;parse failed&quot;</span>)
         }
     }
 }

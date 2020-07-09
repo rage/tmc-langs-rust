@@ -293,6 +293,10 @@
 <span id="293">293</span>
 <span id="294">294</span>
 <span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Common functionality for all Java plugins</span>
 
@@ -392,7 +396,7 @@
             <span class="ident">successful</span>,
             <span class="ident">points</span>,
             <span class="ident">message</span>,
-            <span class="ident">exceptions</span>,
+            <span class="ident">exception</span>: <span class="ident">exceptions</span>,
         }
     }
 
@@ -417,7 +421,11 @@
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JavaError</span>::<span class="ident">FailedToRun</span>(<span class="string">&quot;java&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">output</span>.<span class="ident">status</span>.<span class="ident">success</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JavaError</span>::<span class="ident">FailedCommand</span>(<span class="string">&quot;java&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">output</span>.<span class="ident">stderr</span>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JavaError</span>::<span class="ident">FailedCommand</span>(
+                <span class="string">&quot;java&quot;</span>.<span class="ident">to_string</span>(),
+                <span class="ident">output</span>.<span class="ident">stdout</span>,
+                <span class="ident">output</span>.<span class="ident">stderr</span>,
+            ));
         }
 
         <span class="comment">// information is printed to stderr</span>
