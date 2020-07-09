@@ -33,8 +33,14 @@ impl From<RRunResult> for RunResult {
                     .collect(),
             );
         }
+        let mut status = RunStatus::Passed;
+        for test_result in &r_run_result.test_results {
+            if test_result.status != RTestStatus::Pass {
+                status = RunStatus::TestsFailed;
+            }
+        }
         RunResult {
-            status: r_run_result.run_status.into(),
+            status,
             test_results: r_run_result
                 .test_results
                 .into_iter()
@@ -51,16 +57,6 @@ enum RRunStatus {
     Success,
     RunFailed,
     SourcingFailed,
-}
-
-impl From<RRunStatus> for RunStatus {
-    fn from(r_run_status: RRunStatus) -> RunStatus {
-        match r_run_status {
-            RRunStatus::Success => RunStatus::Passed,
-            RRunStatus::RunFailed => RunStatus::TestsFailed,
-            RRunStatus::SourcingFailed => RunStatus::GenericError,
-        }
-    }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -80,7 +76,7 @@ impl From<RTestResult> for TestResult {
             successful: r_test_result.status == RTestStatus::Pass,
             points: r_test_result.points,
             message: r_test_result.message,
-            exceptions: r_test_result.backtrace,
+            exception: r_test_result.backtrace,
         }
     }
 }

@@ -238,7 +238,7 @@ impl LanguagePlugin for MakePlugin {
                         if test_result.successful {
                             test_result.message += " - Failed due to errors in valgrind log; see log below. Try submitting to server, some leaks might be platform dependent";
                         }
-                        test_result.exceptions.extend(valgrind_result.log);
+                        test_result.exception.extend(valgrind_result.log);
                     }
                 }
             }
@@ -340,7 +340,7 @@ mod test {
         assert_eq!(test_result.name, "test_one");
         assert!(test_result.successful);
         assert_eq!(test_result.message, "Passed");
-        assert!(test_result.exceptions.is_empty());
+        assert!(test_result.exception.is_empty());
         let points = &test_result.points;
         assert_eq!(points.len(), 1);
         let point = &points[0];

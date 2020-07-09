@@ -33,7 +33,7 @@ impl CheckLog {
                     successful,
                     points,
                     message: test.message,
-                    exceptions,
+                    exception: exceptions,
                 });
             }
         }

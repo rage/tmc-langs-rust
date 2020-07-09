@@ -54,7 +54,7 @@ impl LanguagePlugin for NoTestsPlugin {
                 successful: true,
                 points: self.get_points(path),
                 message: "".to_string(),
-                exceptions: vec![],
+                exception: vec![],
             }],
             logs: HashMap::new(),
         })

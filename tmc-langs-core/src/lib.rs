@@ -23,4 +23,4 @@ pub use response::{
     User,
 };
 pub use tmc_core::TmcCore;
-pub use tmc_langs_util::{Language, RunResult, ValidationResult};
+pub use tmc_langs_util::{Language, RunResult, Strategy, ValidationResult};

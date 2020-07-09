@@ -58,7 +58,7 @@ impl PythonTestResult {
             successful: self.passed,
             message: self.message,
             points: self.points,
-            exceptions: self.exceptions,
+            exception: self.exceptions,
         }
     }
 }

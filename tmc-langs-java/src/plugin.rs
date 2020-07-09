@@ -96,7 +96,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
             successful,
             points,
             message,
-            exceptions,
+            exception: exceptions,
         }
     }
 

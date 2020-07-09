@@ -247,7 +247,7 @@ mod test {
         assert!(run_result.test_results[0].points.contains(&"2.2".into()));
         assert_eq!(run_result.test_results[0].points.len(), 3);
         assert!(run_result.test_results[0].message.is_empty());
-        assert!(run_result.test_results[0].exceptions.is_empty());
+        assert!(run_result.test_results[0].exception.is_empty());
         assert_eq!(run_result.test_results.len(), 1);
         assert!(run_result.logs.is_empty());
 
@@ -263,7 +263,7 @@ mod test {
         assert!(run_result.test_results[0].points.contains(&"1.2".into()));
         assert!(run_result.test_results[0].points.contains(&"2.2".into()));
         assert!(run_result.test_results[0].message.starts_with("'a' != 'b'"));
-        assert!(run_result.test_results[0].exceptions.is_empty());
+        assert!(run_result.test_results[0].exception.is_empty());
         assert_eq!(run_result.test_results.len(), 1);
         assert!(run_result.logs.is_empty());
 
@@ -282,7 +282,7 @@ mod test {
             run_result.test_results[0].message,
             "name 'doSomethingIllegal' is not defined"
         );
-        assert!(run_result.test_results[0].exceptions.is_empty());
+        assert!(run_result.test_results[0].exception.is_empty());
         assert_eq!(run_result.test_results.len(), 1);
         assert!(run_result.logs.is_empty());
     }

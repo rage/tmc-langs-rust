@@ -11,6 +11,7 @@ use serde::{
 use std::fmt;
 use std::str::FromStr;
 use thiserror::Error;
+use tmc_langs_util::ValidationResult;
 
 /// Models the responses from tmc-server, which can either
 /// be some successful response, a single error or a list of errors
@@ -332,7 +333,7 @@ pub struct SubmissionFinished {
     pub feedback_questions: Option<Vec<SubmissionFeedbackQuestion>>,
     pub feedback_answer_url: Option<String>,
     pub error: Option<String>,
-    // validations: unknown;
+    pub validations: Option<ValidationResult>,
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]

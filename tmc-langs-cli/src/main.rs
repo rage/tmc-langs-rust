@@ -849,7 +849,7 @@ fn write_result_to_file_as_json<T: Serialize>(result: &T, output_path: &Path) {
         .exit()
     });
 
-    serde_json::to_writer(output_file, result).unwrap_or_else(|e| {
+    serde_json::to_writer_pretty(output_file, result).unwrap_or_else(|e| {
         Error::with_description(
             &format!(
                 "Failed to write result as JSON to {}: {}",
@@ -935,7 +935,7 @@ fn run_checkstyle(exercise_path: &Path, output_path: &Path, locale: Language) {
             )
             .exit()
         });
-        serde_json::to_writer(output_file, &check_result).unwrap_or_else(|e| {
+        serde_json::to_writer_pretty(output_file, &check_result).unwrap_or_else(|e| {
             Error::with_description(
                 &format!(
                     "Failed to write check results as JSON to {}: {}",
