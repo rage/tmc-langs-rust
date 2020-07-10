@@ -48,7 +48,7 @@ struct PythonTestResult {
     pub points: Vec<String>,
     pub message: String,
     #[serde(default)]
-    pub exceptions: Vec<String>,
+    pub backtrace: Vec<String>,
 }
 
 impl PythonTestResult {
@@ -58,7 +58,7 @@ impl PythonTestResult {
             successful: self.passed,
             message: self.message,
             points: self.points,
-            exception: self.exceptions,
+            exception: self.backtrace,
         }
     }
 }
