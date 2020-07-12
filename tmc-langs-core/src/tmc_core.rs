@@ -104,65 +104,6 @@ impl TmcCore {
         email: String,
         password: String,
     ) -> Result<()> {
-        // required until oauth 4.x.x
-        fn custom_client<'a>(
-            client: &'a Client,
-        ) -> impl FnOnce(oauth2::HttpRequest) -> Result<oauth2::HttpResponse> + 'a {
-            move |req| {
-                // convert httprequest fields
-                let method = http::method::Method::from_bytes(req.method.as_str().as_bytes())
-                    .expect("failed to convert method");
-                let mut headers = http::HeaderMap::new();
-                let mut next_key = None;
-                for (key, val) in req.headers {
-                    // if key is none, keep using previous next key
-                    if key.is_some() {
-                        // update next key
-                        next_key = key;
-                    }
-                    let header_name = if let Some(name) = next_key.as_ref() {
-                        // use next key
-                        name
-                    } else {
-                        log::error!("invalid header map, found None key first");
-                        continue;
-                    };
-                    let header_name =
-                        http::header::HeaderName::from_bytes(header_name.as_str().as_bytes())
-                            .expect("failed to convert header name");
-                    let header_value = http::header::HeaderValue::from_bytes(val.as_bytes())
-                        .expect("failed to convert header value");
-                    headers.insert(header_name, header_value);
-                }
-                let res = client
-                    .request(method, req.url)
-                    .headers(headers)
-                    .body(req.body)
-                    .send()?;
-
-                // convert response to httpresponse
-                let status_code = http1::StatusCode::from_bytes(res.status().as_str().as_bytes())
-                    .expect("failed to convert status code");
-                let mut headers = http1::HeaderMap::new();
-                for (key, val) in res.headers() {
-                    let header_name =
-                        http1::header::HeaderName::from_bytes(key.as_str().as_bytes())
-                            .expect("failed to convert header name");
-                    let header_value = http1::header::HeaderValue::from_bytes(val.as_bytes())
-                        .expect("failed to convert header value");
-                    headers.insert(header_name, header_value);
-                }
-                let body = res.bytes()?.to_vec();
-                let res = oauth2::HttpResponse {
-                    status_code,
-                    headers,
-                    body,
-                };
-
-                Ok(res)
-            }
-        }
-
         if self.token.is_some() {
             return Err(CoreError::AlreadyAuthenticated);
         }
@@ -191,7 +132,7 @@ impl TmcCore {
                 &ResourceOwnerUsername::new(email),
                 &ResourceOwnerPassword::new(password),
             )
-            .request(custom_client(&self.client))?;
+            .request(oauth2::reqwest::http_client)?;
         self.token = Some(token);
         log::debug!("authenticated");
         Ok(())

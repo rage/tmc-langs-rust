@@ -8,7 +8,7 @@ use url::Url;
 
 pub(crate) type Result<T> = std::result::Result<T, CoreError>;
 type TokenError = oauth2::RequestTokenError<
-    CoreError,
+    oauth2::reqwest::Error<reqwest::Error>,
     oauth2::StandardErrorResponse<oauth2::basic::BasicErrorResponseType>,
 >;
 
