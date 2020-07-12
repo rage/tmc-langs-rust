@@ -15,19 +15,19 @@ type TokenError = oauth2::RequestTokenError<
 #[derive(Debug, Error)]
 pub enum CoreError {
     #[error("Failed to create temporary file: {0}")]
-    TempFile(std::io::Error),
+    TempFile(#[source] std::io::Error),
     #[error("Failed to create file at {0}: {1}")]
-    FileCreate(PathBuf, std::io::Error),
+    FileCreate(PathBuf, #[source] std::io::Error),
     #[error("Failed to open file at {0}: {1}")]
-    FileOpen(PathBuf, std::io::Error),
+    FileOpen(PathBuf, #[source] std::io::Error),
     #[error("Failed to write to file at {0}: {1}")]
-    Write(PathBuf, std::io::Error),
+    Write(PathBuf, #[source] std::io::Error),
     #[error("HTTP error for {0}: {1}")]
     HttpStatus(Url, StatusCode),
     #[error("OAuth2 password exchange error: {0}")]
     Token(Box<TokenError>),
     #[error("OAuth2 unexpected token response {1}: {0}")]
-    TokenParse(serde_json::error::Error, String),
+    TokenParse(#[source] serde_json::error::Error, String),
     #[error("Already authenticated")]
     AlreadyAuthenticated,
     #[error("Authentication required")]

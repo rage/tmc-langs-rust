@@ -1,6 +1,5 @@
 //! Error type for the make plugin.
 
-use serde_xml_rs::Error as XmlError;
 use std::num::ParseIntError;
 use std::path::PathBuf;
 use thiserror::Error;
@@ -24,13 +23,13 @@ pub enum MakeError {
     MakeFailed,
 
     #[error("Failed to parse XML at {0}: {1}")]
-    XmlParseError(PathBuf, XmlError),
+    XmlParseError(PathBuf, #[source] serde_xml_rs::Error),
     #[error("Failed to open file at {0}")]
-    FileOpen(PathBuf, std::io::Error),
+    FileOpen(PathBuf, #[source] std::io::Error),
     #[error("Failed to read file at {0}")]
-    FileRead(PathBuf, std::io::Error),
+    FileRead(PathBuf, #[source] std::io::Error),
     #[error("Failed to run make")]
-    MakeCommand(std::io::Error),
+    MakeCommand(#[source] std::io::Error),
     #[error(transparent)]
     ParseIntError(#[from] ParseIntError),
 }
