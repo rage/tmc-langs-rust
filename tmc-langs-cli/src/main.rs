@@ -713,7 +713,7 @@ fn write_result_to_file_as_json<T: Serialize>(result: &T, output_path: &Path) ->
         )
     })?;
 
-    serde_json::to_writer_pretty(output_file, result).with_context(|| {
+    serde_json::to_writer(output_file, result).with_context(|| {
         format!(
             "Failed to write result as JSON to {}",
             output_path.display()
@@ -781,7 +781,7 @@ fn run_checkstyle(exercise_path: &Path, output_path: &Path, locale: Language) ->
                 output_path.display()
             )
         })?;
-        serde_json::to_writer_pretty(output_file, &check_result).with_context(|| {
+        serde_json::to_writer(output_file, &check_result).with_context(|| {
             format!(
                 "Failed to write code style check results as JSON to {}",
                 output_path.display()
