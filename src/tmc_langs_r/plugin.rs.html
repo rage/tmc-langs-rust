@@ -221,6 +221,29 @@
 <span id="221">221</span>
 <span id="222">222</span>
 <span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Contains the RPlugin</span>
 
@@ -409,7 +432,7 @@
                 <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="ident">successful</span>);
                 <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="ident">points</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;r1&quot;</span>, <span class="string">&quot;r1.1&quot;</span>]);
                 <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="ident">message</span>.<span class="ident">is_empty</span>());
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="ident">exceptions</span>.<span class="ident">is_empty</span>());
+                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="ident">exception</span>.<span class="ident">is_empty</span>());
                 <span class="kw">return</span>;
             }
         }
@@ -420,10 +443,32 @@
     <span class="kw">fn</span> <span class="ident">run_tests_failed</span>() {
         <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">RPlugin</span> {};
+        <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">copy_test</span>(<span class="string">&quot;tests/data/simple_all_tests_fail&quot;</span>);
+
+        <span class="kw">let</span> <span class="ident">run</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">run_tests</span>(<span class="ident">temp</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">run</span>.<span class="ident">status</span>, <span class="ident">RunStatus</span>::<span class="ident">TestsFailed</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">run</span>.<span class="ident">logs</span>.<span class="ident">is_empty</span>());
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">run</span>.<span class="ident">test_results</span>.<span class="ident">len</span>(), <span class="number">4</span>);
+        <span class="kw">for</span> <span class="ident">res</span> <span class="kw">in</span> <span class="ident">run</span>.<span class="ident">test_results</span> {
+            <span class="kw">if</span> <span class="ident">res</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;ret_true works.&quot;</span> {
+                <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">res</span>.<span class="ident">successful</span>);
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="ident">points</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;r1&quot;</span>, <span class="string">&quot;r1.1&quot;</span>]);
+                <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">res</span>.<span class="ident">message</span>.<span class="ident">is_empty</span>());
+                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="ident">exception</span>.<span class="ident">is_empty</span>());
+                <span class="kw">return</span>;
+            }
+        }
+        <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;not found&quot;</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">run_tests_run_failed</span>() {
+        <span class="ident">init</span>();
+        <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">RPlugin</span> {};
         <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">copy_test</span>(<span class="string">&quot;tests/data/simple_run_fail&quot;</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">run</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">run_tests</span>(<span class="ident">temp</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">run</span>.<span class="ident">status</span>, <span class="ident">RunStatus</span>::<span class="ident">TestsFailed</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">run</span>.<span class="ident">status</span>, <span class="ident">RunStatus</span>::<span class="ident">CompileFailed</span>);
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">run</span>.<span class="ident">test_results</span>.<span class="ident">is_empty</span>());
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">run</span>.<span class="ident">logs</span>.<span class="ident">is_empty</span>());
         <span class="kw">let</span> <span class="ident">logs</span> <span class="op">=</span> <span class="ident">run</span>.<span class="ident">logs</span>.<span class="ident">remove</span>(<span class="string">&quot;compiler_output&quot;</span>).<span class="ident">unwrap</span>();
@@ -438,11 +483,12 @@
         <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">copy_test</span>(<span class="string">&quot;tests/data/simple_sourcing_fail&quot;</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">run</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">run_tests</span>(<span class="ident">temp</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">run</span>.<span class="ident">status</span>, <span class="ident">RunStatus</span>::<span class="ident">GenericError</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">run</span>.<span class="ident">status</span>, <span class="ident">RunStatus</span>::<span class="ident">CompileFailed</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">run</span>.<span class="ident">test_results</span>.<span class="ident">is_empty</span>());
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">run</span>.<span class="ident">logs</span>.<span class="ident">is_empty</span>());
         <span class="kw">let</span> <span class="ident">logs</span> <span class="op">=</span> <span class="ident">run</span>.<span class="ident">logs</span>.<span class="ident">remove</span>(<span class="string">&quot;compiler_output&quot;</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">logs</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from_utf8</span>(<span class="ident">logs</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">logs</span>.<span class="ident">contains</span>(<span class="string">&quot;unexpected &#39;in&#39;&quot;</span>))
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">logs</span>.<span class="ident">contains</span>(<span class="string">&quot;unexpected &#39;in&#39;&quot;</span>));
     }
 }
 </pre></div>
