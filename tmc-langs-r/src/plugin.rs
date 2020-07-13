@@ -84,6 +84,10 @@ impl LanguagePlugin for RPlugin {
             .args(args)
             .output()
             .map_err(|e| RError::Command("Rscript", e))?;
+
+        log::trace!("stdout: {}", String::from_utf8_lossy(&out.stdout));
+        log::debug!("stderr: {}", String::from_utf8_lossy(&out.stderr));
+
         if !out.status.success() {
             return Err(RError::CommandStatus("Rscript", out.status).into());
         }

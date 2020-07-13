@@ -11,6 +11,7 @@ use oauth2::{
     AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword, ResourceOwnerUsername, TokenUrl,
 };
 use reqwest::{blocking::Client, Url};
+use serde::Serialize;
 use std::collections::HashMap;
 use std::io::Write;
 use std::path::Path;
@@ -21,6 +22,12 @@ use tmc_langs_util::task_executor;
 pub type Token =
     oauth2::StandardTokenResponse<oauth2::EmptyExtraTokenFields, oauth2::basic::BasicTokenType>;
 
+#[derive(Debug, Serialize)]
+pub enum StatusUpdate {
+    Processing(&'static str, f64),
+    Finished,
+}
+
 /// A struct for interacting with the TestMyCode service, including authentication
 pub struct TmcCore {
     client: Client,
@@ -29,6 +36,7 @@ pub struct TmcCore {
     api_url: Url,
     auth_url: String,
     token: Option<Token>,
+    progress_report: Option<Box<dyn Fn(StatusUpdate)>>,
 }
 
 // TODO: cache API results?
@@ -64,6 +72,7 @@ impl TmcCore {
             api_url,
             auth_url,
             token: None,
+            progress_report: None,
         })
     }
 
@@ -81,6 +90,25 @@ impl TmcCore {
     pub fn new_in_config(root_url: String) -> Result<Self> {
         let config_dir = dirs::cache_dir().ok_or(CoreError::CacheDir)?;
         Self::new(config_dir, root_url)
+    }
+
+    pub fn set_progress_report<F>(&mut self, progress_report: F)
+    where
+        F: Fn(StatusUpdate) + 'static,
+    {
+        self.progress_report = Some(Box::new(progress_report));
+    }
+
+    pub fn report_progress(&self, msg: &'static str, progress: f64) {
+        self.progress_report
+            .as_ref()
+            .map(|f| f(StatusUpdate::Processing(msg, progress)));
+    }
+
+    pub fn report_complete(&self) {
+        self.progress_report
+            .as_ref()
+            .map(|f| f(StatusUpdate::Finished));
     }
 
     /// Attempts to log in with the given credentials, returns an error if an authentication token is already present.
@@ -329,12 +357,18 @@ impl TmcCore {
         locale: Language,
     ) -> Result<NewSubmission> {
         // compress
+        self.report_progress("Submitting exercise. Compressing submission...", 0.0);
         let compressed = task_executor::compress_project(submission_path)?;
+        self.report_progress("Compressed submission. Creating temporary file...", 0.25);
         let mut file = NamedTempFile::new().map_err(CoreError::TempFile)?;
+        self.report_progress("Created temporary file. Writing compressed data...", 0.5);
         file.write_all(&compressed)
             .map_err(|e| CoreError::FileWrite(file.path().to_path_buf(), e))?;
+        self.report_progress("Wrote compressed data. Posting submission...", 0.75);
 
-        self.post_submission(submission_url, file.path(), locale)
+        let result = self.post_submission(submission_url, file.path(), locale);
+        self.report_complete();
+        result
     }
 
     /// Fetches the course's exercises from the server,

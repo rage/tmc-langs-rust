@@ -515,6 +515,8 @@ fn run() -> Result<()> {
             env::var("TMC_CORE_CLI_ROOT_URL").unwrap_or_else(|_| "https://tmc.mooc.fi".to_string());
         let mut core = TmcCore::new_in_config(root_url)
             .with_context(|| format!("Failed to create TmcCore"))?;
+        // set progress report to print the updates to stdout as JSON
+        core.set_progress_report(|update| println!("{}", serde_json::to_string(&update).unwrap()));
 
         let email = matches.value_of("email").unwrap();
         // TODO: "Please enter password" and quiet param
