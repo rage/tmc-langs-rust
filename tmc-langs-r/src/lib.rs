@@ -33,12 +33,21 @@ impl From<RRunResult> for RunResult {
                     .collect(),
             );
         }
-        let mut status = RunStatus::Passed;
-        for test_result in &r_run_result.test_results {
-            if test_result.status != RTestStatus::Pass {
-                status = RunStatus::TestsFailed;
+        let status = match r_run_result.run_status {
+            RRunStatus::Success => {
+                // check test results to determine the status
+                let mut status = RunStatus::Passed;
+                for test_result in &r_run_result.test_results {
+                    if test_result.status != RTestStatus::Pass {
+                        status = RunStatus::TestsFailed;
+                    }
+                }
+                status
             }
-        }
+            // todo: differentiate between different errors?
+            _ => RunStatus::CompileFailed,
+        };
+
         RunResult {
             status,
             test_results: r_run_result

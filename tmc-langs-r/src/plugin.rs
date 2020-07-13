@@ -185,7 +185,7 @@ mod test {
                 assert!(res.successful);
                 assert_eq!(res.points, &["r1", "r1.1"]);
                 assert!(res.message.is_empty());
-                assert!(res.exceptions.is_empty());
+                assert!(res.exception.is_empty());
                 return;
             }
         }
@@ -196,10 +196,32 @@ mod test {
     fn run_tests_failed() {
         init();
         let plugin = RPlugin {};
+        let temp = copy_test("tests/data/simple_all_tests_fail");
+
+        let run = plugin.run_tests(temp.path()).unwrap();
+        assert_eq!(run.status, RunStatus::TestsFailed);
+        assert!(run.logs.is_empty());
+        assert_eq!(run.test_results.len(), 4);
+        for res in run.test_results {
+            if res.name == "ret_true works." {
+                assert!(!res.successful);
+                assert_eq!(res.points, &["r1", "r1.1"]);
+                assert!(!res.message.is_empty());
+                assert!(res.exception.is_empty());
+                return;
+            }
+        }
+        panic!("not found");
+    }
+
+    #[test]
+    fn run_tests_run_failed() {
+        init();
+        let plugin = RPlugin {};
         let temp = copy_test("tests/data/simple_run_fail");
 
         let mut run = plugin.run_tests(temp.path()).unwrap();
-        assert_eq!(run.status, RunStatus::TestsFailed);
+        assert_eq!(run.status, RunStatus::CompileFailed);
         assert!(run.test_results.is_empty());
         assert!(!run.logs.is_empty());
         let logs = run.logs.remove("compiler_output").unwrap();
@@ -214,10 +236,11 @@ mod test {
         let temp = copy_test("tests/data/simple_sourcing_fail");
 
         let mut run = plugin.run_tests(temp.path()).unwrap();
-        assert_eq!(run.status, RunStatus::GenericError);
+        assert_eq!(run.status, RunStatus::CompileFailed);
+        assert!(run.test_results.is_empty());
         assert!(!run.logs.is_empty());
         let logs = run.logs.remove("compiler_output").unwrap();
         let logs = String::from_utf8(logs).unwrap();
-        assert!(logs.contains("unexpected 'in'"))
+        assert!(logs.contains("unexpected 'in'"));
     }
 }
