@@ -8,7 +8,7 @@ use lazy_static::lazy_static;
 use log::{debug, info};
 use regex::Regex;
 use std::fs::{self, File};
-use std::io::Write;
+use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 use walkdir::{DirEntry, WalkDir};
 
@@ -27,6 +27,7 @@ pub fn move_files(
     target: &Path,
 ) -> Result<()> {
     let tmc_project_yml = student_file_policy.get_tmc_project_yml()?;
+    // silently skips over errors
     for entry in WalkDir::new(source)
         .into_iter()
         .filter_map(|e| e.ok())
@@ -111,7 +112,9 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
         .strip_prefix(source_root)
         .unwrap_or_else(|_| Path::new(""));
     let dest_path = dest_root.join(&relative_path);
-    dest_path.parent().map_or(Ok(()), fs::create_dir_all)?;
+    if let Some(parent) = dest_path.parent() {
+        fs::create_dir_all(parent).map_err(|e| Error::CreateDir(parent.to_path_buf(), e))?;
+    }
     let extension = entry.path().extension().and_then(|e| e.to_str());
     let is_binary = extension
         .map(|e| NON_TEXT_TYPES.is_match(e))
@@ -135,19 +138,28 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
         let source_file =
             File::open(entry.path()).map_err(|e| Error::OpenFile(entry.path().to_path_buf(), e))?;
 
-        let mut target_file = File::create(dest_path)
+        let mut target_file = File::create(&dest_path)
             .map_err(|e| Error::CreateFile(entry.path().to_path_buf(), e))?;
 
         let parser = MetaSyntaxParser::new(source_file, extension.unwrap_or_default());
-        for line in parser {
-            let line = line?;
-            if filter(&line) {
-                debug!("write: {:?}", line);
-                target_file.write_all(line.as_str().as_bytes())?;
-            } else {
-                debug!("skip: {:?}", line);
-            }
-        }
+
+        // todo: reduce collection?
+        // filtered metastrings
+        let filtered: Vec<MetaString> = parser
+            .collect::<Result<Vec<_>>>()?
+            .into_iter()
+            .filter(filter)
+            .collect();
+        // collects the filtered lines into a byte vector
+        let write_lines: Vec<u8> = filtered
+            .iter()
+            .flat_map(|l| l.as_str().as_bytes())
+            .copied()
+            .collect();
+        // writes all lines
+        target_file
+            .write_all(&write_lines)
+            .map_err(|e| Error::Write(dest_path, e))?;
     }
     Ok(())
 }
