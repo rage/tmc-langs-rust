@@ -272,7 +272,7 @@ impl LanguagePlugin for MakePlugin {
 }
 
 #[cfg(test)]
-#[cfg(target_os = "linux")] // check not installed on other platforms
+#[cfg(target_os = "linux")] // check not installed on other CI platforms
 mod test {
     use super::*;
     use std::path::PathBuf;
@@ -367,7 +367,7 @@ mod test {
     }
 
     //#[test]
-    fn runs_tests_failing_valgrind() {
+    fn _runs_tests_failing_valgrind() {
         init();
 
         let temp = copy_test("tests/data/valgrind-failing");
