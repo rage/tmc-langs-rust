@@ -395,8 +395,6 @@
 <span id="395">395</span>
 <span id="396">396</span>
 <span id="397">397</span>
-<span id="398">398</span>
-<span id="399">399</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Java maven plugin</span>
 
@@ -417,7 +415,6 @@
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
     <span class="ident">domain</span>::{<span class="ident">ExerciseDesc</span>, <span class="ident">RunResult</span>},
     <span class="ident">plugin</span>::{<span class="ident">Language</span>, <span class="ident">LanguagePlugin</span>, <span class="ident">ValidationResult</span>},
-    <span class="ident">policy</span>::<span class="ident">StudentFilePolicy</span>,
     <span class="ident">Error</span>,
 };
 
@@ -473,16 +470,15 @@
 }
 
 <span class="kw">impl</span> <span class="ident">LanguagePlugin</span> <span class="kw">for</span> <span class="ident">MavenPlugin</span> {
-    <span class="kw">fn</span> <span class="ident">get_plugin_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="string">&quot;apache-maven&quot;</span>
-    }
+    <span class="kw">const</span> <span class="ident">PLUGIN_NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;apache-maven&quot;</span>;
+    <span class="kw">type</span> <span class="ident">StudentFilePolicy</span> <span class="op">=</span> <span class="ident">MavenStudentFilePolicy</span>;
 
     <span class="kw">fn</span> <span class="ident">check_code_style</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">locale</span>: <span class="ident">Language</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationResult</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">run_checkstyle</span>(<span class="kw-2">&amp;</span><span class="ident">locale</span>, <span class="ident">path</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">scan_exercise</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">exercise_name</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_exercise_type_correct</span>(<span class="ident">path</span>) {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">Self</span>::<span class="ident">is_exercise_type_correct</span>(<span class="ident">path</span>) {
             <span class="kw">return</span> <span class="ident">JavaError</span>::<span class="ident">InvalidExercise</span>.<span class="ident">into</span>();
         }
 
@@ -498,12 +494,12 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">run_java_tests</span>(<span class="ident">project_root_path</span>)<span class="question-mark">?</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_exercise_type_correct</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_exercise_type_correct</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="ident">path</span>.<span class="ident">join</span>(<span class="string">&quot;pom.xml&quot;</span>).<span class="ident">exists</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">get_student_file_policy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">project_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StudentFilePolicy</span><span class="op">&gt;</span> {
-        <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">MavenStudentFilePolicy</span>::<span class="ident">new</span>(<span class="ident">project_path</span>.<span class="ident">to_path_buf</span>()))
+    <span class="kw">fn</span> <span class="ident">get_student_file_policy</span>(<span class="ident">project_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">StudentFilePolicy</span> {
+        <span class="ident">MavenStudentFilePolicy</span>::<span class="ident">new</span>(<span class="ident">project_path</span>.<span class="ident">to_path_buf</span>())
     }
 
     <span class="kw">fn</span> <span class="ident">clean</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {

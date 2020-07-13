@@ -45,11 +45,9 @@
 <span id="45">45</span>
 <span id="46">46</span>
 <span id="47">47</span>
-<span id="48">48</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Error type for the make plugin.</span>
 
-<span class="kw">use</span> <span class="ident">serde_xml_rs</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">XmlError</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">num</span>::<span class="ident">ParseIntError</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
 <span class="kw">use</span> <span class="ident">thiserror</span>::<span class="ident">Error</span>;
@@ -73,13 +71,13 @@
     <span class="ident">MakeFailed</span>,
 
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to parse XML at {0}: {1}&quot;</span>)]</span>
-    <span class="ident">XmlParseError</span>(<span class="ident">PathBuf</span>, <span class="ident">XmlError</span>),
+    <span class="ident">XmlParseError</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">serde_xml_rs</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to open file at {0}&quot;</span>)]</span>
-    <span class="ident">FileOpen</span>(<span class="ident">PathBuf</span>, <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="ident">FileOpen</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to read file at {0}&quot;</span>)]</span>
-    <span class="ident">FileRead</span>(<span class="ident">PathBuf</span>, <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="ident">FileRead</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to run make&quot;</span>)]</span>
-    <span class="ident">MakeCommand</span>(<span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="ident">MakeCommand</span>(<span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
     <span class="ident">ParseIntError</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">ParseIntError</span>),
 }

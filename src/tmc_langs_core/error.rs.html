@@ -58,16 +58,6 @@
 <span id="58">58</span>
 <span id="59">59</span>
 <span id="60">60</span>
-<span id="61">61</span>
-<span id="62">62</span>
-<span id="63">63</span>
-<span id="64">64</span>
-<span id="65">65</span>
-<span id="66">66</span>
-<span id="67">67</span>
-<span id="68">68</span>
-<span id="69">69</span>
-<span id="70">70</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The core error type.</span>
 
@@ -79,26 +69,32 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">CoreError</span><span class="op">&gt;</span>;
 <span class="kw">type</span> <span class="ident">TokenError</span> <span class="op">=</span> <span class="ident">oauth2</span>::<span class="ident">RequestTokenError</span><span class="op">&lt;</span>
-    <span class="ident">CoreError</span>,
+    <span class="ident">oauth2</span>::<span class="ident">reqwest</span>::<span class="ident">Error</span><span class="op">&lt;</span><span class="ident">reqwest</span>::<span class="ident">Error</span><span class="op">&gt;</span>,
     <span class="ident">oauth2</span>::<span class="ident">StandardErrorResponse</span><span class="op">&lt;</span><span class="ident">oauth2</span>::<span class="ident">basic</span>::<span class="ident">BasicErrorResponseType</span><span class="op">&gt;</span>,
 <span class="op">&gt;</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Error</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CoreError</span> {
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to create temporary file: {0}&quot;</span>)]</span>
-    <span class="ident">TempFile</span>(<span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to create file at {0}: {1}&quot;</span>)]</span>
-    <span class="ident">FileCreate</span>(<span class="ident">PathBuf</span>, <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to open file at {0}: {1}&quot;</span>)]</span>
-    <span class="ident">FileOpen</span>(<span class="ident">PathBuf</span>, <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to write to file at {0}: {1}&quot;</span>)]</span>
-    <span class="ident">Write</span>(<span class="ident">PathBuf</span>, <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;HTTP error for {0}: {1}&quot;</span>)]</span>
-    <span class="ident">HttpStatus</span>(<span class="ident">Url</span>, <span class="ident">StatusCode</span>),
+    <span class="comment">// file IO</span>
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to create temporary file&quot;</span>)]</span>
+    <span class="ident">TempFile</span>(<span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to create file at {0}&quot;</span>)]</span>
+    <span class="ident">FileCreate</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to open file at {0}&quot;</span>)]</span>
+    <span class="ident">FileOpen</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to write to file at {0}&quot;</span>)]</span>
+    <span class="ident">FileWrite</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
+
+    <span class="comment">// network</span>
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;HTTP error {1} for {0}: {2}&quot;</span>)]</span>
+    <span class="ident">HttpStatus</span>(<span class="ident">Url</span>, <span class="ident">StatusCode</span>, <span class="ident">String</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;OAuth2 password exchange error: {0}&quot;</span>)]</span>
     <span class="ident">Token</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">TokenError</span><span class="op">&gt;</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;OAuth2 unexpected token response {1}: {0}&quot;</span>)]</span>
-    <span class="ident">TokenParse</span>(<span class="ident">serde_json</span>::<span class="ident">error</span>::<span class="ident">Error</span>, <span class="ident">String</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;OAuth2 unexpected token response: {0}&quot;</span>)]</span>
+    <span class="ident">TokenParse</span>(<span class="ident">String</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">serde_json</span>::<span class="ident">error</span>::<span class="ident">Error</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to parse as URL: {0}&quot;</span>)]</span>
+    <span class="ident">UrlParse</span>(<span class="ident">String</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">url</span>::<span class="ident">ParseError</span>),
+
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Already authenticated&quot;</span>)]</span>
     <span class="ident">AlreadyAuthenticated</span>,
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Authentication required&quot;</span>)]</span>
@@ -107,25 +103,9 @@
     <span class="ident">CacheDir</span>,
 
     <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
-    <span class="ident">InvalidMethod</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">http</span>::<span class="ident">method</span>::<span class="ident">InvalidMethod</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
-    <span class="ident">InvalidHeaderName</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">http</span>::<span class="ident">header</span>::<span class="ident">InvalidHeaderName</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
-    <span class="ident">InvalidHeaderValue</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">http</span>::<span class="ident">header</span>::<span class="ident">InvalidHeaderValue</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
-    <span class="ident">InvalidStatusCode</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">http1</span>::<span class="ident">status</span>::<span class="ident">InvalidStatusCode</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
-    <span class="ident">InvalidHeaderName1</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">http1</span>::<span class="ident">header</span>::<span class="ident">InvalidHeaderName</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
-    <span class="ident">InvalidHeaderValue1</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">http1</span>::<span class="ident">header</span>::<span class="ident">InvalidHeaderValue</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
     <span class="ident">TmcLangs</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">tmc_langs_util</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
     <span class="ident">Request</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">reqwest</span>::<span class="ident">Error</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
-    <span class="ident">Parse</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">url</span>::<span class="ident">ParseError</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
-    <span class="ident">Parse1</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">url1</span>::<span class="ident">ParseError</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
     <span class="ident">Response</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">response</span>::<span class="ident">ResponseError</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>

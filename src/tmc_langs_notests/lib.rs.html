@@ -117,9 +117,6 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Language plugin for no_tests exercises</span>
 
@@ -141,7 +138,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">get_points</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_student_file_policy</span>(<span class="ident">path</span>)
+        <span class="self">Self</span>::<span class="ident">get_student_file_policy</span>(<span class="ident">path</span>)
             .<span class="ident">get_tmc_project_yml</span>()
             .<span class="ident">ok</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">no_tests</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> <span class="ident">n</span>.<span class="ident">points</span>))
@@ -150,9 +147,8 @@
 }
 
 <span class="kw">impl</span> <span class="ident">LanguagePlugin</span> <span class="kw">for</span> <span class="ident">NoTestsPlugin</span> {
-    <span class="kw">fn</span> <span class="ident">get_plugin_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="string">&quot;No-Tests&quot;</span>
-    }
+    <span class="kw">const</span> <span class="ident">PLUGIN_NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;No-Tests&quot;</span>;
+    <span class="kw">type</span> <span class="ident">StudentFilePolicy</span> <span class="op">=</span> <span class="ident">EverythingIsStudentFilePolicy</span>;
 
     <span class="kw">fn</span> <span class="ident">scan_exercise</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">exercise_name</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">test_name</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}Test&quot;</span>, <span class="ident">exercise_name</span>);
@@ -183,14 +179,12 @@
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">get_student_file_policy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">project_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StudentFilePolicy</span><span class="op">&gt;</span> {
-        <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">EverythingIsStudentFilePolicy</span>::<span class="ident">new</span>(
-            <span class="ident">project_path</span>.<span class="ident">to_path_buf</span>(),
-        ))
+    <span class="kw">fn</span> <span class="ident">get_student_file_policy</span>(<span class="ident">project_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">StudentFilePolicy</span> {
+        <span class="ident">EverythingIsStudentFilePolicy</span>::<span class="ident">new</span>(<span class="ident">project_path</span>.<span class="ident">to_path_buf</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">is_exercise_type_correct</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">get_student_file_policy</span>(<span class="ident">path</span>)
+    <span class="kw">fn</span> <span class="ident">is_exercise_type_correct</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">Self</span>::<span class="ident">get_student_file_policy</span>(<span class="ident">path</span>)
             .<span class="ident">get_tmc_project_yml</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">no_tests</span>.<span class="ident">is_some</span>())
             .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
@@ -215,7 +209,7 @@
 
         <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">NoTestsPlugin</span> {};
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;tests/data/notests&quot;</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">plugin</span>.<span class="ident">is_exercise_type_correct</span>(<span class="ident">path</span>));
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">NoTestsPlugin</span>::<span class="ident">is_exercise_type_correct</span>(<span class="ident">path</span>));
         <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">plugin</span>
             .<span class="ident">scan_exercise</span>(<span class="ident">path</span>, <span class="string">&quot;No Tests Exercise&quot;</span>.<span class="ident">to_string</span>())
             .<span class="ident">unwrap</span>();
@@ -231,7 +225,7 @@
 
         <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">NoTestsPlugin</span> {};
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;tests/data/notests-points&quot;</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">plugin</span>.<span class="ident">is_exercise_type_correct</span>(<span class="ident">path</span>));
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">NoTestsPlugin</span>::<span class="ident">is_exercise_type_correct</span>(<span class="ident">path</span>));
         <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">plugin</span>
             .<span class="ident">scan_exercise</span>(<span class="ident">path</span>, <span class="string">&quot;No Tests Exercise&quot;</span>.<span class="ident">to_string</span>())
             .<span class="ident">unwrap</span>();

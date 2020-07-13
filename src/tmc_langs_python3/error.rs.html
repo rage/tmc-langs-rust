@@ -33,11 +33,9 @@
 <span id="33">33</span>
 <span id="34">34</span>
 <span id="35">35</span>
-<span id="36">36</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Python plugin error type</span>
 
-<span class="kw">use</span> <span class="ident">serde_json</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">JsonError</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
 <span class="kw">use</span> <span class="ident">thiserror</span>::<span class="ident">Error</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">TmcError</span>;
@@ -45,17 +43,17 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Error</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PythonError</span> {
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Error running command {0}: {1}&quot;</span>)]</span>
-    <span class="ident">Command</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="ident">Command</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Path error for {0}: {1}&quot;</span>)]</span>
-    <span class="ident">Path</span>(<span class="ident">PathBuf</span>, <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="ident">Path</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to open file {0}: {1}&quot;</span>)]</span>
-    <span class="ident">FileOpen</span>(<span class="ident">PathBuf</span>, <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="ident">FileOpen</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to deserialize file at {0} to JSON: {1}&quot;</span>)]</span>
-    <span class="ident">Deserialize</span>(<span class="ident">PathBuf</span>, <span class="ident">JsonError</span>),
+    <span class="ident">Deserialize</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">serde_json</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to remove file {0}: {1}&quot;</span>)]</span>
-    <span class="ident">FileRemove</span>(<span class="ident">PathBuf</span>, <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="ident">FileRemove</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to remove directory {0}: {1}&quot;</span>)]</span>
-    <span class="ident">DirRemove</span>(<span class="ident">PathBuf</span>, <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="ident">DirRemove</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
     <span class="ident">Framework</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">tmc_langs_framework</span>::<span class="ident">Error</span>),
 }
