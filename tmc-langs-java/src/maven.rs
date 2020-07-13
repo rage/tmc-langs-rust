@@ -17,7 +17,6 @@ use tar::Archive;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult},
     plugin::{Language, LanguagePlugin, ValidationResult},
-    policy::StudentFilePolicy,
     Error,
 };
 
@@ -73,11 +72,8 @@ impl MavenPlugin {
 }
 
 impl LanguagePlugin for MavenPlugin {
+    const PLUGIN_NAME: &'static str = "apache-maven";
     type StudentFilePolicy = MavenStudentFilePolicy;
-
-    fn get_plugin_name() -> &'static str {
-        "apache-maven"
-    }
 
     fn check_code_style(&self, path: &Path, locale: Language) -> Option<ValidationResult> {
         self.run_checkstyle(&locale, path)

@@ -7,7 +7,7 @@ use super::RRunResult;
 
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, TestDesc},
-    Error, LanguagePlugin, StudentFilePolicy,
+    Error, LanguagePlugin,
 };
 
 use std::collections::HashMap;
@@ -25,11 +25,8 @@ impl RPlugin {
 }
 
 impl LanguagePlugin for RPlugin {
+    const PLUGIN_NAME: &'static str = "r";
     type StudentFilePolicy = RStudentFilePolicy;
-
-    fn get_plugin_name() -> &'static str {
-        "r"
-    }
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
         // run available points command

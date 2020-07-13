@@ -234,23 +234,23 @@ impl Plugin {
 fn get_language_plugin(path: &Path) -> Result<Plugin, Error> {
     if MakePlugin::is_exercise_type_correct(path) {
         let make = MakePlugin::new();
-        info!("Detected project as {}", MakePlugin::get_plugin_name());
+        info!("Detected project as {}", MakePlugin::PLUGIN_NAME);
         Ok(Plugin::Make(make))
     } else if NoTestsPlugin::is_exercise_type_correct(path) {
-        info!("Detected project as {}", NoTestsPlugin::get_plugin_name());
+        info!("Detected project as {}", NoTestsPlugin::PLUGIN_NAME);
         Ok(Plugin::NoTests(NoTestsPlugin::new()))
     } else if Python3Plugin::is_exercise_type_correct(path) {
-        info!("Detected project as {}", Python3Plugin::get_plugin_name());
+        info!("Detected project as {}", Python3Plugin::PLUGIN_NAME);
         Ok(Plugin::Python3(Python3Plugin::new()))
     } else if RPlugin::is_exercise_type_correct(path) {
-        info!("Detected project as {}", RPlugin::get_plugin_name());
+        info!("Detected project as {}", RPlugin::PLUGIN_NAME);
         Ok(Plugin::R(RPlugin::new()))
     } else if MavenPlugin::is_exercise_type_correct(path) {
-        info!("Detected project as {}", MavenPlugin::get_plugin_name());
+        info!("Detected project as {}", MavenPlugin::PLUGIN_NAME);
         Ok(Plugin::Maven(MavenPlugin::new()?))
     } else if AntPlugin::is_exercise_type_correct(path) {
         // TODO: currently, ant needs to be last because any project with src and test are recognized as ant
-        info!("Detected project as {}", AntPlugin::get_plugin_name());
+        info!("Detected project as {}", AntPlugin::PLUGIN_NAME);
         Ok(Plugin::Ant(AntPlugin::new()?))
     } else {
         Err(Error::PluginNotFound(path.to_path_buf()))

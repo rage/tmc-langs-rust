@@ -26,10 +26,8 @@ use walkdir::WalkDir;
 /// Implementations must be thread-safe and preferably fully stateless. Users of
 /// this interface are free to cache results if needed.
 pub trait LanguagePlugin {
+    const PLUGIN_NAME: &'static str;
     type StudentFilePolicy: StudentFilePolicy + 'static;
-
-    /// Returns the name of the plug-in.
-    fn get_plugin_name() -> &'static str;
 
     /// Returns a list of all directories inside that contain an exercise in this
     /// language.
@@ -207,13 +205,10 @@ mod test {
     }
 
     impl LanguagePlugin for MockPlugin {
+        const PLUGIN_NAME: &'static str = "mock_plugin";
         type StudentFilePolicy = MockPolicy;
 
         fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
-            unimplemented!()
-        }
-
-        fn get_plugin_name() -> &'static str {
             unimplemented!()
         }
 

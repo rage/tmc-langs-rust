@@ -27,11 +27,8 @@ impl NoTestsPlugin {
 }
 
 impl LanguagePlugin for NoTestsPlugin {
+    const PLUGIN_NAME: &'static str = "No-Tests";
     type StudentFilePolicy = EverythingIsStudentFilePolicy;
-
-    fn get_plugin_name() -> &'static str {
-        "No-Tests"
-    }
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
         let test_name = format!("{}Test", exercise_name);

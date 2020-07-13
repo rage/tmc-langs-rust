@@ -15,7 +15,6 @@ use std::time::Duration;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult},
     plugin::{Language, LanguagePlugin, ValidationResult},
-    policy::StudentFilePolicy,
     Error,
 };
 use walkdir::WalkDir;
@@ -71,11 +70,8 @@ impl AntPlugin {
 }
 
 impl LanguagePlugin for AntPlugin {
+    const PLUGIN_NAME: &'static str = "apache-ant";
     type StudentFilePolicy = AntStudentFilePolicy;
-
-    fn get_plugin_name() -> &'static str {
-        "apache-ant"
-    }
 
     fn check_code_style(&self, path: &Path, locale: Language) -> Option<ValidationResult> {
         self.run_checkstyle(&locale, path)

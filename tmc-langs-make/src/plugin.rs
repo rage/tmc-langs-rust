@@ -17,7 +17,6 @@ use std::time::Duration;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TmcProjectYml},
     plugin::LanguagePlugin,
-    policy::StudentFilePolicy,
     Error,
 };
 
@@ -117,11 +116,8 @@ impl MakePlugin {
 }
 
 impl LanguagePlugin for MakePlugin {
+    const PLUGIN_NAME: &'static str = "make";
     type StudentFilePolicy = MakeStudentFilePolicy;
-
-    fn get_plugin_name() -> &'static str {
-        "make"
-    }
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
         if !Self::is_exercise_type_correct(path) {

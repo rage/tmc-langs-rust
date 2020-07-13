@@ -13,7 +13,6 @@ use std::time::Duration;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     plugin::LanguagePlugin,
-    policy::StudentFilePolicy,
     CommandWithTimeout, Error,
 };
 use walkdir::WalkDir;
@@ -27,11 +26,8 @@ impl Python3Plugin {
 }
 
 impl LanguagePlugin for Python3Plugin {
+    const PLUGIN_NAME: &'static str = "python3";
     type StudentFilePolicy = Python3StudentFilePolicy;
-
-    fn get_plugin_name() -> &'static str {
-        "python3"
-    }
 
     fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
         Python3StudentFilePolicy::new(project_path.to_owned())

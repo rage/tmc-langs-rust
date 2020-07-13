@@ -8,7 +8,7 @@ use lazy_static::lazy_static;
 use log::{debug, info};
 use regex::Regex;
 use std::fs::{self, File};
-use std::io::{BufWriter, Write};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use walkdir::{DirEntry, WalkDir};
 
