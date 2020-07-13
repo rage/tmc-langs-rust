@@ -249,12 +249,22 @@ impl JavaPlugin for MavenPlugin {
 mod test {
     use super::super::{TestCase, TestCaseStatus};
     use super::*;
+    use std::sync::Once;
     use tempfile::{tempdir, TempDir};
     use tmc_langs_framework::plugin::Strategy;
     use walkdir::WalkDir;
 
+    static INIT_MAVEN: Once = Once::new();
+
     fn init() {
         let _ = env_logger::builder().is_test(true).try_init();
+
+        // initializes maven in a synchronized manner for all tests
+        #[cfg(windows)]
+        INIT_MAVEN.call_once(|| {
+            let mvn = MavenPlugin::new().expect("failed to init maven");
+            mvn.get_mvn_command().expect("failed to get mvn command");
+        });
     }
 
     fn copy_test_dir(path: &str) -> TempDir {
