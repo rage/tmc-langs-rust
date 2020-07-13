@@ -151,7 +151,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         exercise_name: String,
         compile_result: CompileResult,
     ) -> Result<ExerciseDesc, JavaError> {
-        if !self.is_exercise_type_correct(path) || !compile_result.status_code.success() {
+        if !Self::is_exercise_type_correct(path) || !compile_result.status_code.success() {
             return Err(JavaError::InvalidExercise);
         }
 

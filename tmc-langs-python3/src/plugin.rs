@@ -27,12 +27,14 @@ impl Python3Plugin {
 }
 
 impl LanguagePlugin for Python3Plugin {
-    fn get_plugin_name(&self) -> &'static str {
+    type StudentFilePolicy = Python3StudentFilePolicy;
+
+    fn get_plugin_name() -> &'static str {
         "python3"
     }
 
-    fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy> {
-        Box::new(Python3StudentFilePolicy::new(project_path.to_owned()))
+    fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
+        Python3StudentFilePolicy::new(project_path.to_owned())
     }
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
@@ -60,7 +62,7 @@ impl LanguagePlugin for Python3Plugin {
         Ok(parse_test_result(path)?)
     }
 
-    fn is_exercise_type_correct(&self, path: &Path) -> bool {
+    fn is_exercise_type_correct(path: &Path) -> bool {
         let mut setup = path.to_owned();
         setup.push("setup.py");
 
@@ -292,10 +294,10 @@ mod test {
         init();
         let plugin = Python3Plugin::new();
 
-        let correct = plugin.is_exercise_type_correct(Path::new("tests/data"));
+        let correct = Python3Plugin::is_exercise_type_correct(Path::new("tests/data"));
         assert!(correct);
 
-        let correct = plugin.is_exercise_type_correct(Path::new("./"));
+        let correct = Python3Plugin::is_exercise_type_correct(Path::new("./"));
         assert!(!correct);
     }
 

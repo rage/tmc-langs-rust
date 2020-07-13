@@ -48,7 +48,7 @@ pub fn zip(policy: Box<dyn StudentFilePolicy>, root_directory: &Path) -> Result<
 }
 
 /// Finds a project directory in the given zip and unzips it.
-pub fn unzip(policy: Box<dyn StudentFilePolicy>, zip: &Path, target: &Path) -> Result<()> {
+pub fn unzip<P: StudentFilePolicy>(policy: P, zip: &Path, target: &Path) -> Result<()> {
     log::debug!("Unzipping {} to {}", zip.display(), target.display());
 
     let file = File::open(zip).map_err(|e| Error::OpenFile(zip.to_path_buf(), e))?;
@@ -246,7 +246,7 @@ mod test {
         init();
 
         assert!(unzip(
-            Box::new(EverythingIsStudentFilePolicy::new(PathBuf::new())),
+            EverythingIsStudentFilePolicy::new(PathBuf::new()),
             Path::new("nonexistent"),
             Path::new(""),
         )
@@ -259,9 +259,7 @@ mod test {
 
         let temp = tempdir().unwrap();
         unzip(
-            Box::new(EverythingIsStudentFilePolicy::new(
-                temp.path().to_path_buf(),
-            )),
+            EverythingIsStudentFilePolicy::new(temp.path().to_path_buf()),
             Path::new("tests/data/zip/module-trivial.zip"),
             temp.path(),
         )
@@ -278,9 +276,7 @@ mod test {
 
         let temp = tempdir().unwrap();
         unzip(
-            Box::new(EverythingIsStudentFilePolicy::new(
-                temp.path().to_path_buf(),
-            )),
+            EverythingIsStudentFilePolicy::new(temp.path().to_path_buf()),
             Path::new("tests/data/zip/course-module-trivial.zip"),
             temp.path(),
         )
@@ -297,9 +293,7 @@ mod test {
 
         let temp = tempdir().unwrap();
         unzip(
-            Box::new(EverythingIsStudentFilePolicy::new(
-                temp.path().to_path_buf(),
-            )),
+            EverythingIsStudentFilePolicy::new(temp.path().to_path_buf()),
             Path::new("tests/data/zip/no-src-entry.zip"),
             temp.path(),
         )

@@ -21,8 +21,8 @@ lazy_static! {
 
 /// Moves some of the contents of source to target based on the given policy.
 /// For example, a file source/foo.java would be moved to target/foo.java.
-pub fn move_files(
-    student_file_policy: Box<dyn StudentFilePolicy>,
+pub fn move_files<P: StudentFilePolicy>(
+    student_file_policy: P,
     source: &Path,
     target: &Path,
 ) -> Result<()> {
@@ -244,9 +244,7 @@ mod test {
         std::fs::create_dir_all(file_path.parent().unwrap()).unwrap();
         let _file = std::fs::File::create(&file_path).unwrap();
         move_files(
-            Box::new(EverythingIsStudentFilePolicy::new(
-                source.path().to_path_buf(),
-            )),
+            EverythingIsStudentFilePolicy::new(source.path().to_path_buf()),
             source.path(),
             target.path(),
         )
@@ -275,12 +273,7 @@ mod test {
         let file_path = source.path().join(mock_file);
         std::fs::create_dir_all(file_path.parent().unwrap()).unwrap();
         let _file = std::fs::File::create(&file_path).unwrap();
-        move_files(
-            Box::new(NothingIsStudentFilePolicy {}),
-            source.path(),
-            target.path(),
-        )
-        .unwrap();
+        move_files(NothingIsStudentFilePolicy {}, source.path(), target.path()).unwrap();
 
         let mut paths = HashSet::new();
         for entry in WalkDir::new(target.path()) {

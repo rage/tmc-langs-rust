@@ -73,7 +73,9 @@ impl MavenPlugin {
 }
 
 impl LanguagePlugin for MavenPlugin {
-    fn get_plugin_name(&self) -> &str {
+    type StudentFilePolicy = MavenStudentFilePolicy;
+
+    fn get_plugin_name() -> &'static str {
         "apache-maven"
     }
 
@@ -82,7 +84,7 @@ impl LanguagePlugin for MavenPlugin {
     }
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
-        if !self.is_exercise_type_correct(path) {
+        if !Self::is_exercise_type_correct(path) {
             return JavaError::InvalidExercise.into();
         }
 
@@ -98,12 +100,12 @@ impl LanguagePlugin for MavenPlugin {
         Ok(self.run_java_tests(project_root_path)?)
     }
 
-    fn is_exercise_type_correct(&self, path: &Path) -> bool {
+    fn is_exercise_type_correct(path: &Path) -> bool {
         path.join("pom.xml").exists()
     }
 
-    fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy> {
-        Box::new(MavenStudentFilePolicy::new(project_path.to_path_buf()))
+    fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
+        MavenStudentFilePolicy::new(project_path.to_path_buf())
     }
 
     fn clean(&self, path: &Path) -> Result<(), Error> {

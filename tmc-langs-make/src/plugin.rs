@@ -117,12 +117,14 @@ impl MakePlugin {
 }
 
 impl LanguagePlugin for MakePlugin {
-    fn get_plugin_name(&self) -> &str {
+    type StudentFilePolicy = MakeStudentFilePolicy;
+
+    fn get_plugin_name() -> &'static str {
         "make"
     }
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
-        if !self.is_exercise_type_correct(path) {
+        if !Self::is_exercise_type_correct(path) {
             return MakeError::NoExerciseFound.into();
         }
 
@@ -247,11 +249,11 @@ impl LanguagePlugin for MakePlugin {
         Ok(run_result)
     }
 
-    fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy> {
-        Box::new(MakeStudentFilePolicy::new(project_path.to_path_buf()))
+    fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
+        MakeStudentFilePolicy::new(project_path.to_path_buf())
     }
 
-    fn is_exercise_type_correct(&self, path: &Path) -> bool {
+    fn is_exercise_type_correct(path: &Path) -> bool {
         path.join("Makefile").is_file()
     }
 

@@ -18,7 +18,7 @@ impl NoTestsPlugin {
     }
 
     fn get_points(&self, path: &Path) -> Vec<String> {
-        self.get_student_file_policy(path)
+        Self::get_student_file_policy(path)
             .get_tmc_project_yml()
             .ok()
             .and_then(|c| c.no_tests.map(|n| n.points))
@@ -27,7 +27,9 @@ impl NoTestsPlugin {
 }
 
 impl LanguagePlugin for NoTestsPlugin {
-    fn get_plugin_name(&self) -> &str {
+    type StudentFilePolicy = EverythingIsStudentFilePolicy;
+
+    fn get_plugin_name() -> &'static str {
         "No-Tests"
     }
 
@@ -60,14 +62,12 @@ impl LanguagePlugin for NoTestsPlugin {
         })
     }
 
-    fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy> {
-        Box::new(EverythingIsStudentFilePolicy::new(
-            project_path.to_path_buf(),
-        ))
+    fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
+        EverythingIsStudentFilePolicy::new(project_path.to_path_buf())
     }
 
-    fn is_exercise_type_correct(&self, path: &Path) -> bool {
-        self.get_student_file_policy(path)
+    fn is_exercise_type_correct(path: &Path) -> bool {
+        Self::get_student_file_policy(path)
             .get_tmc_project_yml()
             .map(|c| c.no_tests.is_some())
             .unwrap_or(false)
@@ -92,7 +92,7 @@ mod test {
 
         let plugin = NoTestsPlugin {};
         let path = Path::new("tests/data/notests");
-        assert!(plugin.is_exercise_type_correct(path));
+        assert!(NoTestsPlugin::is_exercise_type_correct(path));
         let desc = plugin
             .scan_exercise(path, "No Tests Exercise".to_string())
             .unwrap();
@@ -108,7 +108,7 @@ mod test {
 
         let plugin = NoTestsPlugin {};
         let path = Path::new("tests/data/notests-points");
-        assert!(plugin.is_exercise_type_correct(path));
+        assert!(NoTestsPlugin::is_exercise_type_correct(path));
         let desc = plugin
             .scan_exercise(path, "No Tests Exercise".to_string())
             .unwrap();

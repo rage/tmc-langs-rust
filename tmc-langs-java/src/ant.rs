@@ -71,7 +71,9 @@ impl AntPlugin {
 }
 
 impl LanguagePlugin for AntPlugin {
-    fn get_plugin_name(&self) -> &str {
+    type StudentFilePolicy = AntStudentFilePolicy;
+
+    fn get_plugin_name() -> &'static str {
         "apache-ant"
     }
 
@@ -80,7 +82,7 @@ impl LanguagePlugin for AntPlugin {
     }
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
-        if !self.is_exercise_type_correct(path) {
+        if !Self::is_exercise_type_correct(path) {
             return JavaError::InvalidExercise.into();
         }
 
@@ -96,13 +98,13 @@ impl LanguagePlugin for AntPlugin {
         Ok(self.run_java_tests(project_root_path)?)
     }
 
-    fn is_exercise_type_correct(&self, path: &Path) -> bool {
+    fn is_exercise_type_correct(path: &Path) -> bool {
         path.join(BUILD_FILE_NAME).exists()
             || path.join("test").exists() && path.join("src").exists()
     }
 
-    fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy> {
-        Box::new(AntStudentFilePolicy::new(project_path.to_path_buf()))
+    fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
+        AntStudentFilePolicy::new(project_path.to_path_buf())
     }
 
     fn maybe_copy_shared_stuff(&self, dest_path: &Path) -> Result<(), Error> {

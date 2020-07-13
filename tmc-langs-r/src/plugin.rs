@@ -25,7 +25,9 @@ impl RPlugin {
 }
 
 impl LanguagePlugin for RPlugin {
-    fn get_plugin_name(&self) -> &str {
+    type StudentFilePolicy = RStudentFilePolicy;
+
+    fn get_plugin_name() -> &'static str {
         "r"
     }
 
@@ -102,11 +104,11 @@ impl LanguagePlugin for RPlugin {
         Ok(run_result.into())
     }
 
-    fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy> {
-        Box::new(RStudentFilePolicy::new(project_path.to_path_buf()))
+    fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
+        RStudentFilePolicy::new(project_path.to_path_buf())
     }
 
-    fn is_exercise_type_correct(&self, path: &Path) -> bool {
+    fn is_exercise_type_correct(path: &Path) -> bool {
         path.join("R").exists() || path.join("tests/testthat").exists()
     }
 
