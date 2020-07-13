@@ -249,11 +249,13 @@ impl JavaPlugin for MavenPlugin {
 mod test {
     use super::super::{TestCase, TestCaseStatus};
     use super::*;
-    use std::sync::Once;
     use tempfile::{tempdir, TempDir};
     use tmc_langs_framework::plugin::Strategy;
     use walkdir::WalkDir;
 
+    #[cfg(windows)]
+    use std::sync::Once;
+    #[cfg(windows)]
     static INIT_MAVEN: Once = Once::new();
 
     fn init() {
