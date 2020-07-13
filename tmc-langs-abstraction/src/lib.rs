@@ -12,7 +12,7 @@ pub enum Strategy {
     Disabled,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ValidationError {
     pub column: usize,
@@ -21,7 +21,7 @@ pub struct ValidationError {
     pub source_name: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ValidationResult {
     pub strategy: Strategy,

@@ -17,7 +17,6 @@ use std::time::Duration;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TmcProjectYml},
     plugin::LanguagePlugin,
-    policy::StudentFilePolicy,
     Error,
 };
 
@@ -117,12 +116,11 @@ impl MakePlugin {
 }
 
 impl LanguagePlugin for MakePlugin {
-    fn get_plugin_name(&self) -> &str {
-        "make"
-    }
+    const PLUGIN_NAME: &'static str = "make";
+    type StudentFilePolicy = MakeStudentFilePolicy;
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
-        if !self.is_exercise_type_correct(path) {
+        if !Self::is_exercise_type_correct(path) {
             return MakeError::NoExerciseFound.into();
         }
 
@@ -238,7 +236,7 @@ impl LanguagePlugin for MakePlugin {
                         if test_result.successful {
                             test_result.message += " - Failed due to errors in valgrind log; see log below. Try submitting to server, some leaks might be platform dependent";
                         }
-                        test_result.exceptions.extend(valgrind_result.log);
+                        test_result.exception.extend(valgrind_result.log);
                     }
                 }
             }
@@ -247,11 +245,11 @@ impl LanguagePlugin for MakePlugin {
         Ok(run_result)
     }
 
-    fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy> {
-        Box::new(MakeStudentFilePolicy::new(project_path.to_path_buf()))
+    fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
+        MakeStudentFilePolicy::new(project_path.to_path_buf())
     }
 
-    fn is_exercise_type_correct(&self, path: &Path) -> bool {
+    fn is_exercise_type_correct(path: &Path) -> bool {
         path.join("Makefile").is_file()
     }
 
@@ -340,7 +338,7 @@ mod test {
         assert_eq!(test_result.name, "test_one");
         assert!(test_result.successful);
         assert_eq!(test_result.message, "Passed");
-        assert!(test_result.exceptions.is_empty());
+        assert!(test_result.exception.is_empty());
         let points = &test_result.points;
         assert_eq!(points.len(), 1);
         let point = &points[0];

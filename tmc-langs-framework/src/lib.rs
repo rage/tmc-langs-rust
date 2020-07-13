@@ -1,60 +1,19 @@
 //! Contains functionality for dealing with projects.
 
 pub mod domain;
+pub mod error;
 pub mod io;
 pub mod plugin;
 pub mod policy;
 
+pub use error::Error;
 pub use plugin::LanguagePlugin;
 pub use policy::StudentFilePolicy;
 
 use domain::TmcProjectYml;
-use io::zip;
-use std::path::PathBuf;
 use std::process::{Command, Output};
 use std::thread;
 use std::time::{Duration, Instant};
-use thiserror::Error;
-
-#[derive(Error, Debug)]
-pub enum Error {
-    // IO
-    #[error("Failed to open file at {0}: {1}")]
-    OpenFile(PathBuf, std::io::Error),
-    #[error("Failed to create file at {0}: {1}")]
-    CreateFile(PathBuf, std::io::Error),
-    #[error("Failed to create dir at {0}: {1}")]
-    CreateDir(PathBuf, std::io::Error),
-    #[error("Failed to rename {0} to {1}: {2}")]
-    Rename(PathBuf, PathBuf, std::io::Error),
-    #[error("Failed to write to {0}: {1}")]
-    Write(PathBuf, std::io::Error),
-
-    #[error("Path {0} contained invalid UTF8")]
-    UTF8(PathBuf),
-
-    #[error("No matching plugin found for {0}")]
-    PluginNotFound(PathBuf),
-    #[error("No project directory found in archive during unzip")]
-    NoProjectDirInZip,
-    #[error("Running command '{0}' failed")]
-    CommandFailed(&'static str),
-
-    #[error("Failed to spawn command: {0}")]
-    CommandSpawn(std::io::Error),
-    #[error("Test timed out")]
-    TestTimeout,
-
-    #[error("Error in plugin: {0}")]
-    Plugin(Box<dyn std::error::Error + 'static + Send + Sync>),
-
-    #[error(transparent)]
-    Io(#[from] std::io::Error),
-    #[error(transparent)]
-    YamlDeserialization(#[from] serde_yaml::Error),
-    #[error(transparent)]
-    ZipError(#[from] zip::ZipError),
-}
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -69,7 +28,7 @@ impl CommandWithTimeout<'_> {
         match timeout {
             Some(timeout) => {
                 // spawn process and init timer
-                let mut child = self.0.spawn().map_err(|e| Error::CommandSpawn(e))?;
+                let mut child = self.0.spawn().map_err(|e| Error::CommandSpawn(name, e))?;
                 let timer = Instant::now();
                 loop {
                     match child.try_wait()? {
@@ -77,7 +36,7 @@ impl CommandWithTimeout<'_> {
                             // done, get output
                             return child
                                 .wait_with_output()
-                                .map_err(|_| Error::CommandFailed(name));
+                                .map_err(|e| Error::CommandFailed(name, e));
                         }
                         None => {
                             // still running, check timeout
@@ -93,7 +52,7 @@ impl CommandWithTimeout<'_> {
                 }
             }
             // no timeout, block forever
-            None => self.0.output().map_err(|_| Error::CommandFailed(name)),
+            None => self.0.output().map_err(|e| Error::CommandFailed(name, e)),
         }
     }
 }

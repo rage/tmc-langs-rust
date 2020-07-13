@@ -17,7 +17,6 @@ use tar::Archive;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult},
     plugin::{Language, LanguagePlugin, ValidationResult},
-    policy::StudentFilePolicy,
     Error,
 };
 
@@ -73,16 +72,15 @@ impl MavenPlugin {
 }
 
 impl LanguagePlugin for MavenPlugin {
-    fn get_plugin_name(&self) -> &str {
-        "apache-maven"
-    }
+    const PLUGIN_NAME: &'static str = "apache-maven";
+    type StudentFilePolicy = MavenStudentFilePolicy;
 
     fn check_code_style(&self, path: &Path, locale: Language) -> Option<ValidationResult> {
         self.run_checkstyle(&locale, path)
     }
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
-        if !self.is_exercise_type_correct(path) {
+        if !Self::is_exercise_type_correct(path) {
             return JavaError::InvalidExercise.into();
         }
 
@@ -98,12 +96,12 @@ impl LanguagePlugin for MavenPlugin {
         Ok(self.run_java_tests(project_root_path)?)
     }
 
-    fn is_exercise_type_correct(&self, path: &Path) -> bool {
+    fn is_exercise_type_correct(path: &Path) -> bool {
         path.join("pom.xml").exists()
     }
 
-    fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy> {
-        Box::new(MavenStudentFilePolicy::new(project_path.to_path_buf()))
+    fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
+        MavenStudentFilePolicy::new(project_path.to_path_buf())
     }
 
     fn clean(&self, path: &Path) -> Result<(), Error> {
@@ -118,7 +116,9 @@ impl LanguagePlugin for MavenPlugin {
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 
         if !output.status.success() {
-            return Err(Error::CommandFailed("mvn"));
+            return Err(
+                JavaError::FailedCommand("mvn".to_string(), output.stdout, output.stderr).into(),
+            );
         }
 
         Ok(())
@@ -155,6 +155,7 @@ impl JavaPlugin for MavenPlugin {
         if !output.status.success() {
             return Err(JavaError::FailedCommand(
                 mvn_path.as_os_str().to_string_lossy().to_string(),
+                output.stdout,
                 output.stderr,
             ));
         }
@@ -196,6 +197,7 @@ impl JavaPlugin for MavenPlugin {
         if !output.status.success() {
             return Err(JavaError::FailedCommand(
                 mvn_path.as_os_str().to_string_lossy().to_string(),
+                output.stdout,
                 output.stderr,
             ));
         }
@@ -229,6 +231,7 @@ impl JavaPlugin for MavenPlugin {
         if !output.status.success() {
             return Err(JavaError::FailedCommand(
                 mvn_path.as_os_str().to_string_lossy().to_string(),
+                output.stdout,
                 output.stderr,
             ));
         }

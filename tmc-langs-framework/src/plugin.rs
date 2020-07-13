@@ -26,8 +26,8 @@ use walkdir::WalkDir;
 /// Implementations must be thread-safe and preferably fully stateless. Users of
 /// this interface are free to cache results if needed.
 pub trait LanguagePlugin {
-    /// Returns the name of the plug-in.
-    fn get_plugin_name(&self) -> &str;
+    const PLUGIN_NAME: &'static str;
+    type StudentFilePolicy: StudentFilePolicy + 'static;
 
     /// Returns a list of all directories inside that contain an exercise in this
     /// language.
@@ -43,7 +43,7 @@ pub trait LanguagePlugin {
                 .filter_entry(|e| e.path().is_dir())
                 .filter_map(|e| e.ok())
             {
-                if self.is_exercise_type_correct(entry.path()) {
+                if Self::is_exercise_type_correct(entry.path()) {
                     debug!("found exercise {}", entry.path().display());
                     exercises.push(entry.into_path());
                 }
@@ -63,8 +63,7 @@ pub trait LanguagePlugin {
 
     /// Runs the tests for the exercise.
     fn run_tests(&self, path: &Path) -> Result<RunResult> {
-        let timeout = self
-            .get_student_file_policy(path)
+        let timeout = Self::get_student_file_policy(path)
             .get_tmc_project_yml()
             .ok()
             .and_then(|t| t.tests_timeout_ms.map(Duration::from_millis));
@@ -82,7 +81,7 @@ pub trait LanguagePlugin {
     /// easily replace the tests.
     fn prepare_submission(
         &self,
-        policy: Box<dyn StudentFilePolicy>,
+        policy: Self::StudentFilePolicy,
         submission_path: &Path,
         dest_path: &Path,
     ) -> Result<()> {
@@ -124,24 +123,24 @@ pub trait LanguagePlugin {
 
     /// Compress a given project so that it can be sent to the TestMyCode server.
     fn compress_project(&self, path: &Path) -> Result<Vec<u8>> {
-        let policy = self.get_student_file_policy(path);
-        Ok(zip::zip(policy, path)?)
+        let policy = Self::get_student_file_policy(path);
+        Ok(zip::zip(Box::new(policy), path)?)
     }
 
-    fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy>;
+    fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy;
 
     /// Extract a given archive file containing a compressed project to a target location.
     ///
     /// This will overwrite any existing files as long as they are not specified as student files
     /// by the language dependent student file policy.
     fn extract_project(&self, compressed_project: &Path, target_location: &Path) -> Result<()> {
-        let policy = self.get_student_file_policy(target_location);
+        let policy = Self::get_student_file_policy(target_location);
         zip::unzip(policy, compressed_project, target_location)?;
         Ok(())
     }
 
     /// Tells if there's a valid exercise in this path.
-    fn is_exercise_type_correct(&self, path: &Path) -> bool;
+    fn is_exercise_type_correct(path: &Path) -> bool;
 
     /// Copy shared stuff to stub or solution used for example for copying tmc-junit-runner.
     #[allow(unused_variables)]
@@ -206,11 +205,10 @@ mod test {
     }
 
     impl LanguagePlugin for MockPlugin {
-        fn get_student_file_policy(&self, _project_path: &Path) -> Box<dyn StudentFilePolicy> {
-            unimplemented!()
-        }
+        const PLUGIN_NAME: &'static str = "mock_plugin";
+        type StudentFilePolicy = MockPolicy;
 
-        fn get_plugin_name(&self) -> &'static str {
+        fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
             unimplemented!()
         }
 
@@ -226,7 +224,7 @@ mod test {
             unimplemented!()
         }
 
-        fn is_exercise_type_correct(&self, path: &Path) -> bool {
+        fn is_exercise_type_correct(path: &Path) -> bool {
             !path.to_str().unwrap().contains("ignored")
         }
 

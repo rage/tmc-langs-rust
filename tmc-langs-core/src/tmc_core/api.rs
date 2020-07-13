@@ -49,8 +49,8 @@ impl CoreExt for ReqwestResponse {
         if status.is_success() {
             Ok(self)
         } else {
-            log::error!("HTTP Error: {}", self.text()?);
-            Err(CoreError::HttpStatus(url, status))
+            let text = self.text().unwrap_or(String::new());
+            Err(CoreError::HttpStatus(url, status, text))
         }
     }
 }
@@ -74,7 +74,10 @@ impl GetExt for RequestBuilder {
 impl TmcCore {
     // convenience function
     fn get_json<T: DeserializeOwned>(&self, url_tail: &str) -> Result<T> {
-        let url = self.api_url.join(url_tail)?;
+        let url = self
+            .api_url
+            .join(url_tail)
+            .map_err(|e| CoreError::UrlParse(url_tail.to_string(), e))?;
         self.get_json_from_url(url)
     }
     // convenience function
@@ -89,7 +92,10 @@ impl TmcCore {
     }
 
     fn download(&self, url_tail: &str, target: &Path) -> Result<()> {
-        let url = self.api_url.join(&url_tail)?;
+        let url = self
+            .api_url
+            .join(url_tail)
+            .map_err(|e| CoreError::UrlParse(url_tail.to_string(), e))?;
 
         // download zip
         let mut target_file =
@@ -615,7 +621,10 @@ impl TmcCore {
         review_points: &str,
     ) -> Result<()> {
         let url_tail = format!("core/submissions/{}/reviews", submission_id);
-        let url = self.api_url.join(&url_tail)?;
+        let url = self
+            .api_url
+            .join(&url_tail)
+            .map_err(|e| CoreError::UrlParse(url_tail, e))?;
 
         log::debug!("posting {}", url);
         let res: Value = self
@@ -632,7 +641,8 @@ impl TmcCore {
     }
 
     pub(super) fn mark_review(&self, review_update_url: String, read: bool) -> Result<()> {
-        let url = Url::parse(&format!("{}.json", review_update_url))?;
+        let url = format!("{}.json", review_update_url);
+        let url = Url::parse(&url).map_err(|e| CoreError::UrlParse(url, e))?;
 
         let mut form = Form::new().text("_method", "put");
         if read {

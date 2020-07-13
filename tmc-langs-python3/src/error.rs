@@ -1,6 +1,5 @@
 // Python plugin error type
 
-use serde_json::Error as JsonError;
 use std::path::PathBuf;
 use thiserror::Error;
 use tmc_langs_framework::Error as TmcError;
@@ -8,17 +7,17 @@ use tmc_langs_framework::Error as TmcError;
 #[derive(Debug, Error)]
 pub enum PythonError {
     #[error("Error running command {0}: {1}")]
-    Command(&'static str, std::io::Error),
+    Command(&'static str, #[source] std::io::Error),
     #[error("Path error for {0}: {1}")]
-    Path(PathBuf, std::io::Error),
+    Path(PathBuf, #[source] std::io::Error),
     #[error("Failed to open file {0}: {1}")]
-    FileOpen(PathBuf, std::io::Error),
+    FileOpen(PathBuf, #[source] std::io::Error),
     #[error("Failed to deserialize file at {0} to JSON: {1}")]
-    Deserialize(PathBuf, JsonError),
+    Deserialize(PathBuf, #[source] serde_json::Error),
     #[error("Failed to remove file {0}: {1}")]
-    FileRemove(PathBuf, std::io::Error),
+    FileRemove(PathBuf, #[source] std::io::Error),
     #[error("Failed to remove directory {0}: {1}")]
-    DirRemove(PathBuf, std::io::Error),
+    DirRemove(PathBuf, #[source] std::io::Error),
     #[error(transparent)]
     Framework(#[from] tmc_langs_framework::Error),
 }

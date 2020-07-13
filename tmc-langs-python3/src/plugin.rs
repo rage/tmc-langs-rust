@@ -13,7 +13,6 @@ use std::time::Duration;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     plugin::LanguagePlugin,
-    policy::StudentFilePolicy,
     CommandWithTimeout, Error,
 };
 use walkdir::WalkDir;
@@ -27,12 +26,11 @@ impl Python3Plugin {
 }
 
 impl LanguagePlugin for Python3Plugin {
-    fn get_plugin_name(&self) -> &'static str {
-        "python3"
-    }
+    const PLUGIN_NAME: &'static str = "python3";
+    type StudentFilePolicy = Python3StudentFilePolicy;
 
-    fn get_student_file_policy(&self, project_path: &Path) -> Box<dyn StudentFilePolicy> {
-        Box::new(Python3StudentFilePolicy::new(project_path.to_owned()))
+    fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
+        Python3StudentFilePolicy::new(project_path.to_owned())
     }
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
@@ -60,7 +58,7 @@ impl LanguagePlugin for Python3Plugin {
         Ok(parse_test_result(path)?)
     }
 
-    fn is_exercise_type_correct(&self, path: &Path) -> bool {
+    fn is_exercise_type_correct(path: &Path) -> bool {
         let mut setup = path.to_owned();
         setup.push("setup.py");
 
@@ -247,7 +245,7 @@ mod test {
         assert!(run_result.test_results[0].points.contains(&"2.2".into()));
         assert_eq!(run_result.test_results[0].points.len(), 3);
         assert!(run_result.test_results[0].message.is_empty());
-        assert!(run_result.test_results[0].exceptions.is_empty());
+        assert!(run_result.test_results[0].exception.is_empty());
         assert_eq!(run_result.test_results.len(), 1);
         assert!(run_result.logs.is_empty());
 
@@ -263,7 +261,7 @@ mod test {
         assert!(run_result.test_results[0].points.contains(&"1.2".into()));
         assert!(run_result.test_results[0].points.contains(&"2.2".into()));
         assert!(run_result.test_results[0].message.starts_with("'a' != 'b'"));
-        assert!(run_result.test_results[0].exceptions.is_empty());
+        assert!(!run_result.test_results[0].exception.is_empty());
         assert_eq!(run_result.test_results.len(), 1);
         assert!(run_result.logs.is_empty());
 
@@ -282,7 +280,7 @@ mod test {
             run_result.test_results[0].message,
             "name 'doSomethingIllegal' is not defined"
         );
-        assert!(run_result.test_results[0].exceptions.is_empty());
+        assert!(!run_result.test_results[0].exception.is_empty());
         assert_eq!(run_result.test_results.len(), 1);
         assert!(run_result.logs.is_empty());
     }
@@ -292,10 +290,10 @@ mod test {
         init();
         let plugin = Python3Plugin::new();
 
-        let correct = plugin.is_exercise_type_correct(Path::new("tests/data"));
+        let correct = Python3Plugin::is_exercise_type_correct(Path::new("tests/data"));
         assert!(correct);
 
-        let correct = plugin.is_exercise_type_correct(Path::new("./"));
+        let correct = Python3Plugin::is_exercise_type_correct(Path::new("./"));
         assert!(!correct);
     }
 

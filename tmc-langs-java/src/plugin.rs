@@ -96,7 +96,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
             successful,
             points,
             message,
-            exceptions,
+            exception: exceptions,
         }
     }
 
@@ -121,7 +121,11 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
             .map_err(|e| JavaError::FailedToRun("java".to_string(), e))?;
 
         if !output.status.success() {
-            return Err(JavaError::FailedCommand("java".to_string(), output.stderr));
+            return Err(JavaError::FailedCommand(
+                "java".to_string(),
+                output.stdout,
+                output.stderr,
+            ));
         }
 
         // information is printed to stderr
@@ -147,7 +151,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         exercise_name: String,
         compile_result: CompileResult,
     ) -> Result<ExerciseDesc, JavaError> {
-        if !self.is_exercise_type_correct(path) || !compile_result.status_code.success() {
+        if !Self::is_exercise_type_correct(path) || !compile_result.status_code.success() {
             return Err(JavaError::InvalidExercise);
         }
 

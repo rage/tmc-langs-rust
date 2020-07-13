@@ -27,7 +27,7 @@ pub struct TmcCore {
     #[allow(dead_code)]
     config_dir: PathBuf, // not used yet
     api_url: Url,
-    auth_url: Url,
+    auth_url: String,
     token: Option<Token>,
 }
 
@@ -52,9 +52,12 @@ impl TmcCore {
         } else {
             format!("{}/", root_url)
         };
-        let tmc_url = Url::parse(&root_url)?;
-        let api_url = tmc_url.join("api/v8/")?;
-        let auth_url = tmc_url.join("oauth/token")?;
+        let tmc_url = Url::parse(&root_url).map_err(|e| CoreError::UrlParse(root_url, e))?;
+        let api_url = tmc_url.join("api/v8/").expect("failed to join api/v8/");
+        let auth_url = tmc_url
+            .join("oauth/token")
+            .expect("failed to join oauth/token")
+            .to_string();
         Ok(Self {
             client: Client::new(),
             config_dir,
@@ -101,74 +104,27 @@ impl TmcCore {
         email: String,
         password: String,
     ) -> Result<()> {
-        // required until oauth 4.x.x
-        fn custom_client<'a>(
-            client: &'a Client,
-        ) -> impl FnOnce(oauth2::HttpRequest) -> Result<oauth2::HttpResponse> + 'a {
-            move |req| {
-                // convert httprequest fields
-                let method = http::method::Method::from_bytes(req.method.as_str().as_bytes())?;
-                let mut headers = http::HeaderMap::new();
-                let mut next_key = None;
-                for (key, val) in req.headers {
-                    // if key is none, keep using previous next key
-                    if key.is_some() {
-                        // update next key
-                        next_key = key;
-                    }
-                    let header_name = if let Some(name) = next_key.as_ref() {
-                        // use next key
-                        name
-                    } else {
-                        log::error!("invalid header map, found None key first");
-                        continue;
-                    };
-                    let header_name =
-                        http::header::HeaderName::from_bytes(header_name.as_str().as_bytes())?;
-                    let header_value = http::header::HeaderValue::from_bytes(val.as_bytes())?;
-                    headers.insert(header_name, header_value);
-                }
-                let res = client
-                    .request(method, req.url)
-                    .headers(headers)
-                    .body(req.body)
-                    .send()?;
-
-                // convert response to httpresponse
-                let status_code = http1::StatusCode::from_bytes(res.status().as_str().as_bytes())?;
-                let mut headers = http1::HeaderMap::new();
-                for (key, val) in res.headers() {
-                    let header_name =
-                        http1::header::HeaderName::from_bytes(key.as_str().as_bytes())?;
-                    let header_value = http1::header::HeaderValue::from_bytes(val.as_bytes())?;
-                    headers.insert(header_name, header_value);
-                }
-                let body = res.bytes()?.to_vec();
-                let res = oauth2::HttpResponse {
-                    status_code,
-                    headers,
-                    body,
-                };
-
-                Ok(res)
-            }
-        }
-
         if self.token.is_some() {
             return Err(CoreError::AlreadyAuthenticated);
         }
 
+        let tail = format!("application/{}/credentials", client_name);
         let url = self
             .api_url
-            .join(&format!("application/{}/credentials", client_name))?;
+            .join(&tail)
+            .map_err(|e| CoreError::UrlParse(tail, e))?;
         let credentials: Credentials = self.get_json_from_url(url)?;
 
         log::debug!("authenticating at {}", self.auth_url);
         let client = BasicClient::new(
             ClientId::new(credentials.application_id),
             Some(ClientSecret::new(credentials.secret)),
-            AuthUrl::new(self.auth_url.as_str().to_string())?, // not used in the Resource Owner Password Credentials Grant
-            Some(TokenUrl::new(self.auth_url.as_str().to_string())?),
+            AuthUrl::new(self.auth_url.clone())
+                .map_err(|e| CoreError::UrlParse(self.auth_url.clone(), e))?, // not used in the Resource Owner Password Credentials Grant
+            Some(
+                TokenUrl::new(self.auth_url.clone())
+                    .map_err(|e| CoreError::UrlParse(self.auth_url.clone(), e))?,
+            ),
         );
 
         let token = client
@@ -176,7 +132,7 @@ impl TmcCore {
                 &ResourceOwnerUsername::new(email),
                 &ResourceOwnerPassword::new(password),
             )
-            .request(custom_client(&self.client))?;
+            .request(oauth2::reqwest::http_client)?;
         self.token = Some(token);
         log::debug!("authenticated");
         Ok(())
@@ -241,6 +197,14 @@ impl TmcCore {
         self.core_course(course_id)
     }
 
+    pub fn get_exercise_details(&self, exercise_id: usize) -> Result<ExerciseDetails> {
+        self.core_exercise(exercise_id)
+    }
+
+    pub fn get_course_submissions(&self, course_id: usize) -> Result<Vec<Submission>> {
+        self.course_submissions(course_id)
+    }
+
     /// Fetches all courses under the given organization.
     ///
     /// # Errors
@@ -291,7 +255,7 @@ impl TmcCore {
         let compressed = task_executor::compress_project(submission_path)?;
         let mut file = NamedTempFile::new().map_err(CoreError::TempFile)?;
         file.write_all(&compressed)
-            .map_err(|e| CoreError::Write(file.path().to_path_buf(), e))?;
+            .map_err(|e| CoreError::FileWrite(file.path().to_path_buf(), e))?;
 
         self.post_submission_to_paste(submission_url, file.path(), paste_message, locale)
     }
@@ -368,7 +332,7 @@ impl TmcCore {
         let compressed = task_executor::compress_project(submission_path)?;
         let mut file = NamedTempFile::new().map_err(CoreError::TempFile)?;
         file.write_all(&compressed)
-            .map_err(|e| CoreError::Write(file.path().to_path_buf(), e))?;
+            .map_err(|e| CoreError::FileWrite(file.path().to_path_buf(), e))?;
 
         self.post_submission(submission_url, file.path(), locale)
     }
@@ -450,7 +414,7 @@ impl TmcCore {
         let compressed = task_executor::compress_project(submission_path)?;
         let mut file = NamedTempFile::new().map_err(CoreError::TempFile)?;
         file.write_all(&compressed)
-            .map_err(|e| CoreError::Write(file.path().to_path_buf(), e))?;
+            .map_err(|e| CoreError::FileWrite(file.path().to_path_buf(), e))?;
 
         self.post_submission_for_review(submission_url, file.path(), message_for_reviewer, locale)
     }
@@ -477,7 +441,8 @@ impl TmcCore {
             return Err(CoreError::AuthRequired);
         }
 
-        let url = Url::parse(submission_url)?;
+        let url = Url::parse(submission_url)
+            .map_err(|e| CoreError::UrlParse(submission_url.to_string(), e))?;
         let res: Response<SubmissionProcessingStatus> = self.get_json_from_url(url)?;
         let res = res.into_result()?;
         Ok(res)

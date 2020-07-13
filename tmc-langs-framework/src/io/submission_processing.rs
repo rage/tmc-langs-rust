@@ -21,12 +21,13 @@ lazy_static! {
 
 /// Moves some of the contents of source to target based on the given policy.
 /// For example, a file source/foo.java would be moved to target/foo.java.
-pub fn move_files(
-    student_file_policy: Box<dyn StudentFilePolicy>,
+pub fn move_files<P: StudentFilePolicy>(
+    student_file_policy: P,
     source: &Path,
     target: &Path,
 ) -> Result<()> {
     let tmc_project_yml = student_file_policy.get_tmc_project_yml()?;
+    // silently skips over errors
     for entry in WalkDir::new(source)
         .into_iter()
         .filter_map(|e| e.ok())
@@ -111,7 +112,9 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
         .strip_prefix(source_root)
         .unwrap_or_else(|_| Path::new(""));
     let dest_path = dest_root.join(&relative_path);
-    dest_path.parent().map_or(Ok(()), fs::create_dir_all)?;
+    if let Some(parent) = dest_path.parent() {
+        fs::create_dir_all(parent).map_err(|e| Error::CreateDir(parent.to_path_buf(), e))?;
+    }
     let extension = entry.path().extension().and_then(|e| e.to_str());
     let is_binary = extension
         .map(|e| NON_TEXT_TYPES.is_match(e))
@@ -135,19 +138,28 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
         let source_file =
             File::open(entry.path()).map_err(|e| Error::OpenFile(entry.path().to_path_buf(), e))?;
 
-        let mut target_file = File::create(dest_path)
+        let mut target_file = File::create(&dest_path)
             .map_err(|e| Error::CreateFile(entry.path().to_path_buf(), e))?;
 
         let parser = MetaSyntaxParser::new(source_file, extension.unwrap_or_default());
-        for line in parser {
-            let line = line?;
-            if filter(&line) {
-                debug!("write: {:?}", line);
-                target_file.write_all(line.as_str().as_bytes())?;
-            } else {
-                debug!("skip: {:?}", line);
-            }
-        }
+
+        // todo: reduce collection?
+        // filtered metastrings
+        let filtered: Vec<MetaString> = parser
+            .collect::<Result<Vec<_>>>()?
+            .into_iter()
+            .filter(filter)
+            .collect();
+        // collects the filtered lines into a byte vector
+        let write_lines: Vec<u8> = filtered
+            .iter()
+            .flat_map(|l| l.as_str().as_bytes())
+            .copied()
+            .collect();
+        // writes all lines
+        target_file
+            .write_all(&write_lines)
+            .map_err(|e| Error::Write(dest_path, e))?;
     }
     Ok(())
 }
@@ -232,9 +244,7 @@ mod test {
         std::fs::create_dir_all(file_path.parent().unwrap()).unwrap();
         let _file = std::fs::File::create(&file_path).unwrap();
         move_files(
-            Box::new(EverythingIsStudentFilePolicy::new(
-                source.path().to_path_buf(),
-            )),
+            EverythingIsStudentFilePolicy::new(source.path().to_path_buf()),
             source.path(),
             target.path(),
         )
@@ -263,12 +273,7 @@ mod test {
         let file_path = source.path().join(mock_file);
         std::fs::create_dir_all(file_path.parent().unwrap()).unwrap();
         let _file = std::fs::File::create(&file_path).unwrap();
-        move_files(
-            Box::new(NothingIsStudentFilePolicy {}),
-            source.path(),
-            target.path(),
-        )
-        .unwrap();
+        move_files(NothingIsStudentFilePolicy {}, source.path(), target.path()).unwrap();
 
         let mut paths = HashSet::new();
         for entry in WalkDir::new(target.path()) {
