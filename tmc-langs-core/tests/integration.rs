@@ -11,5 +11,5 @@ fn get_organizations() {
 
     let mut core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
     core.authenticate("vscode_plugin", email, password).unwrap();
-    let cd = core.get_course_details(600).unwrap();
+    let _cd = core.get_course_details(600).unwrap();
 }

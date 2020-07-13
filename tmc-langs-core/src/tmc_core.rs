@@ -490,7 +490,7 @@ mod test {
 
     #[test]
     fn get_organizations() {
-        let (core, addr) = init();
+        let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/org.json")
             .with_body(
                 serde_json::json!([
@@ -511,7 +511,7 @@ mod test {
 
     #[test]
     fn download_or_update_exercises() {
-        let (core, addr) = init();
+        let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/core/exercises/1234/download")
             .with_body_from_file(Path::new("tests/data/81842.zip"))
             .create();
@@ -526,7 +526,7 @@ mod test {
 
     #[test]
     fn get_course_details() {
-        let (core, addr) = init();
+        let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/core/courses/1234")
             .with_body(serde_json::json!({
                 "course": {
@@ -576,7 +576,7 @@ mod test {
 
     #[test]
     fn list_courses() {
-        let (core, addr) = init();
+        let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/core/org/slug/courses")
             .with_body(serde_json::json!([
                     {
@@ -715,7 +715,7 @@ mod test {
 
     #[test]
     fn get_exercise_updates() {
-        let (core, addr) = init();
+        let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/core/courses/1234")
             .with_body(serde_json::json!({
                 "course": {
@@ -818,7 +818,7 @@ mod test {
     }
 
     //#[test]
-    fn mark_review_as_read() {
+    fn _mark_review_as_read() {
         // todo
         let (core, addr) = init();
         let update_url = Url::parse(&addr).unwrap().join("update-url").unwrap();

@@ -288,7 +288,7 @@ mod test {
     #[test]
     fn exercise_type_is_correct() {
         init();
-        let plugin = Python3Plugin::new();
+        let _plugin = Python3Plugin::new();
 
         let correct = Python3Plugin::is_exercise_type_correct(Path::new("tests/data"));
         assert!(correct);

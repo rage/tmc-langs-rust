@@ -76,7 +76,7 @@ fn get_organizations() {
 }
 
 //#[test]
-fn download_or_update_exercises() {
+fn _download_or_update_exercises() {
     let _m = init();
     let out = run_cmd(&[
         "core",
@@ -91,5 +91,5 @@ fn download_or_update_exercises() {
         "path2",
     ]);
     assert!(out.status.success());
-    let out = String::from_utf8(out.stdout).unwrap();
+    let _out = String::from_utf8(out.stdout).unwrap();
 }

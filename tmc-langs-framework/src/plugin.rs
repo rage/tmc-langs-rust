@@ -208,7 +208,7 @@ mod test {
         const PLUGIN_NAME: &'static str = "mock_plugin";
         type StudentFilePolicy = MockPolicy;
 
-        fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
+        fn get_student_file_policy(_project_path: &Path) -> Self::StudentFilePolicy {
             unimplemented!()
         }
 

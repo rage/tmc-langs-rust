@@ -10,6 +10,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::time::Duration;
 
+#[derive(Default)]
 pub struct NoTestsPlugin {}
 
 impl NoTestsPlugin {
