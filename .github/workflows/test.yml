@@ -18,6 +18,10 @@ jobs:
         run: |
           sudo apt install -y check valgrind  # required for make plugin
           sudo apt install -y r-base  # required for R plugin
+      - name: Install tmc-r-tester
+        run: |
+          Rscript -e 'install.packages(c("devtools","testthat", "httr", "curl"),repos="https://ftp.eenet.ee/pub/cran/")'
+          Rscript -e 'devtools::install_github("RTMC/tmc-r-tester/tmcRtestrunner")'
       - name: Build test binary
         run: cargo test --no-run --verbose
       - name: Run tests
