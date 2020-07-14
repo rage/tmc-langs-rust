@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.2.5/src/proto/streams/streams.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>streams.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../h2/index.html'><div class='logo-container'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.2.6/src/proto/streams/streams.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>streams.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../h2/index.html'><div class='logo-container'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1548,7 +1548,7 @@
         <span class="comment">// The GOAWAY process has begun. All streams with a greater ID than</span>
         <span class="comment">// specified as part of GOAWAY should be ignored.</span>
         <span class="kw">if</span> <span class="ident">id</span> <span class="op">&gt;</span> <span class="ident">me</span>.<span class="ident">actions</span>.<span class="ident">recv</span>.<span class="ident">max_stream_id</span>() {
-            <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(
+            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
                 <span class="string">&quot;id ({:?}) &gt; max_stream_id ({:?}), ignoring HEADERS&quot;</span>,
                 <span class="ident">id</span>,
                 <span class="ident">me</span>.<span class="ident">actions</span>.<span class="ident">recv</span>.<span class="ident">max_stream_id</span>()
@@ -1568,7 +1568,7 @@
                     <span class="comment">// This may be response headers for a stream we&#39;ve already</span>
                     <span class="comment">// forgotten about...</span>
                     <span class="kw">if</span> <span class="ident">me</span>.<span class="ident">actions</span>.<span class="ident">may_have_forgotten_stream</span>::<span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">id</span>) {
-                        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
+                        <span class="ident">tracing</span>::<span class="macro">debug</span><span class="macro">!</span>(
                             <span class="string">&quot;recv_headers for old stream={:?}, sending STREAM_CLOSED&quot;</span>,
                             <span class="ident">id</span>,
                         );
@@ -1600,7 +1600,7 @@
             <span class="comment">// Locally reset streams must ignore frames &quot;for some time&quot;.</span>
             <span class="comment">// This is because the remote may have sent trailers before</span>
             <span class="comment">// receiving the RST_STREAM frame.</span>
-            <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;recv_headers; ignoring trailers on {:?}&quot;</span>, <span class="ident">stream</span>.<span class="ident">id</span>);
+            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;recv_headers; ignoring trailers on {:?}&quot;</span>, <span class="ident">stream</span>.<span class="ident">id</span>);
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
         }
 
@@ -1609,7 +1609,7 @@
         <span class="kw">let</span> <span class="ident">send_buffer</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">send_buffer</span>;
 
         <span class="ident">me</span>.<span class="ident">counts</span>.<span class="ident">transition</span>(<span class="ident">stream</span>, <span class="op">|</span><span class="ident">counts</span>, <span class="ident">stream</span><span class="op">|</span> {
-            <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(
+            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
                 <span class="string">&quot;recv_headers; stream={:?}; state={:?}&quot;</span>,
                 <span class="ident">stream</span>.<span class="ident">id</span>,
                 <span class="ident">stream</span>.<span class="ident">state</span>
@@ -1672,7 +1672,7 @@
                 <span class="comment">// The GOAWAY process has begun. All streams with a greater ID</span>
                 <span class="comment">// than specified as part of GOAWAY should be ignored.</span>
                 <span class="kw">if</span> <span class="ident">id</span> <span class="op">&gt;</span> <span class="ident">me</span>.<span class="ident">actions</span>.<span class="ident">recv</span>.<span class="ident">max_stream_id</span>() {
-                    <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(
+                    <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
                         <span class="string">&quot;id ({:?}) &gt; max_stream_id ({:?}), ignoring DATA&quot;</span>,
                         <span class="ident">id</span>,
                         <span class="ident">me</span>.<span class="ident">actions</span>.<span class="ident">recv</span>.<span class="ident">max_stream_id</span>()
@@ -1681,7 +1681,7 @@
                 }
 
                 <span class="kw">if</span> <span class="ident">me</span>.<span class="ident">actions</span>.<span class="ident">may_have_forgotten_stream</span>::<span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">id</span>) {
-                    <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;recv_data for old stream={:?}, sending STREAM_CLOSED&quot;</span>, <span class="ident">id</span>,);
+                    <span class="ident">tracing</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;recv_data for old stream={:?}, sending STREAM_CLOSED&quot;</span>, <span class="ident">id</span>,);
 
                     <span class="kw">let</span> <span class="ident">sz</span> <span class="op">=</span> <span class="ident">frame</span>.<span class="ident">payload</span>().<span class="ident">len</span>();
                     <span class="comment">// This should have been enforced at the codec::FramedRead layer, so</span>
@@ -1735,7 +1735,7 @@
         <span class="comment">// The GOAWAY process has begun. All streams with a greater ID than</span>
         <span class="comment">// specified as part of GOAWAY should be ignored.</span>
         <span class="kw">if</span> <span class="ident">id</span> <span class="op">&gt;</span> <span class="ident">me</span>.<span class="ident">actions</span>.<span class="ident">recv</span>.<span class="ident">max_stream_id</span>() {
-            <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(
+            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
                 <span class="string">&quot;id ({:?}) &gt; max_stream_id ({:?}), ignoring RST_STREAM&quot;</span>,
                 <span class="ident">id</span>,
                 <span class="ident">me</span>.<span class="ident">actions</span>.<span class="ident">recv</span>.<span class="ident">max_stream_id</span>()
@@ -1883,7 +1883,7 @@
                 <span class="comment">// The GOAWAY process has begun. All streams with a greater ID</span>
                 <span class="comment">// than specified as part of GOAWAY should be ignored.</span>
                 <span class="kw">if</span> <span class="ident">id</span> <span class="op">&gt;</span> <span class="ident">me</span>.<span class="ident">actions</span>.<span class="ident">recv</span>.<span class="ident">max_stream_id</span>() {
-                    <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(
+                    <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
                         <span class="string">&quot;id ({:?}) &gt; max_stream_id ({:?}), ignoring PUSH_PROMISE&quot;</span>,
                         <span class="ident">id</span>,
                         <span class="ident">me</span>.<span class="ident">actions</span>.<span class="ident">recv</span>.<span class="ident">max_stream_id</span>()
@@ -1976,7 +1976,7 @@
         <span class="ident">me</span>.<span class="ident">refs</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         <span class="ident">key</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">me</span>.<span class="ident">store</span>.<span class="ident">resolve</span>(<span class="ident">key</span>);
-            <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(
+            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
                 <span class="string">&quot;next_incoming; id={:?}, state={:?}&quot;</span>,
                 <span class="ident">stream</span>.<span class="ident">id</span>,
                 <span class="ident">stream</span>.<span class="ident">state</span>
@@ -2201,7 +2201,7 @@
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pending</span>) <span class="op">=</span> <span class="ident">pending</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">me</span>.<span class="ident">store</span>.<span class="ident">resolve</span>(<span class="ident">pending</span>.<span class="ident">key</span>);
-            <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;poll_pending_open; stream = {:?}&quot;</span>, <span class="ident">stream</span>.<span class="ident">is_pending_open</span>);
+            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;poll_pending_open; stream = {:?}&quot;</span>, <span class="ident">stream</span>.<span class="ident">is_pending_open</span>);
             <span class="kw">if</span> <span class="ident">stream</span>.<span class="ident">is_pending_open</span> {
                 <span class="ident">stream</span>.<span class="ident">wait_send</span>(<span class="ident">cx</span>);
                 <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Pending</span>;
@@ -2231,7 +2231,7 @@
             <span class="ident">actions</span>.<span class="ident">conn_error</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">from</span>(<span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">BrokenPipe</span>).<span class="ident">into</span>());
         }
 
-        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Streams::recv_eof&quot;</span>);
+        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Streams::recv_eof&quot;</span>);
 
         <span class="ident">me</span>.<span class="ident">store</span>
             .<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">stream</span><span class="op">|</span> {
@@ -2678,7 +2678,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">inner</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inner</span>,
         <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">if</span> ::<span class="ident">std</span>::<span class="ident">thread</span>::<span class="ident">panicking</span>() {
-                <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;StreamRef::drop; mutex poisoned&quot;</span>);
+                <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;StreamRef::drop; mutex poisoned&quot;</span>);
                 <span class="kw">return</span>;
             } <span class="kw">else</span> {
                 <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;StreamRef::drop; mutex poisoned&quot;</span>);
@@ -2690,7 +2690,7 @@
     <span class="ident">me</span>.<span class="ident">refs</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">me</span>.<span class="ident">store</span>.<span class="ident">resolve</span>(<span class="ident">key</span>);
 
-    <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;drop_stream_ref; stream={:?}&quot;</span>, <span class="ident">stream</span>);
+    <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;drop_stream_ref; stream={:?}&quot;</span>, <span class="ident">stream</span>);
 
     <span class="comment">// decrement the stream&#39;s ref count by 1.</span>
     <span class="ident">stream</span>.<span class="ident">ref_dec</span>();

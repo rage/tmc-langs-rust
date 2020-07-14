@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.2.5/src/proto/streams/state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../h2/index.html'><div class='logo-container'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.2.6/src/proto/streams/state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../h2/index.html'><div class='logo-container'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -675,12 +675,12 @@
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span> {
             <span class="ident">Open</span> { <span class="ident">local</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// The remote side will continue to receive data.</span>
-                <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;recv_close: Open =&gt; HalfClosedRemote({:?})&quot;</span>, <span class="ident">local</span>);
+                <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;recv_close: Open =&gt; HalfClosedRemote({:?})&quot;</span>, <span class="ident">local</span>);
                 <span class="self">self</span>.<span class="ident">inner</span> <span class="op">=</span> <span class="ident">HalfClosedRemote</span>(<span class="ident">local</span>);
                 <span class="prelude-val">Ok</span>(())
             }
             <span class="ident">HalfClosedLocal</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;recv_close: HalfClosedLocal =&gt; Closed&quot;</span>);
+                <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;recv_close: HalfClosedLocal =&gt; Closed&quot;</span>);
                 <span class="self">self</span>.<span class="ident">inner</span> <span class="op">=</span> <span class="ident">Closed</span>(<span class="ident">Cause</span>::<span class="ident">EndStream</span>);
                 <span class="prelude-val">Ok</span>(())
             }
@@ -716,7 +716,7 @@
             <span class="comment">// previous state with the received RST_STREAM, so that the queue</span>
             <span class="comment">// will be cleared by `Prioritize::pop_frame`.</span>
             <span class="ident">state</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(
+                <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
                     <span class="string">&quot;recv_reset; reason={:?}; state={:?}; queued={:?}&quot;</span>,
                     <span class="ident">reason</span>,
                     <span class="ident">state</span>,
@@ -734,7 +734,7 @@
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span> {
             <span class="ident">Closed</span>(..) <span class="op">=</span><span class="op">&gt;</span> {}
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;recv_err; err={:?}&quot;</span>, <span class="ident">err</span>);
+                <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;recv_err; err={:?}&quot;</span>, <span class="ident">err</span>);
                 <span class="self">self</span>.<span class="ident">inner</span> <span class="op">=</span> <span class="ident">Closed</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="ident">err</span> {
                     <span class="ident">Proto</span>(<span class="ident">reason</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Cause</span>::<span class="ident">LocallyReset</span>(<span class="ident">reason</span>),
                     <span class="ident">Io</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Cause</span>::<span class="ident">Io</span>,
@@ -747,7 +747,7 @@
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span> {
             <span class="ident">Closed</span>(..) <span class="op">=</span><span class="op">&gt;</span> {}
             <span class="ident">s</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;recv_eof; state={:?}&quot;</span>, <span class="ident">s</span>);
+                <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;recv_eof; state={:?}&quot;</span>, <span class="ident">s</span>);
                 <span class="self">self</span>.<span class="ident">inner</span> <span class="op">=</span> <span class="ident">Closed</span>(<span class="ident">Cause</span>::<span class="ident">Io</span>);
             }
         }
@@ -758,11 +758,11 @@
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span> {
             <span class="ident">Open</span> { <span class="ident">remote</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// The remote side will continue to receive data.</span>
-                <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;send_close: Open =&gt; HalfClosedLocal({:?})&quot;</span>, <span class="ident">remote</span>);
+                <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;send_close: Open =&gt; HalfClosedLocal({:?})&quot;</span>, <span class="ident">remote</span>);
                 <span class="self">self</span>.<span class="ident">inner</span> <span class="op">=</span> <span class="ident">HalfClosedLocal</span>(<span class="ident">remote</span>);
             }
             <span class="ident">HalfClosedRemote</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;send_close: HalfClosedRemote =&gt; Closed&quot;</span>);
+                <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;send_close: HalfClosedRemote =&gt; Closed&quot;</span>);
                 <span class="self">self</span>.<span class="ident">inner</span> <span class="op">=</span> <span class="ident">Closed</span>(<span class="ident">Cause</span>::<span class="ident">EndStream</span>);
             }
             <span class="ident">state</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;send_close: unexpected state {:?}&quot;</span>, <span class="ident">state</span>),

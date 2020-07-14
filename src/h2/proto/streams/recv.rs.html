@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.2.5/src/proto/streams/recv.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>recv.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../h2/index.html'><div class='logo-container'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.2.6/src/proto/streams/recv.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>recv.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../h2/index.html'><div class='logo-container'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1262,7 +1262,7 @@
         <span class="ident">stream</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">store</span>::<span class="ident">Ptr</span>,
         <span class="ident">counts</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Counts</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">RecvHeaderBlockError</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">frame</span>::<span class="ident">Headers</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;opening stream; init_window={}&quot;</span>, <span class="self">self</span>.<span class="ident">init_window_sz</span>);
+        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;opening stream; init_window={}&quot;</span>, <span class="self">self</span>.<span class="ident">init_window_sz</span>);
         <span class="kw">let</span> <span class="ident">is_initial</span> <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">state</span>.<span class="ident">recv_open</span>(<span class="ident">frame</span>.<span class="ident">is_end_stream</span>())<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="ident">is_initial</span> {
@@ -1308,7 +1308,7 @@
             <span class="comment">// So, if peer is a server, we&#39;ll send a 431. In either case,</span>
             <span class="comment">// an error is recorded, which will send a REFUSED_STREAM,</span>
             <span class="comment">// since we don&#39;t want any of the data frames either.</span>
-            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
+            <span class="ident">tracing</span>::<span class="macro">debug</span><span class="macro">!</span>(
                 <span class="string">&quot;stream error REQUEST_HEADER_FIELDS_TOO_LARGE -- \
                  recv_headers: frame is over size; stream={:?}&quot;</span>,
                 <span class="ident">stream</span>.<span class="ident">id</span>
@@ -1443,7 +1443,7 @@
 
     <span class="doccomment">/// Releases capacity of the connection</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">release_connection_capacity</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">capacity</span>: <span class="ident">WindowSize</span>, <span class="ident">task</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Waker</span><span class="op">&gt;</span>) {
-        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(
+        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
             <span class="string">&quot;release_connection_capacity; size={}, connection in_flight_data={}&quot;</span>,
             <span class="ident">capacity</span>,
             <span class="self">self</span>.<span class="ident">in_flight_data</span>,
@@ -1469,7 +1469,7 @@
         <span class="ident">stream</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">store</span>::<span class="ident">Ptr</span>,
         <span class="ident">task</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Waker</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UserError</span><span class="op">&gt;</span> {
-        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;release_capacity; size={}&quot;</span>, <span class="ident">capacity</span>);
+        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;release_capacity; size={}&quot;</span>, <span class="ident">capacity</span>);
 
         <span class="kw">if</span> <span class="ident">capacity</span> <span class="op">&gt;</span> <span class="ident">stream</span>.<span class="ident">in_flight_recv_data</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">UserError</span>::<span class="ident">ReleaseCapacityTooBig</span>);
@@ -1503,7 +1503,7 @@
             <span class="kw">return</span>;
         }
 
-        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(
+        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
             <span class="string">&quot;auto-release closed stream ({:?}) capacity: {:?}&quot;</span>,
             <span class="ident">stream</span>.<span class="ident">id</span>,
             <span class="ident">stream</span>.<span class="ident">in_flight_recv_data</span>,
@@ -1528,7 +1528,7 @@
     <span class="doccomment">/// The `task` is an optional parked task for the `Connection` that might</span>
     <span class="doccomment">/// be blocked on needing more window capacity.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_target_connection_window</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">target</span>: <span class="ident">WindowSize</span>, <span class="ident">task</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Waker</span><span class="op">&gt;</span>) {
-        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(
+        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
             <span class="string">&quot;set_target_connection_window; target={}; available={}, reserved={}&quot;</span>,
             <span class="ident">target</span>,
             <span class="self">self</span>.<span class="ident">flow</span>.<span class="ident">available</span>(),
@@ -1571,7 +1571,7 @@
         <span class="kw">let</span> <span class="ident">old_sz</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">init_window_sz</span>;
         <span class="self">self</span>.<span class="ident">init_window_sz</span> <span class="op">=</span> <span class="ident">target</span>;
 
-        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;update_initial_window_size; new={}; old={}&quot;</span>, <span class="ident">target</span>, <span class="ident">old_sz</span>,);
+        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;update_initial_window_size; new={}; old={}&quot;</span>, <span class="ident">target</span>, <span class="ident">old_sz</span>,);
 
         <span class="comment">// Per RFC 7540 §6.9.2:</span>
         <span class="comment">//</span>
@@ -1592,7 +1592,7 @@
         <span class="kw">if</span> <span class="ident">target</span> <span class="op">&lt;</span> <span class="ident">old_sz</span> {
             <span class="comment">// We must decrease the (local) window on every open stream.</span>
             <span class="kw">let</span> <span class="ident">dec</span> <span class="op">=</span> <span class="ident">old_sz</span> <span class="op">-</span> <span class="ident">target</span>;
-            <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;decrementing all windows; dec={}&quot;</span>, <span class="ident">dec</span>);
+            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;decrementing all windows; dec={}&quot;</span>, <span class="ident">dec</span>);
 
             <span class="ident">store</span>.<span class="ident">for_each</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">stream</span><span class="op">|</span> {
                 <span class="ident">stream</span>.<span class="ident">recv_flow</span>.<span class="ident">dec_recv_window</span>(<span class="ident">dec</span>);
@@ -1601,7 +1601,7 @@
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">target</span> <span class="op">&gt;</span> <span class="ident">old_sz</span> {
             <span class="comment">// We must increase the (local) window on every open stream.</span>
             <span class="kw">let</span> <span class="ident">inc</span> <span class="op">=</span> <span class="ident">target</span> <span class="op">-</span> <span class="ident">old_sz</span>;
-            <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;incrementing all windows; inc={}&quot;</span>, <span class="ident">inc</span>);
+            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;incrementing all windows; inc={}&quot;</span>, <span class="ident">inc</span>);
             <span class="ident">store</span>.<span class="ident">for_each</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">stream</span><span class="op">|</span> {
                 <span class="comment">// XXX: Shouldn&#39;t the peer have already noticed our</span>
                 <span class="comment">// overflow and sent us a GOAWAY?</span>
@@ -1651,7 +1651,7 @@
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RecvError</span>::<span class="ident">Connection</span>(<span class="ident">Reason</span>::<span class="ident">PROTOCOL_ERROR</span>));
         }
 
-        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(
+        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
             <span class="string">&quot;recv_data; size={}; connection={}; stream={}&quot;</span>,
             <span class="ident">sz</span>,
             <span class="self">self</span>.<span class="ident">flow</span>.<span class="ident">window_size</span>(),
@@ -1659,7 +1659,7 @@
         );
 
         <span class="kw">if</span> <span class="ident">is_ignoring_frame</span> {
-            <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(
+            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
                 <span class="string">&quot;recv_data; frame ignored on locally reset {:?} for some time&quot;</span>,
                 <span class="ident">stream</span>.<span class="ident">id</span>,
             );
@@ -1749,7 +1749,7 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">consume_connection_window</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">sz</span>: <span class="ident">WindowSize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">RecvError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flow</span>.<span class="ident">window_size</span>() <span class="op">&lt;</span> <span class="ident">sz</span> {
-            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
+            <span class="ident">tracing</span>::<span class="macro">debug</span><span class="macro">!</span>(
                 <span class="string">&quot;connection error FLOW_CONTROL_ERROR -- window_size ({:?}) &lt; sz ({:?});&quot;</span>,
                 <span class="self">self</span>.<span class="ident">flow</span>.<span class="ident">window_size</span>(),
                 <span class="ident">sz</span>,
@@ -1783,7 +1783,7 @@
             <span class="comment">// So, if peer is a server, we&#39;ll send a 431. In either case,</span>
             <span class="comment">// an error is recorded, which will send a REFUSED_STREAM,</span>
             <span class="comment">// since we don&#39;t want any of the data frames either.</span>
-            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
+            <span class="ident">tracing</span>::<span class="macro">debug</span><span class="macro">!</span>(
                 <span class="string">&quot;stream error REFUSED_STREAM -- recv_push_promise: \
                  headers frame is over size; promised_id={:?};&quot;</span>,
                 <span class="ident">frame</span>.<span class="ident">promised_id</span>(),
@@ -1832,7 +1832,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ensure_not_idle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">StreamId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Reason</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">next</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_stream_id</span> {
             <span class="kw">if</span> <span class="ident">id</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">next</span> {
-                <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
+                <span class="ident">tracing</span>::<span class="macro">debug</span><span class="macro">!</span>(
                     <span class="string">&quot;stream ID implicitly closed, PROTOCOL_ERROR; stream={:?}&quot;</span>,
                     <span class="ident">id</span>
                 );
@@ -1923,7 +1923,7 @@
             <span class="kw">return</span>;
         }
 
-        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;enqueue_reset_expiration; {:?}&quot;</span>, <span class="ident">stream</span>.<span class="ident">id</span>);
+        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;enqueue_reset_expiration; {:?}&quot;</span>, <span class="ident">stream</span>.<span class="ident">id</span>);
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">counts</span>.<span class="ident">can_inc_num_reset_streams</span>() {
             <span class="comment">// try to evict 1 stream if possible</span>
@@ -1993,7 +1993,7 @@
     <span class="kw">fn</span> <span class="ident">clear_stream_window_update_queue</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">store</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Store</span>, <span class="ident">counts</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Counts</span>) {
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stream</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">pending_window_updates</span>.<span class="ident">pop</span>(<span class="ident">store</span>) {
             <span class="ident">counts</span>.<span class="ident">transition</span>(<span class="ident">stream</span>, <span class="op">|</span><span class="kw">_</span>, <span class="ident">stream</span><span class="op">|</span> {
-                <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;clear_stream_window_update_queue; stream={:?}&quot;</span>, <span class="ident">stream</span>.<span class="ident">id</span>);
+                <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;clear_stream_window_update_queue; stream={:?}&quot;</span>, <span class="ident">stream</span>.<span class="ident">id</span>);
             })
         }
     }
@@ -2083,7 +2083,7 @@
             };
 
             <span class="ident">counts</span>.<span class="ident">transition</span>(<span class="ident">stream</span>, <span class="op">|</span><span class="kw">_</span>, <span class="ident">stream</span><span class="op">|</span> {
-                <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;pending_window_updates -- pop; stream={:?}&quot;</span>, <span class="ident">stream</span>.<span class="ident">id</span>);
+                <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;pending_window_updates -- pop; stream={:?}&quot;</span>, <span class="ident">stream</span>.<span class="ident">id</span>);
                 <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">stream</span>.<span class="ident">is_pending_window_update</span>);
 
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">stream</span>.<span class="ident">state</span>.<span class="ident">is_recv_streaming</span>() {

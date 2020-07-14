@@ -790,6 +790,8 @@
 <span id="790">790</span>
 <span id="791">791</span>
 <span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! CLI client for TMC</span>
 
@@ -1308,6 +1310,8 @@
             <span class="ident">env</span>::<span class="ident">var</span>(<span class="string">&quot;TMC_CORE_CLI_ROOT_URL&quot;</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="string">&quot;https://tmc.mooc.fi&quot;</span>.<span class="ident">to_string</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">core</span> <span class="op">=</span> <span class="ident">TmcCore</span>::<span class="ident">new_in_config</span>(<span class="ident">root_url</span>)
             .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to create TmcCore&quot;</span>))<span class="question-mark">?</span>;
+        <span class="comment">// set progress report to print the updates to stdout as JSON</span>
+        <span class="ident">core</span>.<span class="ident">set_progress_report</span>(<span class="op">|</span><span class="ident">update</span><span class="op">|</span> <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">update</span>).<span class="ident">unwrap</span>()));
 
         <span class="kw">let</span> <span class="ident">email</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;email&quot;</span>).<span class="ident">unwrap</span>();
         <span class="comment">// TODO: &quot;Please enter password&quot; and quiet param</span>

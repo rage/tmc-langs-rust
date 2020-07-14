@@ -16,27 +16,27 @@ settings that can be changed by using <a href="struct.Builder.html"><code>Builde
 <h1 id="inbound-streams" class="section-header"><a href="#inbound-streams">Inbound streams</a></h1>
 <p>The <a href="struct.Connection.html"><code>Connection</code></a> instance is used to accept inbound HTTP/2.0 streams. It
 does this by implementing <a href="https://docs.rs/futures/0.1/futures/stream/trait.Stream.html"><code>futures::Stream</code></a>. When a new stream is
-received, a call to <a href="struct.Connection.html#method.poll"><code>Connection::poll</code></a> will return <code>(request, response)</code>.
+received, a call to [<code>Connection::accept</code>] will return <code>(request, response)</code>.
 The <code>request</code> handle (of type <a href="../struct.RecvStream.html"><code>http::Request&lt;RecvStream&gt;</code></a>) contains the
 HTTP request head as well as provides a way to receive the inbound data
-stream and the trailers. The <code>response</code> handle (of type <a href="../struct.SendStream.html"><code>SendStream</code></a>)
+stream and the trailers. The <code>response</code> handle (of type [<code>SendResponse</code>])
 allows responding to the request, stream the response payload, send
 trailers, and send push promises.</p>
 <p>The send (<a href="../struct.SendStream.html"><code>SendStream</code></a>) and receive (<a href="../struct.RecvStream.html"><code>RecvStream</code></a>) halves of the stream
 can be operated independently.</p>
 <h1 id="managing-the-connection" class="section-header"><a href="#managing-the-connection">Managing the connection</a></h1>
 <p>The <a href="struct.Connection.html"><code>Connection</code></a> instance is used to manage connection state. The caller
-is required to call either <a href="struct.Connection.html#method.poll"><code>Connection::poll</code></a> or
+is required to call either [<code>Connection::accept</code>] or
 <a href="struct.Connection.html#method.poll_close"><code>Connection::poll_close</code></a> in order to advance the connection state. Simply
 operating on <a href="../struct.SendStream.html"><code>SendStream</code></a> or <a href="../struct.RecvStream.html"><code>RecvStream</code></a> will have no effect unless the
 connection state is advanced.</p>
-<p>It is not required to call <strong>both</strong> <a href="struct.Connection.html#method.poll"><code>Connection::poll</code></a> and
+<p>It is not required to call <strong>both</strong> [<code>Connection::accept</code>] and
 <a href="struct.Connection.html#method.poll_close"><code>Connection::poll_close</code></a>. If the caller is ready to accept a new stream,
-then only <a href="struct.Connection.html#method.poll"><code>Connection::poll</code></a> should be called. When the caller <strong>does
+then only [<code>Connection::accept</code>] should be called. When the caller <strong>does
 not</strong> want to accept a new stream, <a href="struct.Connection.html#method.poll_close"><code>Connection::poll_close</code></a> should be
 called.</p>
 <p>The <a href="struct.Connection.html"><code>Connection</code></a> instance should only be dropped once
-<a href="struct.Connection.html#method.poll_close"><code>Connection::poll_close</code></a> returns <code>Ready</code>. Once <a href="struct.Connection.html#method.poll"><code>Connection::poll</code></a>
+<a href="struct.Connection.html#method.poll_close"><code>Connection::poll_close</code></a> returns <code>Ready</code>. Once [<code>Connection::accept</code>]
 returns <code>Ready(None)</code>, there will no longer be any more inbound streams. At
 this point, only <a href="struct.Connection.html#method.poll_close"><code>Connection::poll_close</code></a> should be called.</p>
 <h1 id="shutting-down-the-server" class="section-header"><a href="#shutting-down-the-server">Shutting down the server</a></h1>

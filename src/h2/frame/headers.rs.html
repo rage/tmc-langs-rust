@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.2.5/src/frame/headers.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>headers.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../h2/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.2.6/src/frame/headers.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>headers.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../h2/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -978,6 +978,9 @@
 <span id="978">978</span>
 <span id="979">979</span>
 <span id="980">980</span>
+<span id="981">981</span>
+<span id="982">982</span>
+<span id="983">983</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">util</span>, <span class="ident">StreamDependency</span>, <span class="ident">StreamId</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">frame</span>::{<span class="ident">Error</span>, <span class="ident">Frame</span>, <span class="ident">Head</span>, <span class="ident">Kind</span>};
@@ -1134,7 +1137,7 @@
         <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">HeadersFlag</span>(<span class="ident">head</span>.<span class="ident">flag</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pad</span> <span class="op">=</span> <span class="number">0</span>;
 
-        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;loading headers; flags={:?}&quot;</span>, <span class="ident">flags</span>);
+        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;loading headers; flags={:?}&quot;</span>, <span class="ident">flags</span>);
 
         <span class="comment">// Read the padding length</span>
         <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">is_padded</span>() {
@@ -1798,10 +1801,10 @@
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">set_pseudo</span> {
             (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
                 <span class="kw">if</span> <span class="ident">reg</span> {
-                    <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;load_hpack; header malformed -- pseudo not at head of block&quot;</span>);
+                    <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;load_hpack; header malformed -- pseudo not at head of block&quot;</span>);
                     <span class="ident">malformed</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">pseudo</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>.<span class="ident">is_some</span>() {
-                    <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;load_hpack; header malformed -- repeated pseudo&quot;</span>);
+                    <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;load_hpack; header malformed -- repeated pseudo&quot;</span>);
                     <span class="ident">malformed</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 } <span class="kw">else</span> {
                     <span class="kw">let</span> <span class="ident">__val</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span>;
@@ -1810,7 +1813,7 @@
                     <span class="kw">if</span> <span class="ident">headers_size</span> <span class="op">&lt;</span> <span class="ident">max_header_list_size</span> {
                         <span class="self">self</span>.<span class="ident">pseudo</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">__val</span>);
                     } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_over_size</span> {
-                        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;load_hpack; header list size over max&quot;</span>);
+                        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;load_hpack; header list size over max&quot;</span>);
                         <span class="self">self</span>.<span class="ident">is_over_size</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     }
                 }
@@ -1837,10 +1840,13 @@
                         <span class="op">|</span><span class="op">|</span> <span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;keep-alive&quot;</span>
                         <span class="op">|</span><span class="op">|</span> <span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;proxy-connection&quot;</span>
                     {
-                        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;load_hpack; connection level header&quot;</span>);
+                        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;load_hpack; connection level header&quot;</span>);
                         <span class="ident">malformed</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">header</span>::<span class="ident">TE</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">value</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;trailers&quot;</span> {
-                        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;load_hpack; TE header not set to trailers; val={:?}&quot;</span>, <span class="ident">value</span>);
+                        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
+                            <span class="string">&quot;load_hpack; TE header not set to trailers; val={:?}&quot;</span>,
+                            <span class="ident">value</span>
+                        );
                         <span class="ident">malformed</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     } <span class="kw">else</span> {
                         <span class="ident">reg</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -1849,7 +1855,7 @@
                         <span class="kw">if</span> <span class="ident">headers_size</span> <span class="op">&lt;</span> <span class="ident">max_header_list_size</span> {
                             <span class="self">self</span>.<span class="ident">fields</span>.<span class="ident">append</span>(<span class="ident">name</span>, <span class="ident">value</span>);
                         } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_over_size</span> {
-                            <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;load_hpack; header list size over max&quot;</span>);
+                            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;load_hpack; header list size over max&quot;</span>);
                             <span class="self">self</span>.<span class="ident">is_over_size</span> <span class="op">=</span> <span class="bool-val">true</span>;
                         }
                     }
@@ -1863,12 +1869,12 @@
         });
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">res</span> {
-            <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;hpack decoding error; err={:?}&quot;</span>, <span class="ident">e</span>);
+            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;hpack decoding error; err={:?}&quot;</span>, <span class="ident">e</span>);
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>.<span class="ident">into</span>());
         }
 
         <span class="kw">if</span> <span class="ident">malformed</span> {
-            <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;malformed message&quot;</span>);
+            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;malformed message&quot;</span>);
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">MalformedMessage</span>);
         }
 
