@@ -117,7 +117,7 @@ where
     let submission_url = Url::parse(&exercise.return_url).unwrap();
     log::debug!("submitting to {}", submission_url);
     let submission = core
-        .submit(submission_url, &submission_path, Language::Eng)
+        .submit(submission_url, &submission_path, Some(Language::Eng))
         .unwrap();
     log::debug!("got {:#?}", submission);
 

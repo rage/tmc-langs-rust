@@ -495,7 +495,7 @@ impl TmcCore {
         &self,
         submission_url: Url,
         submission: &Path,
-        locale: Language,
+        locale: Option<Language>,
     ) -> Result<NewSubmission> {
         self.post_submission_with_params(submission_url, submission, None, locale)
     }
@@ -505,7 +505,7 @@ impl TmcCore {
         submission_url: Url,
         submission: &Path,
         paste_message: String,
-        locale: Language,
+        locale: Option<Language>,
     ) -> Result<NewSubmission> {
         let mut params = HashMap::new();
         params.insert("paste".to_string(), "1".to_string());
@@ -518,7 +518,7 @@ impl TmcCore {
         submission_url: Url,
         submission: &Path,
         message_for_reviewer: String,
-        locale: Language,
+        locale: Option<Language>,
     ) -> Result<NewSubmission> {
         let mut params = HashMap::new();
         params.insert("request_review".to_string(), "1".to_string());
@@ -531,7 +531,7 @@ impl TmcCore {
         submission_url: Url,
         submission: &Path,
         params: Option<HashMap<String, String>>,
-        locale: Language,
+        locale: Option<Language>,
     ) -> Result<NewSubmission> {
         if self.token.is_none() {
             return Err(CoreError::AuthRequired);
@@ -545,7 +545,11 @@ impl TmcCore {
         */
 
         // send
-        let mut form = Form::new()
+        let mut form = Form::new();
+        if let Some(locale) = locale {
+            form = form.text("error_msg_locale", locale.to_string()) // TODO: verify server accepts 639-3
+        }
+        form = form
             .text(
                 "client_time",
                 SystemTime::UNIX_EPOCH.elapsed()?.as_secs().to_string(),
@@ -554,7 +558,6 @@ impl TmcCore {
                 "client_nanotime",
                 SystemTime::UNIX_EPOCH.elapsed()?.as_nanos().to_string(),
             )
-            .text("error_msg_locale", locale.to_string()) // TODO: verify server accepts 639-3
             .file("submission[file]", submission)
             .map_err(|e| CoreError::FileOpen(submission.to_path_buf(), e))?;
 

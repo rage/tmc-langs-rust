@@ -23,9 +23,10 @@ pub type Token =
     oauth2::StandardTokenResponse<oauth2::EmptyExtraTokenFields, oauth2::basic::BasicTokenType>;
 
 #[derive(Debug, Serialize)]
-pub enum StatusUpdate {
-    Processing(&'static str, f64),
-    Finished,
+pub struct StatusUpdate {
+    finished: bool,
+    message: &'static str,
+    percent_done: f64,
 }
 
 /// A struct for interacting with the TestMyCode service, including authentication
@@ -92,6 +93,10 @@ impl TmcCore {
         Self::new(config_dir, root_url)
     }
 
+    pub fn set_token(&mut self, token: Token) {
+        self.token = Some(token);
+    }
+
     pub fn set_progress_report<F>(&mut self, progress_report: F)
     where
         F: Fn(StatusUpdate) + 'static,
@@ -99,16 +104,24 @@ impl TmcCore {
         self.progress_report = Some(Box::new(progress_report));
     }
 
-    pub fn report_progress(&self, msg: &'static str, progress: f64) {
-        self.progress_report
-            .as_ref()
-            .map(|f| f(StatusUpdate::Processing(msg, progress)));
+    pub fn report_progress(&self, message: &'static str, percent_done: f64) {
+        self.progress_report.as_ref().map(|f| {
+            f(StatusUpdate {
+                finished: false,
+                message,
+                percent_done,
+            })
+        });
     }
 
-    pub fn report_complete(&self) {
-        self.progress_report
-            .as_ref()
-            .map(|f| f(StatusUpdate::Finished));
+    pub fn report_complete(&self, message: &'static str) {
+        self.progress_report.as_ref().map(|f| {
+            f(StatusUpdate {
+                finished: true,
+                message,
+                percent_done: 1.0,
+            })
+        });
     }
 
     /// Attempts to log in with the given credentials, returns an error if an authentication token is already present.
@@ -131,7 +144,7 @@ impl TmcCore {
         client_name: &str,
         email: String,
         password: String,
-    ) -> Result<()> {
+    ) -> Result<Token> {
         if self.token.is_some() {
             return Err(CoreError::AlreadyAuthenticated);
         }
@@ -161,9 +174,9 @@ impl TmcCore {
                 &ResourceOwnerPassword::new(password),
             )
             .request(oauth2::reqwest::http_client)?;
-        self.token = Some(token);
+        self.token = Some(token.clone());
         log::debug!("authenticated");
-        Ok(())
+        Ok(token)
     }
 
     /// Fetches all organizations.
@@ -247,6 +260,9 @@ impl TmcCore {
     /// let courses = core.list_courses("hy").unwrap();
     /// ```
     pub fn list_courses(&self, organization_slug: &str) -> Result<Vec<Course>> {
+        if self.token.is_none() {
+            return Err(CoreError::AuthRequired);
+        }
         self.organization_courses(organization_slug)
     }
 
@@ -285,7 +301,7 @@ impl TmcCore {
         file.write_all(&compressed)
             .map_err(|e| CoreError::FileWrite(file.path().to_path_buf(), e))?;
 
-        self.post_submission_to_paste(submission_url, file.path(), paste_message, locale)
+        self.post_submission_to_paste(submission_url, file.path(), paste_message, Some(locale))
     }
 
     /// Checks the coding style for the project.
@@ -354,7 +370,7 @@ impl TmcCore {
         &self,
         submission_url: Url,
         submission_path: &Path,
-        locale: Language,
+        locale: Option<Language>,
     ) -> Result<NewSubmission> {
         // compress
         self.report_progress("Submitting exercise. Compressing submission...", 0.0);
@@ -367,7 +383,7 @@ impl TmcCore {
         self.report_progress("Wrote compressed data. Posting submission...", 0.75);
 
         let result = self.post_submission(submission_url, file.path(), locale);
-        self.report_complete();
+        self.report_complete("Submission finished!");
         result
     }
 
@@ -450,7 +466,12 @@ impl TmcCore {
         file.write_all(&compressed)
             .map_err(|e| CoreError::FileWrite(file.path().to_path_buf(), e))?;
 
-        self.post_submission_for_review(submission_url, file.path(), message_for_reviewer, locale)
+        self.post_submission_for_review(
+            submission_url,
+            file.path(),
+            message_for_reviewer,
+            Some(locale),
+        )
     }
 
     /// Downloads the model solution from the given url.
@@ -738,7 +759,7 @@ mod test {
             .submit(
                 submission_url,
                 Path::new("tests/data/exercise"),
-                Language::from_639_3("eng").unwrap(),
+                Some(Language::Eng),
             )
             .unwrap();
         assert_eq!(
@@ -1023,5 +1044,27 @@ mod test {
             }
             SubmissionProcessingStatus::Processing(_) => panic!("wrong status"),
         }
+    }
+
+    #[test]
+    fn status_serde() {
+        let p = StatusUpdate {
+            finished: false,
+            message: "submitting...",
+            percent_done: 0.5,
+        };
+        assert_eq!(
+            r#"{"finished":false,"message":"submitting...","percent_done":0.5}"#,
+            serde_json::to_string(&p).unwrap()
+        );
+        let f = StatusUpdate {
+            finished: true,
+            message: "done",
+            percent_done: 1.0,
+        };
+        assert_eq!(
+            r#"{"finished":true,"message":"done","percent_done":1.0}"#,
+            serde_json::to_string(&f).unwrap()
+        );
     }
 }

@@ -6,10 +6,10 @@ use clap::{App, Arg, Error, ErrorKind, SubCommand};
 use serde::Serialize;
 use std::collections::HashMap;
 use std::env;
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use tmc_langs_core::{FeedbackAnswer, TmcCore};
+use tmc_langs_core::{FeedbackAnswer, TmcCore, Token};
 use tmc_langs_framework::io::submission_processing;
 use tmc_langs_util::{task_executor, Language};
 use url::Url;
@@ -159,11 +159,22 @@ fn run() -> Result<()> {
 
         .subcommand(SubCommand::with_name("core")
             .about("tmc-core commands. The program will ask for your TMC password through stdin.")
-            .arg(Arg::with_name("email")
-                .help("The email associated with your TMC account.")
-                .long("email")
+            .arg(Arg::with_name("clientName")
+                .help("Name used to differentiate between different TMC clients")
+                .long("clientName")
                 .required(true)
                 .takes_value(true))
+
+            .subcommand(SubCommand::with_name("login")
+                .about("Login and store OAuth2 token in config.")
+                .arg(Arg::with_name("email")
+                    .help("The email address of your TMC account")
+                    .long("email")
+                    .required(true)
+                    .takes_value(true)))
+
+            .subcommand(SubCommand::with_name("logout")
+                .about("Login and remove OAuth2 token from config."))
 
             .subcommand(SubCommand::with_name("get-organizations")
                 .about("Get organizations."))
@@ -261,7 +272,6 @@ fn run() -> Result<()> {
                 .arg(Arg::with_name("locale")
                     .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")                    
                     .long("locale")
-                    .required(true)
                     .takes_value(true)))
 
             .subcommand(SubCommand::with_name("get-exercise-updates")
@@ -518,14 +528,50 @@ fn run() -> Result<()> {
         // set progress report to print the updates to stdout as JSON
         core.set_progress_report(|update| println!("{}", serde_json::to_string(&update).unwrap()));
 
-        let email = matches.value_of("email").unwrap();
-        // TODO: "Please enter password" and quiet param
-        let password = rpassword::read_password().context("Failed to read password")?;
+        // set token if a credentials.json is found for the client name
+        let client_name = matches.value_of("clientName").unwrap();
+        let tmc_dir = format!("tmc-{}", client_name);
 
-        core.authenticate("vscode_plugin", email.to_string(), password)
-            .context("Failed to authenticate with TMC")?;
+        let config_dir = match env::var("TMC_LANGS_CLI_CONFIG_DIR") {
+            Ok(v) => PathBuf::from(v),
+            Err(_) => dirs::config_dir().context("Failed to find config directory")?,
+        };
+        let credentials_path = config_dir.join(tmc_dir).join("credentials.json");
+        if let Ok(file) = File::open(&credentials_path) {
+            let token: Token = serde_json::from_reader(file).expect("malformed credentials.json");
+            core.set_token(token);
+        };
 
-        if let Some(_matches) = matches.subcommand_matches("get-organizations") {
+        if let Some(matches) = matches.subcommand_matches("login") {
+            let email = matches.value_of("email").unwrap();
+            // TODO: "Please enter password" and quiet param
+            let password = rpassword::read_password().context("Failed to read password")?;
+            let token = core
+                .authenticate(client_name, email.to_string(), password)
+                .context("Failed to authenticate with TMC")?;
+            if let Some(p) = credentials_path.parent() {
+                fs::create_dir_all(p)
+                    .with_context(|| format!("Failed to create directory {}", p.display()))?;
+            }
+            let credentials_file = File::create(&credentials_path).with_context(|| {
+                format!("Failed to create file at {}", credentials_path.display())
+            })?;
+            serde_json::to_writer(credentials_file, &token).with_context(|| {
+                format!(
+                    "Failed to write credentials to {}",
+                    credentials_path.display()
+                )
+            })?;
+        } else if let Some(_matches) = matches.subcommand_matches("logout") {
+            if credentials_path.exists() {
+                fs::remove_file(&credentials_path).with_context(|| {
+                    format!(
+                        "Failed to remove credentials at {}",
+                        credentials_path.display()
+                    )
+                })?;
+            }
+        } else if let Some(_matches) = matches.subcommand_matches("get-organizations") {
             let orgs = core
                 .get_organizations()
                 .context("Failed to get organizations")?;
@@ -627,11 +673,15 @@ fn run() -> Result<()> {
             let submission_path = matches.value_of("submissionPath").unwrap();
             let submission_path = Path::new(submission_path);
 
-            let locale = matches.value_of("locale").unwrap();
-            let locale = into_locale(locale)?;
+            let optional_locale = matches.value_of("locale");
+            let optional_locale = if let Some(locale) = optional_locale {
+                Some(into_locale(locale)?)
+            } else {
+                None
+            };
 
             let new_submission = core
-                .submit(submission_url, submission_path, locale)
+                .submit(submission_url, submission_path, optional_locale)
                 .context("Failed to submit")?;
 
             print_result_as_json(&new_submission)?;
