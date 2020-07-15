@@ -792,6 +792,56 @@
 <span id="792">792</span>
 <span id="793">793</span>
 <span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! CLI client for TMC</span>
 
@@ -801,10 +851,10 @@
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Serialize</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">env</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::{<span class="self">self</span>, <span class="ident">File</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
-<span class="kw">use</span> <span class="ident">tmc_langs_core</span>::{<span class="ident">FeedbackAnswer</span>, <span class="ident">TmcCore</span>};
+<span class="kw">use</span> <span class="ident">tmc_langs_core</span>::{<span class="ident">FeedbackAnswer</span>, <span class="ident">TmcCore</span>, <span class="ident">Token</span>};
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::<span class="ident">io</span>::<span class="ident">submission_processing</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{<span class="ident">task_executor</span>, <span class="ident">Language</span>};
 <span class="kw">use</span> <span class="ident">url</span>::<span class="ident">Url</span>;
@@ -954,11 +1004,22 @@
 
         .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;core&quot;</span>)
             .<span class="ident">about</span>(<span class="string">&quot;tmc-core commands. The program will ask for your TMC password through stdin.&quot;</span>)
-            .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;email&quot;</span>)
-                .<span class="ident">help</span>(<span class="string">&quot;The email associated with your TMC account.&quot;</span>)
-                .<span class="ident">long</span>(<span class="string">&quot;email&quot;</span>)
+            .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;clientName&quot;</span>)
+                .<span class="ident">help</span>(<span class="string">&quot;Name used to differentiate between different TMC clients&quot;</span>)
+                .<span class="ident">long</span>(<span class="string">&quot;clientName&quot;</span>)
                 .<span class="ident">required</span>(<span class="bool-val">true</span>)
                 .<span class="ident">takes_value</span>(<span class="bool-val">true</span>))
+
+            .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;login&quot;</span>)
+                .<span class="ident">about</span>(<span class="string">&quot;Login and store OAuth2 token in config.&quot;</span>)
+                .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;email&quot;</span>)
+                    .<span class="ident">help</span>(<span class="string">&quot;The email address of your TMC account&quot;</span>)
+                    .<span class="ident">long</span>(<span class="string">&quot;email&quot;</span>)
+                    .<span class="ident">required</span>(<span class="bool-val">true</span>)
+                    .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)))
+
+            .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;logout&quot;</span>)
+                .<span class="ident">about</span>(<span class="string">&quot;Login and remove OAuth2 token from config.&quot;</span>))
 
             .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;get-organizations&quot;</span>)
                 .<span class="ident">about</span>(<span class="string">&quot;Get organizations.&quot;</span>))
@@ -1056,7 +1117,6 @@
                 .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;locale&quot;</span>)
                     .<span class="ident">help</span>(<span class="string">&quot;Language as a three letter ISO 639-3 code, e.g. &#39;eng&#39; or &#39;fin&#39;.&quot;</span>)                    
                     .<span class="ident">long</span>(<span class="string">&quot;locale&quot;</span>)
-                    .<span class="ident">required</span>(<span class="bool-val">true</span>)
                     .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)))
 
             .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;get-exercise-updates&quot;</span>)
@@ -1313,14 +1373,50 @@
         <span class="comment">// set progress report to print the updates to stdout as JSON</span>
         <span class="ident">core</span>.<span class="ident">set_progress_report</span>(<span class="op">|</span><span class="ident">update</span><span class="op">|</span> <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">update</span>).<span class="ident">unwrap</span>()));
 
-        <span class="kw">let</span> <span class="ident">email</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;email&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="comment">// TODO: &quot;Please enter password&quot; and quiet param</span>
-        <span class="kw">let</span> <span class="ident">password</span> <span class="op">=</span> <span class="ident">rpassword</span>::<span class="ident">read_password</span>().<span class="ident">context</span>(<span class="string">&quot;Failed to read password&quot;</span>)<span class="question-mark">?</span>;
+        <span class="comment">// set token if a credentials.json is found for the client name</span>
+        <span class="kw">let</span> <span class="ident">client_name</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;clientName&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">tmc_dir</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;tmc-{}&quot;</span>, <span class="ident">client_name</span>);
 
-        <span class="ident">core</span>.<span class="ident">authenticate</span>(<span class="string">&quot;vscode_plugin&quot;</span>, <span class="ident">email</span>.<span class="ident">to_string</span>(), <span class="ident">password</span>)
-            .<span class="ident">context</span>(<span class="string">&quot;Failed to authenticate with TMC&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">config_dir</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">env</span>::<span class="ident">var</span>(<span class="string">&quot;TMC_LANGS_CLI_CONFIG_DIR&quot;</span>) {
+            <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="ident">v</span>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dirs</span>::<span class="ident">config_dir</span>().<span class="ident">context</span>(<span class="string">&quot;Failed to find config directory&quot;</span>)<span class="question-mark">?</span>,
+        };
+        <span class="kw">let</span> <span class="ident">credentials_path</span> <span class="op">=</span> <span class="ident">config_dir</span>.<span class="ident">join</span>(<span class="ident">tmc_dir</span>).<span class="ident">join</span>(<span class="string">&quot;credentials.json&quot;</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">file</span>) <span class="op">=</span> <span class="ident">File</span>::<span class="ident">open</span>(<span class="kw-2">&amp;</span><span class="ident">credentials_path</span>) {
+            <span class="kw">let</span> <span class="ident">token</span>: <span class="ident">Token</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">from_reader</span>(<span class="ident">file</span>).<span class="ident">expect</span>(<span class="string">&quot;malformed credentials.json&quot;</span>);
+            <span class="ident">core</span>.<span class="ident">set_token</span>(<span class="ident">token</span>);
+        };
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">_matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;get-organizations&quot;</span>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;login&quot;</span>) {
+            <span class="kw">let</span> <span class="ident">email</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;email&quot;</span>).<span class="ident">unwrap</span>();
+            <span class="comment">// TODO: &quot;Please enter password&quot; and quiet param</span>
+            <span class="kw">let</span> <span class="ident">password</span> <span class="op">=</span> <span class="ident">rpassword</span>::<span class="ident">read_password</span>().<span class="ident">context</span>(<span class="string">&quot;Failed to read password&quot;</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">core</span>
+                .<span class="ident">authenticate</span>(<span class="ident">client_name</span>, <span class="ident">email</span>.<span class="ident">to_string</span>(), <span class="ident">password</span>)
+                .<span class="ident">context</span>(<span class="string">&quot;Failed to authenticate with TMC&quot;</span>)<span class="question-mark">?</span>;
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span> <span class="ident">credentials_path</span>.<span class="ident">parent</span>() {
+                <span class="ident">fs</span>::<span class="ident">create_dir_all</span>(<span class="ident">p</span>)
+                    .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to create directory {}&quot;</span>, <span class="ident">p</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
+            }
+            <span class="kw">let</span> <span class="ident">credentials_file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">create</span>(<span class="kw-2">&amp;</span><span class="ident">credentials_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to create file at {}&quot;</span>, <span class="ident">credentials_path</span>.<span class="ident">display</span>())
+            })<span class="question-mark">?</span>;
+            <span class="ident">serde_json</span>::<span class="ident">to_writer</span>(<span class="ident">credentials_file</span>, <span class="kw-2">&amp;</span><span class="ident">token</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="macro">format</span><span class="macro">!</span>(
+                    <span class="string">&quot;Failed to write credentials to {}&quot;</span>,
+                    <span class="ident">credentials_path</span>.<span class="ident">display</span>()
+                )
+            })<span class="question-mark">?</span>;
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">_matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;logout&quot;</span>) {
+            <span class="kw">if</span> <span class="ident">credentials_path</span>.<span class="ident">exists</span>() {
+                <span class="ident">fs</span>::<span class="ident">remove_file</span>(<span class="kw-2">&amp;</span><span class="ident">credentials_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
+                    <span class="macro">format</span><span class="macro">!</span>(
+                        <span class="string">&quot;Failed to remove credentials at {}&quot;</span>,
+                        <span class="ident">credentials_path</span>.<span class="ident">display</span>()
+                    )
+                })<span class="question-mark">?</span>;
+            }
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">_matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;get-organizations&quot;</span>) {
             <span class="kw">let</span> <span class="ident">orgs</span> <span class="op">=</span> <span class="ident">core</span>
                 .<span class="ident">get_organizations</span>()
                 .<span class="ident">context</span>(<span class="string">&quot;Failed to get organizations&quot;</span>)<span class="question-mark">?</span>;
@@ -1422,11 +1518,15 @@
             <span class="kw">let</span> <span class="ident">submission_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;submissionPath&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">submission_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">submission_path</span>);
 
-            <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;locale&quot;</span>).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">into_locale</span>(<span class="ident">locale</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">optional_locale</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;locale&quot;</span>);
+            <span class="kw">let</span> <span class="ident">optional_locale</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">locale</span>) <span class="op">=</span> <span class="ident">optional_locale</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">into_locale</span>(<span class="ident">locale</span>)<span class="question-mark">?</span>)
+            } <span class="kw">else</span> {
+                <span class="prelude-val">None</span>
+            };
 
             <span class="kw">let</span> <span class="ident">new_submission</span> <span class="op">=</span> <span class="ident">core</span>
-                .<span class="ident">submit</span>(<span class="ident">submission_url</span>, <span class="ident">submission_path</span>, <span class="ident">locale</span>)
+                .<span class="ident">submit</span>(<span class="ident">submission_url</span>, <span class="ident">submission_path</span>, <span class="ident">optional_locale</span>)
                 .<span class="ident">context</span>(<span class="string">&quot;Failed to submit&quot;</span>)<span class="question-mark">?</span>;
 
             <span class="ident">print_result_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">new_submission</span>)<span class="question-mark">?</span>;
