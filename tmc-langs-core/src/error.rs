@@ -50,7 +50,7 @@ pub enum CoreError {
     CacheDir,
 
     #[error(transparent)]
-    TmcLangs(#[from] tmc_langs_util::Error),
+    TmcLangs(#[from] tmc_langs_util::TmcError),
     #[error(transparent)]
     Response(#[from] response::ResponseError),
     #[error(transparent)]

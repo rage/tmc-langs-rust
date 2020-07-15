@@ -17,7 +17,7 @@ use tar::Archive;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult},
     plugin::{Language, LanguagePlugin, ValidationResult},
-    Error,
+    TmcError,
 };
 
 const MVN_ARCHIVE: &[u8] = include_bytes!("../apache-maven-3.6.3-bin.tar.gz");
@@ -79,7 +79,7 @@ impl LanguagePlugin for MavenPlugin {
         self.run_checkstyle(&locale, path)
     }
 
-    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
+    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
         if !Self::is_exercise_type_correct(path) {
             return JavaError::InvalidExercise(path.to_path_buf()).into();
         }
@@ -92,7 +92,7 @@ impl LanguagePlugin for MavenPlugin {
         &self,
         project_root_path: &Path,
         _timeout: Option<Duration>,
-    ) -> Result<RunResult, Error> {
+    ) -> Result<RunResult, TmcError> {
         Ok(self.run_java_tests(project_root_path)?)
     }
 
@@ -104,7 +104,7 @@ impl LanguagePlugin for MavenPlugin {
         MavenStudentFilePolicy::new(project_path.to_path_buf())
     }
 
-    fn clean(&self, path: &Path) -> Result<(), Error> {
+    fn clean(&self, path: &Path) -> Result<(), TmcError> {
         log::info!("Cleaning maven project at {}", path.display());
 
         let output = Command::new("mvn")

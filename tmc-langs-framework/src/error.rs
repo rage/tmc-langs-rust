@@ -5,7 +5,7 @@ use std::time::Duration;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum Error {
+pub enum TmcError {
     // IO
     #[error("Failed to open file at {0}")]
     OpenFile(PathBuf, #[source] std::io::Error),

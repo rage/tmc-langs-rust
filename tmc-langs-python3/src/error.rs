@@ -2,7 +2,7 @@
 
 use std::path::PathBuf;
 use thiserror::Error;
-use tmc_langs_framework::Error as TmcError;
+use tmc_langs_framework::TmcError;
 
 #[derive(Debug, Error)]
 pub enum PythonError {
@@ -19,7 +19,7 @@ pub enum PythonError {
     #[error("Failed to remove directory {0}")]
     DirRemove(PathBuf, #[source] std::io::Error),
     #[error(transparent)]
-    Framework(#[from] tmc_langs_framework::Error),
+    Framework(#[from] tmc_langs_framework::TmcError),
 }
 
 impl From<PythonError> for TmcError {

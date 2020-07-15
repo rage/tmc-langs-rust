@@ -1,7 +1,7 @@
 //! Functions for processing submissions.
 
 use crate::policy::StudentFilePolicy;
-use crate::{Error, Result};
+use crate::{Result, TmcError};
 
 use crate::domain::meta_syntax::{MetaString, MetaSyntaxParser};
 use lazy_static::lazy_static;
@@ -42,10 +42,10 @@ pub fn move_files<P: StudentFilePolicy>(
             let target_path = target.join(&relative);
             if let Some(parent) = target_path.parent() {
                 fs::create_dir_all(parent)
-                    .map_err(|e| Error::CreateDir(parent.to_path_buf(), e))?;
+                    .map_err(|e| TmcError::CreateDir(parent.to_path_buf(), e))?;
             }
             fs::rename(entry.path(), &target_path).map_err(|e| {
-                Error::Rename(entry.path().to_path_buf(), target_path.to_path_buf(), e)
+                TmcError::Rename(entry.path().to_path_buf(), target_path.to_path_buf(), e)
             })?;
         }
     }
@@ -113,7 +113,7 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
         .unwrap_or_else(|_| Path::new(""));
     let dest_path = dest_root.join(&relative_path);
     if let Some(parent) = dest_path.parent() {
-        fs::create_dir_all(parent).map_err(|e| Error::CreateDir(parent.to_path_buf(), e))?;
+        fs::create_dir_all(parent).map_err(|e| TmcError::CreateDir(parent.to_path_buf(), e))?;
     }
     let extension = entry.path().extension().and_then(|e| e.to_str());
     let is_binary = extension
@@ -127,7 +127,7 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
             dest_path
         );
         fs::copy(entry.path(), &dest_path)
-            .map_err(|e| Error::FileCopy(entry.path().to_path_buf(), dest_path, e))?;
+            .map_err(|e| TmcError::FileCopy(entry.path().to_path_buf(), dest_path, e))?;
     } else {
         // filter text files
         debug!(
@@ -136,11 +136,11 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
             dest_path
         );
 
-        let source_file =
-            File::open(entry.path()).map_err(|e| Error::OpenFile(entry.path().to_path_buf(), e))?;
+        let source_file = File::open(entry.path())
+            .map_err(|e| TmcError::OpenFile(entry.path().to_path_buf(), e))?;
 
         let mut target_file = File::create(&dest_path)
-            .map_err(|e| Error::CreateFile(entry.path().to_path_buf(), e))?;
+            .map_err(|e| TmcError::CreateFile(entry.path().to_path_buf(), e))?;
 
         let parser = MetaSyntaxParser::new(source_file, extension.unwrap_or_default());
 
@@ -160,7 +160,7 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
         // writes all lines
         target_file
             .write_all(&write_lines)
-            .map_err(|e| Error::Write(dest_path, e))?;
+            .map_err(|e| TmcError::Write(dest_path, e))?;
     }
     Ok(())
 }

@@ -15,7 +15,7 @@ use std::time::Duration;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult},
     plugin::{Language, LanguagePlugin, ValidationResult},
-    Error,
+    TmcError,
 };
 use walkdir::WalkDir;
 
@@ -82,7 +82,7 @@ impl LanguagePlugin for AntPlugin {
         self.run_checkstyle(&locale, path)
     }
 
-    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
+    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
         if !Self::is_exercise_type_correct(path) {
             return JavaError::InvalidExercise(path.to_path_buf()).into();
         }
@@ -95,7 +95,7 @@ impl LanguagePlugin for AntPlugin {
         &self,
         project_root_path: &Path,
         _timeout: Option<Duration>,
-    ) -> Result<RunResult, Error> {
+    ) -> Result<RunResult, TmcError> {
         Ok(self.run_java_tests(project_root_path)?)
     }
 
@@ -108,11 +108,11 @@ impl LanguagePlugin for AntPlugin {
         AntStudentFilePolicy::new(project_path.to_path_buf())
     }
 
-    fn maybe_copy_shared_stuff(&self, dest_path: &Path) -> Result<(), Error> {
+    fn maybe_copy_shared_stuff(&self, dest_path: &Path) -> Result<(), TmcError> {
         Ok(self.copy_tmc_junit_runner(dest_path)?)
     }
 
-    fn clean(&self, path: &Path) -> Result<(), Error> {
+    fn clean(&self, path: &Path) -> Result<(), TmcError> {
         log::debug!("Cleaning project at {}", path.display());
 
         let stdout_path = path.join("build_log.txt");

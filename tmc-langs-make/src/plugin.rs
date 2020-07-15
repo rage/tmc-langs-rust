@@ -17,7 +17,7 @@ use std::time::Duration;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TmcProjectYml},
     plugin::LanguagePlugin,
-    Error,
+    TmcError,
 };
 
 #[derive(Default)]
@@ -123,7 +123,7 @@ impl LanguagePlugin for MakePlugin {
     const PLUGIN_NAME: &'static str = "make";
     type StudentFilePolicy = MakeStudentFilePolicy;
 
-    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
+    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
         if !Self::is_exercise_type_correct(path) {
             return MakeError::NoExerciseFound(path.to_path_buf()).into();
         }
@@ -143,7 +143,7 @@ impl LanguagePlugin for MakePlugin {
         &self,
         path: &Path,
         _timeout: Option<Duration>,
-    ) -> Result<RunResult, Error> {
+    ) -> Result<RunResult, TmcError> {
         if !self.builds(path)? {
             return Ok(RunResult {
                 status: RunStatus::CompileFailed,
@@ -258,7 +258,7 @@ impl LanguagePlugin for MakePlugin {
     }
 
     // does not check for success
-    fn clean(&self, path: &Path) -> Result<(), Error> {
+    fn clean(&self, path: &Path) -> Result<(), TmcError> {
         let output = Command::new("make")
             .current_dir(path)
             .arg("clean")

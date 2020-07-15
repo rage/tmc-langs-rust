@@ -13,7 +13,7 @@ use std::time::Duration;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     plugin::LanguagePlugin,
-    CommandWithTimeout, Error,
+    CommandWithTimeout, TmcError,
 };
 use walkdir::WalkDir;
 
@@ -33,7 +33,7 @@ impl LanguagePlugin for Python3Plugin {
         Python3StudentFilePolicy::new(project_path.to_owned())
     }
 
-    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
+    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
         let run_result = run_tmc_command(path, &["available_points"], None);
 
         if let Err(error) = run_result {
@@ -48,7 +48,7 @@ impl LanguagePlugin for Python3Plugin {
         &self,
         path: &Path,
         timeout: Option<Duration>,
-    ) -> Result<RunResult, Error> {
+    ) -> Result<RunResult, TmcError> {
         let run_result = run_tmc_command(path, &[], timeout);
 
         if let Err(error) = run_result {
@@ -67,7 +67,7 @@ impl LanguagePlugin for Python3Plugin {
         setup.exists() || requirements.exists() || test.exists() || tmc.exists()
     }
 
-    fn clean(&self, path: &Path) -> Result<(), Error> {
+    fn clean(&self, path: &Path) -> Result<(), TmcError> {
         for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
             if entry.file_name() == ".available_points.json"
                 || entry.file_name() == ".tmc_test_results.json"

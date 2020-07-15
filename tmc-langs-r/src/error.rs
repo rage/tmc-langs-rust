@@ -1,7 +1,7 @@
 //! Error type for the R plugin
 
 use thiserror::Error;
-use tmc_langs_framework::Error as TmcError;
+use tmc_langs_framework::TmcError;
 
 use std::path::PathBuf;
 use std::process::ExitStatus;

@@ -3,7 +3,7 @@
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     policy::EverythingIsStudentFilePolicy,
-    Error, LanguagePlugin, StudentFilePolicy,
+    LanguagePlugin, StudentFilePolicy, TmcError,
 };
 
 use std::collections::HashMap;
@@ -31,7 +31,7 @@ impl LanguagePlugin for NoTestsPlugin {
     const PLUGIN_NAME: &'static str = "No-Tests";
     type StudentFilePolicy = EverythingIsStudentFilePolicy;
 
-    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
+    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
         let test_name = format!("{}Test", exercise_name);
         Ok(ExerciseDesc {
             name: exercise_name,
@@ -46,7 +46,7 @@ impl LanguagePlugin for NoTestsPlugin {
         &self,
         path: &Path,
         _timeout: Option<Duration>,
-    ) -> Result<RunResult, Error> {
+    ) -> Result<RunResult, TmcError> {
         Ok(RunResult {
             status: RunStatus::Passed,
             test_results: vec![TestResult {
@@ -71,7 +71,7 @@ impl LanguagePlugin for NoTestsPlugin {
             .unwrap_or(false)
     }
 
-    fn clean(&self, _path: &Path) -> Result<(), Error> {
+    fn clean(&self, _path: &Path) -> Result<(), TmcError> {
         Ok(())
     }
 }

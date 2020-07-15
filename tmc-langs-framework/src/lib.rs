@@ -6,7 +6,7 @@ pub mod io;
 pub mod plugin;
 pub mod policy;
 
-pub use error::Error;
+pub use error::TmcError;
 pub use plugin::LanguagePlugin;
 pub use policy::StudentFilePolicy;
 
@@ -15,7 +15,7 @@ use std::process::{Command, Output};
 use std::thread;
 use std::time::{Duration, Instant};
 
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T> = std::result::Result<T, TmcError>;
 
 pub struct CommandWithTimeout<'a>(pub &'a mut Command);
 
@@ -28,21 +28,24 @@ impl CommandWithTimeout<'_> {
         match timeout {
             Some(timeout) => {
                 // spawn process and init timer
-                let mut child = self.0.spawn().map_err(|e| Error::CommandSpawn(name, e))?;
+                let mut child = self
+                    .0
+                    .spawn()
+                    .map_err(|e| TmcError::CommandSpawn(name, e))?;
                 let timer = Instant::now();
                 loop {
-                    match child.try_wait().map_err(|e| Error::Process(e))? {
+                    match child.try_wait().map_err(|e| TmcError::Process(e))? {
                         Some(_exit_status) => {
                             // done, get output
                             return child
                                 .wait_with_output()
-                                .map_err(|e| Error::CommandFailed(name, e));
+                                .map_err(|e| TmcError::CommandFailed(name, e));
                         }
                         None => {
                             // still running, check timeout
                             if timer.elapsed() > timeout {
-                                child.kill().map_err(|e| Error::Process(e))?;
-                                return Err(Error::TestTimeout(timer.elapsed()));
+                                child.kill().map_err(|e| TmcError::Process(e))?;
+                                return Err(TmcError::TestTimeout(timer.elapsed()));
                             }
 
                             // TODO: gradually increase sleep duration?
@@ -52,7 +55,10 @@ impl CommandWithTimeout<'_> {
                 }
             }
             // no timeout, block forever
-            None => self.0.output().map_err(|e| Error::CommandFailed(name, e)),
+            None => self
+                .0
+                .output()
+                .map_err(|e| TmcError::CommandFailed(name, e)),
         }
     }
 }
@@ -67,7 +73,7 @@ mod test {
         let mut command = command.arg("1");
         let mut out = CommandWithTimeout(&mut command);
         let res = out.wait_with_timeout("sleep", Some(Duration::from_millis(100)));
-        if let Err(Error::TestTimeout(_)) = res {
+        if let Err(TmcError::TestTimeout(_)) = res {
         } else {
             panic!("unexpected result: {:?}", res);
         }

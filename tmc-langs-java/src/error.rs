@@ -4,7 +4,7 @@ use std::io;
 use std::path::PathBuf;
 use std::process::ExitStatus;
 use thiserror::Error;
-use tmc_langs_framework::Error as TmcError;
+use tmc_langs_framework::TmcError;
 
 #[derive(Error, Debug)]
 pub enum JavaError {

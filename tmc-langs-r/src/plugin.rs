@@ -7,7 +7,7 @@ use super::RRunResult;
 
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, TestDesc},
-    Error, LanguagePlugin,
+    LanguagePlugin, TmcError,
 };
 
 use std::collections::HashMap;
@@ -28,7 +28,7 @@ impl LanguagePlugin for RPlugin {
     const PLUGIN_NAME: &'static str = "r";
     type StudentFilePolicy = RStudentFilePolicy;
 
-    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
+    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
         // run available points command
         let args = if cfg!(windows) {
             &["-e", "\"library('tmcRtestrunner');run_available_points()\""]
@@ -72,7 +72,7 @@ impl LanguagePlugin for RPlugin {
         &self,
         path: &Path,
         _timeout: Option<Duration>,
-    ) -> Result<RunResult, Error> {
+    ) -> Result<RunResult, TmcError> {
         // delete results json
         let results_path = path.join(".results.json");
         if results_path.exists() {
@@ -126,7 +126,7 @@ impl LanguagePlugin for RPlugin {
     }
 
     /// No operation for now. To be possibly implemented later: remove .Rdata, .Rhistory etc
-    fn clean(&self, _path: &Path) -> Result<(), Error> {
+    fn clean(&self, _path: &Path) -> Result<(), TmcError> {
         Ok(())
     }
 }

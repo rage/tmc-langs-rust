@@ -1,7 +1,7 @@
 //! Module for calling different tasks of TMC-langs language plug-ins.
 
 use super::{
-    tar, Error, ExerciseDesc, ExercisePackagingConfiguration, RunResult, ValidationResult,
+    tar, ExerciseDesc, ExercisePackagingConfiguration, RunResult, TmcError, ValidationResult,
 };
 use log::info;
 use std::path::{Path, PathBuf};
@@ -21,7 +21,7 @@ use tmc_langs_r::RPlugin;
 pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
     exercise_paths: I,
     dest_root: &Path,
-) -> Result<(), Error> {
+) -> Result<(), TmcError> {
     submission_processing::prepare_solutions(exercise_paths, dest_root)?;
     Ok(())
 }
@@ -31,7 +31,7 @@ pub fn prepare_stubs<I: IntoIterator<Item = PathBuf>>(
     exercise_paths: I,
     repo_path: &Path,
     dest_path: &Path,
-) -> Result<(), Error> {
+) -> Result<(), TmcError> {
     for exercise_path in exercise_paths {
         let plugin = get_language_plugin(&exercise_path)?;
         plugin.prepare_stub(&exercise_path, repo_path, dest_path)?;
@@ -43,17 +43,17 @@ pub fn prepare_stubs<I: IntoIterator<Item = PathBuf>>(
 pub fn run_check_code_style(
     path: &Path,
     locale: Language,
-) -> Result<Option<ValidationResult>, Error> {
+) -> Result<Option<ValidationResult>, TmcError> {
     Ok(get_language_plugin(path)?.check_code_style(path, locale))
 }
 
 /// See `LanguagePlugin::run_tests`.
-pub fn run_tests(path: &Path) -> Result<RunResult, Error> {
+pub fn run_tests(path: &Path) -> Result<RunResult, TmcError> {
     get_language_plugin(path)?.run_tests(&path)
 }
 
 /// See `LanguagePlugin::scan_exercise`.
-pub fn scan_exercise(path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
+pub fn scan_exercise(path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
     Ok(get_language_plugin(path)?.scan_exercise(path, exercise_name)?)
 }
 
@@ -64,7 +64,7 @@ pub fn is_exercise_root_directory(path: &Path) -> bool {
 
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::extract_project`,
 /// If no language plugin matches, see `extract_project_overwrite`.
-pub fn extract_project(compressed_project: &Path, target_location: &Path) -> Result<(), Error> {
+pub fn extract_project(compressed_project: &Path, target_location: &Path) -> Result<(), TmcError> {
     if let Ok(plugin) = get_language_plugin(target_location) {
         plugin.extract_project(compressed_project, target_location)?;
     } else {
@@ -82,7 +82,7 @@ pub fn extract_project(compressed_project: &Path, target_location: &Path) -> Res
 pub fn extract_project_overwrite(
     compressed_project: &Path,
     target_location: &Path,
-) -> Result<(), Error> {
+) -> Result<(), TmcError> {
     zip::unzip(
         NothingIsStudentFilePolicy {},
         compressed_project,
@@ -92,14 +92,14 @@ pub fn extract_project_overwrite(
 }
 
 /// See `LanguagePlugin::compress_project`.
-pub fn compress_project(path: &Path) -> Result<Vec<u8>, Error> {
+pub fn compress_project(path: &Path) -> Result<Vec<u8>, TmcError> {
     Ok(get_language_plugin(path)?.compress_project(path)?)
 }
 
 /// See `LanguagePlugin::get_exercise_packaging_configuration`.
 pub fn get_exercise_packaging_configuration(
     path: &Path,
-) -> Result<ExercisePackagingConfiguration, Error> {
+) -> Result<ExercisePackagingConfiguration, TmcError> {
     Ok(get_language_plugin(path)?.get_exercise_packaging_configuration(path)?)
 }
 
@@ -110,13 +110,13 @@ pub fn compress_tar_for_submitting(
     tmc_langs: &Path,
     tmcrun: &Path,
     target_location: &Path,
-) -> Result<(), Error> {
+) -> Result<(), TmcError> {
     tar::create_tar_from_project(project_dir, tmc_langs, tmcrun, target_location)?;
     Ok(())
 }
 
 /// See `LanguagePlugin::clean`.
-pub fn clean(path: &Path) -> Result<(), Error> {
+pub fn clean(path: &Path) -> Result<(), TmcError> {
     get_language_plugin(path)?.clean(path)?;
     Ok(())
 }
@@ -132,7 +132,7 @@ enum Plugin {
 
 // TODO: write proc macro
 impl Plugin {
-    fn clean(&self, path: &Path) -> Result<(), Error> {
+    fn clean(&self, path: &Path) -> Result<(), TmcError> {
         match self {
             Self::Make(plugin) => plugin.clean(path),
             Self::Maven(plugin) => plugin.clean(path),
@@ -146,7 +146,7 @@ impl Plugin {
     fn get_exercise_packaging_configuration(
         &self,
         path: &Path,
-    ) -> Result<ExercisePackagingConfiguration, Error> {
+    ) -> Result<ExercisePackagingConfiguration, TmcError> {
         match self {
             Self::Make(plugin) => plugin.get_exercise_packaging_configuration(path),
             Self::Maven(plugin) => plugin.get_exercise_packaging_configuration(path),
@@ -157,7 +157,7 @@ impl Plugin {
         }
     }
 
-    fn compress_project(&self, path: &Path) -> Result<Vec<u8>, Error> {
+    fn compress_project(&self, path: &Path) -> Result<Vec<u8>, TmcError> {
         match self {
             Self::Make(plugin) => plugin.compress_project(path),
             Self::Maven(plugin) => plugin.compress_project(path),
@@ -172,7 +172,7 @@ impl Plugin {
         &self,
         cmpressed_project: &Path,
         target_location: &Path,
-    ) -> Result<(), Error> {
+    ) -> Result<(), TmcError> {
         match self {
             Self::Make(plugin) => plugin.extract_project(cmpressed_project, target_location),
             Self::Maven(plugin) => plugin.extract_project(cmpressed_project, target_location),
@@ -183,7 +183,7 @@ impl Plugin {
         }
     }
 
-    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
+    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
         match self {
             Self::Make(plugin) => plugin.scan_exercise(path, exercise_name),
             Self::Maven(plugin) => plugin.scan_exercise(path, exercise_name),
@@ -194,7 +194,7 @@ impl Plugin {
         }
     }
 
-    fn run_tests(&self, path: &Path) -> Result<RunResult, Error> {
+    fn run_tests(&self, path: &Path) -> Result<RunResult, TmcError> {
         match self {
             Self::Make(plugin) => plugin.run_tests(path),
             Self::Maven(plugin) => plugin.run_tests(path),
@@ -221,7 +221,7 @@ impl Plugin {
         exercise_path: &Path,
         repo_path: &Path,
         dest_path: &Path,
-    ) -> Result<(), Error> {
+    ) -> Result<(), TmcError> {
         match self {
             Self::Make(plugin) => plugin.prepare_stub(exercise_path, repo_path, dest_path),
             Self::Maven(plugin) => plugin.prepare_stub(exercise_path, repo_path, dest_path),
@@ -234,7 +234,7 @@ impl Plugin {
 }
 
 // Get language plugin for the given path.
-fn get_language_plugin(path: &Path) -> Result<Plugin, Error> {
+fn get_language_plugin(path: &Path) -> Result<Plugin, TmcError> {
     if MakePlugin::is_exercise_type_correct(path) {
         let make = MakePlugin::new();
         info!("Detected project as {}", MakePlugin::PLUGIN_NAME);
@@ -256,6 +256,6 @@ fn get_language_plugin(path: &Path) -> Result<Plugin, Error> {
         info!("Detected project as {}", AntPlugin::PLUGIN_NAME);
         Ok(Plugin::Ant(AntPlugin::new()?))
     } else {
-        Err(Error::PluginNotFound(path.to_path_buf()))
+        Err(TmcError::PluginNotFound(path.to_path_buf()))
     }
 }
