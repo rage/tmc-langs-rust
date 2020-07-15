@@ -36,12 +36,12 @@ fn run() -> Result<()> {
 
         .subcommand(SubCommand::with_name("checkstyle")
             .about("Run checkstyle or similar plugin to project if applicable.")
-            .arg(Arg::with_name("exercisePath")
-                .long("exercisePath")
+            .arg(Arg::with_name("exercise-path")
+                .long("exercise-path")
                 .required(true)
                 .takes_value(true))
-            .arg(Arg::with_name("outputPath")
-                .long("outputPath")
+            .arg(Arg::with_name("output-path")
+                .long("output-path")
                 .required(true)
                 .takes_value(true))
             .arg(Arg::with_name("locale")
@@ -52,45 +52,45 @@ fn run() -> Result<()> {
 
         .subcommand(SubCommand::with_name("compress-project")
             .about("Compress target project into a ZIP.")
-            .arg(Arg::with_name("exercisePath")
-                .long("exercisePath")
+            .arg(Arg::with_name("exercise-path")
+                .long("exercise-path")
                 .required(true)
                 .takes_value(true))
-            .arg(Arg::with_name("outputPath")
-                .long("outputPath")
+            .arg(Arg::with_name("output-path")
+                .long("output-path")
                 .required(true)
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("extract-project")
             .about("Given a downloaded zip, extracts to specified folder.")
-            .arg(Arg::with_name("exercisePath")
-                .long("exercisePath")
+            .arg(Arg::with_name("exercise-path")
+                .long("exercise-path")
                 .required(true)
                 .takes_value(true))
-            .arg(Arg::with_name("outputPath")
-                .long("outputPath")
+            .arg(Arg::with_name("output-path")
+                .long("output-path")
                 .required(true)
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("prepare-solutions")
             .about("Prepare a presentable solution from the original.")
-            .arg(Arg::with_name("exercisePath")
-                .long("exercisePath")
+            .arg(Arg::with_name("exercise-path")
+                .long("exercise-path")
                 .required(true)
                 .takes_value(true))
-            .arg(Arg::with_name("outputPath")
-                .long("outputPath")
+            .arg(Arg::with_name("output-path")
+                .long("output-path")
                 .required(true)
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("prepare-stubs")
             .about("Prepare a stub exercise from the original.")
-            .arg(Arg::with_name("exercisePath")
-                .long("exercisePath")
+            .arg(Arg::with_name("exercise-path")
+                .long("exercise-path")
                 .required(true)
                 .takes_value(true))
-            .arg(Arg::with_name("outputPath")
-                .long("outputPath")
+            .arg(Arg::with_name("output-path")
+                .long("output-path")
                 .required(true)
                 .takes_value(true)))
 
@@ -99,69 +99,69 @@ fn run() -> Result<()> {
 
         .subcommand(SubCommand::with_name("run-tests")
             .about("Run the tests for the exercise.")
-            .arg(Arg::with_name("exercisePath")
-                .long("exercisePath")
+            .arg(Arg::with_name("exercise-path")
+                .long("exercise-path")
                 .required(true)
                 .takes_value(true))
-            .arg(Arg::with_name("outputPath")
-                .long("outputPath")
+            .arg(Arg::with_name("output-path")
+                .long("output-path")
                 .required(true)
                 .takes_value(true))
-            .arg(Arg::with_name("checkstyleOutputPath")
-                .long("checkstyleOutputPath")
+            .arg(Arg::with_name("checkstyle-output-path")
+                .long("checkstyle-output-path")
                 .help("Runs checkstyle if defined")
                 .takes_value(true))
             .arg(Arg::with_name("locale")
                 .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")
                 .long("locale")
-                .help("Required if checkstyleOutputPath is defined")
+                .help("Required if checkstyle-output-path is defined")
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("scan-exercise")
             .about("Produce an exercise description of an exercise directory.")
-            .arg(Arg::with_name("exercisePath")
-                .long("exercisePath")
+            .arg(Arg::with_name("exercise-path")
+                .long("exercise-path")
                 .required(true)
                 .takes_value(true))
-            .arg(Arg::with_name("outputPath")
-                .long("outputPath")
+            .arg(Arg::with_name("output-path")
+                .long("output-path")
                 .required(true)
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("find-exercises")
             .about("Produce list of found exercises.")
-            .arg(Arg::with_name("exercisePath")
-                .long("exercisePath")
+            .arg(Arg::with_name("exercise-path")
+                .long("exercise-path")
                 .required(true)
                 .takes_value(true))
-            .arg(Arg::with_name("outputPath")
-                .long("outputPath")
+            .arg(Arg::with_name("output-path")
+                .long("output-path")
                 .required(true)
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("get-exercise-packaging-configuration")
             .about("Returns configuration of under which folders student and nonstudent files are located.")
-            .arg(Arg::with_name("exercisePath")
-                .long("exercisePath")
+            .arg(Arg::with_name("exercise-path")
+                .long("exercise-path")
                 .required(true)
                 .takes_value(true))
-            .arg(Arg::with_name("outputPath")
-                .long("outputPath")
+            .arg(Arg::with_name("output-path")
+                .long("output-path")
                 .required(true)
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("clean")
             .about("Clean target directory.")
-            .arg(Arg::with_name("exercisePath")
-                .long("exercisePath")
+            .arg(Arg::with_name("exercise-path")
+                .long("exercise-path")
                 .required(true)
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("core")
             .about("tmc-core commands. The program will ask for your TMC password through stdin.")
-            .arg(Arg::with_name("clientName")
+            .arg(Arg::with_name("client-name")
                 .help("Name used to differentiate between different TMC clients")
-                .long("clientName")
+                .long("client-name")
                 .required(true)
                 .takes_value(true))
 
@@ -170,7 +170,10 @@ fn run() -> Result<()> {
                 .arg(Arg::with_name("email")
                     .help("The email address of your TMC account")
                     .long("email")
-                    .required(true)
+                    .takes_value(true))
+                .arg(Arg::with_name("set-access-token")
+                    .help("The OAUTH2 access token that should be used for authentication")
+                    .long("set-access-token")
                     .takes_value(true)))
 
             .subcommand(SubCommand::with_name("logout")
@@ -187,13 +190,13 @@ fn run() -> Result<()> {
                     .required(true)
                     .takes_value(true)
                     .number_of_values(2)
-                    .value_names(&["exerciseId", "exercisePath"])
+                    .value_names(&["exercise-id", "exercise-path"])
                     .multiple(true)))
 
             .subcommand(SubCommand::with_name("get-course-details")
                 .about("Get course details.")
-                .arg(Arg::with_name("courseId")
-                    .long("courseId")
+                .arg(Arg::with_name("course-id")
+                    .long("course-id")
                     .required(true)
                     .takes_value(true)))
 
@@ -207,16 +210,16 @@ fn run() -> Result<()> {
 
             .subcommand(SubCommand::with_name("paste-with-comment")
                 .about("Send exercise to pastebin with comment.")
-                .arg(Arg::with_name("submissionUrl")
-                    .long("submissionUrl")
+                .arg(Arg::with_name("submission-url")
+                    .long("submission-url")
                     .required(true)
                     .takes_value(true))
-                .arg(Arg::with_name("submissionPath")
-                    .long("submissionPath")
+                .arg(Arg::with_name("submission-path")
+                    .long("submission-path")
                     .required(true)
                     .takes_value(true))
-                .arg(Arg::with_name("pasteMessage")
-                    .long("pasteMessage")
+                .arg(Arg::with_name("paste-message")
+                    .long("paste-message")
                     .required(true)
                     .takes_value(true))
                 .arg(Arg::with_name("locale")
@@ -227,8 +230,8 @@ fn run() -> Result<()> {
 
             .subcommand(SubCommand::with_name("run-checkstyle")
                 .about("Run checkstyle.")
-                .arg(Arg::with_name("exercisePath")
-                    .long("exercisePath")
+                .arg(Arg::with_name("exercise-path")
+                    .long("exercise-path")
                     .required(true)
                     .takes_value(true))
                 .arg(Arg::with_name("locale")
@@ -239,15 +242,15 @@ fn run() -> Result<()> {
 
             .subcommand(SubCommand::with_name("run-tests")
                 .about("Run tests.")
-                .arg(Arg::with_name("exercisePath")
-                    .long("exercisePath")
+                .arg(Arg::with_name("exercise-path")
+                    .long("exercise-path")
                     .required(true)
                     .takes_value(true)))
 
             .subcommand(SubCommand::with_name("send-feedback")
                 .about("Send feedback.")
-                .arg(Arg::with_name("feedbackUrl")
-                    .long("feedbackUrl")
+                .arg(Arg::with_name("feedback-url")
+                    .long("feedback-url")
                     .required(true)
                     .takes_value(true))
                 .arg(Arg::with_name("feedback")
@@ -256,17 +259,17 @@ fn run() -> Result<()> {
                     .required(true)
                     .takes_value(true)
                     .number_of_values(2)
-                    .value_names(&["feedbackAnswerId", "answer"])
+                    .value_names(&["feedback-answer-id", "answer"])
                     .multiple(true)))
 
             .subcommand(SubCommand::with_name("submit")
                 .about("Submit exercise.")
-                .arg(Arg::with_name("submissionUrl")
-                    .long("submissionUrl")
+                .arg(Arg::with_name("submission-url")
+                    .long("submission-url")
                     .required(true)
                     .takes_value(true))
-                .arg(Arg::with_name("submissionPath")
-                    .long("submissionPath")
+                .arg(Arg::with_name("submission-path")
+                    .long("submission-path")
                     .required(true)
                     .takes_value(true))
                 .arg(Arg::with_name("locale")
@@ -274,10 +277,17 @@ fn run() -> Result<()> {
                     .long("locale")
                     .takes_value(true)))
 
+            .subcommand(SubCommand::with_name("wait-for-submission")
+                .about("Submit exercise.")
+                .arg(Arg::with_name("submission-url")
+                    .long("submission-url")
+                    .required(true)
+                    .takes_value(true)))
+
             .subcommand(SubCommand::with_name("get-exercise-updates")
                 .about("Get exercise updates.")
-                .arg(Arg::with_name("courseId")
-                    .long("courseId")
+                .arg(Arg::with_name("course-id")
+                    .long("course-id")
                     .required(true)
                     .takes_value(true))
                 .arg(Arg::with_name("exercise")
@@ -286,35 +296,35 @@ fn run() -> Result<()> {
                     .required(true)
                     .takes_value(true)
                     .number_of_values(2)
-                    .value_names(&["exerciseId", "checksum"])
+                    .value_names(&["exercise-id", "checksum"])
                     .multiple(true)))
 
             .subcommand(SubCommand::with_name("mark-review-as-read")
                 .about("Mark review as read.")
-                .arg(Arg::with_name("reviewUpdateUrl")
-                    .long("reviewUpdateUrl")
+                .arg(Arg::with_name("review-update-url")
+                    .long("review-update-url")
                     .required(true)
                     .takes_value(true)))
 
             .subcommand(SubCommand::with_name("get-unread-reviews")
                 .about("Get unread reviews.")
-                .arg(Arg::with_name("reviewsUrl")
-                    .long("reviewsUrl")
+                .arg(Arg::with_name("reviews-url")
+                    .long("reviews-url")
                     .required(true)
                     .takes_value(true)))
 
             .subcommand(SubCommand::with_name("request-code-review")
                 .about("Request code review.")
-                .arg(Arg::with_name("submissionUrl")
-                    .long("submissionUrl")
+                .arg(Arg::with_name("submission-url")
+                    .long("submission-url")
                     .required(true)
                     .takes_value(true))
-                .arg(Arg::with_name("submissionPath")
-                    .long("submissionPath")
+                .arg(Arg::with_name("submission-path")
+                    .long("submission-path")
                     .required(true)
                     .takes_value(true))
-                .arg(Arg::with_name("messageForReviewer")
-                    .long("messageForReviewer")
+                .arg(Arg::with_name("message-for-reviewer")
+                    .long("message-for-reviewer")
                     .required(true)
                     .takes_value(true))
                 .arg(Arg::with_name("locale")
@@ -325,8 +335,8 @@ fn run() -> Result<()> {
 
             .subcommand(SubCommand::with_name("download-model-solution")
                 .about("Download model solutions.")
-                .arg(Arg::with_name("solutionDownloadUrl")
-                    .long("solutionDownloadUrl")
+                .arg(Arg::with_name("solution-download-url")
+                    .long("solution-download-url")
                     .required(true)
                     .takes_value(true))
                 .arg(Arg::with_name("target")
@@ -338,10 +348,10 @@ fn run() -> Result<()> {
 
     // non-core
     if let Some(matches) = matches.subcommand_matches("checkstyle") {
-        let exercise_path = matches.value_of("exercisePath").unwrap();
+        let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
 
-        let output_path = matches.value_of("outputPath").unwrap();
+        let output_path = matches.value_of("output-path").unwrap();
         let output_path = Path::new(output_path);
 
         let locale = matches.value_of("locale").unwrap();
@@ -349,10 +359,10 @@ fn run() -> Result<()> {
 
         run_checkstyle(exercise_path, output_path, locale)?
     } else if let Some(matches) = matches.subcommand_matches("compress-project") {
-        let exercise_path = matches.value_of("exercisePath").unwrap();
+        let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
 
-        let output_path = matches.value_of("outputPath").unwrap();
+        let output_path = matches.value_of("output-path").unwrap();
         let output_path = Path::new(output_path);
 
         let data = task_executor::compress_project(exercise_path).with_context(|| {
@@ -369,19 +379,19 @@ fn run() -> Result<()> {
             )
         })?;
     } else if let Some(matches) = matches.subcommand_matches("extract-project") {
-        let exercise_path = matches.value_of("exercisePath").unwrap();
+        let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
 
-        let output_path = matches.value_of("outputPath").unwrap();
+        let output_path = matches.value_of("output-path").unwrap();
         let output_path = Path::new(output_path);
 
         task_executor::extract_project(exercise_path, output_path)
             .with_context(|| format!("Failed to extract project at {}", output_path.display()))?;
     } else if let Some(matches) = matches.subcommand_matches("prepare-solutions") {
-        let exercise_path = matches.value_of("exercisePath").unwrap();
+        let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
 
-        let output_path = matches.value_of("outputPath").unwrap();
+        let output_path = matches.value_of("output-path").unwrap();
         let output_path = Path::new(output_path);
 
         task_executor::prepare_solutions(&[exercise_path.to_path_buf()], output_path)
@@ -392,10 +402,10 @@ fn run() -> Result<()> {
                 )
             })?;
     } else if let Some(matches) = matches.subcommand_matches("prepare-stubs") {
-        let exercise_path = matches.value_of("exercisePath").unwrap();
+        let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
 
-        let output_path = matches.value_of("outputPath").unwrap();
+        let output_path = matches.value_of("output-path").unwrap();
         let output_path = Path::new(output_path);
 
         let exercises = find_exercise_directories(exercise_path);
@@ -413,13 +423,13 @@ fn run() -> Result<()> {
         )
         .exit();
     } else if let Some(matches) = matches.subcommand_matches("run-tests") {
-        let exercise_path = matches.value_of("exercisePath").unwrap();
+        let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
 
-        let output_path = matches.value_of("outputPath").unwrap();
+        let output_path = matches.value_of("output-path").unwrap();
         let output_path = Path::new(output_path);
 
-        let checkstyle_output_path = matches.value_of("checkstyleOutputPath");
+        let checkstyle_output_path = matches.value_of("checkstyle-output-path");
         let checkstyle_output_path: Option<&Path> = checkstyle_output_path.map(Path::new);
 
         let optional_locale = matches.value_of("locale");
@@ -437,7 +447,7 @@ fn run() -> Result<()> {
         if let Some(checkstyle_output_path) = checkstyle_output_path {
             let locale = optional_locale.unwrap_or_else(|| {
                 Error::with_description(
-                    "Locale must be given if checkstyleOutputPath is given.",
+                    "Locale must be given if checkstyle-output-path is given.",
                     ErrorKind::ArgumentNotFound,
                 )
                 .exit()
@@ -446,10 +456,10 @@ fn run() -> Result<()> {
             run_checkstyle(exercise_path, checkstyle_output_path, locale)?;
         }
     } else if let Some(matches) = matches.subcommand_matches("scan-exercise") {
-        let exercise_path = matches.value_of("exercisePath").unwrap();
+        let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
 
-        let output_path = matches.value_of("outputPath").unwrap();
+        let output_path = matches.value_of("output-path").unwrap();
         let output_path = Path::new(output_path);
 
         let exercise_name = exercise_path.file_name().with_context(|| {
@@ -471,10 +481,10 @@ fn run() -> Result<()> {
 
         write_result_to_file_as_json(&scan_result, output_path)?;
     } else if let Some(matches) = matches.subcommand_matches("find-exercises") {
-        let exercise_path = matches.value_of("exercisePath").unwrap();
+        let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
 
-        let output_path = matches.value_of("outputPath").unwrap();
+        let output_path = matches.value_of("output-path").unwrap();
         let output_path = Path::new(output_path);
 
         let mut exercises = vec![];
@@ -496,10 +506,10 @@ fn run() -> Result<()> {
         write_result_to_file_as_json(&exercises, output_path)?;
     } else if let Some(matches) = matches.subcommand_matches("get-exercise-packaging-configuration")
     {
-        let exercise_path = matches.value_of("exercisePath").unwrap();
+        let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
 
-        let output_path = matches.value_of("outputPath").unwrap();
+        let output_path = matches.value_of("output-path").unwrap();
         let output_path = Path::new(output_path);
 
         let config = task_executor::get_exercise_packaging_configuration(exercise_path)
@@ -512,7 +522,7 @@ fn run() -> Result<()> {
 
         write_result_to_file_as_json(&config, output_path)?;
     } else if let Some(matches) = matches.subcommand_matches("clean") {
-        let exercise_path = matches.value_of("exercisePath").unwrap();
+        let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
 
         task_executor::clean(exercise_path)
@@ -529,7 +539,7 @@ fn run() -> Result<()> {
         core.set_progress_report(|update| println!("{}", serde_json::to_string(&update).unwrap()));
 
         // set token if a credentials.json is found for the client name
-        let client_name = matches.value_of("clientName").unwrap();
+        let client_name = matches.value_of("client-name").unwrap();
         let tmc_dir = format!("tmc-{}", client_name);
 
         let config_dir = match env::var("TMC_LANGS_CLI_CONFIG_DIR") {
@@ -543,12 +553,9 @@ fn run() -> Result<()> {
         };
 
         if let Some(matches) = matches.subcommand_matches("login") {
-            let email = matches.value_of("email").unwrap();
-            // TODO: "Please enter password" and quiet param
-            let password = rpassword::read_password().context("Failed to read password")?;
-            let token = core
-                .authenticate(client_name, email.to_string(), password)
-                .context("Failed to authenticate with TMC")?;
+            let email = matches.value_of("email");
+            let token = matches.value_of("set-access-token");
+
             if let Some(p) = credentials_path.parent() {
                 fs::create_dir_all(p)
                     .with_context(|| format!("Failed to create directory {}", p.display()))?;
@@ -556,12 +563,39 @@ fn run() -> Result<()> {
             let credentials_file = File::create(&credentials_path).with_context(|| {
                 format!("Failed to create file at {}", credentials_path.display())
             })?;
-            serde_json::to_writer(credentials_file, &token).with_context(|| {
-                format!(
-                    "Failed to write credentials to {}",
-                    credentials_path.display()
+
+            if let Some(token) = token {
+                let token = serde_json::json! {
+                    {
+                        "access_token": token,
+                        "token_type": "bearer",
+                        "scope": "public",
+                    }
+                };
+                serde_json::to_writer(credentials_file, &token).with_context(|| {
+                    format!(
+                        "Failed to write access token to {}",
+                        credentials_path.display()
+                    )
+                })?;
+            } else if let Some(email) = email {
+                // TODO: "Please enter password" and quiet param
+                let password = rpassword::read_password().context("Failed to read password")?;
+                core.authenticate(client_name, email.to_string(), password)
+                    .context("Failed to authenticate with TMC")?;
+                serde_json::to_writer(credentials_file, &token).with_context(|| {
+                    format!(
+                        "Failed to write credentials to {}",
+                        credentials_path.display()
+                    )
+                })?;
+            } else {
+                Error::with_description(
+                    "Either the email or set-access-token argument should be given",
+                    ErrorKind::MissingRequiredArgument,
                 )
-            })?;
+                .exit();
+            };
         } else if let Some(_matches) = matches.subcommand_matches("logout") {
             if credentials_path.exists() {
                 fs::remove_file(&credentials_path).with_context(|| {
@@ -590,7 +624,7 @@ fn run() -> Result<()> {
             core.download_or_update_exercises(exercises)
                 .context("Failed to download exercises")?;
         } else if let Some(matches) = matches.subcommand_matches("get-course-details") {
-            let course_id = matches.value_of("courseId").unwrap();
+            let course_id = matches.value_of("course-id").unwrap();
             let course_id = into_usize(course_id)?;
 
             let course_details = core
@@ -606,12 +640,12 @@ fn run() -> Result<()> {
 
             print_result_as_json(&courses)?;
         } else if let Some(matches) = matches.subcommand_matches("paste-with-comment") {
-            let submission_url = matches.value_of("submissionUrl").unwrap();
+            let submission_url = matches.value_of("submission-url").unwrap();
             let submission_url = into_url(submission_url)?;
 
-            let submission_path = matches.value_of("submissionPath").unwrap();
+            let submission_path = matches.value_of("submission-path").unwrap();
             let submission_path = Path::new(submission_path);
-            let paste_message = matches.value_of("pasteMessage").unwrap();
+            let paste_message = matches.value_of("paste-message").unwrap();
 
             let locale = matches.value_of("locale").unwrap();
             let locale = into_locale(locale)?;
@@ -627,7 +661,7 @@ fn run() -> Result<()> {
 
             print_result_as_json(&new_submission)?;
         } else if let Some(matches) = matches.subcommand_matches("run-checkstyle") {
-            let exercise_path = matches.value_of("exercisePath").unwrap();
+            let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);
             let locale = matches.value_of("locale").unwrap();
             let locale = into_locale(locale)?;
@@ -638,7 +672,7 @@ fn run() -> Result<()> {
 
             print_result_as_json(&validation_result)?;
         } else if let Some(matches) = matches.subcommand_matches("run-tests") {
-            let exercise_path = matches.value_of("exercisePath").unwrap();
+            let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);
 
             let run_result = core
@@ -647,7 +681,7 @@ fn run() -> Result<()> {
 
             print_result_as_json(&run_result)?;
         } else if let Some(matches) = matches.subcommand_matches("send-feedback") {
-            let feedback_url = matches.value_of("feedbackUrl").unwrap();
+            let feedback_url = matches.value_of("feedback-url").unwrap();
             let feedback_url = into_url(feedback_url)?;
 
             let mut feedback_answers = matches.values_of("feedback").unwrap();
@@ -667,10 +701,10 @@ fn run() -> Result<()> {
 
             print_result_as_json(&response)?;
         } else if let Some(matches) = matches.subcommand_matches("submit") {
-            let submission_url = matches.value_of("submissionUrl").unwrap();
+            let submission_url = matches.value_of("submission-url").unwrap();
             let submission_url = into_url(submission_url)?;
 
-            let submission_path = matches.value_of("submissionPath").unwrap();
+            let submission_path = matches.value_of("submission-path").unwrap();
             let submission_path = Path::new(submission_path);
 
             let optional_locale = matches.value_of("locale");
@@ -686,7 +720,7 @@ fn run() -> Result<()> {
 
             print_result_as_json(&new_submission)?;
         } else if let Some(_matches) = matches.subcommand_matches("get-exercise-updates") {
-            let course_id = matches.value_of("courseId").unwrap();
+            let course_id = matches.value_of("course-id").unwrap();
             let course_id = into_usize(course_id)?;
 
             let mut exercise_checksums = matches.values_of("exercise").unwrap();
@@ -703,11 +737,11 @@ fn run() -> Result<()> {
 
             print_result_as_json(&update_result)?;
         } else if let Some(_matches) = matches.subcommand_matches("mark-review-as-read") {
-            let review_update_url = matches.value_of("reviewUpdateUrl").unwrap();
+            let review_update_url = matches.value_of("review-update-url").unwrap();
             core.mark_review_as_read(review_update_url.to_string())
                 .context("Failed to mark review as read")?;
         } else if let Some(matches) = matches.subcommand_matches("get-unread-reviews") {
-            let reviews_url = matches.value_of("reviewsUrl").unwrap();
+            let reviews_url = matches.value_of("reviews-url").unwrap();
             let reviews_url = into_url(reviews_url)?;
 
             let reviews = core
@@ -716,13 +750,13 @@ fn run() -> Result<()> {
 
             print_result_as_json(&reviews)?;
         } else if let Some(matches) = matches.subcommand_matches("request-code-review") {
-            let submission_url = matches.value_of("submissionUrl").unwrap();
+            let submission_url = matches.value_of("submission-url").unwrap();
             let submission_url = into_url(submission_url)?;
 
-            let submission_path = matches.value_of("submissionPath").unwrap();
+            let submission_path = matches.value_of("submission-path").unwrap();
             let submission_path = Path::new(submission_path);
 
-            let message_for_reviewer = matches.value_of("messageForReviewer").unwrap();
+            let message_for_reviewer = matches.value_of("message-for-reviewer").unwrap();
 
             let locale = matches.value_of("locale").unwrap();
             let locale = into_locale(locale)?;
@@ -738,7 +772,7 @@ fn run() -> Result<()> {
 
             print_result_as_json(&new_submission)?;
         } else if let Some(matches) = matches.subcommand_matches("download-model-solution") {
-            let solution_download_url = matches.value_of("solutionDownloadUrl").unwrap();
+            let solution_download_url = matches.value_of("solution-download-url").unwrap();
             let solution_download_url = into_url(solution_download_url)?;
 
             let target = matches.value_of("target").unwrap();
