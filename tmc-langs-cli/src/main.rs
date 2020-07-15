@@ -9,6 +9,9 @@ use std::env;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use tmc_langs_core::oauth2::{
+    basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
+};
 use tmc_langs_core::{FeedbackAnswer, TmcCore, Token};
 use tmc_langs_framework::io::submission_processing;
 use tmc_langs_util::{task_executor, Language};
@@ -177,7 +180,10 @@ fn run() -> Result<()> {
                     .takes_value(true)))
 
             .subcommand(SubCommand::with_name("logout")
-                .about("Login and remove OAuth2 token from config."))
+                .about("Logout and remove OAuth2 token from config."))
+
+            .subcommand(SubCommand::with_name("logged-in")
+                .about("Check if the CLI is logged in. Prints the access token if so."))
 
             .subcommand(SubCommand::with_name("get-organizations")
                 .about("Get organizations."))
@@ -565,14 +571,13 @@ fn run() -> Result<()> {
             })?;
 
             if let Some(token) = token {
-                let token = serde_json::json! {
-                    {
-                        "access_token": token,
-                        "token_type": "bearer",
-                        "scope": "public",
-                    }
-                };
-                serde_json::to_writer(credentials_file, &token).with_context(|| {
+                let mut token_response = StandardTokenResponse::new(
+                    AccessToken::new(token.to_string()),
+                    BasicTokenType::Bearer,
+                    EmptyExtraTokenFields {},
+                );
+                token_response.set_scopes(Some(vec![Scope::new("public".to_string())]));
+                serde_json::to_writer(credentials_file, &token_response).with_context(|| {
                     format!(
                         "Failed to write access token to {}",
                         credentials_path.display()
@@ -604,6 +609,31 @@ fn run() -> Result<()> {
                         credentials_path.display()
                     )
                 })?;
+            }
+        } else if let Some(_matches) = matches.subcommand_matches("logged-in") {
+            if credentials_path.exists() {
+                let credentials = File::open(&credentials_path).with_context(|| {
+                    format!(
+                        "Failed to open credentials file at {}",
+                        credentials_path.display()
+                    )
+                })?;
+                let token: Token = serde_json::from_reader(credentials).with_context(|| {
+                    format!(
+                        "Failed to deserialize access token from {}",
+                        credentials_path.display()
+                    )
+                })?;
+                println!("{}", serde_json::to_string(&token).unwrap());
+            } else {
+                println!(
+                    "{}",
+                    serde_json::json! {
+                        {
+                            "message": "Not logged in."
+                        }
+                    }
+                )
             }
         } else if let Some(_matches) = matches.subcommand_matches("get-organizations") {
             let orgs = core

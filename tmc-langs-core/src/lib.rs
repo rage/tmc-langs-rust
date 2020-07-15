@@ -15,6 +15,7 @@ mod response;
 mod tmc_core;
 
 pub use error::CoreError;
+pub use oauth2;
 pub use request::FeedbackAnswer;
 pub use response::{
     Course, CourseData, CourseDataExercise, CourseDataExercisePoint, CourseDetails, CourseExercise,
