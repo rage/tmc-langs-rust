@@ -1,6 +1,7 @@
 //! Contains StudentFilePolicy.
 
 use super::{Result, TmcProjectYml};
+use crate::Error;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 
@@ -46,9 +47,13 @@ pub trait StudentFilePolicy {
 
     /// Determines whether a file is an extra student file.
     fn is_extra_student_file(&self, path: &Path, tmc_project_yml: &TmcProjectYml) -> Result<bool> {
-        let absolute = path.canonicalize()?;
+        let absolute = path
+            .canonicalize()
+            .map_err(|e| Error::Canonicalize(path.to_path_buf(), e))?;
         for path in &tmc_project_yml.extra_exercise_files {
-            let path = path.canonicalize()?;
+            let path = path
+                .canonicalize()
+                .map_err(|e| Error::Canonicalize(path.to_owned(), e))?;
 
             if path.is_dir() && (path == absolute || absolute.starts_with(path)) {
                 return Ok(true);
@@ -61,9 +66,13 @@ pub trait StudentFilePolicy {
 
     /// Used to check for files which should always be overwritten.
     fn is_updating_forced(&self, path: &Path, tmc_project_yml: &TmcProjectYml) -> Result<bool> {
-        let absolute = path.canonicalize()?;
+        let absolute = path
+            .canonicalize()
+            .map_err(|e| Error::Canonicalize(path.to_path_buf(), e))?;
         for force_update_path in &tmc_project_yml.force_update {
-            let force_absolute = force_update_path.canonicalize()?;
+            let force_absolute = force_update_path
+                .canonicalize()
+                .map_err(|e| Error::Canonicalize(force_update_path.to_owned(), e))?;
             if (absolute == force_absolute || absolute.starts_with(&force_absolute))
                 && force_absolute.is_dir()
             {

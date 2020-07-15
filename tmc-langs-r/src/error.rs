@@ -8,17 +8,18 @@ use std::process::ExitStatus;
 
 #[derive(Debug, Error)]
 pub enum RError {
-    #[error("Error running command {0}: {1}")]
+    #[error("Error running command {0}")]
     Command(&'static str, #[source] std::io::Error),
+    #[error("Command {0} failed with status {1}. stderr: {2}")]
+    CommandStatus(&'static str, ExitStatus, String),
 
-    #[error("Command {0} failed: {1}")]
-    CommandStatus(&'static str, ExitStatus),
+    #[error("Failed to open file {0}")]
+    FileOpen(PathBuf, #[source] std::io::Error),
+    #[error("Failed to remove file {0}")]
+    FileRemove(PathBuf, #[source] std::io::Error),
 
-    #[error("IO error with file {0}: {1}")]
-    Io(PathBuf, #[source] std::io::Error),
-
-    #[error("JSON error with file {0}: {1}")]
-    Json(PathBuf, #[source] serde_json::Error),
+    #[error("Failed to deserialize file {0} into JSON")]
+    JsonDeserialize(PathBuf, #[source] serde_json::Error),
 }
 
 impl From<RError> for TmcError {

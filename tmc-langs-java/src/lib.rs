@@ -40,11 +40,11 @@ fn get_junit_runner_path() -> Result<PathBuf, JavaError> {
 
     let junit_path = jar_dir.join("tmc-junit-runner.jar");
     if !junit_path.exists() {
-        fs::create_dir_all(&jar_dir).map_err(|e| JavaError::Dir(jar_dir, e))?;
+        fs::create_dir_all(&jar_dir).map_err(|e| JavaError::DirCreate(jar_dir, e))?;
         let mut file =
-            File::create(&junit_path).map_err(|e| JavaError::File(junit_path.clone(), e))?;
+            File::create(&junit_path).map_err(|e| JavaError::FileCreate(junit_path.clone(), e))?;
         file.write_all(TMC_JUNIT_RUNNER_BYTES)
-            .map_err(|e| JavaError::File(junit_path.clone(), e))?;
+            .map_err(|e| JavaError::FileWrite(junit_path.clone(), e))?;
     }
     Ok(junit_path)
 }
@@ -55,11 +55,11 @@ fn get_checkstyle_runner_path() -> Result<PathBuf, JavaError> {
 
     let checkstyle_path = jar_dir.join("tmc-checkstyle-runner.jar");
     if !checkstyle_path.exists() {
-        fs::create_dir_all(&jar_dir).map_err(|e| JavaError::Dir(jar_dir, e))?;
+        fs::create_dir_all(&jar_dir).map_err(|e| JavaError::DirCreate(jar_dir, e))?;
         let mut file = File::create(&checkstyle_path)
-            .map_err(|e| JavaError::File(checkstyle_path.clone(), e))?;
+            .map_err(|e| JavaError::FileCreate(checkstyle_path.clone(), e))?;
         file.write_all(TMC_CHECKSTYLE_RUNNER_BYTES)
-            .map_err(|e| JavaError::File(checkstyle_path.clone(), e))?;
+            .map_err(|e| JavaError::FileWrite(checkstyle_path.clone(), e))?;
     }
     Ok(checkstyle_path)
 }
@@ -71,11 +71,11 @@ fn initialize_jassets() -> Result<PathBuf, JavaError> {
 
     let j4rs_path = jassets_dir.join("j4rs.jar");
     if !j4rs_path.exists() {
-        fs::create_dir_all(&jassets_dir).map_err(|e| JavaError::Dir(jassets_dir, e))?;
+        fs::create_dir_all(&jassets_dir).map_err(|e| JavaError::DirCreate(jassets_dir, e))?;
         let mut file =
-            File::create(&j4rs_path).map_err(|e| JavaError::File(j4rs_path.clone(), e))?;
+            File::create(&j4rs_path).map_err(|e| JavaError::FileCreate(j4rs_path.clone(), e))?;
         file.write_all(J4RS_BYTES)
-            .map_err(|e| JavaError::File(j4rs_path.clone(), e))?;
+            .map_err(|e| JavaError::FileWrite(j4rs_path.clone(), e))?;
     }
     Ok(j4rs_path)
 }

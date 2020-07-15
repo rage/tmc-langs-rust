@@ -4,7 +4,7 @@ use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use tar::Builder;
-use tmc_langs_framework::Result;
+use tmc_langs_framework::{Error, Result};
 use walkdir::WalkDir;
 
 /// Creates a tarball from the project dir, also adding in tmc_langs and tmcrun.
@@ -14,19 +14,27 @@ pub fn create_tar_from_project(
     tmcrun: &Path,
     target_location: &Path,
 ) -> Result<()> {
-    let file = File::create(target_location)?;
+    log::debug!(
+        "creating tar from {} to {} with tmc-langs at {} and tmcrun at {}",
+        project_dir.display(),
+        target_location.display(),
+        tmc_langs.display(),
+        tmcrun.display()
+    );
+    let file = File::create(target_location)
+        .map_err(|e| Error::CreateFile(target_location.to_path_buf(), e))?;
     let mut tar = Builder::new(file);
 
     let project_name = Path::new(
         project_dir
             .file_name()
-            .expect("project directory has no file name"),
+            .ok_or(Error::NoFileName(project_dir.to_path_buf()))?,
     );
     let root = project_dir.parent().unwrap_or_else(|| Path::new(""));
     add_dir_to_project(&mut tar, &project_dir, project_dir, &project_name)?;
     add_dir_to_project(&mut tar, &tmc_langs, root, &project_name)?;
     add_dir_to_project(&mut tar, &tmcrun, root, &project_name)?;
-    tar.finish()?;
+    tar.finish().map_err(|e| Error::TarFinish(e))?;
     Ok(())
 }
 
@@ -36,12 +44,14 @@ fn add_dir_to_project<W: Write>(
     root: &Path,
     project_name: &Path,
 ) -> Result<()> {
+    // silently skips over errors
     for entry in WalkDir::new(source).into_iter().filter_map(|e| e.ok()) {
         if entry.path().is_file() {
             let path_in_project = entry.path().strip_prefix(root).unwrap();
             let path_in_tar: PathBuf = project_name.join(path_in_project);
-            log::debug!("appending {:?} as {:?}", entry.path(), path_in_tar);
-            tar.append_path_with_name(entry.path(), path_in_tar)?;
+            log::trace!("appending {:?} as {:?}", entry.path(), path_in_tar);
+            tar.append_path_with_name(entry.path(), path_in_tar)
+                .map_err(|e| Error::TarAppend(e))?;
         }
     }
     Ok(())

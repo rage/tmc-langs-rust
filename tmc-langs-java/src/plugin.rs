@@ -5,7 +5,7 @@ use super::{error::JavaError, CompileResult, TestCase, TestCaseStatus, TestMetho
 use j4rs::{InvocationArg, Jvm};
 use std::collections::HashMap;
 use std::convert::TryFrom;
-use std::fs;
+use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use tmc_langs_framework::{
@@ -41,18 +41,17 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         let test_result = self.create_run_result_file(project_root_path, compile_result)?;
         let result = self.parse_test_result(&test_result);
         fs::remove_file(&test_result.test_results)
-            .map_err(|e| JavaError::File(test_result.test_results, e))?;
+            .map_err(|e| JavaError::FileRemove(test_result.test_results, e))?;
         Ok(result?)
     }
 
     /// Parses test results.
     fn parse_test_result(&self, results: &TestRun) -> Result<RunResult, JavaError> {
-        let json = fs::read_to_string(&results.test_results)
-            .map_err(|e| JavaError::File(results.test_results.to_owned(), e))?;
+        let result_file = File::open(&results.test_results)
+            .map_err(|e| JavaError::FileRead(results.test_results.clone(), e))?;
+        let test_case_records: Vec<TestCase> = serde_json::from_reader(&result_file)?;
 
         let mut test_results: Vec<TestResult> = vec![];
-        let test_case_records: Vec<TestCase> = serde_json::from_str(&json)?;
-
         let mut status = RunStatus::Passed;
         for test_case in test_case_records {
             if test_case.status == TestCaseStatus::Failed {
@@ -123,6 +122,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         if !output.status.success() {
             return Err(JavaError::FailedCommand(
                 "java".to_string(),
+                output.status,
                 output.stdout,
                 output.stderr,
             ));
@@ -152,7 +152,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         compile_result: CompileResult,
     ) -> Result<ExerciseDesc, JavaError> {
         if !Self::is_exercise_type_correct(path) || !compile_result.status_code.success() {
-            return Err(JavaError::InvalidExercise);
+            return Err(JavaError::InvalidExercise(path.to_path_buf()));
         }
 
         let mut source_files = vec![];

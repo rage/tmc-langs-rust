@@ -31,7 +31,7 @@ impl CommandWithTimeout<'_> {
                 let mut child = self.0.spawn().map_err(|e| Error::CommandSpawn(name, e))?;
                 let timer = Instant::now();
                 loop {
-                    match child.try_wait()? {
+                    match child.try_wait().map_err(|e| Error::Process(e))? {
                         Some(_exit_status) => {
                             // done, get output
                             return child
@@ -41,8 +41,8 @@ impl CommandWithTimeout<'_> {
                         None => {
                             // still running, check timeout
                             if timer.elapsed() > timeout {
-                                child.kill()?;
-                                return Err(Error::TestTimeout);
+                                child.kill().map_err(|e| Error::Process(e))?;
+                                return Err(Error::TestTimeout(timer.elapsed()));
                             }
 
                             // TODO: gradually increase sleep duration?
@@ -67,7 +67,7 @@ mod test {
         let mut command = command.arg("1");
         let mut out = CommandWithTimeout(&mut command);
         let res = out.wait_with_timeout("sleep", Some(Duration::from_millis(100)));
-        if let Err(Error::TestTimeout) = res {
+        if let Err(Error::TestTimeout(_)) = res {
         } else {
             panic!("unexpected result: {:?}", res);
         }

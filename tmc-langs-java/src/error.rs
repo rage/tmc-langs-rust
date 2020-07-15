@@ -2,6 +2,7 @@
 
 use std::io;
 use std::path::PathBuf;
+use std::process::ExitStatus;
 use thiserror::Error;
 use tmc_langs_framework::Error as TmcError;
 
@@ -11,32 +12,36 @@ pub enum JavaError {
     NoJavaHome,
     #[error("Maven did not output any class path")]
     NoMvnClassPath,
-    #[error("Invalid exercise")]
-    InvalidExercise,
-    #[error("Failed to run {0}: {1}")]
+    #[error("{0} did not contain a valid exercise")]
+    InvalidExercise(PathBuf),
+    #[error("Failed to run {0}")]
     FailedToRun(String, #[source] std::io::Error),
-    #[error(r"Command '{0}' exited with an error
+    #[error(r"Command '{0}' exited with a exit status {1}
 #### STDOUT ####
 {}
 #### STDERR ####
-{}", String::from_utf8_lossy(&.1), String::from_utf8_lossy(&.2))]
-    FailedCommand(String, Vec<u8>, Vec<u8>),
-    #[error("Failed to write temporary .jar files: {0}")]
-    JarWrite(String),
-    #[error("IO error with file {0}: {1}")]
-    File(PathBuf, #[source] io::Error),
-    #[error("IO error with directory {0}: {1}")]
-    Dir(PathBuf, #[source] io::Error),
-    #[error("IO error with temporary directory: {0}")]
+{}", String::from_utf8_lossy(&.2), String::from_utf8_lossy(&.3))]
+    FailedCommand(String, ExitStatus, Vec<u8>, Vec<u8>),
+    #[error("Failed to write temporary .jar file {0}")]
+    JarWrite(PathBuf, #[source] io::Error),
+    #[error("Failed to create file at {0}")]
+    FileCreate(PathBuf, #[source] io::Error),
+    #[error("Failed to write to file at {0}")]
+    FileWrite(PathBuf, #[source] io::Error),
+    #[error("Failed to read to file at {0}")]
+    FileRead(PathBuf, #[source] io::Error),
+    #[error("Failed to remove file at {0}")]
+    FileRemove(PathBuf, #[source] io::Error),
+    #[error("Failed to create directory at {0}")]
+    DirCreate(PathBuf, #[source] io::Error),
+    #[error("Failed to create temporary directory at")]
     TempDir(#[source] io::Error),
     #[error("Failed to find home directory")]
     HomeDir,
-    #[error("Failed to copy file from {0} to {1}: {2}")]
+    #[error("Failed to copy file from {0} to {1}")]
     FileCopy(PathBuf, PathBuf, #[source] std::io::Error),
     #[error("Failed to find cache directory")]
     CacheDir,
-    #[error("Failed to unpack bundled mvn to {0}: {1}")]
-    MvnUnpack(PathBuf, #[source] std::io::Error),
 
     #[error(transparent)]
     Json(#[from] serde_json::Error),

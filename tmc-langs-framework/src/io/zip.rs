@@ -31,10 +31,11 @@ pub fn zip(policy: Box<dyn StudentFilePolicy>, root_directory: &Path) -> Result<
                 log::trace!("adding directory {}", path.display());
                 writer.add_directory_from_path(path, FileOptions::default())?;
             } else {
-                let file = File::open(entry.path())?;
-                let bytes = file
-                    .bytes()
-                    .collect::<std::result::Result<Vec<_>, std::io::Error>>()?;
+                let mut file = File::open(entry.path())
+                    .map_err(|e| Error::FileOpen(entry.path().to_path_buf(), e))?;
+                let mut bytes = vec![];
+                file.read_to_end(&mut bytes)
+                    .map_err(|e| Error::FileRead(entry.path().to_path_buf(), e))?;
                 log::trace!("writing file {}", path.display());
                 writer.start_file_from_path(path, FileOptions::default())?;
                 writer
@@ -62,7 +63,7 @@ pub fn unzip<P: StudentFilePolicy>(policy: P, zip: &Path, target: &Path) -> Resu
     let mut unzipped_paths = HashSet::new();
 
     for i in 0..zip_archive.len() {
-        let file = zip_archive.by_index(i)?;
+        let mut file = zip_archive.by_index(i)?;
         let file_path = file.sanitized_name();
         if !file_path.starts_with(&project_dir) {
             log::trace!("skip {}, not in project dir", file.name());
@@ -76,10 +77,16 @@ pub fn unzip<P: StudentFilePolicy>(policy: P, zip: &Path, target: &Path) -> Resu
             log::trace!("creating {:?}", path_in_target);
             fs::create_dir_all(&path_in_target)
                 .map_err(|e| Error::CreateDir(path_in_target.clone(), e))?;
-            unzipped_paths.insert(path_in_target.canonicalize()?);
+            unzipped_paths.insert(
+                path_in_target
+                    .canonicalize()
+                    .map_err(|e| Error::Canonicalize(path_in_target, e))?,
+            );
         } else {
             let mut write = true;
-            let file_contents = file.bytes().collect::<std::result::Result<Vec<_>, _>>()?;
+            let mut file_contents = vec![];
+            file.read_to_end(&mut file_contents)
+                .map_err(|e| Error::FileRead(file_path, e))?;
             // always overwrite .tmcproject.yml
             if path_in_target.exists()
                 && !path_in_target
@@ -87,11 +94,12 @@ pub fn unzip<P: StudentFilePolicy>(policy: P, zip: &Path, target: &Path) -> Resu
                     .map(|o| o == ".tmcproject.yml")
                     .unwrap_or_default()
             {
-                let target_file = File::open(&path_in_target)
+                let mut target_file = File::open(&path_in_target)
                     .map_err(|e| Error::OpenFile(path_in_target.clone(), e))?;
-                let target_file_contents = target_file
-                    .bytes()
-                    .collect::<std::result::Result<Vec<_>, _>>()?;
+                let mut target_file_contents = vec![];
+                target_file
+                    .read_to_end(&mut target_file_contents)
+                    .map_err(|e| Error::FileRead(path_in_target.clone(), e))?;
                 if file_contents == target_file_contents
                     || (policy.is_student_file(&path_in_target, &target, &tmc_project_yml)?
                         && !policy.is_updating_forced(&path_in_target, &tmc_project_yml)?)
@@ -101,15 +109,19 @@ pub fn unzip<P: StudentFilePolicy>(policy: P, zip: &Path, target: &Path) -> Resu
             }
             if write {
                 log::trace!("writing to {}", path_in_target.display());
-                if let Some(res) = path_in_target.parent().map(fs::create_dir_all) {
-                    res?;
+                if let Some(res) = path_in_target.parent() {
+                    fs::create_dir_all(res).map_err(|e| Error::CreateDir(res.to_path_buf(), e))?;
                 }
                 let mut overwrite_target = File::create(&path_in_target)
                     .map_err(|e| Error::CreateFile(path_in_target.clone(), e))?;
                 overwrite_target
                     .write_all(&file_contents)
                     .map_err(|e| Error::Write(path_in_target.clone(), e))?;
-                unzipped_paths.insert(path_in_target.canonicalize()?);
+                unzipped_paths.insert(
+                    path_in_target
+                        .canonicalize()
+                        .map_err(|e| Error::Canonicalize(path_in_target, e))?,
+                );
             }
         }
     }
@@ -117,19 +129,25 @@ pub fn unzip<P: StudentFilePolicy>(policy: P, zip: &Path, target: &Path) -> Resu
     // delete non-student files that were not in zip
     log::debug!("deleting non-student files not in zip");
     for entry in WalkDir::new(target).into_iter().filter_map(|e| e.ok()) {
-        if !unzipped_paths.contains(&entry.path().canonicalize()?)
-            && (policy.is_updating_forced(entry.path(), &tmc_project_yml)?
-                || !policy.is_student_file(entry.path(), &project_dir, &tmc_project_yml)?)
+        if !unzipped_paths.contains(
+            &entry
+                .path()
+                .canonicalize()
+                .map_err(|e| Error::Canonicalize(entry.path().to_path_buf(), e))?,
+        ) && (policy.is_updating_forced(entry.path(), &tmc_project_yml)?
+            || !policy.is_student_file(entry.path(), &project_dir, &tmc_project_yml)?)
         {
             if entry.path().is_dir() {
                 // delete if empty
                 if WalkDir::new(entry.path()).max_depth(1).into_iter().count() == 1 {
                     log::debug!("deleting empty directory {}", entry.path().display());
-                    fs::remove_dir(entry.path())?;
+                    fs::remove_dir(entry.path())
+                        .map_err(|e| Error::RemoveDir(entry.path().to_path_buf(), e))?;
                 }
             } else {
                 log::debug!("removing file {}", entry.path().display());
-                fs::remove_file(entry.path())?;
+                fs::remove_file(entry.path())
+                    .map_err(|e| Error::RemoveFile(entry.path().to_path_buf(), e))?;
             }
         }
     }

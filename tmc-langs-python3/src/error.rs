@@ -6,17 +6,17 @@ use tmc_langs_framework::Error as TmcError;
 
 #[derive(Debug, Error)]
 pub enum PythonError {
-    #[error("Error running command {0}: {1}")]
+    #[error("Error running command {0}")]
     Command(&'static str, #[source] std::io::Error),
-    #[error("Path error for {0}: {1}")]
-    Path(PathBuf, #[source] std::io::Error),
-    #[error("Failed to open file {0}: {1}")]
+    #[error("Failed to canonicalize path {0}")]
+    Canonicalize(PathBuf, #[source] std::io::Error),
+    #[error("Failed to open file {0}")]
     FileOpen(PathBuf, #[source] std::io::Error),
-    #[error("Failed to deserialize file at {0} to JSON: {1}")]
+    #[error("Failed to deserialize file at {0} to JSON")]
     Deserialize(PathBuf, #[source] serde_json::Error),
-    #[error("Failed to remove file {0}: {1}")]
+    #[error("Failed to remove file {0}")]
     FileRemove(PathBuf, #[source] std::io::Error),
-    #[error("Failed to remove directory {0}: {1}")]
+    #[error("Failed to remove directory {0}")]
     DirRemove(PathBuf, #[source] std::io::Error),
     #[error(transparent)]
     Framework(#[from] tmc_langs_framework::Error),

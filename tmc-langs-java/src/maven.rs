@@ -65,7 +65,7 @@ impl MavenPlugin {
             let tar = GzDecoder::new(Cursor::new(MVN_ARCHIVE));
             let mut tar = Archive::new(tar);
             tar.unpack(&tmc_path)
-                .map_err(|e| JavaError::MvnUnpack(tmc_path, e))?;
+                .map_err(|e| JavaError::JarWrite(tmc_path, e))?;
         }
         Ok(mvn_exec_path.as_os_str().to_os_string())
     }
@@ -81,7 +81,7 @@ impl LanguagePlugin for MavenPlugin {
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
         if !Self::is_exercise_type_correct(path) {
-            return JavaError::InvalidExercise.into();
+            return JavaError::InvalidExercise(path.to_path_buf()).into();
         }
 
         let compile_result = self.build(path)?;
@@ -110,15 +110,20 @@ impl LanguagePlugin for MavenPlugin {
         let output = Command::new("mvn")
             .current_dir(path)
             .arg("clean")
-            .output()?;
+            .output()
+            .map_err(|e| JavaError::FailedToRun("mvn".to_string(), e))?;
 
         log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 
         if !output.status.success() {
-            return Err(
-                JavaError::FailedCommand("mvn".to_string(), output.stdout, output.stderr).into(),
-            );
+            return Err(JavaError::FailedCommand(
+                "mvn".to_string(),
+                output.status,
+                output.stdout,
+                output.stderr,
+            )
+            .into());
         }
 
         Ok(())
@@ -155,13 +160,14 @@ impl JavaPlugin for MavenPlugin {
         if !output.status.success() {
             return Err(JavaError::FailedCommand(
                 mvn_path.as_os_str().to_string_lossy().to_string(),
+                output.status,
                 output.stdout,
                 output.stderr,
             ));
         }
 
         let class_path = fs::read_to_string(&class_path_file)
-            .map_err(|e| JavaError::File(class_path_file, e))?;
+            .map_err(|e| JavaError::FileRead(class_path_file, e))?;
         if class_path.is_empty() {
             return Err(JavaError::NoMvnClassPath);
         }
@@ -197,6 +203,7 @@ impl JavaPlugin for MavenPlugin {
         if !output.status.success() {
             return Err(JavaError::FailedCommand(
                 mvn_path.as_os_str().to_string_lossy().to_string(),
+                output.status,
                 output.stdout,
                 output.stderr,
             ));
@@ -231,6 +238,7 @@ impl JavaPlugin for MavenPlugin {
         if !output.status.success() {
             return Err(JavaError::FailedCommand(
                 mvn_path.as_os_str().to_string_lossy().to_string(),
+                output.status,
                 output.stdout,
                 output.stderr,
             ));

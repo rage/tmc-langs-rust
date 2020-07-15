@@ -60,13 +60,13 @@ impl AntPlugin {
 
         // TODO: don't traverse symlinks
         if !runner_path.exists() {
-            fs::create_dir_all(&runner_dir).map_err(|e| JavaError::Dir(runner_dir, e))?;
+            fs::create_dir_all(&runner_dir).map_err(|e| JavaError::DirCreate(runner_dir, e))?;
             log::debug!("writing tmc-junit-runner to {}", runner_path.display());
-            let mut target_file =
-                File::create(&runner_path).map_err(|e| JavaError::File(runner_path, e))?;
+            let mut target_file = File::create(&runner_path)
+                .map_err(|e| JavaError::FileCreate(runner_path.clone(), e))?;
             target_file
                 .write_all(JUNIT_RUNNER_ARCHIVE)
-                .map_err(|_| JavaError::JarWrite("tmc-junit-runner".to_string()))?;
+                .map_err(|e| JavaError::JarWrite(runner_path, e))?;
         } else {
             log::debug!("already exists");
         }
@@ -84,7 +84,7 @@ impl LanguagePlugin for AntPlugin {
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
         if !Self::is_exercise_type_correct(path) {
-            return JavaError::InvalidExercise.into();
+            return JavaError::InvalidExercise(path.to_path_buf()).into();
         }
 
         let compile_result = self.build(path)?;
@@ -116,11 +116,11 @@ impl LanguagePlugin for AntPlugin {
         log::debug!("Cleaning project at {}", path.display());
 
         let stdout_path = path.join("build_log.txt");
-        let stdout =
-            File::create(&stdout_path).map_err(|e| JavaError::File(stdout_path.clone(), e))?;
+        let stdout = File::create(&stdout_path)
+            .map_err(|e| JavaError::FileCreate(stdout_path.clone(), e))?;
         let stderr_path = path.join("build_errors.txt");
-        let stderr =
-            File::create(&stderr_path).map_err(|e| JavaError::File(stderr_path.clone(), e))?;
+        let stderr = File::create(&stderr_path)
+            .map_err(|e| JavaError::FileCreate(stderr_path.clone(), e))?;
 
         let ant_exec = self.get_ant_executable();
         let output = Command::new(ant_exec)
@@ -132,14 +132,17 @@ impl LanguagePlugin for AntPlugin {
             .map_err(|e| JavaError::FailedToRun(ant_exec.to_string(), e))?;
 
         if output.status.success() {
-            fs::remove_file(stdout_path)?;
-            fs::remove_file(stderr_path)?;
+            fs::remove_file(&stdout_path).map_err(|e| JavaError::FileRemove(stdout_path, e))?;
+            fs::remove_file(&stderr_path).map_err(|e| JavaError::FileRemove(stderr_path, e))?;
             Ok(())
         } else {
-            Err(
-                JavaError::FailedCommand("ant clean".to_string(), output.stdout, output.stderr)
-                    .into(),
+            Err(JavaError::FailedCommand(
+                "ant clean".to_string(),
+                output.status,
+                output.stdout,
+                output.stderr,
             )
+            .into())
         }
     }
 }
@@ -188,11 +191,11 @@ impl JavaPlugin for AntPlugin {
         log::info!("Building project at {}", project_root_path.display());
 
         let stdout_path = project_root_path.join("build_log.txt");
-        let mut stdout =
-            File::create(&stdout_path).map_err(|e| JavaError::File(stdout_path.clone(), e))?;
+        let mut stdout = File::create(&stdout_path)
+            .map_err(|e| JavaError::FileCreate(stdout_path.clone(), e))?;
         let stderr_path = project_root_path.join("build_errors.txt");
-        let mut stderr =
-            File::create(&stderr_path).map_err(|e| JavaError::File(stderr_path.clone(), e))?;
+        let mut stderr = File::create(&stderr_path)
+            .map_err(|e| JavaError::FileCreate(stderr_path.clone(), e))?;
 
         // TODO: don't require ant in path?
         let ant_exec = self.get_ant_executable();
@@ -206,10 +209,10 @@ impl JavaPlugin for AntPlugin {
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
         stdout
             .write_all(&output.stdout)
-            .map_err(|e| JavaError::File(stdout_path, e))?;
+            .map_err(|e| JavaError::FileWrite(stdout_path, e))?;
         stderr
             .write_all(&output.stderr)
-            .map_err(|e| JavaError::File(stderr_path, e))?;
+            .map_err(|e| JavaError::FileWrite(stderr_path, e))?;
 
         Ok(CompileResult {
             status_code: output.status,

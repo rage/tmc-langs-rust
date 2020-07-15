@@ -31,14 +31,14 @@ trait CoreExt {
 impl CoreExt for ReqwestResponse {
     #[cfg(not(test))]
     fn json_res<T: DeserializeOwned>(self) -> Result<T> {
-        let res: Response<T> = self.json()?;
+        let res: Response<T> = self.json().map_err(|e| CoreError::HttpJsonResponse(e))?;
         res.into_result()
     }
 
     // logs received JSON for easier debugging in tests
     #[cfg(test)]
     fn json_res<T: DeserializeOwned>(self) -> Result<T> {
-        let res: Value = self.json()?;
+        let res: Value = self.json().map_err(|e| CoreError::HttpJsonResponse(e))?;
         log::debug!("JSON {}", res);
         let res: Response<T> = serde_json::from_value(res).unwrap();
         res.into_result()
@@ -86,7 +86,8 @@ impl TmcCore {
         self.client
             .get(url.clone())
             .authenticate(&self.token)
-            .send()?
+            .send()
+            .map_err(|e| CoreError::HttpGet(url.clone(), e))?
             .check_error(url)?
             .json_res()
     }
@@ -104,9 +105,11 @@ impl TmcCore {
         self.client
             .get(url.clone())
             .authenticate(&self.token)
-            .send()?
+            .send()
+            .map_err(|e| CoreError::HttpGet(url.clone(), e))?
             .check_error(url)?
-            .copy_to(&mut target_file)?;
+            .copy_to(&mut target_file)
+            .map_err(|e| CoreError::HttpWriteResponse(target.to_path_buf(), e))?;
         Ok(())
     }
 
@@ -118,9 +121,11 @@ impl TmcCore {
         self.client
             .get(url.clone())
             .authenticate(&self.token)
-            .send()?
+            .send()
+            .map_err(|e| CoreError::HttpGet(url.clone(), e))?
             .check_error(url)?
-            .copy_to(&mut target_file)?;
+            .copy_to(&mut target_file)
+            .map_err(|e| CoreError::HttpWriteResponse(target.to_path_buf(), e))?;
         Ok(())
     }
 
@@ -552,11 +557,19 @@ impl TmcCore {
         form = form
             .text(
                 "client_time",
-                SystemTime::UNIX_EPOCH.elapsed()?.as_secs().to_string(),
+                SystemTime::UNIX_EPOCH
+                    .elapsed()
+                    .unwrap()
+                    .as_secs()
+                    .to_string(),
             )
             .text(
                 "client_nanotime",
-                SystemTime::UNIX_EPOCH.elapsed()?.as_nanos().to_string(),
+                SystemTime::UNIX_EPOCH
+                    .elapsed()
+                    .unwrap()
+                    .as_nanos()
+                    .to_string(),
             )
             .file("submission[file]", submission)
             .map_err(|e| CoreError::FileOpen(submission.to_path_buf(), e))?;
@@ -573,7 +586,8 @@ impl TmcCore {
             .post(submission_url.clone())
             .multipart(form)
             .authenticate(&self.token)
-            .send()?
+            .send()
+            .map_err(|e| CoreError::HttpPost(submission_url.clone(), e))?
             .check_error(submission_url)?
             .json_res()?;
         log::debug!("received {:?}", res);
@@ -612,7 +626,8 @@ impl TmcCore {
             .post(feedback_url.clone())
             .multipart(form)
             .authenticate(&self.token)
-            .send()?
+            .send()
+            .map_err(|e| CoreError::HttpPost(feedback_url.clone(), e))?
             .check_error(feedback_url)?
             .json_res()
     }
@@ -636,7 +651,8 @@ impl TmcCore {
             .query(&[("review[review_body]", review_body)])
             .query(&[("review[points]", review_points)])
             .authenticate(&self.token)
-            .send()?
+            .send()
+            .map_err(|e| CoreError::HttpPost(url.clone(), e))?
             .check_error(url)?
             .json_res()?;
         log::trace!("received {:?}", res);
@@ -657,7 +673,8 @@ impl TmcCore {
         self.client
             .post(url.clone())
             .multipart(form)
-            .send()?
+            .send()
+            .map_err(|e| CoreError::HttpPost(url.clone(), e))?
             .check_error(url)?
             .json_res()
     }

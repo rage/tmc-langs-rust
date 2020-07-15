@@ -59,19 +59,10 @@ impl LanguagePlugin for Python3Plugin {
     }
 
     fn is_exercise_type_correct(path: &Path) -> bool {
-        let mut setup = path.to_owned();
-        setup.push("setup.py");
-
-        let mut requirements = path.to_owned();
-        requirements.push("requirements.txt");
-
-        let mut test = path.to_owned();
-        test.push("test");
-        test.push("__init__.py");
-
-        let mut tmc = path.to_owned();
-        tmc.push("tmc");
-        tmc.push("__main__.py");
+        let setup = path.join("setup.py");
+        let requirements = path.join("requirements.txt");
+        let test = path.join("test").join("__init__.py");
+        let tmc = path.join("tmc").join("__main__.py");
 
         setup.exists() || requirements.exists() || test.exists() || tmc.exists()
     }
@@ -99,7 +90,7 @@ fn run_tmc_command(
 ) -> Result<std::process::Output, PythonError> {
     let path = path
         .canonicalize()
-        .map_err(|e| PythonError::Path(path.to_path_buf(), e))?;
+        .map_err(|e| PythonError::Canonicalize(path.to_path_buf(), e))?;
     log::debug!("running tmc command at {}", path.display());
     let common_args = ["-m", "tmc"];
 
@@ -119,7 +110,7 @@ fn run_tmc_command(
         .current_dir(path);
     let output = CommandWithTimeout(command).wait_with_timeout(name, timeout)?;
 
-    log::debug!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+    log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
     log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
     Ok(output)
 }

@@ -2,27 +2,24 @@
 
 use std::num::ParseIntError;
 use std::path::PathBuf;
+use std::process::ExitStatus;
 use thiserror::Error;
 use tmc_langs_framework::Error as TmcError;
 
 #[derive(Error, Debug)]
 pub enum MakeError {
-    #[error("No exercise found")]
-    NoExerciseFound,
-    #[error("Can't parse exercise description: could not find tmc_available_points.txt")]
-    CantFindAvailablePoints,
-    #[error("Could not find tmc_available_points.xml")]
-    CantFindTestResults,
-    #[error("Failed to run tests without valgrind")]
-    RunningTests,
-    #[error("Failed to run tests with valgrind")]
-    RunningTestsWithValgrind,
-    #[error("Failed to parse valgrind logs")]
-    ValgrindParse,
-    #[error("Make finished unsuccessfully")]
-    MakeFailed,
+    #[error("No exercise found at {0}")]
+    NoExerciseFound(PathBuf),
+    #[error("Can't parse exercise description: could not find {0}")]
+    CantFindAvailablePoints(PathBuf),
+    #[error("Failed to run tests without valgrind. Exit code: {0}, stderr: {1}")]
+    RunningTests(ExitStatus, String),
+    #[error("Failed to run tests with valgrind. Exit code: {0}, stderr: {1}")]
+    RunningTestsWithValgrind(ExitStatus, String),
+    #[error("Failed to parse valgrind logs: could not find pids")]
+    NoPidsInValgrindLogs,
 
-    #[error("Failed to parse XML at {0}: {1}")]
+    #[error("Failed to parse XML at {0}")]
     XmlParseError(PathBuf, #[source] serde_xml_rs::Error),
     #[error("Failed to open file at {0}")]
     FileOpen(PathBuf, #[source] std::io::Error),

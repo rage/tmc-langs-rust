@@ -126,7 +126,8 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
             entry.path(),
             dest_path
         );
-        fs::copy(entry.path(), dest_path)?;
+        fs::copy(entry.path(), &dest_path)
+            .map_err(|e| Error::FileCopy(entry.path().to_path_buf(), dest_path, e))?;
     } else {
         // filter text files
         debug!(

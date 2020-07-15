@@ -1,7 +1,7 @@
 //! Contains utilities for parsing text files, separating lines into
 //! strings, stubs and solutions so that they can be more easily filtered accordingly
 
-use crate::Result;
+use crate::{Error, Result};
 use lazy_static::lazy_static;
 use log::debug;
 use regex::{Captures, Regex};
@@ -183,7 +183,7 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                     Some(Ok(MetaString::String(s)))
                 }
             }
-            Err(err) => Some(Err(err.into())),
+            Err(err) => Some(Err(Error::ReadLine(err))),
         }
     }
 }

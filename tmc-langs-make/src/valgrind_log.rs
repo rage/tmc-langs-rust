@@ -51,7 +51,7 @@ impl ValgrindLog {
 
         let first_pid = match first_pid {
             Some(first_pid) => first_pid,
-            None => return Err(MakeError::ValgrindParse),
+            None => return Err(MakeError::NoPidsInValgrindLogs),
         };
         let (header_log, _header_errors) = pid_info.remove(&first_pid).unwrap();
 

@@ -84,14 +84,18 @@ impl MakePlugin {
             .output()
             .map_err(MakeError::MakeCommand)?;
 
-        log::debug!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-        log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        log::debug!("stderr: {}", stderr);
 
         if !output.status.success() {
             if run_valgrind {
-                return Err(MakeError::RunningTestsWithValgrind);
+                return Err(MakeError::RunningTestsWithValgrind(
+                    output.status,
+                    stderr.into_owned(),
+                ));
             } else {
-                return Err(MakeError::RunningTests);
+                return Err(MakeError::RunningTests(output.status, stderr.into_owned()));
             }
         }
 
@@ -108,7 +112,7 @@ impl MakePlugin {
             .output()
             .map_err(MakeError::MakeCommand)?;
 
-        log::debug!("stdout:\n{}", String::from_utf8_lossy(&output.stdout));
+        log::trace!("stdout:\n{}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr:\n{}", String::from_utf8_lossy(&output.stderr));
 
         Ok(output.status.success())
@@ -121,7 +125,7 @@ impl LanguagePlugin for MakePlugin {
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, Error> {
         if !Self::is_exercise_type_correct(path) {
-            return MakeError::NoExerciseFound.into();
+            return MakeError::NoExerciseFound(path.to_path_buf()).into();
         }
 
         self.run_tests_with_valgrind(path, false)?;
@@ -129,7 +133,7 @@ impl LanguagePlugin for MakePlugin {
         let available_points_path = path.join("test/tmc_available_points.txt");
 
         if !available_points_path.exists() {
-            return MakeError::CantFindAvailablePoints.into();
+            return MakeError::CantFindAvailablePoints(available_points_path).into();
         }
 
         Ok(self.parse_exercise_desc(&available_points_path, exercise_name)?)
@@ -168,7 +172,7 @@ impl LanguagePlugin for MakePlugin {
                         self.run_tests_with_valgrind(path, false)?;
                     }
                 }
-                MakeError::MakeCommand(_) | MakeError::RunningTestsWithValgrind => {
+                MakeError::MakeCommand(_) | MakeError::RunningTestsWithValgrind(..) => {
                     ran_valgrind = false;
                     log::info!("Running without valgrind");
                     self.run_tests_with_valgrind(path, false)?;

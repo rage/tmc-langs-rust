@@ -41,16 +41,22 @@ impl LanguagePlugin for RPlugin {
             .output()
             .map_err(|e| RError::Command("Rscript", e))?;
         if !out.status.success() {
-            log::debug!("stdout: {}", String::from_utf8_lossy(&out.stdout));
-            log::debug!("stderr: {}", String::from_utf8_lossy(&out.stderr));
-            return Err(RError::CommandStatus("Rscript", out.status).into());
+            return Err(RError::CommandStatus(
+                "Rscript",
+                out.status,
+                String::from_utf8_lossy(&out.stderr).into_owned(),
+            )
+            .into());
         }
+        log::trace!("stdout: {}", String::from_utf8_lossy(&out.stdout));
+        log::debug!("stderr: {}", String::from_utf8_lossy(&out.stderr));
 
         // parse exercise desc
         let points_path = path.join(".available_points.json");
-        let json_file = File::open(&points_path).map_err(|e| RError::Io(points_path.clone(), e))?;
-        let test_descs: HashMap<String, Vec<String>> =
-            serde_json::from_reader(json_file).map_err(|e| RError::Json(points_path, e))?;
+        let json_file =
+            File::open(&points_path).map_err(|e| RError::FileOpen(points_path.clone(), e))?;
+        let test_descs: HashMap<String, Vec<String>> = serde_json::from_reader(json_file)
+            .map_err(|e| RError::JsonDeserialize(points_path, e))?;
         let test_descs = test_descs
             .into_iter()
             .map(|(k, v)| TestDesc { name: k, points: v })
@@ -70,7 +76,8 @@ impl LanguagePlugin for RPlugin {
         // delete results json
         let results_path = path.join(".results.json");
         if results_path.exists() {
-            fs::remove_file(&results_path).map_err(|e| RError::Io(results_path.clone(), e))?;
+            fs::remove_file(&results_path)
+                .map_err(|e| RError::FileRemove(results_path.clone(), e))?;
         }
 
         // run test command
@@ -89,17 +96,22 @@ impl LanguagePlugin for RPlugin {
         log::debug!("stderr: {}", String::from_utf8_lossy(&out.stderr));
 
         if !out.status.success() {
-            return Err(RError::CommandStatus("Rscript", out.status).into());
+            return Err(RError::CommandStatus(
+                "Rscript",
+                out.status,
+                String::from_utf8_lossy(&out.stderr).into_owned(),
+            )
+            .into());
         }
 
         // parse test result
         let json_file =
-            File::open(&results_path).map_err(|e| RError::Io(results_path.clone(), e))?;
+            File::open(&results_path).map_err(|e| RError::FileOpen(results_path.clone(), e))?;
         let run_result: RRunResult = serde_json::from_reader(json_file).map_err(|e| {
             if let Ok(s) = fs::read_to_string(&results_path) {
                 log::error!("json {}", s);
             }
-            RError::Json(results_path, e)
+            RError::JsonDeserialize(results_path, e)
         })?;
 
         Ok(run_result.into())
