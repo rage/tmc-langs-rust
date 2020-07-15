@@ -55,7 +55,7 @@ fn get_organizations() {
             .to_string(),
         )
         .create();
-    let out = run_cmd(&["core", "--clientName", "client", "get-organizations"]);
+    let out = run_cmd(&["core", "--client-name", "client", "get-organizations"]);
     assert!(out.status.success());
     let out = String::from_utf8(out.stdout).unwrap();
     let orgs: Vec<Organization> = serde_json::from_str(&out).unwrap();

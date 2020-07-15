@@ -17,9 +17,9 @@ fn compress_project() {
     let temp = tempdir().unwrap();
     let out = run_cmd(&[
         "compress-project",
-        "--exercisePath",
+        "--exercise-path",
         &test_dir("project"),
-        "--outputPath",
+        "--output-path",
         temp.path().join("zip.zip").to_str().unwrap(),
     ]);
     println!("out:\n{}", String::from_utf8(out.stdout).unwrap());
