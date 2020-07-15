@@ -16,6 +16,8 @@ use std::collections::HashMap;
 use std::io::Write;
 use std::path::Path;
 use std::path::PathBuf;
+use std::thread;
+use std::time::Duration;
 use tempfile::NamedTempFile;
 use tmc_langs_util::task_executor;
 
@@ -385,6 +387,18 @@ impl TmcCore {
         let result = self.post_submission(submission_url, file.path(), locale);
         self.report_complete("Submission finished!");
         result
+    }
+
+    pub fn wait_for_submission(&self, submission_url: &str) -> Result<SubmissionFinished> {
+        loop {
+            match self.check_submission(submission_url)? {
+                SubmissionProcessingStatus::Finished(f) => return Ok(*f),
+                SubmissionProcessingStatus::Processing(_p) => {
+                    // todo: report status
+                    thread::sleep(Duration::from_secs(1));
+                }
+            }
+        }
     }
 
     /// Fetches the course's exercises from the server,

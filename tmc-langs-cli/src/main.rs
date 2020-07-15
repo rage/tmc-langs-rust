@@ -749,6 +749,14 @@ fn run() -> Result<()> {
                 .context("Failed to submit")?;
 
             print_result_as_json(&new_submission)?;
+        } else if let Some(matches) = matches.subcommand_matches("wait-for-submission") {
+            let submission_url = matches.value_of("submission-url").unwrap();
+            let submission_finished = core
+                .wait_for_submission(submission_url)
+                .context("Failed while waiting for submissions")?;
+            let submission_finished = serde_json::to_string(&submission_finished)
+                .context("Failed to serialize submission results")?;
+            println!("{}", submission_finished);
         } else if let Some(_matches) = matches.subcommand_matches("get-exercise-updates") {
             let course_id = matches.value_of("course-id").unwrap();
             let course_id = into_usize(course_id)?;
