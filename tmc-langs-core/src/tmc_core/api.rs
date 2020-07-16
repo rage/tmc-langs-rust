@@ -509,12 +509,15 @@ impl TmcCore {
         &self,
         submission_url: Url,
         submission: &Path,
-        paste_message: String,
+        paste_message: Option<String>,
         locale: Option<Language>,
     ) -> Result<NewSubmission> {
         let mut params = HashMap::new();
         params.insert("paste".to_string(), "1".to_string());
-        params.insert("message_for_paste".to_string(), paste_message);
+        params.insert(
+            "message_for_paste".to_string(),
+            paste_message.unwrap_or_default(), // TODO: can this field be ignored?
+        );
         self.post_submission_with_params(submission_url, submission, Some(params), locale)
     }
 

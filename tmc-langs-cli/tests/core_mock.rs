@@ -9,8 +9,8 @@ fn init() {
         env::set_var("RUST_LOG", "debug,hyper=warn,tokio_reactor=warn");
     }
     let _ = env_logger::builder().is_test(true).try_init();
-    env::set_var("TMC_CORE_CLI_ROOT_URL", mockito::server_url());
-    env::set_var("TMC_CORE_CLI_CONFIG_DIR", "./");
+    env::set_var("TMC_LANGS_ROOT_URL", mockito::server_url());
+    env::set_var("TMC_LANGS_CONFIG_DIR", "./");
 }
 
 fn run_cmd(args: &[&str]) -> Output {

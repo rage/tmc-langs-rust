@@ -224,7 +224,7 @@ fn run() -> Result<()> {
                     .required(true)
                     .takes_value(true)))
 
-            .subcommand(SubCommand::with_name("paste-with-comment")
+            .subcommand(SubCommand::with_name("paste")
                 .about("Send exercise to pastebin with comment.")
                 .arg(Arg::with_name("submission-url")
                     .long("submission-url")
@@ -236,7 +236,6 @@ fn run() -> Result<()> {
                     .takes_value(true))
                 .arg(Arg::with_name("paste-message")
                     .long("paste-message")
-                    .required(true)
                     .takes_value(true))
                 .arg(Arg::with_name("locale")
                     .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")
@@ -702,22 +701,22 @@ fn run() -> Result<()> {
                 .context("Failed to get courses")?;
 
             print_result_as_json(&courses)?;
-        } else if let Some(matches) = matches.subcommand_matches("paste-with-comment") {
+        } else if let Some(matches) = matches.subcommand_matches("paste") {
             let submission_url = matches.value_of("submission-url").unwrap();
             let submission_url = into_url(submission_url)?;
 
             let submission_path = matches.value_of("submission-path").unwrap();
             let submission_path = Path::new(submission_path);
-            let paste_message = matches.value_of("paste-message").unwrap();
+            let paste_message = matches.value_of("paste-message");
 
             let locale = matches.value_of("locale").unwrap();
             let locale = into_locale(locale)?;
 
             let new_submission = core
-                .paste_with_comment(
+                .paste(
                     submission_url,
                     submission_path,
-                    paste_message.to_string(),
+                    paste_message.map(str::to_string),
                     locale,
                 )
                 .context("Failed to get paste with comment")?;

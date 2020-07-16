@@ -290,11 +290,11 @@ impl TmcCore {
     ///     "my python solution".to_string(),
     ///     Language::Eng).unwrap();
     /// ```
-    pub fn paste_with_comment(
+    pub fn paste(
         &self,
         submission_url: Url,
         submission_path: &Path,
-        paste_message: String,
+        paste_message: Option<String>,
         locale: Language,
     ) -> Result<NewSubmission> {
         // compress
@@ -687,10 +687,10 @@ mod test {
             .create();
 
         let new_submission = core
-            .paste_with_comment(
+            .paste(
                 submission_url,
                 Path::new("tests/data/exercise"),
-                "abcdefg".to_string(),
+                Some("abcdefg".to_string()),
                 Language::from_639_3("eng").unwrap(),
             )
             .unwrap();
