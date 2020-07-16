@@ -1,6 +1,5 @@
 //! CLI client for TMC
 
-use ansi_term::Colour::Red;
 use anyhow::{Context, Result};
 use clap::{App, Arg, Error, ErrorKind, SubCommand};
 use serde::Serialize;
@@ -26,7 +25,21 @@ fn main() {
     let _ = ansi_term::enable_ansi_support();
 
     if let Err(e) = run() {
-        eprintln!("{}: {:?}", Red.bold().paint("error"), e);
+        let mut causes = vec![];
+        let mut next_source = e.source();
+        while let Some(source) = next_source {
+            causes.push(format!("Caused by: {}", source.to_string()));
+            next_source = source.source();
+        }
+        let error = serde_json::json! {
+            {
+                "error": {
+                    "message": e.to_string(),
+                    "causes": causes,
+                }
+            }
+        };
+        println!("{:#}", error);
         quit::with_code(1);
     }
 }
