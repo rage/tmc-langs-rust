@@ -567,14 +567,52 @@ fn run() -> Result<()> {
         };
         let credentials_path = config_dir.join(tmc_dir).join("credentials.json");
         if let Ok(file) = File::open(&credentials_path) {
-            let token: Token = serde_json::from_reader(file).expect("malformed credentials.json");
-            core.set_token(token);
+            match serde_json::from_reader(file) {
+                Ok(token) => core.set_token(token),
+                Err(e) => {
+                    log::error!(
+                        "Failed to deserialize credentials.json due to \"{}\", deleting",
+                        e
+                    );
+                    fs::remove_file(&credentials_path).with_context(|| {
+                        format!(
+                            "Failed to remove malformed credentials.json file {}",
+                            credentials_path.display()
+                        )
+                    })?;
+                }
+            }
         };
 
         if let Some(matches) = matches.subcommand_matches("login") {
             let email = matches.value_of("email");
-            let token = matches.value_of("set-access-token");
+            let set_access_token = matches.value_of("set-access-token");
 
+            // get token from argument or server
+            let token = if let Some(token) = set_access_token {
+                let mut token_response = StandardTokenResponse::new(
+                    AccessToken::new(token.to_string()),
+                    BasicTokenType::Bearer,
+                    EmptyExtraTokenFields {},
+                );
+                token_response.set_scopes(Some(vec![Scope::new("public".to_string())]));
+                token_response
+            } else if let Some(email) = email {
+                // TODO: "Please enter password" and quiet param
+                let password = rpassword::read_password().context("Failed to read password")?;
+                let token = core
+                    .authenticate(client_name, email.to_string(), password)
+                    .context("Failed to authenticate with TMC")?;
+                token
+            } else {
+                Error::with_description(
+                    "Either the --email or --set-access-token argument should be given",
+                    ErrorKind::MissingRequiredArgument,
+                )
+                .exit();
+            };
+
+            // create token file
             if let Some(p) = credentials_path.parent() {
                 fs::create_dir_all(p)
                     .with_context(|| format!("Failed to create directory {}", p.display()))?;
@@ -583,37 +621,22 @@ fn run() -> Result<()> {
                 format!("Failed to create file at {}", credentials_path.display())
             })?;
 
-            if let Some(token) = token {
-                let mut token_response = StandardTokenResponse::new(
-                    AccessToken::new(token.to_string()),
-                    BasicTokenType::Bearer,
-                    EmptyExtraTokenFields {},
-                );
-                token_response.set_scopes(Some(vec![Scope::new("public".to_string())]));
-                serde_json::to_writer(credentials_file, &token_response).with_context(|| {
+            // write token
+            if let Err(e) = serde_json::to_writer(credentials_file, &token) {
+                // failed to write token, removing credentials file
+                fs::remove_file(&credentials_path).with_context(|| {
                     format!(
-                        "Failed to write access token to {}",
+                        "Failed to remove empty credentials file after failing to write {}",
                         credentials_path.display()
                     )
                 })?;
-            } else if let Some(email) = email {
-                // TODO: "Please enter password" and quiet param
-                let password = rpassword::read_password().context("Failed to read password")?;
-                core.authenticate(client_name, email.to_string(), password)
-                    .context("Failed to authenticate with TMC")?;
-                serde_json::to_writer(credentials_file, &token).with_context(|| {
+                Err(e).with_context(|| {
                     format!(
                         "Failed to write credentials to {}",
                         credentials_path.display()
                     )
                 })?;
-            } else {
-                Error::with_description(
-                    "Either the email or set-access-token argument should be given",
-                    ErrorKind::MissingRequiredArgument,
-                )
-                .exit();
-            };
+            }
         } else if let Some(_matches) = matches.subcommand_matches("logout") {
             if credentials_path.exists() {
                 fs::remove_file(&credentials_path).with_context(|| {
