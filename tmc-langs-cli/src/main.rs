@@ -8,6 +8,7 @@ use std::env;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use tempfile::NamedTempFile;
 use tmc_langs_core::oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
@@ -16,7 +17,6 @@ use tmc_langs_framework::io::submission_processing;
 use tmc_langs_util::{task_executor, Language};
 use url::Url;
 use walkdir::WalkDir;
-use tempfile::NamedTempFile;
 
 #[quit::main]
 fn main() {
@@ -374,7 +374,7 @@ fn run() -> Result<()> {
                 .arg(Arg::with_name("submission-url")
                     .long("submission-url")
                     .takes_value(true)))
-                
+
             .subcommand(SubCommand::with_name("download-old-submission")
                 .about("Downloads an old submission.")
                 .arg(Arg::with_name("exercise-id")
