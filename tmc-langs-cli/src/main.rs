@@ -18,32 +18,8 @@ use tmc_langs_util::{task_executor, Language};
 use url::Url;
 use walkdir::WalkDir;
 
-#[quit::main]
-fn main() {
-    env_logger::init();
-
-    if let Err(e) = run() {
-        let mut causes = vec![];
-        let mut next_source = e.source();
-        while let Some(source) = next_source {
-            causes.push(format!("Caused by: {}", source.to_string()));
-            next_source = source.source();
-        }
-        let error = serde_json::json! {
-            {
-                "error": {
-                    "message": e.to_string(),
-                    "causes": causes,
-                }
-            }
-        };
-        println!("{:#}", error);
-        quit::with_code(1);
-    }
-}
-
-fn run() -> Result<()> {
-    let matches = App::new(env!("CARGO_PKG_NAME"))
+fn create_app() -> App<'static, 'static> {
+    App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
@@ -435,8 +411,34 @@ fn run() -> Result<()> {
                     .help("Required if save-old-state is set. The URL where the submission should be posted.")
                     .long("submission-url")
                     .takes_value(true))))
+}
 
-        .get_matches();
+#[quit::main]
+fn main() {
+    env_logger::init();
+
+    if let Err(e) = run() {
+        let mut causes = vec![];
+        let mut next_source = e.source();
+        while let Some(source) = next_source {
+            causes.push(format!("Caused by: {}", source.to_string()));
+            next_source = source.source();
+        }
+        let error = serde_json::json! {
+            {
+                "error": {
+                    "message": e.to_string(),
+                    "causes": causes,
+                }
+            }
+        };
+        println!("{:#}", error);
+        quit::with_code(1);
+    }
+}
+
+fn run() -> Result<()> {
+    let matches = create_app().get_matches();
 
     // non-core
     if let Some(matches) = matches.subcommand_matches("checkstyle") {
