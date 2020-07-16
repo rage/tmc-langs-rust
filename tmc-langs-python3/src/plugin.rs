@@ -49,12 +49,7 @@ impl LanguagePlugin for Python3Plugin {
         path: &Path,
         timeout: Option<Duration>,
     ) -> Result<RunResult, TmcError> {
-        let run_result = run_tmc_command(path, &[], timeout);
-
-        if let Err(error) = run_result {
-            log::error!("Failed to parse exercise description. {}", error);
-        }
-
+        run_tmc_command(path, &[], timeout)?;
         Ok(parse_test_result(path)?)
     }
 
@@ -98,11 +93,13 @@ fn run_tmc_command(
         LocalPy::Unix => ("python3", Command::new("python3")),
         LocalPy::Windows => ("py", Command::new("py")),
         LocalPy::WindowsConda { conda_path } => ("conda", Command::new(conda_path)),
+        LocalPy::Custom { python_exec } => (python_exec.as_str(), Command::new(python_exec)),
     };
     let command = match &*LOCAL_PY {
         LocalPy::Unix => &mut command,
         LocalPy::Windows => command.args(&["-3"]),
         LocalPy::WindowsConda { .. } => &mut command,
+        LocalPy::Custom { .. } => &mut command,
     };
     let command = command
         .args(&common_args)

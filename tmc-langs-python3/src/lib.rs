@@ -18,11 +18,17 @@ enum LocalPy {
     Unix,
     Windows,
     WindowsConda { conda_path: String },
+    Custom { python_exec: String },
 }
 
 lazy_static! {
     // the python command is platform-dependent
     static ref LOCAL_PY: LocalPy = {
+        if let Ok(python_exec) = env::var("TMC_LANGS_PYTHON_EXEC") {
+            log::debug!("using Python from environment variable TMC_LANGS_PYTHON_EXEC={}", python_exec);
+            return LocalPy::Custom { python_exec };
+        }
+
         if cfg!(windows) {
             // Check for Conda
             let conda = env::var("CONDA_PYTHON_EXE");
