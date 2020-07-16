@@ -215,11 +215,22 @@ impl TmcCore {
     /// ]);
     /// ```
     pub fn download_or_update_exercises(&self, exercises: Vec<(usize, &Path)>) -> Result<()> {
+        let step = 1.0 / (2 * exercises.len()) as f64;
+
+        let mut progress = 0.0;
         for (exercise_id, target) in exercises {
+            // TODO: do in memory without zip_file?
             let zip_file = NamedTempFile::new().map_err(CoreError::TempFile)?;
+
+            self.report_progress("Downloading exercise...", progress);
             self.download_exercise(exercise_id, zip_file.path())?;
+            progress += step;
+
+            self.report_progress("Extracting exercise...", progress);
             task_executor::extract_project(zip_file.path(), target)?;
+            progress += step;
         }
+        self.report_complete("Finished downloading and extracting exercises.");
         Ok(())
     }
 
