@@ -21,9 +21,6 @@ use walkdir::WalkDir;
 fn main() {
     env_logger::init();
 
-    #[cfg(target_os = "windows")]
-    let _ = ansi_term::enable_ansi_support();
-
     if let Err(e) = run() {
         let mut causes = vec![];
         let mut next_source = e.source();
