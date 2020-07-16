@@ -284,10 +284,10 @@ impl TmcCore {
     /// let course_details = core.get_course_details(600).unwrap();
     /// let submission_url = &course_details.exercises[0].return_url;
     /// let submission_url = Url::parse(&submission_url).unwrap();
-    /// let new_submission = core.paste_with_comment(
+    /// let new_submission = core.paste(
     ///     submission_url,
     ///     Path::new("./exercises/python/123"),
-    ///     "my python solution".to_string(),
+    ///     Some("my python solution".to_string()),
     ///     Language::Eng).unwrap();
     /// ```
     pub fn paste(
