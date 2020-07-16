@@ -394,7 +394,6 @@ impl TmcCore {
             match self.check_submission(submission_url)? {
                 SubmissionProcessingStatus::Finished(f) => return Ok(*f),
                 SubmissionProcessingStatus::Processing(_p) => {
-                    // todo: report status
                     thread::sleep(Duration::from_secs(1));
                 }
             }

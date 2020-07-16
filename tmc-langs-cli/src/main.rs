@@ -284,7 +284,7 @@ fn run() -> Result<()> {
                     .takes_value(true)))
 
             .subcommand(SubCommand::with_name("wait-for-submission")
-                .about("Submit exercise.")
+                .about("Wait for a submission to finish.")
                 .arg(Arg::with_name("submission-url")
                     .long("submission-url")
                     .required(true)
