@@ -38,31 +38,31 @@ fn run_core_cmd(args: &[&str]) -> Output {
 
 #[test]
 #[ignore]
-fn download_model_solution() {
+fn downloads_model_solution() {
     todo!()
 }
 
 #[test]
 #[ignore]
-fn download_or_update_exercises() {
+fn downloads_or_updates_exercises() {
     todo!()
 }
 
 #[test]
 #[ignore]
-fn get_course_details() {
+fn gets_course_details() {
     todo!()
 }
 
 #[test]
 #[ignore]
-fn get_exercise_updates() {
+fn gets_exercise_updates() {
     todo!()
 }
 
 #[test]
 #[ignore]
-fn get_organizations() {
+fn gets_organizations() {
     init();
     let out = run_core_cmd(&["get-organizations"]);
     assert!(out.status.success());
@@ -72,13 +72,13 @@ fn get_organizations() {
 
 #[test]
 #[ignore]
-fn get_unread_reviews() {
+fn gets_unread_reviews() {
     todo!()
 }
 
 #[test]
 #[ignore]
-fn list_courses() {
+fn lists_courses() {
     init();
     let out = run_core_cmd(&["list-courses", "--organization", "hy"]);
     assert!(out.status.success());
@@ -88,42 +88,42 @@ fn list_courses() {
 
 #[test]
 #[ignore]
-fn mark_review_as_read() {
+fn marks_review_as_read() {
     todo!()
 }
 
 #[test]
 #[ignore]
-fn paste_with_comment() {
+fn pastes_with_comment() {
     todo!()
 }
 
 #[test]
 #[ignore]
-fn request_code_review() {
+fn requests_code_review() {
     todo!()
 }
 
 #[test]
 #[ignore]
-fn run_checkstyle() {
+fn runs_checkstyle() {
     todo!()
 }
 
 #[test]
 #[ignore]
-fn run_tests() {
+fn runs_tests() {
     todo!()
 }
 
 #[test]
 #[ignore]
-fn send_feedback() {
+fn sends_feedback() {
     todo!()
 }
 
 #[test]
 #[ignore]
-fn submit() {
+fn submits() {
     todo!()
 }

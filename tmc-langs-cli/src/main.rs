@@ -16,6 +16,7 @@ use tmc_langs_framework::io::submission_processing;
 use tmc_langs_util::{task_executor, Language};
 use url::Url;
 use walkdir::WalkDir;
+use tempfile::NamedTempFile;
 
 #[quit::main]
 fn main() {
@@ -123,11 +124,11 @@ fn run() -> Result<()> {
             .arg(Arg::with_name("checkstyle-output-path")
                 .long("checkstyle-output-path")
                 .help("Runs checkstyle if defined")
-                .takes_value(true))
+                .takes_value(true)
+                .requires("locale"))
             .arg(Arg::with_name("locale")
                 .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")
                 .long("locale")
-                .help("Required if checkstyle-output-path is defined")
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("scan-exercise")
@@ -183,11 +184,13 @@ fn run() -> Result<()> {
                 .arg(Arg::with_name("email")
                     .help("The email address of your TMC account")
                     .long("email")
-                    .takes_value(true))
+                    .takes_value(true)
+                    .required_unless("set-access-token"))
                 .arg(Arg::with_name("set-access-token")
                     .help("The OAUTH2 access token that should be used for authentication")
                     .long("set-access-token")
-                    .takes_value(true)))
+                    .takes_value(true)
+                    .required_unless("email")))
 
             .subcommand(SubCommand::with_name("logout")
                 .about("Logout and remove OAuth2 token from config."))
@@ -357,6 +360,36 @@ fn run() -> Result<()> {
                 .arg(Arg::with_name("target")
                     .long("target")
                     .required(true)
+                    .takes_value(true)))
+
+            .subcommand(SubCommand::with_name("reset-exercise")
+                .about("Reset exercise, optionally submitting it before doing so.")
+                .arg(Arg::with_name("exercise-path")
+                    .long("exercise-path")
+                    .required(true)
+                    .takes_value(true))
+                .arg(Arg::with_name("save-old-state")
+                    .long("save-old-state")
+                    .requires("submission-url"))
+                .arg(Arg::with_name("submission-url")
+                    .long("submission-url")
+                    .takes_value(true)))
+                
+            .subcommand(SubCommand::with_name("download-old-submission")
+                .about("Downloads an old submission.")
+                .arg(Arg::with_name("exercise-id")
+                    .long("exercise-id")
+                    .required(true)
+                    .takes_value(true))
+                .arg(Arg::with_name("output-path")
+                    .long("exercise-path")
+                    .required(true)
+                    .takes_value(true))
+                .arg(Arg::with_name("save-old-state")
+                    .long("save-old-state")
+                    .requires("submission-url"))
+                .arg(Arg::with_name("submission-url")
+                    .long("submission-url")
                     .takes_value(true))))
 
         .get_matches();
@@ -447,9 +480,6 @@ fn run() -> Result<()> {
         let checkstyle_output_path = matches.value_of("checkstyle-output-path");
         let checkstyle_output_path: Option<&Path> = checkstyle_output_path.map(Path::new);
 
-        let optional_locale = matches.value_of("locale");
-        let optional_locale = optional_locale.map(into_locale);
-
         let test_result = task_executor::run_tests(exercise_path).with_context(|| {
             format!(
                 "Failed to run tests for exercise at {}",
@@ -460,13 +490,8 @@ fn run() -> Result<()> {
         write_result_to_file_as_json(&test_result, output_path)?;
 
         if let Some(checkstyle_output_path) = checkstyle_output_path {
-            let locale = optional_locale.unwrap_or_else(|| {
-                Error::with_description(
-                    "Locale must be given if checkstyle-output-path is given.",
-                    ErrorKind::ArgumentNotFound,
-                )
-                .exit()
-            })?;
+            let locale = matches.value_of("locale").unwrap();
+            let locale = into_locale(locale)?;
 
             run_checkstyle(exercise_path, checkstyle_output_path, locale)?;
         }
@@ -601,11 +626,7 @@ fn run() -> Result<()> {
                     .context("Failed to authenticate with TMC")?;
                 token
             } else {
-                Error::with_description(
-                    "Either the --email or --set-access-token argument should be given",
-                    ErrorKind::MissingRequiredArgument,
-                )
-                .exit();
+                unreachable!("validation error");
             };
 
             // create token file
@@ -850,6 +871,43 @@ fn run() -> Result<()> {
 
             core.download_model_solution(solution_download_url, target)
                 .context("Failed to download model solution")?;
+        } else if let Some(matches) = matches.subcommand_matches("reset-exercise") {
+            let exercise_path = matches.value_of("exercise-path").unwrap();
+            let exercise_path = Path::new(exercise_path);
+
+            let exercise_id = matches.value_of("exercise-id").unwrap();
+            let exercise_id = into_usize(exercise_id)?;
+
+            let save_old_state = matches.is_present("save-old-state");
+
+            if save_old_state {
+                let submission_url = matches.value_of("submission_url").unwrap();
+                let submission_url = into_url(submission_url)?;
+                core.submit(submission_url, exercise_path, None)?;
+            }
+            core.reset(exercise_id, exercise_path)?;
+        } else if let Some(matches) = matches.subcommand_matches("download-old-submission") {
+            let exercise_id = matches.value_of("exercise-id").unwrap();
+            let exercise_id = into_usize(exercise_id)?;
+
+            let submission_id = matches.value_of("submission-id").unwrap();
+            let submission_id = into_usize(submission_id)?;
+
+            let output_path = matches.value_of("output-path").unwrap();
+            let output_path = Path::new(output_path);
+
+            let save_old_state = matches.is_present("save-old-state");
+
+            if save_old_state {
+                let submission_url = matches.value_of("submission_url").unwrap();
+                let submission_url = into_url(submission_url)?;
+                core.submit(submission_url, output_path, None)?;
+            }
+            core.reset(exercise_id, output_path)?;
+
+            let temp_zip = NamedTempFile::new().context("Failed to create a temporary archive")?;
+            core.download_old_submission(submission_id, temp_zip.path())?;
+            task_executor::extract_project(temp_zip.path(), output_path)?;
         }
     }
     Ok(())

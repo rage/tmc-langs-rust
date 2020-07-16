@@ -13,6 +13,7 @@ use oauth2::{
 use reqwest::{blocking::Client, Url};
 use serde::Serialize;
 use std::collections::HashMap;
+use std::fs;
 use std::io::Write;
 use std::path::Path;
 use std::path::PathBuf;
@@ -400,6 +401,16 @@ impl TmcCore {
         result
     }
 
+    pub fn reset(&self, exercise_id: usize, exercise_path: &Path) -> Result<()> {
+        fs::remove_dir_all(exercise_path)
+            .map_err(|e| CoreError::DirRemove(exercise_path.to_path_buf(), e))?;
+        self.download_or_update_exercises(vec![(exercise_id, exercise_path)])
+    }
+
+    pub fn download_old_submission(&self, submission_id: usize, target: &Path) -> Result<()> {
+        self.download_submission(submission_id, target)
+    }
+
     pub fn wait_for_submission(&self, submission_url: &str) -> Result<SubmissionFinished> {
         loop {
             match self.check_submission(submission_url)? {
@@ -568,7 +579,7 @@ mod test {
     }
 
     #[test]
-    fn get_organizations() {
+    fn gets_organizations() {
         let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/org.json")
             .with_body(
@@ -589,7 +600,7 @@ mod test {
     }
 
     #[test]
-    fn download_or_update_exercises() {
+    fn downloads_or_update_exercises() {
         let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/core/exercises/1234/download")
             .with_body_from_file(Path::new("tests/data/81842.zip"))
@@ -604,7 +615,7 @@ mod test {
     }
 
     #[test]
-    fn get_course_details() {
+    fn gets_course_details() {
         let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/core/courses/1234")
             .with_body(serde_json::json!({
@@ -654,7 +665,7 @@ mod test {
     }
 
     #[test]
-    fn list_courses() {
+    fn lists_courses() {
         let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/core/org/slug/courses")
             .with_body(serde_json::json!([
@@ -680,7 +691,7 @@ mod test {
     }
 
     #[test]
-    fn paste_with_comment() {
+    fn pastes_with_comment() {
         let (core, url) = init();
         let submission_url = Url::parse(&format!("{}/submission", url)).unwrap();
         let _m = mock("POST", "/submission")
@@ -712,17 +723,17 @@ mod test {
     }
 
     #[test]
-    fn run_checkstyle() {
+    fn runs_checkstyle() {
         // todo, just calls task executor
     }
 
     #[test]
-    fn run_tests() {
+    fn runs_tests() {
         // todo, just calls task executor
     }
 
     #[test]
-    fn send_feedback() {
+    fn sends_feedback() {
         let (core, url) = init();
         let feedback_url = Url::parse(&format!("{}/feedback", url)).unwrap();
         let _m = mock("POST", "/feedback")
@@ -764,7 +775,7 @@ mod test {
     }
 
     #[test]
-    fn submit() {
+    fn submits() {
         let (core, url) = init();
         let submission_url = Url::parse(&format!("{}/submission", url)).unwrap();
         let _m = mock("POST", "/submission")
@@ -793,7 +804,7 @@ mod test {
     }
 
     #[test]
-    fn get_exercise_updates() {
+    fn gets_exercise_updates() {
         let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/core/courses/1234")
             .with_body(serde_json::json!({
@@ -897,7 +908,7 @@ mod test {
     }
 
     //#[test]
-    fn _mark_review_as_read() {
+    fn _marks_review_as_read() {
         // todo
         let (core, addr) = init();
         let update_url = Url::parse(&addr).unwrap().join("update-url").unwrap();
@@ -908,7 +919,7 @@ mod test {
     }
 
     #[test]
-    fn get_unread_reviews() {
+    fn gets_unread_reviews() {
         let (core, addr) = init();
         let reviews_url = Url::parse(&format!("{}/reviews", addr)).unwrap();
         let _m = mock("GET", "/reviews")
@@ -939,7 +950,7 @@ mod test {
     }
 
     #[test]
-    fn request_code_review() {
+    fn requests_code_review() {
         let (core, url) = init();
         let submission_url = Url::parse(&format!("{}/submission", url)).unwrap();
         let _m = mock("POST", "/submission")
@@ -971,7 +982,7 @@ mod test {
     }
 
     #[test]
-    fn download_model_solution() {
+    fn downloads_model_solution() {
         let (core, addr) = init();
         let solution_url = Url::parse(&format!("{}/solution", addr)).unwrap();
         let _m = mock("GET", "/solution")
@@ -986,7 +997,7 @@ mod test {
     }
 
     #[test]
-    fn check_submission_processing() {
+    fn checks_submission_processing() {
         let (core, addr) = init();
         let _m = mock("GET", "/submission-url")
             .with_body(
@@ -1009,7 +1020,7 @@ mod test {
     }
 
     #[test]
-    fn check_submission_finished() {
+    fn checks_submission_finished() {
         let (core, addr) = init();
         let _m = mock("GET", "/submission-url").with_body(serde_json::json!({
             "api_version": 7,

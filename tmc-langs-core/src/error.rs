@@ -23,6 +23,8 @@ pub enum CoreError {
     FileOpen(PathBuf, #[source] std::io::Error),
     #[error("Failed to write to file at {0}")]
     FileWrite(PathBuf, #[source] std::io::Error),
+    #[error("Failed to remove directory at {0}")]
+    DirRemove(PathBuf, #[source] std::io::Error),
 
     // network
     #[error("HTTP error {1} for {0}: {2}")]
