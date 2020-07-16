@@ -548,7 +548,7 @@ fn run() -> Result<()> {
     // core
     if let Some(matches) = matches.subcommand_matches("core") {
         let root_url =
-            env::var("TMC_CORE_CLI_ROOT_URL").unwrap_or_else(|_| "https://tmc.mooc.fi".to_string());
+            env::var("TMC_LANGS_ROOT_URL").unwrap_or_else(|_| "https://tmc.mooc.fi".to_string());
         let mut core = TmcCore::new_in_config(root_url)
             .with_context(|| format!("Failed to create TmcCore"))?;
         // set progress report to print the updates to stdout as JSON
@@ -558,7 +558,7 @@ fn run() -> Result<()> {
         let client_name = matches.value_of("client-name").unwrap();
         let tmc_dir = format!("tmc-{}", client_name);
 
-        let config_dir = match env::var("TMC_LANGS_CLI_CONFIG_DIR") {
+        let config_dir = match env::var("TMC_LANGS_CONFIG_DIR") {
             Ok(v) => PathBuf::from(v),
             Err(_) => dirs::config_dir().context("Failed to find config directory")?,
         };
