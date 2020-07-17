@@ -407,6 +407,14 @@
 <span id="407">407</span>
 <span id="408">408</span>
 <span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Java maven plugin</span>
 
@@ -427,7 +435,7 @@
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
     <span class="ident">domain</span>::{<span class="ident">ExerciseDesc</span>, <span class="ident">RunResult</span>},
     <span class="ident">plugin</span>::{<span class="ident">Language</span>, <span class="ident">LanguagePlugin</span>, <span class="ident">ValidationResult</span>},
-    <span class="ident">Error</span>,
+    <span class="ident">TmcError</span>,
 };
 
 <span class="kw">const</span> <span class="ident">MVN_ARCHIVE</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="macro">include_bytes</span><span class="macro">!</span>(<span class="string">&quot;../apache-maven-3.6.3-bin.tar.gz&quot;</span>);
@@ -475,7 +483,7 @@
             <span class="kw">let</span> <span class="ident">tar</span> <span class="op">=</span> <span class="ident">GzDecoder</span>::<span class="ident">new</span>(<span class="ident">Cursor</span>::<span class="ident">new</span>(<span class="ident">MVN_ARCHIVE</span>));
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tar</span> <span class="op">=</span> <span class="ident">Archive</span>::<span class="ident">new</span>(<span class="ident">tar</span>);
             <span class="ident">tar</span>.<span class="ident">unpack</span>(<span class="kw-2">&amp;</span><span class="ident">tmc_path</span>)
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JavaError</span>::<span class="ident">MvnUnpack</span>(<span class="ident">tmc_path</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JavaError</span>::<span class="ident">JarWrite</span>(<span class="ident">tmc_path</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(<span class="ident">mvn_exec_path</span>.<span class="ident">as_os_str</span>().<span class="ident">to_os_string</span>())
     }
@@ -489,9 +497,9 @@
         <span class="self">self</span>.<span class="ident">run_checkstyle</span>(<span class="kw-2">&amp;</span><span class="ident">locale</span>, <span class="ident">path</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">scan_exercise</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">exercise_name</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">scan_exercise</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">exercise_name</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="self">Self</span>::<span class="ident">is_exercise_type_correct</span>(<span class="ident">path</span>) {
-            <span class="kw">return</span> <span class="ident">JavaError</span>::<span class="ident">InvalidExercise</span>.<span class="ident">into</span>();
+            <span class="kw">return</span> <span class="ident">JavaError</span>::<span class="ident">InvalidExercise</span>(<span class="ident">path</span>.<span class="ident">to_path_buf</span>()).<span class="ident">into</span>();
         }
 
         <span class="kw">let</span> <span class="ident">compile_result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">build</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
@@ -502,7 +510,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">project_root_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
         <span class="ident">_timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RunResult</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RunResult</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">run_java_tests</span>(<span class="ident">project_root_path</span>)<span class="question-mark">?</span>)
     }
 
@@ -514,21 +522,26 @@
         <span class="ident">MavenStudentFilePolicy</span>::<span class="ident">new</span>(<span class="ident">project_path</span>.<span class="ident">to_path_buf</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">clean</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">clean</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Cleaning maven project at {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>());
 
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Command</span>::<span class="ident">new</span>(<span class="string">&quot;mvn&quot;</span>)
             .<span class="ident">current_dir</span>(<span class="ident">path</span>)
             .<span class="ident">arg</span>(<span class="string">&quot;clean&quot;</span>)
-            .<span class="ident">output</span>()<span class="question-mark">?</span>;
+            .<span class="ident">output</span>()
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JavaError</span>::<span class="ident">FailedToRun</span>(<span class="string">&quot;mvn&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
         <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;stdout: {}&quot;</span>, <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stdout</span>));
         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stderr: {}&quot;</span>, <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stderr</span>));
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">output</span>.<span class="ident">status</span>.<span class="ident">success</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(
-                <span class="ident">JavaError</span>::<span class="ident">FailedCommand</span>(<span class="string">&quot;mvn&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">output</span>.<span class="ident">stdout</span>, <span class="ident">output</span>.<span class="ident">stderr</span>).<span class="ident">into</span>(),
-            );
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JavaError</span>::<span class="ident">FailedCommand</span>(
+                <span class="string">&quot;mvn&quot;</span>.<span class="ident">to_string</span>(),
+                <span class="ident">output</span>.<span class="ident">status</span>,
+                <span class="ident">output</span>.<span class="ident">stdout</span>,
+                <span class="ident">output</span>.<span class="ident">stderr</span>,
+            )
+            .<span class="ident">into</span>());
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -565,13 +578,14 @@
         <span class="kw">if</span> <span class="op">!</span><span class="ident">output</span>.<span class="ident">status</span>.<span class="ident">success</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JavaError</span>::<span class="ident">FailedCommand</span>(
                 <span class="ident">mvn_path</span>.<span class="ident">as_os_str</span>().<span class="ident">to_string_lossy</span>().<span class="ident">to_string</span>(),
+                <span class="ident">output</span>.<span class="ident">status</span>,
                 <span class="ident">output</span>.<span class="ident">stdout</span>,
                 <span class="ident">output</span>.<span class="ident">stderr</span>,
             ));
         }
 
         <span class="kw">let</span> <span class="ident">class_path</span> <span class="op">=</span> <span class="ident">fs</span>::<span class="ident">read_to_string</span>(<span class="kw-2">&amp;</span><span class="ident">class_path_file</span>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JavaError</span>::<span class="ident">File</span>(<span class="ident">class_path_file</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JavaError</span>::<span class="ident">FileRead</span>(<span class="ident">class_path_file</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">class_path</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JavaError</span>::<span class="ident">NoMvnClassPath</span>);
         }
@@ -607,6 +621,7 @@
         <span class="kw">if</span> <span class="op">!</span><span class="ident">output</span>.<span class="ident">status</span>.<span class="ident">success</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JavaError</span>::<span class="ident">FailedCommand</span>(
                 <span class="ident">mvn_path</span>.<span class="ident">as_os_str</span>().<span class="ident">to_string_lossy</span>().<span class="ident">to_string</span>(),
+                <span class="ident">output</span>.<span class="ident">status</span>,
                 <span class="ident">output</span>.<span class="ident">stdout</span>,
                 <span class="ident">output</span>.<span class="ident">stderr</span>,
             ));
@@ -641,6 +656,7 @@
         <span class="kw">if</span> <span class="op">!</span><span class="ident">output</span>.<span class="ident">status</span>.<span class="ident">success</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JavaError</span>::<span class="ident">FailedCommand</span>(
                 <span class="ident">mvn_path</span>.<span class="ident">as_os_str</span>().<span class="ident">to_string_lossy</span>().<span class="ident">to_string</span>(),
+                <span class="ident">output</span>.<span class="ident">status</span>,
                 <span class="ident">output</span>.<span class="ident">stdout</span>,
                 <span class="ident">output</span>.<span class="ident">stderr</span>,
             ));

@@ -62,6 +62,12 @@
 <span id="62">62</span>
 <span id="63">63</span>
 <span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Implementation of LanguagePlugin for Python 3.</span>
 
@@ -83,11 +89,17 @@
     <span class="ident">Unix</span>,
     <span class="ident">Windows</span>,
     <span class="ident">WindowsConda</span> { <span class="ident">conda_path</span>: <span class="ident">String</span> },
+    <span class="ident">Custom</span> { <span class="ident">python_exec</span>: <span class="ident">String</span> },
 }
 
 <span class="macro">lazy_static</span><span class="macro">!</span> {
     <span class="comment">// the python command is platform-dependent</span>
     <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">LOCAL_PY</span>: <span class="ident">LocalPy</span> <span class="op">=</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">python_exec</span>) <span class="op">=</span> <span class="ident">env</span>::<span class="ident">var</span>(<span class="string">&quot;TMC_LANGS_PYTHON_EXEC&quot;</span>) {
+            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;using Python from environment variable TMC_LANGS_PYTHON_EXEC={}&quot;</span>, <span class="ident">python_exec</span>);
+            <span class="kw">return</span> <span class="ident">LocalPy</span>::<span class="ident">Custom</span> { <span class="ident">python_exec</span> };
+        }
+
         <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">windows</span>) {
             <span class="comment">// Check for Conda</span>
             <span class="kw">let</span> <span class="ident">conda</span> <span class="op">=</span> <span class="ident">env</span>::<span class="ident">var</span>(<span class="string">&quot;CONDA_PYTHON_EXE&quot;</span>);

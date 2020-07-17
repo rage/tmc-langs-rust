@@ -73,6 +73,12 @@
 <span id="73">73</span>
 <span id="74">74</span>
 <span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains functionality for dealing with projects.</span>
 
@@ -82,7 +88,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">plugin</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">policy</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">error</span>::<span class="ident">Error</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">error</span>::<span class="ident">TmcError</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">plugin</span>::<span class="ident">LanguagePlugin</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">policy</span>::<span class="ident">StudentFilePolicy</span>;
 
@@ -91,7 +97,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">thread</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>};
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">TmcError</span><span class="op">&gt;</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CommandWithTimeout</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw">pub</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Command</span>);
 
@@ -104,21 +110,24 @@
         <span class="kw">match</span> <span class="ident">timeout</span> {
             <span class="prelude-val">Some</span>(<span class="ident">timeout</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// spawn process and init timer</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">child</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">spawn</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">Error</span>::<span class="ident">CommandSpawn</span>(<span class="ident">name</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">child</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="number">0</span>
+                    .<span class="ident">spawn</span>()
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">TmcError</span>::<span class="ident">CommandSpawn</span>(<span class="ident">name</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">timer</span> <span class="op">=</span> <span class="ident">Instant</span>::<span class="ident">now</span>();
                 <span class="kw">loop</span> {
-                    <span class="kw">match</span> <span class="ident">child</span>.<span class="ident">try_wait</span>()<span class="question-mark">?</span> {
+                    <span class="kw">match</span> <span class="ident">child</span>.<span class="ident">try_wait</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">TmcError</span>::<span class="ident">Process</span>(<span class="ident">e</span>))<span class="question-mark">?</span> {
                         <span class="prelude-val">Some</span>(<span class="ident">_exit_status</span>) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="comment">// done, get output</span>
                             <span class="kw">return</span> <span class="ident">child</span>
                                 .<span class="ident">wait_with_output</span>()
-                                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">Error</span>::<span class="ident">CommandFailed</span>(<span class="ident">name</span>, <span class="ident">e</span>));
+                                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">TmcError</span>::<span class="ident">CommandFailed</span>(<span class="ident">name</span>, <span class="ident">e</span>));
                         }
                         <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="comment">// still running, check timeout</span>
                             <span class="kw">if</span> <span class="ident">timer</span>.<span class="ident">elapsed</span>() <span class="op">&gt;</span> <span class="ident">timeout</span> {
-                                <span class="ident">child</span>.<span class="ident">kill</span>()<span class="question-mark">?</span>;
-                                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">TestTimeout</span>);
+                                <span class="ident">child</span>.<span class="ident">kill</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">TmcError</span>::<span class="ident">Process</span>(<span class="ident">e</span>))<span class="question-mark">?</span>;
+                                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">TmcError</span>::<span class="ident">TestTimeout</span>(<span class="ident">timer</span>.<span class="ident">elapsed</span>()));
                             }
 
                             <span class="comment">// TODO: gradually increase sleep duration?</span>
@@ -128,7 +137,10 @@
                 }
             }
             <span class="comment">// no timeout, block forever</span>
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">output</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">Error</span>::<span class="ident">CommandFailed</span>(<span class="ident">name</span>, <span class="ident">e</span>)),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
+                .<span class="number">0</span>
+                .<span class="ident">output</span>()
+                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">TmcError</span>::<span class="ident">CommandFailed</span>(<span class="ident">name</span>, <span class="ident">e</span>)),
         }
     }
 }
@@ -143,7 +155,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">command</span>.<span class="ident">arg</span>(<span class="string">&quot;1&quot;</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">CommandWithTimeout</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">command</span>);
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">out</span>.<span class="ident">wait_with_timeout</span>(<span class="string">&quot;sleep&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">Duration</span>::<span class="ident">from_millis</span>(<span class="number">100</span>)));
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">TestTimeout</span>) <span class="op">=</span> <span class="ident">res</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">TmcError</span>::<span class="ident">TestTimeout</span>(<span class="kw">_</span>)) <span class="op">=</span> <span class="ident">res</span> {
         } <span class="kw">else</span> {
             <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;unexpected result: {:?}&quot;</span>, <span class="ident">res</span>);
         }

@@ -1082,6 +1082,27 @@
 <span id="1082">1082</span>
 <span id="1083">1083</span>
 <span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">mod</span> <span class="ident">api</span>;
 
@@ -1098,6 +1119,7 @@
 <span class="kw">use</span> <span class="ident">reqwest</span>::{<span class="ident">blocking</span>::<span class="ident">Client</span>, <span class="ident">Url</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Serialize</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
@@ -1300,11 +1322,22 @@
     <span class="doccomment">/// ]);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">download_or_update_exercises</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">exercises</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="ident">Path</span>)<span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">step</span> <span class="op">=</span> <span class="number">1.0</span> <span class="op">/</span> (<span class="number">2</span> <span class="op">*</span> <span class="ident">exercises</span>.<span class="ident">len</span>()) <span class="kw">as</span> <span class="ident">f64</span>;
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">progress</span> <span class="op">=</span> <span class="number">0.0</span>;
         <span class="kw">for</span> (<span class="ident">exercise_id</span>, <span class="ident">target</span>) <span class="kw">in</span> <span class="ident">exercises</span> {
+            <span class="comment">// TODO: do in memory without zip_file?</span>
             <span class="kw">let</span> <span class="ident">zip_file</span> <span class="op">=</span> <span class="ident">NamedTempFile</span>::<span class="ident">new</span>().<span class="ident">map_err</span>(<span class="ident">CoreError</span>::<span class="ident">TempFile</span>)<span class="question-mark">?</span>;
+
+            <span class="self">self</span>.<span class="ident">report_progress</span>(<span class="string">&quot;Downloading exercise...&quot;</span>, <span class="ident">progress</span>);
             <span class="self">self</span>.<span class="ident">download_exercise</span>(<span class="ident">exercise_id</span>, <span class="ident">zip_file</span>.<span class="ident">path</span>())<span class="question-mark">?</span>;
+            <span class="ident">progress</span> <span class="op">+</span><span class="op">=</span> <span class="ident">step</span>;
+
+            <span class="self">self</span>.<span class="ident">report_progress</span>(<span class="string">&quot;Extracting exercise...&quot;</span>, <span class="ident">progress</span>);
             <span class="ident">task_executor</span>::<span class="ident">extract_project</span>(<span class="ident">zip_file</span>.<span class="ident">path</span>(), <span class="ident">target</span>)<span class="question-mark">?</span>;
+            <span class="ident">progress</span> <span class="op">+</span><span class="op">=</span> <span class="ident">step</span>;
         }
+        <span class="self">self</span>.<span class="ident">report_complete</span>(<span class="string">&quot;Finished downloading and extracting exercises.&quot;</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1369,17 +1402,17 @@
     <span class="doccomment">/// let course_details = core.get_course_details(600).unwrap();</span>
     <span class="doccomment">/// let submission_url = &amp;course_details.exercises[0].return_url;</span>
     <span class="doccomment">/// let submission_url = Url::parse(&amp;submission_url).unwrap();</span>
-    <span class="doccomment">/// let new_submission = core.paste_with_comment(</span>
+    <span class="doccomment">/// let new_submission = core.paste(</span>
     <span class="doccomment">///     submission_url,</span>
     <span class="doccomment">///     Path::new(&quot;./exercises/python/123&quot;),</span>
-    <span class="doccomment">///     &quot;my python solution&quot;.to_string(),</span>
+    <span class="doccomment">///     Some(&quot;my python solution&quot;.to_string()),</span>
     <span class="doccomment">///     Language::Eng).unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">paste_with_comment</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">paste</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">submission_url</span>: <span class="ident">Url</span>,
         <span class="ident">submission_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-        <span class="ident">paste_message</span>: <span class="ident">String</span>,
+        <span class="ident">paste_message</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
         <span class="ident">locale</span>: <span class="ident">Language</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NewSubmission</span><span class="op">&gt;</span> {
         <span class="comment">// compress</span>
@@ -1474,12 +1507,21 @@
         <span class="ident">result</span>
     }
 
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">exercise_id</span>: <span class="ident">usize</span>, <span class="ident">exercise_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="ident">fs</span>::<span class="ident">remove_dir_all</span>(<span class="ident">exercise_path</span>)
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">DirRemove</span>(<span class="ident">exercise_path</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">download_or_update_exercises</span>(<span class="macro">vec</span><span class="macro">!</span>[(<span class="ident">exercise_id</span>, <span class="ident">exercise_path</span>)])
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">download_old_submission</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">submission_id</span>: <span class="ident">usize</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">download_submission</span>(<span class="ident">submission_id</span>, <span class="ident">target</span>)
+    }
+
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wait_for_submission</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">submission_url</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SubmissionFinished</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">check_submission</span>(<span class="ident">submission_url</span>)<span class="question-mark">?</span> {
                 <span class="ident">SubmissionProcessingStatus</span>::<span class="ident">Finished</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><span class="ident">f</span>),
                 <span class="ident">SubmissionProcessingStatus</span>::<span class="ident">Processing</span>(<span class="ident">_p</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="comment">// todo: report status</span>
                     <span class="ident">thread</span>::<span class="ident">sleep</span>(<span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="number">1</span>));
                 }
             }
@@ -1643,7 +1685,7 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">get_organizations</span>() {
+    <span class="kw">fn</span> <span class="ident">gets_organizations</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">_addr</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/org.json&quot;</span>)
             .<span class="ident">with_body</span>(
@@ -1664,7 +1706,7 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">download_or_update_exercises</span>() {
+    <span class="kw">fn</span> <span class="ident">downloads_or_update_exercises</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">_addr</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/exercises/1234/download&quot;</span>)
             .<span class="ident">with_body_from_file</span>(<span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;tests/data/81842.zip&quot;</span>))
@@ -1679,7 +1721,7 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">get_course_details</span>() {
+    <span class="kw">fn</span> <span class="ident">gets_course_details</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">_addr</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/courses/1234&quot;</span>)
             .<span class="ident">with_body</span>(<span class="ident">serde_json</span>::<span class="macro">json</span><span class="macro">!</span>({
@@ -1729,7 +1771,7 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">list_courses</span>() {
+    <span class="kw">fn</span> <span class="ident">lists_courses</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">_addr</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/org/slug/courses&quot;</span>)
             .<span class="ident">with_body</span>(<span class="ident">serde_json</span>::<span class="macro">json</span><span class="macro">!</span>([
@@ -1755,7 +1797,7 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">paste_with_comment</span>() {
+    <span class="kw">fn</span> <span class="ident">pastes_with_comment</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">url</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">Url</span>::<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}/submission&quot;</span>, <span class="ident">url</span>)).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/submission&quot;</span>)
@@ -1773,10 +1815,10 @@
             .<span class="ident">create</span>();
 
         <span class="kw">let</span> <span class="ident">new_submission</span> <span class="op">=</span> <span class="ident">core</span>
-            .<span class="ident">paste_with_comment</span>(
+            .<span class="ident">paste</span>(
                 <span class="ident">submission_url</span>,
                 <span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;tests/data/exercise&quot;</span>),
-                <span class="string">&quot;abcdefg&quot;</span>.<span class="ident">to_string</span>(),
+                <span class="prelude-val">Some</span>(<span class="string">&quot;abcdefg&quot;</span>.<span class="ident">to_string</span>()),
                 <span class="ident">Language</span>::<span class="ident">from_639_3</span>(<span class="string">&quot;eng&quot;</span>).<span class="ident">unwrap</span>(),
             )
             .<span class="ident">unwrap</span>();
@@ -1787,17 +1829,17 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">run_checkstyle</span>() {
+    <span class="kw">fn</span> <span class="ident">runs_checkstyle</span>() {
         <span class="comment">// todo, just calls task executor</span>
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">run_tests</span>() {
+    <span class="kw">fn</span> <span class="ident">runs_tests</span>() {
         <span class="comment">// todo, just calls task executor</span>
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">send_feedback</span>() {
+    <span class="kw">fn</span> <span class="ident">sends_feedback</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">url</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">feedback_url</span> <span class="op">=</span> <span class="ident">Url</span>::<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}/feedback&quot;</span>, <span class="ident">url</span>)).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/feedback&quot;</span>)
@@ -1839,7 +1881,7 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">submit</span>() {
+    <span class="kw">fn</span> <span class="ident">submits</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">url</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">Url</span>::<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}/submission&quot;</span>, <span class="ident">url</span>)).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/submission&quot;</span>)
@@ -1868,7 +1910,7 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">get_exercise_updates</span>() {
+    <span class="kw">fn</span> <span class="ident">gets_exercise_updates</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">_addr</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/courses/1234&quot;</span>)
             .<span class="ident">with_body</span>(<span class="ident">serde_json</span>::<span class="macro">json</span><span class="macro">!</span>({
@@ -1972,7 +2014,7 @@
     }
 
     <span class="comment">//#[test]</span>
-    <span class="kw">fn</span> <span class="ident">_mark_review_as_read</span>() {
+    <span class="kw">fn</span> <span class="ident">_marks_review_as_read</span>() {
         <span class="comment">// todo</span>
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">addr</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">update_url</span> <span class="op">=</span> <span class="ident">Url</span>::<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="ident">addr</span>).<span class="ident">unwrap</span>().<span class="ident">join</span>(<span class="string">&quot;update-url&quot;</span>).<span class="ident">unwrap</span>();
@@ -1983,7 +2025,7 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">get_unread_reviews</span>() {
+    <span class="kw">fn</span> <span class="ident">gets_unread_reviews</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">addr</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">reviews_url</span> <span class="op">=</span> <span class="ident">Url</span>::<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}/reviews&quot;</span>, <span class="ident">addr</span>)).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/reviews&quot;</span>)
@@ -2014,7 +2056,7 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">request_code_review</span>() {
+    <span class="kw">fn</span> <span class="ident">requests_code_review</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">url</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">Url</span>::<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}/submission&quot;</span>, <span class="ident">url</span>)).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/submission&quot;</span>)
@@ -2046,7 +2088,7 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">download_model_solution</span>() {
+    <span class="kw">fn</span> <span class="ident">downloads_model_solution</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">addr</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">solution_url</span> <span class="op">=</span> <span class="ident">Url</span>::<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}/solution&quot;</span>, <span class="ident">addr</span>)).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/solution&quot;</span>)
@@ -2061,7 +2103,7 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">check_submission_processing</span>() {
+    <span class="kw">fn</span> <span class="ident">checks_submission_processing</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">addr</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/submission-url&quot;</span>)
             .<span class="ident">with_body</span>(
@@ -2084,7 +2126,7 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">check_submission_finished</span>() {
+    <span class="kw">fn</span> <span class="ident">checks_submission_finished</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">addr</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/submission-url&quot;</span>).<span class="ident">with_body</span>(<span class="ident">serde_json</span>::<span class="macro">json</span><span class="macro">!</span>({
             <span class="string">&quot;api_version&quot;</span>: <span class="number">7</span>,
