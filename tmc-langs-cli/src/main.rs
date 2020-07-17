@@ -400,7 +400,7 @@ fn create_app() -> App<'static, 'static> {
                     .takes_value(true))
                 .arg(Arg::with_name("output-path")
                     .help("Path to where the submission should be downloaded.")
-                    .long("exercise-path")
+                    .long("output-path")
                     .required(true)
                     .takes_value(true))
                 .arg(Arg::with_name("save-old-state")
