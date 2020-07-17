@@ -33,6 +33,8 @@ impl CSharpPlugin {
 
     /// Extracts the included TMC_CSHARP_RUNNER to the given path
     fn extract_runner(target: &Path) -> Result<(), CSharpError> {
+        log::debug!("extracting C# runner to {}", target.display());
+
         let mut zip =
             ZipArchive::new(Cursor::new(TMC_CSHARP_RUNNER)).map_err(|e| CSharpError::Zip(e))?;
         for i in 0..zip.len() {
@@ -74,11 +76,13 @@ impl CSharpPlugin {
     /// Returns the path to the TMC C# runner in the cache. If TMC_CSHARP_BOOTSTRAP_PATH, it is returned instead.
     fn get_bootstrap_path() -> Result<PathBuf, CSharpError> {
         if let Ok(var) = env::var("TMC_CSHARP_BOOTSTRAP_PATH") {
+            log::debug!("using bootstrap path TMC_CSHARP_BOOTSTRAP_PATH={}", var);
             Ok(PathBuf::from(var))
         } else {
             let runner_path = Self::get_runner_dir()?;
             let bootstrap = runner_path.join("TestMyCode.CSharp.Bootstrap.dll");
             if bootstrap.exists() {
+                log::debug!("found boostrap dll at {}", bootstrap.display());
                 Ok(bootstrap)
             } else {
                 Err(CSharpError::MissingBootstrapDll(bootstrap).into())
@@ -233,6 +237,10 @@ impl LanguagePlugin for CSharpPlugin {
 mod test {
     use super::*;
     use tempfile::TempDir;
+
+    fn init() {
+        let _ = env_logger::builder().is_test(true).try_init();
+    }
 
     fn copy_test_dir(path: &str) -> TempDir {
         let path = Path::new(path);
