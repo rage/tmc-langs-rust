@@ -5,6 +5,7 @@ use super::{
 };
 use log::info;
 use std::path::{Path, PathBuf};
+use tmc_langs_csharp::CSharpPlugin;
 use tmc_langs_framework::{
     io::{submission_processing, zip},
     plugin::{Language, LanguagePlugin},
@@ -122,6 +123,7 @@ pub fn clean(path: &Path) -> Result<(), TmcError> {
 }
 
 enum Plugin {
+    CSharp(CSharpPlugin),
     Make(MakePlugin),
     Maven(MavenPlugin),
     NoTests(NoTestsPlugin),
@@ -134,6 +136,7 @@ enum Plugin {
 impl Plugin {
     fn clean(&self, path: &Path) -> Result<(), TmcError> {
         match self {
+            Self::CSharp(plugin) => plugin.clean(path),
             Self::Make(plugin) => plugin.clean(path),
             Self::Maven(plugin) => plugin.clean(path),
             Self::NoTests(plugin) => plugin.clean(path),
@@ -148,6 +151,7 @@ impl Plugin {
         path: &Path,
     ) -> Result<ExercisePackagingConfiguration, TmcError> {
         match self {
+            Self::CSharp(plugin) => plugin.get_exercise_packaging_configuration(path),
             Self::Make(plugin) => plugin.get_exercise_packaging_configuration(path),
             Self::Maven(plugin) => plugin.get_exercise_packaging_configuration(path),
             Self::NoTests(plugin) => plugin.get_exercise_packaging_configuration(path),
@@ -159,6 +163,7 @@ impl Plugin {
 
     fn compress_project(&self, path: &Path) -> Result<Vec<u8>, TmcError> {
         match self {
+            Self::CSharp(plugin) => plugin.compress_project(path),
             Self::Make(plugin) => plugin.compress_project(path),
             Self::Maven(plugin) => plugin.compress_project(path),
             Self::NoTests(plugin) => plugin.compress_project(path),
@@ -174,6 +179,7 @@ impl Plugin {
         target_location: &Path,
     ) -> Result<(), TmcError> {
         match self {
+            Self::CSharp(plugin) => plugin.extract_project(cmpressed_project, target_location),
             Self::Make(plugin) => plugin.extract_project(cmpressed_project, target_location),
             Self::Maven(plugin) => plugin.extract_project(cmpressed_project, target_location),
             Self::NoTests(plugin) => plugin.extract_project(cmpressed_project, target_location),
@@ -185,6 +191,7 @@ impl Plugin {
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
         match self {
+            Self::CSharp(plugin) => plugin.scan_exercise(path, exercise_name),
             Self::Make(plugin) => plugin.scan_exercise(path, exercise_name),
             Self::Maven(plugin) => plugin.scan_exercise(path, exercise_name),
             Self::NoTests(plugin) => plugin.scan_exercise(path, exercise_name),
@@ -196,6 +203,7 @@ impl Plugin {
 
     fn run_tests(&self, path: &Path) -> Result<RunResult, TmcError> {
         match self {
+            Self::CSharp(plugin) => plugin.run_tests(path),
             Self::Make(plugin) => plugin.run_tests(path),
             Self::Maven(plugin) => plugin.run_tests(path),
             Self::NoTests(plugin) => plugin.run_tests(path),
@@ -207,6 +215,7 @@ impl Plugin {
 
     fn check_code_style(&self, path: &Path, locale: Language) -> Option<ValidationResult> {
         match self {
+            Self::CSharp(plugin) => plugin.check_code_style(path, locale),
             Self::Make(plugin) => plugin.check_code_style(path, locale),
             Self::Maven(plugin) => plugin.check_code_style(path, locale),
             Self::NoTests(plugin) => plugin.check_code_style(path, locale),
@@ -223,6 +232,7 @@ impl Plugin {
         dest_path: &Path,
     ) -> Result<(), TmcError> {
         match self {
+            Self::CSharp(plugin) => plugin.prepare_stub(exercise_path, repo_path, dest_path),
             Self::Make(plugin) => plugin.prepare_stub(exercise_path, repo_path, dest_path),
             Self::Maven(plugin) => plugin.prepare_stub(exercise_path, repo_path, dest_path),
             Self::NoTests(plugin) => plugin.prepare_stub(exercise_path, repo_path, dest_path),
@@ -235,7 +245,11 @@ impl Plugin {
 
 // Get language plugin for the given path.
 fn get_language_plugin(path: &Path) -> Result<Plugin, TmcError> {
-    if MakePlugin::is_exercise_type_correct(path) {
+    if CSharpPlugin::is_exercise_type_correct(path) {
+        let csharp = CSharpPlugin::new();
+        info!("Detected project as {}", CSharpPlugin::PLUGIN_NAME);
+        Ok(Plugin::CSharp(csharp))
+    } else if MakePlugin::is_exercise_type_correct(path) {
         let make = MakePlugin::new();
         info!("Detected project as {}", MakePlugin::PLUGIN_NAME);
         Ok(Plugin::Make(make))
