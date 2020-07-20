@@ -236,13 +236,20 @@ impl LanguagePlugin for CSharpPlugin {
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::sync::Once;
     use tempfile::TempDir;
+
+    static INIT_RUNNER: Once = Once::new();
 
     fn init() {
         let _ = env_logger::builder().is_test(true).try_init();
+        INIT_RUNNER.call_once(|| {
+            let _ = CSharpPlugin::get_runner_dir().unwrap();
+        });
     }
 
     fn copy_test_dir(path: &str) -> TempDir {
+        init();
         let path = Path::new(path);
 
         let temp = tempfile::tempdir().unwrap();
@@ -265,6 +272,7 @@ mod test {
 
     #[test]
     fn exercise_type_is_correct() {
+        init();
         let temp = copy_test_dir("tests/data/PassingProject");
         let is = CSharpPlugin::is_exercise_type_correct(temp.path());
         assert!(is);
@@ -272,6 +280,7 @@ mod test {
 
     #[test]
     fn exercise_type_is_incorrect() {
+        init();
         let temp = copy_test_dir("tests/data");
         let is = CSharpPlugin::is_exercise_type_correct(temp.path());
         assert!(!is);
@@ -279,6 +288,7 @@ mod test {
 
     #[test]
     fn scans_exercise() {
+        init();
         let plugin = CSharpPlugin::new();
         let temp = copy_test_dir("tests/data/PassingProject");
         let scan = plugin
@@ -290,6 +300,7 @@ mod test {
 
     #[test]
     fn runs_tests_passing() {
+        init();
         let plugin = CSharpPlugin::new();
         let temp = copy_test_dir("tests/data/PassingProject");
         let res = plugin.run_tests(temp.path()).unwrap();
@@ -303,6 +314,7 @@ mod test {
 
     #[test]
     fn runs_tests_failing() {
+        init();
         let plugin = CSharpPlugin::new();
         let temp = copy_test_dir("tests/data/FailingProject");
         let res = plugin.run_tests(temp.path()).unwrap();
@@ -318,6 +330,7 @@ mod test {
 
     #[test]
     fn runs_tests_compile_err() {
+        init();
         let plugin = CSharpPlugin::new();
         let temp = copy_test_dir("tests/data/NonCompilingProject");
         let res = plugin.run_tests(temp.path()).unwrap();
@@ -329,6 +342,7 @@ mod test {
 
     #[test]
     fn cleans() {
+        init();
         let plugin = CSharpPlugin::new();
         let temp = copy_test_dir("tests/data/PassingProject");
         let bin_path = temp.path().join("src").join("PassingSample").join("bin");
