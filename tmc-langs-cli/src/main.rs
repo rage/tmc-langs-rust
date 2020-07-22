@@ -1,8 +1,12 @@
 //! CLI client for TMC
 
 mod app;
+mod output;
+
+use output::{Output, OutputResult, Status};
 
 use anyhow::{Context, Result};
+use clap::{Error, ErrorKind};
 use serde::Serialize;
 use std::collections::HashMap;
 use std::env;
@@ -19,36 +23,6 @@ use tmc_langs_framework::io::submission_processing;
 use tmc_langs_util::{task_executor, Language};
 use url::Url;
 use walkdir::WalkDir;
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "kebab-case")]
-enum Status {
-    Successful,
-    Crashed,
-    InProgress,
-}
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "kebab-case")]
-enum OutputResult {
-    LoggedIn,
-    LoggedOut,
-    Error,
-    Running,
-    SentData,
-    ReceivedData,
-    ExecutedCommand,
-}
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "kebab-case")]
-struct Output<T: Serialize> {
-    status: Status,
-    message: Option<String>,
-    result: OutputResult,
-    percent_done: f64,
-    data: Option<T>,
-}
 
 #[quit::main]
 fn main() {
@@ -409,7 +383,7 @@ fn run() -> Result<()> {
                 let output = Output::<()> {
                     status: Status::Successful,
                     message: None,
-                    result: OutputResult::LoggedOut,
+                    result: OutputResult::NotLoggedIn,
                     percent_done: 1.0,
                     data: None,
                 };

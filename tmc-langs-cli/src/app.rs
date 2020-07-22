@@ -1,3 +1,5 @@
+//! Create clap app
+
 use clap::{App, Arg, SubCommand};
 
 pub fn create_app() -> App<'static, 'static> {
