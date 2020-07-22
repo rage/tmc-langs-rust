@@ -5,6 +5,7 @@ use clap::{App, Arg, Error, ErrorKind, SubCommand};
 use serde::Serialize;
 use std::collections::HashMap;
 use std::env;
+use std::fmt::Debug;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -17,6 +18,36 @@ use tmc_langs_framework::io::submission_processing;
 use tmc_langs_util::{task_executor, Language};
 use url::Url;
 use walkdir::WalkDir;
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "kebab-case")]
+enum Status {
+    Successful,
+    Crashed,
+    InProgress,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "kebab-case")]
+enum OutputResult {
+    LoggedIn,
+    LoggedOut,
+    Error,
+    Running,
+    SentData,
+    ReceivedData,
+    ExecutedCommand,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "kebab-case")]
+struct Output<T: Serialize> {
+    status: Status,
+    message: Option<String>,
+    result: OutputResult,
+    percent_done: f64,
+    data: Option<T>,
+}
 
 fn create_app() -> App<'static, 'static> {
     App::new(env!("CARGO_PKG_NAME"))
@@ -424,23 +455,34 @@ fn main() {
             causes.push(format!("Caused by: {}", source.to_string()));
             next_source = source.source();
         }
-        let error = serde_json::json! {
-            {
-                "error": {
-                    "message": e.to_string(),
-                    "causes": causes,
-                }
-            }
+        let error_output = Output {
+            status: Status::Crashed,
+            message: Some(e.to_string()),
+            result: OutputResult::Error,
+            data: Some(causes),
+            percent_done: 1.0,
         };
-        println!("{:#}", error);
+        if let Err(err) = print_output(&error_output) {
+            // the above function shouldn't fail ever, but in theory some data could
+            // have a flawed Serialize implementation, so better safe than sorry
+            let output = Output::<()> {
+                status: Status::Crashed,
+                message: Some(err.to_string()),
+                result: OutputResult::Error,
+                percent_done: 1.0,
+                data: None,
+            };
+            print_output(&output).expect("this should never fail");
+        }
         quit::with_code(1);
     }
 }
 
 fn run() -> Result<()> {
-    let matches = create_app().get_matches();
+    let matches = create_app().get_matches_safe()?;
 
     // non-core
+    // todo: print (generic?) success messages
     if let Some(matches) = matches.subcommand_matches("checkstyle") {
         let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
@@ -616,13 +658,23 @@ fn run() -> Result<()> {
     }
 
     // core
+    // core commands should print their results using print_output
     if let Some(matches) = matches.subcommand_matches("core") {
         let root_url =
             env::var("TMC_LANGS_ROOT_URL").unwrap_or_else(|_| "https://tmc.mooc.fi".to_string());
-        let mut core = TmcCore::new_in_config(root_url)
-            .with_context(|| format!("Failed to create TmcCore"))?;
+        let mut core = TmcCore::new_in_config(root_url).context("Failed to create TmcCore")?;
         // set progress report to print the updates to stdout as JSON
-        core.set_progress_report(|update| println!("{}", serde_json::to_string(&update).unwrap()));
+        core.set_progress_report(|update| {
+            // convert to output
+            let output = Output::<()> {
+                status: Status::InProgress,
+                message: Some(update.message.to_string()),
+                result: OutputResult::Running,
+                percent_done: update.percent_done,
+                data: None,
+            };
+            print_output(&output).map_err(|e| e.into())
+        });
 
         // set token if a credentials.json is found for the client name
         let client_name = matches.value_of("client-name").unwrap();
@@ -667,10 +719,8 @@ fn run() -> Result<()> {
             } else if let Some(email) = email {
                 // TODO: "Please enter password" and quiet param
                 let password = rpassword::read_password().context("Failed to read password")?;
-                let token = core
-                    .authenticate(client_name, email.to_string(), password)
-                    .context("Failed to authenticate with TMC")?;
-                token
+                core.authenticate(client_name, email.to_string(), password)
+                    .context("Failed to authenticate with TMC")?
             } else {
                 unreachable!("validation error");
             };
@@ -700,6 +750,15 @@ fn run() -> Result<()> {
                     )
                 })?;
             }
+
+            let output = Output::<()> {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::LoggedIn,
+                percent_done: 1.0,
+                data: None,
+            };
+            print_output(&output)?;
         } else if let Some(_matches) = matches.subcommand_matches("logout") {
             if credentials_path.exists() {
                 fs::remove_file(&credentials_path).with_context(|| {
@@ -709,6 +768,15 @@ fn run() -> Result<()> {
                     )
                 })?;
             }
+
+            let output = Output::<()> {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::LoggedOut,
+                percent_done: 1.0,
+                data: None,
+            };
+            print_output(&output)?;
         } else if let Some(_matches) = matches.subcommand_matches("logged-in") {
             if credentials_path.exists() {
                 let credentials = File::open(&credentials_path).with_context(|| {
@@ -723,23 +791,37 @@ fn run() -> Result<()> {
                         credentials_path.display()
                     )
                 })?;
-                println!("{}", serde_json::to_string(&token).unwrap());
+                let output = Output {
+                    status: Status::Successful,
+                    message: None,
+                    result: OutputResult::LoggedIn,
+                    percent_done: 1.0,
+                    data: Some(token),
+                };
+                print_output(&output)?;
             } else {
-                println!(
-                    "{}",
-                    serde_json::json! {
-                        {
-                            "message": "Not logged in."
-                        }
-                    }
-                )
+                let output = Output::<()> {
+                    status: Status::Successful,
+                    message: None,
+                    result: OutputResult::LoggedOut,
+                    percent_done: 1.0,
+                    data: None,
+                };
+                print_output(&output)?;
             }
         } else if let Some(_matches) = matches.subcommand_matches("get-organizations") {
             let orgs = core
                 .get_organizations()
                 .context("Failed to get organizations")?;
 
-            print_result_as_json(&orgs)?;
+            let output = Output {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::ReceivedData,
+                percent_done: 1.0,
+                data: Some(orgs),
+            };
+            print_output(&output)?;
         } else if let Some(matches) = matches.subcommand_matches("download-or-update-exercises") {
             let mut exercise_args = matches.values_of("exercise").unwrap();
             let mut exercises = vec![];
@@ -752,6 +834,15 @@ fn run() -> Result<()> {
 
             core.download_or_update_exercises(exercises)
                 .context("Failed to download exercises")?;
+
+            let output = Output::<()> {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::ReceivedData,
+                percent_done: 1.0,
+                data: None,
+            };
+            print_output(&output)?;
         } else if let Some(matches) = matches.subcommand_matches("get-course-details") {
             let course_id = matches.value_of("course-id").unwrap();
             let course_id = into_usize(course_id)?;
@@ -760,14 +851,28 @@ fn run() -> Result<()> {
                 .get_course_details(course_id)
                 .context("Failed to get course details")?;
 
-            print_result_as_json(&course_details)?;
+            let output = Output {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::ReceivedData,
+                percent_done: 1.0,
+                data: Some(course_details),
+            };
+            print_output(&output)?;
         } else if let Some(matches) = matches.subcommand_matches("list-courses") {
             let organization_slug = matches.value_of("organization").unwrap();
             let courses = core
                 .list_courses(organization_slug)
                 .context("Failed to get courses")?;
 
-            print_result_as_json(&courses)?;
+            let output = Output {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::ReceivedData,
+                percent_done: 1.0,
+                data: Some(courses),
+            };
+            print_output(&output)?;
         } else if let Some(matches) = matches.subcommand_matches("paste") {
             let submission_url = matches.value_of("submission-url").unwrap();
             let submission_url = into_url(submission_url)?;
@@ -788,7 +893,14 @@ fn run() -> Result<()> {
                 )
                 .context("Failed to get paste with comment")?;
 
-            print_result_as_json(&new_submission)?;
+            let output = Output {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::ReceivedData,
+                percent_done: 1.0,
+                data: Some(new_submission),
+            };
+            print_output(&output)?;
         } else if let Some(matches) = matches.subcommand_matches("run-checkstyle") {
             let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);
@@ -799,7 +911,14 @@ fn run() -> Result<()> {
                 .run_checkstyle(exercise_path, locale)
                 .context("Failed to run checkstyle")?;
 
-            print_result_as_json(&validation_result)?;
+            let output = Output {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: Some(validation_result),
+            };
+            print_output(&output)?;
         } else if let Some(matches) = matches.subcommand_matches("run-tests") {
             let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);
@@ -808,7 +927,14 @@ fn run() -> Result<()> {
                 .run_tests(exercise_path)
                 .context("Failed to run tests")?;
 
-            print_result_as_json(&run_result)?;
+            let output = Output {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: Some(run_result),
+            };
+            print_output(&output)?;
         } else if let Some(matches) = matches.subcommand_matches("send-feedback") {
             let feedback_url = matches.value_of("feedback-url").unwrap();
             let feedback_url = into_url(feedback_url)?;
@@ -828,7 +954,14 @@ fn run() -> Result<()> {
                 .send_feedback(feedback_url, feedback)
                 .context("Failed to send feedback")?;
 
-            print_result_as_json(&response)?;
+            let output = Output {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::SentData,
+                percent_done: 1.0,
+                data: Some(response),
+            };
+            print_output(&output)?;
         } else if let Some(matches) = matches.subcommand_matches("submit") {
             let submission_url = matches.value_of("submission-url").unwrap();
             let submission_url = into_url(submission_url)?;
@@ -847,7 +980,14 @@ fn run() -> Result<()> {
                 .submit(submission_url, submission_path, optional_locale)
                 .context("Failed to submit")?;
 
-            print_result_as_json(&new_submission)?;
+            let output = Output {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::SentData,
+                percent_done: 1.0,
+                data: Some(new_submission),
+            };
+            print_output(&output)?;
         } else if let Some(matches) = matches.subcommand_matches("wait-for-submission") {
             let submission_url = matches.value_of("submission-url").unwrap();
             let submission_finished = core
@@ -855,7 +995,15 @@ fn run() -> Result<()> {
                 .context("Failed while waiting for submissions")?;
             let submission_finished = serde_json::to_string(&submission_finished)
                 .context("Failed to serialize submission results")?;
-            println!("{}", submission_finished);
+
+            let output = Output {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::ReceivedData,
+                percent_done: 1.0,
+                data: Some(submission_finished),
+            };
+            print_output(&output)?;
         } else if let Some(_matches) = matches.subcommand_matches("get-exercise-updates") {
             let course_id = matches.value_of("course-id").unwrap();
             let course_id = into_usize(course_id)?;
@@ -872,7 +1020,14 @@ fn run() -> Result<()> {
                 .get_exercise_updates(course_id, checksums)
                 .context("Failed to get exercise updates")?;
 
-            print_result_as_json(&update_result)?;
+            let output = Output {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::ReceivedData,
+                percent_done: 1.0,
+                data: Some(update_result),
+            };
+            print_output(&output)?;
         } else if let Some(_matches) = matches.subcommand_matches("mark-review-as-read") {
             let review_update_url = matches.value_of("review-update-url").unwrap();
             core.mark_review_as_read(review_update_url.to_string())
@@ -885,7 +1040,14 @@ fn run() -> Result<()> {
                 .get_unread_reviews(reviews_url)
                 .context("Failed to get unread reviews")?;
 
-            print_result_as_json(&reviews)?;
+            let output = Output {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::LoggedOut,
+                percent_done: 1.0,
+                data: Some(reviews),
+            };
+            print_output(&output)?;
         } else if let Some(matches) = matches.subcommand_matches("request-code-review") {
             let submission_url = matches.value_of("submission-url").unwrap();
             let submission_url = into_url(submission_url)?;
@@ -907,7 +1069,14 @@ fn run() -> Result<()> {
                 )
                 .context("Failed to request code review")?;
 
-            print_result_as_json(&new_submission)?;
+            let output = Output {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::SentData,
+                percent_done: 1.0,
+                data: Some(new_submission),
+            };
+            print_output(&output)?;
         } else if let Some(matches) = matches.subcommand_matches("download-model-solution") {
             let solution_download_url = matches.value_of("solution-download-url").unwrap();
             let solution_download_url = into_url(solution_download_url)?;
@@ -959,8 +1128,9 @@ fn run() -> Result<()> {
     Ok(())
 }
 
-fn print_result_as_json<T: Serialize>(result: &T) -> Result<()> {
-    let result = serde_json::to_string(&result).context("Failed to convert result to JSON")?;
+fn print_output<T: Serialize + Debug>(output: &Output<T>) -> Result<()> {
+    let result = serde_json::to_string(&output)
+        .with_context(|| format!("Failed to convert {:?} to JSON", output))?;
     println!("{}", result);
     Ok(())
 }

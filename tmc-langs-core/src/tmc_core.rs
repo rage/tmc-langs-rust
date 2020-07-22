@@ -13,10 +13,12 @@ use oauth2::{
 use reqwest::{blocking::Client, Url};
 use serde::Serialize;
 use std::collections::HashMap;
+use std::error::Error as StdError;
 use std::fs;
 use std::io::Write;
 use std::path::Path;
 use std::path::PathBuf;
+use std::result::Result as StdResult;
 use std::thread;
 use std::time::Duration;
 use tempfile::NamedTempFile;
@@ -27,10 +29,14 @@ pub type Token =
 
 #[derive(Debug, Serialize)]
 pub struct StatusUpdate {
-    finished: bool,
-    message: &'static str,
-    percent_done: f64,
+    pub finished: bool,
+    pub message: &'static str,
+    pub percent_done: f64,
 }
+
+// compatible with anyhow
+type DynError = Box<dyn StdError + Send + Sync + 'static>;
+type UpdateClosure = Box<dyn Fn(StatusUpdate) -> StdResult<(), DynError>>;
 
 /// A struct for interacting with the TestMyCode service, including authentication
 pub struct TmcCore {
@@ -40,7 +46,7 @@ pub struct TmcCore {
     api_url: Url,
     auth_url: String,
     token: Option<Token>,
-    progress_report: Option<Box<dyn Fn(StatusUpdate)>>,
+    progress_report: Option<UpdateClosure>,
 }
 
 // TODO: cache API results?
@@ -102,7 +108,7 @@ impl TmcCore {
 
     pub fn set_progress_report<F>(&mut self, progress_report: F)
     where
-        F: Fn(StatusUpdate) + 'static,
+        F: 'static + Fn(StatusUpdate) -> StdResult<(), Box<dyn StdError + Send + Sync + 'static>>,
     {
         self.progress_report = Some(Box::new(progress_report));
     }
