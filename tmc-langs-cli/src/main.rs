@@ -752,8 +752,8 @@ fn into_usize(arg: &str) -> Result<usize> {
 
 fn into_locale(arg: &str) -> Result<Language> {
     Language::from_locale(arg)
-        .or(Language::from_639_1(arg))
-        .or(Language::from_639_3(arg))
+        .or_else(|| Language::from_639_1(arg))
+        .or_else(|| Language::from_639_3(arg))
         .with_context(|| format!("Invalid locale: {}", arg))
 }
 

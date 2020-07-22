@@ -31,14 +31,14 @@ trait CoreExt {
 impl CoreExt for ReqwestResponse {
     #[cfg(not(test))]
     fn json_res<T: DeserializeOwned>(self) -> Result<T> {
-        let res: Response<T> = self.json().map_err(|e| CoreError::HttpJsonResponse(e))?;
+        let res: Response<T> = self.json().map_err(CoreError::HttpJsonResponse)?;
         res.into_result()
     }
 
     // logs received JSON for easier debugging in tests
     #[cfg(test)]
     fn json_res<T: DeserializeOwned>(self) -> Result<T> {
-        let res: Value = self.json().map_err(|e| CoreError::HttpJsonResponse(e))?;
+        let res: Value = self.json().map_err(CoreError::HttpJsonResponse)?;
         log::debug!("JSON {}", res);
         let res: Response<T> = serde_json::from_value(res).unwrap();
         res.into_result()
@@ -49,7 +49,7 @@ impl CoreExt for ReqwestResponse {
         if status.is_success() {
             Ok(self)
         } else {
-            let text = self.text().unwrap_or(String::new());
+            let text = self.text().unwrap_or_default();
             Err(CoreError::HttpStatus(url, status, text))
         }
     }

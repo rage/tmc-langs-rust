@@ -28,13 +28,13 @@ pub fn create_tar_from_project(
     let project_name = Path::new(
         project_dir
             .file_name()
-            .ok_or(TmcError::NoFileName(project_dir.to_path_buf()))?,
+            .ok_or_else(|| TmcError::NoFileName(project_dir.to_path_buf()))?,
     );
     let root = project_dir.parent().unwrap_or_else(|| Path::new(""));
     add_dir_to_project(&mut tar, &project_dir, project_dir, &project_name)?;
     add_dir_to_project(&mut tar, &tmc_langs, root, &project_name)?;
     add_dir_to_project(&mut tar, &tmcrun, root, &project_name)?;
-    tar.finish().map_err(|e| TmcError::TarFinish(e))?;
+    tar.finish().map_err(TmcError::TarFinish)?;
     Ok(())
 }
 
@@ -51,7 +51,7 @@ fn add_dir_to_project<W: Write>(
             let path_in_tar: PathBuf = project_name.join(path_in_project);
             log::trace!("appending {:?} as {:?}", entry.path(), path_in_tar);
             tar.append_path_with_name(entry.path(), path_in_tar)
-                .map_err(|e| TmcError::TarAppend(e))?;
+                .map_err(TmcError::TarAppend)?;
         }
     }
     Ok(())

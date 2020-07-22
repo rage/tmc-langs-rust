@@ -23,7 +23,7 @@ impl NoTestsPlugin {
             .get_tmc_project_yml()
             .ok()
             .and_then(|c| c.no_tests.map(|n| n.points))
-            .unwrap_or(vec![])
+            .unwrap_or_default()
     }
 }
 

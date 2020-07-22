@@ -24,6 +24,7 @@ use zip::ZipArchive;
 
 const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../tmc-csharp-runner-1.0.1.zip");
 
+#[derive(Default)]
 pub struct CSharpPlugin {}
 
 impl CSharpPlugin {
@@ -35,8 +36,7 @@ impl CSharpPlugin {
     fn extract_runner(target: &Path) -> Result<(), CSharpError> {
         log::debug!("extracting C# runner to {}", target.display());
 
-        let mut zip =
-            ZipArchive::new(Cursor::new(TMC_CSHARP_RUNNER)).map_err(|e| CSharpError::Zip(e))?;
+        let mut zip = ZipArchive::new(Cursor::new(TMC_CSHARP_RUNNER)).map_err(CSharpError::Zip)?;
         for i in 0..zip.len() {
             let file = zip.by_index(i).unwrap();
             if file.is_file() {
@@ -85,7 +85,7 @@ impl CSharpPlugin {
                 log::debug!("found boostrap dll at {}", bootstrap.display());
                 Ok(bootstrap)
             } else {
-                Err(CSharpError::MissingBootstrapDll(bootstrap).into())
+                Err(CSharpError::MissingBootstrapDll(bootstrap))
             }
         }
     }

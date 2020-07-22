@@ -16,6 +16,7 @@ use std::path::Path;
 use std::process::Command;
 use std::time::Duration;
 
+#[derive(Default)]
 pub struct RPlugin {}
 
 impl RPlugin {

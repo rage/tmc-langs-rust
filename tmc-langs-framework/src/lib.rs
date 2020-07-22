@@ -34,7 +34,7 @@ impl CommandWithTimeout<'_> {
                     .map_err(|e| TmcError::CommandSpawn(name, e))?;
                 let timer = Instant::now();
                 loop {
-                    match child.try_wait().map_err(|e| TmcError::Process(e))? {
+                    match child.try_wait().map_err(TmcError::Process)? {
                         Some(_exit_status) => {
                             // done, get output
                             return child
@@ -44,7 +44,7 @@ impl CommandWithTimeout<'_> {
                         None => {
                             // still running, check timeout
                             if timer.elapsed() > timeout {
-                                child.kill().map_err(|e| TmcError::Process(e))?;
+                                child.kill().map_err(TmcError::Process)?;
                                 return Err(TmcError::TestTimeout(timer.elapsed()));
                             }
 
