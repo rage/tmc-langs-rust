@@ -306,14 +306,14 @@ impl TmcCore {
     ///     submission_url,
     ///     Path::new("./exercises/python/123"),
     ///     Some("my python solution".to_string()),
-    ///     Language::Eng).unwrap();
+    ///     Some(Language::Eng)).unwrap();
     /// ```
     pub fn paste(
         &self,
         submission_url: Url,
         submission_path: &Path,
         paste_message: Option<String>,
-        locale: Language,
+        locale: Option<Language>,
     ) -> Result<NewSubmission> {
         // compress
         let compressed = task_executor::compress_project(submission_path)?;
@@ -321,7 +321,7 @@ impl TmcCore {
         file.write_all(&compressed)
             .map_err(|e| CoreError::FileWrite(file.path().to_path_buf(), e))?;
 
-        self.post_submission_to_paste(submission_url, file.path(), paste_message, Some(locale))
+        self.post_submission_to_paste(submission_url, file.path(), paste_message, locale)
     }
 
     /// Checks the coding style for the project.
@@ -499,7 +499,7 @@ impl TmcCore {
         submission_url: Url,
         submission_path: &Path,
         message_for_reviewer: String,
-        locale: Language,
+        locale: Option<Language>,
     ) -> Result<NewSubmission> {
         // compress
         let compressed = task_executor::compress_project(submission_path)?;
@@ -507,12 +507,7 @@ impl TmcCore {
         file.write_all(&compressed)
             .map_err(|e| CoreError::FileWrite(file.path().to_path_buf(), e))?;
 
-        self.post_submission_for_review(
-            submission_url,
-            file.path(),
-            message_for_reviewer,
-            Some(locale),
-        )
+        self.post_submission_for_review(submission_url, file.path(), message_for_reviewer, locale)
     }
 
     /// Downloads the model solution from the given url.
@@ -719,7 +714,7 @@ mod test {
                 submission_url,
                 Path::new("tests/data/exercise"),
                 Some("abcdefg".to_string()),
-                Language::from_639_3("eng").unwrap(),
+                Some(Language::Eng),
             )
             .unwrap();
         assert_eq!(
@@ -978,7 +973,7 @@ mod test {
                 submission_url,
                 Path::new("tests/data/exercise"),
                 "abcdefg".to_string(),
-                Language::from_639_3("eng").unwrap(),
+                Some(Language::Eng),
             )
             .unwrap();
         assert_eq!(

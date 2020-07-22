@@ -461,8 +461,12 @@ fn run() -> Result<()> {
             let submission_path = Path::new(submission_path);
             let paste_message = matches.value_of("paste-message");
 
-            let locale = matches.value_of("locale").unwrap();
-            let locale = into_locale(locale)?;
+            let locale = matches.value_of("locale");
+            let locale = if let Some(locale) = locale {
+                Some(into_locale(locale)?)
+            } else {
+                None
+            };
 
             let new_submission = core
                 .paste(
@@ -637,8 +641,12 @@ fn run() -> Result<()> {
 
             let message_for_reviewer = matches.value_of("message-for-reviewer").unwrap();
 
-            let locale = matches.value_of("locale").unwrap();
-            let locale = into_locale(locale)?;
+            let locale = matches.value_of("locale");
+            let locale = if let Some(locale) = locale {
+                Some(into_locale(locale)?)
+            } else {
+                None
+            };
 
             let new_submission = core
                 .request_code_review(
