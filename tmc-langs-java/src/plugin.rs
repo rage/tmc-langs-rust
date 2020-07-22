@@ -151,8 +151,10 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         exercise_name: String,
         compile_result: CompileResult,
     ) -> Result<ExerciseDesc, JavaError> {
-        if !Self::is_exercise_type_correct(path) || !compile_result.status_code.success() {
+        if !Self::is_exercise_type_correct(path) {
             return Err(JavaError::InvalidExercise(path.to_path_buf()));
+        } else if !compile_result.status_code.success() {
+            return Err(JavaError::Compilation(compile_result.stderr));
         }
 
         let mut source_files = vec![];

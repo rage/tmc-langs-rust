@@ -1,6 +1,5 @@
 //! Contains the task executor
 
-mod tar;
 pub mod task_executor;
 
 pub use tmc_langs_abstraction::{Strategy, ValidationResult};

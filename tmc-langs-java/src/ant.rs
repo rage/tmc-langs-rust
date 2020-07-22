@@ -9,7 +9,7 @@ use policy::AntStudentFilePolicy;
 use std::env;
 use std::fs::{self, File};
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::Duration;
 use tmc_langs_framework::{
@@ -144,6 +144,14 @@ impl LanguagePlugin for AntPlugin {
             )
             .into())
         }
+    }
+
+    fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
+        vec![PathBuf::from("src/main")]
+    }
+
+    fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
+        vec![PathBuf::from("src/test")]
     }
 }
 

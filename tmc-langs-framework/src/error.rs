@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 use thiserror::Error;
 
+// todo: make util error type and move variants there
 #[derive(Error, Debug)]
 pub enum TmcError {
     // IO
@@ -17,10 +18,14 @@ pub enum TmcError {
     CreateDir(PathBuf, #[source] std::io::Error),
     #[error("Failed to remove dir at {0}")]
     RemoveDir(PathBuf, #[source] std::io::Error),
+    #[error("Failed to create temporary directory")]
+    TempDir(#[source] std::io::Error),
     #[error("Failed to rename {0} to {1}")]
     Rename(PathBuf, PathBuf, #[source] std::io::Error),
     #[error("Failed to write to {0}")]
     Write(PathBuf, #[source] std::io::Error),
+    #[error("Failed to read zip archive at {0}")]
+    ZipRead(PathBuf, #[source] std::io::Error),
     #[error("Error appending to tar")]
     TarAppend(#[source] std::io::Error),
     #[error("Error finishing tar")]
@@ -37,6 +42,10 @@ pub enum TmcError {
     Canonicalize(PathBuf, #[source] std::io::Error),
     #[error("Error occurred in a child process")]
     Process(#[source] std::io::Error),
+    #[error("Failed to set permissions for {0}")]
+    SetPermissions(PathBuf, #[source] std::io::Error),
+    #[error("Invalid parameter value: {0}")]
+    InvalidParam(String),
 
     #[error("Path {0} contained invalid UTF8")]
     UTF8(PathBuf),
@@ -62,4 +71,6 @@ pub enum TmcError {
     YamlDeserialization(#[from] serde_yaml::Error),
     #[error(transparent)]
     ZipError(#[from] zip::ZipError),
+    #[error(transparent)]
+    WalkDir(#[from] walkdir::Error),
 }

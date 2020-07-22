@@ -42,6 +42,8 @@ pub enum JavaError {
     FileCopy(PathBuf, PathBuf, #[source] std::io::Error),
     #[error("Failed to find cache directory")]
     CacheDir,
+    #[error("Failed to compile")]
+    Compilation(Vec<u8>),
 
     #[error(transparent)]
     Json(#[from] serde_json::Error),

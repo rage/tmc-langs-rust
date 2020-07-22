@@ -10,7 +10,7 @@ use policy::MavenStudentFilePolicy;
 use std::ffi::OsString;
 use std::fs;
 use std::io::Cursor;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::Duration;
 use tar::Archive;
@@ -127,6 +127,14 @@ impl LanguagePlugin for MavenPlugin {
         }
 
         Ok(())
+    }
+
+    fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
+        vec![PathBuf::from("src/main")]
+    }
+
+    fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
+        vec![PathBuf::from("src/test")]
     }
 }
 

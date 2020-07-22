@@ -20,7 +20,10 @@ use tmc_langs_core::oauth2::{
 };
 use tmc_langs_core::{FeedbackAnswer, TmcCore, Token};
 use tmc_langs_framework::io::submission_processing;
-use tmc_langs_util::{task_executor, Language};
+use tmc_langs_util::{
+    task_executor::{self, TmcParams},
+    Language,
+};
 use url::Url;
 use walkdir::WalkDir;
 
@@ -132,12 +135,62 @@ fn run() -> Result<()> {
                 exercise_path.display(),
             )
         })?;
-    } else if let Some(_matches) = matches.subcommand_matches("prepare-submission") {
-        Error::with_description(
-            "This command is unimplemented.",
-            ErrorKind::InvalidSubcommand,
-        )
-        .exit();
+    } else if let Some(matches) = matches.subcommand_matches("prepare-submission") {
+        let submission_path = matches.value_of("submission-path").unwrap();
+        let submission_path = dbg!(Path::new(submission_path));
+
+        let output_path = matches.value_of("output-path").unwrap();
+        let output_path = dbg!(Path::new(output_path));
+
+        let tmc_params_values = matches.values_of("tmc-param").unwrap_or_default();
+        let mut tmc_params_grouped = HashMap::new();
+        for value in tmc_params_values {
+            let params: Vec<_> = value.split('=').collect();
+            if params.len() != 2 {
+                Error::with_description(
+                    "tmc-param values should contain a single '=' as a delimiter.",
+                    ErrorKind::ValueValidation,
+                )
+                .exit();
+            }
+            let key = params[0];
+            let value = params[1];
+            let entry = tmc_params_grouped.entry(key).or_insert_with(Vec::new);
+            entry.push(value);
+        }
+        let mut tmc_params = TmcParams::new();
+        for (key, values) in tmc_params_grouped {
+            if values.len() == 1 {
+                tmc_params
+                    .insert_string(key, values[0])
+                    .context("invalid tmc-param key-value pair")?;
+            } else {
+                tmc_params
+                    .insert_array(key, values)
+                    .context("invalid tmc-param key-value pair")?;
+            }
+        }
+
+        let clone_path = matches.value_of("clone-path").unwrap();
+        let clone_path = dbg!(Path::new(clone_path));
+
+        let output_zip = dbg!(matches.is_present("output-zip"));
+
+        let top_level_dir_name = matches.value_of("top-level-dir-name");
+        let top_level_dir_name = top_level_dir_name.map(str::to_string);
+
+        let stub_zip_path = matches.value_of("stub-zip-path");
+        let stub_zip_path = stub_zip_path.map(Path::new);
+
+        task_executor::prepare_submission(
+            submission_path,
+            output_path,
+            top_level_dir_name,
+            tmc_params,
+            clone_path,
+            stub_zip_path,
+            output_zip,
+        )?;
     } else if let Some(matches) = matches.subcommand_matches("run-tests") {
         let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);

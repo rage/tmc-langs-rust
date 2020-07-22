@@ -1,13 +1,18 @@
 //! Module for calling different tasks of TMC-langs language plug-ins.
 
-use super::{
-    tar, ExerciseDesc, ExercisePackagingConfiguration, RunResult, TmcError, ValidationResult,
-};
+mod file_util;
+mod submission_packaging;
+mod tar_helper;
+
+pub use submission_packaging::TmcParams;
+
+use crate::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, TmcError, ValidationResult};
 use log::info;
 use std::path::{Path, PathBuf};
 use tmc_langs_csharp::CSharpPlugin;
 use tmc_langs_framework::{
-    io::{submission_processing, zip},
+    domain::TmcProjectYml,
+    io,
     plugin::{Language, LanguagePlugin},
     policy::NothingIsStudentFilePolicy,
 };
@@ -23,7 +28,7 @@ pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
     exercise_paths: I,
     dest_root: &Path,
 ) -> Result<(), TmcError> {
-    submission_processing::prepare_solutions(exercise_paths, dest_root)?;
+    io::submission_processing::prepare_solutions(exercise_paths, dest_root)?;
     Ok(())
 }
 
@@ -38,6 +43,28 @@ pub fn prepare_stubs<I: IntoIterator<Item = PathBuf>>(
         plugin.prepare_stub(&exercise_path, repo_path, dest_path)?;
     }
     Ok(())
+}
+
+/// Takes a submission zip and turns it into a tar suitable for processing
+/// by among other things resetting the test files
+pub fn prepare_submission(
+    zip_path: &Path,
+    target_path: &Path,
+    toplevel_dir_name: Option<String>,
+    tmc_params: TmcParams,
+    clone_path: &Path,
+    stub_zip_path: Option<&Path>,
+    output_zip: bool,
+) -> Result<(), TmcError> {
+    submission_packaging::prepare_submission(
+        zip_path,
+        target_path,
+        toplevel_dir_name,
+        tmc_params,
+        clone_path,
+        stub_zip_path,
+        output_zip,
+    )
 }
 
 /// See `LanguagePlugin::check_code_style`.
@@ -84,7 +111,7 @@ pub fn extract_project_overwrite(
     compressed_project: &Path,
     target_location: &Path,
 ) -> Result<(), TmcError> {
-    zip::unzip(
+    io::zip::unzip(
         NothingIsStudentFilePolicy {},
         compressed_project,
         target_location,
@@ -112,7 +139,7 @@ pub fn compress_tar_for_submitting(
     tmcrun: &Path,
     target_location: &Path,
 ) -> Result<(), TmcError> {
-    tar::create_tar_from_project(project_dir, tmc_langs, tmcrun, target_location)?;
+    tar_helper::create_tar_from_project(project_dir, tmc_langs, tmcrun, target_location)?;
     Ok(())
 }
 
