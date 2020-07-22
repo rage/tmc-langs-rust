@@ -223,10 +223,7 @@ mod test {
         let temp = copy_test("tests/data/project");
         let run_result = plugin.run_tests(temp.path()).unwrap();
         assert_eq!(run_result.status, RunStatus::Passed);
-        assert_eq!(
-            run_result.test_results[0].name,
-            "test.test_points.TestEverything.test_new"
-        );
+        assert_eq!(run_result.test_results[0].name, "TestEverything: test_new");
         assert!(run_result.test_results[0].successful);
         assert!(run_result.test_results[0].points.contains(&"1.1".into()));
         assert!(run_result.test_results[0].points.contains(&"1.2".into()));
@@ -240,10 +237,7 @@ mod test {
         let temp = copy_test("tests/data/failing");
         let run_result = plugin.run_tests(temp.path()).unwrap();
         assert_eq!(run_result.status, RunStatus::TestsFailed);
-        assert_eq!(
-            run_result.test_results[0].name,
-            "test.test_failing.TestFailing.test_new"
-        );
+        assert_eq!(run_result.test_results[0].name, "TestFailing: test_new");
         assert!(!run_result.test_results[0].successful);
         assert!(run_result.test_results[0].points.contains(&"1.1".into()));
         assert!(run_result.test_results[0].points.contains(&"1.2".into()));
@@ -258,7 +252,7 @@ mod test {
         assert_eq!(run_result.status, RunStatus::TestsFailed);
         assert_eq!(
             run_result.test_results[0].name,
-            "test.test_erroring.TestErroring.test_erroring"
+            "TestErroring: test_erroring"
         );
         assert!(!run_result.test_results[0].successful);
         assert!(run_result.test_results[0].points.contains(&"1.1".into()));

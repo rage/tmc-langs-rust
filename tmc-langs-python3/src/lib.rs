@@ -60,11 +60,57 @@ struct PythonTestResult {
 impl PythonTestResult {
     fn into_test_result(self) -> TestResult {
         TestResult {
-            name: self.name,
+            name: parse_test_name(self.name),
             successful: self.passed,
-            message: self.message,
+            message: parse_test_message(self.message),
             points: self.points,
             exception: self.backtrace,
         }
+    }
+}
+
+fn parse_test_name(test_name: String) -> String {
+    let parts: Vec<_> = test_name.split('.').collect();
+    if parts.len() == 4 {
+        format!("{}: {}", parts[2], parts[3])
+    } else {
+        test_name
+    }
+}
+
+fn parse_test_message(test_message: String) -> String {
+    const PREFIX_1: &str = "true is not false :";
+    const PREFIX_2: &str = "false is not true :";
+
+    let lower = test_message.to_lowercase();
+    if lower.starts_with(PREFIX_1) {
+        test_message[PREFIX_1.len()..].trim().to_string()
+    } else if lower.starts_with(PREFIX_2) {
+        test_message[PREFIX_2.len()..].trim().to_string()
+    } else {
+        test_message
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn parses_test_name() {
+        let parsed = parse_test_name("test.test_new.TestCase.test_new".to_string());
+        assert_eq!(parsed, "TestCase: test_new");
+        let parsed = parse_test_name("some.other.test".to_string());
+        assert_eq!(parsed, "some.other.test");
+    }
+
+    #[test]
+    fn parses_test_message() {
+        let parsed = parse_test_message("True is not False :   !message!    ".to_string());
+        assert_eq!(parsed, "!message!");
+        let parsed = parse_test_message("some other message".to_string());
+        assert_eq!(parsed, "some other message");
+        let parsed = parse_test_message("fAlSe Is NoT tRuE :".to_string());
+        assert_eq!(parsed, "");
     }
 }
