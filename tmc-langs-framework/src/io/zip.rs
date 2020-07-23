@@ -252,7 +252,7 @@ mod test {
         .unwrap();
         let mut archive = ZipArchive::new(Cursor::new(zipped)).unwrap();
         for i in 0..archive.len() {
-            println!("{:?}", archive.by_index(i).unwrap().name());
+            log::debug!("{:?}", archive.by_index(i).unwrap().name());
         }
         assert!(archive
             .by_name("exercise-name/src/main/java/AdaLovelace.java")

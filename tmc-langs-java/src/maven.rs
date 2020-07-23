@@ -306,7 +306,7 @@ mod test {
         let test_path = temp_dir.path();
         let plugin = MavenPlugin::new().unwrap();
         let class_path = plugin.get_project_class_path(test_path).unwrap();
-        println!("{}", class_path);
+        log::debug!("{}", class_path);
         let expected = format!("{0}junit{0}", std::path::MAIN_SEPARATOR);
         assert!(class_path.contains(&expected));
     }
@@ -316,7 +316,7 @@ mod test {
         init();
 
         use std::path::PathBuf;
-        println!("{}", PathBuf::from(".").canonicalize().unwrap().display());
+        log::debug!("{}", PathBuf::from(".").canonicalize().unwrap().display());
 
         let temp_dir = copy_test_dir("tests/data/maven_exercise");
         let test_path = temp_dir.path();

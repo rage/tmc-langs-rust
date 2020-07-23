@@ -22,7 +22,7 @@ fn compress_project() {
         "--output-path",
         temp.path().join("zip.zip").to_str().unwrap(),
     ]);
-    println!("out:\n{}", String::from_utf8(out.stdout).unwrap());
-    println!("err:\n{}", String::from_utf8(out.stderr).unwrap());
+    log::debug!("out:\n{}", String::from_utf8(out.stdout).unwrap());
+    log::debug!("err:\n{}", String::from_utf8(out.stderr).unwrap());
     // TODO
 }

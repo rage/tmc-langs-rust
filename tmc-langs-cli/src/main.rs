@@ -6,6 +6,7 @@ mod output;
 use output::{Output, OutputResult, Status};
 
 use anyhow::{Context, Result};
+use clap::{Error, ErrorKind};
 use serde::Serialize;
 use std::collections::HashMap;
 use std::env;
