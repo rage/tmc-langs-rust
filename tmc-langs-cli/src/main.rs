@@ -404,7 +404,7 @@ fn run() -> Result<()> {
             let output = Output {
                 status: Status::Successful,
                 message: None,
-                result: OutputResult::ReceivedData,
+                result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: Some(orgs),
             };
@@ -425,7 +425,7 @@ fn run() -> Result<()> {
             let output = Output::<()> {
                 status: Status::Successful,
                 message: None,
-                result: OutputResult::ReceivedData,
+                result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: None,
             };
@@ -441,7 +441,7 @@ fn run() -> Result<()> {
             let output = Output {
                 status: Status::Successful,
                 message: None,
-                result: OutputResult::ReceivedData,
+                result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: Some(course_details),
             };
@@ -455,7 +455,7 @@ fn run() -> Result<()> {
             let output = Output {
                 status: Status::Successful,
                 message: None,
-                result: OutputResult::ReceivedData,
+                result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: Some(courses),
             };
@@ -487,7 +487,7 @@ fn run() -> Result<()> {
             let output = Output {
                 status: Status::Successful,
                 message: None,
-                result: OutputResult::ReceivedData,
+                result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: Some(new_submission),
             };
@@ -590,7 +590,7 @@ fn run() -> Result<()> {
             let output = Output {
                 status: Status::Successful,
                 message: None,
-                result: OutputResult::ReceivedData,
+                result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: Some(submission_finished),
             };
@@ -614,7 +614,7 @@ fn run() -> Result<()> {
             let output = Output {
                 status: Status::Successful,
                 message: None,
-                result: OutputResult::ReceivedData,
+                result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: Some(update_result),
             };

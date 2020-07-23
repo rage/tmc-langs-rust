@@ -29,6 +29,6 @@ pub enum OutputResult {
     Error,
     Running,
     SentData,
-    ReceivedData,
+    RetrievedData,
     ExecutedCommand,
 }
