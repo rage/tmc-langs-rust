@@ -174,7 +174,10 @@ pub fn create_app() -> App<'static, 'static> {
                     .help("The OAUTH2 access token that should be used for authentication")
                     .long("set-access-token")
                     .takes_value(true)
-                    .required_unless("email")))
+                    .required_unless("email"))
+                .arg(Arg::with_name("base64")
+                    .help("Write password as base64 encoded string.")
+                    .long("base64")))
 
             .subcommand(SubCommand::with_name("logout")
                 .about("Logout and remove OAuth2 token from config."))

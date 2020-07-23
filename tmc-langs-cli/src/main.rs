@@ -6,7 +6,6 @@ mod output;
 use output::{Output, OutputResult, Status};
 
 use anyhow::{Context, Result};
-use clap::{Error, ErrorKind};
 use serde::Serialize;
 use std::collections::HashMap;
 use std::env;
@@ -286,6 +285,7 @@ fn run() -> Result<()> {
         if let Some(matches) = matches.subcommand_matches("login") {
             let email = matches.value_of("email");
             let set_access_token = matches.value_of("set-access-token");
+            let base64 = matches.is_present("base64");
 
             // get token from argument or server
             let token = if let Some(token) = set_access_token {
@@ -299,7 +299,14 @@ fn run() -> Result<()> {
             } else if let Some(email) = email {
                 // TODO: "Please enter password" and quiet param
                 let password = rpassword::read_password().context("Failed to read password")?;
-                core.authenticate(client_name, email.to_string(), password)
+                let decoded = if base64 {
+                    let bytes = base64::decode(password).context("Password was invalid base64")?;
+                    String::from_utf8(bytes)
+                        .context("Base64 password decoded into invalid UTF-8")?
+                } else {
+                    password
+                };
+                core.authenticate(client_name, email.to_string(), decoded)
                     .context("Failed to authenticate with TMC")?
             } else {
                 unreachable!("validation error");
