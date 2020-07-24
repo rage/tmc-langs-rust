@@ -32,6 +32,19 @@ pub struct StatusUpdate {
     pub finished: bool,
     pub message: &'static str,
     pub percent_done: f64,
+    pub status_type: StatusType,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum StatusType {
+    Downloading,
+    Compressing,
+    Extracting,
+    Processing,
+    Sending,
+    WaitingForResults,
+    Finished,
 }
 
 // compatible with anyhow
@@ -126,12 +139,18 @@ impl TmcCore {
         self.progress_report = Some(Box::new(progress_report));
     }
 
-    pub fn report_progress(&self, message: &'static str, percent_done: f64) {
+    pub fn report_progress(
+        &self,
+        message: &'static str,
+        status_type: StatusType,
+        percent_done: f64,
+    ) {
         self.progress_report.as_ref().map(|f| {
             f(StatusUpdate {
                 finished: false,
                 message,
                 percent_done,
+                status_type,
             })
         });
     }
@@ -142,6 +161,7 @@ impl TmcCore {
                 finished: true,
                 message,
                 percent_done: 1.0,
+                status_type: StatusType::Finished,
             })
         });
     }
@@ -242,11 +262,11 @@ impl TmcCore {
             // TODO: do in memory without zip_file?
             let zip_file = NamedTempFile::new().map_err(CoreError::TempFile)?;
 
-            self.report_progress("Downloading exercise...", progress);
+            self.report_progress("Downloading exercise...", StatusType::Downloading, progress);
             self.download_exercise(exercise_id, zip_file.path())?;
             progress += step;
 
-            self.report_progress("Extracting exercise...", progress);
+            self.report_progress("Extracting exercise...", StatusType::Extracting, progress);
             task_executor::extract_project(zip_file.path(), target)?;
             progress += step;
         }
@@ -406,14 +426,30 @@ impl TmcCore {
         locale: Option<Language>,
     ) -> Result<NewSubmission> {
         // compress
-        self.report_progress("Submitting exercise. Compressing submission...", 0.0);
+        self.report_progress(
+            "Submitting exercise. Compressing submission...",
+            StatusType::Compressing,
+            0.0,
+        );
         let compressed = task_executor::compress_project(submission_path)?;
-        self.report_progress("Compressed submission. Creating temporary file...", 0.25);
+        self.report_progress(
+            "Compressed submission. Creating temporary file...",
+            StatusType::Processing,
+            0.25,
+        );
         let mut file = NamedTempFile::new().map_err(CoreError::TempFile)?;
-        self.report_progress("Created temporary file. Writing compressed data...", 0.5);
+        self.report_progress(
+            "Created temporary file. Writing compressed data...",
+            StatusType::Processing,
+            0.5,
+        );
         file.write_all(&compressed)
             .map_err(|e| CoreError::FileWrite(file.path().to_path_buf(), e))?;
-        self.report_progress("Wrote compressed data. Posting submission...", 0.75);
+        self.report_progress(
+            "Wrote compressed data. Posting submission...",
+            StatusType::Sending,
+            0.75,
+        );
 
         let result = self.post_submission(submission_url, file.path(), locale);
         self.report_complete("Submission finished!");
@@ -444,13 +480,21 @@ impl TmcCore {
                         (_, status) => {
                             // new status, update progress
                             match status {
-                                SandboxStatus::Created => self.report_progress("Created", 0.25),
-                                SandboxStatus::SendingToSandbox => {
-                                    self.report_progress("Sending to sandbox", 0.5)
-                                }
-                                SandboxStatus::ProcessingOnSandbox => {
-                                    self.report_progress("Processing on sandbox", 0.75)
-                                }
+                                SandboxStatus::Created => self.report_progress(
+                                    "Created",
+                                    StatusType::WaitingForResults,
+                                    0.25,
+                                ),
+                                SandboxStatus::SendingToSandbox => self.report_progress(
+                                    "Sending to sandbox",
+                                    StatusType::WaitingForResults,
+                                    0.5,
+                                ),
+                                SandboxStatus::ProcessingOnSandbox => self.report_progress(
+                                    "Processing on sandbox",
+                                    StatusType::WaitingForResults,
+                                    0.75,
+                                ),
                             }
                             previous_status = Some(status);
                         }
@@ -1151,18 +1195,20 @@ mod test {
             finished: false,
             message: "submitting...",
             percent_done: 0.5,
+            status_type: StatusType::Sending,
         };
         assert_eq!(
-            r#"{"finished":false,"message":"submitting...","percent_done":0.5}"#,
+            r#"{"finished":false,"message":"submitting...","percent_done":0.5,"status_type":"sending"}"#,
             serde_json::to_string(&p).unwrap()
         );
         let f = StatusUpdate {
             finished: true,
             message: "done",
             percent_done: 1.0,
+            status_type: StatusType::Finished,
         };
         assert_eq!(
-            r#"{"finished":true,"message":"done","percent_done":1.0}"#,
+            r#"{"finished":true,"message":"done","percent_done":1.0,"status_type":"finished"}"#,
             serde_json::to_string(&f).unwrap()
         );
     }

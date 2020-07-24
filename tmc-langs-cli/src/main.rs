@@ -18,7 +18,7 @@ use tempfile::NamedTempFile;
 use tmc_langs_core::oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
-use tmc_langs_core::{FeedbackAnswer, TmcCore, Token};
+use tmc_langs_core::{FeedbackAnswer, StatusType, TmcCore, Token};
 use tmc_langs_framework::io::submission_processing;
 use tmc_langs_util::{
     task_executor::{self, TmcParams},
@@ -309,7 +309,7 @@ fn run() -> Result<()> {
             let output = Output::<()> {
                 status: Status::InProgress,
                 message: Some(update.message.to_string()),
-                result: OutputResult::Running,
+                result: OutputResult::Core(update.status_type),
                 percent_done: update.percent_done,
                 data: None,
             };

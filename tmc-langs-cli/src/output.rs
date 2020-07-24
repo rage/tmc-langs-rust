@@ -1,6 +1,7 @@
 //! Output format
 
 use serde::Serialize;
+use tmc_langs_core::StatusType;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
@@ -27,8 +28,8 @@ pub enum OutputResult {
     LoggedOut,
     NotLoggedIn,
     Error,
-    Running,
     SentData,
     RetrievedData,
     ExecutedCommand,
+    Core(StatusType),
 }
