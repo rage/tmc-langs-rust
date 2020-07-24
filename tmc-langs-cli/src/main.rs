@@ -137,10 +137,10 @@ fn run() -> Result<()> {
         })?;
     } else if let Some(matches) = matches.subcommand_matches("prepare-submission") {
         let submission_path = matches.value_of("submission-path").unwrap();
-        let submission_path = dbg!(Path::new(submission_path));
+        let submission_path = Path::new(submission_path);
 
         let output_path = matches.value_of("output-path").unwrap();
-        let output_path = dbg!(Path::new(output_path));
+        let output_path = Path::new(output_path);
 
         let tmc_params_values = matches.values_of("tmc-param").unwrap_or_default();
         let mut tmc_params_grouped = HashMap::new();
@@ -172,9 +172,9 @@ fn run() -> Result<()> {
         }
 
         let clone_path = matches.value_of("clone-path").unwrap();
-        let clone_path = dbg!(Path::new(clone_path));
+        let clone_path = Path::new(clone_path);
 
-        let output_zip = dbg!(matches.is_present("output-zip"));
+        let output_zip = matches.is_present("output-zip");
 
         let top_level_dir_name = matches.value_of("top-level-dir-name");
         let top_level_dir_name = top_level_dir_name.map(str::to_string);
