@@ -257,8 +257,8 @@ pub fn prepare_submission(
                 }
             }
             for path in config.exercise_file_paths {
-                let exercise_file = dbg!(tests_dir.join(dbg!(&path)));
-                if dbg!(exercise_file.exists()) {
+                let exercise_file = tests_dir.join(&path);
+                if exercise_file.exists() {
                     let target = if let Some(parent) = path.parent() {
                         dest.join(parent)
                     } else {
