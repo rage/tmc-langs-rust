@@ -55,17 +55,20 @@ impl CoreExt for ReqwestResponse {
     }
 }
 
-/// Provides a convenience function for adding a token
+/// Provides a convenience function for adding a token and client headers
 trait GetExt {
-    fn authenticate(self, token: &Option<Token>) -> RequestBuilder;
+    fn core_headers(self, core: &TmcCore) -> RequestBuilder;
 }
 
 impl GetExt for RequestBuilder {
-    fn authenticate(self, token: &Option<Token>) -> RequestBuilder {
-        if let Some(token) = token {
-            self.bearer_auth(token.access_token().secret())
+    fn core_headers(self, core: &TmcCore) -> RequestBuilder {
+        let request = self
+            .header("client", &core.client_name)
+            .header("client_version", &core.client_version);
+        if let Some(token) = core.token.as_ref() {
+            request.bearer_auth(token.access_token().secret())
         } else {
-            self
+            request
         }
     }
 }
@@ -85,7 +88,7 @@ impl TmcCore {
         log::debug!("get {}", url);
         self.client
             .get(url.clone())
-            .authenticate(&self.token)
+            .core_headers(self)
             .send()
             .map_err(|e| CoreError::HttpGet(url.clone(), e))?
             .check_error(url)?
@@ -104,7 +107,7 @@ impl TmcCore {
         log::debug!("downloading {}", url);
         self.client
             .get(url.clone())
-            .authenticate(&self.token)
+            .core_headers(self)
             .send()
             .map_err(|e| CoreError::HttpGet(url.clone(), e))?
             .check_error(url)?
@@ -120,7 +123,7 @@ impl TmcCore {
         log::debug!("downloading {}", url);
         self.client
             .get(url.clone())
-            .authenticate(&self.token)
+            .core_headers(self)
             .send()
             .map_err(|e| CoreError::HttpGet(url.clone(), e))?
             .check_error(url)?
@@ -588,7 +591,7 @@ impl TmcCore {
             .client
             .post(submission_url.clone())
             .multipart(form)
-            .authenticate(&self.token)
+            .core_headers(self)
             .send()
             .map_err(|e| CoreError::HttpPost(submission_url.clone(), e))?
             .check_error(submission_url)?
@@ -628,7 +631,7 @@ impl TmcCore {
         self.client
             .post(feedback_url.clone())
             .multipart(form)
-            .authenticate(&self.token)
+            .core_headers(self)
             .send()
             .map_err(|e| CoreError::HttpPost(feedback_url.clone(), e))?
             .check_error(feedback_url)?
@@ -653,7 +656,7 @@ impl TmcCore {
             .post(url.clone())
             .query(&[("review[review_body]", review_body)])
             .query(&[("review[points]", review_points)])
-            .authenticate(&self.token)
+            .core_headers(self)
             .send()
             .map_err(|e| CoreError::HttpPost(url.clone(), e))?
             .check_error(url)?

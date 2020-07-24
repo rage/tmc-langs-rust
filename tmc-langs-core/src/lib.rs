@@ -3,7 +3,7 @@
 //! ```rust,no_run
 //! use tmc_langs_core::TmcCore;
 //!
-//! let mut core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
+//! let mut core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
 //! core.authenticate("client_name", "email".to_string(), "password".to_string());
 //! let organizations = core.get_organizations();
 //! ```

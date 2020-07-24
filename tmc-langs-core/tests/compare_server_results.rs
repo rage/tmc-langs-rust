@@ -26,7 +26,12 @@ fn init() {
 fn authenticated_core() -> TmcCore {
     let email = env::var("EMAIL").unwrap();
     let password = env::var("PASSWORD").unwrap();
-    let mut core = TmcCore::new_in_config(TMC_ROOT.to_string()).unwrap();
+    let mut core = TmcCore::new_in_config(
+        TMC_ROOT.to_string(),
+        "vscode_plugin".to_string(),
+        "test".to_string(),
+    )
+    .unwrap();
     core.authenticate("vscode_plugin", email, password).unwrap();
     core
 }

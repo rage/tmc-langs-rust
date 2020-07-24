@@ -295,7 +295,14 @@ fn run() -> Result<()> {
     if let Some(matches) = matches.subcommand_matches("core") {
         let root_url =
             env::var("TMC_LANGS_ROOT_URL").unwrap_or_else(|_| "https://tmc.mooc.fi".to_string());
-        let mut core = TmcCore::new_in_config(root_url).context("Failed to create TmcCore")?;
+        let client_name = matches.value_of("client-name").unwrap();
+        let client_version = matches.value_of("client-version").unwrap();
+        let mut core = TmcCore::new_in_config(
+            root_url,
+            client_name.to_string(),
+            client_version.to_string(),
+        )
+        .context("Failed to create TmcCore")?;
         // set progress report to print the updates to stdout as JSON
         core.set_progress_report(|update| {
             // convert to output
@@ -310,7 +317,6 @@ fn run() -> Result<()> {
         });
 
         // set token if a credentials.json is found for the client name
-        let client_name = matches.value_of("client-name").unwrap();
         let tmc_dir = format!("tmc-{}", client_name);
 
         let config_dir = match env::var("TMC_LANGS_CONFIG_DIR") {
@@ -621,18 +627,40 @@ fn run() -> Result<()> {
                 None
             };
 
+            let dont_block = matches.is_present("dont-block");
+
             let new_submission = core
                 .submit(submission_url, submission_path, optional_locale)
                 .context("Failed to submit")?;
 
-            let output = Output {
-                status: Status::Successful,
-                message: None,
-                result: OutputResult::SentData,
-                percent_done: 1.0,
-                data: Some(new_submission),
-            };
-            print_output(&output)?;
+            if dont_block {
+                let output = Output {
+                    status: Status::Successful,
+                    message: None,
+                    result: OutputResult::SentData,
+                    percent_done: 1.0,
+                    data: Some(new_submission),
+                };
+
+                print_output(&output)?;
+            } else {
+                // same as wait-for-submission
+                let submission_url = new_submission.submission_url;
+                let submission_finished = core
+                    .wait_for_submission(&submission_url)
+                    .context("Failed while waiting for submissions")?;
+                let submission_finished = serde_json::to_string(&submission_finished)
+                    .context("Failed to serialize submission results")?;
+
+                let output = Output {
+                    status: Status::Successful,
+                    message: None,
+                    result: OutputResult::RetrievedData,
+                    percent_done: 1.0,
+                    data: Some(submission_finished),
+                };
+                print_output(&output)?;
+            }
         } else if let Some(matches) = matches.subcommand_matches("wait-for-submission") {
             let submission_url = matches.value_of("submission-url").unwrap();
             let submission_finished = core

@@ -47,6 +47,8 @@ pub struct TmcCore {
     auth_url: String,
     token: Option<Token>,
     progress_report: Option<UpdateClosure>,
+    client_name: String,
+    client_version: String,
 }
 
 // TODO: cache API results?
@@ -61,9 +63,14 @@ impl TmcCore {
     /// use tmc_langs_core::TmcCore;
     /// use std::path::PathBuf;
     ///
-    /// let core = TmcCore::new(PathBuf::from("./config"), "https://tmc.mooc.fi".to_string()).unwrap();
+    /// let core = TmcCore::new(PathBuf::from("./config"), "https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// ```
-    pub fn new(config_dir: PathBuf, root_url: String) -> Result<Self> {
+    pub fn new(
+        config_dir: PathBuf,
+        root_url: String,
+        client_name: String,
+        client_version: String,
+    ) -> Result<Self> {
         // guarantee a trailing slash, otherwise join will drop the last component
         let root_url = if root_url.ends_with('/') {
             root_url
@@ -83,6 +90,8 @@ impl TmcCore {
             auth_url,
             token: None,
             progress_report: None,
+            client_name,
+            client_version,
         })
     }
 
@@ -95,11 +104,15 @@ impl TmcCore {
     /// ```rust,no_run
     /// use tmc_langs_core::TmcCore;
     ///
-    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
+    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_ver".to_string()).unwrap();
     /// ```
-    pub fn new_in_config(root_url: String) -> Result<Self> {
+    pub fn new_in_config(
+        root_url: String,
+        client_name: String,
+        client_version: String,
+    ) -> Result<Self> {
         let config_dir = dirs::cache_dir().ok_or(CoreError::CacheDir)?;
-        Self::new(config_dir, root_url)
+        Self::new(config_dir, root_url, client_name, client_version)
     }
 
     pub fn set_token(&mut self, token: Token) {
@@ -145,7 +158,7 @@ impl TmcCore {
     /// ```rust,no_run
     /// use tmc_langs_core::TmcCore;
     ///
-    /// let mut core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
+    /// let mut core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// core.authenticate("client", "user".to_string(), "pass".to_string()).unwrap();
     /// ```
     pub fn authenticate(
@@ -214,7 +227,7 @@ impl TmcCore {
     /// use tmc_langs_core::TmcCore;
     /// use std::path::Path;
     ///
-    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
+    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// // authenticate
     /// core.download_or_update_exercises(vec![
     ///     (1234, Path::new("./exercises/1234")),
@@ -250,7 +263,7 @@ impl TmcCore {
     /// ```rust,no_run
     /// use tmc_langs_core::TmcCore;
     ///
-    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
+    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// // authenticate
     /// let course_details = core.get_course_details(600).unwrap();
     /// ```
@@ -275,7 +288,7 @@ impl TmcCore {
     /// ```rust,no_run
     /// use tmc_langs_core::TmcCore;
     ///
-    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
+    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// // authenticate
     /// let courses = core.list_courses("hy").unwrap();
     /// ```
@@ -297,7 +310,7 @@ impl TmcCore {
     /// use url::Url;
     /// use std::path::Path;
     ///
-    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
+    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// // authenticate
     /// let course_details = core.get_course_details(600).unwrap();
     /// let submission_url = &course_details.exercises[0].return_url;
@@ -335,7 +348,7 @@ impl TmcCore {
     /// use tmc_langs_core::{TmcCore, Language};
     /// use std::path::Path;
     ///
-    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
+    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// // authenticate
     /// let validation_result = core.run_checkstyle(Path::new("./exercises/python/123"), Language::Eng).unwrap();
     /// match validation_result {
@@ -418,10 +431,30 @@ impl TmcCore {
     }
 
     pub fn wait_for_submission(&self, submission_url: &str) -> Result<SubmissionFinished> {
+        let mut previous_status = None;
         loop {
             match self.check_submission(submission_url)? {
-                SubmissionProcessingStatus::Finished(f) => return Ok(*f),
-                SubmissionProcessingStatus::Processing(_p) => {
+                SubmissionProcessingStatus::Finished(f) => {
+                    self.report_complete("Submission finished processing!");
+                    return Ok(*f);
+                }
+                SubmissionProcessingStatus::Processing(p) => {
+                    match (&mut previous_status, p.sandbox_status) {
+                        (Some(previous), status) if status == *previous => {} // no change, ignore
+                        (_, status) => {
+                            // new status, update progress
+                            match status {
+                                SandboxStatus::Created => self.report_progress("Created", 0.25),
+                                SandboxStatus::SendingToSandbox => {
+                                    self.report_progress("Sending to sandbox", 0.5)
+                                }
+                                SandboxStatus::ProcessingOnSandbox => {
+                                    self.report_progress("Processing on sandbox", 0.75)
+                                }
+                            }
+                            previous_status = Some(status);
+                        }
+                    }
                     thread::sleep(Duration::from_secs(1));
                 }
             }
@@ -441,7 +474,7 @@ impl TmcCore {
     /// ```rust,no_run
     /// use tmc_langs_core::TmcCore;
     ///
-    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string()).unwrap();
+    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// // authenticate
     /// let mut checksums = std::collections::HashMap::new();
     /// checksums.insert(1234, "exercisechecksum".to_string());
@@ -573,7 +606,12 @@ mod test {
             .create();
         let local_server = mockito::server_url();
         log::debug!("local {}", local_server);
-        let mut core = TmcCore::new_in_config(local_server.to_string()).unwrap();
+        let mut core = TmcCore::new_in_config(
+            local_server.to_string(),
+            "some_client".to_string(),
+            "some_ver".to_string(),
+        )
+        .unwrap();
         core.authenticate("client_name", "email".to_string(), "password".to_string())
             .unwrap();
         (core, local_server)
@@ -583,6 +621,8 @@ mod test {
     fn gets_organizations() {
         let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/org.json")
+            .match_header("client", "some_client")
+            .match_header("client_version", "some_ver")
             .with_body(
                 serde_json::json!([
                     {
@@ -604,6 +644,8 @@ mod test {
     fn downloads_or_update_exercises() {
         let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/core/exercises/1234/download")
+            .match_header("client", "some_client")
+            .match_header("client_version", "some_ver")
             .with_body_from_file(Path::new("tests/data/81842.zip"))
             .create();
 
@@ -619,6 +661,8 @@ mod test {
     fn gets_course_details() {
         let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/core/courses/1234")
+            .match_header("client", "some_client")
+            .match_header("client_version", "some_ver")
             .with_body(serde_json::json!({
                 "course": {
                     "id": 588,
@@ -669,6 +713,8 @@ mod test {
     fn lists_courses() {
         let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/core/org/slug/courses")
+            .match_header("client", "some_client")
+            .match_header("client_version", "some_ver")
             .with_body(serde_json::json!([
                     {
                         "id": 277,
@@ -696,6 +742,8 @@ mod test {
         let (core, url) = init();
         let submission_url = Url::parse(&format!("{}/submission", url)).unwrap();
         let _m = mock("POST", "/submission")
+            .match_header("client", "some_client")
+            .match_header("client_version", "some_ver")
             .match_body(Matcher::Regex("paste".to_string()))
             .match_body(Matcher::Regex("message_for_paste".to_string()))
             .match_body(Matcher::Regex("abcdefg".to_string()))
@@ -738,6 +786,8 @@ mod test {
         let (core, url) = init();
         let feedback_url = Url::parse(&format!("{}/feedback", url)).unwrap();
         let _m = mock("POST", "/feedback")
+            .match_header("client", "some_client")
+            .match_header("client_version", "some_ver")
             .match_body(Matcher::AllOf(vec![
                 Matcher::Regex(r#"answers\[0\]\[question_id\]"#.to_string()),
                 Matcher::Regex(r#"answers\[0\]\[answer\]"#.to_string()),
@@ -780,6 +830,8 @@ mod test {
         let (core, url) = init();
         let submission_url = Url::parse(&format!("{}/submission", url)).unwrap();
         let _m = mock("POST", "/submission")
+            .match_header("client", "some_client")
+            .match_header("client_version", "some_ver")
             .match_body(Matcher::Regex(r#"submission\[file\]"#.to_string()))
             .with_body(
                 serde_json::json!({
@@ -808,6 +860,8 @@ mod test {
     fn gets_exercise_updates() {
         let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/core/courses/1234")
+            .match_header("client", "some_client")
+            .match_header("client_version", "some_ver")
             .with_body(serde_json::json!({
                 "course": {
                     "id": 588,
@@ -924,6 +978,8 @@ mod test {
         let (core, addr) = init();
         let reviews_url = Url::parse(&format!("{}/reviews", addr)).unwrap();
         let _m = mock("GET", "/reviews")
+            .match_header("client", "some_client")
+            .match_header("client_version", "some_ver")
             .with_body(
                 serde_json::json!([
                     {
@@ -955,6 +1011,8 @@ mod test {
         let (core, url) = init();
         let submission_url = Url::parse(&format!("{}/submission", url)).unwrap();
         let _m = mock("POST", "/submission")
+            .match_header("client", "some_client")
+            .match_header("client_version", "some_ver")
             .match_body(Matcher::Regex("request_review".to_string()))
             .match_body(Matcher::Regex("message_for_reviewer".to_string()))
             .match_body(Matcher::Regex("abcdefg".to_string()))
@@ -987,6 +1045,8 @@ mod test {
         let (core, addr) = init();
         let solution_url = Url::parse(&format!("{}/solution", addr)).unwrap();
         let _m = mock("GET", "/solution")
+            .match_header("client", "some_client")
+            .match_header("client_version", "some_ver")
             .with_body_from_file(Path::new("tests/data/81842.zip"))
             .create();
 
@@ -1001,6 +1061,8 @@ mod test {
     fn checks_submission_processing() {
         let (core, addr) = init();
         let _m = mock("GET", "/submission-url")
+            .match_header("client", "some_client")
+            .match_header("client_version", "some_ver")
             .with_body(
                 serde_json::json!({
                   "status": "processing",
@@ -1023,7 +1085,8 @@ mod test {
     #[test]
     fn checks_submission_finished() {
         let (core, addr) = init();
-        let _m = mock("GET", "/submission-url").with_body(serde_json::json!({
+        let m = mock("GET", "/submission-url")
+            .with_body(serde_json::json!({
             "api_version": 7,
             "all_tests_passed": true,
             "user_id": 3232,

@@ -188,6 +188,11 @@ pub fn create_app() -> App<'static, 'static> {
                 .long("client-name")
                 .required(true)
                 .takes_value(true))
+            .arg(Arg::with_name("client-version")
+                .help("Client version")
+                .long("client-version")
+                .required(true)
+                .takes_value(true))
 
             .subcommand(SubCommand::with_name("login")
                 .about("Login and store OAuth2 token in config. You can login either by email and password or an access token.")
@@ -301,7 +306,7 @@ pub fn create_app() -> App<'static, 'static> {
                     .multiple(true)))
 
             .subcommand(SubCommand::with_name("submit")
-                .about("Submit exercise.")
+                .about("Submit exercise. Will block until the submission results are returned.")
                 .arg(Arg::with_name("submission-url")
                     .help("URL where the submission should be posted.")
                     .long("submission-url")
@@ -315,7 +320,10 @@ pub fn create_app() -> App<'static, 'static> {
                 .arg(Arg::with_name("locale")
                     .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")                    
                     .long("locale")
-                    .takes_value(true)))
+                    .takes_value(true))
+                .arg(Arg::with_name("dont-block")
+                    .help("Set to avoid blocking.")
+                    .long("dont-block")))
 
             .subcommand(SubCommand::with_name("wait-for-submission")
                 .about("Wait for a submission to finish.")
