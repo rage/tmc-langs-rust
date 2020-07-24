@@ -76,7 +76,16 @@ fn run() -> Result<()> {
         let locale = matches.value_of("locale").unwrap();
         let locale = into_locale(locale)?;
 
-        run_checkstyle(exercise_path, output_path, locale)?
+        run_checkstyle(exercise_path, output_path, locale)?;
+
+        let output = Output::<()> {
+            status: Status::Successful,
+            message: Some("ran checkstyle".to_string()),
+            result: OutputResult::ExecutedCommand,
+            percent_done: 1.0,
+            data: None,
+        };
+        print_output(&output)?
     } else if let Some(matches) = matches.subcommand_matches("compress-project") {
         let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
@@ -97,6 +106,19 @@ fn run() -> Result<()> {
                 output_path.display()
             )
         })?;
+
+        let output = Output::<()> {
+            status: Status::Successful,
+            message: Some(format!(
+                "compressed project from {} to {}",
+                exercise_path.display(),
+                output_path.display()
+            )),
+            result: OutputResult::ExecutedCommand,
+            percent_done: 1.0,
+            data: None,
+        };
+        print_output(&output)?
     } else if let Some(matches) = matches.subcommand_matches("extract-project") {
         let archive_path = matches.value_of("archive-path").unwrap();
         let archive_path = Path::new(archive_path);
@@ -106,6 +128,19 @@ fn run() -> Result<()> {
 
         task_executor::extract_project(archive_path, output_path)
             .with_context(|| format!("Failed to extract project at {}", output_path.display()))?;
+
+        let output = Output::<()> {
+            status: Status::Successful,
+            message: Some(format!(
+                "extracted project from {} to {}",
+                archive_path.display(),
+                output_path.display()
+            )),
+            result: OutputResult::ExecutedCommand,
+            percent_done: 1.0,
+            data: None,
+        };
+        print_output(&output)?
     } else if let Some(matches) = matches.subcommand_matches("prepare-solutions") {
         let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
@@ -120,6 +155,19 @@ fn run() -> Result<()> {
                     exercise_path.display(),
                 )
             })?;
+
+        let output = Output::<()> {
+            status: Status::Successful,
+            message: Some(format!(
+                "prepared solutions for {} at {}",
+                exercise_path.display(),
+                output_path.display()
+            )),
+            result: OutputResult::ExecutedCommand,
+            percent_done: 1.0,
+            data: None,
+        };
+        print_output(&output)?
     } else if let Some(matches) = matches.subcommand_matches("prepare-stubs") {
         let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
@@ -135,6 +183,19 @@ fn run() -> Result<()> {
                 exercise_path.display(),
             )
         })?;
+
+        let output = Output::<()> {
+            status: Status::Successful,
+            message: Some(format!(
+                "prepared stubs for {} at {}",
+                exercise_path.display(),
+                output_path.display()
+            )),
+            result: OutputResult::ExecutedCommand,
+            percent_done: 1.0,
+            data: None,
+        };
+        print_output(&output)?
     } else if let Some(matches) = matches.subcommand_matches("prepare-submission") {
         let submission_path = matches.value_of("submission-path").unwrap();
         let submission_path = Path::new(submission_path);
@@ -191,6 +252,19 @@ fn run() -> Result<()> {
             stub_zip_path,
             output_zip,
         )?;
+
+        let output = Output::<()> {
+            status: Status::Successful,
+            message: Some(format!(
+                "prepared submission for {} at {}",
+                submission_path.display(),
+                output_path.display()
+            )),
+            result: OutputResult::ExecutedCommand,
+            percent_done: 1.0,
+            data: None,
+        };
+        print_output(&output)?
     } else if let Some(matches) = matches.subcommand_matches("run-tests") {
         let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
@@ -216,6 +290,15 @@ fn run() -> Result<()> {
 
             run_checkstyle(exercise_path, checkstyle_output_path, locale)?;
         }
+
+        let output = Output {
+            status: Status::Successful,
+            message: Some(format!("ran tests for {}", exercise_path.display(),)),
+            result: OutputResult::ExecutedCommand,
+            percent_done: 1.0,
+            data: Some(test_result),
+        };
+        print_output(&output)?
     } else if let Some(matches) = matches.subcommand_matches("scan-exercise") {
         let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
@@ -241,6 +324,15 @@ fn run() -> Result<()> {
             .with_context(|| format!("Failed to scan exercise at {}", exercise_path.display()))?;
 
         write_result_to_file_as_json(&scan_result, output_path)?;
+
+        let output = Output {
+            status: Status::Successful,
+            message: Some(format!("scanned exercise at {}", exercise_path.display(),)),
+            result: OutputResult::ExecutedCommand,
+            percent_done: 1.0,
+            data: Some(scan_result),
+        };
+        print_output(&output)?
     } else if let Some(matches) = matches.subcommand_matches("find-exercises") {
         let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
@@ -265,6 +357,15 @@ fn run() -> Result<()> {
         }
 
         write_result_to_file_as_json(&exercises, output_path)?;
+
+        let output = Output {
+            status: Status::Successful,
+            message: Some(format!("found exercises at {}", exercise_path.display(),)),
+            result: OutputResult::ExecutedCommand,
+            percent_done: 1.0,
+            data: Some(exercises),
+        };
+        print_output(&output)?
     } else if let Some(matches) = matches.subcommand_matches("get-exercise-packaging-configuration")
     {
         let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -282,12 +383,33 @@ fn run() -> Result<()> {
             })?;
 
         write_result_to_file_as_json(&config, output_path)?;
+
+        let output = Output {
+            status: Status::Successful,
+            message: Some(format!(
+                "created exercise packaging config from {}",
+                exercise_path.display(),
+            )),
+            result: OutputResult::ExecutedCommand,
+            percent_done: 1.0,
+            data: Some(config),
+        };
+        print_output(&output)?
     } else if let Some(matches) = matches.subcommand_matches("clean") {
         let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
 
         task_executor::clean(exercise_path)
             .with_context(|| format!("Failed to clean exercise at {}", exercise_path.display(),))?;
+
+        let output = Output::<()> {
+            status: Status::Successful,
+            message: Some(format!("cleaned exercise at {}", exercise_path.display(),)),
+            result: OutputResult::ExecutedCommand,
+            percent_done: 1.0,
+            data: None,
+        };
+        print_output(&output)?
     }
 
     // core
