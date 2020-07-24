@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.21/src/stream/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.22/src/stream/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -830,6 +830,11 @@
 <span id="830">830</span>
 <span id="831">831</span>
 <span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Stream utilities for Tokio.</span>
 <span class="doccomment">//!</span>
@@ -1025,11 +1030,16 @@
     <span class="doccomment">/// Values are produced from the merged stream in the order they arrive from</span>
     <span class="doccomment">/// the two source streams. If both source streams provide values</span>
     <span class="doccomment">/// simultaneously, the merge stream alternates between them. This provides</span>
-    <span class="doccomment">/// some level of fairness.</span>
+    <span class="doccomment">/// some level of fairness. You should not chain calls to `merge`, as this</span>
+    <span class="doccomment">/// will break the fairness of the merging.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The merged stream completes once **both** source streams complete. When</span>
     <span class="doccomment">/// one source stream completes before the other, the merge stream</span>
     <span class="doccomment">/// exclusively polls the remaining stream.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// For merging multiple streams, consider using [`StreamMap`] instead.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`StreamMap`]: crate::stream::StreamMap</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1136,7 +1146,7 @@
     <span class="doccomment">/// As values of this stream are made available, the provided function will</span>
     <span class="doccomment">/// be run on them. If the predicate `f` resolves to</span>
     <span class="doccomment">/// [`Some(item)`](Some) then the stream will yield the value `item`, but if</span>
-    <span class="doccomment">/// it resolves to [`None`], then the value value will be skipped.</span>
+    <span class="doccomment">/// it resolves to [`None`], then the value will be skipped.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Note that this function consumes the stream passed into it and returns a</span>
     <span class="doccomment">/// wrapped version of it, similar to [`Iterator::filter_map`] method in the</span>
@@ -1530,7 +1540,7 @@
     <span class="doccomment">/// # Notes</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// `FromStream` is currently a sealed trait. Stabilization is pending</span>
-    <span class="doccomment">/// enhancements to the Rust langague.</span>
+    <span class="doccomment">/// enhancements to the Rust language.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1664,4 +1674,4 @@
     (<span class="ident">low</span>, <span class="ident">high</span>)
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "tokio";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "tokio";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

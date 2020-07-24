@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.21/src/sync/oneshot.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>oneshot.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.22/src/sync/oneshot.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>oneshot.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -782,6 +782,17 @@
 <span id="782">782</span>
 <span id="783">783</span>
 <span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sync&quot;</span>), <span class="ident">allow</span>(<span class="ident">dead_code</span>, <span class="ident">unreachable_pub</span>))]</span>
 
@@ -929,8 +940,11 @@
     <span class="doccomment">/// Attempts to send a value on this channel, returning it back if it could</span>
     <span class="doccomment">/// not be sent.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The function consumes `self` as only one value may ever be sent on a</span>
-    <span class="doccomment">/// one-shot channel.</span>
+    <span class="doccomment">/// This method consumes `self` as only one value may ever be sent on a oneshot</span>
+    <span class="doccomment">/// channel. It is not marked async because sending a message to an oneshot</span>
+    <span class="doccomment">/// channel never requires any form of waiting.  Because of this, the `send`</span>
+    <span class="doccomment">/// method can be used in both synchronous and asynchronous code without</span>
+    <span class="doccomment">/// problems.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A successful send occurs when it is determined that the other end of the</span>
     <span class="doccomment">/// channel has not hung up already. An unsuccessful send would be one where</span>
@@ -982,13 +996,14 @@
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span> <span class="comment">// TODO: remove</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_closed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Keep track of task budget</span>
-        <span class="macro">ready</span><span class="macro">!</span>(<span class="kw">crate</span>::<span class="ident">coop</span>::<span class="ident">poll_proceed</span>(<span class="ident">cx</span>));
+        <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">ready</span><span class="macro">!</span>(<span class="kw">crate</span>::<span class="ident">coop</span>::<span class="ident">poll_proceed</span>(<span class="ident">cx</span>));
 
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State</span>::<span class="ident">load</span>(<span class="kw-2">&amp;</span><span class="ident">inner</span>.<span class="ident">state</span>, <span class="ident">Acquire</span>);
 
         <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_closed</span>() {
+            <span class="ident">coop</span>.<span class="ident">made_progress</span>();
             <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(());
         }
 
@@ -1001,6 +1016,7 @@
                 <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_closed</span>() {
                     <span class="comment">// Set the flag again so that the waker is released in drop</span>
                     <span class="ident">State</span>::<span class="ident">set_tx_task</span>(<span class="kw-2">&amp;</span><span class="ident">inner</span>.<span class="ident">state</span>);
+                    <span class="ident">coop</span>.<span class="ident">made_progress</span>();
                     <span class="kw">return</span> <span class="ident">Ready</span>(());
                 } <span class="kw">else</span> {
                     <span class="kw">unsafe</span> { <span class="ident">inner</span>.<span class="ident">drop_tx_task</span>() };
@@ -1018,6 +1034,7 @@
             <span class="ident">state</span> <span class="op">=</span> <span class="ident">State</span>::<span class="ident">set_tx_task</span>(<span class="kw-2">&amp;</span><span class="ident">inner</span>.<span class="ident">state</span>);
 
             <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_closed</span>() {
+                <span class="ident">coop</span>.<span class="ident">made_progress</span>();
                 <span class="kw">return</span> <span class="ident">Ready</span>(());
             }
         }
@@ -1145,7 +1162,7 @@
     <span class="doccomment">/// Prevents the associated [`Sender`] handle from sending a value.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Any `send` operation which happens after calling `close` is guaranteed</span>
-    <span class="doccomment">/// to fail. After calling `close`, `Receiver::poll`] should be called to</span>
+    <span class="doccomment">/// to fail. After calling `close`, [`try_recv`] should be called to</span>
     <span class="doccomment">/// receive a value if one was sent **before** the call to `close`</span>
     <span class="doccomment">/// completed.</span>
     <span class="doccomment">///</span>
@@ -1153,6 +1170,7 @@
     <span class="doccomment">/// value will not be sent into the channel and never received.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Sender`]: Sender</span>
+    <span class="doccomment">/// [`try_recv`]: Receiver::try_recv</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1333,17 +1351,19 @@
 
     <span class="kw">fn</span> <span class="ident">poll_recv</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">RecvError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// Keep track of task budget</span>
-        <span class="macro">ready</span><span class="macro">!</span>(<span class="kw">crate</span>::<span class="ident">coop</span>::<span class="ident">poll_proceed</span>(<span class="ident">cx</span>));
+        <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">ready</span><span class="macro">!</span>(<span class="kw">crate</span>::<span class="ident">coop</span>::<span class="ident">poll_proceed</span>(<span class="ident">cx</span>));
 
         <span class="comment">// Load the state</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State</span>::<span class="ident">load</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>, <span class="ident">Acquire</span>);
 
         <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_complete</span>() {
+            <span class="ident">coop</span>.<span class="ident">made_progress</span>();
             <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">consume_value</span>() } {
                 <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">value</span>)),
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">RecvError</span>(()))),
             }
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_closed</span>() {
+            <span class="ident">coop</span>.<span class="ident">made_progress</span>();
             <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">RecvError</span>(())))
         } <span class="kw">else</span> {
             <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_rx_task_set</span>() {
@@ -1357,6 +1377,7 @@
                         <span class="comment">// Set the flag again so that the waker is released in drop</span>
                         <span class="ident">State</span>::<span class="ident">set_rx_task</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>);
 
+                        <span class="ident">coop</span>.<span class="ident">made_progress</span>();
                         <span class="kw">return</span> <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">consume_value</span>() } {
                             <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">value</span>)),
                             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">RecvError</span>(()))),
@@ -1377,6 +1398,7 @@
                 <span class="ident">state</span> <span class="op">=</span> <span class="ident">State</span>::<span class="ident">set_rx_task</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>);
 
                 <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_complete</span>() {
+                    <span class="ident">coop</span>.<span class="ident">made_progress</span>();
                     <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">consume_value</span>() } {
                         <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">value</span>)),
                         <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">RecvError</span>(()))),
@@ -1568,4 +1590,4 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "tokio";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "tokio";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

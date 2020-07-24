@@ -297,6 +297,8 @@
 <span id="297">297</span>
 <span id="298">298</span>
 <span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Common functionality for all Java plugins</span>
 
@@ -451,8 +453,10 @@
         <span class="ident">exercise_name</span>: <span class="ident">String</span>,
         <span class="ident">compile_result</span>: <span class="ident">CompileResult</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span>, <span class="ident">JavaError</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">Self</span>::<span class="ident">is_exercise_type_correct</span>(<span class="ident">path</span>) <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">compile_result</span>.<span class="ident">status_code</span>.<span class="ident">success</span>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">Self</span>::<span class="ident">is_exercise_type_correct</span>(<span class="ident">path</span>) {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JavaError</span>::<span class="ident">InvalidExercise</span>(<span class="ident">path</span>.<span class="ident">to_path_buf</span>()));
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">compile_result</span>.<span class="ident">status_code</span>.<span class="ident">success</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JavaError</span>::<span class="ident">Compilation</span>(<span class="ident">compile_result</span>.<span class="ident">stderr</span>));
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">source_files</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
@@ -598,4 +602,4 @@ openjdk version &quot;1.8.0_252&quot;
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "tmc_langs_java";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "tmc_langs_java";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

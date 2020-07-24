@@ -63,6 +63,17 @@
 <span id="63">63</span>
 <span id="64">64</span>
 <span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">io</span>::<span class="ident">zip</span>;
 
@@ -70,6 +81,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 <span class="kw">use</span> <span class="ident">thiserror</span>::<span class="ident">Error</span>;
 
+<span class="comment">// todo: make util error type and move variants there</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Error</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TmcError</span> {
     <span class="comment">// IO</span>
@@ -83,10 +95,14 @@
     <span class="ident">CreateDir</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to remove dir at {0}&quot;</span>)]</span>
     <span class="ident">RemoveDir</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to create temporary directory&quot;</span>)]</span>
+    <span class="ident">TempDir</span>(<span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to rename {0} to {1}&quot;</span>)]</span>
     <span class="ident">Rename</span>(<span class="ident">PathBuf</span>, <span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to write to {0}&quot;</span>)]</span>
     <span class="ident">Write</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to read zip archive at {0}&quot;</span>)]</span>
+    <span class="ident">ZipRead</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Error appending to tar&quot;</span>)]</span>
     <span class="ident">TarAppend</span>(<span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Error finishing tar&quot;</span>)]</span>
@@ -103,6 +119,10 @@
     <span class="ident">Canonicalize</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Error occurred in a child process&quot;</span>)]</span>
     <span class="ident">Process</span>(<span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to set permissions for {0}&quot;</span>)]</span>
+    <span class="ident">SetPermissions</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Invalid parameter value: {0}&quot;</span>)]</span>
+    <span class="ident">InvalidParam</span>(<span class="ident">String</span>),
 
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Path {0} contained invalid UTF8&quot;</span>)]</span>
     <span class="ident">UTF8</span>(<span class="ident">PathBuf</span>),
@@ -128,6 +148,8 @@
     <span class="ident">YamlDeserialization</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">serde_yaml</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
     <span class="ident">ZipError</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">zip</span>::<span class="ident">ZipError</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
+    <span class="ident">WalkDir</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">walkdir</span>::<span class="ident">Error</span>),
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "tmc_langs_framework";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "tmc_langs_framework";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

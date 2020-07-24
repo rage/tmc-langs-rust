@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.21/src/net/tcp/listener.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>listener.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../tokio/index.html'><div class='logo-container'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.22/src/net/tcp/listener.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>listener.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../tokio/index.html'><div class='logo-container'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -441,6 +441,29 @@
 <span id="441">441</span>
 <span id="442">442</span>
 <span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">future</span>::<span class="ident">poll_fn</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">io</span>::<span class="ident">PollEvented</span>;
@@ -516,7 +539,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">TcpListener</span> {
-    <span class="doccomment">/// Creates a new TcpListener which will be bound to the specified address.</span>
+    <span class="doccomment">/// Creates a new TcpListener, which will be bound to the specified address.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The returned listener is ready for accepting connections.</span>
     <span class="doccomment">///</span>
@@ -524,7 +547,9 @@
     <span class="doccomment">/// to this listener. The port allocated can be queried via the `local_addr`</span>
     <span class="doccomment">/// method.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The address type can be any implementor of `ToSocketAddrs` trait.</span>
+    <span class="doccomment">/// The address type can be any implementor of the [`ToSocketAddrs`] trait.</span>
+    <span class="doccomment">/// Note that strings only implement this trait when the **`dns`** feature</span>
+    <span class="doccomment">/// is enabled, as strings may contain domain names that need to be resolved.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If `addr` yields multiple addresses, bind will be attempted with each of</span>
     <span class="doccomment">/// the addresses until one succeeds and returns the listener. If none of</span>
@@ -532,6 +557,8 @@
     <span class="doccomment">/// the last attempt (the last address) is returned.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function sets the `SO_REUSEADDR` option on the socket.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`ToSocketAddrs`]: trait@crate::net::ToSocketAddrs</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -542,7 +569,26 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// #[tokio::main]</span>
     <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
-    <span class="doccomment">///     let listener = TcpListener::bind(&quot;127.0.0.1:0&quot;).await?;</span>
+    <span class="doccomment">///     let listener = TcpListener::bind(&quot;127.0.0.1:2345&quot;).await?;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">///     // use the listener</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">///     # let _ = listener;</span>
+    <span class="doccomment">///     Ok(())</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Without the `dns` feature:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```no_run</span>
+    <span class="doccomment">/// use tokio::net::TcpListener;</span>
+    <span class="doccomment">/// use std::net::Ipv4Addr;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// use std::io;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// #[tokio::main]</span>
+    <span class="doccomment">/// async fn main() -&gt; io::Result&lt;()&gt; {</span>
+    <span class="doccomment">///     let listener = TcpListener::bind((Ipv4Addr::new(127, 0, 0, 1), 2345)).await?;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">///     // use the listener</span>
     <span class="doccomment">///</span>
@@ -766,7 +812,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// For more information about this option, see [`set_ttl`].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`set_ttl`]: #method.set_ttl</span>
+    <span class="doccomment">/// [`set_ttl`]: method@Self::set_ttl</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -886,4 +932,4 @@
     <span class="comment">// }</span>
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../";window.currentCrate = "tokio";</script><script src="../../../../aliases.js"></script><script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script><script defer src="../../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../";window.currentCrate = "tokio";</script><script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script><script defer src="../../../../search-index.js"></script></body></html>
