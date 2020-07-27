@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustls-0.17.0/src/server/hs.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>hs.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../rustls/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustls-0.18.0/src/server/hs.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>hs.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../rustls/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -804,16 +804,6 @@
 <span id="804">804</span>
 <span id="805">805</span>
 <span id="806">806</span>
-<span id="807">807</span>
-<span id="808">808</span>
-<span id="809">809</span>
-<span id="810">810</span>
-<span id="811">811</span>
-<span id="812">812</span>
-<span id="813">813</span>
-<span id="814">814</span>
-<span id="815">815</span>
-<span id="816">816</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::{<span class="ident">ContentType</span>, <span class="ident">HandshakeType</span>, <span class="ident">ProtocolVersion</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::{<span class="ident">Compression</span>, <span class="ident">NamedGroup</span>, <span class="ident">ECPointFormat</span>, <span class="ident">CipherSuite</span>};
@@ -835,13 +825,11 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">session</span>::<span class="ident">SessionSecrets</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">server</span>::{<span class="ident">ServerSessionImpl</span>, <span class="ident">ServerConfig</span>, <span class="ident">ClientHello</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">suites</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">verify</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">rand</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">sign</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;logging&quot;</span>)]</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">log</span>::{<span class="ident">trace</span>, <span class="ident">debug</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">TLSError</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">handshake</span>::<span class="ident">check_handshake_message</span>;
 <span class="kw">use</span> <span class="ident">webpki</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;quic&quot;</span>)]</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">session</span>::<span class="ident">Protocol</span>;
@@ -849,24 +837,10 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">server</span>::<span class="ident">common</span>::{<span class="ident">HandshakeDetails</span>, <span class="ident">ServerKXDetails</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">server</span>::{<span class="ident">tls12</span>, <span class="ident">tls13</span>};
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">extract_handshake</span>(
-  ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">path</span> ) <span class="op">=</span><span class="op">&gt;</span> (
-    <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">m</span>.<span class="ident">payload</span> {
-      <span class="ident">MessagePayload</span>::<span class="ident">Handshake</span>(<span class="kw-2">ref</span> <span class="ident">hsp</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">hsp</span>.<span class="ident">payload</span> {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>(<span class="kw-2">ref</span> <span class="ident">hm</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">hm</span>),
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>
-      },
-      <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>
-    }
-  )
-);
-
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CheckResult</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TLSError</span><span class="op">&gt;</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NextState</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">State</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NextStateOrError</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NextState</span>, <span class="ident">TLSError</span><span class="op">&gt;</span>;
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">State</span> {
-    <span class="kw">fn</span> <span class="ident">check_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">m</span>: <span class="kw-2">&amp;</span><span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CheckResult</span>;
     <span class="kw">fn</span> <span class="ident">handle</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">sess</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ServerSessionImpl</span>, <span class="ident">m</span>: <span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NextStateOrError</span>;
 
     <span class="kw">fn</span> <span class="ident">export_keying_material</span>(<span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -942,7 +916,8 @@
 <span class="comment">// which is illegal.  Not mentioned in RFC.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_aligned_handshake</span>(<span class="ident">sess</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ServerSessionImpl</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TLSError</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="op">!</span><span class="ident">sess</span>.<span class="ident">common</span>.<span class="ident">handshake_joiner</span>.<span class="ident">is_empty</span>() {
-        <span class="prelude-val">Err</span>(<span class="ident">illegal_param</span>(<span class="ident">sess</span>, <span class="string">&quot;keys changed with pending hs fragment&quot;</span>))
+        <span class="ident">sess</span>.<span class="ident">common</span>.<span class="ident">send_fatal_alert</span>(<span class="ident">AlertDescription</span>::<span class="ident">UnexpectedMessage</span>);
+        <span class="prelude-val">Err</span>(<span class="ident">TLSError</span>::<span class="ident">PeerMisbehavedError</span>(<span class="string">&quot;key epoch or handshake flight with pending fragment&quot;</span>.<span class="ident">to_string</span>()))
     } <span class="kw">else</span> {
         <span class="prelude-val">Ok</span>(())
     }
@@ -1281,11 +1256,13 @@
     }
 
     <span class="kw">fn</span> <span class="ident">emit_certificate_req</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">sess</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ServerSessionImpl</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">TLSError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">client_auth</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">sess</span>.<span class="ident">config</span>.<span class="ident">verifier</span>;
+        <span class="kw">let</span> <span class="ident">client_auth</span> <span class="op">=</span> <span class="ident">sess</span>.<span class="ident">config</span>.<span class="ident">get_verifier</span>();
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">client_auth</span>.<span class="ident">offer_client_auth</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
         }
+
+        <span class="kw">let</span> <span class="ident">verify_schemes</span> <span class="op">=</span> <span class="ident">client_auth</span>.<span class="ident">supported_verify_schemes</span>();
 
         <span class="kw">let</span> <span class="ident">names</span> <span class="op">=</span> <span class="ident">client_auth</span>.<span class="ident">client_auth_root_subjects</span>(<span class="ident">sess</span>.<span class="ident">get_sni</span>())
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
@@ -1297,7 +1274,7 @@
         <span class="kw">let</span> <span class="ident">cr</span> <span class="op">=</span> <span class="ident">CertificateRequestPayload</span> {
             <span class="ident">certtypes</span>: <span class="macro">vec</span><span class="macro">!</span>[ <span class="ident">ClientCertificateType</span>::<span class="ident">RSASign</span>,
                          <span class="ident">ClientCertificateType</span>::<span class="ident">ECDSASign</span> ],
-            <span class="ident">sigschemes</span>: <span class="ident">verify</span>::<span class="ident">supported_verify_schemes</span>().<span class="ident">to_vec</span>(),
+            <span class="ident">sigschemes</span>: <span class="ident">verify_schemes</span>,
             <span class="ident">canames</span>: <span class="ident">names</span>,
         };
 
@@ -1373,12 +1350,8 @@
 }
 
 <span class="kw">impl</span> <span class="ident">State</span> <span class="kw">for</span> <span class="ident">ExpectClientHello</span> {
-    <span class="kw">fn</span> <span class="ident">check_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">m</span>: <span class="kw-2">&amp;</span><span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CheckResult</span> {
-        <span class="ident">check_handshake_message</span>(<span class="ident">m</span>, <span class="kw-2">&amp;</span>[<span class="ident">HandshakeType</span>::<span class="ident">ClientHello</span>])
-    }
-
     <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">sess</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ServerSessionImpl</span>, <span class="ident">m</span>: <span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NextStateOrError</span> {
-        <span class="kw">let</span> <span class="ident">client_hello</span> <span class="op">=</span> <span class="macro">extract_handshake</span><span class="macro">!</span>(<span class="ident">m</span>, <span class="ident">HandshakePayload</span>::<span class="ident">ClientHello</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">client_hello</span> <span class="op">=</span> <span class="macro">require_handshake_msg</span><span class="macro">!</span>(<span class="ident">m</span>, <span class="ident">HandshakeType</span>::<span class="ident">ClientHello</span>, <span class="ident">HandshakePayload</span>::<span class="ident">ClientHello</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">tls13_enabled</span> <span class="op">=</span> <span class="ident">sess</span>.<span class="ident">config</span>.<span class="ident">supports_version</span>(<span class="ident">ProtocolVersion</span>::<span class="ident">TLSv1_3</span>);
         <span class="kw">let</span> <span class="ident">tls12_enabled</span> <span class="op">=</span> <span class="ident">sess</span>.<span class="ident">config</span>.<span class="ident">supports_version</span>(<span class="ident">ProtocolVersion</span>::<span class="ident">TLSv1_2</span>);
         <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;we got a clienthello {:?}&quot;</span>, <span class="ident">client_hello</span>);
@@ -1392,6 +1365,9 @@
         <span class="kw">if</span> <span class="ident">client_hello</span>.<span class="ident">has_duplicate_extension</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">decode_error</span>(<span class="ident">sess</span>, <span class="string">&quot;client sent duplicate extensions&quot;</span>));
         }
+
+        <span class="comment">// No handshake messages should follow this one in this flight.</span>
+        <span class="ident">check_aligned_handshake</span>(<span class="ident">sess</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// Are we doing TLS1.3?</span>
         <span class="kw">let</span> <span class="ident">maybe_versions_ext</span> <span class="op">=</span> <span class="ident">client_hello</span>.<span class="ident">get_versions_extension</span>();
@@ -1432,6 +1408,11 @@
             },
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         };
+
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">done_retry</span> {
+            <span class="comment">// save only the first SNI</span>
+            <span class="ident">save_sni</span>(<span class="ident">sess</span>, <span class="ident">sni</span>.<span class="ident">clone</span>());
+        }
 
         <span class="comment">// We communicate to the upper layer what kind of key they should choose</span>
         <span class="comment">// via the sigschemes value.  Clients tend to treat this extension</span>
@@ -1505,11 +1486,10 @@
 
         <span class="kw">if</span> <span class="ident">sess</span>.<span class="ident">common</span>.<span class="ident">is_tls13</span>() {
             <span class="kw">return</span> <span class="self">self</span>.<span class="ident">into_complete_tls13_client_hello_handling</span>()
-                .<span class="ident">handle_client_hello</span>(<span class="ident">sess</span>, <span class="ident">sni</span>, <span class="ident">certkey</span>, <span class="kw-2">&amp;</span><span class="ident">m</span>);
+                .<span class="ident">handle_client_hello</span>(<span class="ident">sess</span>, <span class="ident">certkey</span>, <span class="kw-2">&amp;</span><span class="ident">m</span>);
         }
 
         <span class="comment">// -- TLS1.2 only from hereon in --</span>
-        <span class="ident">save_sni</span>(<span class="ident">sess</span>, <span class="ident">sni</span>.<span class="ident">clone</span>());
         <span class="self">self</span>.<span class="ident">handshake</span>.<span class="ident">transcript</span>.<span class="ident">add_message</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>);
 
         <span class="kw">if</span> <span class="ident">client_hello</span>.<span class="ident">ems_support_offered</span>() {

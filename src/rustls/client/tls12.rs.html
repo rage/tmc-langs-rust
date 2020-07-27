@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustls-0.17.0/src/client/tls12.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tls12.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../rustls/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustls-0.18.0/src/client/tls12.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tls12.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../rustls/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -741,50 +741,6 @@
 <span id="741">741</span>
 <span id="742">742</span>
 <span id="743">743</span>
-<span id="744">744</span>
-<span id="745">745</span>
-<span id="746">746</span>
-<span id="747">747</span>
-<span id="748">748</span>
-<span id="749">749</span>
-<span id="750">750</span>
-<span id="751">751</span>
-<span id="752">752</span>
-<span id="753">753</span>
-<span id="754">754</span>
-<span id="755">755</span>
-<span id="756">756</span>
-<span id="757">757</span>
-<span id="758">758</span>
-<span id="759">759</span>
-<span id="760">760</span>
-<span id="761">761</span>
-<span id="762">762</span>
-<span id="763">763</span>
-<span id="764">764</span>
-<span id="765">765</span>
-<span id="766">766</span>
-<span id="767">767</span>
-<span id="768">768</span>
-<span id="769">769</span>
-<span id="770">770</span>
-<span id="771">771</span>
-<span id="772">772</span>
-<span id="773">773</span>
-<span id="774">774</span>
-<span id="775">775</span>
-<span id="776">776</span>
-<span id="777">777</span>
-<span id="778">778</span>
-<span id="779">779</span>
-<span id="780">780</span>
-<span id="781">781</span>
-<span id="782">782</span>
-<span id="783">783</span>
-<span id="784">784</span>
-<span id="785">785</span>
-<span id="786">786</span>
-<span id="787">787</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::{<span class="ident">ContentType</span>, <span class="ident">HandshakeType</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::{<span class="ident">ProtocolVersion</span>, <span class="ident">AlertDescription</span>};
@@ -794,7 +750,6 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">handshake</span>::<span class="ident">DecomposedSignatureScheme</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">handshake</span>::<span class="ident">ServerKeyExchangePayload</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">handshake</span>::<span class="ident">DigitallySignedStruct</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::<span class="ident">ClientCertificateType</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">codec</span>::<span class="ident">Codec</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">persist</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">ccs</span>::<span class="ident">ChangeCipherSpecPayload</span>;
@@ -804,9 +759,9 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">verify</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ticketer</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;logging&quot;</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">trace</span>, <span class="ident">warn</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">trace</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">TLSError</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">handshake</span>::{<span class="ident">check_message</span>, <span class="ident">check_handshake_message</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">check</span>::<span class="ident">check_message</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">client</span>::<span class="ident">common</span>::{<span class="ident">ServerCertDetails</span>, <span class="ident">ServerKXDetails</span>, <span class="ident">HandshakeDetails</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">client</span>::<span class="ident">common</span>::{<span class="ident">ReceivedTicketDetails</span>, <span class="ident">ClientAuthDetails</span>};
@@ -841,12 +796,8 @@
 }
 
 <span class="kw">impl</span> <span class="ident">hs</span>::<span class="ident">State</span> <span class="kw">for</span> <span class="ident">ExpectCertificate</span> {
-    <span class="kw">fn</span> <span class="ident">check_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">m</span>: <span class="kw-2">&amp;</span><span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TLSError</span><span class="op">&gt;</span> {
-        <span class="ident">check_handshake_message</span>(<span class="ident">m</span>, <span class="kw-2">&amp;</span>[<span class="ident">HandshakeType</span>::<span class="ident">Certificate</span>])
-    }
-
     <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">_sess</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ClientSessionImpl</span>, <span class="ident">m</span>: <span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">hs</span>::<span class="ident">NextStateOrError</span> {
-        <span class="kw">let</span> <span class="ident">cert_chain</span> <span class="op">=</span> <span class="macro">extract_handshake</span><span class="macro">!</span>(<span class="ident">m</span>, <span class="ident">HandshakePayload</span>::<span class="ident">Certificate</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">cert_chain</span> <span class="op">=</span> <span class="macro">require_handshake_msg</span><span class="macro">!</span>(<span class="ident">m</span>, <span class="ident">HandshakeType</span>::<span class="ident">Certificate</span>, <span class="ident">HandshakePayload</span>::<span class="ident">Certificate</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">handshake</span>.<span class="ident">transcript</span>.<span class="ident">add_message</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>);
 
         <span class="self">self</span>.<span class="ident">server_cert</span>.<span class="ident">cert_chain</span> <span class="op">=</span> <span class="ident">cert_chain</span>.<span class="ident">clone</span>();
@@ -876,16 +827,12 @@
 }
 
 <span class="kw">impl</span> <span class="ident">hs</span>::<span class="ident">State</span> <span class="kw">for</span> <span class="ident">ExpectCertificateStatus</span> {
-    <span class="kw">fn</span> <span class="ident">check_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">m</span>: <span class="kw-2">&amp;</span><span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TLSError</span><span class="op">&gt;</span> {
-        <span class="ident">check_handshake_message</span>(<span class="ident">m</span>, <span class="kw-2">&amp;</span>[<span class="ident">HandshakeType</span>::<span class="ident">CertificateStatus</span>])
-    }
-
     <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">_sess</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ClientSessionImpl</span>, <span class="ident">m</span>: <span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">hs</span>::<span class="ident">NextStateOrError</span> {
         <span class="self">self</span>.<span class="ident">handshake</span>.<span class="ident">transcript</span>.<span class="ident">add_message</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">status</span> <span class="op">=</span> <span class="macro">extract_handshake_mut</span><span class="macro">!</span>(<span class="ident">m</span>, <span class="ident">HandshakePayload</span>::<span class="ident">CertificateStatus</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">status</span> <span class="op">=</span> <span class="macro">require_handshake_msg_mut</span><span class="macro">!</span>(<span class="ident">m</span>, <span class="ident">HandshakeType</span>::<span class="ident">CertificateStatus</span>, <span class="ident">HandshakePayload</span>::<span class="ident">CertificateStatus</span>)<span class="question-mark">?</span>;
 
         <span class="self">self</span>.<span class="ident">server_cert</span>.<span class="ident">ocsp_response</span> <span class="op">=</span> <span class="ident">status</span>.<span class="ident">take_ocsp_response</span>();
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Server stapled OCSP response is {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">server_cert</span>.<span class="ident">ocsp_response</span>);
+        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Server stapled OCSP response is {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">server_cert</span>.<span class="ident">ocsp_response</span>);
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">into_expect_server_kx</span>())
     }
 }
@@ -915,13 +862,10 @@
 }
 
 <span class="kw">impl</span> <span class="ident">hs</span>::<span class="ident">State</span> <span class="kw">for</span> <span class="ident">ExpectCertificateStatusOrServerKX</span> {
-    <span class="kw">fn</span> <span class="ident">check_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">m</span>: <span class="kw-2">&amp;</span><span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TLSError</span><span class="op">&gt;</span> {
-        <span class="ident">check_handshake_message</span>(<span class="ident">m</span>,
-                                <span class="kw-2">&amp;</span>[<span class="ident">HandshakeType</span>::<span class="ident">ServerKeyExchange</span>,
-                                  <span class="ident">HandshakeType</span>::<span class="ident">CertificateStatus</span>])
-    }
-
     <span class="kw">fn</span> <span class="ident">handle</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">sess</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ClientSessionImpl</span>, <span class="ident">m</span>: <span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">hs</span>::<span class="ident">NextStateOrError</span> {
+        <span class="ident">check_message</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>,
+                      <span class="kw-2">&amp;</span>[<span class="ident">ContentType</span>::<span class="ident">Handshake</span>],
+                      <span class="kw-2">&amp;</span>[<span class="ident">HandshakeType</span>::<span class="ident">ServerKeyExchange</span>, <span class="ident">HandshakeType</span>::<span class="ident">CertificateStatus</span>])<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">m</span>.<span class="ident">is_handshake_type</span>(<span class="ident">HandshakeType</span>::<span class="ident">ServerKeyExchange</span>) {
             <span class="self">self</span>.<span class="ident">into_expect_server_kx</span>().<span class="ident">handle</span>(<span class="ident">sess</span>, <span class="ident">m</span>)
         } <span class="kw">else</span> {
@@ -948,12 +892,8 @@
 }
 
 <span class="kw">impl</span> <span class="ident">hs</span>::<span class="ident">State</span> <span class="kw">for</span> <span class="ident">ExpectServerKX</span> {
-    <span class="kw">fn</span> <span class="ident">check_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">m</span>: <span class="kw-2">&amp;</span><span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TLSError</span><span class="op">&gt;</span> {
-        <span class="ident">check_handshake_message</span>(<span class="ident">m</span>, <span class="kw-2">&amp;</span>[<span class="ident">HandshakeType</span>::<span class="ident">ServerKeyExchange</span>])
-    }
-
     <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">sess</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ClientSessionImpl</span>, <span class="ident">m</span>: <span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">hs</span>::<span class="ident">NextStateOrError</span> {
-        <span class="kw">let</span> <span class="ident">opaque_kx</span> <span class="op">=</span> <span class="macro">extract_handshake</span><span class="macro">!</span>(<span class="ident">m</span>, <span class="ident">HandshakePayload</span>::<span class="ident">ServerKeyExchange</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">opaque_kx</span> <span class="op">=</span> <span class="macro">require_handshake_msg</span><span class="macro">!</span>(<span class="ident">m</span>, <span class="ident">HandshakeType</span>::<span class="ident">ServerKeyExchange</span>, <span class="ident">HandshakePayload</span>::<span class="ident">ServerKeyExchange</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">maybe_decoded_kx</span> <span class="op">=</span> <span class="ident">opaque_kx</span>.<span class="ident">unwrap_given_kxa</span>(<span class="kw-2">&amp;</span><span class="ident">sess</span>.<span class="ident">common</span>.<span class="ident">get_suite_assert</span>().<span class="ident">kx</span>);
         <span class="self">self</span>.<span class="ident">handshake</span>.<span class="ident">transcript</span>.<span class="ident">add_message</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>);
 
@@ -1101,12 +1041,8 @@
 }
 
 <span class="kw">impl</span> <span class="ident">hs</span>::<span class="ident">State</span> <span class="kw">for</span> <span class="ident">ExpectCertificateRequest</span> {
-    <span class="kw">fn</span> <span class="ident">check_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">m</span>: <span class="kw-2">&amp;</span><span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TLSError</span><span class="op">&gt;</span> {
-        <span class="ident">check_handshake_message</span>(<span class="ident">m</span>, <span class="kw-2">&amp;</span>[<span class="ident">HandshakeType</span>::<span class="ident">CertificateRequest</span>])
-    }
-
     <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">sess</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ClientSessionImpl</span>, <span class="ident">m</span>: <span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">hs</span>::<span class="ident">NextStateOrError</span> {
-        <span class="kw">let</span> <span class="ident">certreq</span> <span class="op">=</span> <span class="macro">extract_handshake</span><span class="macro">!</span>(<span class="ident">m</span>, <span class="ident">HandshakePayload</span>::<span class="ident">CertificateRequest</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">certreq</span> <span class="op">=</span> <span class="macro">require_handshake_msg</span><span class="macro">!</span>(<span class="ident">m</span>, <span class="ident">HandshakeType</span>::<span class="ident">CertificateRequest</span>, <span class="ident">HandshakePayload</span>::<span class="ident">CertificateRequest</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">handshake</span>.<span class="ident">transcript</span>.<span class="ident">add_message</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>);
         <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Got CertificateRequest {:?}&quot;</span>, <span class="ident">certreq</span>);
 
@@ -1114,13 +1050,9 @@
 
         <span class="comment">// The RFC jovially describes the design here as &#39;somewhat complicated&#39;</span>
         <span class="comment">// and &#39;somewhat underspecified&#39;.  So thanks for that.</span>
-
-        <span class="comment">// We only support RSA signing at the moment.  If you don&#39;t support that,</span>
-        <span class="comment">// we&#39;re not doing client auth.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">certreq</span>.<span class="ident">certtypes</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">ClientCertificateType</span>::<span class="ident">RSASign</span>) {
-            <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;Server asked for client auth but without RSASign&quot;</span>);
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">into_expect_server_done</span>(<span class="ident">client_auth</span>));
-        }
+        <span class="comment">//</span>
+        <span class="comment">// We ignore certreq.certtypes as a result, since the information it contains</span>
+        <span class="comment">// is entirely duplicated in certreq.sigschemes.</span>
 
         <span class="kw">let</span> <span class="ident">canames</span> <span class="op">=</span> <span class="ident">certreq</span>.<span class="ident">canames</span>
             .<span class="ident">iter</span>()
@@ -1130,9 +1062,12 @@
             <span class="ident">sess</span>.<span class="ident">config</span>.<span class="ident">client_auth_cert_resolver</span>.<span class="ident">resolve</span>(<span class="kw-2">&amp;</span><span class="ident">canames</span>, <span class="kw-2">&amp;</span><span class="ident">certreq</span>.<span class="ident">sigschemes</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">certkey</span>) <span class="op">=</span> <span class="ident">maybe_certkey</span> {
-            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Attempting client auth&quot;</span>);
             <span class="kw">let</span> <span class="ident">maybe_signer</span> <span class="op">=</span> <span class="ident">certkey</span>.<span class="ident">key</span>.<span class="ident">choose_scheme</span>(<span class="kw-2">&amp;</span><span class="ident">certreq</span>.<span class="ident">sigschemes</span>);
-            <span class="ident">client_auth</span>.<span class="ident">cert</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">certkey</span>.<span class="ident">take_cert</span>());
+
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">maybe_signer</span> {
+                <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Attempting client auth&quot;</span>);
+                <span class="ident">client_auth</span>.<span class="ident">cert</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">certkey</span>.<span class="ident">take_cert</span>());
+            }
             <span class="ident">client_auth</span>.<span class="ident">signer</span> <span class="op">=</span> <span class="ident">maybe_signer</span>;
         } <span class="kw">else</span> {
             <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Client auth requested but no cert/sigscheme available&quot;</span>);
@@ -1171,14 +1106,8 @@
 }
 
 <span class="kw">impl</span> <span class="ident">hs</span>::<span class="ident">State</span> <span class="kw">for</span> <span class="ident">ExpectServerDoneOrCertReq</span> {
-    <span class="kw">fn</span> <span class="ident">check_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">m</span>: <span class="kw-2">&amp;</span><span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TLSError</span><span class="op">&gt;</span> {
-        <span class="ident">check_handshake_message</span>(<span class="ident">m</span>,
-                                <span class="kw-2">&amp;</span>[<span class="ident">HandshakeType</span>::<span class="ident">CertificateRequest</span>,
-                                  <span class="ident">HandshakeType</span>::<span class="ident">ServerHelloDone</span>])
-    }
-
     <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">sess</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ClientSessionImpl</span>, <span class="ident">m</span>: <span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">hs</span>::<span class="ident">NextStateOrError</span> {
-        <span class="kw">if</span> <span class="macro">extract_handshake</span><span class="macro">!</span>(<span class="ident">m</span>, <span class="ident">HandshakePayload</span>::<span class="ident">CertificateRequest</span>).<span class="ident">is_some</span>() {
+        <span class="kw">if</span> <span class="macro">require_handshake_msg</span><span class="macro">!</span>(<span class="ident">m</span>, <span class="ident">HandshakeType</span>::<span class="ident">CertificateRequest</span>, <span class="ident">HandshakePayload</span>::<span class="ident">CertificateRequest</span>).<span class="ident">is_ok</span>() {
             <span class="self">self</span>.<span class="ident">into_expect_certificate_req</span>().<span class="ident">handle</span>(<span class="ident">sess</span>, <span class="ident">m</span>)
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">handshake</span>.<span class="ident">transcript</span>.<span class="ident">abandon_client_auth</span>();
@@ -1226,15 +1155,14 @@
 }
 
 <span class="kw">impl</span> <span class="ident">hs</span>::<span class="ident">State</span> <span class="kw">for</span> <span class="ident">ExpectServerDone</span> {
-    <span class="kw">fn</span> <span class="ident">check_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">m</span>: <span class="kw-2">&amp;</span><span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TLSError</span><span class="op">&gt;</span> {
-        <span class="ident">check_handshake_message</span>(<span class="ident">m</span>, <span class="kw-2">&amp;</span>[<span class="ident">HandshakeType</span>::<span class="ident">ServerHelloDone</span>])
-    }
-
     <span class="kw">fn</span> <span class="ident">handle</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">sess</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ClientSessionImpl</span>, <span class="ident">m</span>: <span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">hs</span>::<span class="ident">NextStateOrError</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">st</span> <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span>;
+        <span class="ident">check_message</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>, <span class="kw-2">&amp;</span>[<span class="ident">ContentType</span>::<span class="ident">Handshake</span>], <span class="kw-2">&amp;</span>[<span class="ident">HandshakeType</span>::<span class="ident">ServerHelloDone</span>])<span class="question-mark">?</span>;
         <span class="ident">st</span>.<span class="ident">handshake</span>.<span class="ident">transcript</span>.<span class="ident">add_message</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>);
 
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Server cert is {:?}&quot;</span>, <span class="ident">st</span>.<span class="ident">server_cert</span>.<span class="ident">cert_chain</span>);
+        <span class="ident">hs</span>::<span class="ident">check_aligned_handshake</span>(<span class="ident">sess</span>)<span class="question-mark">?</span>;
+
+        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Server cert is {:?}&quot;</span>, <span class="ident">st</span>.<span class="ident">server_cert</span>.<span class="ident">cert_chain</span>);
         <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Server DNS name is {:?}&quot;</span>, <span class="ident">st</span>.<span class="ident">handshake</span>.<span class="ident">dns_name</span>);
 
         <span class="comment">// 1. Verify the cert chain.</span>
@@ -1284,16 +1212,18 @@
             <span class="comment">// Check the signature is compatible with the ciphersuite.</span>
             <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">st</span>.<span class="ident">server_kx</span>.<span class="ident">kx_sig</span>;
             <span class="kw">let</span> <span class="ident">scs</span> <span class="op">=</span> <span class="ident">sess</span>.<span class="ident">common</span>.<span class="ident">get_suite_assert</span>();
-            <span class="kw">if</span> <span class="ident">scs</span>.<span class="ident">sign</span> <span class="op">!</span><span class="op">=</span> <span class="ident">sig</span>.<span class="ident">scheme</span>.<span class="ident">sign</span>() {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">scs</span>.<span class="ident">usable_for_sigalg</span>(<span class="ident">sig</span>.<span class="ident">scheme</span>.<span class="ident">sign</span>()) {
                 <span class="kw">let</span> <span class="ident">error_message</span> <span class="op">=</span>
                     <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;peer signed kx with wrong algorithm (got {:?} expect {:?})&quot;</span>,
                                       <span class="ident">sig</span>.<span class="ident">scheme</span>.<span class="ident">sign</span>(), <span class="ident">scs</span>.<span class="ident">sign</span>);
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">TLSError</span>::<span class="ident">PeerMisbehavedError</span>(<span class="ident">error_message</span>));
             }
 
-            <span class="ident">verify</span>::<span class="ident">verify_signed_struct</span>(<span class="kw-2">&amp;</span><span class="ident">message</span>,
-                                         <span class="kw-2">&amp;</span><span class="ident">st</span>.<span class="ident">server_cert</span>.<span class="ident">cert_chain</span>[<span class="number">0</span>],
-                                         <span class="ident">sig</span>)
+            <span class="ident">sess</span>.<span class="ident">config</span>
+                .<span class="ident">get_verifier</span>()
+                .<span class="ident">verify_tls12_signature</span>(<span class="kw-2">&amp;</span><span class="ident">message</span>,
+                                        <span class="kw-2">&amp;</span><span class="ident">st</span>.<span class="ident">server_cert</span>.<span class="ident">cert_chain</span>[<span class="number">0</span>],
+                                        <span class="ident">sig</span>)
                 .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">hs</span>::<span class="ident">send_cert_error_alert</span>(<span class="ident">sess</span>, <span class="ident">err</span>))<span class="question-mark">?</span>
         };
         <span class="ident">sess</span>.<span class="ident">server_cert_chain</span> <span class="op">=</span> <span class="ident">st</span>.<span class="ident">server_cert</span>.<span class="ident">take_chain</span>();
@@ -1380,20 +1310,11 @@
 }
 
 <span class="kw">impl</span> <span class="ident">hs</span>::<span class="ident">State</span> <span class="kw">for</span> <span class="ident">ExpectCCS</span> {
-    <span class="kw">fn</span> <span class="ident">check_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">m</span>: <span class="kw-2">&amp;</span><span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TLSError</span><span class="op">&gt;</span> {
-        <span class="ident">check_message</span>(<span class="ident">m</span>, <span class="kw-2">&amp;</span>[<span class="ident">ContentType</span>::<span class="ident">ChangeCipherSpec</span>], <span class="kw-2">&amp;</span>[])
-    }
-
-    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">sess</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ClientSessionImpl</span>, <span class="ident">_m</span>: <span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">hs</span>::<span class="ident">NextStateOrError</span> {
+    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">sess</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ClientSessionImpl</span>, <span class="ident">m</span>: <span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">hs</span>::<span class="ident">NextStateOrError</span> {
+        <span class="ident">check_message</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>, <span class="kw-2">&amp;</span>[<span class="ident">ContentType</span>::<span class="ident">ChangeCipherSpec</span>], <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
         <span class="comment">// CCS should not be received interleaved with fragmented handshake-level</span>
         <span class="comment">// message.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">sess</span>.<span class="ident">common</span>.<span class="ident">handshake_joiner</span>.<span class="ident">is_empty</span>() {
-            <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;CCS received interleaved with fragmented handshake&quot;</span>);
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">TLSError</span>::<span class="ident">InappropriateMessage</span> {
-                <span class="ident">expect_types</span>: <span class="macro">vec</span><span class="macro">!</span>[ <span class="ident">ContentType</span>::<span class="ident">Handshake</span> ],
-                <span class="ident">got_type</span>: <span class="ident">ContentType</span>::<span class="ident">ChangeCipherSpec</span>,
-            });
-        }
+        <span class="ident">hs</span>::<span class="ident">check_aligned_handshake</span>(<span class="ident">sess</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// nb. msgs layer validates trivial contents of CCS</span>
         <span class="ident">sess</span>.<span class="ident">common</span>
@@ -1426,14 +1347,10 @@
 }
 
 <span class="kw">impl</span> <span class="ident">hs</span>::<span class="ident">State</span> <span class="kw">for</span> <span class="ident">ExpectNewTicket</span> {
-    <span class="kw">fn</span> <span class="ident">check_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">m</span>: <span class="kw-2">&amp;</span><span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TLSError</span><span class="op">&gt;</span> {
-        <span class="ident">check_handshake_message</span>(<span class="ident">m</span>, <span class="kw-2">&amp;</span>[<span class="ident">HandshakeType</span>::<span class="ident">NewSessionTicket</span>])
-    }
-
     <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">_sess</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ClientSessionImpl</span>, <span class="ident">m</span>: <span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">hs</span>::<span class="ident">NextStateOrError</span> {
         <span class="self">self</span>.<span class="ident">handshake</span>.<span class="ident">transcript</span>.<span class="ident">add_message</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>);
 
-        <span class="kw">let</span> <span class="ident">nst</span> <span class="op">=</span> <span class="macro">extract_handshake_mut</span><span class="macro">!</span>(<span class="ident">m</span>, <span class="ident">HandshakePayload</span>::<span class="ident">NewSessionTicket</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">nst</span> <span class="op">=</span> <span class="macro">require_handshake_msg_mut</span><span class="macro">!</span>(<span class="ident">m</span>, <span class="ident">HandshakeType</span>::<span class="ident">NewSessionTicket</span>, <span class="ident">HandshakePayload</span>::<span class="ident">NewSessionTicket</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">recvd</span> <span class="op">=</span> <span class="ident">ReceivedTicketDetails</span>::<span class="ident">from</span>(<span class="ident">nst</span>.<span class="ident">ticket</span>.<span class="number">0</span>, <span class="ident">nst</span>.<span class="ident">lifetime_hint</span>);
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">into_expect_ccs</span>(<span class="ident">recvd</span>))
     }
@@ -1504,13 +1421,11 @@
 }
 
 <span class="kw">impl</span> <span class="ident">hs</span>::<span class="ident">State</span> <span class="kw">for</span> <span class="ident">ExpectFinished</span> {
-    <span class="kw">fn</span> <span class="ident">check_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">m</span>: <span class="kw-2">&amp;</span><span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TLSError</span><span class="op">&gt;</span> {
-        <span class="ident">check_handshake_message</span>(<span class="ident">m</span>, <span class="kw-2">&amp;</span>[<span class="ident">HandshakeType</span>::<span class="ident">Finished</span>])
-    }
-
     <span class="kw">fn</span> <span class="ident">handle</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">sess</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ClientSessionImpl</span>, <span class="ident">m</span>: <span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">hs</span>::<span class="ident">NextStateOrError</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">st</span> <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span>;
-        <span class="kw">let</span> <span class="ident">finished</span> <span class="op">=</span> <span class="macro">extract_handshake</span><span class="macro">!</span>(<span class="ident">m</span>, <span class="ident">HandshakePayload</span>::<span class="ident">Finished</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">finished</span> <span class="op">=</span> <span class="macro">require_handshake_msg</span><span class="macro">!</span>(<span class="ident">m</span>, <span class="ident">HandshakeType</span>::<span class="ident">Finished</span>, <span class="ident">HandshakePayload</span>::<span class="ident">Finished</span>)<span class="question-mark">?</span>;
+
+        <span class="ident">hs</span>::<span class="ident">check_aligned_handshake</span>(<span class="ident">sess</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// Work out what verify_data we expect.</span>
         <span class="kw">let</span> <span class="ident">vh</span> <span class="op">=</span> <span class="ident">st</span>.<span class="ident">handshake</span>.<span class="ident">transcript</span>.<span class="ident">get_current_hash</span>();
@@ -1556,11 +1471,8 @@
 }
 
 <span class="kw">impl</span> <span class="ident">hs</span>::<span class="ident">State</span> <span class="kw">for</span> <span class="ident">ExpectTraffic</span> {
-    <span class="kw">fn</span> <span class="ident">check_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">m</span>: <span class="kw-2">&amp;</span><span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TLSError</span><span class="op">&gt;</span> {
-        <span class="ident">check_message</span>(<span class="ident">m</span>, <span class="kw-2">&amp;</span>[<span class="ident">ContentType</span>::<span class="ident">ApplicationData</span>], <span class="kw-2">&amp;</span>[])
-    }
-
     <span class="kw">fn</span> <span class="ident">handle</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">sess</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ClientSessionImpl</span>, <span class="kw-2">mut</span> <span class="ident">m</span>: <span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">hs</span>::<span class="ident">NextStateOrError</span> {
+        <span class="ident">check_message</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>, <span class="kw-2">&amp;</span>[<span class="ident">ContentType</span>::<span class="ident">ApplicationData</span>], <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
         <span class="ident">sess</span>.<span class="ident">common</span>.<span class="ident">take_received_plaintext</span>(<span class="ident">m</span>.<span class="ident">take_opaque_payload</span>().<span class="ident">unwrap</span>());
         <span class="prelude-val">Ok</span>(<span class="self">self</span>)
     }

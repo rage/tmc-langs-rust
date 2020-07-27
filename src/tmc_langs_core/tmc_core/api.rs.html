@@ -686,6 +686,9 @@
 <span id="686">686</span>
 <span id="687">687</span>
 <span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains and additional impl for TmcCore for calling the TMC Server API.</span>
 
@@ -744,17 +747,20 @@
     }
 }
 
-<span class="doccomment">/// Provides a convenience function for adding a token</span>
+<span class="doccomment">/// Provides a convenience function for adding a token and client headers</span>
 <span class="kw">trait</span> <span class="ident">GetExt</span> {
-    <span class="kw">fn</span> <span class="ident">authenticate</span>(<span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RequestBuilder</span>;
+    <span class="kw">fn</span> <span class="ident">core_headers</span>(<span class="self">self</span>, <span class="ident">core</span>: <span class="kw-2">&amp;</span><span class="ident">TmcCore</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RequestBuilder</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">GetExt</span> <span class="kw">for</span> <span class="ident">RequestBuilder</span> {
-    <span class="kw">fn</span> <span class="ident">authenticate</span>(<span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RequestBuilder</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span> <span class="ident">token</span> {
-            <span class="self">self</span>.<span class="ident">bearer_auth</span>(<span class="ident">token</span>.<span class="ident">access_token</span>().<span class="ident">secret</span>())
+    <span class="kw">fn</span> <span class="ident">core_headers</span>(<span class="self">self</span>, <span class="ident">core</span>: <span class="kw-2">&amp;</span><span class="ident">TmcCore</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RequestBuilder</span> {
+        <span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">header</span>(<span class="string">&quot;client&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">core</span>.<span class="ident">client_name</span>)
+            .<span class="ident">header</span>(<span class="string">&quot;client_version&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">core</span>.<span class="ident">client_version</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span> <span class="ident">core</span>.<span class="ident">token</span>.<span class="ident">as_ref</span>() {
+            <span class="ident">request</span>.<span class="ident">bearer_auth</span>(<span class="ident">token</span>.<span class="ident">access_token</span>().<span class="ident">secret</span>())
         } <span class="kw">else</span> {
-            <span class="self">self</span>
+            <span class="ident">request</span>
         }
     }
 }
@@ -774,7 +780,7 @@
         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;get {}&quot;</span>, <span class="ident">url</span>);
         <span class="self">self</span>.<span class="ident">client</span>
             .<span class="ident">get</span>(<span class="ident">url</span>.<span class="ident">clone</span>())
-            .<span class="ident">authenticate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">token</span>)
+            .<span class="ident">core_headers</span>(<span class="self">self</span>)
             .<span class="ident">send</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">HttpGet</span>(<span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
             .<span class="ident">check_error</span>(<span class="ident">url</span>)<span class="question-mark">?</span>
@@ -793,7 +799,7 @@
         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;downloading {}&quot;</span>, <span class="ident">url</span>);
         <span class="self">self</span>.<span class="ident">client</span>
             .<span class="ident">get</span>(<span class="ident">url</span>.<span class="ident">clone</span>())
-            .<span class="ident">authenticate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">token</span>)
+            .<span class="ident">core_headers</span>(<span class="self">self</span>)
             .<span class="ident">send</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">HttpGet</span>(<span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
             .<span class="ident">check_error</span>(<span class="ident">url</span>)<span class="question-mark">?</span>
@@ -809,7 +815,7 @@
         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;downloading {}&quot;</span>, <span class="ident">url</span>);
         <span class="self">self</span>.<span class="ident">client</span>
             .<span class="ident">get</span>(<span class="ident">url</span>.<span class="ident">clone</span>())
-            .<span class="ident">authenticate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">token</span>)
+            .<span class="ident">core_headers</span>(<span class="self">self</span>)
             .<span class="ident">send</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">HttpGet</span>(<span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
             .<span class="ident">check_error</span>(<span class="ident">url</span>)<span class="question-mark">?</span>
@@ -1277,7 +1283,7 @@
             .<span class="ident">client</span>
             .<span class="ident">post</span>(<span class="ident">submission_url</span>.<span class="ident">clone</span>())
             .<span class="ident">multipart</span>(<span class="ident">form</span>)
-            .<span class="ident">authenticate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">token</span>)
+            .<span class="ident">core_headers</span>(<span class="self">self</span>)
             .<span class="ident">send</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">HttpPost</span>(<span class="ident">submission_url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
             .<span class="ident">check_error</span>(<span class="ident">submission_url</span>)<span class="question-mark">?</span>
@@ -1317,7 +1323,7 @@
         <span class="self">self</span>.<span class="ident">client</span>
             .<span class="ident">post</span>(<span class="ident">feedback_url</span>.<span class="ident">clone</span>())
             .<span class="ident">multipart</span>(<span class="ident">form</span>)
-            .<span class="ident">authenticate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">token</span>)
+            .<span class="ident">core_headers</span>(<span class="self">self</span>)
             .<span class="ident">send</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">HttpPost</span>(<span class="ident">feedback_url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
             .<span class="ident">check_error</span>(<span class="ident">feedback_url</span>)<span class="question-mark">?</span>
@@ -1342,7 +1348,7 @@
             .<span class="ident">post</span>(<span class="ident">url</span>.<span class="ident">clone</span>())
             .<span class="ident">query</span>(<span class="kw-2">&amp;</span>[(<span class="string">&quot;review[review_body]&quot;</span>, <span class="ident">review_body</span>)])
             .<span class="ident">query</span>(<span class="kw-2">&amp;</span>[(<span class="string">&quot;review[points]&quot;</span>, <span class="ident">review_points</span>)])
-            .<span class="ident">authenticate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">token</span>)
+            .<span class="ident">core_headers</span>(<span class="self">self</span>)
             .<span class="ident">send</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">HttpPost</span>(<span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
             .<span class="ident">check_error</span>(<span class="ident">url</span>)<span class="question-mark">?</span>

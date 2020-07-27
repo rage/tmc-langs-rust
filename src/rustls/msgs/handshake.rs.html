@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustls-0.17.0/src/msgs/handshake.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>handshake.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../rustls/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustls-0.18.0/src/msgs/handshake.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>handshake.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../rustls/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2306,6 +2306,12 @@
 <span id="2306">2306</span>
 <span id="2307">2307</span>
 <span id="2308">2308</span>
+<span id="2309">2309</span>
+<span id="2310">2310</span>
+<span id="2311">2311</span>
+<span id="2312">2312</span>
+<span id="2313">2313</span>
+<span id="2314">2314</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::{<span class="ident">ProtocolVersion</span>, <span class="ident">HandshakeType</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::{<span class="ident">CipherSuite</span>, <span class="ident">Compression</span>, <span class="ident">ExtensionType</span>, <span class="ident">ECPointFormat</span>};
@@ -2610,7 +2616,7 @@
 
         <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">typ</span> {
             <span class="ident">ServerNameType</span>::<span class="ident">HostName</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ServerNamePayload</span>::<span class="ident">read_hostname</span>(<span class="ident">r</span>)<span class="question-mark">?</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ServerNamePayload</span>::<span class="ident">Unknown</span>(<span class="ident">Payload</span>::<span class="ident">read</span>(<span class="ident">r</span>)<span class="question-mark">?</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ServerNamePayload</span>::<span class="ident">Unknown</span>(<span class="ident">Payload</span>::<span class="ident">read</span>(<span class="ident">r</span>).<span class="ident">unwrap</span>()),
         };
 
         <span class="prelude-val">Some</span>(<span class="ident">ServerName</span> {
@@ -2963,7 +2969,8 @@
             }
             <span class="ident">ExtensionType</span>::<span class="ident">SessionTicket</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">sub</span>.<span class="ident">any_left</span>() {
-                    <span class="ident">ClientExtension</span>::<span class="ident">SessionTicketOffer</span>(<span class="ident">Payload</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>)
+                    <span class="kw">let</span> <span class="ident">contents</span> <span class="op">=</span> <span class="ident">Payload</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>).<span class="ident">unwrap</span>();
+                    <span class="ident">ClientExtension</span>::<span class="ident">SessionTicketOffer</span>(<span class="ident">contents</span>)
                 } <span class="kw">else</span> {
                     <span class="ident">ClientExtension</span>::<span class="ident">SessionTicketRequest</span>
                 }
@@ -4107,11 +4114,16 @@
         <span class="kw">let</span> <span class="ident">sigschemes</span> <span class="op">=</span> <span class="ident">SupportedSignatureSchemes</span>::<span class="ident">read</span>(<span class="ident">r</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">canames</span> <span class="op">=</span> <span class="ident">DistinguishedNames</span>::<span class="ident">read</span>(<span class="ident">r</span>)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Some</span>(<span class="ident">CertificateRequestPayload</span> {
-            <span class="ident">certtypes</span>,
-            <span class="ident">sigschemes</span>,
-            <span class="ident">canames</span>,
-        })
+        <span class="kw">if</span> <span class="ident">sigschemes</span>.<span class="ident">is_empty</span>() {
+            <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;meaningless CertificateRequest message&quot;</span>);
+            <span class="prelude-val">None</span>
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">CertificateRequestPayload</span> {
+                <span class="ident">certtypes</span>,
+                <span class="ident">sigschemes</span>,
+                <span class="ident">canames</span>,
+            })
+        }
     }
 }
 
@@ -4528,7 +4540,7 @@
                 <span class="ident">HandshakePayload</span>::<span class="ident">ServerHelloDone</span>
             }
             <span class="ident">HandshakeType</span>::<span class="ident">ClientKeyExchange</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">HandshakePayload</span>::<span class="ident">ClientKeyExchange</span>(<span class="ident">Payload</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>)
+                <span class="ident">HandshakePayload</span>::<span class="ident">ClientKeyExchange</span>(<span class="ident">Payload</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>).<span class="ident">unwrap</span>())
             }
             <span class="ident">HandshakeType</span>::<span class="ident">CertificateRequest</span> <span class="kw">if</span> <span class="ident">vers</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ProtocolVersion</span>::<span class="ident">TLSv1_3</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">CertificateRequestPayloadTLS13</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>;
@@ -4556,7 +4568,7 @@
                 <span class="ident">HandshakePayload</span>::<span class="ident">KeyUpdate</span>(<span class="ident">KeyUpdateRequest</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>)
             }
             <span class="ident">HandshakeType</span>::<span class="ident">Finished</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">HandshakePayload</span>::<span class="ident">Finished</span>(<span class="ident">Payload</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>)
+                <span class="ident">HandshakePayload</span>::<span class="ident">Finished</span>(<span class="ident">Payload</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>).<span class="ident">unwrap</span>())
             }
             <span class="ident">HandshakeType</span>::<span class="ident">CertificateStatus</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">HandshakePayload</span>::<span class="ident">CertificateStatus</span>(<span class="ident">CertificateStatus</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>)
@@ -4569,7 +4581,7 @@
                 <span class="comment">// not legal on wire</span>
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HandshakePayload</span>::<span class="ident">Unknown</span>(<span class="ident">Payload</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HandshakePayload</span>::<span class="ident">Unknown</span>(<span class="ident">Payload</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>).<span class="ident">unwrap</span>()),
         };
 
         <span class="kw">if</span> <span class="ident">sub</span>.<span class="ident">any_left</span>() {

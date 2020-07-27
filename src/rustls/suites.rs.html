@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustls-0.17.0/src/suites.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>suites.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../rustls/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustls-0.18.0/src/suites.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>suites.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../rustls/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -471,6 +471,112 @@
 <span id="471">471</span>
 <span id="472">472</span>
 <span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::{<span class="ident">CipherSuite</span>, <span class="ident">HashAlgorithm</span>, <span class="ident">SignatureAlgorithm</span>, <span class="ident">SignatureScheme</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::{<span class="ident">NamedGroup</span>, <span class="ident">ProtocolVersion</span>};
@@ -478,8 +584,10 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">handshake</span>::<span class="ident">DecomposedSignatureScheme</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">handshake</span>::{<span class="ident">ClientECDHParams</span>, <span class="ident">ServerECDHParams</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">codec</span>::{<span class="ident">Reader</span>, <span class="ident">Codec</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">cipher</span>;
 
 <span class="kw">use</span> <span class="ident">ring</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 
 <span class="doccomment">/// Bulk symmetric encryption scheme used by a cipher suite.</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_camel_case_types</span>)]</span>
@@ -600,7 +708,6 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// All possible instances of this class are provided by the library in</span>
 <span class="doccomment">/// the `ALL_CIPHERSUITES` array.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SupportedCipherSuite</span> {
     <span class="doccomment">/// The TLS enumeration naming this cipher suite.</span>
     <span class="kw">pub</span> <span class="ident">suite</span>: <span class="ident">CipherSuite</span>,
@@ -614,8 +721,11 @@
     <span class="doccomment">/// How to do hashing.</span>
     <span class="kw">pub</span> <span class="ident">hash</span>: <span class="ident">HashAlgorithm</span>,
 
-    <span class="doccomment">/// How to sign messages.</span>
-    <span class="kw">pub</span> <span class="ident">sign</span>: <span class="ident">SignatureAlgorithm</span>,
+    <span class="doccomment">/// How to sign messages for authentication.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is not present for TLS1.3, because authentication is orthogonal</span>
+    <span class="doccomment">/// to the ciphersuite concept there.</span>
+    <span class="kw">pub</span> <span class="ident">sign</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">SignatureScheme</span>]<span class="op">&gt;</span>,
 
     <span class="doccomment">/// Encryption key length, for the bulk algorithm.</span>
     <span class="kw">pub</span> <span class="ident">enc_key_len</span>: <span class="ident">usize</span>,
@@ -633,11 +743,29 @@
     <span class="kw">pub</span> <span class="ident">explicit_nonce_len</span>: <span class="ident">usize</span>,
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">hkdf_algorithm</span>: <span class="ident">ring</span>::<span class="ident">hkdf</span>::<span class="ident">Algorithm</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">aead_algorithm</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">ring</span>::<span class="ident">aead</span>::<span class="ident">Algorithm</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">build_tls12_encrypter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">cipher</span>::<span class="ident">BuildTLS12Encrypter</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">build_tls12_decrypter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">cipher</span>::<span class="ident">BuildTLS12Decrypter</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">SupportedCipherSuite</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">SupportedCipherSuite</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">suite</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">suite</span>
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">SupportedCipherSuite</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;SupportedCipherSuite&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;suite&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">suite</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;kx&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kx</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;bulk&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bulk</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;hash&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">hash</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;sign&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">sign</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;enc_key_len&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">enc_key_len</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;fixed_iv_len&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">fixed_iv_len</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;explicit_nonce_len&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">explicit_nonce_len</span>)
+            .<span class="ident">finish</span>()
     }
 }
 
@@ -672,35 +800,13 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resolve_sig_schemes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>,
                               <span class="ident">offered</span>: <span class="kw-2">&amp;</span>[<span class="ident">SignatureScheme</span>])
                               <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SignatureScheme</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">our_preference</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[
-            <span class="comment">// Prefer the designated hash algorithm of this suite, for</span>
-            <span class="comment">// security level consistency.</span>
-            <span class="ident">SignatureScheme</span>::<span class="ident">make</span>(<span class="self">self</span>.<span class="ident">sign</span>, <span class="self">self</span>.<span class="ident">hash</span>),
-
-            <span class="comment">// Then prefer the right sign algorithm, with the best hashes</span>
-            <span class="comment">// first.</span>
-            <span class="ident">SignatureScheme</span>::<span class="ident">make</span>(<span class="self">self</span>.<span class="ident">sign</span>, <span class="ident">HashAlgorithm</span>::<span class="ident">SHA512</span>),
-            <span class="ident">SignatureScheme</span>::<span class="ident">make</span>(<span class="self">self</span>.<span class="ident">sign</span>, <span class="ident">HashAlgorithm</span>::<span class="ident">SHA384</span>),
-            <span class="ident">SignatureScheme</span>::<span class="ident">make</span>(<span class="self">self</span>.<span class="ident">sign</span>, <span class="ident">HashAlgorithm</span>::<span class="ident">SHA256</span>)
-        ];
-
-        <span class="comment">// For RSA, support PSS too</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">sign</span> <span class="op">=</span><span class="op">=</span> <span class="ident">SignatureAlgorithm</span>::<span class="ident">RSA</span> {
-            <span class="ident">our_preference</span>.<span class="ident">push</span>(<span class="ident">SignatureScheme</span>::<span class="ident">RSA_PSS_SHA512</span>);
-            <span class="ident">our_preference</span>.<span class="ident">push</span>(<span class="ident">SignatureScheme</span>::<span class="ident">RSA_PSS_SHA384</span>);
-            <span class="ident">our_preference</span>.<span class="ident">push</span>(<span class="ident">SignatureScheme</span>::<span class="ident">RSA_PSS_SHA256</span>);
-        }
-
-        <span class="ident">our_preference</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">pref</span><span class="op">|</span> <span class="ident">offered</span>.<span class="ident">contains</span>(<span class="ident">pref</span>));
-        <span class="ident">our_preference</span>
-    }
-
-    <span class="doccomment">/// Which AEAD algorithm to use for this suite.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_aead_alg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">ring</span>::<span class="ident">aead</span>::<span class="ident">Algorithm</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">bulk</span> {
-            <span class="ident">BulkAlgorithm</span>::<span class="ident">AES_128_GCM</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ring</span>::<span class="ident">aead</span>::<span class="ident">AES_128_GCM</span>,
-            <span class="ident">BulkAlgorithm</span>::<span class="ident">AES_256_GCM</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ring</span>::<span class="ident">aead</span>::<span class="ident">AES_256_GCM</span>,
-            <span class="ident">BulkAlgorithm</span>::<span class="ident">CHACHA20_POLY1305</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ring</span>::<span class="ident">aead</span>::<span class="ident">CHACHA20_POLY1305</span>,
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">our_preference</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">sign</span> {
+            <span class="ident">our_preference</span>.<span class="ident">iter</span>()
+                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pref</span><span class="op">|</span> <span class="ident">offered</span>.<span class="ident">contains</span>(<span class="ident">pref</span>))
+                .<span class="ident">cloned</span>()
+                .<span class="ident">collect</span>()
+        } <span class="kw">else</span> {
+            <span class="macro">vec</span><span class="macro">!</span>[]
         }
     }
 
@@ -713,9 +819,18 @@
     <span class="doccomment">/// Return true if this suite is usable for TLS `version`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">usable_for_version</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">version</span>: <span class="ident">ProtocolVersion</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="ident">version</span> {
-            <span class="ident">ProtocolVersion</span>::<span class="ident">TLSv1_3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">sign</span> <span class="op">=</span><span class="op">=</span> <span class="ident">SignatureAlgorithm</span>::<span class="ident">Anonymous</span>,
-            <span class="ident">ProtocolVersion</span>::<span class="ident">TLSv1_2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">sign</span> <span class="op">!</span><span class="op">=</span> <span class="ident">SignatureAlgorithm</span>::<span class="ident">Anonymous</span>,
+            <span class="ident">ProtocolVersion</span>::<span class="ident">TLSv1_3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">build_tls12_encrypter</span>.<span class="ident">is_none</span>(),
+            <span class="ident">ProtocolVersion</span>::<span class="ident">TLSv1_2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">build_tls12_encrypter</span>.<span class="ident">is_some</span>(),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+        }
+    }
+
+    <span class="doccomment">/// Return true if this suite is usable for a key only offering `sigalg`</span>
+    <span class="doccomment">/// signatures.  This resolves to true for all TLS1.3 suites.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">usable_for_sigalg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sigalg</span>: <span class="ident">SignatureAlgorithm</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">sign</span> {
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>, <span class="comment">// no constraint expressed by ciphersuite (eg, TLS1.3)</span>
+            <span class="prelude-val">Some</span>(<span class="ident">schemes</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">schemes</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">scheme</span><span class="op">|</span> <span class="ident">scheme</span>.<span class="ident">sign</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">sigalg</span>),
         }
     }
 
@@ -738,130 +853,181 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256</span>: <span class="ident">SupportedCipherSuite</span> <span class="op">=</span>
-    <span class="ident">SupportedCipherSuite</span> {
-        <span class="ident">suite</span>: <span class="ident">CipherSuite</span>::<span class="ident">TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256</span>,
-        <span class="ident">kx</span>: <span class="ident">KeyExchangeAlgorithm</span>::<span class="ident">ECDHE</span>,
-        <span class="ident">sign</span>: <span class="ident">SignatureAlgorithm</span>::<span class="ident">ECDSA</span>,
-        <span class="ident">bulk</span>: <span class="ident">BulkAlgorithm</span>::<span class="ident">CHACHA20_POLY1305</span>,
-        <span class="ident">hash</span>: <span class="ident">HashAlgorithm</span>::<span class="ident">SHA256</span>,
-        <span class="ident">enc_key_len</span>: <span class="number">32</span>,
-        <span class="ident">fixed_iv_len</span>: <span class="number">12</span>,
-        <span class="ident">explicit_nonce_len</span>: <span class="number">0</span>,
-        <span class="ident">hkdf_algorithm</span>: <span class="ident">ring</span>::<span class="ident">hkdf</span>::<span class="ident">HKDF_SHA256</span>,
-    };
+<span class="kw">static</span> <span class="ident">TLS12_ECDSA_SCHEMES</span>: <span class="kw-2">&amp;</span>[<span class="ident">SignatureScheme</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+    <span class="ident">SignatureScheme</span>::<span class="ident">ED25519</span>,
+    <span class="ident">SignatureScheme</span>::<span class="ident">ECDSA_NISTP521_SHA512</span>,
+    <span class="ident">SignatureScheme</span>::<span class="ident">ECDSA_NISTP384_SHA384</span>,
+    <span class="ident">SignatureScheme</span>::<span class="ident">ECDSA_NISTP256_SHA256</span>,
+];
 
-<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256</span>: <span class="ident">SupportedCipherSuite</span> <span class="op">=</span>
-    <span class="ident">SupportedCipherSuite</span> {
-        <span class="ident">suite</span>: <span class="ident">CipherSuite</span>::<span class="ident">TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256</span>,
-        <span class="ident">kx</span>: <span class="ident">KeyExchangeAlgorithm</span>::<span class="ident">ECDHE</span>,
-        <span class="ident">sign</span>: <span class="ident">SignatureAlgorithm</span>::<span class="ident">RSA</span>,
-        <span class="ident">bulk</span>: <span class="ident">BulkAlgorithm</span>::<span class="ident">CHACHA20_POLY1305</span>,
-        <span class="ident">hash</span>: <span class="ident">HashAlgorithm</span>::<span class="ident">SHA256</span>,
-        <span class="ident">enc_key_len</span>: <span class="number">32</span>,
-        <span class="ident">fixed_iv_len</span>: <span class="number">12</span>,
-        <span class="ident">explicit_nonce_len</span>: <span class="number">0</span>,
-        <span class="ident">hkdf_algorithm</span>: <span class="ident">ring</span>::<span class="ident">hkdf</span>::<span class="ident">HKDF_SHA256</span>,
-    };
+<span class="kw">static</span> <span class="ident">TLS12_RSA_SCHEMES</span>: <span class="kw-2">&amp;</span>[<span class="ident">SignatureScheme</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+    <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PSS_SHA512</span>,
+    <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PSS_SHA384</span>,
+    <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PSS_SHA256</span>,
+    <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PKCS1_SHA512</span>,
+    <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PKCS1_SHA384</span>,
+    <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PKCS1_SHA256</span>,
+];
 
-<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</span>: <span class="ident">SupportedCipherSuite</span> <span class="op">=</span> <span class="ident">SupportedCipherSuite</span> {
-    <span class="ident">suite</span>: <span class="ident">CipherSuite</span>::<span class="ident">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</span>,
+<span class="doccomment">/// The TLS1.2 ciphersuite TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256.</span>
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256</span>: <span class="ident">SupportedCipherSuite</span> <span class="op">=</span> <span class="ident">SupportedCipherSuite</span> {
+    <span class="ident">suite</span>: <span class="ident">CipherSuite</span>::<span class="ident">TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256</span>,
     <span class="ident">kx</span>: <span class="ident">KeyExchangeAlgorithm</span>::<span class="ident">ECDHE</span>,
-    <span class="ident">sign</span>: <span class="ident">SignatureAlgorithm</span>::<span class="ident">RSA</span>,
-    <span class="ident">bulk</span>: <span class="ident">BulkAlgorithm</span>::<span class="ident">AES_128_GCM</span>,
-    <span class="ident">hash</span>: <span class="ident">HashAlgorithm</span>::<span class="ident">SHA256</span>,
-    <span class="ident">enc_key_len</span>: <span class="number">16</span>,
-    <span class="ident">fixed_iv_len</span>: <span class="number">4</span>,
-    <span class="ident">explicit_nonce_len</span>: <span class="number">8</span>,
-    <span class="ident">hkdf_algorithm</span>: <span class="ident">ring</span>::<span class="ident">hkdf</span>::<span class="ident">HKDF_SHA256</span>,
-};
-
-<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</span>: <span class="ident">SupportedCipherSuite</span> <span class="op">=</span> <span class="ident">SupportedCipherSuite</span> {
-    <span class="ident">suite</span>: <span class="ident">CipherSuite</span>::<span class="ident">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</span>,
-    <span class="ident">kx</span>: <span class="ident">KeyExchangeAlgorithm</span>::<span class="ident">ECDHE</span>,
-    <span class="ident">sign</span>: <span class="ident">SignatureAlgorithm</span>::<span class="ident">RSA</span>,
-    <span class="ident">bulk</span>: <span class="ident">BulkAlgorithm</span>::<span class="ident">AES_256_GCM</span>,
-    <span class="ident">hash</span>: <span class="ident">HashAlgorithm</span>::<span class="ident">SHA384</span>,
-    <span class="ident">enc_key_len</span>: <span class="number">32</span>,
-    <span class="ident">fixed_iv_len</span>: <span class="number">4</span>,
-    <span class="ident">explicit_nonce_len</span>: <span class="number">8</span>,
-    <span class="ident">hkdf_algorithm</span>: <span class="ident">ring</span>::<span class="ident">hkdf</span>::<span class="ident">HKDF_SHA384</span>,
-};
-
-<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256</span>: <span class="ident">SupportedCipherSuite</span> <span class="op">=</span> <span class="ident">SupportedCipherSuite</span> {
-    <span class="ident">suite</span>: <span class="ident">CipherSuite</span>::<span class="ident">TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256</span>,
-    <span class="ident">kx</span>: <span class="ident">KeyExchangeAlgorithm</span>::<span class="ident">ECDHE</span>,
-    <span class="ident">sign</span>: <span class="ident">SignatureAlgorithm</span>::<span class="ident">ECDSA</span>,
-    <span class="ident">bulk</span>: <span class="ident">BulkAlgorithm</span>::<span class="ident">AES_128_GCM</span>,
-    <span class="ident">hash</span>: <span class="ident">HashAlgorithm</span>::<span class="ident">SHA256</span>,
-    <span class="ident">enc_key_len</span>: <span class="number">16</span>,
-    <span class="ident">fixed_iv_len</span>: <span class="number">4</span>,
-    <span class="ident">explicit_nonce_len</span>: <span class="number">8</span>,
-    <span class="ident">hkdf_algorithm</span>: <span class="ident">ring</span>::<span class="ident">hkdf</span>::<span class="ident">HKDF_SHA256</span>,
-};
-
-<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384</span>: <span class="ident">SupportedCipherSuite</span> <span class="op">=</span> <span class="ident">SupportedCipherSuite</span> {
-    <span class="ident">suite</span>: <span class="ident">CipherSuite</span>::<span class="ident">TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384</span>,
-    <span class="ident">kx</span>: <span class="ident">KeyExchangeAlgorithm</span>::<span class="ident">ECDHE</span>,
-    <span class="ident">sign</span>: <span class="ident">SignatureAlgorithm</span>::<span class="ident">ECDSA</span>,
-    <span class="ident">bulk</span>: <span class="ident">BulkAlgorithm</span>::<span class="ident">AES_256_GCM</span>,
-    <span class="ident">hash</span>: <span class="ident">HashAlgorithm</span>::<span class="ident">SHA384</span>,
-    <span class="ident">enc_key_len</span>: <span class="number">32</span>,
-    <span class="ident">fixed_iv_len</span>: <span class="number">4</span>,
-    <span class="ident">explicit_nonce_len</span>: <span class="number">8</span>,
-    <span class="ident">hkdf_algorithm</span>: <span class="ident">ring</span>::<span class="ident">hkdf</span>::<span class="ident">HKDF_SHA384</span>,
-};
-
-<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">TLS13_CHACHA20_POLY1305_SHA256</span>: <span class="ident">SupportedCipherSuite</span> <span class="op">=</span> <span class="ident">SupportedCipherSuite</span> {
-    <span class="ident">suite</span>: <span class="ident">CipherSuite</span>::<span class="ident">TLS13_CHACHA20_POLY1305_SHA256</span>,
-    <span class="ident">kx</span>: <span class="ident">KeyExchangeAlgorithm</span>::<span class="ident">BulkOnly</span>,
-    <span class="ident">sign</span>: <span class="ident">SignatureAlgorithm</span>::<span class="ident">Anonymous</span>,
+    <span class="ident">sign</span>: <span class="prelude-val">Some</span>(<span class="ident">TLS12_ECDSA_SCHEMES</span>),
     <span class="ident">bulk</span>: <span class="ident">BulkAlgorithm</span>::<span class="ident">CHACHA20_POLY1305</span>,
     <span class="ident">hash</span>: <span class="ident">HashAlgorithm</span>::<span class="ident">SHA256</span>,
     <span class="ident">enc_key_len</span>: <span class="number">32</span>,
     <span class="ident">fixed_iv_len</span>: <span class="number">12</span>,
     <span class="ident">explicit_nonce_len</span>: <span class="number">0</span>,
     <span class="ident">hkdf_algorithm</span>: <span class="ident">ring</span>::<span class="ident">hkdf</span>::<span class="ident">HKDF_SHA256</span>,
+    <span class="ident">aead_algorithm</span>: <span class="kw-2">&amp;</span><span class="ident">ring</span>::<span class="ident">aead</span>::<span class="ident">CHACHA20_POLY1305</span>,
+    <span class="ident">build_tls12_encrypter</span>: <span class="prelude-val">Some</span>(<span class="ident">cipher</span>::<span class="ident">build_tls12_chacha_encrypter</span>),
+    <span class="ident">build_tls12_decrypter</span>: <span class="prelude-val">Some</span>(<span class="ident">cipher</span>::<span class="ident">build_tls12_chacha_decrypter</span>),
 };
 
+<span class="doccomment">/// The TLS1.2 ciphersuite TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256</span>
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256</span>: <span class="ident">SupportedCipherSuite</span> <span class="op">=</span> <span class="ident">SupportedCipherSuite</span> {
+    <span class="ident">suite</span>: <span class="ident">CipherSuite</span>::<span class="ident">TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256</span>,
+    <span class="ident">kx</span>: <span class="ident">KeyExchangeAlgorithm</span>::<span class="ident">ECDHE</span>,
+    <span class="ident">sign</span>: <span class="prelude-val">Some</span>(<span class="ident">TLS12_RSA_SCHEMES</span>),
+    <span class="ident">bulk</span>: <span class="ident">BulkAlgorithm</span>::<span class="ident">CHACHA20_POLY1305</span>,
+    <span class="ident">hash</span>: <span class="ident">HashAlgorithm</span>::<span class="ident">SHA256</span>,
+    <span class="ident">enc_key_len</span>: <span class="number">32</span>,
+    <span class="ident">fixed_iv_len</span>: <span class="number">12</span>,
+    <span class="ident">explicit_nonce_len</span>: <span class="number">0</span>,
+    <span class="ident">hkdf_algorithm</span>: <span class="ident">ring</span>::<span class="ident">hkdf</span>::<span class="ident">HKDF_SHA256</span>,
+    <span class="ident">aead_algorithm</span>: <span class="kw-2">&amp;</span><span class="ident">ring</span>::<span class="ident">aead</span>::<span class="ident">CHACHA20_POLY1305</span>,
+    <span class="ident">build_tls12_encrypter</span>: <span class="prelude-val">Some</span>(<span class="ident">cipher</span>::<span class="ident">build_tls12_chacha_encrypter</span>),
+    <span class="ident">build_tls12_decrypter</span>: <span class="prelude-val">Some</span>(<span class="ident">cipher</span>::<span class="ident">build_tls12_chacha_decrypter</span>),
+};
+
+<span class="doccomment">/// The TLS1.2 ciphersuite TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</span>
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</span>: <span class="ident">SupportedCipherSuite</span> <span class="op">=</span> <span class="ident">SupportedCipherSuite</span> {
+    <span class="ident">suite</span>: <span class="ident">CipherSuite</span>::<span class="ident">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</span>,
+    <span class="ident">kx</span>: <span class="ident">KeyExchangeAlgorithm</span>::<span class="ident">ECDHE</span>,
+    <span class="ident">sign</span>: <span class="prelude-val">Some</span>(<span class="ident">TLS12_RSA_SCHEMES</span>),
+    <span class="ident">bulk</span>: <span class="ident">BulkAlgorithm</span>::<span class="ident">AES_128_GCM</span>,
+    <span class="ident">hash</span>: <span class="ident">HashAlgorithm</span>::<span class="ident">SHA256</span>,
+    <span class="ident">enc_key_len</span>: <span class="number">16</span>,
+    <span class="ident">fixed_iv_len</span>: <span class="number">4</span>,
+    <span class="ident">explicit_nonce_len</span>: <span class="number">8</span>,
+    <span class="ident">hkdf_algorithm</span>: <span class="ident">ring</span>::<span class="ident">hkdf</span>::<span class="ident">HKDF_SHA256</span>,
+    <span class="ident">aead_algorithm</span>: <span class="kw-2">&amp;</span><span class="ident">ring</span>::<span class="ident">aead</span>::<span class="ident">AES_128_GCM</span>,
+    <span class="ident">build_tls12_encrypter</span>: <span class="prelude-val">Some</span>(<span class="ident">cipher</span>::<span class="ident">build_tls12_gcm_128_encrypter</span>),
+    <span class="ident">build_tls12_decrypter</span>: <span class="prelude-val">Some</span>(<span class="ident">cipher</span>::<span class="ident">build_tls12_gcm_128_decrypter</span>),
+};
+
+<span class="doccomment">/// The TLS1.2 ciphersuite TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</span>
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</span>: <span class="ident">SupportedCipherSuite</span> <span class="op">=</span> <span class="ident">SupportedCipherSuite</span> {
+    <span class="ident">suite</span>: <span class="ident">CipherSuite</span>::<span class="ident">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</span>,
+    <span class="ident">kx</span>: <span class="ident">KeyExchangeAlgorithm</span>::<span class="ident">ECDHE</span>,
+    <span class="ident">sign</span>: <span class="prelude-val">Some</span>(<span class="ident">TLS12_RSA_SCHEMES</span>),
+    <span class="ident">bulk</span>: <span class="ident">BulkAlgorithm</span>::<span class="ident">AES_256_GCM</span>,
+    <span class="ident">hash</span>: <span class="ident">HashAlgorithm</span>::<span class="ident">SHA384</span>,
+    <span class="ident">enc_key_len</span>: <span class="number">32</span>,
+    <span class="ident">fixed_iv_len</span>: <span class="number">4</span>,
+    <span class="ident">explicit_nonce_len</span>: <span class="number">8</span>,
+    <span class="ident">hkdf_algorithm</span>: <span class="ident">ring</span>::<span class="ident">hkdf</span>::<span class="ident">HKDF_SHA384</span>,
+    <span class="ident">aead_algorithm</span>: <span class="kw-2">&amp;</span><span class="ident">ring</span>::<span class="ident">aead</span>::<span class="ident">AES_256_GCM</span>,
+    <span class="ident">build_tls12_encrypter</span>: <span class="prelude-val">Some</span>(<span class="ident">cipher</span>::<span class="ident">build_tls12_gcm_256_encrypter</span>),
+    <span class="ident">build_tls12_decrypter</span>: <span class="prelude-val">Some</span>(<span class="ident">cipher</span>::<span class="ident">build_tls12_gcm_256_decrypter</span>),
+};
+
+<span class="doccomment">/// The TLS1.2 ciphersuite TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256</span>
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256</span>: <span class="ident">SupportedCipherSuite</span> <span class="op">=</span> <span class="ident">SupportedCipherSuite</span> {
+    <span class="ident">suite</span>: <span class="ident">CipherSuite</span>::<span class="ident">TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256</span>,
+    <span class="ident">kx</span>: <span class="ident">KeyExchangeAlgorithm</span>::<span class="ident">ECDHE</span>,
+    <span class="ident">sign</span>: <span class="prelude-val">Some</span>(<span class="ident">TLS12_ECDSA_SCHEMES</span>),
+    <span class="ident">bulk</span>: <span class="ident">BulkAlgorithm</span>::<span class="ident">AES_128_GCM</span>,
+    <span class="ident">hash</span>: <span class="ident">HashAlgorithm</span>::<span class="ident">SHA256</span>,
+    <span class="ident">enc_key_len</span>: <span class="number">16</span>,
+    <span class="ident">fixed_iv_len</span>: <span class="number">4</span>,
+    <span class="ident">explicit_nonce_len</span>: <span class="number">8</span>,
+    <span class="ident">hkdf_algorithm</span>: <span class="ident">ring</span>::<span class="ident">hkdf</span>::<span class="ident">HKDF_SHA256</span>,
+    <span class="ident">aead_algorithm</span>: <span class="kw-2">&amp;</span><span class="ident">ring</span>::<span class="ident">aead</span>::<span class="ident">AES_128_GCM</span>,
+    <span class="ident">build_tls12_encrypter</span>: <span class="prelude-val">Some</span>(<span class="ident">cipher</span>::<span class="ident">build_tls12_gcm_128_encrypter</span>),
+    <span class="ident">build_tls12_decrypter</span>: <span class="prelude-val">Some</span>(<span class="ident">cipher</span>::<span class="ident">build_tls12_gcm_128_decrypter</span>),
+};
+
+<span class="doccomment">/// The TLS1.2 ciphersuite TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384</span>
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384</span>: <span class="ident">SupportedCipherSuite</span> <span class="op">=</span> <span class="ident">SupportedCipherSuite</span> {
+    <span class="ident">suite</span>: <span class="ident">CipherSuite</span>::<span class="ident">TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384</span>,
+    <span class="ident">kx</span>: <span class="ident">KeyExchangeAlgorithm</span>::<span class="ident">ECDHE</span>,
+    <span class="ident">sign</span>: <span class="prelude-val">Some</span>(<span class="ident">TLS12_ECDSA_SCHEMES</span>),
+    <span class="ident">bulk</span>: <span class="ident">BulkAlgorithm</span>::<span class="ident">AES_256_GCM</span>,
+    <span class="ident">hash</span>: <span class="ident">HashAlgorithm</span>::<span class="ident">SHA384</span>,
+    <span class="ident">enc_key_len</span>: <span class="number">32</span>,
+    <span class="ident">fixed_iv_len</span>: <span class="number">4</span>,
+    <span class="ident">explicit_nonce_len</span>: <span class="number">8</span>,
+    <span class="ident">hkdf_algorithm</span>: <span class="ident">ring</span>::<span class="ident">hkdf</span>::<span class="ident">HKDF_SHA384</span>,
+    <span class="ident">aead_algorithm</span>: <span class="kw-2">&amp;</span><span class="ident">ring</span>::<span class="ident">aead</span>::<span class="ident">AES_256_GCM</span>,
+    <span class="ident">build_tls12_encrypter</span>: <span class="prelude-val">Some</span>(<span class="ident">cipher</span>::<span class="ident">build_tls12_gcm_256_encrypter</span>),
+    <span class="ident">build_tls12_decrypter</span>: <span class="prelude-val">Some</span>(<span class="ident">cipher</span>::<span class="ident">build_tls12_gcm_256_decrypter</span>),
+};
+
+<span class="doccomment">/// The TLS1.3 ciphersuite TLS_CHACHA20_POLY1305_SHA256</span>
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">TLS13_CHACHA20_POLY1305_SHA256</span>: <span class="ident">SupportedCipherSuite</span> <span class="op">=</span> <span class="ident">SupportedCipherSuite</span> {
+    <span class="ident">suite</span>: <span class="ident">CipherSuite</span>::<span class="ident">TLS13_CHACHA20_POLY1305_SHA256</span>,
+    <span class="ident">kx</span>: <span class="ident">KeyExchangeAlgorithm</span>::<span class="ident">BulkOnly</span>,
+    <span class="ident">sign</span>: <span class="prelude-val">None</span>,
+    <span class="ident">bulk</span>: <span class="ident">BulkAlgorithm</span>::<span class="ident">CHACHA20_POLY1305</span>,
+    <span class="ident">hash</span>: <span class="ident">HashAlgorithm</span>::<span class="ident">SHA256</span>,
+    <span class="ident">enc_key_len</span>: <span class="number">32</span>,
+    <span class="ident">fixed_iv_len</span>: <span class="number">12</span>,
+    <span class="ident">explicit_nonce_len</span>: <span class="number">0</span>,
+    <span class="ident">hkdf_algorithm</span>: <span class="ident">ring</span>::<span class="ident">hkdf</span>::<span class="ident">HKDF_SHA256</span>,
+    <span class="ident">aead_algorithm</span>: <span class="kw-2">&amp;</span><span class="ident">ring</span>::<span class="ident">aead</span>::<span class="ident">CHACHA20_POLY1305</span>,
+    <span class="ident">build_tls12_encrypter</span>: <span class="prelude-val">None</span>,
+    <span class="ident">build_tls12_decrypter</span>: <span class="prelude-val">None</span>,
+};
+
+<span class="doccomment">/// The TLS1.3 ciphersuite TLS_AES_256_GCM_SHA384</span>
 <span class="kw">pub</span> <span class="kw">static</span> <span class="ident">TLS13_AES_256_GCM_SHA384</span>: <span class="ident">SupportedCipherSuite</span> <span class="op">=</span> <span class="ident">SupportedCipherSuite</span> {
     <span class="ident">suite</span>: <span class="ident">CipherSuite</span>::<span class="ident">TLS13_AES_256_GCM_SHA384</span>,
     <span class="ident">kx</span>: <span class="ident">KeyExchangeAlgorithm</span>::<span class="ident">BulkOnly</span>,
-    <span class="ident">sign</span>: <span class="ident">SignatureAlgorithm</span>::<span class="ident">Anonymous</span>,
+    <span class="ident">sign</span>: <span class="prelude-val">None</span>,
     <span class="ident">bulk</span>: <span class="ident">BulkAlgorithm</span>::<span class="ident">AES_256_GCM</span>,
     <span class="ident">hash</span>: <span class="ident">HashAlgorithm</span>::<span class="ident">SHA384</span>,
     <span class="ident">enc_key_len</span>: <span class="number">32</span>,
     <span class="ident">fixed_iv_len</span>: <span class="number">12</span>,
     <span class="ident">explicit_nonce_len</span>: <span class="number">0</span>,
     <span class="ident">hkdf_algorithm</span>: <span class="ident">ring</span>::<span class="ident">hkdf</span>::<span class="ident">HKDF_SHA384</span>,
+    <span class="ident">aead_algorithm</span>: <span class="kw-2">&amp;</span><span class="ident">ring</span>::<span class="ident">aead</span>::<span class="ident">AES_256_GCM</span>,
+    <span class="ident">build_tls12_encrypter</span>: <span class="prelude-val">None</span>,
+    <span class="ident">build_tls12_decrypter</span>: <span class="prelude-val">None</span>,
 };
 
+<span class="doccomment">/// The TLS1.3 ciphersuite TLS_AES_128_GCM_SHA256</span>
 <span class="kw">pub</span> <span class="kw">static</span> <span class="ident">TLS13_AES_128_GCM_SHA256</span>: <span class="ident">SupportedCipherSuite</span> <span class="op">=</span> <span class="ident">SupportedCipherSuite</span> {
     <span class="ident">suite</span>: <span class="ident">CipherSuite</span>::<span class="ident">TLS13_AES_128_GCM_SHA256</span>,
     <span class="ident">kx</span>: <span class="ident">KeyExchangeAlgorithm</span>::<span class="ident">BulkOnly</span>,
-    <span class="ident">sign</span>: <span class="ident">SignatureAlgorithm</span>::<span class="ident">Anonymous</span>,
+    <span class="ident">sign</span>: <span class="prelude-val">None</span>,
     <span class="ident">bulk</span>: <span class="ident">BulkAlgorithm</span>::<span class="ident">AES_128_GCM</span>,
     <span class="ident">hash</span>: <span class="ident">HashAlgorithm</span>::<span class="ident">SHA256</span>,
     <span class="ident">enc_key_len</span>: <span class="number">16</span>,
     <span class="ident">fixed_iv_len</span>: <span class="number">12</span>,
     <span class="ident">explicit_nonce_len</span>: <span class="number">0</span>,
     <span class="ident">hkdf_algorithm</span>: <span class="ident">ring</span>::<span class="ident">hkdf</span>::<span class="ident">HKDF_SHA256</span>,
+    <span class="ident">aead_algorithm</span>: <span class="kw-2">&amp;</span><span class="ident">ring</span>::<span class="ident">aead</span>::<span class="ident">AES_128_GCM</span>,
+    <span class="ident">build_tls12_encrypter</span>: <span class="prelude-val">None</span>,
+    <span class="ident">build_tls12_decrypter</span>: <span class="prelude-val">None</span>,
 };
 
 <span class="doccomment">/// A list of all the cipher suites supported by rustls.</span>
-<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">ALL_CIPHERSUITES</span>: [<span class="kw-2">&amp;</span><span class="ident">SupportedCipherSuite</span>; <span class="number">9</span>] <span class="op">=</span>
-    [<span class="comment">// TLS1.3 suites</span>
-     <span class="kw-2">&amp;</span><span class="ident">TLS13_CHACHA20_POLY1305_SHA256</span>,
-     <span class="kw-2">&amp;</span><span class="ident">TLS13_AES_256_GCM_SHA384</span>,
-     <span class="kw-2">&amp;</span><span class="ident">TLS13_AES_128_GCM_SHA256</span>,
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">ALL_CIPHERSUITES</span>: [<span class="kw-2">&amp;</span><span class="ident">SupportedCipherSuite</span>; <span class="number">9</span>] <span class="op">=</span> [
+    <span class="comment">// TLS1.3 suites</span>
+    <span class="kw-2">&amp;</span><span class="ident">TLS13_CHACHA20_POLY1305_SHA256</span>,
+    <span class="kw-2">&amp;</span><span class="ident">TLS13_AES_256_GCM_SHA384</span>,
+    <span class="kw-2">&amp;</span><span class="ident">TLS13_AES_128_GCM_SHA256</span>,
 
-     <span class="comment">// TLS1.2 suites</span>
-     <span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256</span>,
-     <span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256</span>,
-     <span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384</span>,
-     <span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256</span>,
-     <span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</span>,
-     <span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</span>];
+    <span class="comment">// TLS1.2 suites</span>
+    <span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256</span>,
+    <span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256</span>,
+    <span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384</span>,
+    <span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256</span>,
+    <span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</span>,
+    <span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</span>
+];
 
 <span class="comment">// These both O(N^2)!</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">choose_ciphersuite_preferring_client</span>(<span class="ident">client_suites</span>: <span class="kw-2">&amp;</span>[<span class="ident">CipherSuite</span>],
@@ -892,7 +1058,7 @@
                            <span class="ident">sigalg</span>: <span class="ident">SignatureAlgorithm</span>)
                            <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">SupportedCipherSuite</span><span class="op">&gt;</span> {
     <span class="ident">all</span>.<span class="ident">iter</span>()
-        .<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="kw-2">&amp;</span><span class="ident">suite</span><span class="op">|</span> <span class="ident">suite</span>.<span class="ident">sign</span> <span class="op">=</span><span class="op">=</span> <span class="ident">SignatureAlgorithm</span>::<span class="ident">Anonymous</span> <span class="op">|</span><span class="op">|</span> <span class="ident">suite</span>.<span class="ident">sign</span> <span class="op">=</span><span class="op">=</span> <span class="ident">sigalg</span>)
+        .<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="kw-2">&amp;</span><span class="ident">suite</span><span class="op">|</span> <span class="ident">suite</span>.<span class="ident">usable_for_sigalg</span>(<span class="ident">sigalg</span>))
         .<span class="ident">cloned</span>()
         .<span class="ident">collect</span>()
 }
@@ -912,38 +1078,84 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compatible_sigscheme_for_suites</span>(<span class="ident">sigscheme</span>: <span class="ident">SignatureScheme</span>,
                                        <span class="ident">common_suites</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">SupportedCipherSuite</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="kw">let</span> <span class="ident">sigalg</span> <span class="op">=</span> <span class="ident">sigscheme</span>.<span class="ident">sign</span>();
-
     <span class="ident">common_suites</span>.<span class="ident">iter</span>()
-        .<span class="ident">any</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">suite</span><span class="op">|</span> <span class="ident">suite</span>.<span class="ident">sign</span> <span class="op">=</span><span class="op">=</span> <span class="ident">SignatureAlgorithm</span>::<span class="ident">Anonymous</span> <span class="op">|</span><span class="op">|</span> <span class="ident">suite</span>.<span class="ident">sign</span> <span class="op">=</span><span class="op">=</span> <span class="ident">sigalg</span>)
+        .<span class="ident">any</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">suite</span><span class="op">|</span> <span class="ident">suite</span>.<span class="ident">usable_for_sigalg</span>(<span class="ident">sigalg</span>))
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::<span class="ident">CipherSuite</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_client_pref</span>() {
         <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">CipherSuite</span>::<span class="ident">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</span>,
                           <span class="ident">CipherSuite</span>::<span class="ident">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</span>];
-        <span class="kw">let</span> <span class="ident">server</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="kw-2">&amp;</span><span class="kw">super</span>::<span class="ident">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</span>,
-                          <span class="kw-2">&amp;</span><span class="kw">super</span>::<span class="ident">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</span>];
-        <span class="kw">let</span> <span class="ident">chosen</span> <span class="op">=</span> <span class="kw">super</span>::<span class="ident">choose_ciphersuite_preferring_client</span>(<span class="kw-2">&amp;</span><span class="ident">client</span>, <span class="kw-2">&amp;</span><span class="ident">server</span>);
+        <span class="kw">let</span> <span class="ident">server</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</span>,
+                          <span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</span>];
+        <span class="kw">let</span> <span class="ident">chosen</span> <span class="op">=</span> <span class="ident">choose_ciphersuite_preferring_client</span>(<span class="kw-2">&amp;</span><span class="ident">client</span>, <span class="kw-2">&amp;</span><span class="ident">server</span>);
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">chosen</span>.<span class="ident">is_some</span>());
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">chosen</span>.<span class="ident">unwrap</span>(),
-                   <span class="kw-2">&amp;</span><span class="kw">super</span>::<span class="ident">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</span>);
+                   <span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_server_pref</span>() {
         <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">CipherSuite</span>::<span class="ident">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</span>,
                           <span class="ident">CipherSuite</span>::<span class="ident">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</span>];
-        <span class="kw">let</span> <span class="ident">server</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="kw-2">&amp;</span><span class="kw">super</span>::<span class="ident">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</span>,
-                          <span class="kw-2">&amp;</span><span class="kw">super</span>::<span class="ident">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</span>];
-        <span class="kw">let</span> <span class="ident">chosen</span> <span class="op">=</span> <span class="kw">super</span>::<span class="ident">choose_ciphersuite_preferring_server</span>(<span class="kw-2">&amp;</span><span class="ident">client</span>, <span class="kw-2">&amp;</span><span class="ident">server</span>);
+        <span class="kw">let</span> <span class="ident">server</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</span>,
+                          <span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</span>];
+        <span class="kw">let</span> <span class="ident">chosen</span> <span class="op">=</span> <span class="ident">choose_ciphersuite_preferring_server</span>(<span class="kw-2">&amp;</span><span class="ident">client</span>, <span class="kw-2">&amp;</span><span class="ident">server</span>);
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">chosen</span>.<span class="ident">is_some</span>());
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">chosen</span>.<span class="ident">unwrap</span>(),
-                   <span class="kw-2">&amp;</span><span class="kw">super</span>::<span class="ident">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</span>);
+                   <span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</span>);
     }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_pref_fails</span>() {
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">choose_ciphersuite_preferring_client</span>(<span class="kw-2">&amp;</span>[<span class="ident">CipherSuite</span>::<span class="ident">TLS_NULL_WITH_NULL_NULL</span>], <span class="kw-2">&amp;</span><span class="ident">ALL_CIPHERSUITES</span>).<span class="ident">is_none</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">choose_ciphersuite_preferring_server</span>(<span class="kw-2">&amp;</span>[<span class="ident">CipherSuite</span>::<span class="ident">TLS_NULL_WITH_NULL_NULL</span>], <span class="kw-2">&amp;</span><span class="ident">ALL_CIPHERSUITES</span>).<span class="ident">is_none</span>());
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_scs_is_debug</span>() {
+        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">ALL_CIPHERSUITES</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_usable_for_version</span>() {
+        <span class="kw">fn</span> <span class="ident">ok_tls13</span>(<span class="ident">scs</span>: <span class="kw-2">&amp;</span><span class="ident">SupportedCipherSuite</span>) {
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">scs</span>.<span class="ident">usable_for_version</span>(<span class="ident">ProtocolVersion</span>::<span class="ident">TLSv1_0</span>));
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">scs</span>.<span class="ident">usable_for_version</span>(<span class="ident">ProtocolVersion</span>::<span class="ident">TLSv1_2</span>));
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">scs</span>.<span class="ident">usable_for_version</span>(<span class="ident">ProtocolVersion</span>::<span class="ident">TLSv1_3</span>));
+        }
+
+        <span class="kw">fn</span> <span class="ident">ok_tls12</span>(<span class="ident">scs</span>: <span class="kw-2">&amp;</span><span class="ident">SupportedCipherSuite</span>) {
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">scs</span>.<span class="ident">usable_for_version</span>(<span class="ident">ProtocolVersion</span>::<span class="ident">TLSv1_0</span>));
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">scs</span>.<span class="ident">usable_for_version</span>(<span class="ident">ProtocolVersion</span>::<span class="ident">TLSv1_2</span>));
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">scs</span>.<span class="ident">usable_for_version</span>(<span class="ident">ProtocolVersion</span>::<span class="ident">TLSv1_3</span>));
+        }
+
+        <span class="ident">ok_tls13</span>(<span class="kw-2">&amp;</span><span class="ident">TLS13_CHACHA20_POLY1305_SHA256</span>);
+        <span class="ident">ok_tls13</span>(<span class="kw-2">&amp;</span><span class="ident">TLS13_AES_256_GCM_SHA384</span>);
+        <span class="ident">ok_tls13</span>(<span class="kw-2">&amp;</span><span class="ident">TLS13_AES_128_GCM_SHA256</span>);
+
+        <span class="ident">ok_tls12</span>(<span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256</span>);
+        <span class="ident">ok_tls12</span>(<span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256</span>);
+        <span class="ident">ok_tls12</span>(<span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384</span>);
+        <span class="ident">ok_tls12</span>(<span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256</span>);
+        <span class="ident">ok_tls12</span>(<span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_can_resume_to</span>() {
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">TLS13_CHACHA20_POLY1305_SHA256</span>.<span class="ident">can_resume_to</span>(<span class="kw-2">&amp;</span><span class="ident">TLS13_AES_128_GCM_SHA256</span>));
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">TLS13_CHACHA20_POLY1305_SHA256</span>.<span class="ident">can_resume_to</span>(<span class="kw-2">&amp;</span><span class="ident">TLS13_AES_256_GCM_SHA384</span>));
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">TLS13_CHACHA20_POLY1305_SHA256</span>.<span class="ident">can_resume_to</span>(<span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256</span>));
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</span>.<span class="ident">can_resume_to</span>(<span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256</span>));
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256</span>.<span class="ident">can_resume_to</span>(<span class="kw-2">&amp;</span><span class="ident">TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256</span>));
+    }
+
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "rustls";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
