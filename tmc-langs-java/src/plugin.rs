@@ -9,8 +9,8 @@ use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use tmc_langs_framework::{
-    domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
-    plugin::{Language, LanguagePlugin, ValidationResult},
+    domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult, ValidationResult},
+    plugin::{Language, LanguagePlugin},
 };
 use walkdir::WalkDir;
 

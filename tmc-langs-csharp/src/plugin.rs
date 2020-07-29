@@ -6,8 +6,10 @@ pub use policy::CSharpStudentFilePolicy;
 use crate::{CSTestResult, CSharpError};
 
 use tmc_langs_framework::{
-    domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
-    plugin::{Language, Strategy, ValidationResult},
+    domain::{
+        ExerciseDesc, RunResult, RunStatus, Strategy, TestDesc, TestResult, ValidationResult,
+    },
+    plugin::Language,
     CommandWithTimeout, LanguagePlugin, OutputWithTimeout, TmcError,
 };
 

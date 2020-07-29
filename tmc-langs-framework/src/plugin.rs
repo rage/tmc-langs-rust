@@ -1,10 +1,10 @@
 //! Contains LanguagePlugin.
 
 pub use isolang::Language;
-pub use tmc_langs_abstraction::{Strategy, ValidationError, ValidationResult};
 
 use super::domain::{
     ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, TestResult, TmcProjectYml,
+    ValidationResult,
 };
 use super::io::{submission_processing, zip};
 use super::policy::StudentFilePolicy;

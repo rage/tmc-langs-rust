@@ -48,10 +48,6 @@ Documentation and binaries for the supported targets are built and deployed to G
 
 ## Included projects
 
-### tmc-langs-abstraction
-
-A library containing some common types.
-
 ### tmc-langs-cli
 
 A binary CLI interface for TMC-langs for IDEs.

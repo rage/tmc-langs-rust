@@ -209,6 +209,30 @@ pub enum IntOrString {
     String(String),
 }
 
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum Strategy {
+    Fail,
+    Warn,
+    Disabled,
+}
+
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ValidationError {
+    pub column: usize,
+    pub line: usize,
+    pub message: String,
+    pub source_name: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ValidationResult {
+    pub strategy: Strategy,
+    pub validation_errors: Option<HashMap<PathBuf, Vec<ValidationError>>>,
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

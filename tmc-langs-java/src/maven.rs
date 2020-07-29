@@ -15,8 +15,8 @@ use std::process::{Command, Stdio};
 use std::time::Duration;
 use tar::Archive;
 use tmc_langs_framework::{
-    domain::{ExerciseDesc, RunResult},
-    plugin::{Language, LanguagePlugin, ValidationResult},
+    domain::{ExerciseDesc, RunResult, ValidationResult},
+    plugin::{Language, LanguagePlugin},
     TmcError,
 };
 
@@ -274,7 +274,7 @@ mod test {
     use super::super::{TestCase, TestCaseStatus};
     use super::*;
     use tempfile::{tempdir, TempDir};
-    use tmc_langs_framework::plugin::Strategy;
+    use tmc_langs_framework::domain::Strategy;
     use walkdir::WalkDir;
 
     #[cfg(windows)]

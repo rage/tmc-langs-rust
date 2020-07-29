@@ -13,8 +13,8 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::Duration;
 use tmc_langs_framework::{
-    domain::{ExerciseDesc, RunResult},
-    plugin::{Language, LanguagePlugin, ValidationResult},
+    domain::{ExerciseDesc, RunResult, ValidationResult},
+    plugin::{Language, LanguagePlugin},
     TmcError,
 };
 use walkdir::WalkDir;
@@ -297,7 +297,7 @@ impl JavaPlugin for AntPlugin {
 mod test {
     use super::*;
     use tempfile::{tempdir, TempDir};
-    use tmc_langs_framework::plugin::Strategy;
+    use tmc_langs_framework::domain::Strategy;
 
     fn init() {
         let _ = env_logger::builder().is_test(true).try_init();
