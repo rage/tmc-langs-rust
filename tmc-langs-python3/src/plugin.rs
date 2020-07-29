@@ -13,7 +13,7 @@ use std::time::Duration;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     plugin::LanguagePlugin,
-    CommandWithTimeout, TmcError,
+    CommandWithTimeout, OutputWithTimeout, TmcError,
 };
 use walkdir::WalkDir;
 
@@ -49,7 +49,22 @@ impl LanguagePlugin for Python3Plugin {
         path: &Path,
         timeout: Option<Duration>,
     ) -> Result<RunResult, TmcError> {
-        run_tmc_command(path, &[], timeout)?;
+        let output = run_tmc_command(path, &[], timeout)?;
+        if let OutputWithTimeout::Timeout { .. } = output {
+            return Ok(RunResult {
+                status: RunStatus::TestsFailed,
+                test_results: vec![TestResult {
+                    name: "Timeout test".to_string(),
+                    successful: false,
+                    points: vec![],
+                    message:
+                        "Tests timed out.\nMake sure you don't have an infinite loop in your code."
+                            .to_string(),
+                    exception: vec![],
+                }],
+                logs: HashMap::new(),
+            });
+        }
         Ok(parse_test_result(path)?)
     }
 
@@ -82,7 +97,7 @@ fn run_tmc_command(
     path: &Path,
     extra_args: &[&str],
     timeout: Option<Duration>,
-) -> Result<std::process::Output, PythonError> {
+) -> Result<OutputWithTimeout, PythonError> {
     let path = path
         .canonicalize()
         .map_err(|e| PythonError::Canonicalize(path.to_path_buf(), e))?;
@@ -107,8 +122,8 @@ fn run_tmc_command(
         .current_dir(path);
     let output = CommandWithTimeout(command).wait_with_timeout(name, timeout)?;
 
-    log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-    log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+    log::trace!("stdout: {}", String::from_utf8_lossy(output.stdout()));
+    log::debug!("stderr: {}", String::from_utf8_lossy(output.stderr()));
     Ok(output)
 }
 
@@ -303,5 +318,17 @@ mod test {
             .join("subdirectory/__pycache__/cachefile")
             .exists());
         assert!(temp_path.join("leave").exists());
+    }
+
+    #[test]
+    fn timeout() {
+        init();
+        let plugin = Python3Plugin::new();
+
+        let temp = copy_test("tests/data/timeout");
+        let timeout = plugin
+            .run_tests_with_timeout(temp.path(), Some(std::time::Duration::from_millis(1)))
+            .unwrap();
+        assert_eq!(timeout.test_results[0].name, "Timeout test");
     }
 }

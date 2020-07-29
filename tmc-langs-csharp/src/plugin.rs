@@ -6,9 +6,9 @@ pub use policy::CSharpStudentFilePolicy;
 use crate::{CSTestResult, CSharpError};
 
 use tmc_langs_framework::{
-    domain::{ExerciseDesc, RunResult, RunStatus, TestDesc},
+    domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     plugin::{Language, Strategy, ValidationResult},
-    CommandWithTimeout, LanguagePlugin, TmcError,
+    CommandWithTimeout, LanguagePlugin, OutputWithTimeout, TmcError,
 };
 
 use std::collections::HashMap;
@@ -190,19 +190,37 @@ impl LanguagePlugin for CSharpPlugin {
                 });
             }
         };
-        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-        log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
-        if !output.status.success() {
-            let mut logs = HashMap::new();
-            logs.insert("stdout".to_string(), output.stdout);
-            logs.insert("stderr".to_string(), output.stderr);
-            return Ok(RunResult {
-                status: RunStatus::CompileFailed,
-                test_results: vec![],
-                logs,
-            });
+        log::trace!("stdout: {}", String::from_utf8_lossy(output.stdout()));
+        log::debug!("stderr: {}", String::from_utf8_lossy(output.stderr()));
+
+        match output {
+            OutputWithTimeout::Output(output) => {
+                if !output.status.success() {
+                    let mut logs = HashMap::new();
+                    logs.insert("stdout".to_string(), output.stdout);
+                    logs.insert("stderr".to_string(), output.stderr);
+                    return Ok(RunResult {
+                        status: RunStatus::CompileFailed,
+                        test_results: vec![],
+                        logs,
+                    });
+                }
+                Self::parse_test_results(&test_results_path).map_err(|e| e.into())
+            }
+            OutputWithTimeout::Timeout { .. } => Ok(RunResult {
+                status: RunStatus::TestsFailed,
+                test_results: vec![TestResult {
+                    name: "Timeout test".to_string(),
+                    successful: false,
+                    points: vec![],
+                    message:
+                        "Tests timed out.\nMake sure you don't have an infinite loop in your code."
+                            .to_string(),
+                    exception: vec![],
+                }],
+                logs: HashMap::new(),
+            }),
         }
-        Self::parse_test_results(&test_results_path).map_err(|e| e.into())
     }
 
     // no checkstyle for C#

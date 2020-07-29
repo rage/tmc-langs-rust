@@ -61,8 +61,6 @@ pub enum TmcError {
 
     #[error("Failed to spawn command: {0}")]
     CommandSpawn(&'static str, #[source] std::io::Error),
-    #[error("Test timed out after {} seconds", .0.as_secs())]
-    TestTimeout(Duration),
 
     #[error("Error in plugin: {0}")]
     Plugin(#[source] Box<dyn std::error::Error + 'static + Send + Sync>),
