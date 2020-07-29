@@ -334,6 +334,13 @@ impl TmcCore {
         self.course(course_id)
     }
 
+    pub fn get_course_exercises(&self, course_id: usize) -> Result<Vec<CourseExercise>> {
+        if self.token.is_none() {
+            return Err(CoreError::AuthRequired);
+        }
+        self.exercises(course_id)
+    }
+
     /// Sends the given submission as a paste.
     ///
     /// # Errors

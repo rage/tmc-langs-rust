@@ -175,7 +175,7 @@ pub struct Exercise {
     pub solution_zip_url: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct CourseExercise {
     pub id: usize,
     pub available_points: Vec<ExercisePoint>,
@@ -200,7 +200,7 @@ pub struct CourseDataExercise {
     pub disabled: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ExercisePoint {
     pub id: usize,
     pub exercise_id: usize,
