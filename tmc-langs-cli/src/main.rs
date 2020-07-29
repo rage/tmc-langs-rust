@@ -19,7 +19,7 @@ use tmc_langs_core::oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
 use tmc_langs_core::{FeedbackAnswer, TmcCore, Token};
-use tmc_langs_framework::io::submission_processing;
+use tmc_langs_framework::{domain::ValidationResult, io::submission_processing};
 use tmc_langs_util::{
     task_executor::{self, TmcParams},
     Language,
@@ -70,20 +70,20 @@ fn run() -> Result<()> {
         let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
 
-        let output_path = matches.value_of("output-path").unwrap();
-        let output_path = Path::new(output_path);
+        let output_path = matches.value_of("output-path");
+        let output_path = output_path.map(Path::new);
 
         let locale = matches.value_of("locale").unwrap();
         let locale = into_locale(locale)?;
 
-        run_checkstyle(exercise_path, output_path, locale)?;
+        let check_result = run_checkstyle_write_results(exercise_path, output_path, locale)?;
 
-        let output = Output::<()> {
+        let output = Output {
             status: Status::Successful,
             message: Some("ran checkstyle".to_string()),
             result: OutputResult::ExecutedCommand,
             percent_done: 1.0,
-            data: None,
+            data: check_result,
         };
         print_output(&output)?
     } else if let Some(matches) = matches.subcommand_matches("compress-project") {
@@ -269,9 +269,10 @@ fn run() -> Result<()> {
         let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
 
-        let output_path = matches.value_of("output-path").unwrap();
-        let output_path = Path::new(output_path);
+        let output_path = matches.value_of("output-path");
+        let output_path = output_path.map(Path::new);
 
+        // todo: checkstyle results in stdout?
         let checkstyle_output_path = matches.value_of("checkstyle-output-path");
         let checkstyle_output_path: Option<&Path> = checkstyle_output_path.map(Path::new);
 
@@ -282,13 +283,15 @@ fn run() -> Result<()> {
             )
         })?;
 
-        write_result_to_file_as_json(&test_result, output_path)?;
+        if let Some(output_path) = output_path {
+            write_result_to_file_as_json(&test_result, output_path)?;
+        }
 
         if let Some(checkstyle_output_path) = checkstyle_output_path {
             let locale = matches.value_of("locale").unwrap();
             let locale = into_locale(locale)?;
 
-            run_checkstyle(exercise_path, checkstyle_output_path, locale)?;
+            run_checkstyle_write_results(exercise_path, Some(checkstyle_output_path), locale)?;
         }
 
         let output = Output {
@@ -303,8 +306,8 @@ fn run() -> Result<()> {
         let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
 
-        let output_path = matches.value_of("output-path").unwrap();
-        let output_path = Path::new(output_path);
+        let output_path = matches.value_of("output-path");
+        let output_path = output_path.map(Path::new);
 
         let exercise_name = exercise_path.file_name().with_context(|| {
             format!(
@@ -323,7 +326,9 @@ fn run() -> Result<()> {
         let scan_result = task_executor::scan_exercise(exercise_path, exercise_name.to_string())
             .with_context(|| format!("Failed to scan exercise at {}", exercise_path.display()))?;
 
-        write_result_to_file_as_json(&scan_result, output_path)?;
+        if let Some(output_path) = output_path {
+            write_result_to_file_as_json(&scan_result, output_path)?;
+        }
 
         let output = Output {
             status: Status::Successful,
@@ -337,8 +342,8 @@ fn run() -> Result<()> {
         let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
 
-        let output_path = matches.value_of("output-path").unwrap();
-        let output_path = Path::new(output_path);
+        let output_path = matches.value_of("output-path");
+        let output_path = output_path.map(Path::new);
 
         let mut exercises = vec![];
         // silently skips errors
@@ -356,7 +361,9 @@ fn run() -> Result<()> {
             }
         }
 
-        write_result_to_file_as_json(&exercises, output_path)?;
+        if let Some(output_path) = output_path {
+            write_result_to_file_as_json(&exercises, output_path)?;
+        }
 
         let output = Output {
             status: Status::Successful,
@@ -371,8 +378,8 @@ fn run() -> Result<()> {
         let exercise_path = matches.value_of("exercise-path").unwrap();
         let exercise_path = Path::new(exercise_path);
 
-        let output_path = matches.value_of("output-path").unwrap();
-        let output_path = Path::new(output_path);
+        let output_path = matches.value_of("output-path");
+        let output_path = output_path.map(Path::new);
 
         let config = task_executor::get_exercise_packaging_configuration(exercise_path)
             .with_context(|| {
@@ -382,7 +389,9 @@ fn run() -> Result<()> {
                 )
             })?;
 
-        write_result_to_file_as_json(&config, output_path)?;
+        if let Some(output_path) = output_path {
+            write_result_to_file_as_json(&config, output_path)?;
+        }
 
         let output = Output {
             status: Status::Successful,
@@ -1067,7 +1076,12 @@ fn find_exercise_directories(exercise_path: &Path) -> Vec<PathBuf> {
     paths
 }
 
-fn run_checkstyle(exercise_path: &Path, output_path: &Path, locale: Language) -> Result<()> {
+// if output_path is Some, the checkstyle results are written to that path
+fn run_checkstyle_write_results(
+    exercise_path: &Path,
+    output_path: Option<&Path>,
+    locale: Language,
+) -> Result<Option<ValidationResult>> {
     let check_result =
         task_executor::run_check_code_style(exercise_path, locale).with_context(|| {
             format!(
@@ -1075,7 +1089,7 @@ fn run_checkstyle(exercise_path: &Path, output_path: &Path, locale: Language) ->
                 exercise_path.display()
             )
         })?;
-    if let Some(check_result) = check_result {
+    if let Some(output_path) = output_path {
         let output_file = File::create(output_path).with_context(|| {
             format!(
                 "Failed to create code style check results file at {}",
@@ -1089,5 +1103,5 @@ fn run_checkstyle(exercise_path: &Path, output_path: &Path, locale: Language) ->
             )
         })?;
     }
-    Ok(())
+    Ok(check_result)
 }
