@@ -3,12 +3,14 @@
 pub use isolang::Language;
 pub use tmc_langs_abstraction::{Strategy, ValidationError, ValidationResult};
 
-use super::domain::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, TmcProjectYml};
+use super::domain::{
+    ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, TestResult, TmcProjectYml,
+};
 use super::io::{submission_processing, zip};
 use super::policy::StudentFilePolicy;
 use super::Result;
 use log::debug;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use walkdir::WalkDir;
@@ -67,7 +69,25 @@ pub trait LanguagePlugin {
             .get_tmc_project_yml()
             .ok()
             .and_then(|t| t.tests_timeout_ms.map(Duration::from_millis));
-        self.run_tests_with_timeout(path, timeout)
+        let result = self.run_tests_with_timeout(path, timeout)?;
+
+        // override success on no test cases
+        if result.status == RunStatus::Passed && result.test_results.is_empty() {
+            Ok(RunResult {
+                status: RunStatus::TestsFailed,
+                test_results: vec![TestResult {
+                    name: "Tests found test".to_string(),
+                    successful: true,
+                    points: vec![],
+                    message: "No tests found.\nTry submitting the exercise to the server."
+                        .to_string(),
+                    exception: vec![],
+                }],
+                logs: HashMap::new(),
+            })
+        } else {
+            Ok(result)
+        }
     }
 
     /// Runs the tests for the exercise with the given timeout.
@@ -197,7 +217,7 @@ mod test {
 
     impl StudentFilePolicy for MockPolicy {
         fn get_config_file_parent_path(&self) -> &Path {
-            unimplemented!()
+            Path::new("")
         }
         fn is_student_source_file(&self, _path: &Path) -> bool {
             unimplemented!()
@@ -209,7 +229,7 @@ mod test {
         type StudentFilePolicy = MockPolicy;
 
         fn get_student_file_policy(_project_path: &Path) -> Self::StudentFilePolicy {
-            unimplemented!()
+            Self::StudentFilePolicy {}
         }
 
         fn scan_exercise(&self, _path: &Path, _exercise_name: String) -> Result<ExerciseDesc> {
@@ -221,7 +241,11 @@ mod test {
             _path: &Path,
             _timeout: Option<Duration>,
         ) -> Result<RunResult> {
-            unimplemented!()
+            Ok(RunResult {
+                status: RunStatus::Passed,
+                test_results: vec![],
+                logs: HashMap::new(),
+            })
         }
 
         fn is_exercise_type_correct(path: &Path) -> bool {
@@ -298,5 +322,13 @@ extra_exercise_files:
         assert!(!conf
             .exercise_file_paths
             .contains(&PathBuf::from("test/OtherTest.java")));
+    }
+
+    #[test]
+    fn empty_run_result_is_err() {
+        let plugin = MockPlugin {};
+        let res = plugin.run_tests(Path::new("")).unwrap();
+        assert_eq!(res.status, RunStatus::TestsFailed);
+        assert_eq!(res.test_results[0].name, "Tests found test")
     }
 }
