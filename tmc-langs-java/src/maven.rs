@@ -113,10 +113,9 @@ impl LanguagePlugin for MavenPlugin {
             .output()
             .map_err(|e| JavaError::FailedToRun("mvn".to_string(), e))?;
 
-        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-        log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
-
         if !output.status.success() {
+            log::warn!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+            log::warn!("stderr: {}", String::from_utf8_lossy(&output.stderr));
             return Err(JavaError::FailedCommand(
                 "mvn".to_string(),
                 output.status,
@@ -125,6 +124,9 @@ impl LanguagePlugin for MavenPlugin {
             )
             .into());
         }
+
+        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+        log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 
         Ok(())
     }
@@ -162,10 +164,9 @@ impl JavaPlugin for MavenPlugin {
                 JavaError::FailedToRun(mvn_path.as_os_str().to_string_lossy().to_string(), e)
             })?;
 
-        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-        log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
-
         if !output.status.success() {
+            log::warn!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+            log::warn!("stderr: {}", String::from_utf8_lossy(&output.stderr));
             return Err(JavaError::FailedCommand(
                 mvn_path.as_os_str().to_string_lossy().to_string(),
                 output.status,
@@ -173,6 +174,9 @@ impl JavaPlugin for MavenPlugin {
                 output.stderr,
             ));
         }
+
+        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+        log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 
         let class_path = fs::read_to_string(&class_path_file)
             .map_err(|e| JavaError::FileRead(class_path_file, e))?;
@@ -205,10 +209,9 @@ impl JavaPlugin for MavenPlugin {
                 JavaError::FailedToRun(mvn_path.as_os_str().to_string_lossy().to_string(), e)
             })?;
 
-        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-        log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
-
         if !output.status.success() {
+            log::warn!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+            log::warn!("stderr: {}", String::from_utf8_lossy(&output.stderr));
             return Err(JavaError::FailedCommand(
                 mvn_path.as_os_str().to_string_lossy().to_string(),
                 output.status,
@@ -216,6 +219,9 @@ impl JavaPlugin for MavenPlugin {
                 output.stderr,
             ));
         }
+
+        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+        log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 
         Ok(CompileResult {
             status_code: output.status,
@@ -240,10 +246,9 @@ impl JavaPlugin for MavenPlugin {
                 JavaError::FailedToRun(mvn_path.as_os_str().to_string_lossy().to_string(), e)
             })?;
 
-        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-        log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
-
         if !output.status.success() {
+            log::warn!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+            log::warn!("stderr: {}", String::from_utf8_lossy(&output.stderr));
             return Err(JavaError::FailedCommand(
                 mvn_path.as_os_str().to_string_lossy().to_string(),
                 output.status,
@@ -251,6 +256,9 @@ impl JavaPlugin for MavenPlugin {
                 output.stderr,
             ));
         }
+
+        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+        log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 
         Ok(TestRun {
             test_results: path.join("target/test_output.txt"),
