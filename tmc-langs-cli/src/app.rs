@@ -238,7 +238,7 @@ pub fn create_app() -> App<'static, 'static> {
                     .required(true)
                     .takes_value(true)))
 
-            .subcommand(SubCommand::with_name("list-courses")
+            .subcommand(SubCommand::with_name("get-courses")
                 .about("List courses.")
                 .arg(Arg::with_name("organization")
                     .help("Organization slug (e.g. mooc, hy).")

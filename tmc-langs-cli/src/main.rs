@@ -628,7 +628,7 @@ fn run() -> Result<()> {
                 data: Some(course_details),
             };
             print_output(&output)?;
-        } else if let Some(matches) = matches.subcommand_matches("list-courses") {
+        } else if let Some(matches) = matches.subcommand_matches("get-courses") {
             let organization_slug = matches.value_of("organization").unwrap();
             let courses = core
                 .list_courses(organization_slug)
