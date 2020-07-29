@@ -327,6 +327,13 @@ impl TmcCore {
         self.organization_courses(organization_slug)
     }
 
+    pub fn get_course(&self, course_id: usize) -> Result<CourseData> {
+        if self.token.is_none() {
+            return Err(CoreError::AuthRequired);
+        }
+        self.course(course_id)
+    }
+
     /// Sends the given submission as a paste.
     ///
     /// # Errors

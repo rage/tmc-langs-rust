@@ -254,6 +254,14 @@ pub fn create_app() -> App<'static, 'static> {
                     .required(true)
                     .takes_value(true)))
 
+            .subcommand(SubCommand::with_name("get-course-settings")
+                .about("Get course settings.")
+                .arg(Arg::with_name("course-id")
+                    .help("The ID of the course.")
+                    .long("course-id")
+                    .required(true)
+                    .takes_value(true)))
+
             .subcommand(SubCommand::with_name("paste")
                 .about("Send exercise to pastebin with comment.")
                 .arg(Arg::with_name("submission-url")

@@ -87,7 +87,7 @@ pub struct Course {
     pub spyware_urls: Vec<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct CourseData {
     pub name: String,
     //pub hide_after
