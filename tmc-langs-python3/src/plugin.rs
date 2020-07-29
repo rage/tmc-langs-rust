@@ -38,22 +38,40 @@ impl LanguagePlugin for Python3Plugin {
         exercise_directory: &Path,
         exercise_name: String,
     ) -> Result<ExerciseDesc, TmcError> {
-        let run_result = run_tmc_command(exercise_directory, &["available_points"], None);
+        let available_points_json = exercise_directory.join(".available_points.json");
+        // remove any existing points json
+        if available_points_json.exists() {
+            fs::remove_file(&available_points_json)
+                .map_err(|e| PythonError::FileRemove(available_points_json.clone(), e))?;
+        }
 
+        let run_result = run_tmc_command(exercise_directory, &["available_points"], None);
         if let Err(error) = run_result {
             log::error!("Failed to scan exercise. {}", error);
         }
 
-        let test_descs = parse_exercise_description(exercise_directory)?;
-        Ok(ExerciseDesc::new(exercise_name, test_descs))
+        let test_descs_res = parse_exercise_description(&available_points_json);
+        // remove file regardless of parse success
+        if available_points_json.exists() {
+            fs::remove_file(&available_points_json)
+                .map_err(|e| PythonError::FileRemove(available_points_json.clone(), e))?;
+        }
+        Ok(ExerciseDesc::new(exercise_name, test_descs_res?))
     }
 
     fn run_tests_with_timeout(
         &self,
-        path: &Path,
+        exercise_directory: &Path,
         timeout: Option<Duration>,
     ) -> Result<RunResult, TmcError> {
-        let output = run_tmc_command(path, &[], timeout)?;
+        let test_results_json = exercise_directory.join(".tmc_test_results.json");
+        // remove any existing results json
+        if test_results_json.exists() {
+            fs::remove_file(&test_results_json)
+                .map_err(|e| PythonError::FileRemove(test_results_json.clone(), e))?;
+        }
+
+        let output = run_tmc_command(exercise_directory, &[], timeout)?;
         if let OutputWithTimeout::Timeout { .. } = output {
             return Ok(RunResult {
                 status: RunStatus::TestsFailed,
@@ -69,7 +87,14 @@ impl LanguagePlugin for Python3Plugin {
                 logs: HashMap::new(),
             });
         }
-        Ok(parse_test_result(path)?)
+
+        let parse_res = parse_test_result(&test_results_json);
+        // remove file regardless of parse success
+        if test_results_json.exists() {
+            fs::remove_file(&test_results_json)
+                .map_err(|e| PythonError::FileRemove(test_results_json.clone(), e))?;
+        }
+        Ok(parse_res?)
     }
 
     fn is_exercise_type_correct(path: &Path) -> bool {
@@ -137,29 +162,26 @@ fn run_tmc_command(
     Ok(output)
 }
 
-/// Parse and remove(!) exercise description file
-fn parse_exercise_description(exercise_directory: &Path) -> Result<Vec<TestDesc>, PythonError> {
+/// Parse exercise description file
+fn parse_exercise_description(available_points_json: &Path) -> Result<Vec<TestDesc>, PythonError> {
     let mut test_descs = vec![];
-    let points_path = exercise_directory.join(".available_points.json");
-    let file =
-        File::open(&points_path).map_err(|e| PythonError::FileOpen(points_path.clone(), e))?;
+    let file = File::open(&available_points_json)
+        .map_err(|e| PythonError::FileOpen(available_points_json.to_path_buf(), e))?;
     // TODO: deserialize directly into Vec<TestDesc>?
     let json: HashMap<String, Vec<String>> = serde_json::from_reader(BufReader::new(file))
-        .map_err(|e| PythonError::Deserialize(points_path.clone(), e))?;
+        .map_err(|e| PythonError::Deserialize(available_points_json.to_path_buf(), e))?;
     for (key, value) in json {
         test_descs.push(TestDesc::new(key, value));
     }
-    fs::remove_file(&points_path).map_err(|e| PythonError::FileRemove(points_path, e))?;
     Ok(test_descs)
 }
 
-/// Parse and remove(!) test result file
-fn parse_test_result(exercise_directory: &Path) -> Result<RunResult, PythonError> {
-    let test_results_path = exercise_directory.join(".tmc_test_results.json");
-    let results_file = File::open(&test_results_path)
-        .map_err(|e| PythonError::FileOpen(test_results_path.clone(), e))?;
+/// Parse test result file
+fn parse_test_result(test_results_json: &Path) -> Result<RunResult, PythonError> {
+    let results_file = File::open(&test_results_json)
+        .map_err(|e| PythonError::FileOpen(test_results_json.to_path_buf(), e))?;
     let test_results: Vec<PythonTestResult> = serde_json::from_reader(BufReader::new(results_file))
-        .map_err(|e| PythonError::Deserialize(test_results_path.clone(), e))?;
+        .map_err(|e| PythonError::Deserialize(test_results_json.to_path_buf(), e))?;
     let test_results: Vec<TestResult> = test_results
         .into_iter()
         .map(PythonTestResult::into_test_result)
@@ -171,8 +193,6 @@ fn parse_test_result(exercise_directory: &Path) -> Result<RunResult, PythonError
             status = RunStatus::TestsFailed;
         }
     }
-    fs::remove_file(&test_results_path)
-        .map_err(|e| PythonError::FileRemove(test_results_path, e))?;
     Ok(RunResult::new(status, test_results, HashMap::new()))
 }
 
