@@ -1,6 +1,5 @@
 //! Module for calling different tasks of TMC-langs language plug-ins.
 
-mod file_util;
 mod submission_packaging;
 mod tar_helper;
 
