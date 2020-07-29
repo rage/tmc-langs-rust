@@ -357,6 +357,14 @@ pub fn create_app() -> App<'static, 'static> {
                     .help("Set to avoid blocking.")
                     .long("dont-block")))
 
+            .subcommand(SubCommand::with_name("fetch-old-submissions")
+                .about("Fetch the current user's old submissions for an exercise.")
+                .arg(Arg::with_name("exercise-id")
+                    .help("The ID of the exercise.")
+                    .long("exercise-id")
+                    .required(true)
+                    .takes_value(true)))
+
             .subcommand(SubCommand::with_name("wait-for-submission")
                 .about("Wait for a submission to finish.")
                 .arg(Arg::with_name("submission-url")

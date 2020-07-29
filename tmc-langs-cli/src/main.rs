@@ -840,6 +840,21 @@ fn run() -> Result<()> {
                 };
                 print_output(&output)?;
             }
+        } else if let Some(matches) = matches.subcommand_matches("fetch-old-submissions") {
+            let exercise_id = matches.value_of("exercise-id").unwrap();
+            let exercise_id = into_usize(exercise_id)?;
+            let submissions = core
+                .exercise_submissions(exercise_id)
+                .context("Failed to get submissions")?;
+
+            let output = Output {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: Some(submissions),
+            };
+            print_output(&output)?;
         } else if let Some(matches) = matches.subcommand_matches("wait-for-submission") {
             let submission_url = matches.value_of("submission-url").unwrap();
             let submission_finished = core

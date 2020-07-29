@@ -488,6 +488,10 @@ impl TmcCore {
         self.download_submission(submission_id, target)
     }
 
+    pub fn exercise_submissions(&self, exercise_id: usize) -> Result<Vec<Submission>> {
+        self.exercise_submissions_for_current_user(exercise_id)
+    }
+
     pub fn wait_for_submission(&self, submission_url: &str) -> Result<SubmissionFinished> {
         let mut previous_status = None;
         loop {
