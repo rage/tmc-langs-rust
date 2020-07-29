@@ -219,6 +219,14 @@ pub fn create_app() -> App<'static, 'static> {
             .subcommand(SubCommand::with_name("get-organizations")
                 .about("Get organizations."))
 
+            .subcommand(SubCommand::with_name("get-organization")
+                .about("Get organization.")
+                .arg(Arg::with_name("organization")
+                    .help("Organization slug (e.g. mooc, hy).")
+                    .long("organization")
+                    .required(true)
+                    .takes_value(true)))
+
             .subcommand(SubCommand::with_name("download-or-update-exercises")
                 .about("Download exercise.")
                 .arg(Arg::with_name("exercise")

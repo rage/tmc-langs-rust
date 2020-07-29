@@ -229,6 +229,14 @@ impl TmcCore {
         self.organizations()
     }
 
+    /// Fetches an organization.
+    ///
+    /// # Errors
+    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
+    pub fn get_organization(&self, organization_slug: &str) -> Result<Organization> {
+        self.organization(organization_slug)
+    }
+
     /// Unimplemented.
     #[deprecated = "unimplemented"]
     pub fn send_diagnostics(&self) {

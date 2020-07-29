@@ -591,6 +591,20 @@ fn run() -> Result<()> {
                 data: Some(orgs),
             };
             print_output(&output)?;
+        } else if let Some(matches) = matches.subcommand_matches("get-organization") {
+            let organization_slug = matches.value_of("organization").unwrap();
+            let org = core
+                .get_organization(organization_slug)
+                .context("Failed to get organization")?;
+
+            let output = Output {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: Some(org),
+            };
+            print_output(&output)?;
         } else if let Some(matches) = matches.subcommand_matches("download-or-update-exercises") {
             let mut exercise_args = matches.values_of("exercise").unwrap();
             let mut exercises = vec![];
