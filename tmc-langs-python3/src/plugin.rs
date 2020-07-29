@@ -33,14 +33,18 @@ impl LanguagePlugin for Python3Plugin {
         Python3StudentFilePolicy::new(project_path.to_owned())
     }
 
-    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
-        let run_result = run_tmc_command(path, &["available_points"], None);
+    fn scan_exercise(
+        &self,
+        exercise_directory: &Path,
+        exercise_name: String,
+    ) -> Result<ExerciseDesc, TmcError> {
+        let run_result = run_tmc_command(exercise_directory, &["available_points"], None);
 
         if let Err(error) = run_result {
             log::error!("Failed to scan exercise. {}", error);
         }
 
-        let test_descs = parse_exercise_description(path)?;
+        let test_descs = parse_exercise_description(exercise_directory)?;
         Ok(ExerciseDesc::new(exercise_name, test_descs))
     }
 
@@ -77,16 +81,22 @@ impl LanguagePlugin for Python3Plugin {
         setup.exists() || requirements.exists() || test.exists() || tmc.exists()
     }
 
-    fn clean(&self, path: &Path) -> Result<(), TmcError> {
-        for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
+    fn clean(&self, exercise_path: &Path) -> Result<(), TmcError> {
+        for entry in WalkDir::new(exercise_path)
+            .into_iter()
+            .filter_map(|e| e.ok())
+        {
             if entry.file_name() == ".available_points.json"
                 || entry.file_name() == ".tmc_test_results.json"
+                || entry.file_name() == "__pycache__"
             {
-                fs::remove_file(entry.path())
-                    .map_err(|e| PythonError::FileRemove(entry.path().to_path_buf(), e))?;
-            } else if entry.file_name() == "__pycache__" {
-                fs::remove_dir_all(entry.path())
-                    .map_err(|e| PythonError::DirRemove(entry.path().to_path_buf(), e))?;
+                if entry.path().is_file() {
+                    fs::remove_file(entry.path())
+                        .map_err(|e| PythonError::FileRemove(entry.path().to_path_buf(), e))?;
+                } else {
+                    fs::remove_dir_all(entry.path())
+                        .map_err(|e| PythonError::DirRemove(entry.path().to_path_buf(), e))?;
+                }
             }
         }
         Ok(())
@@ -127,26 +137,29 @@ fn run_tmc_command(
     Ok(output)
 }
 
-fn parse_exercise_description(path: &Path) -> Result<Vec<TestDesc>, PythonError> {
+/// Parse and remove(!) exercise description file
+fn parse_exercise_description(exercise_directory: &Path) -> Result<Vec<TestDesc>, PythonError> {
     let mut test_descs = vec![];
-    let mut path = path.to_owned();
-    path.push(".available_points.json");
-    let file = File::open(&path).map_err(|e| PythonError::FileOpen(path.clone(), e))?;
+    let points_path = exercise_directory.join(".available_points.json");
+    let file =
+        File::open(&points_path).map_err(|e| PythonError::FileOpen(points_path.clone(), e))?;
     // TODO: deserialize directly into Vec<TestDesc>?
     let json: HashMap<String, Vec<String>> = serde_json::from_reader(BufReader::new(file))
-        .map_err(|e| PythonError::Deserialize(path, e))?;
+        .map_err(|e| PythonError::Deserialize(points_path.clone(), e))?;
     for (key, value) in json {
         test_descs.push(TestDesc::new(key, value));
     }
+    fs::remove_file(&points_path).map_err(|e| PythonError::FileRemove(points_path, e))?;
     Ok(test_descs)
 }
 
-fn parse_test_result(path: &Path) -> Result<RunResult, PythonError> {
-    let mut path = path.to_owned();
-    path.push(".tmc_test_results.json");
-    let results_file = File::open(&path).map_err(|e| PythonError::FileOpen(path.clone(), e))?;
+/// Parse and remove(!) test result file
+fn parse_test_result(exercise_directory: &Path) -> Result<RunResult, PythonError> {
+    let test_results_path = exercise_directory.join(".tmc_test_results.json");
+    let results_file = File::open(&test_results_path)
+        .map_err(|e| PythonError::FileOpen(test_results_path.clone(), e))?;
     let test_results: Vec<PythonTestResult> = serde_json::from_reader(BufReader::new(results_file))
-        .map_err(|e| PythonError::Deserialize(path, e))?;
+        .map_err(|e| PythonError::Deserialize(test_results_path.clone(), e))?;
     let test_results: Vec<TestResult> = test_results
         .into_iter()
         .map(PythonTestResult::into_test_result)
@@ -158,6 +171,8 @@ fn parse_test_result(path: &Path) -> Result<RunResult, PythonError> {
             status = RunStatus::TestsFailed;
         }
     }
+    fs::remove_file(&test_results_path)
+        .map_err(|e| PythonError::FileRemove(test_results_path, e))?;
     Ok(RunResult::new(status, test_results, HashMap::new()))
 }
 
