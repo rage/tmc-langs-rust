@@ -684,6 +684,21 @@ fn run() -> Result<()> {
                 data: Some(course),
             };
             print_output(&output)?;
+        } else if let Some(matches) = matches.subcommand_matches("get-exercise-details") {
+            let exercise_id = matches.value_of("exercise-id").unwrap();
+            let exercise_id = into_usize(exercise_id)?;
+            let course = core
+                .get_exercise_details(exercise_id)
+                .context("Failed to get course")?;
+
+            let output = Output {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: Some(course),
+            };
+            print_output(&output)?;
         } else if let Some(matches) = matches.subcommand_matches("paste") {
             let submission_url = matches.value_of("submission-url").unwrap();
             let submission_url = into_url(submission_url)?;
