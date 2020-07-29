@@ -1019,6 +1019,78 @@
 <span id="1019">1019</span>
 <span id="1020">1020</span>
 <span id="1021">1021</span>
+<span id="1022">1022</span>
+<span id="1023">1023</span>
+<span id="1024">1024</span>
+<span id="1025">1025</span>
+<span id="1026">1026</span>
+<span id="1027">1027</span>
+<span id="1028">1028</span>
+<span id="1029">1029</span>
+<span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
+<span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! CLI client for TMC</span>
 
@@ -1613,6 +1685,20 @@
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">orgs</span>),
             };
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>;
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;get-organization&quot;</span>) {
+            <span class="kw">let</span> <span class="ident">organization_slug</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;organization&quot;</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">org</span> <span class="op">=</span> <span class="ident">core</span>
+                .<span class="ident">get_organization</span>(<span class="ident">organization_slug</span>)
+                .<span class="ident">context</span>(<span class="string">&quot;Failed to get organization&quot;</span>)<span class="question-mark">?</span>;
+
+            <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span> {
+                <span class="ident">status</span>: <span class="ident">Status</span>::<span class="ident">Successful</span>,
+                <span class="ident">message</span>: <span class="prelude-val">None</span>,
+                <span class="ident">result</span>: <span class="ident">OutputResult</span>::<span class="ident">RetrievedData</span>,
+                <span class="ident">percent_done</span>: <span class="number">1.0</span>,
+                <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">org</span>),
+            };
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>;
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;download-or-update-exercises&quot;</span>) {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercise_args</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">values_of</span>(<span class="string">&quot;exercise&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercises</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
@@ -1650,7 +1736,7 @@
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">course_details</span>),
             };
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>;
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;list-courses&quot;</span>) {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;get-courses&quot;</span>) {
             <span class="kw">let</span> <span class="ident">organization_slug</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;organization&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">courses</span> <span class="op">=</span> <span class="ident">core</span>
                 .<span class="ident">list_courses</span>(<span class="ident">organization_slug</span>)
@@ -1662,6 +1748,49 @@
                 <span class="ident">result</span>: <span class="ident">OutputResult</span>::<span class="ident">RetrievedData</span>,
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">courses</span>),
+            };
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>;
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;get-course-settings&quot;</span>) {
+            <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;course-id&quot;</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">into_usize</span>(<span class="ident">course_id</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">course</span> <span class="op">=</span> <span class="ident">core</span>.<span class="ident">get_course</span>(<span class="ident">course_id</span>).<span class="ident">context</span>(<span class="string">&quot;Failed to get course&quot;</span>)<span class="question-mark">?</span>;
+
+            <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span> {
+                <span class="ident">status</span>: <span class="ident">Status</span>::<span class="ident">Successful</span>,
+                <span class="ident">message</span>: <span class="prelude-val">None</span>,
+                <span class="ident">result</span>: <span class="ident">OutputResult</span>::<span class="ident">RetrievedData</span>,
+                <span class="ident">percent_done</span>: <span class="number">1.0</span>,
+                <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">course</span>),
+            };
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>;
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;get-course-exercises&quot;</span>) {
+            <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;course-id&quot;</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">into_usize</span>(<span class="ident">course_id</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">course</span> <span class="op">=</span> <span class="ident">core</span>
+                .<span class="ident">get_course_exercises</span>(<span class="ident">course_id</span>)
+                .<span class="ident">context</span>(<span class="string">&quot;Failed to get course&quot;</span>)<span class="question-mark">?</span>;
+
+            <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span> {
+                <span class="ident">status</span>: <span class="ident">Status</span>::<span class="ident">Successful</span>,
+                <span class="ident">message</span>: <span class="prelude-val">None</span>,
+                <span class="ident">result</span>: <span class="ident">OutputResult</span>::<span class="ident">RetrievedData</span>,
+                <span class="ident">percent_done</span>: <span class="number">1.0</span>,
+                <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">course</span>),
+            };
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>;
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;get-exercise-details&quot;</span>) {
+            <span class="kw">let</span> <span class="ident">exercise_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-id&quot;</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">exercise_id</span> <span class="op">=</span> <span class="ident">into_usize</span>(<span class="ident">exercise_id</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">course</span> <span class="op">=</span> <span class="ident">core</span>
+                .<span class="ident">get_exercise_details</span>(<span class="ident">exercise_id</span>)
+                .<span class="ident">context</span>(<span class="string">&quot;Failed to get course&quot;</span>)<span class="question-mark">?</span>;
+
+            <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span> {
+                <span class="ident">status</span>: <span class="ident">Status</span>::<span class="ident">Successful</span>,
+                <span class="ident">message</span>: <span class="prelude-val">None</span>,
+                <span class="ident">result</span>: <span class="ident">OutputResult</span>::<span class="ident">RetrievedData</span>,
+                <span class="ident">percent_done</span>: <span class="number">1.0</span>,
+                <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">course</span>),
             };
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>;
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;paste&quot;</span>) {
@@ -1805,6 +1934,21 @@
                 };
                 <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>;
             }
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;get-exercise-submissions&quot;</span>) {
+            <span class="kw">let</span> <span class="ident">exercise_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-id&quot;</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">exercise_id</span> <span class="op">=</span> <span class="ident">into_usize</span>(<span class="ident">exercise_id</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">submissions</span> <span class="op">=</span> <span class="ident">core</span>
+                .<span class="ident">get_exercise_submissions_for_current_user</span>(<span class="ident">exercise_id</span>)
+                .<span class="ident">context</span>(<span class="string">&quot;Failed to get submissions&quot;</span>)<span class="question-mark">?</span>;
+
+            <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span> {
+                <span class="ident">status</span>: <span class="ident">Status</span>::<span class="ident">Successful</span>,
+                <span class="ident">message</span>: <span class="prelude-val">None</span>,
+                <span class="ident">result</span>: <span class="ident">OutputResult</span>::<span class="ident">RetrievedData</span>,
+                <span class="ident">percent_done</span>: <span class="number">1.0</span>,
+                <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">submissions</span>),
+            };
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>;
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;wait-for-submission&quot;</span>) {
             <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;submission-url&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">submission_finished</span> <span class="op">=</span> <span class="ident">core</span>
