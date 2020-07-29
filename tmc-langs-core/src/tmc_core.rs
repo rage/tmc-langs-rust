@@ -488,7 +488,10 @@ impl TmcCore {
         self.download_submission(submission_id, target)
     }
 
-    pub fn exercise_submissions(&self, exercise_id: usize) -> Result<Vec<Submission>> {
+    pub fn get_exercise_submissions_for_current_user(
+        &self,
+        exercise_id: usize,
+    ) -> Result<Vec<Submission>> {
         self.exercise_submissions_for_current_user(exercise_id)
     }
 

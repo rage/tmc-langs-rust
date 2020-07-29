@@ -840,11 +840,11 @@ fn run() -> Result<()> {
                 };
                 print_output(&output)?;
             }
-        } else if let Some(matches) = matches.subcommand_matches("fetch-old-submissions") {
+        } else if let Some(matches) = matches.subcommand_matches("get-exercise-submissions") {
             let exercise_id = matches.value_of("exercise-id").unwrap();
             let exercise_id = into_usize(exercise_id)?;
             let submissions = core
-                .exercise_submissions(exercise_id)
+                .get_exercise_submissions_for_current_user(exercise_id)
                 .context("Failed to get submissions")?;
 
             let output = Output {

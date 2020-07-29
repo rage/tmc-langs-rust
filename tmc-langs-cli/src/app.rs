@@ -357,7 +357,7 @@ pub fn create_app() -> App<'static, 'static> {
                     .help("Set to avoid blocking.")
                     .long("dont-block")))
 
-            .subcommand(SubCommand::with_name("fetch-old-submissions")
+            .subcommand(SubCommand::with_name("get-exercise-submissions")
                 .about("Fetch the current user's old submissions for an exercise.")
                 .arg(Arg::with_name("exercise-id")
                     .help("The ID of the exercise.")
