@@ -1,7 +1,6 @@
 use crate::io::zip;
 
 use std::path::PathBuf;
-use std::time::Duration;
 use thiserror::Error;
 
 // todo: make util error type and move variants there

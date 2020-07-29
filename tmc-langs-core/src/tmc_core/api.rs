@@ -2,7 +2,6 @@
 
 use crate::error::{CoreError, Result};
 use crate::response::Response;
-use crate::tmc_core::Token;
 use crate::{
     Course, CourseData, CourseDataExercise, CourseDataExercisePoint, CourseDetails, CourseExercise,
     ExerciseDetails, FeedbackAnswer, NewSubmission, Organization, Review, Submission,
