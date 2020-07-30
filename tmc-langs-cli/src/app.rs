@@ -1,6 +1,10 @@
 //! Create clap app
 
 use clap::{App, Arg, SubCommand};
+use schemars::JsonSchema;
+use std::path::PathBuf;
+use tmc_langs_core::*;
+use tmc_langs_framework::domain::*;
 
 pub fn create_app() -> App<'static, 'static> {
     App::new(env!("CARGO_PKG_NAME"))
@@ -10,6 +14,7 @@ pub fn create_app() -> App<'static, 'static> {
 
         .subcommand(SubCommand::with_name("checkstyle")
             .about("Check code style for the exercise.")
+            .long_about(SCHEMA_NULL)
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the project resides.")
                 .long("exercise-path")
@@ -27,6 +32,7 @@ pub fn create_app() -> App<'static, 'static> {
 
         .subcommand(SubCommand::with_name("compress-project")
             .about("Compress target exercise into a ZIP.")
+            .long_about(SCHEMA_NULL)
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the exercise resides.")
                 .long("exercise-path")
@@ -40,6 +46,7 @@ pub fn create_app() -> App<'static, 'static> {
 
         .subcommand(SubCommand::with_name("extract-project")
             .about("Extract an exercise archive.")
+            .long_about(SCHEMA_NULL)
             .arg(Arg::with_name("archive-path")
                 .help("Path to the archive.")
                 .long("archive-path")
@@ -53,6 +60,7 @@ pub fn create_app() -> App<'static, 'static> {
 
         .subcommand(SubCommand::with_name("prepare-solutions")
             .about("Prepare a presentable solution from the original.")
+            .long_about(SCHEMA_NULL)
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the exercise resides.")
                 .long("exercise-path")
@@ -66,6 +74,7 @@ pub fn create_app() -> App<'static, 'static> {
 
         .subcommand(SubCommand::with_name("prepare-stubs")
             .about("Prepare a stub exercise from the original.")
+            .long_about(SCHEMA_NULL)
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the exercise resides.")
                 .long("exercise-path")
@@ -79,6 +88,7 @@ pub fn create_app() -> App<'static, 'static> {
 
         .subcommand(SubCommand::with_name("prepare-submission")
             .about("Prepares from submission and solution project for which the tests can be run in sandbox.")
+            .long_about(SCHEMA_NULL)
             .arg(Arg::with_name("submission-path")
                 .help("Path to the zip archive to be submitted.")
                 .long("submission-path")
@@ -113,6 +123,7 @@ pub fn create_app() -> App<'static, 'static> {
 
         .subcommand(SubCommand::with_name("run-tests")
             .about("Run the tests for the exercise.")
+            .long_about(schema_leaked::<RunResult>())
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the exercise resides.")
                 .long("exercise-path")
@@ -134,6 +145,7 @@ pub fn create_app() -> App<'static, 'static> {
 
         .subcommand(SubCommand::with_name("scan-exercise")
             .about("Produce an exercise description of an exercise directory.")
+            .long_about(schema_leaked::<ExerciseDesc>())
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the project resides.")
                 .long("exercise-path")
@@ -146,6 +158,7 @@ pub fn create_app() -> App<'static, 'static> {
 
         .subcommand(SubCommand::with_name("find-exercises")
             .about("Produce list of found exercises.")
+            .long_about(schema_leaked::<Vec<PathBuf>>())
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the project resides.")
                 .long("exercise-path")
@@ -158,6 +171,7 @@ pub fn create_app() -> App<'static, 'static> {
 
         .subcommand(SubCommand::with_name("get-exercise-packaging-configuration")
             .about("Returns configuration of under which folders student and nonstudent files are located.")
+            .long_about(schema_leaked::<ExercisePackagingConfiguration>())
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the exercise resides.")
                 .long("exercise-path")
@@ -170,6 +184,7 @@ pub fn create_app() -> App<'static, 'static> {
 
         .subcommand(SubCommand::with_name("clean")
             .about("Clean target directory.")
+            .long_about(SCHEMA_NULL)
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the exercise resides.")
                 .long("exercise-path")
@@ -191,6 +206,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("login")
                 .about("Login and store OAuth2 token in config. You can login either by email and password or an access token.")
+                .long_about(SCHEMA_NULL)
                 .arg(Arg::with_name("email")
                     .help("The email address of your TMC account.")
                     .long("email")
@@ -206,16 +222,20 @@ pub fn create_app() -> App<'static, 'static> {
                     .long("base64")))
 
             .subcommand(SubCommand::with_name("logout")
-                .about("Logout and remove OAuth2 token from config."))
+                .about("Logout and remove OAuth2 token from config.")
+                .long_about(SCHEMA_NULL))
 
             .subcommand(SubCommand::with_name("logged-in")
-                .about("Check if the CLI is logged in. Prints the access token if so."))
+                .about("Check if the CLI is logged in. Prints the access token if so.")
+                .long_about(SCHEMA_TOKEN))
 
             .subcommand(SubCommand::with_name("get-organizations")
-                .about("Get organizations."))
+                .about("Get organizations.")
+                .long_about(schema_leaked::<Vec<Organization>>()))
 
             .subcommand(SubCommand::with_name("get-organization")
                 .about("Get organization.")
+                .long_about(schema_leaked::<Organization>())
                 .arg(Arg::with_name("organization")
                     .help("Organization slug (e.g. mooc, hy).")
                     .long("organization")
@@ -224,6 +244,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("download-or-update-exercises")
                 .about("Download exercise.")
+                .long_about(SCHEMA_NULL)
                 .arg(Arg::with_name("exercise")
                     .help("An exercise. Takes two values, an exercise id and an exercise path. Multiple exercises can be given.")
                     .long("exercise")
@@ -235,6 +256,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("get-course-details")
                 .about("Get course details.")
+                .long_about(schema_leaked::<CourseDetails>())
                 .arg(Arg::with_name("course-id")
                     .help("The ID of the course.")
                     .long("course-id")
@@ -243,6 +265,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("get-courses")
                 .about("List courses.")
+                .long_about(schema_leaked::<Vec<CourseData>>())
                 .arg(Arg::with_name("organization")
                     .help("Organization slug (e.g. mooc, hy).")
                     .long("organization")
@@ -251,6 +274,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("get-course-settings")
                 .about("Get course settings.")
+                .long_about(schema_leaked::<CourseData>())
                 .arg(Arg::with_name("course-id")
                     .help("The ID of the course.")
                     .long("course-id")
@@ -259,6 +283,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("get-course-exercises")
                 .about("Get course exercises.")
+                .long_about(schema_leaked::<Vec<CourseExercise>>())
                 .arg(Arg::with_name("course-id")
                     .help("The ID of the course.")
                     .long("course-id")
@@ -267,6 +292,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("get-exercise-details")
                 .about("Get exercise details.")
+                .long_about(schema_leaked::<ExerciseDetails>())
                 .arg(Arg::with_name("exercise-id")
                     .help("The ID of the exercise.")
                     .long("exercise-id")
@@ -275,6 +301,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("paste")
                 .about("Send exercise to pastebin with comment.")
+                .long_about(schema_leaked::<NewSubmission>())
                 .arg(Arg::with_name("submission-url")
                     .help("The URL where the submission should be posted.")
                     .long("submission-url")
@@ -297,6 +324,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("run-checkstyle")
                 .about("Run checkstyle.")
+                .long_about(schema_leaked::<Option<ValidationResult>>())
                 .arg(Arg::with_name("exercise-path")
                     .help("Path to the directory where the exercise resides.")
                     .long("exercise-path")
@@ -310,6 +338,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("run-tests")
                 .about("Run tests.")
+                .long_about(schema_leaked::<RunResult>())
                 .arg(Arg::with_name("exercise-path")
                     .help("Path to the directory where the exercise resides.")
                     .long("exercise-path")
@@ -318,6 +347,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("send-feedback")
                 .about("Send feedback.")
+                .long_about(schema_leaked::<SubmissionFeedbackResponse>())
                 .arg(Arg::with_name("feedback-url")
                     .help("URL where the feedback should be posted.")
                     .long("feedback-url")
@@ -334,6 +364,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("submit")
                 .about("Submit exercise. Will block until the submission results are returned.")
+                .long_about(schema_leaked::<SubmissionFinished>())
                 .arg(Arg::with_name("submission-url")
                     .help("URL where the submission should be posted.")
                     .long("submission-url")
@@ -354,6 +385,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("get-exercise-submissions")
                 .about("Fetch the current user's old submissions for an exercise.")
+                .long_about(schema_leaked::<Vec<Submission>>())
                 .arg(Arg::with_name("exercise-id")
                     .help("The ID of the exercise.")
                     .long("exercise-id")
@@ -362,6 +394,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("wait-for-submission")
                 .about("Wait for a submission to finish.")
+                .long_about(schema_leaked::<SubmissionFinished>())
                 .arg(Arg::with_name("submission-url")
                     .help("URL to the submission's status.")
                     .long("submission-url")
@@ -370,6 +403,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("get-exercise-updates")
                 .about("Get exercise updates.")
+                .long_about(schema_leaked::<UpdateResult>())
                 .arg(Arg::with_name("course-id")
                     .help("The ID of the course")
                     .long("course-id")
@@ -386,6 +420,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("mark-review-as-read")
                 .about("Mark review as read.")
+                .long_about(SCHEMA_NULL)
                 .arg(Arg::with_name("review-update-url")
                     .help("URL to the review update API.")
                     .long("review-update-url")
@@ -394,6 +429,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("get-unread-reviews")
                 .about("Get unread reviews.")
+                .long_about(schema_leaked::<Vec<Review>>())
                 .arg(Arg::with_name("reviews-url")
                     .help("URL to the reviews API.")
                     .long("reviews-url")
@@ -402,6 +438,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("request-code-review")
                 .about("Request code review.")
+                .long_about(schema_leaked::<NewSubmission>())
                 .arg(Arg::with_name("submission-url")
                     .help("URL where the submission should be posted.")
                     .long("submission-url")
@@ -425,6 +462,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("download-model-solution")
                 .about("Download model solutions.")
+                .long_about(SCHEMA_NULL)
                 .arg(Arg::with_name("solution-download-url")
                     .help("URL to the solution download.")
                     .long("solution-download-url")
@@ -438,6 +476,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("reset-exercise")
                 .about("Reset exercise, optionally submitting it before doing so.")
+                .long_about(SCHEMA_NULL)
                 .arg(Arg::with_name("exercise-path")
                     .help("Path to the directory where the project resides.")
                     .long("exercise-path")
@@ -454,6 +493,7 @@ pub fn create_app() -> App<'static, 'static> {
 
             .subcommand(SubCommand::with_name("download-old-submission")
                 .about("Downloads an old submission.")
+                .long_about(SCHEMA_NULL)
                 .arg(Arg::with_name("exercise-id")
                     .help("The ID of the exercise.")
                     .long("exercise-id")
@@ -477,4 +517,21 @@ pub fn create_app() -> App<'static, 'static> {
                     .help("Required if save-old-state is set. The URL where the submission should be posted.")
                     .long("submission-url")
                     .takes_value(true))))
+}
+
+const SCHEMA_NULL: &str = "Result data JSON format: null";
+const SCHEMA_TOKEN: &str = r#"Result data JSON format:
+{
+    "access_token": String,
+    "token_type": String,
+    "scope": String,
+}"#;
+
+fn schema_leaked<T: JsonSchema>() -> &'static str {
+    let schema = schemars::schema_for!(T);
+    let json = format!(
+        "Result data JSON format:\n{}",
+        serde_json::to_string_pretty(&schema).unwrap()
+    );
+    Box::leak(Box::new(json))
 }

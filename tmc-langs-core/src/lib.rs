@@ -21,7 +21,7 @@ pub use response::{
     Course, CourseData, CourseDataExercise, CourseDataExercisePoint, CourseDetails, CourseExercise,
     Exercise, ExerciseDetails, NewSubmission, Organization, Review, Submission,
     SubmissionFeedbackResponse, SubmissionFinished, SubmissionProcessingStatus, SubmissionStatus,
-    User,
+    UpdateResult, User,
 };
 pub use tmc_core::{StatusType, TmcCore, Token};
 pub use tmc_langs_util::{Language, RunResult, Strategy, ValidationResult};

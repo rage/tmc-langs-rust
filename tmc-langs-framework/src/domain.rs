@@ -4,13 +4,14 @@ pub mod meta_syntax;
 
 use super::{Result, TmcError};
 use log::debug;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
 /// A description of an exercise's test case.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct TestDesc {
     /// The full name of the test.
     ///
@@ -30,7 +31,7 @@ impl TestDesc {
 }
 
 /// The result of a single test case.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct TestResult {
     pub name: String,
     pub successful: bool,
@@ -41,7 +42,7 @@ pub struct TestResult {
 }
 
 /// A description of an exercise.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct ExerciseDesc {
     /// The name of the exercise to be shown to the user.
     /// Does not necessarily match or even contain the directory name.
@@ -57,7 +58,7 @@ impl ExerciseDesc {
 }
 
 /// The result of running an exercise's test suite against a submission.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RunResult {
     /// The overall status of a test run.
@@ -84,7 +85,7 @@ impl RunResult {
 }
 
 /// The overall status of a test run.
-#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum RunStatus {
     /// The submission and tests compiled and all tests passed.
@@ -103,7 +104,7 @@ pub enum RunStatus {
 }
 
 /// Represents configuration based on which submission may be packaged.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct ExercisePackagingConfiguration {
     /// Student folders or files which are copied from submission.
     pub student_file_paths: HashSet<PathBuf>,
@@ -209,7 +210,7 @@ pub enum IntOrString {
     String(String),
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum Strategy {
     Fail,
@@ -217,7 +218,7 @@ pub enum Strategy {
     Disabled,
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ValidationError {
     pub column: usize,
@@ -226,7 +227,7 @@ pub struct ValidationError {
     pub source_name: String,
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ValidationResult {
     pub strategy: Strategy,

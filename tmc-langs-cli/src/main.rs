@@ -18,7 +18,7 @@ use tempfile::NamedTempFile;
 use tmc_langs_core::oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
-use tmc_langs_core::{FeedbackAnswer, StatusType, TmcCore, Token};
+use tmc_langs_core::{FeedbackAnswer, TmcCore, Token};
 use tmc_langs_framework::{domain::ValidationResult, io::submission_processing};
 use tmc_langs_util::{
     task_executor::{self, TmcParams},
@@ -908,6 +908,15 @@ fn run() -> Result<()> {
             let review_update_url = matches.value_of("review-update-url").unwrap();
             core.mark_review_as_read(review_update_url.to_string())
                 .context("Failed to mark review as read")?;
+
+            let output = Output::<()> {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::SentData,
+                percent_done: 1.0,
+                data: None,
+            };
+            print_output(&output)?;
         } else if let Some(matches) = matches.subcommand_matches("get-unread-reviews") {
             let reviews_url = matches.value_of("reviews-url").unwrap();
             let reviews_url = into_url(reviews_url)?;
@@ -966,6 +975,15 @@ fn run() -> Result<()> {
 
             core.download_model_solution(solution_download_url, target)
                 .context("Failed to download model solution")?;
+
+            let output = Output::<()> {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: None,
+            };
+            print_output(&output)?;
         } else if let Some(matches) = matches.subcommand_matches("reset-exercise") {
             let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);
@@ -981,6 +999,15 @@ fn run() -> Result<()> {
                 core.submit(submission_url, exercise_path, None)?;
             }
             core.reset(exercise_id, exercise_path)?;
+
+            let output = Output::<()> {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: None,
+            };
+            print_output(&output)?;
         } else if let Some(matches) = matches.subcommand_matches("download-old-submission") {
             let exercise_id = matches.value_of("exercise-id").unwrap();
             let exercise_id = into_usize(exercise_id)?;
@@ -1003,6 +1030,15 @@ fn run() -> Result<()> {
             let temp_zip = NamedTempFile::new().context("Failed to create a temporary archive")?;
             core.download_old_submission(submission_id, temp_zip.path())?;
             task_executor::extract_project(temp_zip.path(), output_path)?;
+
+            let output = Output::<()> {
+                status: Status::Successful,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: None,
+            };
+            print_output(&output)?;
         }
     }
     Ok(())

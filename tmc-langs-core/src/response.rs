@@ -4,6 +4,7 @@ use crate::CoreError;
 
 use lazy_static::lazy_static;
 use regex::Regex;
+use schemars::JsonSchema;
 use serde::{
     de::{self, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
@@ -65,7 +66,7 @@ pub struct User {
     pub administrator: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct Organization {
     pub name: String,
     pub information: String,
@@ -74,7 +75,7 @@ pub struct Organization {
     pub pinned: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct Course {
     pub id: usize,
     pub name: String,
@@ -87,7 +88,7 @@ pub struct Course {
     pub spyware_urls: Vec<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct CourseData {
     pub name: String,
     pub hide_after: Option<String>,
@@ -128,7 +129,7 @@ struct CourseDetailsInner {
     pub exercises: Vec<Exercise>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(from = "CourseDetailsWrapper")]
 pub struct CourseDetails {
     #[serde(flatten)]
@@ -147,7 +148,7 @@ impl From<CourseDetailsWrapper> for CourseDetails {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct Exercise {
     pub id: usize,
     pub name: String,
@@ -175,7 +176,7 @@ pub struct Exercise {
     pub solution_zip_url: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct CourseExercise {
     pub id: usize,
     pub available_points: Vec<ExercisePoint>,
@@ -200,7 +201,7 @@ pub struct CourseDataExercise {
     pub disabled: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct ExercisePoint {
     pub id: usize,
     pub exercise_id: usize,
@@ -224,7 +225,7 @@ pub struct AwardedPoint {
     created_at: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct ExerciseDetails {
     pub course_name: String,
     pub course_id: usize,
@@ -237,7 +238,7 @@ pub struct ExerciseDetails {
     pub submissions: Vec<ExerciseSubmission>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct Submission {
     pub id: usize,
     pub user_id: usize,
@@ -265,7 +266,7 @@ pub struct Submission {
     pub paste_key: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct ExerciseSubmission {
     pub exercise_name: String,
     pub id: usize,
@@ -281,7 +282,7 @@ pub struct ExerciseSubmission {
     pub requests_review: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct NewSubmission {
     pub show_submission_url: String,
     pub paste_url: String, // use Option and serde_with::string_empty_as_none ?
@@ -309,7 +310,7 @@ pub enum SandboxStatus {
     ProcessingOnSandbox,
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 pub struct SubmissionFinished {
     pub api_version: usize,
     pub all_tests_passed: Option<bool>,
@@ -336,7 +337,7 @@ pub struct SubmissionFinished {
     pub validations: Option<ValidationResult>,
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum SubmissionStatus {
     Processing,
@@ -345,13 +346,13 @@ pub enum SubmissionStatus {
     Error,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct SubmissionFeedbackResponse {
     pub api_version: usize,
     pub status: SubmissionStatus,
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 pub struct TestCase {
     pub name: String,
     pub successful: bool,
@@ -360,14 +361,14 @@ pub struct TestCase {
     pub detailed_message: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 pub struct SubmissionFeedbackQuestion {
     pub id: usize,
     pub question: String,
     pub kind: SubmissionFeedbackKind,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, JsonSchema)]
 pub enum SubmissionFeedbackKind {
     Text,
     IntRange { lower: usize, upper: usize },
@@ -436,7 +437,7 @@ impl<'de> Visitor<'de> for SubmissionFeedbackKindVisitor {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct Review {
     pub submission_id: String,
     pub exercise_name: String,
@@ -452,7 +453,7 @@ pub struct Review {
     pub updated_at: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct UpdateResult {
     pub created: Vec<Exercise>,
     pub updated: Vec<Exercise>,
