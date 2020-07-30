@@ -504,6 +504,43 @@ impl TmcCore {
                     return Ok(*f);
                 }
                 SubmissionProcessingStatus::Processing(p) => {
+                    if p.status == SubmissionStatus::Hidden {
+                        // hidden status, return constructed status
+                        self.report_complete("Submission status hidden, stopping waiting.");
+                        let finished = SubmissionFinished {
+                            api_version: 8,
+                            all_tests_passed: Some(true),
+                            user_id: 0,
+                            login: "0".to_string(),
+                            course: "0".to_string(),
+                            exercise_name: "string".to_string(),
+                            status: SubmissionStatus::Hidden,
+                            points: vec![],
+                            validations: None,
+                            valgrind: None,
+                            submission_url: "".to_string(),
+                            solution_url: None,
+                            submitted_at: "string".to_string(),
+                            processing_time: None,
+                            reviewed: false,
+                            requests_review: false,
+                            paste_url: None,
+                            message_for_paste: None,
+                            missing_review_points: vec![],
+                            test_cases: Some(vec![TestCase {
+                                name: "Hidden Exam Test: hidden_test".to_string(),
+                                successful: true,
+                                message: Some("Exam exercise sent to server successfully, you can now continue.".to_string()),
+                                exception: None,
+                                detailed_message: None,
+                            }]),
+                            error: None,
+                            feedback_answer_url: None,
+                            feedback_questions: None,
+                        };
+                        return Ok(finished);
+                    }
+
                     match (&mut previous_status, p.sandbox_status) {
                         (Some(previous), status) if status == *previous => {} // no change, ignore
                         (_, status) => {

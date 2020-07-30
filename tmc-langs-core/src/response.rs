@@ -298,7 +298,7 @@ pub enum SubmissionProcessingStatus {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct SubmissionProcessing {
-    // pub status: SubmissionStatus // always Processing
+    pub status: SubmissionStatus,
     pub sandbox_status: SandboxStatus,
 }
 
@@ -344,6 +344,7 @@ pub enum SubmissionStatus {
     Fail,
     Ok,
     Error,
+    Hidden,
 }
 
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
