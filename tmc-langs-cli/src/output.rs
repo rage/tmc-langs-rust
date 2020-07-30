@@ -31,5 +31,25 @@ pub enum OutputResult {
     SentData,
     RetrievedData,
     ExecutedCommand,
-    Core(StatusType),
+    Downloading,
+    Compressing,
+    Extracting,
+    Processing,
+    Sending,
+    WaitingForResults,
+    Finished,
+}
+
+impl From<StatusType> for OutputResult {
+    fn from(status_type: StatusType) -> Self {
+        match status_type {
+            StatusType::Downloading => OutputResult::Downloading,
+            StatusType::Compressing => OutputResult::Compressing,
+            StatusType::Extracting => OutputResult::Extracting,
+            StatusType::Processing => OutputResult::Processing,
+            StatusType::Sending => OutputResult::Sending,
+            StatusType::WaitingForResults => OutputResult::WaitingForResults,
+            StatusType::Finished => OutputResult::Finished,
+        }
+    }
 }
