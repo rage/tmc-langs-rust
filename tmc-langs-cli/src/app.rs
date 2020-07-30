@@ -382,7 +382,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .required(true)
                 .takes_value(true))
             .arg(Arg::with_name("locale")
-                .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")                    
+                .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")
                 .long("locale")
                 .takes_value(true))
             .arg(Arg::with_name("dont-block")

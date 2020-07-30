@@ -64,7 +64,8 @@ fn main() {
 fn run() -> Result<()> {
     let matches = app::create_app().get_matches();
 
-    match matches.subcommand() {
+    // enforces that each branch must return a PrintToken as proof of having printed the output
+    let _printed: PrintToken = match matches.subcommand() {
         ("checkstyle", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);
@@ -437,11 +438,11 @@ fn run() -> Result<()> {
         }
         ("core", Some(matches)) => run_core(matches)?,
         _ => unreachable!(),
-    }
+    };
     Ok(())
 }
 
-fn run_core(matches: &ArgMatches) -> Result<()> {
+fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
     let root_url =
         env::var("TMC_LANGS_ROOT_URL").unwrap_or_else(|_| "https://tmc.mooc.fi".to_string());
     let client_name = matches.value_of("client-name").unwrap();
@@ -462,7 +463,8 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
             percent_done: update.percent_done,
             data: None,
         };
-        print_output(&output).map_err(|e| e.into())
+        print_output(&output)?;
+        Ok(())
     });
 
     // set token if a credentials.json is found for the client name
@@ -491,7 +493,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
         }
     };
 
-    match matches.subcommand() {
+    let printed: PrintToken = match matches.subcommand() {
         ("login", Some(matches)) => {
             let email = matches.value_of("email");
             let set_access_token = matches.value_of("set-access-token");
@@ -555,7 +557,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: None,
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("logout", Some(_matches)) => {
             if credentials_path.exists() {
@@ -574,7 +576,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: None,
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("logged-in", Some(_matches)) => {
             if credentials_path.exists() {
@@ -597,7 +599,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                     percent_done: 1.0,
                     data: Some(token),
                 };
-                print_output(&output)?;
+                print_output(&output)?
             } else {
                 let output = Output::<()> {
                     status: Status::Successful,
@@ -606,7 +608,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                     percent_done: 1.0,
                     data: None,
                 };
-                print_output(&output)?;
+                print_output(&output)?
             }
         }
         ("get-organizations", Some(_matches)) => {
@@ -621,7 +623,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: Some(orgs),
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("get-organization", Some(matches)) => {
             let organization_slug = matches.value_of("organization").unwrap();
@@ -636,7 +638,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: Some(org),
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("download-or-update-exercises", Some(matches)) => {
             let mut exercise_args = matches.values_of("exercise").unwrap();
@@ -658,7 +660,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: None,
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("get-course-details", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
@@ -675,7 +677,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: Some(course_details),
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("get-courses", Some(matches)) => {
             let organization_slug = matches.value_of("organization").unwrap();
@@ -690,7 +692,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: Some(courses),
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("get-course-settings", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
@@ -704,7 +706,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: Some(course),
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("get-course-exercises", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
@@ -720,7 +722,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: Some(course),
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("get-exercise-details", Some(matches)) => {
             let exercise_id = matches.value_of("exercise-id").unwrap();
@@ -736,7 +738,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: Some(course),
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("paste", Some(matches)) => {
             let submission_url = matches.value_of("submission-url").unwrap();
@@ -769,7 +771,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: Some(new_submission),
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("run-checkstyle", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -788,7 +790,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: Some(validation_result),
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("run-tests", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -805,7 +807,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: Some(run_result),
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("send-feedback", Some(matches)) => {
             let feedback_url = matches.value_of("feedback-url").unwrap();
@@ -833,7 +835,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: Some(response),
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("submit", Some(matches)) => {
             let submission_url = matches.value_of("submission-url").unwrap();
@@ -864,7 +866,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                     data: Some(new_submission),
                 };
 
-                print_output(&output)?;
+                print_output(&output)?
             } else {
                 // same as wait-for-submission
                 let submission_url = new_submission.submission_url;
@@ -881,7 +883,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                     percent_done: 1.0,
                     data: Some(submission_finished),
                 };
-                print_output(&output)?;
+                print_output(&output)?
             }
         }
         ("get-exercise-submissions", Some(matches)) => {
@@ -898,7 +900,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: Some(submissions),
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("wait-for-submission", Some(matches)) => {
             let submission_url = matches.value_of("submission-url").unwrap();
@@ -915,7 +917,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: Some(submission_finished),
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("get-exercise-updates", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
@@ -940,7 +942,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: Some(update_result),
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("mark-review-as-read", Some(matches)) => {
             let review_update_url = matches.value_of("review-update-url").unwrap();
@@ -954,7 +956,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: None,
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("get-unread-reviews", Some(matches)) => {
             let reviews_url = matches.value_of("reviews-url").unwrap();
@@ -971,7 +973,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: Some(reviews),
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("request-code-review", Some(matches)) => {
             let submission_url = matches.value_of("submission-url").unwrap();
@@ -1005,7 +1007,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: Some(new_submission),
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("download-model-solution", Some(matches)) => {
             let solution_download_url = matches.value_of("solution-download-url").unwrap();
@@ -1024,7 +1026,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: None,
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("reset-exercise", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -1049,7 +1051,7 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: None,
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         ("download-old-submission", Some(matches)) => {
             let exercise_id = matches.value_of("exercise-id").unwrap();
@@ -1081,19 +1083,19 @@ fn run_core(matches: &ArgMatches) -> Result<()> {
                 percent_done: 1.0,
                 data: None,
             };
-            print_output(&output)?;
+            print_output(&output)?
         }
         _ => unreachable!(),
-    }
+    };
 
-    Ok(())
+    Ok(printed)
 }
 
-fn print_output<T: Serialize + Debug>(output: &Output<T>) -> Result<()> {
+fn print_output<T: Serialize + Debug>(output: &Output<T>) -> Result<PrintToken> {
     let result = serde_json::to_string(&output)
         .with_context(|| format!("Failed to convert {:?} to JSON", output))?;
     println!("{}", result);
-    Ok(())
+    Ok(PrintToken)
 }
 
 fn write_result_to_file_as_json<T: Serialize>(result: &T, output_path: &Path) -> Result<()> {
@@ -1186,3 +1188,5 @@ fn run_checkstyle_write_results(
     }
     Ok(check_result)
 }
+
+struct PrintToken;
