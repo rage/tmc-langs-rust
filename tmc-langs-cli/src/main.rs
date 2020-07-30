@@ -62,7 +62,7 @@ fn main() {
 }
 
 fn run() -> Result<()> {
-    let matches = app::create_app().get_matches_safe()?;
+    let matches = app::create_app().get_matches();
 
     // non-core
     // todo: print (generic?) success messages
