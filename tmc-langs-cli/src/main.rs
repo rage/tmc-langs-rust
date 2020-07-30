@@ -6,7 +6,7 @@ mod output;
 use output::{Output, OutputResult, Status};
 
 use anyhow::{Context, Result};
-use clap::{Error, ErrorKind};
+use clap::{ArgMatches, Error, ErrorKind};
 use serde::Serialize;
 use std::collections::HashMap;
 use std::env;
@@ -64,416 +64,435 @@ fn main() {
 fn run() -> Result<()> {
     let matches = app::create_app().get_matches();
 
-    // non-core
-    // todo: print (generic?) success messages
-    if let Some(matches) = matches.subcommand_matches("checkstyle") {
-        let exercise_path = matches.value_of("exercise-path").unwrap();
-        let exercise_path = Path::new(exercise_path);
+    match matches.subcommand() {
+        ("checkstyle", Some(matches)) => {
+            let exercise_path = matches.value_of("exercise-path").unwrap();
+            let exercise_path = Path::new(exercise_path);
 
-        let output_path = matches.value_of("output-path");
-        let output_path = output_path.map(Path::new);
+            let output_path = matches.value_of("output-path");
+            let output_path = output_path.map(Path::new);
 
-        let locale = matches.value_of("locale").unwrap();
-        let locale = into_locale(locale)?;
-
-        let check_result = run_checkstyle_write_results(exercise_path, output_path, locale)?;
-
-        let output = Output {
-            status: Status::Successful,
-            message: Some("ran checkstyle".to_string()),
-            result: OutputResult::ExecutedCommand,
-            percent_done: 1.0,
-            data: check_result,
-        };
-        print_output(&output)?
-    } else if let Some(matches) = matches.subcommand_matches("compress-project") {
-        let exercise_path = matches.value_of("exercise-path").unwrap();
-        let exercise_path = Path::new(exercise_path);
-
-        let output_path = matches.value_of("output-path").unwrap();
-        let output_path = Path::new(output_path);
-
-        let data = task_executor::compress_project(exercise_path).with_context(|| {
-            format!("Failed to compress project at {}", exercise_path.display())
-        })?;
-
-        let mut output_file = File::create(output_path)
-            .with_context(|| format!("Failed to create file at {}", output_path.display()))?;
-
-        output_file.write_all(&data).with_context(|| {
-            format!(
-                "Failed to write compressed project to {}",
-                output_path.display()
-            )
-        })?;
-
-        let output = Output::<()> {
-            status: Status::Successful,
-            message: Some(format!(
-                "compressed project from {} to {}",
-                exercise_path.display(),
-                output_path.display()
-            )),
-            result: OutputResult::ExecutedCommand,
-            percent_done: 1.0,
-            data: None,
-        };
-        print_output(&output)?
-    } else if let Some(matches) = matches.subcommand_matches("extract-project") {
-        let archive_path = matches.value_of("archive-path").unwrap();
-        let archive_path = Path::new(archive_path);
-
-        let output_path = matches.value_of("output-path").unwrap();
-        let output_path = Path::new(output_path);
-
-        task_executor::extract_project(archive_path, output_path)
-            .with_context(|| format!("Failed to extract project at {}", output_path.display()))?;
-
-        let output = Output::<()> {
-            status: Status::Successful,
-            message: Some(format!(
-                "extracted project from {} to {}",
-                archive_path.display(),
-                output_path.display()
-            )),
-            result: OutputResult::ExecutedCommand,
-            percent_done: 1.0,
-            data: None,
-        };
-        print_output(&output)?
-    } else if let Some(matches) = matches.subcommand_matches("prepare-solutions") {
-        let exercise_path = matches.value_of("exercise-path").unwrap();
-        let exercise_path = Path::new(exercise_path);
-
-        let output_path = matches.value_of("output-path").unwrap();
-        let output_path = Path::new(output_path);
-
-        task_executor::prepare_solutions(&[exercise_path.to_path_buf()], output_path)
-            .with_context(|| {
-                format!(
-                    "Failed to prepare solutions for exercise at {}",
-                    exercise_path.display(),
-                )
-            })?;
-
-        let output = Output::<()> {
-            status: Status::Successful,
-            message: Some(format!(
-                "prepared solutions for {} at {}",
-                exercise_path.display(),
-                output_path.display()
-            )),
-            result: OutputResult::ExecutedCommand,
-            percent_done: 1.0,
-            data: None,
-        };
-        print_output(&output)?
-    } else if let Some(matches) = matches.subcommand_matches("prepare-stubs") {
-        let exercise_path = matches.value_of("exercise-path").unwrap();
-        let exercise_path = Path::new(exercise_path);
-
-        let output_path = matches.value_of("output-path").unwrap();
-        let output_path = Path::new(output_path);
-
-        let exercises = find_exercise_directories(exercise_path);
-
-        task_executor::prepare_stubs(exercises, exercise_path, output_path).with_context(|| {
-            format!(
-                "Failed to prepare stubs for exercise at {}",
-                exercise_path.display(),
-            )
-        })?;
-
-        let output = Output::<()> {
-            status: Status::Successful,
-            message: Some(format!(
-                "prepared stubs for {} at {}",
-                exercise_path.display(),
-                output_path.display()
-            )),
-            result: OutputResult::ExecutedCommand,
-            percent_done: 1.0,
-            data: None,
-        };
-        print_output(&output)?
-    } else if let Some(matches) = matches.subcommand_matches("prepare-submission") {
-        let submission_path = matches.value_of("submission-path").unwrap();
-        let submission_path = Path::new(submission_path);
-
-        let output_path = matches.value_of("output-path").unwrap();
-        let output_path = Path::new(output_path);
-
-        let tmc_params_values = matches.values_of("tmc-param").unwrap_or_default();
-        let mut tmc_params_grouped = HashMap::new();
-        for value in tmc_params_values {
-            let params: Vec<_> = value.split('=').collect();
-            if params.len() != 2 {
-                Error::with_description(
-                    "tmc-param values should contain a single '=' as a delimiter.",
-                    ErrorKind::ValueValidation,
-                )
-                .exit();
-            }
-            let key = params[0];
-            let value = params[1];
-            let entry = tmc_params_grouped.entry(key).or_insert_with(Vec::new);
-            entry.push(value);
-        }
-        let mut tmc_params = TmcParams::new();
-        for (key, values) in tmc_params_grouped {
-            if values.len() == 1 {
-                tmc_params
-                    .insert_string(key, values[0])
-                    .context("invalid tmc-param key-value pair")?;
-            } else {
-                tmc_params
-                    .insert_array(key, values)
-                    .context("invalid tmc-param key-value pair")?;
-            }
-        }
-
-        let clone_path = matches.value_of("clone-path").unwrap();
-        let clone_path = Path::new(clone_path);
-
-        let output_zip = matches.is_present("output-zip");
-
-        let top_level_dir_name = matches.value_of("top-level-dir-name");
-        let top_level_dir_name = top_level_dir_name.map(str::to_string);
-
-        let stub_zip_path = matches.value_of("stub-zip-path");
-        let stub_zip_path = stub_zip_path.map(Path::new);
-
-        task_executor::prepare_submission(
-            submission_path,
-            output_path,
-            top_level_dir_name,
-            tmc_params,
-            clone_path,
-            stub_zip_path,
-            output_zip,
-        )?;
-
-        let output = Output::<()> {
-            status: Status::Successful,
-            message: Some(format!(
-                "prepared submission for {} at {}",
-                submission_path.display(),
-                output_path.display()
-            )),
-            result: OutputResult::ExecutedCommand,
-            percent_done: 1.0,
-            data: None,
-        };
-        print_output(&output)?
-    } else if let Some(matches) = matches.subcommand_matches("run-tests") {
-        let exercise_path = matches.value_of("exercise-path").unwrap();
-        let exercise_path = Path::new(exercise_path);
-
-        let output_path = matches.value_of("output-path");
-        let output_path = output_path.map(Path::new);
-
-        // todo: checkstyle results in stdout?
-        let checkstyle_output_path = matches.value_of("checkstyle-output-path");
-        let checkstyle_output_path: Option<&Path> = checkstyle_output_path.map(Path::new);
-
-        let test_result = task_executor::run_tests(exercise_path).with_context(|| {
-            format!(
-                "Failed to run tests for exercise at {}",
-                exercise_path.display()
-            )
-        })?;
-
-        if let Some(output_path) = output_path {
-            write_result_to_file_as_json(&test_result, output_path)?;
-        }
-
-        if let Some(checkstyle_output_path) = checkstyle_output_path {
             let locale = matches.value_of("locale").unwrap();
             let locale = into_locale(locale)?;
 
-            run_checkstyle_write_results(exercise_path, Some(checkstyle_output_path), locale)?;
+            let check_result = run_checkstyle_write_results(exercise_path, output_path, locale)?;
+
+            let output = Output {
+                status: Status::Successful,
+                message: Some("ran checkstyle".to_string()),
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: check_result,
+            };
+            print_output(&output)?
         }
+        ("compress-project", Some(matches)) => {
+            let exercise_path = matches.value_of("exercise-path").unwrap();
+            let exercise_path = Path::new(exercise_path);
 
-        let output = Output {
-            status: Status::Successful,
-            message: Some(format!("ran tests for {}", exercise_path.display(),)),
-            result: OutputResult::ExecutedCommand,
-            percent_done: 1.0,
-            data: Some(test_result),
-        };
-        print_output(&output)?
-    } else if let Some(matches) = matches.subcommand_matches("scan-exercise") {
-        let exercise_path = matches.value_of("exercise-path").unwrap();
-        let exercise_path = Path::new(exercise_path);
+            let output_path = matches.value_of("output-path").unwrap();
+            let output_path = Path::new(output_path);
 
-        let output_path = matches.value_of("output-path");
-        let output_path = output_path.map(Path::new);
+            let data = task_executor::compress_project(exercise_path).with_context(|| {
+                format!("Failed to compress project at {}", exercise_path.display())
+            })?;
 
-        let exercise_name = exercise_path.file_name().with_context(|| {
-            format!(
-                "No file name found in exercise path {}",
-                exercise_path.display()
-            )
-        })?;
+            let mut output_file = File::create(output_path)
+                .with_context(|| format!("Failed to create file at {}", output_path.display()))?;
 
-        let exercise_name = exercise_name.to_str().with_context(|| {
-            format!(
-                "Exercise path's file name '{:?}' was not valid UTF8",
-                exercise_name
-            )
-        })?;
-
-        let scan_result = task_executor::scan_exercise(exercise_path, exercise_name.to_string())
-            .with_context(|| format!("Failed to scan exercise at {}", exercise_path.display()))?;
-
-        if let Some(output_path) = output_path {
-            write_result_to_file_as_json(&scan_result, output_path)?;
-        }
-
-        let output = Output {
-            status: Status::Successful,
-            message: Some(format!("scanned exercise at {}", exercise_path.display(),)),
-            result: OutputResult::ExecutedCommand,
-            percent_done: 1.0,
-            data: Some(scan_result),
-        };
-        print_output(&output)?
-    } else if let Some(matches) = matches.subcommand_matches("find-exercises") {
-        let exercise_path = matches.value_of("exercise-path").unwrap();
-        let exercise_path = Path::new(exercise_path);
-
-        let output_path = matches.value_of("output-path");
-        let output_path = output_path.map(Path::new);
-
-        let mut exercises = vec![];
-        // silently skips errors
-        for entry in WalkDir::new(exercise_path)
-            .into_iter()
-            .filter_map(|e| e.ok())
-            .filter(|e| e.file_name() == "private")
-            .filter(submission_processing::is_hidden_dir)
-            .filter(submission_processing::contains_tmcignore)
-        {
-            log::debug!("processing {}", entry.path().display());
-            // TODO: Java implementation doesn't scan root directories
-            if task_executor::is_exercise_root_directory(entry.path()) {
-                exercises.push(entry.into_path());
-            }
-        }
-
-        if let Some(output_path) = output_path {
-            write_result_to_file_as_json(&exercises, output_path)?;
-        }
-
-        let output = Output {
-            status: Status::Successful,
-            message: Some(format!("found exercises at {}", exercise_path.display(),)),
-            result: OutputResult::ExecutedCommand,
-            percent_done: 1.0,
-            data: Some(exercises),
-        };
-        print_output(&output)?
-    } else if let Some(matches) = matches.subcommand_matches("get-exercise-packaging-configuration")
-    {
-        let exercise_path = matches.value_of("exercise-path").unwrap();
-        let exercise_path = Path::new(exercise_path);
-
-        let output_path = matches.value_of("output-path");
-        let output_path = output_path.map(Path::new);
-
-        let config = task_executor::get_exercise_packaging_configuration(exercise_path)
-            .with_context(|| {
+            output_file.write_all(&data).with_context(|| {
                 format!(
-                    "Failed to get exercise packaging configuration for exercise at {}",
-                    exercise_path.display(),
+                    "Failed to write compressed project to {}",
+                    output_path.display()
                 )
             })?;
 
-        if let Some(output_path) = output_path {
-            write_result_to_file_as_json(&config, output_path)?;
-        }
-
-        let output = Output {
-            status: Status::Successful,
-            message: Some(format!(
-                "created exercise packaging config from {}",
-                exercise_path.display(),
-            )),
-            result: OutputResult::ExecutedCommand,
-            percent_done: 1.0,
-            data: Some(config),
-        };
-        print_output(&output)?
-    } else if let Some(matches) = matches.subcommand_matches("clean") {
-        let exercise_path = matches.value_of("exercise-path").unwrap();
-        let exercise_path = Path::new(exercise_path);
-
-        task_executor::clean(exercise_path)
-            .with_context(|| format!("Failed to clean exercise at {}", exercise_path.display(),))?;
-
-        let output = Output::<()> {
-            status: Status::Successful,
-            message: Some(format!("cleaned exercise at {}", exercise_path.display(),)),
-            result: OutputResult::ExecutedCommand,
-            percent_done: 1.0,
-            data: None,
-        };
-        print_output(&output)?
-    }
-
-    // core
-    // core commands should print their results using print_output
-    if let Some(matches) = matches.subcommand_matches("core") {
-        let root_url =
-            env::var("TMC_LANGS_ROOT_URL").unwrap_or_else(|_| "https://tmc.mooc.fi".to_string());
-        let client_name = matches.value_of("client-name").unwrap();
-        let client_version = matches.value_of("client-version").unwrap();
-        let mut core = TmcCore::new_in_config(
-            root_url,
-            client_name.to_string(),
-            client_version.to_string(),
-        )
-        .context("Failed to create TmcCore")?;
-        // set progress report to print the updates to stdout as JSON
-        core.set_progress_report(|update| {
-            // convert to output
             let output = Output::<()> {
-                status: Status::InProgress,
-                message: Some(update.message.to_string()),
-                result: update.status_type.into(),
-                percent_done: update.percent_done,
+                status: Status::Successful,
+                message: Some(format!(
+                    "compressed project from {} to {}",
+                    exercise_path.display(),
+                    output_path.display()
+                )),
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
                 data: None,
             };
-            print_output(&output).map_err(|e| e.into())
-        });
+            print_output(&output)?
+        }
+        ("extract-project", Some(matches)) => {
+            let archive_path = matches.value_of("archive-path").unwrap();
+            let archive_path = Path::new(archive_path);
 
-        // set token if a credentials.json is found for the client name
-        let tmc_dir = format!("tmc-{}", client_name);
+            let output_path = matches.value_of("output-path").unwrap();
+            let output_path = Path::new(output_path);
 
-        let config_dir = match env::var("TMC_LANGS_CONFIG_DIR") {
-            Ok(v) => PathBuf::from(v),
-            Err(_) => dirs::config_dir().context("Failed to find config directory")?,
-        };
-        let credentials_path = config_dir.join(tmc_dir).join("credentials.json");
-        if let Ok(file) = File::open(&credentials_path) {
-            match serde_json::from_reader(file) {
-                Ok(token) => core.set_token(token),
-                Err(e) => {
-                    log::error!(
-                        "Failed to deserialize credentials.json due to \"{}\", deleting",
-                        e
-                    );
-                    fs::remove_file(&credentials_path).with_context(|| {
-                        format!(
-                            "Failed to remove malformed credentials.json file {}",
-                            credentials_path.display()
-                        )
-                    })?;
+            task_executor::extract_project(archive_path, output_path).with_context(|| {
+                format!("Failed to extract project at {}", output_path.display())
+            })?;
+
+            let output = Output::<()> {
+                status: Status::Successful,
+                message: Some(format!(
+                    "extracted project from {} to {}",
+                    archive_path.display(),
+                    output_path.display()
+                )),
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: None,
+            };
+            print_output(&output)?
+        }
+        ("prepare-solutions", Some(matches)) => {
+            let exercise_path = matches.value_of("exercise-path").unwrap();
+            let exercise_path = Path::new(exercise_path);
+
+            let output_path = matches.value_of("output-path").unwrap();
+            let output_path = Path::new(output_path);
+
+            task_executor::prepare_solutions(&[exercise_path.to_path_buf()], output_path)
+                .with_context(|| {
+                    format!(
+                        "Failed to prepare solutions for exercise at {}",
+                        exercise_path.display(),
+                    )
+                })?;
+
+            let output = Output::<()> {
+                status: Status::Successful,
+                message: Some(format!(
+                    "prepared solutions for {} at {}",
+                    exercise_path.display(),
+                    output_path.display()
+                )),
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: None,
+            };
+            print_output(&output)?
+        }
+        ("prepare-stubs", Some(matches)) => {
+            let exercise_path = matches.value_of("exercise-path").unwrap();
+            let exercise_path = Path::new(exercise_path);
+
+            let output_path = matches.value_of("output-path").unwrap();
+            let output_path = Path::new(output_path);
+
+            let exercises = find_exercise_directories(exercise_path);
+
+            task_executor::prepare_stubs(exercises, exercise_path, output_path).with_context(
+                || {
+                    format!(
+                        "Failed to prepare stubs for exercise at {}",
+                        exercise_path.display(),
+                    )
+                },
+            )?;
+
+            let output = Output::<()> {
+                status: Status::Successful,
+                message: Some(format!(
+                    "prepared stubs for {} at {}",
+                    exercise_path.display(),
+                    output_path.display()
+                )),
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: None,
+            };
+            print_output(&output)?
+        }
+        ("prepare-submission", Some(matches)) => {
+            let submission_path = matches.value_of("submission-path").unwrap();
+            let submission_path = Path::new(submission_path);
+
+            let output_path = matches.value_of("output-path").unwrap();
+            let output_path = Path::new(output_path);
+
+            let tmc_params_values = matches.values_of("tmc-param").unwrap_or_default();
+            let mut tmc_params_grouped = HashMap::new();
+            for value in tmc_params_values {
+                let params: Vec<_> = value.split('=').collect();
+                if params.len() != 2 {
+                    Error::with_description(
+                        "tmc-param values should contain a single '=' as a delimiter.",
+                        ErrorKind::ValueValidation,
+                    )
+                    .exit();
+                }
+                let key = params[0];
+                let value = params[1];
+                let entry = tmc_params_grouped.entry(key).or_insert_with(Vec::new);
+                entry.push(value);
+            }
+            let mut tmc_params = TmcParams::new();
+            for (key, values) in tmc_params_grouped {
+                if values.len() == 1 {
+                    tmc_params
+                        .insert_string(key, values[0])
+                        .context("invalid tmc-param key-value pair")?;
+                } else {
+                    tmc_params
+                        .insert_array(key, values)
+                        .context("invalid tmc-param key-value pair")?;
                 }
             }
-        };
 
-        if let Some(matches) = matches.subcommand_matches("login") {
+            let clone_path = matches.value_of("clone-path").unwrap();
+            let clone_path = Path::new(clone_path);
+
+            let output_zip = matches.is_present("output-zip");
+
+            let top_level_dir_name = matches.value_of("top-level-dir-name");
+            let top_level_dir_name = top_level_dir_name.map(str::to_string);
+
+            let stub_zip_path = matches.value_of("stub-zip-path");
+            let stub_zip_path = stub_zip_path.map(Path::new);
+
+            task_executor::prepare_submission(
+                submission_path,
+                output_path,
+                top_level_dir_name,
+                tmc_params,
+                clone_path,
+                stub_zip_path,
+                output_zip,
+            )?;
+
+            let output = Output::<()> {
+                status: Status::Successful,
+                message: Some(format!(
+                    "prepared submission for {} at {}",
+                    submission_path.display(),
+                    output_path.display()
+                )),
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: None,
+            };
+            print_output(&output)?
+        }
+        ("run-tests", Some(matches)) => {
+            let exercise_path = matches.value_of("exercise-path").unwrap();
+            let exercise_path = Path::new(exercise_path);
+
+            let output_path = matches.value_of("output-path");
+            let output_path = output_path.map(Path::new);
+
+            // todo: checkstyle results in stdout?
+            let checkstyle_output_path = matches.value_of("checkstyle-output-path");
+            let checkstyle_output_path: Option<&Path> = checkstyle_output_path.map(Path::new);
+
+            let test_result = task_executor::run_tests(exercise_path).with_context(|| {
+                format!(
+                    "Failed to run tests for exercise at {}",
+                    exercise_path.display()
+                )
+            })?;
+
+            if let Some(output_path) = output_path {
+                write_result_to_file_as_json(&test_result, output_path)?;
+            }
+
+            if let Some(checkstyle_output_path) = checkstyle_output_path {
+                let locale = matches.value_of("locale").unwrap();
+                let locale = into_locale(locale)?;
+
+                run_checkstyle_write_results(exercise_path, Some(checkstyle_output_path), locale)?;
+            }
+
+            let output = Output {
+                status: Status::Successful,
+                message: Some(format!("ran tests for {}", exercise_path.display(),)),
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: Some(test_result),
+            };
+            print_output(&output)?
+        }
+        ("scan-exercise", Some(matches)) => {
+            let exercise_path = matches.value_of("exercise-path").unwrap();
+            let exercise_path = Path::new(exercise_path);
+
+            let output_path = matches.value_of("output-path");
+            let output_path = output_path.map(Path::new);
+
+            let exercise_name = exercise_path.file_name().with_context(|| {
+                format!(
+                    "No file name found in exercise path {}",
+                    exercise_path.display()
+                )
+            })?;
+
+            let exercise_name = exercise_name.to_str().with_context(|| {
+                format!(
+                    "Exercise path's file name '{:?}' was not valid UTF8",
+                    exercise_name
+                )
+            })?;
+
+            let scan_result =
+                task_executor::scan_exercise(exercise_path, exercise_name.to_string())
+                    .with_context(|| {
+                        format!("Failed to scan exercise at {}", exercise_path.display())
+                    })?;
+
+            if let Some(output_path) = output_path {
+                write_result_to_file_as_json(&scan_result, output_path)?;
+            }
+
+            let output = Output {
+                status: Status::Successful,
+                message: Some(format!("scanned exercise at {}", exercise_path.display(),)),
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: Some(scan_result),
+            };
+            print_output(&output)?
+        }
+        ("find-exercises", Some(matches)) => {
+            let exercise_path = matches.value_of("exercise-path").unwrap();
+            let exercise_path = Path::new(exercise_path);
+
+            let output_path = matches.value_of("output-path");
+            let output_path = output_path.map(Path::new);
+
+            let mut exercises = vec![];
+            // silently skips errors
+            for entry in WalkDir::new(exercise_path)
+                .into_iter()
+                .filter_map(|e| e.ok())
+                .filter(|e| e.file_name() == "private")
+                .filter(submission_processing::is_hidden_dir)
+                .filter(submission_processing::contains_tmcignore)
+            {
+                log::debug!("processing {}", entry.path().display());
+                // TODO: Java implementation doesn't scan root directories
+                if task_executor::is_exercise_root_directory(entry.path()) {
+                    exercises.push(entry.into_path());
+                }
+            }
+
+            if let Some(output_path) = output_path {
+                write_result_to_file_as_json(&exercises, output_path)?;
+            }
+
+            let output = Output {
+                status: Status::Successful,
+                message: Some(format!("found exercises at {}", exercise_path.display(),)),
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: Some(exercises),
+            };
+            print_output(&output)?
+        }
+        ("get-exercise-packaging-configuration", Some(matches)) => {
+            let exercise_path = matches.value_of("exercise-path").unwrap();
+            let exercise_path = Path::new(exercise_path);
+
+            let output_path = matches.value_of("output-path");
+            let output_path = output_path.map(Path::new);
+
+            let config = task_executor::get_exercise_packaging_configuration(exercise_path)
+                .with_context(|| {
+                    format!(
+                        "Failed to get exercise packaging configuration for exercise at {}",
+                        exercise_path.display(),
+                    )
+                })?;
+
+            if let Some(output_path) = output_path {
+                write_result_to_file_as_json(&config, output_path)?;
+            }
+
+            let output = Output {
+                status: Status::Successful,
+                message: Some(format!(
+                    "created exercise packaging config from {}",
+                    exercise_path.display(),
+                )),
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: Some(config),
+            };
+            print_output(&output)?
+        }
+        ("clean", Some(matches)) => {
+            let exercise_path = matches.value_of("exercise-path").unwrap();
+            let exercise_path = Path::new(exercise_path);
+
+            task_executor::clean(exercise_path).with_context(|| {
+                format!("Failed to clean exercise at {}", exercise_path.display(),)
+            })?;
+
+            let output = Output::<()> {
+                status: Status::Successful,
+                message: Some(format!("cleaned exercise at {}", exercise_path.display(),)),
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: None,
+            };
+            print_output(&output)?
+        }
+        ("core", Some(matches)) => run_core(matches)?,
+        _ => unreachable!(),
+    }
+    Ok(())
+}
+
+fn run_core(matches: &ArgMatches) -> Result<()> {
+    let root_url =
+        env::var("TMC_LANGS_ROOT_URL").unwrap_or_else(|_| "https://tmc.mooc.fi".to_string());
+    let client_name = matches.value_of("client-name").unwrap();
+    let client_version = matches.value_of("client-version").unwrap();
+    let mut core = TmcCore::new_in_config(
+        root_url,
+        client_name.to_string(),
+        client_version.to_string(),
+    )
+    .context("Failed to create TmcCore")?;
+    // set progress report to print the updates to stdout as JSON
+    core.set_progress_report(|update| {
+        // convert to output
+        let output = Output::<()> {
+            status: Status::InProgress,
+            message: Some(update.message.to_string()),
+            result: update.status_type.into(),
+            percent_done: update.percent_done,
+            data: None,
+        };
+        print_output(&output).map_err(|e| e.into())
+    });
+
+    // set token if a credentials.json is found for the client name
+    let tmc_dir = format!("tmc-{}", client_name);
+
+    let config_dir = match env::var("TMC_LANGS_CONFIG_DIR") {
+        Ok(v) => PathBuf::from(v),
+        Err(_) => dirs::config_dir().context("Failed to find config directory")?,
+    };
+    let credentials_path = config_dir.join(tmc_dir).join("credentials.json");
+    if let Ok(file) = File::open(&credentials_path) {
+        match serde_json::from_reader(file) {
+            Ok(token) => core.set_token(token),
+            Err(e) => {
+                log::error!(
+                    "Failed to deserialize credentials.json due to \"{}\", deleting",
+                    e
+                );
+                fs::remove_file(&credentials_path).with_context(|| {
+                    format!(
+                        "Failed to remove malformed credentials.json file {}",
+                        credentials_path.display()
+                    )
+                })?;
+            }
+        }
+    };
+
+    match matches.subcommand() {
+        ("login", Some(matches)) => {
             let email = matches.value_of("email");
             let set_access_token = matches.value_of("set-access-token");
             let base64 = matches.is_present("base64");
@@ -537,7 +556,8 @@ fn run() -> Result<()> {
                 data: None,
             };
             print_output(&output)?;
-        } else if let Some(_matches) = matches.subcommand_matches("logout") {
+        }
+        ("logout", Some(_matches)) => {
             if credentials_path.exists() {
                 fs::remove_file(&credentials_path).with_context(|| {
                     format!(
@@ -555,7 +575,8 @@ fn run() -> Result<()> {
                 data: None,
             };
             print_output(&output)?;
-        } else if let Some(_matches) = matches.subcommand_matches("logged-in") {
+        }
+        ("logged-in", Some(_matches)) => {
             if credentials_path.exists() {
                 let credentials = File::open(&credentials_path).with_context(|| {
                     format!(
@@ -587,7 +608,8 @@ fn run() -> Result<()> {
                 };
                 print_output(&output)?;
             }
-        } else if let Some(_matches) = matches.subcommand_matches("get-organizations") {
+        }
+        ("get-organizations", Some(_matches)) => {
             let orgs = core
                 .get_organizations()
                 .context("Failed to get organizations")?;
@@ -600,7 +622,8 @@ fn run() -> Result<()> {
                 data: Some(orgs),
             };
             print_output(&output)?;
-        } else if let Some(matches) = matches.subcommand_matches("get-organization") {
+        }
+        ("get-organization", Some(matches)) => {
             let organization_slug = matches.value_of("organization").unwrap();
             let org = core
                 .get_organization(organization_slug)
@@ -614,7 +637,8 @@ fn run() -> Result<()> {
                 data: Some(org),
             };
             print_output(&output)?;
-        } else if let Some(matches) = matches.subcommand_matches("download-or-update-exercises") {
+        }
+        ("download-or-update-exercises", Some(matches)) => {
             let mut exercise_args = matches.values_of("exercise").unwrap();
             let mut exercises = vec![];
             while let Some(exercise_id) = exercise_args.next() {
@@ -635,7 +659,8 @@ fn run() -> Result<()> {
                 data: None,
             };
             print_output(&output)?;
-        } else if let Some(matches) = matches.subcommand_matches("get-course-details") {
+        }
+        ("get-course-details", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
             let course_id = into_usize(course_id)?;
 
@@ -651,7 +676,8 @@ fn run() -> Result<()> {
                 data: Some(course_details),
             };
             print_output(&output)?;
-        } else if let Some(matches) = matches.subcommand_matches("get-courses") {
+        }
+        ("get-courses", Some(matches)) => {
             let organization_slug = matches.value_of("organization").unwrap();
             let courses = core
                 .list_courses(organization_slug)
@@ -665,7 +691,8 @@ fn run() -> Result<()> {
                 data: Some(courses),
             };
             print_output(&output)?;
-        } else if let Some(matches) = matches.subcommand_matches("get-course-settings") {
+        }
+        ("get-course-settings", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
             let course_id = into_usize(course_id)?;
             let course = core.get_course(course_id).context("Failed to get course")?;
@@ -678,7 +705,8 @@ fn run() -> Result<()> {
                 data: Some(course),
             };
             print_output(&output)?;
-        } else if let Some(matches) = matches.subcommand_matches("get-course-exercises") {
+        }
+        ("get-course-exercises", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
             let course_id = into_usize(course_id)?;
             let course = core
@@ -693,7 +721,8 @@ fn run() -> Result<()> {
                 data: Some(course),
             };
             print_output(&output)?;
-        } else if let Some(matches) = matches.subcommand_matches("get-exercise-details") {
+        }
+        ("get-exercise-details", Some(matches)) => {
             let exercise_id = matches.value_of("exercise-id").unwrap();
             let exercise_id = into_usize(exercise_id)?;
             let course = core
@@ -708,7 +737,8 @@ fn run() -> Result<()> {
                 data: Some(course),
             };
             print_output(&output)?;
-        } else if let Some(matches) = matches.subcommand_matches("paste") {
+        }
+        ("paste", Some(matches)) => {
             let submission_url = matches.value_of("submission-url").unwrap();
             let submission_url = into_url(submission_url)?;
 
@@ -740,7 +770,8 @@ fn run() -> Result<()> {
                 data: Some(new_submission),
             };
             print_output(&output)?;
-        } else if let Some(matches) = matches.subcommand_matches("run-checkstyle") {
+        }
+        ("run-checkstyle", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);
             let locale = matches.value_of("locale").unwrap();
@@ -758,7 +789,8 @@ fn run() -> Result<()> {
                 data: Some(validation_result),
             };
             print_output(&output)?;
-        } else if let Some(matches) = matches.subcommand_matches("run-tests") {
+        }
+        ("run-tests", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);
 
@@ -774,7 +806,8 @@ fn run() -> Result<()> {
                 data: Some(run_result),
             };
             print_output(&output)?;
-        } else if let Some(matches) = matches.subcommand_matches("send-feedback") {
+        }
+        ("send-feedback", Some(matches)) => {
             let feedback_url = matches.value_of("feedback-url").unwrap();
             let feedback_url = into_url(feedback_url)?;
 
@@ -801,7 +834,8 @@ fn run() -> Result<()> {
                 data: Some(response),
             };
             print_output(&output)?;
-        } else if let Some(matches) = matches.subcommand_matches("submit") {
+        }
+        ("submit", Some(matches)) => {
             let submission_url = matches.value_of("submission-url").unwrap();
             let submission_url = into_url(submission_url)?;
 
@@ -849,7 +883,8 @@ fn run() -> Result<()> {
                 };
                 print_output(&output)?;
             }
-        } else if let Some(matches) = matches.subcommand_matches("get-exercise-submissions") {
+        }
+        ("get-exercise-submissions", Some(matches)) => {
             let exercise_id = matches.value_of("exercise-id").unwrap();
             let exercise_id = into_usize(exercise_id)?;
             let submissions = core
@@ -864,7 +899,8 @@ fn run() -> Result<()> {
                 data: Some(submissions),
             };
             print_output(&output)?;
-        } else if let Some(matches) = matches.subcommand_matches("wait-for-submission") {
+        }
+        ("wait-for-submission", Some(matches)) => {
             let submission_url = matches.value_of("submission-url").unwrap();
             let submission_finished = core
                 .wait_for_submission(submission_url)
@@ -880,7 +916,8 @@ fn run() -> Result<()> {
                 data: Some(submission_finished),
             };
             print_output(&output)?;
-        } else if let Some(_matches) = matches.subcommand_matches("get-exercise-updates") {
+        }
+        ("get-exercise-updates", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
             let course_id = into_usize(course_id)?;
 
@@ -904,7 +941,8 @@ fn run() -> Result<()> {
                 data: Some(update_result),
             };
             print_output(&output)?;
-        } else if let Some(_matches) = matches.subcommand_matches("mark-review-as-read") {
+        }
+        ("mark-review-as-read", Some(matches)) => {
             let review_update_url = matches.value_of("review-update-url").unwrap();
             core.mark_review_as_read(review_update_url.to_string())
                 .context("Failed to mark review as read")?;
@@ -917,7 +955,8 @@ fn run() -> Result<()> {
                 data: None,
             };
             print_output(&output)?;
-        } else if let Some(matches) = matches.subcommand_matches("get-unread-reviews") {
+        }
+        ("get-unread-reviews", Some(matches)) => {
             let reviews_url = matches.value_of("reviews-url").unwrap();
             let reviews_url = into_url(reviews_url)?;
 
@@ -933,7 +972,8 @@ fn run() -> Result<()> {
                 data: Some(reviews),
             };
             print_output(&output)?;
-        } else if let Some(matches) = matches.subcommand_matches("request-code-review") {
+        }
+        ("request-code-review", Some(matches)) => {
             let submission_url = matches.value_of("submission-url").unwrap();
             let submission_url = into_url(submission_url)?;
 
@@ -966,7 +1006,8 @@ fn run() -> Result<()> {
                 data: Some(new_submission),
             };
             print_output(&output)?;
-        } else if let Some(matches) = matches.subcommand_matches("download-model-solution") {
+        }
+        ("download-model-solution", Some(matches)) => {
             let solution_download_url = matches.value_of("solution-download-url").unwrap();
             let solution_download_url = into_url(solution_download_url)?;
 
@@ -984,7 +1025,8 @@ fn run() -> Result<()> {
                 data: None,
             };
             print_output(&output)?;
-        } else if let Some(matches) = matches.subcommand_matches("reset-exercise") {
+        }
+        ("reset-exercise", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);
 
@@ -1008,7 +1050,8 @@ fn run() -> Result<()> {
                 data: None,
             };
             print_output(&output)?;
-        } else if let Some(matches) = matches.subcommand_matches("download-old-submission") {
+        }
+        ("download-old-submission", Some(matches)) => {
             let exercise_id = matches.value_of("exercise-id").unwrap();
             let exercise_id = into_usize(exercise_id)?;
 
@@ -1040,7 +1083,9 @@ fn run() -> Result<()> {
             };
             print_output(&output)?;
         }
+        _ => unreachable!(),
     }
+
     Ok(())
 }
 
