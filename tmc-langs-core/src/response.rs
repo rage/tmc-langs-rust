@@ -90,26 +90,26 @@ pub struct Course {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CourseData {
     pub name: String,
-    //pub hide_after
+    pub hide_after: Option<String>,
     pub hidden: bool,
-    pub cache_version: usize,
-    //pub spreadsheet_key
-    //pub hidden_if_registered_after
-    pub refreshed_at: String,
+    pub cache_version: Option<usize>,
+    pub spreadsheet_key: Option<String>,
+    pub hidden_if_registered_after: Option<String>,
+    pub refreshed_at: Option<String>,
     pub locked_exercise_points_visible: bool,
-    pub description: String,
-    //pub paste_visibility
-    //pub formal_name
-    pub certificate_downloadable: bool,
-    //pub certificate_unlock_spec
-    pub organization_id: usize,
-    pub disabled_status: String,
-    pub title: String,
-    pub material_url: String,
-    pub course_template_id: usize,
+    pub description: Option<String>,
+    pub paste_visibility: Option<String>,
+    pub formal_name: Option<String>,
+    pub certificate_downloadable: Option<bool>,
+    pub certificate_unlock_spec: Option<String>,
+    pub organization_id: Option<usize>,
+    pub disabled_status: Option<String>,
+    pub title: Option<String>,
+    pub material_url: Option<String>,
+    pub course_template_id: Option<usize>,
     pub hide_submission_results: bool,
-    pub external_scoreboard_url: String,
-    pub organization_slug: String,
+    pub external_scoreboard_url: Option<String>,
+    pub organization_slug: Option<String>,
 }
 
 /// Represents a course details response from tmc-server,
