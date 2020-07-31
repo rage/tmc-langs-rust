@@ -16,7 +16,7 @@ pub struct Output<T: Serialize> {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Status {
-    Successful,
+    Finished,
     Crashed,
     InProgress,
 }

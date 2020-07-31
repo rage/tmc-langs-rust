@@ -79,7 +79,7 @@ fn run() -> Result<()> {
             let check_result = run_checkstyle_write_results(exercise_path, output_path, locale)?;
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: Some("ran checkstyle".to_string()),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
@@ -109,7 +109,7 @@ fn run() -> Result<()> {
             })?;
 
             let output = Output::<()> {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: Some(format!(
                     "compressed project from {} to {}",
                     exercise_path.display(),
@@ -133,7 +133,7 @@ fn run() -> Result<()> {
             })?;
 
             let output = Output::<()> {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: Some(format!(
                     "extracted project from {} to {}",
                     archive_path.display(),
@@ -161,7 +161,7 @@ fn run() -> Result<()> {
                 })?;
 
             let output = Output::<()> {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: Some(format!(
                     "prepared solutions for {} at {}",
                     exercise_path.display(),
@@ -192,7 +192,7 @@ fn run() -> Result<()> {
             )?;
 
             let output = Output::<()> {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: Some(format!(
                     "prepared stubs for {} at {}",
                     exercise_path.display(),
@@ -262,7 +262,7 @@ fn run() -> Result<()> {
             )?;
 
             let output = Output::<()> {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: Some(format!(
                     "prepared submission for {} at {}",
                     submission_path.display(),
@@ -304,7 +304,7 @@ fn run() -> Result<()> {
             }
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: Some(format!("ran tests for {}", exercise_path.display(),)),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
@@ -344,7 +344,7 @@ fn run() -> Result<()> {
             }
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: Some(format!("scanned exercise at {}", exercise_path.display(),)),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
@@ -380,7 +380,7 @@ fn run() -> Result<()> {
             }
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: Some(format!("found exercises at {}", exercise_path.display(),)),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
@@ -408,7 +408,7 @@ fn run() -> Result<()> {
             }
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: Some(format!(
                     "created exercise packaging config from {}",
                     exercise_path.display(),
@@ -428,7 +428,7 @@ fn run() -> Result<()> {
             })?;
 
             let output = Output::<()> {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: Some(format!("cleaned exercise at {}", exercise_path.display(),)),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
@@ -551,7 +551,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
             }
 
             let output = Output::<()> {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::LoggedIn,
                 percent_done: 1.0,
@@ -570,7 +570,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
             }
 
             let output = Output::<()> {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::LoggedOut,
                 percent_done: 1.0,
@@ -593,7 +593,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                     )
                 })?;
                 let output = Output {
-                    status: Status::Successful,
+                    status: Status::Finished,
                     message: None,
                     result: OutputResult::LoggedIn,
                     percent_done: 1.0,
@@ -602,7 +602,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 print_output(&output)?
             } else {
                 let output = Output::<()> {
-                    status: Status::Successful,
+                    status: Status::Finished,
                     message: None,
                     result: OutputResult::NotLoggedIn,
                     percent_done: 1.0,
@@ -617,7 +617,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 .context("Failed to get organizations")?;
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
@@ -632,7 +632,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 .context("Failed to get organization")?;
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
@@ -654,7 +654,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 .context("Failed to download exercises")?;
 
             let output = Output::<()> {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
@@ -671,7 +671,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 .context("Failed to get course details")?;
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
@@ -686,7 +686,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 .context("Failed to get courses")?;
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
@@ -700,7 +700,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
             let course = core.get_course(course_id).context("Failed to get course")?;
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
@@ -716,7 +716,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 .context("Failed to get course")?;
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
@@ -732,7 +732,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 .context("Failed to get course")?;
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
@@ -765,7 +765,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 .context("Failed to get paste with comment")?;
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
@@ -784,7 +784,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 .context("Failed to run checkstyle")?;
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
@@ -801,7 +801,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 .context("Failed to run tests")?;
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
@@ -829,7 +829,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 .context("Failed to send feedback")?;
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::SentData,
                 percent_done: 1.0,
@@ -859,7 +859,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
 
             if dont_block {
                 let output = Output {
-                    status: Status::Successful,
+                    status: Status::Finished,
                     message: None,
                     result: OutputResult::SentData,
                     percent_done: 1.0,
@@ -877,7 +877,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                     .context("Failed to serialize submission results")?;
 
                 let output = Output {
-                    status: Status::Successful,
+                    status: Status::Finished,
                     message: None,
                     result: OutputResult::RetrievedData,
                     percent_done: 1.0,
@@ -894,7 +894,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 .context("Failed to get submissions")?;
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
@@ -911,7 +911,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 .context("Failed to serialize submission results")?;
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
@@ -936,7 +936,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 .context("Failed to get exercise updates")?;
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
@@ -950,7 +950,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 .context("Failed to mark review as read")?;
 
             let output = Output::<()> {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::SentData,
                 percent_done: 1.0,
@@ -967,7 +967,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 .context("Failed to get unread reviews")?;
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::LoggedOut,
                 percent_done: 1.0,
@@ -1001,7 +1001,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 .context("Failed to request code review")?;
 
             let output = Output {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::SentData,
                 percent_done: 1.0,
@@ -1020,7 +1020,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 .context("Failed to download model solution")?;
 
             let output = Output::<()> {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
@@ -1045,7 +1045,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
             core.reset(exercise_id, exercise_path)?;
 
             let output = Output::<()> {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
@@ -1077,7 +1077,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
             task_executor::extract_project(temp_zip.path(), output_path)?;
 
             let output = Output::<()> {
-                status: Status::Successful,
+                status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
