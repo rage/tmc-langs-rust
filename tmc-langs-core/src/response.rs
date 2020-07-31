@@ -49,6 +49,7 @@ pub struct ResponseErrors {
 #[serde(deny_unknown_fields)] // prevents responses with an error field from being parsed as an error
 pub struct ResponseError {
     pub error: String,
+    pub obsolete_client: Option<bool>,
 }
 
 /// OAuth2 credentials
