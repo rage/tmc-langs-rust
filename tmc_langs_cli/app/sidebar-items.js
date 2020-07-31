@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["create_app",""]]});
+initSidebarItems({"constant":[["SCHEMA_NULL",""],["SCHEMA_TOKEN",""]],"fn":[["create_app",""],["create_core_app",""],["schema_leaked",""]]});

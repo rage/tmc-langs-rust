@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["copy",""],["create_dir",""],["create_file",""],["find_project_root",""],["open_file",""],["unzip",""],["write_to_file",""]]});
