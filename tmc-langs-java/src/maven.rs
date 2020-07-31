@@ -7,9 +7,9 @@ use super::{error::JavaError, plugin::JavaPlugin, CompileResult, TestRun, SEPARA
 use flate2::read::GzDecoder;
 use j4rs::Jvm;
 use policy::MavenStudentFilePolicy;
-use std::ffi::OsString;
+use std::ffi::{OsStr, OsString};
 use std::fs;
-use std::io::Cursor;
+use std::io::{Cursor, Read, Seek};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::Duration;
@@ -17,6 +17,7 @@ use tar::Archive;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, ValidationResult},
     plugin::{Language, LanguagePlugin},
+    zip::ZipArchive,
     TmcError,
 };
 
@@ -96,8 +97,25 @@ impl LanguagePlugin for MavenPlugin {
         Ok(self.run_java_tests(project_root_path)?)
     }
 
+    /// Checks if the directory has a pom.xml file.
     fn is_exercise_type_correct(path: &Path) -> bool {
         path.join("pom.xml").exists()
+    }
+
+    /// Tries to find a directory which contains a pom.xml file.
+    fn find_project_dir_in_zip<R: Read + Seek>(
+        zip_archive: &mut ZipArchive<R>,
+    ) -> Result<PathBuf, TmcError> {
+        for i in 0..zip_archive.len() {
+            let file = zip_archive.by_index(i)?;
+            let file_path = file.sanitized_name();
+            if file_path.file_name() == Some(OsStr::new("pom.xml")) {
+                if let Some(parent) = file_path.parent() {
+                    return Ok(parent.to_path_buf());
+                }
+            }
+        }
+        Err(TmcError::NoProjectDirInZip)
     }
 
     fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
@@ -273,6 +291,7 @@ impl JavaPlugin for MavenPlugin {
 mod test {
     use super::super::{TestCase, TestCaseStatus};
     use super::*;
+    use std::fs::File;
     use tempfile::{tempdir, TempDir};
     use tmc_langs_framework::domain::Strategy;
     use walkdir::WalkDir;
@@ -429,5 +448,21 @@ mod test {
             std::path::MAIN_SEPARATOR
         );
         assert!(cmd.to_string_lossy().ends_with(&expected))
+    }
+
+    #[test]
+    fn finds_project_dir_in_zip() {
+        let file = File::open("tests/data/MavenProject.zip").unwrap();
+        let mut zip = ZipArchive::new(file).unwrap();
+        let dir = MavenPlugin::find_project_dir_in_zip(&mut zip).unwrap();
+        assert_eq!(dir, Path::new("Outer/Inner/maven_exercise"));
+    }
+
+    #[test]
+    fn doesnt_find_project_dir_in_zip() {
+        let file = File::open("tests/data/MavenWithoutPom.zip").unwrap();
+        let mut zip = ZipArchive::new(file).unwrap();
+        let dir = MavenPlugin::find_project_dir_in_zip(&mut zip);
+        assert!(dir.is_err());
     }
 }

@@ -2,7 +2,7 @@
 use std::path::PathBuf;
 use std::process::ExitStatus;
 use thiserror::Error;
-use tmc_langs_framework::TmcError;
+use tmc_langs_framework::{zip, TmcError};
 
 #[derive(Debug, Error)]
 pub enum CSharpError {

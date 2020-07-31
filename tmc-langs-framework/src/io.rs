@@ -2,4 +2,4 @@
 
 pub mod file_util;
 pub mod submission_processing;
-pub mod zip;
+pub mod tmc_zip;

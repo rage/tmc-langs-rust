@@ -99,6 +99,16 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
                 entry_path.display(),
                 target.display()
             );
+            if let Some(parent) = target.parent() {
+                fs::create_dir_all(parent)
+                    .map_err(|e| TmcError::CreateDir(entry.path().to_path_buf(), e))?;
+            }
+            println!("{} {}", entry_path.display(), entry_path.exists());
+            println!(
+                "{} {}",
+                target.parent().unwrap().display(),
+                target.parent().unwrap().exists()
+            );
             std::fs::copy(&entry_path, &target).map_err(|e| {
                 TmcError::FileCopy(entry_path.to_path_buf(), target.to_path_buf(), e)
             })?;

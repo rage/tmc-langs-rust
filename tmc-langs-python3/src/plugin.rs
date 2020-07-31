@@ -5,14 +5,16 @@ use crate::policy::Python3StudentFilePolicy;
 use crate::{LocalPy, PythonTestResult, LOCAL_PY};
 
 use std::collections::HashMap;
+use std::ffi::OsStr;
 use std::fs::{self, File};
-use std::io::BufReader;
-use std::path::Path;
+use std::io::{BufReader, Read, Seek};
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::Duration;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     plugin::LanguagePlugin,
+    zip::ZipArchive,
     CommandWithTimeout, OutputWithTimeout, TmcError,
 };
 use walkdir::WalkDir;
@@ -97,6 +99,7 @@ impl LanguagePlugin for Python3Plugin {
         Ok(parse_res?)
     }
 
+    /// Checks if the directory has one of setup.py, requirements.txt., test/__init__.py, or tmc/__main__.py
     fn is_exercise_type_correct(path: &Path) -> bool {
         let setup = path.join("setup.py");
         let requirements = path.join("requirements.txt");
@@ -104,6 +107,41 @@ impl LanguagePlugin for Python3Plugin {
         let tmc = path.join("tmc").join("__main__.py");
 
         setup.exists() || requirements.exists() || test.exists() || tmc.exists()
+    }
+
+    fn find_project_dir_in_zip<R: Read + Seek>(
+        zip_archive: &mut ZipArchive<R>,
+    ) -> Result<PathBuf, TmcError> {
+        for i in 0..zip_archive.len() {
+            let file = zip_archive.by_index(i)?;
+            let file_path = file.sanitized_name();
+            if file_path.file_name() == Some(OsStr::new("setup.py"))
+                || file_path.file_name() == Some(OsStr::new("requirements.txt"))
+            {
+                if let Some(parent) = file_path.parent() {
+                    return Ok(parent.to_path_buf());
+                }
+            }
+            if file_path.file_name() == Some(OsStr::new("__init__.py")) {
+                if let Some(init_parent) = file_path.parent() {
+                    if init_parent.file_name() == Some(OsStr::new("test")) {
+                        if let Some(test_parent) = init_parent.parent() {
+                            return Ok(test_parent.to_path_buf());
+                        }
+                    }
+                }
+            }
+            if file_path.file_name() == Some(OsStr::new("__main__.py")) {
+                if let Some(main_parent) = file_path.parent() {
+                    if main_parent.file_name() == Some(OsStr::new("tmc")) {
+                        if let Some(tmc_parent) = main_parent.parent() {
+                            return Ok(tmc_parent.to_path_buf());
+                        }
+                    }
+                }
+            }
+        }
+        Err(TmcError::NoProjectDirInZip)
     }
 
     fn clean(&self, exercise_path: &Path) -> Result<(), TmcError> {
@@ -365,5 +403,21 @@ mod test {
             .run_tests_with_timeout(temp.path(), Some(std::time::Duration::from_millis(1)))
             .unwrap();
         assert_eq!(timeout.test_results[0].name, "Timeout test");
+    }
+
+    #[test]
+    fn finds_project_dir_in_zip() {
+        let file = File::open("tests/data/PythonProject.zip").unwrap();
+        let mut zip = ZipArchive::new(file).unwrap();
+        let dir = Python3Plugin::find_project_dir_in_zip(&mut zip).unwrap();
+        assert_eq!(dir, Path::new("Outer/Inner/project"));
+    }
+
+    #[test]
+    fn doesnt_find_project_dir_in_zip() {
+        let file = File::open("tests/data/PythonWithoutInit.zip").unwrap();
+        let mut zip = ZipArchive::new(file).unwrap();
+        let dir = Python3Plugin::find_project_dir_in_zip(&mut zip);
+        assert!(dir.is_err());
     }
 }

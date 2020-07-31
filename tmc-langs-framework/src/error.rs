@@ -1,4 +1,4 @@
-use crate::io::zip;
+use crate::io::tmc_zip;
 
 use std::path::PathBuf;
 use thiserror::Error;
@@ -45,6 +45,10 @@ pub enum TmcError {
     SetPermissions(PathBuf, #[source] std::io::Error),
     #[error("Invalid parameter value: {0}")]
     InvalidParam(String),
+    #[error("File {0} not in given project root {1}")]
+    FileNotInProject(PathBuf, PathBuf),
+    #[error("Path {0} is not absolute")]
+    PathNotAbsolute(PathBuf),
 
     #[error("Path {0} contained invalid UTF8")]
     UTF8(PathBuf),
@@ -67,7 +71,7 @@ pub enum TmcError {
     #[error(transparent)]
     YamlDeserialization(#[from] serde_yaml::Error),
     #[error(transparent)]
-    ZipError(#[from] zip::ZipError),
+    ZipError(#[from] tmc_zip::ZipError),
     #[error(transparent)]
     WalkDir(#[from] walkdir::Error),
 }

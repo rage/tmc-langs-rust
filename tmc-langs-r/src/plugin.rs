@@ -7,12 +7,15 @@ use super::RRunResult;
 
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, TestDesc},
+    zip::ZipArchive,
     LanguagePlugin, TmcError,
 };
 
 use std::collections::HashMap;
+use std::ffi::OsStr;
 use std::fs::{self, File};
-use std::path::Path;
+use std::io::{Read, Seek};
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::Duration;
 
@@ -122,8 +125,33 @@ impl LanguagePlugin for RPlugin {
         RStudentFilePolicy::new(project_path.to_path_buf())
     }
 
+    /// Checks if the directory contains R or tests/testthat
     fn is_exercise_type_correct(path: &Path) -> bool {
         path.join("R").exists() || path.join("tests/testthat").exists()
+    }
+
+    fn find_project_dir_in_zip<R: Read + Seek>(
+        zip_archive: &mut ZipArchive<R>,
+    ) -> Result<PathBuf, TmcError> {
+        for i in 0..zip_archive.len() {
+            let file = zip_archive.by_index(i)?;
+            let file_path = file.sanitized_name();
+            if file_path.file_name() == Some(OsStr::new("R")) {
+                if let Some(parent) = file_path.parent() {
+                    return Ok(parent.to_path_buf());
+                }
+            }
+            if file_path.file_name() == Some(OsStr::new("testthat")) {
+                if let Some(init_parent) = file_path.parent() {
+                    if init_parent.file_name() == Some(OsStr::new("tests")) {
+                        if let Some(test_parent) = init_parent.parent() {
+                            return Ok(test_parent.to_path_buf());
+                        }
+                    }
+                }
+            }
+        }
+        Err(TmcError::NoProjectDirInZip)
     }
 
     /// No operation for now. To be possibly implemented later: remove .Rdata, .Rhistory etc
@@ -259,5 +287,21 @@ mod test {
         let logs = run.logs.remove("compiler_output").unwrap();
         let logs = String::from_utf8(logs).unwrap();
         assert!(logs.contains("unexpected 'in'"));
+    }
+
+    #[test]
+    fn finds_project_dir_in_zip() {
+        let file = File::open("tests/data/RProject.zip").unwrap();
+        let mut zip = ZipArchive::new(file).unwrap();
+        let dir = RPlugin::find_project_dir_in_zip(&mut zip).unwrap();
+        assert_eq!(dir, Path::new("Outer/Inner/simple_all_tests_pass"));
+    }
+
+    #[test]
+    fn doesnt_find_project_dir_in_zip() {
+        let file = File::open("tests/data/RWithoutR.zip").unwrap();
+        let mut zip = ZipArchive::new(file).unwrap();
+        let dir = RPlugin::find_project_dir_in_zip(&mut zip);
+        assert!(dir.is_err());
     }
 }

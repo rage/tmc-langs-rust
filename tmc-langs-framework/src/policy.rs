@@ -18,24 +18,41 @@ pub trait StudentFilePolicy {
     /// are specified as ExtraStudentFiles in a separate configuration.
     ///
     /// For example in a Java project that uses Apache Ant, should return `true` for any files in the `src` directory.
+    ///
+    /// The file_path should be some file inside project_root_path.
+    ///
+    /// # Errors
+    /// Returns an error if either the file_path or project_root_path don't exist, or if file_path is not in project_root_path.
     fn is_student_file(
         &self,
-        path: &Path,
+        file_path: &Path,
         project_root_path: &Path,
         tmc_project_yml: &TmcProjectYml,
     ) -> Result<bool> {
-        if !path.exists() {
+        // non-existent files and .tmcproject.yml should never be considered student files
+        if !file_path.exists() || file_path.file_name() == Some(OsStr::new(".tmcproject.yml")) {
             return Ok(false);
         }
 
-        if path.file_name() == Some(OsStr::new(".tmcproject.yml")) {
-            return Ok(false);
+        // make paths absolute
+        let path_canon = file_path
+            .canonicalize()
+            .map_err(|e| TmcError::Canonicalize(file_path.to_path_buf(), e))?;
+        let root_canon = project_root_path
+            .canonicalize()
+            .map_err(|e| TmcError::Canonicalize(project_root_path.to_path_buf(), e))?;
+        log::debug!("{} {}", path_canon.display(), root_canon.display());
+
+        // the project root path should be considered a student file
+        if path_canon == root_canon {
+            return Ok(true);
         }
 
-        // try to strip project root prefix
-        let relative = path.strip_prefix(project_root_path).unwrap_or(path);
-        Ok(self.is_extra_student_file(path, tmc_project_yml)?
-            || project_root_path == path
+        // strip root directory from file path
+        let relative = path_canon
+            .strip_prefix(&root_canon)
+            .map_err(|_| TmcError::FileNotInProject(path_canon.clone(), root_canon.clone()))?;
+        Ok(self.is_extra_student_file(&relative, tmc_project_yml)?
             || self.is_student_source_file(relative))
     }
 
@@ -46,36 +63,30 @@ pub trait StudentFilePolicy {
     }
 
     /// Determines whether a file is an extra student file.
-    fn is_extra_student_file(&self, path: &Path, tmc_project_yml: &TmcProjectYml) -> Result<bool> {
-        let absolute = path
-            .canonicalize()
-            .map_err(|e| TmcError::Canonicalize(path.to_path_buf(), e))?;
-        for path in &tmc_project_yml.extra_exercise_files {
-            let path = path
-                .canonicalize()
-                .map_err(|e| TmcError::Canonicalize(path.to_owned(), e))?;
-
-            if path.is_dir() && (path == absolute || absolute.starts_with(path)) {
+    ///
+    /// The file_path should be relative, starting from the project root.
+    fn is_extra_student_file(
+        &self,
+        file_path: &Path,
+        tmc_project_yml: &TmcProjectYml,
+    ) -> Result<bool> {
+        for extra_student_file in &tmc_project_yml.extra_student_files {
+            if file_path.starts_with(extra_student_file) {
                 return Ok(true);
             }
         }
         Ok(false)
     }
 
-    fn is_student_source_file(&self, path: &Path) -> bool;
+    /// Checks whether the file is a student source file. The file_path can be assumed to be a relative path starting from the project root directory.
+    fn is_student_source_file(&self, file_path: &Path) -> bool;
 
     /// Used to check for files which should always be overwritten.
+    ///
+    /// The file_path should be relative, starting from the project root.
     fn is_updating_forced(&self, path: &Path, tmc_project_yml: &TmcProjectYml) -> Result<bool> {
-        let absolute = path
-            .canonicalize()
-            .map_err(|e| TmcError::Canonicalize(path.to_path_buf(), e))?;
         for force_update_path in &tmc_project_yml.force_update {
-            let force_absolute = force_update_path
-                .canonicalize()
-                .map_err(|e| TmcError::Canonicalize(force_update_path.to_owned(), e))?;
-            if (absolute == force_absolute || absolute.starts_with(&force_absolute))
-                && force_absolute.is_dir()
-            {
+            if path.starts_with(force_update_path) {
                 return Ok(true);
             }
         }

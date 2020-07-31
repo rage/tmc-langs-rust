@@ -110,7 +110,7 @@ pub fn extract_project_overwrite(
     compressed_project: &Path,
     target_location: &Path,
 ) -> Result<(), TmcError> {
-    io::zip::unzip(
+    io::tmc_zip::unzip(
         NothingIsStudentFilePolicy {},
         compressed_project,
         target_location,

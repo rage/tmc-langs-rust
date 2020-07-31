@@ -9,6 +9,7 @@ pub mod policy;
 pub use error::TmcError;
 pub use plugin::LanguagePlugin;
 pub use policy::StudentFilePolicy;
+pub use zip;
 
 use domain::TmcProjectYml;
 use std::io::Read;

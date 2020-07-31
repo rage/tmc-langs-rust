@@ -10,19 +10,19 @@ use tmc_langs_framework::{
         ExerciseDesc, RunResult, RunStatus, Strategy, TestDesc, TestResult, ValidationResult,
     },
     plugin::Language,
+    zip::ZipArchive,
     CommandWithTimeout, LanguagePlugin, OutputWithTimeout, TmcError,
 };
 
 use std::collections::HashMap;
 use std::env;
-use std::ffi::OsString;
+use std::ffi::{OsStr, OsString};
 use std::fs::{self, File};
-use std::io::{BufReader, Cursor, Read, Write};
+use std::io::{BufReader, Cursor, Read, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::Duration;
 use walkdir::WalkDir;
-use zip::ZipArchive;
 
 const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../tmc-csharp-runner-1.0.1.zip");
 
@@ -122,10 +122,31 @@ impl LanguagePlugin for CSharpPlugin {
     // checks the directories in src for csproj files
     fn is_exercise_type_correct(path: &Path) -> bool {
         WalkDir::new(path.join("src"))
+            .min_depth(2)
             .max_depth(2)
             .into_iter()
             .filter_map(|e| e.ok())
             .any(|e| e.path().extension() == Some(&OsString::from("csproj")))
+    }
+
+    /// Finds .csproj files and checks whether they are in a X/src/ directory, returning X if so.
+    fn find_project_dir_in_zip<R: Read + Seek>(
+        zip_archive: &mut ZipArchive<R>,
+    ) -> Result<PathBuf, TmcError> {
+        for i in 0..zip_archive.len() {
+            let file = zip_archive.by_index(i)?;
+            let file_path = file.sanitized_name();
+            if file_path.extension() == Some(OsStr::new("csproj")) {
+                if let Some(csproj_parent) = file_path.parent().and_then(Path::parent) {
+                    if csproj_parent.file_name() == Some(OsStr::new("src")) {
+                        if let Some(src_parent) = csproj_parent.parent() {
+                            return Ok(src_parent.to_path_buf());
+                        }
+                    }
+                }
+            }
+        }
+        Err(TmcError::NoProjectDirInZip)
     }
 
     fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
@@ -304,6 +325,22 @@ mod test {
         let temp = copy_test_dir("tests/data");
         let is = CSharpPlugin::is_exercise_type_correct(temp.path());
         assert!(!is);
+    }
+
+    #[test]
+    fn finds_project_dir_in_zip() {
+        let file = File::open("tests/data/Zipped.zip").unwrap();
+        let mut zip = ZipArchive::new(file).unwrap();
+        let dir = CSharpPlugin::find_project_dir_in_zip(&mut zip).unwrap();
+        assert_eq!(dir, Path::new("Outer/Inner/PassingProject"))
+    }
+
+    #[test]
+    fn no_project_dir_in_zip() {
+        let file = File::open("tests/data/test.zip").unwrap();
+        let mut zip = ZipArchive::new(file).unwrap();
+        let dir = CSharpPlugin::find_project_dir_in_zip(&mut zip);
+        assert!(dir.is_err())
     }
 
     #[test]

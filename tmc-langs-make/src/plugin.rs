@@ -8,15 +8,17 @@ use crate::valgrind_log::ValgrindLog;
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashMap;
+use std::ffi::OsStr;
 use std::fs::File;
 use std::io;
-use std::io::{BufRead, BufReader, Read};
-use std::path::Path;
+use std::io::{BufRead, BufReader, Read, Seek};
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::Duration;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TmcProjectYml},
     plugin::LanguagePlugin,
+    zip::ZipArchive,
     TmcError,
 };
 
@@ -253,8 +255,25 @@ impl LanguagePlugin for MakePlugin {
         MakeStudentFilePolicy::new(project_path.to_path_buf())
     }
 
+    /// Checks if the directory has a Makefile in it.
     fn is_exercise_type_correct(path: &Path) -> bool {
         path.join("Makefile").is_file()
+    }
+
+    /// Tries to find a directory with a Makefile in it.
+    fn find_project_dir_in_zip<R: Read + Seek>(
+        zip_archive: &mut ZipArchive<R>,
+    ) -> Result<PathBuf, TmcError> {
+        for i in 0..zip_archive.len() {
+            let file = zip_archive.by_index(i)?;
+            let file_path = file.sanitized_name();
+            if file_path.file_name() == Some(OsStr::new("Makefile")) {
+                if let Some(parent) = file_path.parent() {
+                    return Ok(parent.to_path_buf());
+                }
+            }
+        }
+        Err(TmcError::NoProjectDirInZip)
     }
 
     // does not check for success
@@ -394,5 +413,21 @@ mod test {
         assert_eq!(test_two.points[0], "1.2");
 
         todo!("valgrind results in random order?")
+    }
+
+    #[test]
+    fn finds_project_dir_in_zip() {
+        let file = File::open("tests/data/MakeProject.zip").unwrap();
+        let mut zip = ZipArchive::new(file).unwrap();
+        let dir = MakePlugin::find_project_dir_in_zip(&mut zip).unwrap();
+        assert_eq!(dir, Path::new("Outer/Inner/passing"));
+    }
+
+    #[test]
+    fn doesnt_find_project_dir_in_zip() {
+        let file = File::open("tests/data/MakeWithoutMakefile.zip").unwrap();
+        let mut zip = ZipArchive::new(file).unwrap();
+        let dir = MakePlugin::find_project_dir_in_zip(&mut zip);
+        assert!(dir.is_err());
     }
 }

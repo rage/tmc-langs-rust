@@ -3,11 +3,13 @@
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     policy::EverythingIsStudentFilePolicy,
+    zip::ZipArchive,
     LanguagePlugin, StudentFilePolicy, TmcError,
 };
 
 use std::collections::HashMap;
-use std::path::Path;
+use std::io::{Read, Seek};
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 #[derive(Default)]
@@ -69,6 +71,12 @@ impl LanguagePlugin for NoTestsPlugin {
             .get_tmc_project_yml()
             .map(|c| c.no_tests.is_some())
             .unwrap_or(false)
+    }
+
+    fn find_project_dir_in_zip<R: Read + Seek>(
+        _zip_archive: &mut ZipArchive<R>,
+    ) -> Result<PathBuf, TmcError> {
+        Ok(PathBuf::from(""))
     }
 
     fn clean(&self, _path: &Path) -> Result<(), TmcError> {
