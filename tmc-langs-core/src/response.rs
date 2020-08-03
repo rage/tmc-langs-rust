@@ -45,7 +45,7 @@ pub struct ResponseErrors {
 
 /// Represents an error response from tmc-server
 #[derive(Debug, Error, Deserialize)]
-#[error("Response contained an error: {error:#?}")]
+#[error("Response contained an error: {error:#?}. Obsolete client: {}", obsolete_client.unwrap_or_default())]
 #[serde(deny_unknown_fields)] // prevents responses with an error field from being parsed as an error
 pub struct ResponseError {
     pub error: String,
