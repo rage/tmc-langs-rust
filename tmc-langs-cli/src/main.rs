@@ -39,7 +39,7 @@ fn main() {
             next_source = source.source();
         }
         let error_output = Output {
-            status: Status::Crashed,
+            status: Status::Finished,
             message: Some(e.to_string()),
             result: OutputResult::Error,
             data: Some(causes),
