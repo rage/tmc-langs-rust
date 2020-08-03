@@ -11,10 +11,11 @@ use std::ffi::{OsStr, OsString};
 use std::fs;
 use std::io::{Cursor, Read, Seek};
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 use std::time::Duration;
 use tar::Archive;
 use tmc_langs_framework::{
+    command::TmcCommand,
     domain::{ExerciseDesc, RunResult, ValidationResult},
     plugin::{Language, LanguagePlugin},
     zip::ZipArchive,
@@ -37,9 +38,9 @@ impl MavenPlugin {
     // if not, check if the bundled maven has been extracted already,
     // if not, extract
     // finally, return the path to the extracted executable
-    fn get_mvn_command(&self) -> Result<OsString, JavaError> {
+    fn get_mvn_command() -> Result<OsString, JavaError> {
         // check if mvn is in PATH
-        if let Ok(status) = Command::new("mvn")
+        if let Ok(status) = TmcCommand::new("mvn")
             .arg("--version")
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
@@ -125,11 +126,10 @@ impl LanguagePlugin for MavenPlugin {
     fn clean(&self, path: &Path) -> Result<(), TmcError> {
         log::info!("Cleaning maven project at {}", path.display());
 
-        let output = Command::new("mvn")
-            .current_dir(path)
-            .arg("clean")
-            .output()
-            .map_err(|e| JavaError::FailedToRun("mvn".to_string(), e))?;
+        let mvn_command = Self::get_mvn_command()?;
+        let mut command = TmcCommand::named("maven", mvn_command);
+        command.current_dir(path).arg("clean");
+        let output = command.output()?;
 
         if !output.status.success() {
             log::warn!("stdout: {}", String::from_utf8_lossy(&output.stdout));
@@ -172,15 +172,13 @@ impl JavaPlugin for MavenPlugin {
         let class_path_file = temp.path().join("cp.txt");
 
         let output_arg = format!("-Dmdep.outputFile={}", class_path_file.display());
-        let mvn_path = self.get_mvn_command()?;
-        let output = Command::new(&mvn_path)
+        let mvn_path = Self::get_mvn_command()?;
+        let mut command = TmcCommand::named("maven", &mvn_path);
+        command
             .current_dir(path)
             .arg("dependency:build-classpath")
-            .arg(output_arg)
-            .output()
-            .map_err(|e| {
-                JavaError::FailedToRun(mvn_path.as_os_str().to_string_lossy().to_string(), e)
-            })?;
+            .arg(output_arg);
+        let output = command.output()?;
 
         if !output.status.success() {
             log::warn!("stdout: {}", String::from_utf8_lossy(&output.stdout));
@@ -216,16 +214,14 @@ impl JavaPlugin for MavenPlugin {
     fn build(&self, project_root_path: &Path) -> Result<CompileResult, JavaError> {
         log::info!("Building maven project at {}", project_root_path.display());
 
-        let mvn_path = self.get_mvn_command()?;
-        let output = Command::new(&mvn_path)
+        let mvn_path = Self::get_mvn_command()?;
+        let mut command = TmcCommand::named("maven", &mvn_path);
+        command
             .current_dir(project_root_path)
             .arg("clean")
             .arg("compile")
-            .arg("test-compile")
-            .output()
-            .map_err(|e| {
-                JavaError::FailedToRun(mvn_path.as_os_str().to_string_lossy().to_string(), e)
-            })?;
+            .arg("test-compile");
+        let output = command.output()?;
 
         if !output.status.success() {
             log::warn!("stdout: {}", String::from_utf8_lossy(&output.stdout));
@@ -255,14 +251,12 @@ impl JavaPlugin for MavenPlugin {
     ) -> Result<TestRun, JavaError> {
         log::info!("Running tests for maven project at {}", path.display());
 
-        let mvn_path = self.get_mvn_command()?;
-        let output = Command::new(&mvn_path)
+        let mvn_path = Self::get_mvn_command()?;
+        let mut command = TmcCommand::named("maven", &mvn_path);
+        command
             .current_dir(path)
-            .arg("fi.helsinki.cs.tmc:tmc-maven-plugin:1.12:test")
-            .output()
-            .map_err(|e| {
-                JavaError::FailedToRun(mvn_path.as_os_str().to_string_lossy().to_string(), e)
-            })?;
+            .arg("fi.helsinki.cs.tmc:tmc-maven-plugin:1.12:test");
+        let output = command.output()?;
 
         if !output.status.success() {
             log::warn!("stdout: {}", String::from_utf8_lossy(&output.stdout));
@@ -440,9 +434,8 @@ mod test {
     // TODO: currently will extract maven to your cache directory
     // #[test] TODO: changing PATH breaks other tests
     fn _unpack_bundled_mvn() {
-        let plugin = MavenPlugin::new().unwrap();
         std::env::set_var("PATH", "");
-        let cmd = plugin.get_mvn_command().unwrap();
+        let cmd = MavenPlugin::get_mvn_command().unwrap();
         let expected = format!(
             "tmc{0}apache-maven-3.6.3{0}bin{0}mvn",
             std::path::MAIN_SEPARATOR

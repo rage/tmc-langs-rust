@@ -32,15 +32,16 @@ fn main() {
     env_logger::init();
 
     if let Err(e) = run() {
-        let mut causes = vec![];
+        let mut causes = vec![e.to_string()];
         let mut next_source = e.source();
         while let Some(source) = next_source {
             causes.push(format!("Caused by: {}", source.to_string()));
             next_source = source.source();
         }
+        let message = error_message_special_casing(e);
         let error_output = Output {
             status: Status::Finished,
-            message: Some(e.to_string()),
+            message: Some(message),
             result: OutputResult::Error,
             data: Some(causes),
             percent_done: 1.0,
@@ -59,6 +60,18 @@ fn main() {
         }
         quit::with_code(1);
     }
+}
+
+// goes through the error chain and returns the first special cased error message, if any
+fn error_message_special_casing(e: anyhow::Error) -> String {
+    use tmc_langs_framework::error::CommandNotFound;
+    for cause in e.chain() {
+        // command not found errors are special cased to notify the user that they may need to install additional software
+        if let Some(cnf) = cause.downcast_ref::<CommandNotFound>() {
+            return cnf.to_string();
+        }
+    }
+    e.to_string()
 }
 
 fn run() -> Result<()> {

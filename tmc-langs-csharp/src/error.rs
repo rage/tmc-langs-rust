@@ -2,7 +2,7 @@
 use std::path::PathBuf;
 use std::process::ExitStatus;
 use thiserror::Error;
-use tmc_langs_framework::{zip, TmcError};
+use tmc_langs_framework::{error::CommandNotFound, zip, TmcError};
 
 #[derive(Debug, Error)]
 pub enum CSharpError {
@@ -34,6 +34,9 @@ pub enum CSharpError {
     RunFailed(&'static str, #[source] std::io::Error),
     #[error("Command {0} failed with return code {1}")]
     CommandFailed(&'static str, ExitStatus),
+
+    #[error("Command not found")]
+    CommandNotFound(#[from] CommandNotFound),
 }
 
 impl From<CSharpError> for TmcError {

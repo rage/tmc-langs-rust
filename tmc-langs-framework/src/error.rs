@@ -65,8 +65,8 @@ pub enum TmcError {
     #[error("Failed to spawn command: {0}")]
     CommandSpawn(&'static str, #[source] std::io::Error),
 
-    #[error("Error in plugin: {0}")]
-    Plugin(#[source] Box<dyn std::error::Error + 'static + Send + Sync>),
+    #[error("Error in plugin")]
+    Plugin(#[from] Box<dyn std::error::Error + 'static + Send + Sync>),
 
     #[error(transparent)]
     YamlDeserialization(#[from] serde_yaml::Error),
@@ -74,4 +74,16 @@ pub enum TmcError {
     ZipError(#[from] tmc_zip::ZipError),
     #[error(transparent)]
     WalkDir(#[from] walkdir::Error),
+
+    #[error("Command not found")]
+    CommandNotFound(#[from] CommandNotFound),
+}
+
+// == Collection of errors likely to be useful in multiple plugins which can be special cased without needing a plugin's specific error type ==
+#[derive(Error, Debug)]
+#[error("The executable for \"{name}\" could not be found ({path}). Please make sure you have installed it correctly.")]
+pub struct CommandNotFound {
+    pub name: &'static str,
+    pub path: PathBuf,
+    pub source: std::io::Error,
 }

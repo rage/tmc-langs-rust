@@ -29,6 +29,9 @@ pub enum MakeError {
     MakeCommand(#[source] std::io::Error),
     #[error(transparent)]
     ParseIntError(#[from] ParseIntError),
+
+    #[error(transparent)]
+    TmcError(#[from] TmcError),
 }
 
 impl From<MakeError> for TmcError {

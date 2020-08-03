@@ -6,12 +6,13 @@ pub use policy::CSharpStudentFilePolicy;
 use crate::{CSTestResult, CSharpError};
 
 use tmc_langs_framework::{
+    command::{OutputWithTimeout, TmcCommand},
     domain::{
         ExerciseDesc, RunResult, RunStatus, Strategy, TestDesc, TestResult, ValidationResult,
     },
     plugin::Language,
     zip::ZipArchive,
-    CommandWithTimeout, LanguagePlugin, OutputWithTimeout, TmcError,
+    LanguagePlugin, TmcError,
 };
 
 use std::collections::HashMap;
@@ -20,7 +21,6 @@ use std::ffi::{OsStr, OsString};
 use std::fs::{self, File};
 use std::io::{BufReader, Cursor, Read, Seek, Write};
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::time::Duration;
 use walkdir::WalkDir;
 
@@ -155,12 +155,12 @@ impl LanguagePlugin for CSharpPlugin {
 
     // runs --generate-points-file and parses the generated .tmc_available_points.json
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
-        let output = Command::new("dotnet")
+        let mut command = TmcCommand::new("dotnet");
+        command
             .current_dir(path)
             .arg(Self::get_bootstrap_path()?)
-            .arg("--generate-points-file")
-            .output()
-            .map_err(|e| CSharpError::RunFailed("dotnet", e))?;
+            .arg("--generate-points-file");
+        let output = command.output()?;
         log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
         if !output.status.success() {
@@ -195,26 +195,19 @@ impl LanguagePlugin for CSharpPlugin {
             fs::remove_file(&test_results_path)
                 .map_err(|e| CSharpError::RemoveFile(test_results_path.clone(), e))?;
         }
-        let output = match CommandWithTimeout(
-            Command::new("dotnet")
-                .current_dir(path)
-                .arg(Self::get_bootstrap_path()?)
-                .arg("--run-tests"),
-        )
-        .wait_with_timeout("dotnet", timeout)
-        {
-            Ok(output) => output,
-            Err(err) => {
-                log::error!("Error running dotnet: {}", err);
-                return Ok(RunResult {
-                    status: RunStatus::GenericError,
-                    test_results: vec![],
-                    logs: HashMap::new(),
-                });
-            }
+        let mut command = TmcCommand::new("dotnet");
+        command
+            .current_dir(path)
+            .arg(Self::get_bootstrap_path()?)
+            .arg("--run-tests");
+        let output = if let Some(timeout) = timeout {
+            let output = command.wait_with_timeout(timeout)?;
+            log::trace!("stdout: {}", String::from_utf8_lossy(output.stdout()));
+            log::debug!("stderr: {}", String::from_utf8_lossy(output.stderr()));
+            output
+        } else {
+            OutputWithTimeout::Output(command.output()?)
         };
-        log::trace!("stdout: {}", String::from_utf8_lossy(output.stdout()));
-        log::debug!("stderr: {}", String::from_utf8_lossy(output.stderr()));
 
         match output {
             OutputWithTimeout::Output(output) => {

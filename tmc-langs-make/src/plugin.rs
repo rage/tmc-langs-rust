@@ -13,9 +13,9 @@ use std::fs::File;
 use std::io;
 use std::io::{BufRead, BufReader, Read, Seek};
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::time::Duration;
 use tmc_langs_framework::{
+    command::TmcCommand,
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TmcProjectYml},
     plugin::LanguagePlugin,
     zip::ZipArchive,
@@ -80,11 +80,9 @@ impl MakePlugin {
         };
         log::info!("Running make {}", arg);
 
-        let output = Command::new("make")
-            .current_dir(path)
-            .arg(arg)
-            .output()
-            .map_err(MakeError::MakeCommand)?;
+        let mut command = TmcCommand::new("make");
+        command.current_dir(path).arg(arg);
+        let output = command.output()?;
 
         log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         let stderr = String::from_utf8_lossy(&output.stderr);
@@ -108,11 +106,9 @@ impl MakePlugin {
     /// the process finished successfully or not.
     fn builds(&self, dir: &Path) -> Result<bool, MakeError> {
         log::debug!("building {}", dir.display());
-        let output = Command::new("make")
-            .current_dir(dir)
-            .arg("test")
-            .output()
-            .map_err(MakeError::MakeCommand)?;
+        let mut command = TmcCommand::new("make");
+        command.current_dir(dir).arg("test");
+        let output = command.output()?;
 
         log::trace!("stdout:\n{}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr:\n{}", String::from_utf8_lossy(&output.stderr));
@@ -278,11 +274,9 @@ impl LanguagePlugin for MakePlugin {
 
     // does not check for success
     fn clean(&self, path: &Path) -> Result<(), TmcError> {
-        let output = Command::new("make")
-            .current_dir(path)
-            .arg("clean")
-            .output()
-            .map_err(MakeError::MakeCommand)?;
+        let mut command = TmcCommand::new("make");
+        command.current_dir(path).arg("clean");
+        let output = command.output()?;
 
         if output.status.success() {
             log::info!("Cleaned make project");

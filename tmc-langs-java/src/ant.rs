@@ -8,14 +8,14 @@ use j4rs::Jvm;
 use policy::AntStudentFilePolicy;
 use std::collections::HashSet;
 use std::env;
-use std::ffi::OsStr;
 use std::fs::{self, File};
 use std::io::Write;
 use std::io::{Read, Seek};
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 use std::time::Duration;
 use tmc_langs_framework::{
+    command::TmcCommand,
     domain::{ExerciseDesc, RunResult, ValidationResult},
     plugin::{Language, LanguagePlugin},
     zip::ZipArchive,
@@ -39,7 +39,7 @@ impl AntPlugin {
 
     fn get_ant_executable(&self) -> &'static str {
         if cfg!(windows) {
-            if let Ok(status) = Command::new("ant")
+            if let Ok(status) = TmcCommand::new("ant")
                 .arg("-version")
                 .stdout(Stdio::piped())
                 .stderr(Stdio::piped())
@@ -162,13 +162,13 @@ impl LanguagePlugin for AntPlugin {
             .map_err(|e| JavaError::FileCreate(stderr_path.clone(), e))?;
 
         let ant_exec = self.get_ant_executable();
-        let output = Command::new(ant_exec)
+        let mut command = TmcCommand::new(ant_exec);
+        command
             .arg("clean")
             .stdout(stdout)
             .stderr(stderr)
-            .current_dir(path)
-            .output()
-            .map_err(|e| JavaError::FailedToRun(ant_exec.to_string(), e))?;
+            .current_dir(path);
+        let output = command.output()?;
 
         if output.status.success() {
             fs::remove_file(&stdout_path).map_err(|e| JavaError::FileRemove(stdout_path, e))?;
@@ -246,11 +246,9 @@ impl JavaPlugin for AntPlugin {
 
         // TODO: don't require ant in path?
         let ant_exec = self.get_ant_executable();
-        let output = Command::new(ant_exec)
-            .arg("compile-test")
-            .current_dir(project_root_path)
-            .output()
-            .map_err(|e| JavaError::FailedToRun(ant_exec.to_string(), e))?;
+        let mut command = TmcCommand::new(ant_exec);
+        command.arg("compile-test").current_dir(project_root_path);
+        let output = command.output()?;
 
         log::debug!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
@@ -317,16 +315,14 @@ impl JavaPlugin for AntPlugin {
         }
 
         log::debug!("java args {} in {}", arguments.join(" "), path.display());
-        let command = Command::new("java")
-            .current_dir(path)
-            .args(arguments)
-            .output()
-            .map_err(|e| JavaError::FailedToRun("java".to_string(), e))?;
+        let mut command = TmcCommand::new("java");
+        command.current_dir(path).args(arguments);
+        let output = command.output()?;
 
         Ok(TestRun {
             test_results: result_file,
-            stdout: command.stdout,
-            stderr: command.stderr,
+            stdout: output.stdout,
+            stderr: output.stderr,
         })
     }
 }

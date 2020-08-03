@@ -9,13 +9,13 @@ use std::ffi::OsStr;
 use std::fs::{self, File};
 use std::io::{BufReader, Read, Seek};
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::time::Duration;
 use tmc_langs_framework::{
+    command::{OutputWithTimeout, TmcCommand},
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     plugin::LanguagePlugin,
     zip::ZipArchive,
-    CommandWithTimeout, OutputWithTimeout, TmcError,
+    TmcError,
 };
 use walkdir::WalkDir;
 
@@ -177,23 +177,27 @@ fn run_tmc_command(
     log::debug!("running tmc command at {}", path.display());
     let common_args = ["-m", "tmc"];
 
-    let (name, mut command) = match &*LOCAL_PY {
-        LocalPy::Unix => ("python3", Command::new("python3")),
-        LocalPy::Windows => ("py", Command::new("py")),
-        LocalPy::WindowsConda { conda_path } => ("conda", Command::new(conda_path)),
-        LocalPy::Custom { python_exec } => (python_exec.as_str(), Command::new(python_exec)),
+    let mut command = match &*LOCAL_PY {
+        LocalPy::Unix => TmcCommand::named("python", "python3"),
+        LocalPy::Windows => TmcCommand::named("python", "py"),
+        LocalPy::WindowsConda { conda_path } => TmcCommand::named("python", conda_path),
+        LocalPy::Custom { python_exec } => TmcCommand::named("python", python_exec),
     };
-    let command = match &*LOCAL_PY {
+    match &*LOCAL_PY {
         LocalPy::Unix => &mut command,
         LocalPy::Windows => command.args(&["-3"]),
         LocalPy::WindowsConda { .. } => &mut command,
         LocalPy::Custom { .. } => &mut command,
     };
-    let command = command
+    command
         .args(&common_args)
         .args(extra_args)
         .current_dir(path);
-    let output = CommandWithTimeout(command).wait_with_timeout(name, timeout)?;
+    let output = if let Some(timeout) = timeout {
+        command.wait_with_timeout(timeout)?
+    } else {
+        OutputWithTimeout::Output(command.output()?)
+    };
 
     log::trace!("stdout: {}", String::from_utf8_lossy(output.stdout()));
     log::debug!("stderr: {}", String::from_utf8_lossy(output.stderr()));

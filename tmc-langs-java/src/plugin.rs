@@ -7,8 +7,8 @@ use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use tmc_langs_framework::{
+    command::TmcCommand,
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult, ValidationResult},
     plugin::{Language, LanguagePlugin},
 };
@@ -113,11 +113,9 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
 
     /// Tries to find the java.home property.
     fn get_java_home() -> Result<PathBuf, JavaError> {
-        let output = Command::new("java")
-            .arg("-XshowSettings:properties")
-            .arg("-version")
-            .output()
-            .map_err(|e| JavaError::FailedToRun("java".to_string(), e))?;
+        let mut command = TmcCommand::new("java");
+        command.arg("-XshowSettings:properties").arg("-version");
+        let output = command.output()?;
 
         if !output.status.success() {
             return Err(JavaError::FailedCommand(

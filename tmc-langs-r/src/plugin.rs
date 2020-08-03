@@ -6,6 +6,7 @@ use crate::RStudentFilePolicy;
 use super::RRunResult;
 
 use tmc_langs_framework::{
+    command::TmcCommand,
     domain::{ExerciseDesc, RunResult, TestDesc},
     zip::ZipArchive,
     LanguagePlugin, TmcError,
@@ -16,7 +17,6 @@ use std::ffi::OsStr;
 use std::fs::{self, File};
 use std::io::{Read, Seek};
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::time::Duration;
 
 #[derive(Default)]
@@ -39,11 +39,10 @@ impl LanguagePlugin for RPlugin {
         } else {
             &["-e", "library(tmcRtestrunner);run_available_points()"]
         };
-        let out = Command::new("Rscript")
-            .current_dir(path)
-            .args(args)
-            .output()
-            .map_err(|e| RError::Command("Rscript", e))?;
+        let mut command = TmcCommand::new("Rscript");
+        command.current_dir(path).args(args);
+        let out = command.output()?;
+
         if !out.status.success() {
             return Err(RError::CommandStatus(
                 "Rscript",
@@ -90,11 +89,9 @@ impl LanguagePlugin for RPlugin {
         } else {
             &["-e", "library(tmcRtestrunner);run_tests()"]
         };
-        let out = Command::new("Rscript")
-            .current_dir(path)
-            .args(args)
-            .output()
-            .map_err(|e| RError::Command("Rscript", e))?;
+        let mut command = TmcCommand::new("Rscript");
+        command.current_dir(path).args(args);
+        let out = command.output()?;
 
         log::trace!("stdout: {}", String::from_utf8_lossy(&out.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&out.stderr));
