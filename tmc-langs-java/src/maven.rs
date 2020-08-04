@@ -301,7 +301,7 @@ mod test {
         // initializes maven in a synchronized manner for all tests
         #[cfg(windows)]
         INIT_MAVEN.call_once(|| {
-            MavenPlugin::get_mvn_command().expect("failed to get mvn command");
+            MavenPlugin::new().expect("failed to instantiate maven");
         });
     }
 
