@@ -479,8 +479,16 @@ impl TmcCore {
     }
 
     pub fn reset(&self, exercise_id: usize, exercise_path: &Path) -> Result<()> {
-        fs::remove_dir_all(exercise_path)
-            .map_err(|e| CoreError::DirRemove(exercise_path.to_path_buf(), e))?;
+        // windows sometimes fails due to files being in use, retry a few times
+        // todo: handle properly
+        let mut tries = 0;
+        while let Err(err) = fs::remove_dir_all(exercise_path) {
+            tries += 1;
+            if tries > 8 {
+                return Err(CoreError::DirRemove(exercise_path.to_path_buf(), err));
+            }
+            thread::sleep(Duration::from_secs(1));
+        }
         self.download_or_update_exercises(vec![(exercise_id, exercise_path)])
     }
 

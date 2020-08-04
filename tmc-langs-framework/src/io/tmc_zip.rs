@@ -12,7 +12,7 @@ pub use zip::result::ZipError;
 use zip::{write::FileOptions, ZipArchive, ZipWriter};
 
 /// Zips the given directory, only including student files according to the given policy.
-pub fn zip(policy: Box<dyn StudentFilePolicy>, root_directory: &Path) -> Result<Vec<u8>> {
+pub fn zip<P: StudentFilePolicy>(policy: P, root_directory: &Path) -> Result<Vec<u8>> {
     let mut writer = ZipWriter::new(Cursor::new(vec![]));
     let tmc_project_yml = policy.get_tmc_project_yml()?;
 

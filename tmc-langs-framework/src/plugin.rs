@@ -149,7 +149,7 @@ pub trait LanguagePlugin {
     /// Compress a given project so that it can be sent to the TestMyCode server.
     fn compress_project(&self, path: &Path) -> Result<Vec<u8>> {
         let policy = Self::get_student_file_policy(path);
-        Ok(tmc_zip::zip(Box::new(policy), path)?)
+        Ok(tmc_zip::zip(policy, path)?)
     }
 
     fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy;
