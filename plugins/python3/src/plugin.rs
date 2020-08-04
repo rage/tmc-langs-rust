@@ -109,35 +109,16 @@ impl LanguagePlugin for Python3Plugin {
         setup.exists() || requirements.exists() || test.exists() || tmc.exists()
     }
 
+    // returns the parent of the src directory, if one is found
     fn find_project_dir_in_zip<R: Read + Seek>(
         zip_archive: &mut ZipArchive<R>,
     ) -> Result<PathBuf, TmcError> {
         for i in 0..zip_archive.len() {
             let file = zip_archive.by_index(i)?;
             let file_path = file.sanitized_name();
-            if file_path.file_name() == Some(OsStr::new("setup.py"))
-                || file_path.file_name() == Some(OsStr::new("requirements.txt"))
-            {
+            if file_path.file_name() == Some(OsStr::new("src")) {
                 if let Some(parent) = file_path.parent() {
                     return Ok(parent.to_path_buf());
-                }
-            }
-            if file_path.file_name() == Some(OsStr::new("__init__.py")) {
-                if let Some(init_parent) = file_path.parent() {
-                    if init_parent.file_name() == Some(OsStr::new("test")) {
-                        if let Some(test_parent) = init_parent.parent() {
-                            return Ok(test_parent.to_path_buf());
-                        }
-                    }
-                }
-            }
-            if file_path.file_name() == Some(OsStr::new("__main__.py")) {
-                if let Some(main_parent) = file_path.parent() {
-                    if main_parent.file_name() == Some(OsStr::new("tmc")) {
-                        if let Some(tmc_parent) = main_parent.parent() {
-                            return Ok(tmc_parent.to_path_buf());
-                        }
-                    }
                 }
             }
         }

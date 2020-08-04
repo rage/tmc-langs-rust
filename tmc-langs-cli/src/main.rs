@@ -1083,7 +1083,11 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 let submission_url = into_url(submission_url)?;
                 core.submit(submission_url, output_path, None)?;
             }
-            core.reset(exercise_id, output_path)?;
+
+            // reset old exercise if it exists
+            if output_path.exists() {
+                core.reset(exercise_id, output_path)?;
+            }
 
             let temp_zip = NamedTempFile::new().context("Failed to create a temporary archive")?;
             core.download_old_submission(submission_id, temp_zip.path())?;
