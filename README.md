@@ -60,26 +60,30 @@ A library for communicating with the TMC server.
 
 A library for creating language plugins.
 
-### tmc-langs-java
-
-A TMC plugin for Java. Supports Maven and Ant.
-
-### tmc-langs-make
-
-A TMC plugin for Make.
-
-### tmc-langs-notests
-
-A TMC plugin for projects with no tests.
-
-### tmc-langs-python3
-
-A TMC plugin for Python 3.
-
-### tmc-langs-r
-
-A TMC plugin for R.
-
 ### tmc-langs-util
 
 A library that provides a convenient interface abstracting over all available language plugins.
+
+### plugins/csharp
+
+A TMC plugin for C#.
+
+### plugins/java
+
+A TMC plugin for Java. Supports Maven and Ant.
+
+### plugins/make
+
+A TMC plugin for Make.
+
+### plugins/notests
+
+A TMC plugin for projects with no tests.
+
+### plugins/python3
+
+A TMC plugin for Python 3.
+
+### plugins/r
+
+A TMC plugin for R.
