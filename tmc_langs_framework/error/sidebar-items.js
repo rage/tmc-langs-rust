@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["TmcError",""]]});
+initSidebarItems({"enum":[["TmcError",""]],"struct":[["CommandNotFound",""]]});
