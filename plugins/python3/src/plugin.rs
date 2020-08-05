@@ -400,7 +400,7 @@ mod test {
 
     #[test]
     fn doesnt_find_project_dir_in_zip() {
-        let file = File::open("tests/data/PythonWithoutInit.zip").unwrap();
+        let file = File::open("tests/data/PythonWithoutSrc.zip").unwrap();
         let mut zip = ZipArchive::new(file).unwrap();
         let dir = Python3Plugin::find_project_dir_in_zip(&mut zip);
         assert!(dir.is_err());
