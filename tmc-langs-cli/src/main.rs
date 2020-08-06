@@ -1053,6 +1053,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
             if save_old_state {
                 let submission_url = matches.value_of("submission_url").unwrap();
                 let submission_url = into_url(submission_url)?;
+                core.increment_progress_steps();
                 core.submit(submission_url, exercise_path, None)?;
             }
             core.reset(exercise_id, exercise_path)?;
@@ -1078,20 +1079,24 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
 
             let save_old_state = matches.is_present("save-old-state");
 
+            core.increment_progress_steps();
             if save_old_state {
                 let submission_url = matches.value_of("submission_url").unwrap();
                 let submission_url = into_url(submission_url)?;
+                core.increment_progress_steps();
                 core.submit(submission_url, output_path, None)?;
+                log::debug!("finished submission");
             }
 
             // reset old exercise if it exists
-            if output_path.exists() {
-                core.reset(exercise_id, output_path)?;
-            }
+            core.reset(exercise_id, output_path)?;
+            log::debug!("reset exercise");
 
             let temp_zip = NamedTempFile::new().context("Failed to create a temporary archive")?;
             core.download_old_submission(submission_id, temp_zip.path())?;
-            task_executor::extract_project(temp_zip.path(), output_path)?;
+            log::debug!("downloaded old submission to {}", temp_zip.path().display());
+            task_executor::extract_project(temp_zip.path(), output_path, false)?;
+            log::debug!("extracted project");
 
             let output = Output::<()> {
                 status: Status::Finished,

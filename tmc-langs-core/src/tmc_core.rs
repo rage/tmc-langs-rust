@@ -12,6 +12,7 @@ use oauth2::{
 };
 use reqwest::{blocking::Client, Url};
 use serde::Serialize;
+use std::cell::Cell;
 use std::collections::HashMap;
 use std::error::Error as StdError;
 use std::fs;
@@ -45,6 +46,7 @@ pub enum StatusType {
     Sending,
     WaitingForResults,
     Finished,
+    IntermediateStepFinished,
 }
 
 // compatible with anyhow
@@ -60,6 +62,8 @@ pub struct TmcCore {
     auth_url: String,
     token: Option<Token>,
     progress_report: Option<UpdateClosure>,
+    progress_steps_done: Cell<u32>,
+    progress_steps_total: u32,
     client_name: String,
     client_version: String,
 }
@@ -103,6 +107,8 @@ impl TmcCore {
             auth_url,
             token: None,
             progress_report: None,
+            progress_steps_done: Cell::new(0),
+            progress_steps_total: 1,
             client_name,
             client_version,
         })
@@ -139,12 +145,14 @@ impl TmcCore {
         self.progress_report = Some(Box::new(progress_report));
     }
 
-    pub fn report_progress(
-        &self,
-        message: &'static str,
-        status_type: StatusType,
-        percent_done: f64,
-    ) {
+    pub fn increment_progress_steps(&mut self) {
+        self.progress_steps_total += 1;
+    }
+
+    fn report_progress(&self, message: &'static str, status_type: StatusType, percent_done: f64) {
+        let from_prev_steps = self.progress_steps_done.get() as f64;
+        let percent_done = (from_prev_steps + percent_done) / self.progress_steps_total as f64;
+
         self.progress_report.as_ref().map(|f| {
             f(StatusUpdate {
                 finished: false,
@@ -155,15 +163,21 @@ impl TmcCore {
         });
     }
 
-    pub fn report_complete(&self, message: &'static str) {
-        self.progress_report.as_ref().map(|f| {
-            f(StatusUpdate {
-                finished: true,
-                message,
-                percent_done: 1.0,
-                status_type: StatusType::Finished,
-            })
-        });
+    fn report_complete(&self, message: &'static str) {
+        self.progress_steps_done
+            .set(self.progress_steps_done.get() + 1);
+        if self.progress_steps_done.get() == self.progress_steps_total {
+            self.progress_report.as_ref().map(|f| {
+                f(StatusUpdate {
+                    finished: true,
+                    message,
+                    percent_done: 1.0,
+                    status_type: StatusType::Finished,
+                })
+            });
+        } else {
+            self.report_progress(message, StatusType::IntermediateStepFinished, 0.0);
+        }
     }
 
     /// Attempts to log in with the given credentials, returns an error if an authentication token is already present.
@@ -1285,5 +1299,37 @@ mod test {
             r#"{"finished":true,"message":"done","percent_done":1.0,"status_type":"finished"}"#,
             serde_json::to_string(&f).unwrap()
         );
+    }
+
+    #[test]
+    fn multi_step_progress() {
+        use std::sync::{Arc, Mutex};
+
+        let (mut core, _) = init();
+        let report = Arc::new(Mutex::default());
+
+        let report_clone = Arc::clone(&report);
+        core.set_progress_report(move |rep| {
+            log::debug!("got {:#?}", rep);
+            let report = Arc::clone(&report_clone);
+            *report.lock().unwrap() = Some(rep);
+            Ok(())
+        });
+        core.increment_progress_steps();
+        core.increment_progress_steps();
+
+        core.report_progress("msg", StatusType::Downloading, 0.2);
+        let err = f64::EPSILON;
+        assert!((report.lock().unwrap().as_ref().unwrap().percent_done - (0.2 / 3.0)).abs() < err);
+        core.report_progress("msg", StatusType::Downloading, 0.8);
+        assert!((report.lock().unwrap().as_ref().unwrap().percent_done - (0.8 / 3.0)).abs() < err);
+        core.report_complete("msg");
+        assert!((report.lock().unwrap().as_ref().unwrap().percent_done - (1.0 / 3.0)).abs() < err);
+        core.report_complete("msg");
+        assert!((report.lock().unwrap().as_ref().unwrap().percent_done - (2.0 / 3.0)).abs() < err);
+        core.report_progress("msg", StatusType::Downloading, 0.5);
+        assert!((report.lock().unwrap().as_ref().unwrap().percent_done - (2.5 / 3.0)).abs() < err);
+        core.report_complete("msg");
+        assert!((report.lock().unwrap().as_ref().unwrap().percent_done - 1.0).abs() < err);
     }
 }

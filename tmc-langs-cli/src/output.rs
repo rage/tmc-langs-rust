@@ -38,6 +38,7 @@ pub enum OutputResult {
     Sending,
     WaitingForResults,
     Finished,
+    IntermediateStepFinished,
 }
 
 impl From<StatusType> for OutputResult {
@@ -50,6 +51,7 @@ impl From<StatusType> for OutputResult {
             StatusType::Sending => OutputResult::Sending,
             StatusType::WaitingForResults => OutputResult::WaitingForResults,
             StatusType::Finished => OutputResult::Finished,
+            StatusType::IntermediateStepFinished => OutputResult::IntermediateStepFinished,
         }
     }
 }
