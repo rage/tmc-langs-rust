@@ -495,26 +495,28 @@ impl TmcCore {
 
     pub fn reset(&self, exercise_id: usize, exercise_path: &Path) -> Result<()> {
         // clear out the exercise directory
-        let mut tries = 0;
-        for entry in WalkDir::new(exercise_path).min_depth(1) {
-            let entry = entry?;
-            // windows sometimes fails due to files being in use, retry a few times
-            // todo: handle properly
-            if entry.path().is_dir() {
-                while let Err(err) = fs::remove_dir_all(exercise_path) {
-                    tries += 1;
-                    if tries > 8 {
-                        return Err(CoreError::DirRemove(exercise_path.to_path_buf(), err));
+        if exercise_path.exists() {
+            let mut tries = 0;
+            for entry in WalkDir::new(exercise_path).min_depth(1) {
+                let entry = entry?;
+                // windows sometimes fails due to files being in use, retry a few times
+                // todo: handle properly
+                if entry.path().is_dir() {
+                    while let Err(err) = fs::remove_dir_all(exercise_path) {
+                        tries += 1;
+                        if tries > 8 {
+                            return Err(CoreError::DirRemove(exercise_path.to_path_buf(), err));
+                        }
+                        thread::sleep(Duration::from_secs(1));
                     }
-                    thread::sleep(Duration::from_secs(1));
-                }
-            } else {
-                while let Err(err) = fs::remove_file(exercise_path) {
-                    tries += 1;
-                    if tries > 8 {
-                        return Err(CoreError::DirRemove(exercise_path.to_path_buf(), err));
+                } else {
+                    while let Err(err) = fs::remove_file(exercise_path) {
+                        tries += 1;
+                        if tries > 8 {
+                            return Err(CoreError::DirRemove(exercise_path.to_path_buf(), err));
+                        }
+                        thread::sleep(Duration::from_secs(1));
                     }
-                    thread::sleep(Duration::from_secs(1));
                 }
             }
         }
