@@ -55,3 +55,9 @@ impl From<StatusType> for OutputResult {
         }
     }
 }
+
+#[derive(Debug, Serialize)]
+pub struct ErrorData {
+    pub http_status_code: Option<u16>,
+    pub trace: Vec<String>,
+}

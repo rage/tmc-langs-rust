@@ -3,7 +3,7 @@
 mod app;
 mod output;
 
-use output::{Output, OutputResult, Status};
+use output::{ErrorData, Output, OutputResult, Status};
 
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
@@ -18,8 +18,10 @@ use tempfile::NamedTempFile;
 use tmc_langs_core::oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
-use tmc_langs_core::{FeedbackAnswer, TmcCore, Token};
-use tmc_langs_framework::{domain::ValidationResult, io::submission_processing};
+use tmc_langs_core::{CoreError, FeedbackAnswer, TmcCore, Token};
+use tmc_langs_framework::{
+    domain::ValidationResult, error::CommandNotFound, io::submission_processing,
+};
 use tmc_langs_util::{
     task_executor::{self, TmcParams},
     Language,
@@ -32,18 +34,17 @@ fn main() {
     env_logger::init();
 
     if let Err(e) = run() {
-        let mut causes = vec![e.to_string()];
-        let mut next_source = e.source();
-        while let Some(source) = next_source {
-            causes.push(format!("Caused by: {}", source.to_string()));
-            next_source = source.source();
-        }
-        let message = error_message_special_casing(e);
+        let causes: Vec<String> = e.chain().map(|e| format!("Caused by: {}", e)).collect();
+        let message = error_message_special_casing(&e);
+        let http_status_code = find_http_error_code(&e);
         let error_output = Output {
             status: Status::Finished,
             message: Some(message),
             result: OutputResult::Error,
-            data: Some(causes),
+            data: Some(ErrorData {
+                http_status_code,
+                trace: causes,
+            }),
             percent_done: 1.0,
         };
         if let Err(err) = print_output(&error_output) {
@@ -62,9 +63,17 @@ fn main() {
     }
 }
 
+fn find_http_error_code(e: &anyhow::Error) -> Option<u16> {
+    for cause in e.chain() {
+        if let Some(CoreError::HttpStatus(_, status_code, _)) = cause.downcast_ref::<CoreError>() {
+            return Some(status_code.as_u16());
+        }
+    }
+    None
+}
+
 // goes through the error chain and returns the first special cased error message, if any
-fn error_message_special_casing(e: anyhow::Error) -> String {
-    use tmc_langs_framework::error::CommandNotFound;
+fn error_message_special_casing(e: &anyhow::Error) -> String {
     for cause in e.chain() {
         // command not found errors are special cased to notify the user that they may need to install additional software
         if let Some(cnf) = cause.downcast_ref::<CommandNotFound>() {

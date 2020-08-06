@@ -49,7 +49,27 @@ impl CoreExt for ReqwestResponse {
             Ok(self)
         } else {
             let text = self.text().unwrap_or_default();
-            Err(CoreError::HttpStatus(url, status, text))
+            // todo: clean the parsing
+            let parsed = serde_json::from_str::<Value>(&text)
+                .ok()
+                .and_then(|ok| {
+                    ok.as_object().and_then(|obj|
+                        // parses either the error string or errors string array
+                        if let Some(error) = obj.get("error").and_then(|e| e.as_str()) {
+                            Some(error.to_string())
+                        } else if let Some(errors) = obj.get("errors").and_then(|e| e.as_array()) {
+                            let errors = errors
+                                .iter()
+                                .filter_map(|e| e.as_str())
+                                .collect::<Vec<_>>()
+                                .join(". ");
+                            Some(errors)
+                        } else {
+                            None
+                        })
+                })
+                .unwrap_or(text);
+            Err(CoreError::HttpStatus(url, status, parsed))
         }
     }
 }
