@@ -141,7 +141,7 @@ fn run() -> Result<()> {
             let output_path = matches.value_of("output-path").unwrap();
             let output_path = Path::new(output_path);
 
-            task_executor::extract_project(archive_path, output_path).with_context(|| {
+            task_executor::extract_project(archive_path, output_path, true).with_context(|| {
                 format!("Failed to extract project at {}", output_path.display())
             })?;
 

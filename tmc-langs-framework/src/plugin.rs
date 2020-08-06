@@ -158,22 +158,30 @@ pub trait LanguagePlugin {
     ///
     /// This will overwrite any existing files as long as they are not specified as student files
     /// by the language dependent student file policy.
-    fn extract_project(&self, compressed_project: &Path, target_location: &Path) -> Result<()> {
+    fn extract_project(
+        &self,
+        compressed_project: &Path,
+        target_location: &Path,
+        clean: bool,
+    ) -> Result<()> {
         let policy = Self::get_student_file_policy(target_location);
-        let zip = compressed_project;
-        let target = target_location;
 
-        log::debug!("Unzipping {} to {}", zip.display(), target.display());
+        log::debug!(
+            "Unzipping {} to {}",
+            compressed_project.display(),
+            target_location.display()
+        );
 
-        let file = File::open(zip).map_err(|e| TmcError::OpenFile(zip.to_path_buf(), e))?;
+        let file = File::open(compressed_project)
+            .map_err(|e| TmcError::OpenFile(compressed_project.to_path_buf(), e))?;
         let mut zip_archive = ZipArchive::new(file)?;
 
+        // find the exercise root directory inside the archive
         let project_dir = Self::find_project_dir_in_zip(&mut zip_archive)?;
         log::debug!("Project dir in zip: {}", project_dir.display());
 
         let tmc_project_yml = policy.get_tmc_project_yml()?;
 
-        // for each file in the zip, contains its path if unzipped
         // used to clean non-student files not in the zip later
         let mut unzip_paths = HashSet::new();
 
@@ -187,18 +195,14 @@ pub trait LanguagePlugin {
                     continue;
                 }
             };
-            let path_in_target = target.join(&relative);
+            let path_in_target = target_location.join(&relative);
             log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
+            unzip_paths.insert(path_in_target.clone());
 
             if file.is_dir() {
                 log::trace!("creating {:?}", path_in_target);
                 fs::create_dir_all(&path_in_target)
                     .map_err(|e| TmcError::CreateDir(path_in_target.clone(), e))?;
-                unzip_paths.insert(
-                    path_in_target
-                        .canonicalize()
-                        .map_err(|e| TmcError::Canonicalize(path_in_target.clone(), e))?,
-                );
             } else {
                 let mut write = true;
                 let mut file_contents = vec![];
@@ -218,8 +222,11 @@ pub trait LanguagePlugin {
                         .read_to_end(&mut target_file_contents)
                         .map_err(|e| TmcError::FileRead(path_in_target.clone(), e))?;
                     if file_contents == target_file_contents
-                        || (policy.is_student_file(&path_in_target, &target, &tmc_project_yml)?
-                            && !policy.is_updating_forced(&relative, &tmc_project_yml)?)
+                        || (policy.is_student_file(
+                            &path_in_target,
+                            &target_location,
+                            &tmc_project_yml,
+                        )? && !policy.is_updating_forced(&relative, &tmc_project_yml)?)
                     {
                         write = false;
                     }
@@ -237,37 +244,41 @@ pub trait LanguagePlugin {
                         .map_err(|e| TmcError::Write(path_in_target.clone(), e))?;
                 }
             }
-            unzip_paths.insert(
-                path_in_target
-                    .canonicalize()
-                    .map_err(|e| TmcError::Canonicalize(path_in_target.clone(), e))?,
-            );
         }
 
-        // delete non-student files that were not in zip
-        log::debug!("deleting non-student files not in zip");
-        log::debug!("{:?}", unzip_paths);
-        for entry in WalkDir::new(target).into_iter().filter_map(|e| e.ok()) {
-            if !unzip_paths.contains(
-                &entry
-                    .path()
-                    .canonicalize()
-                    .map_err(|e| TmcError::Canonicalize(entry.path().to_path_buf(), e))?,
-            ) && (policy.is_updating_forced(entry.path(), &tmc_project_yml)?
-                || !policy.is_student_file(entry.path(), &target, &tmc_project_yml)?)
+        if clean {
+            // delete non-student files that were not in zip
+            log::debug!("deleting non-student files not in zip");
+            log::debug!("{:?}", unzip_paths);
+            for entry in WalkDir::new(target_location)
+                .into_iter()
+                .filter_map(|e| e.ok())
             {
-                log::debug!("rm {} {}", entry.path().display(), target.display());
-                if entry.path().is_dir() {
-                    // delete if empty
-                    if WalkDir::new(entry.path()).max_depth(1).into_iter().count() == 1 {
-                        log::debug!("deleting empty directory {}", entry.path().display());
-                        fs::remove_dir(entry.path())
-                            .map_err(|e| TmcError::RemoveDir(entry.path().to_path_buf(), e))?;
+                if !unzip_paths.contains(entry.path())
+                    && (policy.is_updating_forced(entry.path(), &tmc_project_yml)?
+                        || !policy.is_student_file(
+                            entry.path(),
+                            &target_location,
+                            &tmc_project_yml,
+                        )?)
+                {
+                    log::debug!(
+                        "rm {} {}",
+                        entry.path().display(),
+                        target_location.display()
+                    );
+                    if entry.path().is_dir() {
+                        // delete if empty
+                        if WalkDir::new(entry.path()).max_depth(1).into_iter().count() == 1 {
+                            log::debug!("deleting empty directory {}", entry.path().display());
+                            fs::remove_dir(entry.path())
+                                .map_err(|e| TmcError::RemoveDir(entry.path().to_path_buf(), e))?;
+                        }
+                    } else {
+                        log::debug!("removing file {}", entry.path().display());
+                        fs::remove_file(entry.path())
+                            .map_err(|e| TmcError::RemoveFile(entry.path().to_path_buf(), e))?;
                     }
-                } else {
-                    log::debug!("removing file {}", entry.path().display());
-                    fs::remove_file(entry.path())
-                        .map_err(|e| TmcError::RemoveFile(entry.path().to_path_buf(), e))?;
                 }
             }
         }

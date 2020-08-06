@@ -392,6 +392,7 @@ mod test {
 
     #[test]
     fn finds_project_dir_in_zip() {
+        init();
         let file = File::open("tests/data/PythonProject.zip").unwrap();
         let mut zip = ZipArchive::new(file).unwrap();
         let dir = Python3Plugin::find_project_dir_in_zip(&mut zip).unwrap();
@@ -400,9 +401,95 @@ mod test {
 
     #[test]
     fn doesnt_find_project_dir_in_zip() {
+        init();
         let file = File::open("tests/data/PythonWithoutSrc.zip").unwrap();
         let mut zip = ZipArchive::new(file).unwrap();
         let dir = Python3Plugin::find_project_dir_in_zip(&mut zip);
         assert!(dir.is_err());
+    }
+
+    #[test]
+    fn extracts_project() {
+        init();
+        let plugin = Python3Plugin::new();
+        let archive = Path::new("tests/data/student_exercise.zip");
+        let temp = tempfile::tempdir().unwrap();
+        assert!(!temp.path().join("src/source.py").exists());
+        plugin.extract_project(archive, temp.path(), false).unwrap();
+        assert!(temp.path().join("src/source.py").exists());
+        assert!(temp.path().join("test/test.py").exists());
+        assert!(temp.path().join("tmc/tmc").exists());
+    }
+
+    #[test]
+    fn extracts_project_over_existing() {
+        init();
+        let plugin = Python3Plugin::new();
+        let archive = Path::new("tests/data/student_exercise.zip");
+        let temp = copy_test("tests/data/student_exercise");
+        assert_eq!(
+            fs::read_to_string(temp.path().join("src/source.py")).unwrap(),
+            "NEW"
+        );
+        assert_eq!(
+            fs::read_to_string(temp.path().join("test/test.py")).unwrap(),
+            "NEW"
+        );
+        assert_eq!(
+            fs::read_to_string(temp.path().join("tmc/tmc")).unwrap(),
+            "NEW"
+        );
+        plugin.extract_project(archive, temp.path(), false).unwrap();
+        assert_eq!(
+            fs::read_to_string(temp.path().join("src/source.py")).unwrap(),
+            "NEW"
+        );
+        assert_eq!(
+            fs::read_to_string(temp.path().join("test/test.py")).unwrap(),
+            "OLD"
+        );
+        assert_eq!(
+            fs::read_to_string(temp.path().join("tmc/tmc")).unwrap(),
+            "OLD"
+        );
+        assert!(temp.path().join("src/new.py").exists());
+        assert!(temp.path().join("test/new.py").exists());
+        assert!(temp.path().join("tmc/new").exists());
+    }
+
+    #[test]
+    fn extracts_project_over_existing_clean() {
+        init();
+        let plugin = Python3Plugin::new();
+        let archive = Path::new("tests/data/student_exercise.zip");
+        let temp = copy_test("tests/data/student_exercise");
+        assert_eq!(
+            fs::read_to_string(temp.path().join("src/source.py")).unwrap(),
+            "NEW"
+        );
+        assert_eq!(
+            fs::read_to_string(temp.path().join("test/test.py")).unwrap(),
+            "NEW"
+        );
+        assert_eq!(
+            fs::read_to_string(temp.path().join("tmc/tmc")).unwrap(),
+            "NEW"
+        );
+        plugin.extract_project(archive, temp.path(), true).unwrap();
+        assert_eq!(
+            fs::read_to_string(temp.path().join("src/source.py")).unwrap(),
+            "NEW"
+        );
+        assert_eq!(
+            fs::read_to_string(temp.path().join("test/test.py")).unwrap(),
+            "OLD"
+        );
+        assert_eq!(
+            fs::read_to_string(temp.path().join("tmc/tmc")).unwrap(),
+            "OLD"
+        );
+        assert!(temp.path().join("src/new.py").exists());
+        assert!(!temp.path().join("test/new.py").exists());
+        assert!(!temp.path().join("tmc/new").exists());
     }
 }

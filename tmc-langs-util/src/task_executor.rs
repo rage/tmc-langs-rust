@@ -91,9 +91,13 @@ pub fn is_exercise_root_directory(path: &Path) -> bool {
 
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::extract_project`,
 /// If no language plugin matches, see `extract_project_overwrite`.
-pub fn extract_project(compressed_project: &Path, target_location: &Path) -> Result<(), TmcError> {
+pub fn extract_project(
+    compressed_project: &Path,
+    target_location: &Path,
+    clean: bool,
+) -> Result<(), TmcError> {
     if let Ok(plugin) = get_language_plugin(target_location) {
-        plugin.extract_project(compressed_project, target_location)?;
+        plugin.extract_project(compressed_project, target_location, clean)?;
     } else {
         log::debug!(
             "no matching language plugin found for {}, overwriting",
@@ -203,15 +207,24 @@ impl Plugin {
         &self,
         cmpressed_project: &Path,
         target_location: &Path,
+        clean: bool,
     ) -> Result<(), TmcError> {
         match self {
-            Self::CSharp(plugin) => plugin.extract_project(cmpressed_project, target_location),
-            Self::Make(plugin) => plugin.extract_project(cmpressed_project, target_location),
-            Self::Maven(plugin) => plugin.extract_project(cmpressed_project, target_location),
-            Self::NoTests(plugin) => plugin.extract_project(cmpressed_project, target_location),
-            Self::Python3(plugin) => plugin.extract_project(cmpressed_project, target_location),
-            Self::R(plugin) => plugin.extract_project(cmpressed_project, target_location),
-            Self::Ant(plugin) => plugin.extract_project(cmpressed_project, target_location),
+            Self::CSharp(plugin) => {
+                plugin.extract_project(cmpressed_project, target_location, clean)
+            }
+            Self::Make(plugin) => plugin.extract_project(cmpressed_project, target_location, clean),
+            Self::Maven(plugin) => {
+                plugin.extract_project(cmpressed_project, target_location, clean)
+            }
+            Self::NoTests(plugin) => {
+                plugin.extract_project(cmpressed_project, target_location, clean)
+            }
+            Self::Python3(plugin) => {
+                plugin.extract_project(cmpressed_project, target_location, clean)
+            }
+            Self::R(plugin) => plugin.extract_project(cmpressed_project, target_location, clean),
+            Self::Ant(plugin) => plugin.extract_project(cmpressed_project, target_location, clean),
         }
     }
 

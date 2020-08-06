@@ -290,7 +290,7 @@ impl TmcCore {
             progress += step;
 
             self.report_progress("Extracting exercise...", StatusType::Extracting, progress);
-            task_executor::extract_project(zip_file.path(), target)?;
+            task_executor::extract_project(zip_file.path(), target, true)?;
             progress += step;
         }
         self.report_complete("Finished downloading and extracting exercises.");
@@ -698,7 +698,7 @@ impl TmcCore {
     pub fn download_model_solution(&self, solution_download_url: Url, target: &Path) -> Result<()> {
         let zip_file = NamedTempFile::new().map_err(CoreError::TempFile)?;
         self.download_from(solution_download_url, zip_file.path())?;
-        task_executor::extract_project(zip_file.path(), target)?;
+        task_executor::extract_project(zip_file.path(), target, false)?;
         Ok(())
     }
 
