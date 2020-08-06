@@ -57,6 +57,8 @@ pub enum CoreError {
     Response(#[from] response::ResponseError),
     #[error(transparent)]
     ResponseErrors(#[from] response::ResponseErrors),
+    #[error(transparent)]
+    WalkDir(#[from] walkdir::Error),
 }
 
 impl From<TokenError> for CoreError {
