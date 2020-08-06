@@ -6,8 +6,6 @@ use tmc_langs_framework::TmcError;
 
 #[derive(Debug, Error)]
 pub enum PythonError {
-    #[error("Error running command {0}")]
-    Command(&'static str, #[source] std::io::Error),
     #[error("Failed to canonicalize path {0}")]
     Canonicalize(PathBuf, #[source] std::io::Error),
     #[error("Failed to open file {0}")]
