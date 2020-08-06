@@ -499,21 +499,22 @@ impl TmcCore {
             let mut tries = 0;
             for entry in WalkDir::new(exercise_path).min_depth(1) {
                 let entry = entry?;
+                log::debug!("{:?}", entry);
                 // windows sometimes fails due to files being in use, retry a few times
                 // todo: handle properly
                 if entry.path().is_dir() {
-                    while let Err(err) = fs::remove_dir_all(exercise_path) {
+                    while let Err(err) = fs::remove_dir_all(entry.path()) {
                         tries += 1;
                         if tries > 8 {
-                            return Err(CoreError::DirRemove(exercise_path.to_path_buf(), err));
+                            return Err(CoreError::DirRemove(entry.path().to_path_buf(), err));
                         }
                         thread::sleep(Duration::from_secs(1));
                     }
                 } else {
-                    while let Err(err) = fs::remove_file(exercise_path) {
+                    while let Err(err) = fs::remove_file(entry.path()) {
                         tries += 1;
                         if tries > 8 {
-                            return Err(CoreError::DirRemove(exercise_path.to_path_buf(), err));
+                            return Err(CoreError::DirRemove(entry.path().to_path_buf(), err));
                         }
                         thread::sleep(Duration::from_secs(1));
                     }
