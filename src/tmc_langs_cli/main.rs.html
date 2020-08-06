@@ -1207,6 +1207,11 @@
 <span id="1207">1207</span>
 <span id="1208">1208</span>
 <span id="1209">1209</span>
+<span id="1210">1210</span>
+<span id="1211">1211</span>
+<span id="1212">1212</span>
+<span id="1213">1213</span>
+<span id="1214">1214</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! CLI client for TMC</span>
 
@@ -1351,7 +1356,7 @@
             <span class="kw">let</span> <span class="ident">output_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;output-path&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">output_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">output_path</span>);
 
-            <span class="ident">task_executor</span>::<span class="ident">extract_project</span>(<span class="ident">archive_path</span>, <span class="ident">output_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">task_executor</span>::<span class="ident">extract_project</span>(<span class="ident">archive_path</span>, <span class="ident">output_path</span>, <span class="bool-val">true</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to extract project at {}&quot;</span>, <span class="ident">output_path</span>.<span class="ident">display</span>())
             })<span class="question-mark">?</span>;
 
@@ -2263,6 +2268,7 @@
             <span class="kw">if</span> <span class="ident">save_old_state</span> {
                 <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;submission_url&quot;</span>).<span class="ident">unwrap</span>();
                 <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">into_url</span>(<span class="ident">submission_url</span>)<span class="question-mark">?</span>;
+                <span class="ident">core</span>.<span class="ident">increment_progress_steps</span>();
                 <span class="ident">core</span>.<span class="ident">submit</span>(<span class="ident">submission_url</span>, <span class="ident">exercise_path</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
             }
             <span class="ident">core</span>.<span class="ident">reset</span>(<span class="ident">exercise_id</span>, <span class="ident">exercise_path</span>)<span class="question-mark">?</span>;
@@ -2288,20 +2294,24 @@
 
             <span class="kw">let</span> <span class="ident">save_old_state</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">is_present</span>(<span class="string">&quot;save-old-state&quot;</span>);
 
+            <span class="ident">core</span>.<span class="ident">increment_progress_steps</span>();
             <span class="kw">if</span> <span class="ident">save_old_state</span> {
                 <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;submission_url&quot;</span>).<span class="ident">unwrap</span>();
                 <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">into_url</span>(<span class="ident">submission_url</span>)<span class="question-mark">?</span>;
+                <span class="ident">core</span>.<span class="ident">increment_progress_steps</span>();
                 <span class="ident">core</span>.<span class="ident">submit</span>(<span class="ident">submission_url</span>, <span class="ident">output_path</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+                <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;finished submission&quot;</span>);
             }
 
             <span class="comment">// reset old exercise if it exists</span>
-            <span class="kw">if</span> <span class="ident">output_path</span>.<span class="ident">exists</span>() {
-                <span class="ident">core</span>.<span class="ident">reset</span>(<span class="ident">exercise_id</span>, <span class="ident">output_path</span>)<span class="question-mark">?</span>;
-            }
+            <span class="ident">core</span>.<span class="ident">reset</span>(<span class="ident">exercise_id</span>, <span class="ident">output_path</span>)<span class="question-mark">?</span>;
+            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;reset exercise&quot;</span>);
 
             <span class="kw">let</span> <span class="ident">temp_zip</span> <span class="op">=</span> <span class="ident">NamedTempFile</span>::<span class="ident">new</span>().<span class="ident">context</span>(<span class="string">&quot;Failed to create a temporary archive&quot;</span>)<span class="question-mark">?</span>;
             <span class="ident">core</span>.<span class="ident">download_old_submission</span>(<span class="ident">submission_id</span>, <span class="ident">temp_zip</span>.<span class="ident">path</span>())<span class="question-mark">?</span>;
-            <span class="ident">task_executor</span>::<span class="ident">extract_project</span>(<span class="ident">temp_zip</span>.<span class="ident">path</span>(), <span class="ident">output_path</span>)<span class="question-mark">?</span>;
+            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;downloaded old submission to {}&quot;</span>, <span class="ident">temp_zip</span>.<span class="ident">path</span>().<span class="ident">display</span>());
+            <span class="ident">task_executor</span>::<span class="ident">extract_project</span>(<span class="ident">temp_zip</span>.<span class="ident">path</span>(), <span class="ident">output_path</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;extracted project&quot;</span>);
 
             <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span> {
                 <span class="ident">status</span>: <span class="ident">Status</span>::<span class="ident">Finished</span>,

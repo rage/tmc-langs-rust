@@ -299,6 +299,19 @@
 <span id="299">299</span>
 <span id="300">300</span>
 <span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Module for calling different tasks of TMC-langs language plug-ins.</span>
 
@@ -393,9 +406,13 @@
 
 <span class="doccomment">/// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::extract_project`,</span>
 <span class="doccomment">/// If no language plugin matches, see `extract_project_overwrite`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extract_project</span>(<span class="ident">compressed_project</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">target_location</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TmcError</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extract_project</span>(
+    <span class="ident">compressed_project</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+    <span class="ident">target_location</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+    <span class="ident">clean</span>: <span class="ident">bool</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TmcError</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">plugin</span>) <span class="op">=</span> <span class="ident">get_language_plugin</span>(<span class="ident">target_location</span>) {
-        <span class="ident">plugin</span>.<span class="ident">extract_project</span>(<span class="ident">compressed_project</span>, <span class="ident">target_location</span>)<span class="question-mark">?</span>;
+        <span class="ident">plugin</span>.<span class="ident">extract_project</span>(<span class="ident">compressed_project</span>, <span class="ident">target_location</span>, <span class="ident">clean</span>)<span class="question-mark">?</span>;
     } <span class="kw">else</span> {
         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
             <span class="string">&quot;no matching language plugin found for {}, overwriting&quot;</span>,
@@ -505,15 +522,24 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">cmpressed_project</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
         <span class="ident">target_location</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+        <span class="ident">clean</span>: <span class="ident">bool</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span>::<span class="ident">CSharp</span>(<span class="ident">plugin</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">plugin</span>.<span class="ident">extract_project</span>(<span class="ident">cmpressed_project</span>, <span class="ident">target_location</span>),
-            <span class="self">Self</span>::<span class="ident">Make</span>(<span class="ident">plugin</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">plugin</span>.<span class="ident">extract_project</span>(<span class="ident">cmpressed_project</span>, <span class="ident">target_location</span>),
-            <span class="self">Self</span>::<span class="ident">Maven</span>(<span class="ident">plugin</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">plugin</span>.<span class="ident">extract_project</span>(<span class="ident">cmpressed_project</span>, <span class="ident">target_location</span>),
-            <span class="self">Self</span>::<span class="ident">NoTests</span>(<span class="ident">plugin</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">plugin</span>.<span class="ident">extract_project</span>(<span class="ident">cmpressed_project</span>, <span class="ident">target_location</span>),
-            <span class="self">Self</span>::<span class="ident">Python3</span>(<span class="ident">plugin</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">plugin</span>.<span class="ident">extract_project</span>(<span class="ident">cmpressed_project</span>, <span class="ident">target_location</span>),
-            <span class="self">Self</span>::<span class="ident">R</span>(<span class="ident">plugin</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">plugin</span>.<span class="ident">extract_project</span>(<span class="ident">cmpressed_project</span>, <span class="ident">target_location</span>),
-            <span class="self">Self</span>::<span class="ident">Ant</span>(<span class="ident">plugin</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">plugin</span>.<span class="ident">extract_project</span>(<span class="ident">cmpressed_project</span>, <span class="ident">target_location</span>),
+            <span class="self">Self</span>::<span class="ident">CSharp</span>(<span class="ident">plugin</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">plugin</span>.<span class="ident">extract_project</span>(<span class="ident">cmpressed_project</span>, <span class="ident">target_location</span>, <span class="ident">clean</span>)
+            }
+            <span class="self">Self</span>::<span class="ident">Make</span>(<span class="ident">plugin</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">plugin</span>.<span class="ident">extract_project</span>(<span class="ident">cmpressed_project</span>, <span class="ident">target_location</span>, <span class="ident">clean</span>),
+            <span class="self">Self</span>::<span class="ident">Maven</span>(<span class="ident">plugin</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">plugin</span>.<span class="ident">extract_project</span>(<span class="ident">cmpressed_project</span>, <span class="ident">target_location</span>, <span class="ident">clean</span>)
+            }
+            <span class="self">Self</span>::<span class="ident">NoTests</span>(<span class="ident">plugin</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">plugin</span>.<span class="ident">extract_project</span>(<span class="ident">cmpressed_project</span>, <span class="ident">target_location</span>, <span class="ident">clean</span>)
+            }
+            <span class="self">Self</span>::<span class="ident">Python3</span>(<span class="ident">plugin</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">plugin</span>.<span class="ident">extract_project</span>(<span class="ident">cmpressed_project</span>, <span class="ident">target_location</span>, <span class="ident">clean</span>)
+            }
+            <span class="self">Self</span>::<span class="ident">R</span>(<span class="ident">plugin</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">plugin</span>.<span class="ident">extract_project</span>(<span class="ident">cmpressed_project</span>, <span class="ident">target_location</span>, <span class="ident">clean</span>),
+            <span class="self">Self</span>::<span class="ident">Ant</span>(<span class="ident">plugin</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">plugin</span>.<span class="ident">extract_project</span>(<span class="ident">cmpressed_project</span>, <span class="ident">target_location</span>, <span class="ident">clean</span>),
         }
     }
 
