@@ -122,6 +122,22 @@ pub fn extract_project_overwrite(
     Ok(())
 }
 
+pub fn extract_student_files(
+    compressed_project: &Path,
+    target_location: &Path,
+) -> Result<(), TmcError> {
+    if let Ok(plugin) = get_language_plugin(target_location) {
+        plugin.extract_student_files(compressed_project, target_location)?;
+    } else {
+        log::debug!(
+            "no matching language plugin found for {}, overwriting",
+            compressed_project.display()
+        );
+        extract_project_overwrite(compressed_project, target_location)?;
+    }
+    Ok(())
+}
+
 /// See `LanguagePlugin::compress_project`.
 pub fn compress_project(path: &Path) -> Result<Vec<u8>, TmcError> {
     Ok(get_language_plugin(path)?.compress_project(path)?)
@@ -225,6 +241,28 @@ impl Plugin {
             }
             Self::R(plugin) => plugin.extract_project(cmpressed_project, target_location, clean),
             Self::Ant(plugin) => plugin.extract_project(cmpressed_project, target_location, clean),
+        }
+    }
+
+    fn extract_student_files(
+        &self,
+        cmpressed_project: &Path,
+        target_location: &Path,
+    ) -> Result<(), TmcError> {
+        match self {
+            Self::CSharp(plugin) => {
+                plugin.extract_student_files(cmpressed_project, target_location)
+            }
+            Self::Make(plugin) => plugin.extract_student_files(cmpressed_project, target_location),
+            Self::Maven(plugin) => plugin.extract_student_files(cmpressed_project, target_location),
+            Self::NoTests(plugin) => {
+                plugin.extract_student_files(cmpressed_project, target_location)
+            }
+            Self::Python3(plugin) => {
+                plugin.extract_student_files(cmpressed_project, target_location)
+            }
+            Self::R(plugin) => plugin.extract_student_files(cmpressed_project, target_location),
+            Self::Ant(plugin) => plugin.extract_student_files(cmpressed_project, target_location),
         }
     }
 

@@ -286,6 +286,78 @@ pub trait LanguagePlugin {
         Ok(())
     }
 
+    // todo: DRY
+    fn extract_student_files(
+        &self,
+        compressed_project: &Path,
+        target_location: &Path,
+    ) -> Result<()> {
+        let policy = Self::get_student_file_policy(target_location);
+
+        log::debug!(
+            "Unzipping student files from {} to {}",
+            compressed_project.display(),
+            target_location.display()
+        );
+
+        let file = File::open(compressed_project)
+            .map_err(|e| TmcError::OpenFile(compressed_project.to_path_buf(), e))?;
+        let mut zip_archive = ZipArchive::new(file)?;
+
+        // find the exercise root directory inside the archive
+        let project_dir = Self::find_project_dir_in_zip(&mut zip_archive)?;
+        log::debug!("Project dir in zip: {}", project_dir.display());
+
+        let tmc_project_yml = policy.get_tmc_project_yml()?;
+
+        // used to clean non-student files not in the zip later
+        let mut unzip_paths = HashSet::new();
+
+        for i in 0..zip_archive.len() {
+            let mut file = zip_archive.by_index(i)?;
+            let file_path = file.sanitized_name();
+            let relative = match file_path.strip_prefix(&project_dir) {
+                Ok(relative) => relative,
+                _ => {
+                    log::trace!("skip {}, not in project dir", file.name());
+                    continue;
+                }
+            };
+            let path_in_target = target_location.join(&relative);
+            log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
+            unzip_paths.insert(path_in_target.clone());
+
+            if file.is_dir() {
+                log::trace!("creating {:?}", path_in_target);
+                fs::create_dir_all(&path_in_target)
+                    .map_err(|e| TmcError::CreateDir(path_in_target.clone(), e))?;
+            } else {
+                let mut write = true;
+                // always overwrite .tmcproject.yml
+                if !policy.is_student_file(&path_in_target, &target_location, &tmc_project_yml)? {
+                    write = false;
+                }
+                if write {
+                    let mut file_contents = vec![];
+                    file.read_to_end(&mut file_contents)
+                        .map_err(|e| TmcError::FileRead(file_path.clone(), e))?;
+                    log::trace!("writing to {}", path_in_target.display());
+                    if let Some(parent) = path_in_target.parent() {
+                        fs::create_dir_all(parent)
+                            .map_err(|e| TmcError::CreateDir(parent.to_path_buf(), e))?;
+                    }
+                    let mut overwrite_target = File::create(&path_in_target)
+                        .map_err(|e| TmcError::CreateFile(path_in_target.clone(), e))?;
+                    overwrite_target
+                        .write_all(&file_contents)
+                        .map_err(|e| TmcError::Write(path_in_target.clone(), e))?;
+                }
+            }
+        }
+
+        Ok(())
+    }
+
     /// Searches the zip for a valid project directory.
     /// Note that the returned path may not actually have an entry in the zip.
     fn find_project_dir_in_zip<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<PathBuf>;

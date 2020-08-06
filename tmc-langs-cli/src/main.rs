@@ -1095,7 +1095,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
             let temp_zip = NamedTempFile::new().context("Failed to create a temporary archive")?;
             core.download_old_submission(submission_id, temp_zip.path())?;
             log::debug!("downloaded old submission to {}", temp_zip.path().display());
-            task_executor::extract_project(temp_zip.path(), output_path, false)?;
+            task_executor::extract_student_files(temp_zip.path(), output_path)?;
             log::debug!("extracted project");
 
             let output = Output::<()> {
