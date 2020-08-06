@@ -411,6 +411,15 @@
 <span id="411">411</span>
 <span id="412">412</span>
 <span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Implementation of LanguagePlugin for C#</span>
 <span class="kw">mod</span> <span class="ident">policy</span>;
@@ -627,8 +636,14 @@
             <span class="ident">OutputWithTimeout</span>::<span class="ident">Output</span>(<span class="ident">output</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">output</span>.<span class="ident">status</span>.<span class="ident">success</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">logs</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
-                    <span class="ident">logs</span>.<span class="ident">insert</span>(<span class="string">&quot;stdout&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">output</span>.<span class="ident">stdout</span>);
-                    <span class="ident">logs</span>.<span class="ident">insert</span>(<span class="string">&quot;stderr&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">output</span>.<span class="ident">stderr</span>);
+                    <span class="ident">logs</span>.<span class="ident">insert</span>(
+                        <span class="string">&quot;stdout&quot;</span>.<span class="ident">to_string</span>(),
+                        <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stdout</span>).<span class="ident">into_owned</span>(),
+                    );
+                    <span class="ident">logs</span>.<span class="ident">insert</span>(
+                        <span class="string">&quot;stderr&quot;</span>.<span class="ident">to_string</span>(),
+                        <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stderr</span>).<span class="ident">into_owned</span>(),
+                    );
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">RunResult</span> {
                         <span class="ident">status</span>: <span class="ident">RunStatus</span>::<span class="ident">CompileFailed</span>,
                         <span class="ident">test_results</span>: <span class="macro">vec</span><span class="macro">!</span>[],
@@ -800,7 +815,10 @@
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">run_tests</span>(<span class="ident">temp</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="ident">status</span>, <span class="ident">RunStatus</span>::<span class="ident">CompileFailed</span>);
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">res</span>.<span class="ident">logs</span>.<span class="ident">is_empty</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="ident">res</span>.<span class="ident">logs</span>.<span class="ident">get</span>(<span class="string">&quot;stdout&quot;</span>).<span class="ident">unwrap</span>())
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">res</span>
+            .<span class="ident">logs</span>
+            .<span class="ident">get</span>(<span class="string">&quot;stdout&quot;</span>)
+            .<span class="ident">unwrap</span>()
             .<span class="ident">contains</span>(<span class="string">&quot;This is a compile error&quot;</span>));
     }
 
