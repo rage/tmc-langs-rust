@@ -213,8 +213,14 @@ impl LanguagePlugin for CSharpPlugin {
             OutputWithTimeout::Output(output) => {
                 if !output.status.success() {
                     let mut logs = HashMap::new();
-                    logs.insert("stdout".to_string(), output.stdout);
-                    logs.insert("stderr".to_string(), output.stderr);
+                    logs.insert(
+                        "stdout".to_string(),
+                        String::from_utf8_lossy(&output.stdout).into_owned(),
+                    );
+                    logs.insert(
+                        "stderr".to_string(),
+                        String::from_utf8_lossy(&output.stderr).into_owned(),
+                    );
                     return Ok(RunResult {
                         status: RunStatus::CompileFailed,
                         test_results: vec![],
@@ -386,7 +392,10 @@ mod test {
         let res = plugin.run_tests(temp.path()).unwrap();
         assert_eq!(res.status, RunStatus::CompileFailed);
         assert!(!res.logs.is_empty());
-        assert!(String::from_utf8_lossy(res.logs.get("stdout").unwrap())
+        assert!(res
+            .logs
+            .get("stdout")
+            .unwrap()
             .contains("This is a compile error"));
     }
 

@@ -67,14 +67,14 @@ pub struct RunResult {
     pub test_results: Vec<TestResult>,
     /// Logs from the test run.
     /// The key may be an arbitrary string identifying the type of log.
-    pub logs: HashMap<String, Vec<u8>>,
+    pub logs: HashMap<String, String>,
 }
 
 impl RunResult {
     pub fn new(
         status: RunStatus,
         test_results: Vec<TestResult>,
-        logs: HashMap<String, Vec<u8>>,
+        logs: HashMap<String, String>,
     ) -> Self {
         Self {
             status,

@@ -267,7 +267,6 @@ mod test {
         assert!(run.test_results.is_empty());
         assert!(!run.logs.is_empty());
         let logs = run.logs.remove("compiler_output").unwrap();
-        let logs = String::from_utf8(logs).unwrap();
         assert!(logs.contains("unexpected 'in'"))
     }
 
@@ -282,7 +281,6 @@ mod test {
         assert!(run.test_results.is_empty());
         assert!(!run.logs.is_empty());
         let logs = run.logs.remove("compiler_output").unwrap();
-        let logs = String::from_utf8(logs).unwrap();
         assert!(logs.contains("unexpected 'in'"));
     }
 

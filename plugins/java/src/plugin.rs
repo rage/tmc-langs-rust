@@ -61,8 +61,14 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         }
 
         let mut logs = HashMap::new();
-        logs.insert("stdout".to_string(), results.stdout.clone());
-        logs.insert("stderr".to_string(), results.stderr.clone());
+        logs.insert(
+            "stdout".to_string(),
+            String::from_utf8_lossy(&results.stdout).into_owned(),
+        );
+        logs.insert(
+            "stderr".to_string(),
+            String::from_utf8_lossy(&results.stderr).into_owned(),
+        );
         Ok(RunResult {
             status,
             test_results,
@@ -228,8 +234,14 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
     /// Creates a run result from a failed compilation.
     fn run_result_from_failed_compilation(&self, compile_result: CompileResult) -> RunResult {
         let mut logs = HashMap::new();
-        logs.insert("stdout".to_string(), compile_result.stdout);
-        logs.insert("stderr".to_string(), compile_result.stderr);
+        logs.insert(
+            "stdout".to_string(),
+            String::from_utf8_lossy(&compile_result.stdout).into_owned(),
+        );
+        logs.insert(
+            "stderr".to_string(),
+            String::from_utf8_lossy(&compile_result.stderr).into_owned(),
+        );
         RunResult {
             status: RunStatus::CompileFailed,
             test_results: vec![],

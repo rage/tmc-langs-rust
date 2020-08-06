@@ -29,7 +29,6 @@ impl From<RRunResult> for RunResult {
                     .backtrace
                     .into_iter()
                     .map(|s| format!("{}\n", s))
-                    .flat_map(|s| s.as_bytes().to_vec())
                     .collect(),
             );
         }
