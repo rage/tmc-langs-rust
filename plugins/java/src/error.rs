@@ -16,12 +16,14 @@ pub enum JavaError {
     InvalidExercise(PathBuf),
     #[error("Failed to run {0}")]
     FailedToRun(String, #[source] std::io::Error),
-    #[error(r"Command '{0}' exited with a exit status {1}
+    #[error(
+        r"Command '{0}' exited with a exit status {1}
 #### STDOUT ####
-{}
+{2}
 #### STDERR ####
-{}", String::from_utf8_lossy(&.2), String::from_utf8_lossy(&.3))]
-    FailedCommand(String, ExitStatus, Vec<u8>, Vec<u8>),
+{3}"
+    )]
+    FailedCommand(String, ExitStatus, String, String),
     #[error("Failed to write temporary .jar file {0}")]
     JarWrite(PathBuf, #[source] io::Error),
     #[error("Failed to create file at {0}")]

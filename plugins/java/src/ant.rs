@@ -178,8 +178,8 @@ impl LanguagePlugin for AntPlugin {
             Err(JavaError::FailedCommand(
                 "ant clean".to_string(),
                 output.status,
-                output.stdout,
-                output.stderr,
+                String::from_utf8_lossy(&output.stdout).into_owned(),
+                String::from_utf8_lossy(&output.stderr).into_owned(),
             )
             .into())
         }

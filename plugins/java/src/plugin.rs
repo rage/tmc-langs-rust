@@ -127,8 +127,8 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
             return Err(JavaError::FailedCommand(
                 "java".to_string(),
                 output.status,
-                output.stdout,
-                output.stderr,
+                String::from_utf8_lossy(&output.stdout).into_owned(),
+                String::from_utf8_lossy(&output.stderr).into_owned(),
             ));
         }
 

@@ -137,8 +137,8 @@ impl LanguagePlugin for MavenPlugin {
             return Err(JavaError::FailedCommand(
                 "mvn".to_string(),
                 output.status,
-                output.stdout,
-                output.stderr,
+                String::from_utf8_lossy(&output.stdout).into_owned(),
+                String::from_utf8_lossy(&output.stderr).into_owned(),
             )
             .into());
         }
@@ -186,8 +186,8 @@ impl JavaPlugin for MavenPlugin {
             return Err(JavaError::FailedCommand(
                 mvn_path.as_os_str().to_string_lossy().to_string(),
                 output.status,
-                output.stdout,
-                output.stderr,
+                String::from_utf8_lossy(&output.stdout).into_owned(),
+                String::from_utf8_lossy(&output.stderr).into_owned(),
             ));
         }
 
@@ -229,8 +229,8 @@ impl JavaPlugin for MavenPlugin {
             return Err(JavaError::FailedCommand(
                 mvn_path.as_os_str().to_string_lossy().to_string(),
                 output.status,
-                output.stdout,
-                output.stderr,
+                String::from_utf8_lossy(&output.stdout).into_owned(),
+                String::from_utf8_lossy(&output.stderr).into_owned(),
             ));
         }
 
@@ -264,8 +264,8 @@ impl JavaPlugin for MavenPlugin {
             return Err(JavaError::FailedCommand(
                 mvn_path.as_os_str().to_string_lossy().to_string(),
                 output.status,
-                output.stdout,
-                output.stderr,
+                String::from_utf8_lossy(&output.stdout).into_owned(),
+                String::from_utf8_lossy(&output.stderr).into_owned(),
             ));
         }
 
