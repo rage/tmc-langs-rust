@@ -66,12 +66,9 @@ fn main() {
 fn solve_error_kind(e: &anyhow::Error) -> Kind {
     for cause in e.chain() {
         // check for authorization error
-        println!("{:?}", cause);
         if let Some(CoreError::HttpError(_, status_code, _)) = cause.downcast_ref::<CoreError>() {
             if status_code.as_u16() == 403 {
                 return Kind::AuthorizationError;
-            } else {
-                return Kind::HttpError(status_code.as_u16());
             }
         }
         // check for connection error
@@ -1071,7 +1068,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
             let save_old_state = matches.is_present("save-old-state");
 
             if save_old_state {
-                let submission_url = matches.value_of("submission_url").unwrap();
+                let submission_url = matches.value_of("submission-url").unwrap();
                 let submission_url = into_url(submission_url)?;
                 core.increment_progress_steps();
                 core.submit(submission_url, exercise_path, None)?;
@@ -1101,7 +1098,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
 
             core.increment_progress_steps();
             if save_old_state {
-                let submission_url = matches.value_of("submission_url").unwrap();
+                let submission_url = matches.value_of("submission-url").unwrap();
                 let submission_url = into_url(submission_url)?;
                 core.increment_progress_steps();
                 core.submit(submission_url, output_path, None)?;
