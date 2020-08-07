@@ -82,9 +82,9 @@ pub trait LanguagePlugin {
                 status: RunStatus::TestsFailed,
                 test_results: vec![TestResult {
                     name: "Tests found test".to_string(),
-                    successful: true,
+                    successful: false,
                     points: vec![],
-                    message: "No tests found.\nTry submitting the exercise to the server."
+                    message: "No tests found. Did you terminate your program with an exit() command?\nYou can also try submitting the exercise to the server."
                         .to_string(),
                     exception: vec![],
                 }],
