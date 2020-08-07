@@ -708,6 +708,9 @@
 <span id="708">708</span>
 <span id="709">709</span>
 <span id="710">710</span>
+<span id="711">711</span>
+<span id="712">712</span>
+<span id="713">713</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains and additional impl for TmcCore for calling the TMC Server API.</span>
 
@@ -720,7 +723,10 @@
 };
 
 <span class="kw">use</span> <span class="ident">oauth2</span>::<span class="ident">TokenResponse</span>;
-<span class="kw">use</span> <span class="ident">reqwest</span>::<span class="ident">blocking</span>::{<span class="ident">multipart</span>::<span class="ident">Form</span>, <span class="ident">RequestBuilder</span>, <span class="ident">Response</span> <span class="kw">as</span> <span class="ident">ReqwestResponse</span>};
+<span class="kw">use</span> <span class="ident">reqwest</span>::{
+    <span class="ident">blocking</span>::{<span class="ident">multipart</span>::<span class="ident">Form</span>, <span class="ident">RequestBuilder</span>, <span class="ident">Response</span> <span class="kw">as</span> <span class="ident">ReqwestResponse</span>},
+    <span class="ident">Method</span>,
+};
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">de</span>::<span class="ident">DeserializeOwned</span>;
 <span class="kw">use</span> <span class="ident">serde_json</span>::<span class="ident">Value</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
@@ -780,7 +786,7 @@
                         })
                 })
                 .<span class="ident">unwrap_or</span>(<span class="ident">text</span>);
-            <span class="prelude-val">Err</span>(<span class="ident">CoreError</span>::<span class="ident">HttpStatus</span>(<span class="ident">url</span>, <span class="ident">status</span>, <span class="ident">parsed</span>))
+            <span class="prelude-val">Err</span>(<span class="ident">CoreError</span>::<span class="ident">HttpError</span>(<span class="ident">url</span>, <span class="ident">status</span>, <span class="ident">parsed</span>))
         }
     }
 }
@@ -820,7 +826,7 @@
             .<span class="ident">get</span>(<span class="ident">url</span>.<span class="ident">clone</span>())
             .<span class="ident">core_headers</span>(<span class="self">self</span>)
             .<span class="ident">send</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">HttpGet</span>(<span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">ConnectionError</span>(<span class="ident">Method</span>::<span class="ident">GET</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
             .<span class="ident">check_error</span>(<span class="ident">url</span>)<span class="question-mark">?</span>
             .<span class="ident">json_res</span>()
     }
@@ -839,7 +845,7 @@
             .<span class="ident">get</span>(<span class="ident">url</span>.<span class="ident">clone</span>())
             .<span class="ident">core_headers</span>(<span class="self">self</span>)
             .<span class="ident">send</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">HttpGet</span>(<span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">ConnectionError</span>(<span class="ident">Method</span>::<span class="ident">GET</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
             .<span class="ident">check_error</span>(<span class="ident">url</span>)<span class="question-mark">?</span>
             .<span class="ident">copy_to</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">target_file</span>)
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">HttpWriteResponse</span>(<span class="ident">target</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
@@ -855,7 +861,7 @@
             .<span class="ident">get</span>(<span class="ident">url</span>.<span class="ident">clone</span>())
             .<span class="ident">core_headers</span>(<span class="self">self</span>)
             .<span class="ident">send</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">HttpGet</span>(<span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">ConnectionError</span>(<span class="ident">Method</span>::<span class="ident">GET</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
             .<span class="ident">check_error</span>(<span class="ident">url</span>)<span class="question-mark">?</span>
             .<span class="ident">copy_to</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">target_file</span>)
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">HttpWriteResponse</span>(<span class="ident">target</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
@@ -1323,7 +1329,7 @@
             .<span class="ident">multipart</span>(<span class="ident">form</span>)
             .<span class="ident">core_headers</span>(<span class="self">self</span>)
             .<span class="ident">send</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">HttpPost</span>(<span class="ident">submission_url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">ConnectionError</span>(<span class="ident">Method</span>::<span class="ident">POST</span>, <span class="ident">submission_url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
             .<span class="ident">check_error</span>(<span class="ident">submission_url</span>)<span class="question-mark">?</span>
             .<span class="ident">json_res</span>()<span class="question-mark">?</span>;
         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;received {:?}&quot;</span>, <span class="ident">res</span>);
@@ -1363,7 +1369,7 @@
             .<span class="ident">multipart</span>(<span class="ident">form</span>)
             .<span class="ident">core_headers</span>(<span class="self">self</span>)
             .<span class="ident">send</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">HttpPost</span>(<span class="ident">feedback_url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">ConnectionError</span>(<span class="ident">Method</span>::<span class="ident">POST</span>, <span class="ident">feedback_url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
             .<span class="ident">check_error</span>(<span class="ident">feedback_url</span>)<span class="question-mark">?</span>
             .<span class="ident">json_res</span>()
     }
@@ -1388,7 +1394,7 @@
             .<span class="ident">query</span>(<span class="kw-2">&amp;</span>[(<span class="string">&quot;review[points]&quot;</span>, <span class="ident">review_points</span>)])
             .<span class="ident">core_headers</span>(<span class="self">self</span>)
             .<span class="ident">send</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">HttpPost</span>(<span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">ConnectionError</span>(<span class="ident">Method</span>::<span class="ident">POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
             .<span class="ident">check_error</span>(<span class="ident">url</span>)<span class="question-mark">?</span>
             .<span class="ident">json_res</span>()<span class="question-mark">?</span>;
         <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;received {:?}&quot;</span>, <span class="ident">res</span>);
@@ -1410,7 +1416,7 @@
             .<span class="ident">post</span>(<span class="ident">url</span>.<span class="ident">clone</span>())
             .<span class="ident">multipart</span>(<span class="ident">form</span>)
             .<span class="ident">send</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">HttpPost</span>(<span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">ConnectionError</span>(<span class="ident">Method</span>::<span class="ident">POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
             .<span class="ident">check_error</span>(<span class="ident">url</span>)<span class="question-mark">?</span>
             .<span class="ident">json_res</span>()
     }

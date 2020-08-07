@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["OutputResult",""],["Status",""]],"struct":[["ErrorData",""],["Output",""]]});
+initSidebarItems({"enum":[["Kind",""],["OutputResult",""],["Status",""]],"struct":[["ErrorData",""],["Output",""]]});
