@@ -13,7 +13,6 @@ use tmc_langs_framework::{
 };
 
 use std::collections::HashMap;
-use std::ffi::OsStr;
 use std::fs::{self, File};
 use std::io::{Read, Seek};
 use std::path::{Path, PathBuf};
@@ -177,9 +176,9 @@ mod test {
                     .skip(path.components().count())
                     .collect();
                 let temp_path = temp.path().join(entry_path);
-                temp_path
-                    .parent()
-                    .map(|p| std::fs::create_dir_all(&p).unwrap());
+                if let Some(parent) = temp_path.parent() {
+                    std::fs::create_dir_all(&parent).unwrap();
+                }
                 log::trace!("copying {:?} -> {:?}", entry.path(), temp_path);
                 std::fs::copy(entry.path(), temp_path).unwrap();
             }

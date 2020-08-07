@@ -5,16 +5,14 @@ use crate::policy::Python3StudentFilePolicy;
 use crate::{LocalPy, PythonTestResult, LOCAL_PY};
 
 use std::collections::HashMap;
-use std::ffi::OsStr;
 use std::fs::{self, File};
-use std::io::{BufReader, Read, Seek};
-use std::path::{Path, PathBuf};
+use std::io::BufReader;
+use std::path::Path;
 use std::time::Duration;
 use tmc_langs_framework::{
     command::{OutputWithTimeout, TmcCommand},
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     plugin::LanguagePlugin,
-    zip::ZipArchive,
     TmcError,
 };
 use walkdir::WalkDir;
@@ -208,6 +206,7 @@ mod test {
     use super::*;
     use std::path::{Path, PathBuf};
     use tempfile::{tempdir, TempDir};
+    use tmc_langs_framework::zip::ZipArchive;
     use tmc_langs_framework::{domain::RunStatus, plugin::LanguagePlugin};
 
     fn init() {

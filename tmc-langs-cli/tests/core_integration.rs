@@ -32,8 +32,7 @@ fn run_core_cmd(args: &[&str]) -> Output {
     let child_stdin = child.stdin.as_mut().unwrap();
     let password_write = format!("{}\n", password);
     child_stdin.write_all(password_write.as_bytes()).unwrap();
-    let out = child.wait_with_output().unwrap();
-    out
+    child.wait_with_output().unwrap()
 }
 
 #[test]

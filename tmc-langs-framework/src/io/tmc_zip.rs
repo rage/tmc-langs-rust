@@ -1,7 +1,7 @@
 //! Contains functions for zipping and unzipping projects.
 
 use crate::policy::StudentFilePolicy;
-use crate::{LanguagePlugin, Result, TmcError};
+use crate::{Result, TmcError};
 use std::collections::HashSet;
 use std::fs::{self, File};
 use std::io::{Cursor, Read, Seek, Write};

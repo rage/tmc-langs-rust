@@ -1235,7 +1235,7 @@ mod test {
     #[test]
     fn checks_submission_finished() {
         let (core, addr) = init();
-        let m = mock("GET", "/submission-url")
+        let _m = mock("GET", "/submission-url")
             .with_body(serde_json::json!({
             "api_version": 7,
             "all_tests_passed": true,

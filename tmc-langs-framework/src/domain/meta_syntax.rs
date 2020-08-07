@@ -214,7 +214,7 @@ mod test {
     fn parse_simple() {
         init();
 
-        const JAVA_FILE: &'static str = r#"
+        const JAVA_FILE: &str = r#"
 public class JavaTestCase {
     public int foo() {
         return 3;
@@ -240,7 +240,7 @@ public class JavaTestCase {
     fn parse_solution() {
         init();
 
-        const JAVA_FILE_SOLUTION: &'static str = r#"
+        const JAVA_FILE_SOLUTION: &str = r#"
 /*    SOLUTION  FILE    */
 public class JavaTestCase {
     // BEGIN SOLUTION
@@ -269,7 +269,7 @@ public class JavaTestCase {
     fn parse_stubs() {
         init();
 
-        const JAVA_FILE_STUB: &'static str = r#"
+        const JAVA_FILE_STUB: &str = r#"
 public class JavaTestCase {
     public int foo() {
         return 3;

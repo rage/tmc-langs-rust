@@ -8,17 +8,14 @@ use crate::valgrind_log::ValgrindLog;
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashMap;
-use std::ffi::OsStr;
 use std::fs::File;
-use std::io;
-use std::io::{BufRead, BufReader, Read, Seek};
-use std::path::{Path, PathBuf};
+use std::io::{self, BufRead, BufReader, Read};
+use std::path::Path;
 use std::time::Duration;
 use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TmcProjectYml},
     plugin::LanguagePlugin,
-    zip::ZipArchive,
     TmcError,
 };
 
@@ -278,6 +275,7 @@ mod test {
     use super::*;
     use std::path::PathBuf;
     use tempfile::{tempdir, TempDir};
+    use tmc_langs_framework::zip::ZipArchive;
 
     fn init() {
         let _ = env_logger::builder().is_test(true).try_init();
@@ -296,9 +294,9 @@ mod test {
                     .skip(path.components().count())
                     .collect();
                 let temp_path = temp.path().join(entry_path);
-                temp_path
-                    .parent()
-                    .map(|p| std::fs::create_dir_all(&p).unwrap());
+                if let Some(parent) = temp_path.parent() {
+                    std::fs::create_dir_all(parent).unwrap();
+                }
                 log::trace!("copying {:?} -> {:?}", entry.path(), temp_path);
                 std::fs::copy(entry.path(), temp_path).unwrap();
             }

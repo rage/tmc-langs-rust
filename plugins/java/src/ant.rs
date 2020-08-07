@@ -6,11 +6,9 @@ use super::{error::JavaError, plugin::JavaPlugin, CompileResult, TestRun, SEPARA
 
 use j4rs::Jvm;
 use policy::AntStudentFilePolicy;
-use std::collections::HashSet;
 use std::env;
 use std::fs::{self, File};
 use std::io::Write;
-use std::io::{Read, Seek};
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::time::Duration;
@@ -18,7 +16,6 @@ use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, ValidationResult},
     plugin::{Language, LanguagePlugin},
-    zip::ZipArchive,
     TmcError,
 };
 use walkdir::WalkDir;
@@ -299,6 +296,7 @@ mod test {
     use super::*;
     use tempfile::{tempdir, TempDir};
     use tmc_langs_framework::domain::Strategy;
+    use tmc_langs_framework::zip::ZipArchive;
 
     fn init() {
         let _ = env_logger::builder().is_test(true).try_init();

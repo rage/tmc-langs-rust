@@ -7,9 +7,9 @@ use super::{error::JavaError, plugin::JavaPlugin, CompileResult, TestRun, SEPARA
 use flate2::read::GzDecoder;
 use j4rs::Jvm;
 use policy::MavenStudentFilePolicy;
-use std::ffi::{OsStr, OsString};
+use std::ffi::OsString;
 use std::fs;
-use std::io::{Cursor, Read, Seek};
+use std::io::Cursor;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::time::Duration;
@@ -18,7 +18,6 @@ use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, ValidationResult},
     plugin::{Language, LanguagePlugin},
-    zip::ZipArchive,
     TmcError,
 };
 
@@ -272,6 +271,7 @@ mod test {
     use std::fs::File;
     use tempfile::{tempdir, TempDir};
     use tmc_langs_framework::domain::Strategy;
+    use tmc_langs_framework::zip::ZipArchive;
     use walkdir::WalkDir;
 
     #[cfg(windows)]
