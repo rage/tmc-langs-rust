@@ -9,7 +9,10 @@ use crate::{
 };
 
 use oauth2::TokenResponse;
-use reqwest::blocking::{multipart::Form, RequestBuilder, Response as ReqwestResponse};
+use reqwest::{
+    blocking::{multipart::Form, RequestBuilder, Response as ReqwestResponse},
+    Method,
+};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -69,7 +72,7 @@ impl CoreExt for ReqwestResponse {
                         })
                 })
                 .unwrap_or(text);
-            Err(CoreError::HttpStatus(url, status, parsed))
+            Err(CoreError::HttpError(url, status, parsed))
         }
     }
 }
@@ -109,7 +112,7 @@ impl TmcCore {
             .get(url.clone())
             .core_headers(self)
             .send()
-            .map_err(|e| CoreError::HttpGet(url.clone(), e))?
+            .map_err(|e| CoreError::ConnectionError(Method::GET, url.clone(), e))?
             .check_error(url)?
             .json_res()
     }
@@ -128,7 +131,7 @@ impl TmcCore {
             .get(url.clone())
             .core_headers(self)
             .send()
-            .map_err(|e| CoreError::HttpGet(url.clone(), e))?
+            .map_err(|e| CoreError::ConnectionError(Method::GET, url.clone(), e))?
             .check_error(url)?
             .copy_to(&mut target_file)
             .map_err(|e| CoreError::HttpWriteResponse(target.to_path_buf(), e))?;
@@ -144,7 +147,7 @@ impl TmcCore {
             .get(url.clone())
             .core_headers(self)
             .send()
-            .map_err(|e| CoreError::HttpGet(url.clone(), e))?
+            .map_err(|e| CoreError::ConnectionError(Method::GET, url.clone(), e))?
             .check_error(url)?
             .copy_to(&mut target_file)
             .map_err(|e| CoreError::HttpWriteResponse(target.to_path_buf(), e))?;
@@ -612,7 +615,7 @@ impl TmcCore {
             .multipart(form)
             .core_headers(self)
             .send()
-            .map_err(|e| CoreError::HttpPost(submission_url.clone(), e))?
+            .map_err(|e| CoreError::ConnectionError(Method::POST, submission_url.clone(), e))?
             .check_error(submission_url)?
             .json_res()?;
         log::debug!("received {:?}", res);
@@ -652,7 +655,7 @@ impl TmcCore {
             .multipart(form)
             .core_headers(self)
             .send()
-            .map_err(|e| CoreError::HttpPost(feedback_url.clone(), e))?
+            .map_err(|e| CoreError::ConnectionError(Method::POST, feedback_url.clone(), e))?
             .check_error(feedback_url)?
             .json_res()
     }
@@ -677,7 +680,7 @@ impl TmcCore {
             .query(&[("review[points]", review_points)])
             .core_headers(self)
             .send()
-            .map_err(|e| CoreError::HttpPost(url.clone(), e))?
+            .map_err(|e| CoreError::ConnectionError(Method::POST, url.clone(), e))?
             .check_error(url)?
             .json_res()?;
         log::trace!("received {:?}", res);
@@ -699,7 +702,7 @@ impl TmcCore {
             .post(url.clone())
             .multipart(form)
             .send()
-            .map_err(|e| CoreError::HttpPost(url.clone(), e))?
+            .map_err(|e| CoreError::ConnectionError(Method::POST, url.clone(), e))?
             .check_error(url)?
             .json_res()
     }

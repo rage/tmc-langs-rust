@@ -58,6 +58,14 @@ impl From<StatusType> for OutputResult {
 
 #[derive(Debug, Serialize)]
 pub struct ErrorData {
-    pub http_status_code: Option<u16>,
+    pub kind: Kind,
     pub trace: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Kind {
+    Generic,
+    AuthorizationError,
+    ConnectionError,
 }

@@ -1,7 +1,7 @@
 //! The core error type.
 
 use crate::response;
-use reqwest::StatusCode;
+use reqwest::{Method, StatusCode};
 use std::path::PathBuf;
 use thiserror::Error;
 use url::Url;
@@ -28,17 +28,15 @@ pub enum CoreError {
 
     // network
     #[error("HTTP error {1} for {0}: {2}")]
-    HttpStatus(Url, StatusCode, String),
+    HttpError(Url, StatusCode, String),
+    #[error("Connection error trying to {0} {1}")]
+    ConnectionError(Method, Url, #[source] reqwest::Error),
     #[error("OAuth2 password exchange error")]
     Token(#[source] Box<TokenError>),
     #[error("OAuth2 unexpected token response: {0}")]
     TokenParse(String, #[source] serde_json::error::Error),
     #[error("Failed to parse as URL: {0}")]
     UrlParse(String, #[source] url::ParseError),
-    #[error("Failed to GET {0}")]
-    HttpGet(Url, #[source] reqwest::Error),
-    #[error("Failed to POST {0}")]
-    HttpPost(Url, #[source] reqwest::Error),
     #[error("Failed to write response to {0}")]
     HttpWriteResponse(PathBuf, #[source] reqwest::Error),
     #[error("Failed to deserialize response as JSON")]

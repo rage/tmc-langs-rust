@@ -3,7 +3,7 @@
 mod app;
 mod output;
 
-use output::{ErrorData, Output, OutputResult, Status};
+use output::{ErrorData, Kind, Output, OutputResult, Status};
 
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
@@ -36,13 +36,13 @@ fn main() {
     if let Err(e) = run() {
         let causes: Vec<String> = e.chain().map(|e| format!("Caused by: {}", e)).collect();
         let message = error_message_special_casing(&e);
-        let http_status_code = find_http_error_code(&e);
+        let kind = solve_error_kind(&e);
         let error_output = Output {
             status: Status::Finished,
             message: Some(message),
             result: OutputResult::Error,
             data: Some(ErrorData {
-                http_status_code,
+                kind,
                 trace: causes,
             }),
             percent_done: 1.0,
@@ -63,13 +63,24 @@ fn main() {
     }
 }
 
-fn find_http_error_code(e: &anyhow::Error) -> Option<u16> {
+fn solve_error_kind(e: &anyhow::Error) -> Kind {
     for cause in e.chain() {
-        if let Some(CoreError::HttpStatus(_, status_code, _)) = cause.downcast_ref::<CoreError>() {
-            return Some(status_code.as_u16());
+        // check for authorization error
+        println!("{:?}", cause);
+        if let Some(CoreError::HttpError(_, status_code, _)) = cause.downcast_ref::<CoreError>() {
+            if status_code.as_u16() == 403 {
+                return Kind::AuthorizationError;
+            } else {
+                return Kind::HttpError(status_code.as_u16());
+            }
+        }
+        // check for connection error
+        if let Some(CoreError::ConnectionError(..)) = cause.downcast_ref::<CoreError>() {
+            return Kind::ConnectionError;
         }
     }
-    None
+
+    Kind::Generic
 }
 
 // goes through the error chain and returns the first special cased error message, if any
