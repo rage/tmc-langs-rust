@@ -360,7 +360,25 @@ pub trait LanguagePlugin {
 
     /// Searches the zip for a valid project directory.
     /// Note that the returned path may not actually have an entry in the zip.
-    fn find_project_dir_in_zip<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<PathBuf>;
+    /// The default implementation tries to find a directory that contains a "src" directory,
+    /// which may be sufficient for some languages.
+    fn find_project_dir_in_zip<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<PathBuf> {
+        for i in 0..zip_archive.len() {
+            // zips don't necessarily contain entries for intermediate directories,
+            // so we need to check every path for src
+            let file = zip_archive.by_index(i)?;
+            let file_path = file.sanitized_name();
+            // todo: do in one pass somehow
+            if file_path.components().any(|c| c.as_os_str() == "src") {
+                let path: PathBuf = file_path
+                    .components()
+                    .take_while(|c| c.as_os_str() != "src")
+                    .collect();
+                return Ok(path);
+            }
+        }
+        Err(TmcError::NoProjectDirInZip)
+    }
 
     /// Tells if there's a valid exercise in this path.
     fn is_exercise_type_correct(path: &Path) -> bool;

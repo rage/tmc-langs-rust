@@ -109,22 +109,6 @@ impl LanguagePlugin for Python3Plugin {
         setup.exists() || requirements.exists() || test.exists() || tmc.exists()
     }
 
-    // returns the parent of the src directory, if one is found
-    fn find_project_dir_in_zip<R: Read + Seek>(
-        zip_archive: &mut ZipArchive<R>,
-    ) -> Result<PathBuf, TmcError> {
-        for i in 0..zip_archive.len() {
-            let file = zip_archive.by_index(i)?;
-            let file_path = file.sanitized_name();
-            if file_path.file_name() == Some(OsStr::new("src")) {
-                if let Some(parent) = file_path.parent() {
-                    return Ok(parent.to_path_buf());
-                }
-            }
-        }
-        Err(TmcError::NoProjectDirInZip)
-    }
-
     fn clean(&self, exercise_path: &Path) -> Result<(), TmcError> {
         for entry in WalkDir::new(exercise_path)
             .into_iter()

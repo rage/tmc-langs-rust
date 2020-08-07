@@ -256,22 +256,6 @@ impl LanguagePlugin for MakePlugin {
         path.join("Makefile").is_file()
     }
 
-    /// Tries to find a directory with a Makefile in it.
-    fn find_project_dir_in_zip<R: Read + Seek>(
-        zip_archive: &mut ZipArchive<R>,
-    ) -> Result<PathBuf, TmcError> {
-        for i in 0..zip_archive.len() {
-            let file = zip_archive.by_index(i)?;
-            let file_path = file.sanitized_name();
-            if file_path.file_name() == Some(OsStr::new("Makefile")) {
-                if let Some(parent) = file_path.parent() {
-                    return Ok(parent.to_path_buf());
-                }
-            }
-        }
-        Err(TmcError::NoProjectDirInZip)
-    }
-
     // does not check for success
     fn clean(&self, path: &Path) -> Result<(), TmcError> {
         let mut command = TmcCommand::new("make");
@@ -419,7 +403,7 @@ mod test {
 
     #[test]
     fn doesnt_find_project_dir_in_zip() {
-        let file = File::open("tests/data/MakeWithoutMakefile.zip").unwrap();
+        let file = File::open("tests/data/MakeWithoutSrc.zip").unwrap();
         let mut zip = ZipArchive::new(file).unwrap();
         let dir = MakePlugin::find_project_dir_in_zip(&mut zip);
         assert!(dir.is_err());

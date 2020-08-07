@@ -103,22 +103,6 @@ impl LanguagePlugin for MavenPlugin {
         path.join("pom.xml").exists()
     }
 
-    /// Tries to find a directory which contains a pom.xml file.
-    fn find_project_dir_in_zip<R: Read + Seek>(
-        zip_archive: &mut ZipArchive<R>,
-    ) -> Result<PathBuf, TmcError> {
-        for i in 0..zip_archive.len() {
-            let file = zip_archive.by_index(i)?;
-            let file_path = file.sanitized_name();
-            if file_path.file_name() == Some(OsStr::new("pom.xml")) {
-                if let Some(parent) = file_path.parent() {
-                    return Ok(parent.to_path_buf());
-                }
-            }
-        }
-        Err(TmcError::NoProjectDirInZip)
-    }
-
     fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
         MavenStudentFilePolicy::new(project_path.to_path_buf())
     }
@@ -452,7 +436,7 @@ mod test {
 
     #[test]
     fn doesnt_find_project_dir_in_zip() {
-        let file = File::open("tests/data/MavenWithoutPom.zip").unwrap();
+        let file = File::open("tests/data/MavenWithoutSrc.zip").unwrap();
         let mut zip = ZipArchive::new(file).unwrap();
         let dir = MavenPlugin::find_project_dir_in_zip(&mut zip);
         assert!(dir.is_err());

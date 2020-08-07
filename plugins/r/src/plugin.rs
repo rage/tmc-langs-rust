@@ -131,21 +131,17 @@ impl LanguagePlugin for RPlugin {
         zip_archive: &mut ZipArchive<R>,
     ) -> Result<PathBuf, TmcError> {
         for i in 0..zip_archive.len() {
+            // zips don't necessarily contain entries for intermediate directories,
+            // so we need to check every path for R
             let file = zip_archive.by_index(i)?;
             let file_path = file.sanitized_name();
-            if file_path.file_name() == Some(OsStr::new("R")) {
-                if let Some(parent) = file_path.parent() {
-                    return Ok(parent.to_path_buf());
-                }
-            }
-            if file_path.file_name() == Some(OsStr::new("testthat")) {
-                if let Some(init_parent) = file_path.parent() {
-                    if init_parent.file_name() == Some(OsStr::new("tests")) {
-                        if let Some(test_parent) = init_parent.parent() {
-                            return Ok(test_parent.to_path_buf());
-                        }
-                    }
-                }
+            // todo: do in one pass somehow
+            if file_path.components().any(|c| c.as_os_str() == "R") {
+                let path: PathBuf = file_path
+                    .components()
+                    .take_while(|c| c.as_os_str() != "R")
+                    .collect();
+                return Ok(path);
             }
         }
         Err(TmcError::NoProjectDirInZip)

@@ -109,40 +109,6 @@ impl LanguagePlugin for AntPlugin {
             || path.join("test").exists() && path.join("src").exists()
     }
 
-    /// Tries to find a directory which contains both a src and a test directory.
-    fn find_project_dir_in_zip<R: Read + Seek>(
-        zip_archive: &mut ZipArchive<R>,
-    ) -> Result<PathBuf, TmcError> {
-        let mut dirs_with_src = HashSet::new();
-        let mut dirs_with_test = HashSet::new();
-        for i in 0..zip_archive.len() {
-            // zips don't necessarily contain entries for intermediate directories,
-            // so we need to check every path for src and test
-            let file = zip_archive.by_index(i)?;
-            let file_path = file.sanitized_name();
-            // todo: do in one pass somehow
-            if file_path.components().any(|c| c.as_os_str() == "src") {
-                let path: PathBuf = file_path
-                    .components()
-                    .take_while(|c| c.as_os_str() != "src")
-                    .collect();
-                dirs_with_src.insert(path);
-            }
-            if file_path.components().any(|c| c.as_os_str() == "test") {
-                let path: PathBuf = file_path
-                    .components()
-                    .take_while(|c| c.as_os_str() != "test")
-                    .collect();
-                dirs_with_test.insert(path);
-            }
-        }
-        // return any dir with src and test
-        if let Some(val) = dirs_with_src.intersection(&dirs_with_test).next() {
-            return Ok(val.clone());
-        }
-        Err(TmcError::NoProjectDirInZip)
-    }
-
     fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
         AntStudentFilePolicy::new(project_path.to_path_buf())
     }
@@ -528,7 +494,7 @@ mod test {
 
     #[test]
     fn doesnt_find_project_dir_in_zip() {
-        let file = File::open("tests/data/AntWithoutTest.zip").unwrap();
+        let file = File::open("tests/data/AntWithoutSrc.zip").unwrap();
         let mut zip = ZipArchive::new(file).unwrap();
         let dir = AntPlugin::find_project_dir_in_zip(&mut zip);
         assert!(dir.is_err());
