@@ -1,3 +1,5 @@
+CLI interface for tmc-langs. The documentation for the various commands and parameters are best seen from the CLI itself. For example, running `tmc-langs-cli help clean` will print out the information for the `clean` sub-command. Alternatively, `src/app.rs` contains the CLI definition.
+
 ## Environment variables
 
 | var name               | usage                      |
