@@ -12,28 +12,25 @@ use std::collections::HashMap;
 use std::env;
 use std::fmt::Debug;
 use std::fs::{self, File};
-use std::io::Write;
 use std::path::{Path, PathBuf};
 use tempfile::NamedTempFile;
 use tmc_langs_core::oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
 use tmc_langs_core::{CoreError, FeedbackAnswer, TmcCore, Token};
-use tmc_langs_framework::{
-    domain::ValidationResult, error::CommandNotFound, io::submission_processing,
-};
+use tmc_langs_framework::{domain::ValidationResult, error::CommandNotFound};
 use tmc_langs_util::{
     task_executor::{self, TmcParams},
     Language,
 };
 use url::Url;
-use walkdir::WalkDir;
 
 #[quit::main]
 fn main() {
     env_logger::init();
 
     if let Err(e) = run() {
+        // error handling
         let causes: Vec<String> = e.chain().map(|e| format!("Caused by: {}", e)).collect();
         let message = error_message_special_casing(&e);
         let kind = solve_error_kind(&e);
@@ -63,6 +60,7 @@ fn main() {
     }
 }
 
+/// Goes through the error chain and checks for special error types that should be indicated by the Kind.
 fn solve_error_kind(e: &anyhow::Error) -> Kind {
     for cause in e.chain() {
         // check for authorization error
@@ -80,7 +78,7 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
     Kind::Generic
 }
 
-// goes through the error chain and returns the first special cased error message, if any
+/// Goes through the error chain and returns the specialized error message, if any.
 fn error_message_special_casing(e: &anyhow::Error) -> String {
     for cause in e.chain() {
         // command not found errors are special cased to notify the user that they may need to install additional software
@@ -100,11 +98,11 @@ fn run() -> Result<()> {
             let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);
 
-            let output_path = matches.value_of("output-path");
-            let output_path = output_path.map(Path::new);
-
             let locale = matches.value_of("locale").unwrap();
             let locale = into_locale(locale)?;
+
+            let output_path = matches.value_of("output-path");
+            let output_path = output_path.map(Path::new);
 
             let check_result = run_checkstyle_write_results(exercise_path, output_path, locale)?;
 
@@ -114,6 +112,23 @@ fn run() -> Result<()> {
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
                 data: check_result,
+            };
+            print_output(&output)?
+        }
+        ("clean", Some(matches)) => {
+            let exercise_path = matches.value_of("exercise-path").unwrap();
+            let exercise_path = Path::new(exercise_path);
+
+            task_executor::clean(exercise_path).with_context(|| {
+                format!("Failed to clean exercise at {}", exercise_path.display(),)
+            })?;
+
+            let output = Output::<()> {
+                status: Status::Finished,
+                message: Some(format!("cleaned exercise at {}", exercise_path.display(),)),
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: None,
             };
             print_output(&output)?
         }
@@ -128,10 +143,11 @@ fn run() -> Result<()> {
                 format!("Failed to compress project at {}", exercise_path.display())
             })?;
 
-            let mut output_file = File::create(output_path)
-                .with_context(|| format!("Failed to create file at {}", output_path.display()))?;
-
-            output_file.write_all(&data).with_context(|| {
+            if let Some(parent) = output_path.parent() {
+                fs::create_dir_all(parent)
+                    .with_context(|| format!("Failed to create directory {}", parent.display()))?;
+            }
+            fs::write(output_path, &data).with_context(|| {
                 format!(
                     "Failed to write compressed project to {}",
                     output_path.display()
@@ -151,6 +167,7 @@ fn run() -> Result<()> {
             };
             print_output(&output)?
         }
+        ("core", Some(matches)) => run_core(matches)?,
         ("extract-project", Some(matches)) => {
             let archive_path = matches.value_of("archive-path").unwrap();
             let archive_path = Path::new(archive_path);
@@ -172,6 +189,59 @@ fn run() -> Result<()> {
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
                 data: None,
+            };
+            print_output(&output)?
+        }
+        ("find-exercises", Some(matches)) => {
+            let exercise_path = matches.value_of("exercise-path").unwrap();
+            let exercise_path = Path::new(exercise_path);
+
+            let output_path = matches.value_of("output-path");
+            let output_path = output_path.map(Path::new);
+
+            let exercises = task_executor::find_exercise_directories(exercise_path);
+
+            if let Some(output_path) = output_path {
+                write_result_to_file_as_json(&exercises, output_path)?;
+            }
+
+            let output = Output {
+                status: Status::Finished,
+                message: Some(format!("found exercises at {}", exercise_path.display(),)),
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: Some(exercises),
+            };
+            print_output(&output)?
+        }
+        ("get-exercise-packaging-configuration", Some(matches)) => {
+            let exercise_path = matches.value_of("exercise-path").unwrap();
+            let exercise_path = Path::new(exercise_path);
+
+            let output_path = matches.value_of("output-path");
+            let output_path = output_path.map(Path::new);
+
+            let config = task_executor::get_exercise_packaging_configuration(exercise_path)
+                .with_context(|| {
+                    format!(
+                        "Failed to get exercise packaging configuration for exercise at {}",
+                        exercise_path.display(),
+                    )
+                })?;
+
+            if let Some(output_path) = output_path {
+                write_result_to_file_as_json(&config, output_path)?;
+            }
+
+            let output = Output {
+                status: Status::Finished,
+                message: Some(format!(
+                    "created exercise packaging config from {}",
+                    exercise_path.display(),
+                )),
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: Some(config),
             };
             print_output(&output)?
         }
@@ -210,7 +280,7 @@ fn run() -> Result<()> {
             let output_path = matches.value_of("output-path").unwrap();
             let output_path = Path::new(output_path);
 
-            let exercises = find_exercise_directories(exercise_path);
+            let exercises = task_executor::find_exercise_directories(exercise_path);
 
             task_executor::prepare_stubs(exercises, exercise_path, output_path).with_context(
                 || {
@@ -235,13 +305,22 @@ fn run() -> Result<()> {
             print_output(&output)?
         }
         ("prepare-submission", Some(matches)) => {
-            let submission_path = matches.value_of("submission-path").unwrap();
-            let submission_path = Path::new(submission_path);
+            let output_zip = matches.is_present("output-zip");
+
+            let clone_path = matches.value_of("clone-path").unwrap();
+            let clone_path = Path::new(clone_path);
 
             let output_path = matches.value_of("output-path").unwrap();
             let output_path = Path::new(output_path);
 
+            let stub_zip_path = matches.value_of("stub-zip-path");
+            let stub_zip_path = stub_zip_path.map(Path::new);
+
+            let submission_path = matches.value_of("submission-path").unwrap();
+            let submission_path = Path::new(submission_path);
+
             let tmc_params_values = matches.values_of("tmc-param").unwrap_or_default();
+            // will contain for each key all the values with that key in a list
             let mut tmc_params_grouped = HashMap::new();
             for value in tmc_params_values {
                 let params: Vec<_> = value.split('=').collect();
@@ -260,6 +339,7 @@ fn run() -> Result<()> {
             let mut tmc_params = TmcParams::new();
             for (key, values) in tmc_params_grouped {
                 if values.len() == 1 {
+                    // 1-length lists are inserted as a string
                     tmc_params
                         .insert_string(key, values[0])
                         .context("invalid tmc-param key-value pair")?;
@@ -270,16 +350,8 @@ fn run() -> Result<()> {
                 }
             }
 
-            let clone_path = matches.value_of("clone-path").unwrap();
-            let clone_path = Path::new(clone_path);
-
-            let output_zip = matches.is_present("output-zip");
-
             let top_level_dir_name = matches.value_of("top-level-dir-name");
             let top_level_dir_name = top_level_dir_name.map(str::to_string);
-
-            let stub_zip_path = matches.value_of("stub-zip-path");
-            let stub_zip_path = stub_zip_path.map(Path::new);
 
             task_executor::prepare_submission(
                 submission_path,
@@ -305,15 +377,16 @@ fn run() -> Result<()> {
             print_output(&output)?
         }
         ("run-tests", Some(matches)) => {
+            let checkstyle_output_path = matches.value_of("checkstyle-output-path");
+            let checkstyle_output_path: Option<&Path> = checkstyle_output_path.map(Path::new);
+
             let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);
 
+            let locale = matches.value_of("locale");
+
             let output_path = matches.value_of("output-path");
             let output_path = output_path.map(Path::new);
-
-            // todo: checkstyle results in stdout?
-            let checkstyle_output_path = matches.value_of("checkstyle-output-path");
-            let checkstyle_output_path: Option<&Path> = checkstyle_output_path.map(Path::new);
 
             let test_result = task_executor::run_tests(exercise_path).with_context(|| {
                 format!(
@@ -326,9 +399,9 @@ fn run() -> Result<()> {
                 write_result_to_file_as_json(&test_result, output_path)?;
             }
 
+            // todo: checkstyle results in stdout?
             if let Some(checkstyle_output_path) = checkstyle_output_path {
-                let locale = matches.value_of("locale").unwrap();
-                let locale = into_locale(locale)?;
+                let locale = into_locale(locale.unwrap())?;
 
                 run_checkstyle_write_results(exercise_path, Some(checkstyle_output_path), locale)?;
             }
@@ -382,101 +455,18 @@ fn run() -> Result<()> {
             };
             print_output(&output)?
         }
-        ("find-exercises", Some(matches)) => {
-            let exercise_path = matches.value_of("exercise-path").unwrap();
-            let exercise_path = Path::new(exercise_path);
-
-            let output_path = matches.value_of("output-path");
-            let output_path = output_path.map(Path::new);
-
-            let mut exercises = vec![];
-            // silently skips errors
-            for entry in WalkDir::new(exercise_path)
-                .into_iter()
-                .filter_map(|e| e.ok())
-                .filter(|e| e.file_name() == "private")
-                .filter(submission_processing::is_hidden_dir)
-                .filter(submission_processing::contains_tmcignore)
-            {
-                log::debug!("processing {}", entry.path().display());
-                // TODO: Java implementation doesn't scan root directories
-                if task_executor::is_exercise_root_directory(entry.path()) {
-                    exercises.push(entry.into_path());
-                }
-            }
-
-            if let Some(output_path) = output_path {
-                write_result_to_file_as_json(&exercises, output_path)?;
-            }
-
-            let output = Output {
-                status: Status::Finished,
-                message: Some(format!("found exercises at {}", exercise_path.display(),)),
-                result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
-                data: Some(exercises),
-            };
-            print_output(&output)?
-        }
-        ("get-exercise-packaging-configuration", Some(matches)) => {
-            let exercise_path = matches.value_of("exercise-path").unwrap();
-            let exercise_path = Path::new(exercise_path);
-
-            let output_path = matches.value_of("output-path");
-            let output_path = output_path.map(Path::new);
-
-            let config = task_executor::get_exercise_packaging_configuration(exercise_path)
-                .with_context(|| {
-                    format!(
-                        "Failed to get exercise packaging configuration for exercise at {}",
-                        exercise_path.display(),
-                    )
-                })?;
-
-            if let Some(output_path) = output_path {
-                write_result_to_file_as_json(&config, output_path)?;
-            }
-
-            let output = Output {
-                status: Status::Finished,
-                message: Some(format!(
-                    "created exercise packaging config from {}",
-                    exercise_path.display(),
-                )),
-                result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
-                data: Some(config),
-            };
-            print_output(&output)?
-        }
-        ("clean", Some(matches)) => {
-            let exercise_path = matches.value_of("exercise-path").unwrap();
-            let exercise_path = Path::new(exercise_path);
-
-            task_executor::clean(exercise_path).with_context(|| {
-                format!("Failed to clean exercise at {}", exercise_path.display(),)
-            })?;
-
-            let output = Output::<()> {
-                status: Status::Finished,
-                message: Some(format!("cleaned exercise at {}", exercise_path.display(),)),
-                result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
-                data: None,
-            };
-            print_output(&output)?
-        }
-        ("core", Some(matches)) => run_core(matches)?,
-        _ => unreachable!(),
+        _ => unreachable!("missing subcommand arm"),
     };
     Ok(())
 }
 
 fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
+    let client_name = matches.value_of("client-name").unwrap();
+
+    let client_version = matches.value_of("client-version").unwrap();
+
     let root_url =
         env::var("TMC_LANGS_ROOT_URL").unwrap_or_else(|_| "https://tmc.mooc.fi".to_string());
-    let client_name = matches.value_of("client-name").unwrap();
-    let client_version = matches.value_of("client-version").unwrap();
     let mut core = TmcCore::new_in_config(
         root_url,
         client_name.to_string(),
@@ -499,7 +489,6 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
 
     // set token if a credentials.json is found for the client name
     let tmc_dir = format!("tmc-{}", client_name);
-
     let config_dir = match env::var("TMC_LANGS_CONFIG_DIR") {
         Ok(v) => PathBuf::from(v),
         Err(_) => dirs::config_dir().context("Failed to find config directory")?,
@@ -523,11 +512,308 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
         }
     };
 
+    // proof of having printed the output
     let printed: PrintToken = match matches.subcommand() {
+        ("download-model-solution", Some(matches)) => {
+            let solution_download_url = matches.value_of("solution-download-url").unwrap();
+            let solution_download_url = into_url(solution_download_url)?;
+
+            let target = matches.value_of("target").unwrap();
+            let target = Path::new(target);
+
+            core.download_model_solution(solution_download_url, target)
+                .context("Failed to download model solution")?;
+
+            let output = Output::<()> {
+                status: Status::Finished,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: None,
+            };
+            print_output(&output)?
+        }
+        ("download-old-submission", Some(matches)) => {
+            let save_old_state = matches.is_present("save-old-state");
+
+            let exercise_id = matches.value_of("exercise-id").unwrap();
+            let exercise_id = into_usize(exercise_id)?;
+
+            let output_path = matches.value_of("output-path").unwrap();
+            let output_path = Path::new(output_path);
+
+            let submission_id = matches.value_of("submission-id").unwrap();
+            let submission_id = into_usize(submission_id)?;
+
+            let submission_url = matches.value_of("submission-url");
+
+            // increment steps for reset
+            core.increment_progress_steps();
+            if save_old_state {
+                // submit old exercise
+                let submission_url = into_url(submission_url.unwrap())?;
+                // increment steps for submit
+                core.increment_progress_steps();
+                core.submit(submission_url, output_path, None)?;
+                log::debug!("finished submission");
+            }
+
+            // reset old exercise
+            core.reset(exercise_id, output_path)?;
+            log::debug!("reset exercise");
+
+            // dl submission
+            let temp_zip = NamedTempFile::new().context("Failed to create a temporary archive")?;
+            core.download_old_submission(submission_id, temp_zip.path())?;
+            log::debug!("downloaded old submission to {}", temp_zip.path().display());
+
+            // extract submission
+            task_executor::extract_student_files(temp_zip.path(), output_path)?;
+            log::debug!("extracted project");
+
+            let output = Output::<()> {
+                status: Status::Finished,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: None,
+            };
+            print_output(&output)?
+        }
+        ("download-or-update-exercises", Some(matches)) => {
+            let mut exercise_args = matches.values_of("exercise").unwrap();
+
+            // collect exercise into (id, path) pairs
+            let mut exercises = vec![];
+            while let Some(exercise_id) = exercise_args.next() {
+                let exercise_id = into_usize(exercise_id)?;
+                let exercise_path = exercise_args.next().unwrap(); // safe unwrap because each --exercise takes 2 arguments
+                let exercise_path = Path::new(exercise_path);
+                exercises.push((exercise_id, exercise_path));
+            }
+
+            core.download_or_update_exercises(exercises)
+                .context("Failed to download exercises")?;
+
+            let output = Output::<()> {
+                status: Status::Finished,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: None,
+            };
+            print_output(&output)?
+        }
+        ("get-course-details", Some(matches)) => {
+            let course_id = matches.value_of("course-id").unwrap();
+            let course_id = into_usize(course_id)?;
+
+            let course_details = core
+                .get_course_details(course_id)
+                .context("Failed to get course details")?;
+
+            let output = Output {
+                status: Status::Finished,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: Some(course_details),
+            };
+            print_output(&output)?
+        }
+        ("get-course-exercises", Some(matches)) => {
+            let course_id = matches.value_of("course-id").unwrap();
+            let course_id = into_usize(course_id)?;
+
+            let course = core
+                .get_course_exercises(course_id)
+                .context("Failed to get course")?;
+
+            let output = Output {
+                status: Status::Finished,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: Some(course),
+            };
+            print_output(&output)?
+        }
+        ("get-course-settings", Some(matches)) => {
+            let course_id = matches.value_of("course-id").unwrap();
+            let course_id = into_usize(course_id)?;
+
+            let course = core.get_course(course_id).context("Failed to get course")?;
+
+            let output = Output {
+                status: Status::Finished,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: Some(course),
+            };
+            print_output(&output)?
+        }
+        ("get-courses", Some(matches)) => {
+            let organization_slug = matches.value_of("organization").unwrap();
+
+            let courses = core
+                .list_courses(organization_slug)
+                .context("Failed to get courses")?;
+
+            let output = Output {
+                status: Status::Finished,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: Some(courses),
+            };
+            print_output(&output)?
+        }
+        ("get-exercise-details", Some(matches)) => {
+            let exercise_id = matches.value_of("exercise-id").unwrap();
+            let exercise_id = into_usize(exercise_id)?;
+
+            let course = core
+                .get_exercise_details(exercise_id)
+                .context("Failed to get course")?;
+
+            let output = Output {
+                status: Status::Finished,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: Some(course),
+            };
+            print_output(&output)?
+        }
+        ("get-exercise-submissions", Some(matches)) => {
+            let exercise_id = matches.value_of("exercise-id").unwrap();
+            let exercise_id = into_usize(exercise_id)?;
+
+            let submissions = core
+                .get_exercise_submissions_for_current_user(exercise_id)
+                .context("Failed to get submissions")?;
+
+            let output = Output {
+                status: Status::Finished,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: Some(submissions),
+            };
+            print_output(&output)?
+        }
+        ("get-exercise-updates", Some(matches)) => {
+            let course_id = matches.value_of("course-id").unwrap();
+            let course_id = into_usize(course_id)?;
+
+            // collects exercise checksums into an {id: checksum} map
+            let mut checksums = HashMap::new();
+            let mut exercise_checksums = matches.values_of("exercise").unwrap();
+            while let Some(exercise_id) = exercise_checksums.next() {
+                let exercise_id = into_usize(exercise_id)?;
+                let checksum = exercise_checksums.next().unwrap(); // safe unwrap due to exercise taking two values
+                checksums.insert(exercise_id, checksum.to_string());
+            }
+
+            let update_result = core
+                .get_exercise_updates(course_id, checksums)
+                .context("Failed to get exercise updates")?;
+
+            let output = Output {
+                status: Status::Finished,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: Some(update_result),
+            };
+            print_output(&output)?
+        }
+        ("get-organization", Some(matches)) => {
+            let organization_slug = matches.value_of("organization").unwrap();
+
+            let org = core
+                .get_organization(organization_slug)
+                .context("Failed to get organization")?;
+
+            let output = Output {
+                status: Status::Finished,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: Some(org),
+            };
+            print_output(&output)?
+        }
+        ("get-organizations", Some(_matches)) => {
+            let orgs = core
+                .get_organizations()
+                .context("Failed to get organizations")?;
+
+            let output = Output {
+                status: Status::Finished,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: Some(orgs),
+            };
+            print_output(&output)?
+        }
+        ("get-unread-reviews", Some(matches)) => {
+            let reviews_url = matches.value_of("reviews-url").unwrap();
+            let reviews_url = into_url(reviews_url)?;
+
+            let reviews = core
+                .get_unread_reviews(reviews_url)
+                .context("Failed to get unread reviews")?;
+
+            let output = Output {
+                status: Status::Finished,
+                message: None,
+                result: OutputResult::LoggedOut,
+                percent_done: 1.0,
+                data: Some(reviews),
+            };
+            print_output(&output)?
+        }
+        ("logged-in", Some(_matches)) => {
+            if credentials_path.exists() {
+                let credentials = File::open(&credentials_path).with_context(|| {
+                    format!(
+                        "Failed to open credentials file at {}",
+                        credentials_path.display()
+                    )
+                })?;
+                let token: Token = serde_json::from_reader(credentials).with_context(|| {
+                    format!(
+                        "Failed to deserialize access token from {}",
+                        credentials_path.display()
+                    )
+                })?;
+                let output = Output {
+                    status: Status::Finished,
+                    message: None,
+                    result: OutputResult::LoggedIn,
+                    percent_done: 1.0,
+                    data: Some(token),
+                };
+                print_output(&output)?
+            } else {
+                let output = Output::<()> {
+                    status: Status::Finished,
+                    message: None,
+                    result: OutputResult::NotLoggedIn,
+                    percent_done: 1.0,
+                    data: None,
+                };
+                print_output(&output)?
+            }
+        }
         ("login", Some(matches)) => {
+            let base64 = matches.is_present("base64");
+
             let email = matches.value_of("email");
             let set_access_token = matches.value_of("set-access-token");
-            let base64 = matches.is_present("base64");
 
             // get token from argument or server
             let token = if let Some(token) = set_access_token {
@@ -539,7 +825,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 token_response.set_scopes(Some(vec![Scope::new("public".to_string())]));
                 token_response
             } else if let Some(email) = email {
-                // TODO: "Please enter password" and quiet param
+                // TODO: print "Please enter password" and add "quiet"  flag
                 let password = rpassword::read_password().context("Failed to read password")?;
                 let decoded = if base64 {
                     let bytes = base64::decode(password).context("Password was invalid base64")?;
@@ -608,182 +894,36 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
             };
             print_output(&output)?
         }
-        ("logged-in", Some(_matches)) => {
-            if credentials_path.exists() {
-                let credentials = File::open(&credentials_path).with_context(|| {
-                    format!(
-                        "Failed to open credentials file at {}",
-                        credentials_path.display()
-                    )
-                })?;
-                let token: Token = serde_json::from_reader(credentials).with_context(|| {
-                    format!(
-                        "Failed to deserialize access token from {}",
-                        credentials_path.display()
-                    )
-                })?;
-                let output = Output {
-                    status: Status::Finished,
-                    message: None,
-                    result: OutputResult::LoggedIn,
-                    percent_done: 1.0,
-                    data: Some(token),
-                };
-                print_output(&output)?
-            } else {
-                let output = Output::<()> {
-                    status: Status::Finished,
-                    message: None,
-                    result: OutputResult::NotLoggedIn,
-                    percent_done: 1.0,
-                    data: None,
-                };
-                print_output(&output)?
-            }
-        }
-        ("get-organizations", Some(_matches)) => {
-            let orgs = core
-                .get_organizations()
-                .context("Failed to get organizations")?;
+        ("mark-review-as-read", Some(matches)) => {
+            let review_update_url = matches.value_of("reiew-update-url").unwrap();
 
-            let output = Output {
-                status: Status::Finished,
-                message: None,
-                result: OutputResult::RetrievedData,
-                percent_done: 1.0,
-                data: Some(orgs),
-            };
-            print_output(&output)?
-        }
-        ("get-organization", Some(matches)) => {
-            let organization_slug = matches.value_of("organization").unwrap();
-            let org = core
-                .get_organization(organization_slug)
-                .context("Failed to get organization")?;
-
-            let output = Output {
-                status: Status::Finished,
-                message: None,
-                result: OutputResult::RetrievedData,
-                percent_done: 1.0,
-                data: Some(org),
-            };
-            print_output(&output)?
-        }
-        ("download-or-update-exercises", Some(matches)) => {
-            let mut exercise_args = matches.values_of("exercise").unwrap();
-            let mut exercises = vec![];
-            while let Some(exercise_id) = exercise_args.next() {
-                let exercise_id = into_usize(exercise_id)?;
-                let exercise_path = exercise_args.next().unwrap(); // safe unwrap because each --exercise takes 2 arguments
-                let exercise_path = Path::new(exercise_path);
-                exercises.push((exercise_id, exercise_path));
-            }
-
-            core.download_or_update_exercises(exercises)
-                .context("Failed to download exercises")?;
+            core.mark_review_as_read(review_update_url.to_string())
+                .context("Failed to mark review as read")?;
 
             let output = Output::<()> {
                 status: Status::Finished,
                 message: None,
-                result: OutputResult::RetrievedData,
+                result: OutputResult::SentData,
                 percent_done: 1.0,
                 data: None,
             };
             print_output(&output)?
         }
-        ("get-course-details", Some(matches)) => {
-            let course_id = matches.value_of("course-id").unwrap();
-            let course_id = into_usize(course_id)?;
-
-            let course_details = core
-                .get_course_details(course_id)
-                .context("Failed to get course details")?;
-
-            let output = Output {
-                status: Status::Finished,
-                message: None,
-                result: OutputResult::RetrievedData,
-                percent_done: 1.0,
-                data: Some(course_details),
-            };
-            print_output(&output)?
-        }
-        ("get-courses", Some(matches)) => {
-            let organization_slug = matches.value_of("organization").unwrap();
-            let courses = core
-                .list_courses(organization_slug)
-                .context("Failed to get courses")?;
-
-            let output = Output {
-                status: Status::Finished,
-                message: None,
-                result: OutputResult::RetrievedData,
-                percent_done: 1.0,
-                data: Some(courses),
-            };
-            print_output(&output)?
-        }
-        ("get-course-settings", Some(matches)) => {
-            let course_id = matches.value_of("course-id").unwrap();
-            let course_id = into_usize(course_id)?;
-            let course = core.get_course(course_id).context("Failed to get course")?;
-
-            let output = Output {
-                status: Status::Finished,
-                message: None,
-                result: OutputResult::RetrievedData,
-                percent_done: 1.0,
-                data: Some(course),
-            };
-            print_output(&output)?
-        }
-        ("get-course-exercises", Some(matches)) => {
-            let course_id = matches.value_of("course-id").unwrap();
-            let course_id = into_usize(course_id)?;
-            let course = core
-                .get_course_exercises(course_id)
-                .context("Failed to get course")?;
-
-            let output = Output {
-                status: Status::Finished,
-                message: None,
-                result: OutputResult::RetrievedData,
-                percent_done: 1.0,
-                data: Some(course),
-            };
-            print_output(&output)?
-        }
-        ("get-exercise-details", Some(matches)) => {
-            let exercise_id = matches.value_of("exercise-id").unwrap();
-            let exercise_id = into_usize(exercise_id)?;
-            let course = core
-                .get_exercise_details(exercise_id)
-                .context("Failed to get course")?;
-
-            let output = Output {
-                status: Status::Finished,
-                message: None,
-                result: OutputResult::RetrievedData,
-                percent_done: 1.0,
-                data: Some(course),
-            };
-            print_output(&output)?
-        }
         ("paste", Some(matches)) => {
-            let submission_url = matches.value_of("submission-url").unwrap();
-            let submission_url = into_url(submission_url)?;
-
-            let submission_path = matches.value_of("submission-path").unwrap();
-            let submission_path = Path::new(submission_path);
-            let paste_message = matches.value_of("paste-message");
-
             let locale = matches.value_of("locale");
             let locale = if let Some(locale) = locale {
                 Some(into_locale(locale)?)
             } else {
                 None
             };
+
+            let paste_message = matches.value_of("paste-message");
+
+            let submission_path = matches.value_of("submission-path").unwrap();
+            let submission_path = Path::new(submission_path);
+
+            let submission_url = matches.value_of("submission-url").unwrap();
+            let submission_url = into_url(submission_url)?;
 
             let new_submission = core
                 .paste(
@@ -803,9 +943,74 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
             };
             print_output(&output)?
         }
+        ("request-code-review", Some(matches)) => {
+            let locale = matches.value_of("locale");
+            let locale = if let Some(locale) = locale {
+                Some(into_locale(locale)?)
+            } else {
+                None
+            };
+
+            let message_for_reviewer = matches.value_of("message-for-reviewer").unwrap();
+
+            let submission_path = matches.value_of("submission-path").unwrap();
+            let submission_path = Path::new(submission_path);
+
+            let submission_url = matches.value_of("submission-url").unwrap();
+            let submission_url = into_url(submission_url)?;
+
+            let new_submission = core
+                .request_code_review(
+                    submission_url,
+                    submission_path,
+                    message_for_reviewer.to_string(),
+                    locale,
+                )
+                .context("Failed to request code review")?;
+
+            let output = Output {
+                status: Status::Finished,
+                message: None,
+                result: OutputResult::SentData,
+                percent_done: 1.0,
+                data: Some(new_submission),
+            };
+            print_output(&output)?
+        }
+        ("reset-exercise", Some(matches)) => {
+            let save_old_state = matches.is_present("save-old-state");
+
+            let exercise_id = matches.value_of("exercise-id").unwrap();
+            let exercise_id = into_usize(exercise_id)?;
+
+            let exercise_path = matches.value_of("exercise-path").unwrap();
+            let exercise_path = Path::new(exercise_path);
+
+            let submission_url = matches.value_of("submission-url");
+
+            if save_old_state {
+                // submit current state
+                let submission_url = into_url(submission_url.unwrap())?;
+                core.increment_progress_steps();
+                core.submit(submission_url, exercise_path, None)?;
+            }
+
+            // reset exercise
+            core.reset(exercise_id, exercise_path)?;
+
+            let output = Output::<()> {
+                status: Status::Finished,
+                message: None,
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: None,
+            };
+            print_output(&output)?
+        }
         ("run-checkstyle", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);
+
             let locale = matches.value_of("locale").unwrap();
             let locale = into_locale(locale)?;
 
@@ -840,9 +1045,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
             print_output(&output)?
         }
         ("send-feedback", Some(matches)) => {
-            let feedback_url = matches.value_of("feedback-url").unwrap();
-            let feedback_url = into_url(feedback_url)?;
-
+            // collect feedback values into a list
             let mut feedback_answers = matches.values_of("feedback").unwrap();
             let mut feedback = vec![];
             while let Some(feedback_id) = feedback_answers.next() {
@@ -853,6 +1056,9 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                     answer,
                 });
             }
+
+            let feedback_url = matches.value_of("feedback-url").unwrap();
+            let feedback_url = into_url(feedback_url)?;
 
             let response = core
                 .send_feedback(feedback_url, feedback)
@@ -868,23 +1074,23 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
             print_output(&output)?
         }
         ("submit", Some(matches)) => {
-            let submission_url = matches.value_of("submission-url").unwrap();
-            let submission_url = into_url(submission_url)?;
+            let dont_block = matches.is_present("dont-block");
 
-            let submission_path = matches.value_of("submission-path").unwrap();
-            let submission_path = Path::new(submission_path);
-
-            let optional_locale = matches.value_of("locale");
-            let optional_locale = if let Some(locale) = optional_locale {
+            let locale = matches.value_of("locale");
+            let locale = if let Some(locale) = locale {
                 Some(into_locale(locale)?)
             } else {
                 None
             };
 
-            let dont_block = matches.is_present("dont-block");
+            let submission_path = matches.value_of("submission-path").unwrap();
+            let submission_path = Path::new(submission_path);
+
+            let submission_url = matches.value_of("submission-url").unwrap();
+            let submission_url = into_url(submission_url)?;
 
             let new_submission = core
-                .submit(submission_url, submission_path, optional_locale)
+                .submit(submission_url, submission_path, locale)
                 .context("Failed to submit")?;
 
             if dont_block {
@@ -916,24 +1122,9 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 print_output(&output)?
             }
         }
-        ("get-exercise-submissions", Some(matches)) => {
-            let exercise_id = matches.value_of("exercise-id").unwrap();
-            let exercise_id = into_usize(exercise_id)?;
-            let submissions = core
-                .get_exercise_submissions_for_current_user(exercise_id)
-                .context("Failed to get submissions")?;
-
-            let output = Output {
-                status: Status::Finished,
-                message: None,
-                result: OutputResult::RetrievedData,
-                percent_done: 1.0,
-                data: Some(submissions),
-            };
-            print_output(&output)?
-        }
         ("wait-for-submission", Some(matches)) => {
             let submission_url = matches.value_of("submission-url").unwrap();
+
             let submission_finished = core
                 .wait_for_submission(submission_url)
                 .context("Failed while waiting for submissions")?;
@@ -946,181 +1137,6 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: Some(submission_finished),
-            };
-            print_output(&output)?
-        }
-        ("get-exercise-updates", Some(matches)) => {
-            let course_id = matches.value_of("course-id").unwrap();
-            let course_id = into_usize(course_id)?;
-
-            let mut exercise_checksums = matches.values_of("exercise").unwrap();
-            let mut checksums = HashMap::new();
-            while let Some(exercise_id) = exercise_checksums.next() {
-                let exercise_id = into_usize(exercise_id)?;
-                let checksum = exercise_checksums.next().unwrap();
-                checksums.insert(exercise_id, checksum.to_string());
-            }
-
-            let update_result = core
-                .get_exercise_updates(course_id, checksums)
-                .context("Failed to get exercise updates")?;
-
-            let output = Output {
-                status: Status::Finished,
-                message: None,
-                result: OutputResult::RetrievedData,
-                percent_done: 1.0,
-                data: Some(update_result),
-            };
-            print_output(&output)?
-        }
-        ("mark-review-as-read", Some(matches)) => {
-            let review_update_url = matches.value_of("review-update-url").unwrap();
-            core.mark_review_as_read(review_update_url.to_string())
-                .context("Failed to mark review as read")?;
-
-            let output = Output::<()> {
-                status: Status::Finished,
-                message: None,
-                result: OutputResult::SentData,
-                percent_done: 1.0,
-                data: None,
-            };
-            print_output(&output)?
-        }
-        ("get-unread-reviews", Some(matches)) => {
-            let reviews_url = matches.value_of("reviews-url").unwrap();
-            let reviews_url = into_url(reviews_url)?;
-
-            let reviews = core
-                .get_unread_reviews(reviews_url)
-                .context("Failed to get unread reviews")?;
-
-            let output = Output {
-                status: Status::Finished,
-                message: None,
-                result: OutputResult::LoggedOut,
-                percent_done: 1.0,
-                data: Some(reviews),
-            };
-            print_output(&output)?
-        }
-        ("request-code-review", Some(matches)) => {
-            let submission_url = matches.value_of("submission-url").unwrap();
-            let submission_url = into_url(submission_url)?;
-
-            let submission_path = matches.value_of("submission-path").unwrap();
-            let submission_path = Path::new(submission_path);
-
-            let message_for_reviewer = matches.value_of("message-for-reviewer").unwrap();
-
-            let locale = matches.value_of("locale");
-            let locale = if let Some(locale) = locale {
-                Some(into_locale(locale)?)
-            } else {
-                None
-            };
-
-            let new_submission = core
-                .request_code_review(
-                    submission_url,
-                    submission_path,
-                    message_for_reviewer.to_string(),
-                    locale,
-                )
-                .context("Failed to request code review")?;
-
-            let output = Output {
-                status: Status::Finished,
-                message: None,
-                result: OutputResult::SentData,
-                percent_done: 1.0,
-                data: Some(new_submission),
-            };
-            print_output(&output)?
-        }
-        ("download-model-solution", Some(matches)) => {
-            let solution_download_url = matches.value_of("solution-download-url").unwrap();
-            let solution_download_url = into_url(solution_download_url)?;
-
-            let target = matches.value_of("target").unwrap();
-            let target = Path::new(target);
-
-            core.download_model_solution(solution_download_url, target)
-                .context("Failed to download model solution")?;
-
-            let output = Output::<()> {
-                status: Status::Finished,
-                message: None,
-                result: OutputResult::RetrievedData,
-                percent_done: 1.0,
-                data: None,
-            };
-            print_output(&output)?
-        }
-        ("reset-exercise", Some(matches)) => {
-            let exercise_path = matches.value_of("exercise-path").unwrap();
-            let exercise_path = Path::new(exercise_path);
-
-            let exercise_id = matches.value_of("exercise-id").unwrap();
-            let exercise_id = into_usize(exercise_id)?;
-
-            let save_old_state = matches.is_present("save-old-state");
-
-            if save_old_state {
-                let submission_url = matches.value_of("submission-url").unwrap();
-                let submission_url = into_url(submission_url)?;
-                core.increment_progress_steps();
-                core.submit(submission_url, exercise_path, None)?;
-            }
-            core.reset(exercise_id, exercise_path)?;
-
-            let output = Output::<()> {
-                status: Status::Finished,
-                message: None,
-                result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
-                data: None,
-            };
-            print_output(&output)?
-        }
-        ("download-old-submission", Some(matches)) => {
-            let exercise_id = matches.value_of("exercise-id").unwrap();
-            let exercise_id = into_usize(exercise_id)?;
-
-            let submission_id = matches.value_of("submission-id").unwrap();
-            let submission_id = into_usize(submission_id)?;
-
-            let output_path = matches.value_of("output-path").unwrap();
-            let output_path = Path::new(output_path);
-
-            let save_old_state = matches.is_present("save-old-state");
-
-            core.increment_progress_steps();
-            if save_old_state {
-                let submission_url = matches.value_of("submission-url").unwrap();
-                let submission_url = into_url(submission_url)?;
-                core.increment_progress_steps();
-                core.submit(submission_url, output_path, None)?;
-                log::debug!("finished submission");
-            }
-
-            // reset old exercise if it exists
-            core.reset(exercise_id, output_path)?;
-            log::debug!("reset exercise");
-
-            let temp_zip = NamedTempFile::new().context("Failed to create a temporary archive")?;
-            core.download_old_submission(submission_id, temp_zip.path())?;
-            log::debug!("downloaded old submission to {}", temp_zip.path().display());
-            task_executor::extract_student_files(temp_zip.path(), output_path)?;
-            log::debug!("extracted project");
-
-            let output = Output::<()> {
-                status: Status::Finished,
-                message: None,
-                result: OutputResult::RetrievedData,
-                percent_done: 1.0,
-                data: None,
             };
             print_output(&output)?
         }
@@ -1173,29 +1189,6 @@ fn into_locale(arg: &str) -> Result<Language> {
 
 fn into_url(arg: &str) -> Result<Url> {
     Url::parse(arg).with_context(|| format!("Failed to parse url {}", arg))
-}
-
-fn find_exercise_directories(exercise_path: &Path) -> Vec<PathBuf> {
-    let mut paths = vec![];
-    for entry in WalkDir::new(exercise_path)
-        .max_depth(1)
-        .into_iter()
-        .filter_map(|e| e.ok())
-        .filter(submission_processing::is_hidden_dir)
-        .filter(|e| {
-            e.file_name()
-                .to_str()
-                .map(|s| s == "private")
-                .unwrap_or(false)
-        })
-        .filter(submission_processing::contains_tmcignore)
-    {
-        // TODO: Java implementation doesn't scan root directories
-        if task_executor::is_exercise_root_directory(entry.path()) {
-            paths.push(entry.into_path())
-        }
-    }
-    paths
 }
 
 // if output_path is Some, the checkstyle results are written to that path

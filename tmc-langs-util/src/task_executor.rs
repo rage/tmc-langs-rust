@@ -11,7 +11,7 @@ use std::path::{Path, PathBuf};
 use tmc_langs_csharp::CSharpPlugin;
 use tmc_langs_framework::{
     domain::TmcProjectYml,
-    io,
+    io::{self, submission_processing},
     plugin::{Language, LanguagePlugin},
     policy::NothingIsStudentFilePolicy,
 };
@@ -21,6 +21,7 @@ use tmc_langs_make::MakePlugin;
 use tmc_langs_notests::NoTestsPlugin;
 use tmc_langs_python3::Python3Plugin;
 use tmc_langs_r::RPlugin;
+use walkdir::WalkDir;
 
 /// See `domain::prepare_solutions`.
 pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
@@ -166,6 +167,23 @@ pub fn compress_tar_for_submitting(
 pub fn clean(path: &Path) -> Result<(), TmcError> {
     get_language_plugin(path)?.clean(path)?;
     Ok(())
+}
+
+pub fn find_exercise_directories(exercise_path: &Path) -> Vec<PathBuf> {
+    let mut paths = vec![];
+    for entry in WalkDir::new(exercise_path)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(submission_processing::is_hidden_dir)
+        .filter(|e| e.file_name() == "private")
+        .filter(submission_processing::contains_tmcignore)
+    {
+        // TODO: Java implementation doesn't scan root directories
+        if is_exercise_root_directory(entry.path()) {
+            paths.push(entry.into_path())
+        }
+    }
+    paths
 }
 
 enum Plugin {

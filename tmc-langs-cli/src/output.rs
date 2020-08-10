@@ -3,6 +3,7 @@
 use serde::Serialize;
 use tmc_langs_core::StatusType;
 
+/// The format for all messages written to stdout by the CLI
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Output<T: Serialize> {
@@ -16,8 +17,11 @@ pub struct Output<T: Serialize> {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Status {
+    /// The command was ran without fatal errors
     Finished,
+    /// An unexpected issue occurred during the command
     Crashed,
+    /// The command is still in progress
     InProgress,
 }
 
@@ -41,6 +45,7 @@ pub enum OutputResult {
     IntermediateStepFinished,
 }
 
+// converts a tmc_langs_core status to output result
 impl From<StatusType> for OutputResult {
     fn from(status_type: StatusType) -> Self {
         match status_type {
@@ -56,16 +61,21 @@ impl From<StatusType> for OutputResult {
     }
 }
 
+/// The format for all error messages printed in Output.data
 #[derive(Debug, Serialize)]
 pub struct ErrorData {
     pub kind: Kind,
+    /// Contains the error cause chain
     pub trace: Vec<String>,
 }
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Kind {
+    /// For all other errors
     Generic,
+    /// 403 from server
     AuthorizationError,
+    /// Failed to connect to the TMC server, likely due to no internet connection
     ConnectionError,
 }
