@@ -1109,8 +1109,6 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 let submission_finished = core
                     .wait_for_submission(&submission_url)
                     .context("Failed while waiting for submissions")?;
-                let submission_finished = serde_json::to_string(&submission_finished)
-                    .context("Failed to serialize submission results")?;
 
                 let output = Output {
                     status: Status::Finished,
