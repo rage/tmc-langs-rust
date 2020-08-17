@@ -177,7 +177,7 @@ pub fn prepare_submission(
     let project_root =
         project_root.ok_or_else(|| UtilError::NoProjectDirInZip(zip_path.to_path_buf()))?;
 
-    let plugin = get_language_plugin(&project_root)?;
+    let plugin = get_language_plugin(&clone_path)?;
     let dest = temp.path().join(
         toplevel_dir_name
             .as_ref()
