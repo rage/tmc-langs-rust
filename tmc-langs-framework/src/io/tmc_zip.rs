@@ -1,9 +1,11 @@
 //! Contains functions for zipping and unzipping projects.
 
+use crate::error::TmcError;
+use crate::io::file_util;
 use crate::policy::StudentFilePolicy;
-use crate::{Result, TmcError};
+use crate::Result;
+
 use std::collections::HashSet;
-use std::fs::{self, File};
 use std::io::{Cursor, Read, Seek, Write};
 use std::path::Path;
 use std::path::PathBuf;
@@ -31,16 +33,12 @@ pub fn zip<P: StudentFilePolicy>(policy: P, root_directory: &Path) -> Result<Vec
                 log::trace!("adding directory {}", path.display());
                 writer.add_directory_from_path(path, FileOptions::default())?;
             } else {
-                let mut file = File::open(entry.path())
-                    .map_err(|e| TmcError::FileOpen(entry.path().to_path_buf(), e))?;
-                let mut bytes = vec![];
-                file.read_to_end(&mut bytes)
-                    .map_err(|e| TmcError::FileRead(entry.path().to_path_buf(), e))?;
+                let bytes = file_util::read_file(entry.path())?;
                 log::trace!("writing file {}", path.display());
                 writer.start_file_from_path(path, FileOptions::default())?;
                 writer
                     .write_all(&bytes)
-                    .map_err(|e| TmcError::Write(path.to_path_buf(), e))?;
+                    .map_err(|e| TmcError::ZipWrite(path.to_path_buf(), e))?;
             }
         }
     }
@@ -59,7 +57,7 @@ where
 {
     log::debug!("Unzipping {} to {}", zip.display(), target.display());
 
-    let file = File::open(zip).map_err(|e| TmcError::OpenFile(zip.to_path_buf(), e))?;
+    let file = file_util::open_file(zip)?;
     let mut zip_archive = ZipArchive::new(file)?;
 
     let project_dir = find_project_dir(&mut zip_archive)?;
@@ -86,8 +84,7 @@ where
 
         if file.is_dir() {
             log::trace!("creating {:?}", path_in_target);
-            fs::create_dir_all(&path_in_target)
-                .map_err(|e| TmcError::CreateDir(path_in_target.clone(), e))?;
+            file_util::create_dir_all(&path_in_target)?;
             unzip_paths.insert(
                 path_in_target
                     .canonicalize()
@@ -97,7 +94,7 @@ where
             let mut write = true;
             let mut file_contents = vec![];
             file.read_to_end(&mut file_contents)
-                .map_err(|e| TmcError::FileRead(file_path.clone(), e))?;
+                .map_err(|e| TmcError::ZipRead(file_path.clone(), e))?;
             // always overwrite .tmcproject.yml
             if path_in_target.exists()
                 && !path_in_target
@@ -105,12 +102,7 @@ where
                     .map(|o| o == ".tmcproject.yml")
                     .unwrap_or_default()
             {
-                let mut target_file = File::open(&path_in_target)
-                    .map_err(|e| TmcError::OpenFile(path_in_target.clone(), e))?;
-                let mut target_file_contents = vec![];
-                target_file
-                    .read_to_end(&mut target_file_contents)
-                    .map_err(|e| TmcError::FileRead(path_in_target.clone(), e))?;
+                let target_file_contents = file_util::read_file(&path_in_target)?;
                 if file_contents == target_file_contents
                     || (policy.is_student_file(&path_in_target, &target, &tmc_project_yml)?
                         && !policy.is_updating_forced(&relative, &tmc_project_yml)?)
@@ -121,14 +113,12 @@ where
             if write {
                 log::trace!("writing to {}", path_in_target.display());
                 if let Some(parent) = path_in_target.parent() {
-                    fs::create_dir_all(parent)
-                        .map_err(|e| TmcError::CreateDir(parent.to_path_buf(), e))?;
+                    file_util::create_dir_all(parent)?;
                 }
-                let mut overwrite_target = File::create(&path_in_target)
-                    .map_err(|e| TmcError::CreateFile(path_in_target.clone(), e))?;
+                let mut overwrite_target = file_util::create_file(&path_in_target)?;
                 overwrite_target
                     .write_all(&file_contents)
-                    .map_err(|e| TmcError::Write(path_in_target.clone(), e))?;
+                    .map_err(|e| TmcError::ZipWrite(path_in_target.clone(), e))?;
             }
         }
         unzip_paths.insert(
@@ -155,13 +145,11 @@ where
                 // delete if empty
                 if WalkDir::new(entry.path()).max_depth(1).into_iter().count() == 1 {
                     log::debug!("deleting empty directory {}", entry.path().display());
-                    fs::remove_dir(entry.path())
-                        .map_err(|e| TmcError::RemoveDir(entry.path().to_path_buf(), e))?;
+                    file_util::remove_dir_empty(entry.path())?;
                 }
             } else {
                 log::debug!("removing file {}", entry.path().display());
-                fs::remove_file(entry.path())
-                    .map_err(|e| TmcError::RemoveFile(entry.path().to_path_buf(), e))?;
+                file_util::remove_file(entry.path())?;
             }
         }
     }

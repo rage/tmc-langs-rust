@@ -1,10 +1,10 @@
 //! Contains a function for creating a tarball from a project.
 
-use std::fs::File;
+use crate::error::UtilError;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use tar::Builder;
-use tmc_langs_framework::{Result, TmcError};
+use tmc_langs_framework::{io::file_util, TmcError};
 use walkdir::WalkDir;
 
 /// Creates a tarball from the project dir, also adding in tmc_langs and tmcrun.
@@ -13,7 +13,7 @@ pub fn create_tar_from_project(
     tmc_langs: &Path,
     tmcrun: &Path,
     target_location: &Path,
-) -> Result<()> {
+) -> Result<(), UtilError> {
     log::debug!(
         "creating tar from {} to {} with tmc-langs at {} and tmcrun at {}",
         project_dir.display(),
@@ -21,8 +21,7 @@ pub fn create_tar_from_project(
         tmc_langs.display(),
         tmcrun.display()
     );
-    let file = File::create(target_location)
-        .map_err(|e| TmcError::CreateFile(target_location.to_path_buf(), e))?;
+    let file = file_util::create_file(target_location)?;
     let mut tar = Builder::new(file);
 
     let project_name = Path::new(
@@ -43,7 +42,7 @@ fn add_dir_to_project<W: Write>(
     source: &Path,
     root: &Path,
     project_name: &Path,
-) -> Result<()> {
+) -> Result<(), UtilError> {
     // silently skips over errors
     for entry in WalkDir::new(source).into_iter().filter_map(|e| e.ok()) {
         if entry.path().is_file() {
@@ -61,6 +60,7 @@ fn add_dir_to_project<W: Write>(
 mod test {
     use super::*;
     use std::collections::HashSet;
+    use std::fs::File;
     use tar::Archive;
     use tempfile::tempdir;
 

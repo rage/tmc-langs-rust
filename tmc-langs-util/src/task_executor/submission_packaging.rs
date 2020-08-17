@@ -1,9 +1,10 @@
-use super::{get_language_plugin, Plugin, TmcError, TmcProjectYml};
+use super::{get_language_plugin, Plugin, TmcProjectYml};
+use crate::error::{ParamError, UtilError};
+use tmc_langs_framework::error::FileIo;
 
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use std::fs;
 use std::io::Write;
 use std::path::Path;
 use tmc_langs_framework::io::file_util;
@@ -26,23 +27,23 @@ impl TmcParams {
         &mut self,
         key: S,
         value: T,
-    ) -> Result<(), TmcError> {
+    ) -> Result<(), UtilError> {
         // validate key
         let key = {
             let key = key.as_ref();
-            if !Self::is_valid_key(key) {
-                return Err(TmcError::InvalidParam(key.to_string()));
+            match Self::is_valid_key(key) {
+                Ok(()) => ShellString(key.to_string()),
+                Err(e) => return Err(UtilError::InvalidParam(key.to_string(), e)),
             }
-            ShellString(key.to_string())
         };
 
         // validate value
         let value = {
             let value = value.as_ref();
-            if !Self::is_valid_value(value) {
-                return Err(TmcError::InvalidParam(value.to_string()));
+            match Self::is_valid_value(value) {
+                Ok(()) => ShellString(value.to_string()),
+                Err(e) => return Err(UtilError::InvalidParam(value.to_string(), e)),
             }
-            ShellString(value.to_string())
         };
 
         self.0.insert(key, TmcParam::String(value));
@@ -53,13 +54,12 @@ impl TmcParams {
         &mut self,
         key: S,
         values: Vec<T>,
-    ) -> Result<(), TmcError> {
+    ) -> Result<(), UtilError> {
         let key = {
             let key = key.as_ref();
-            if Self::is_valid_key(key) {
-                ShellString(key.to_string())
-            } else {
-                return Err(TmcError::InvalidParam(key.to_string()));
+            match Self::is_valid_key(key) {
+                Ok(()) => ShellString(key.to_string()),
+                Err(e) => return Err(UtilError::InvalidParam(key.to_string(), e)),
             }
         };
 
@@ -67,10 +67,9 @@ impl TmcParams {
             .into_iter()
             .map(|s| {
                 let s = s.as_ref();
-                if Self::is_valid_value(s) {
-                    Ok(ShellString(s.to_string()))
-                } else {
-                    Err(TmcError::InvalidParam(s.to_string()))
+                match Self::is_valid_value(s) {
+                    Ok(()) => Ok(ShellString(s.to_string())),
+                    Err(e) => Err(UtilError::InvalidParam(s.to_string(), e)),
                 }
             })
             .collect::<Result<Vec<_>, _>>()?;
@@ -79,33 +78,34 @@ impl TmcParams {
         Ok(())
     }
 
-    fn is_valid_key<S: AsRef<str>>(string: S) -> bool {
+    fn is_valid_key<S: AsRef<str>>(string: S) -> Result<(), ParamError> {
         if string.as_ref().is_empty() {
-            return false;
+            return Err(ParamError::Empty);
         }
 
         for c in string.as_ref().chars() {
             if !c.is_ascii_alphabetic() && c != '_' {
-                return false;
+                return Err(ParamError::InvalidChar(c));
             }
         }
-        true
+        Ok(())
     }
 
-    fn is_valid_value<S: AsRef<str>>(string: S) -> bool {
+    fn is_valid_value<S: AsRef<str>>(string: S) -> Result<(), ParamError> {
         if string.as_ref().is_empty() {
-            return false;
+            return Err(ParamError::Empty);
         }
 
         for c in string.as_ref().chars() {
             if !c.is_ascii_alphabetic() && c != '_' && c != '-' {
-                return false;
+                return Err(ParamError::InvalidChar(c));
             }
         }
-        true
+        Ok(())
     }
 }
 
+// string checked to be a valid shell string
 #[derive(Debug, PartialEq, Eq, Hash)]
 struct ShellString(String);
 
@@ -140,6 +140,8 @@ impl Display for ShellString {
     }
 }
 
+// prepares a submission for further processing on the TMC server
+// todo: the function is currently long and unfocused
 pub fn prepare_submission(
     zip_path: &Path,
     target_path: &Path,
@@ -148,7 +150,7 @@ pub fn prepare_submission(
     clone_path: &Path,
     stub_zip_path: Option<&Path>,
     output_zip: bool,
-) -> Result<(), TmcError> {
+) -> Result<(), UtilError> {
     log::debug!("preparing submission for {}", zip_path.display());
 
     fn useless_file_filter(entry: &ZipFile) -> bool {
@@ -162,9 +164,9 @@ pub fn prepare_submission(
         files_to_filter.contains(&entry.sanitized_name().as_os_str())
     }
 
-    let temp = tempfile::tempdir().map_err(TmcError::TempDir)?;
+    let temp = tempfile::tempdir().map_err(UtilError::TempDir)?;
     let received_dir = temp.path().join("received");
-    fs::create_dir(&received_dir).map_err(|e| TmcError::CreateDir(received_dir.clone(), e))?;
+    file_util::create_dir_all(&received_dir)?;
 
     // unzip submission to received dir
     log::debug!("unzipping submission");
@@ -172,7 +174,8 @@ pub fn prepare_submission(
 
     // find project dir in unzipped files
     let project_root = file_util::find_project_root(&received_dir)?;
-    let project_root = project_root.ok_or(TmcError::NoProjectDirInZip)?;
+    let project_root =
+        project_root.ok_or_else(|| UtilError::NoProjectDirInZip(zip_path.to_path_buf()))?;
 
     let plugin = get_language_plugin(&project_root)?;
     let dest = temp.path().join(
@@ -192,7 +195,7 @@ pub fn prepare_submission(
         log::debug!("{}", export);
         tmc_params_file
             .write_all(export.as_bytes())
-            .map_err(|e| TmcError::Write(tmc_params_path.clone(), e))?;
+            .map_err(|e| FileIo::FileWrite(tmc_params_path.clone(), e))?;
     }
 
     // copy IDE files
@@ -389,8 +392,8 @@ pub fn prepare_submission(
             prefix.display()
         );
         archive
-            .append_dir_all(prefix, dest)
-            .map_err(TmcError::TarAppend)?;
+            .append_dir_all(prefix, &dest)
+            .map_err(|e| UtilError::TarAppend(dest, e))?;
     }
     Ok(())
 }
@@ -399,6 +402,7 @@ pub fn prepare_submission(
 #[cfg(target_os = "linux")] // no maven plugin on other OS
 mod test {
     use super::*;
+    use std::fs;
     use std::path::PathBuf;
     use tempfile::TempDir;
     use walkdir::WalkDir;
@@ -446,7 +450,7 @@ mod test {
         let output_extracted = temp.path().join("output");
         archive.unpack(&output_extracted).unwrap();
         for entry in WalkDir::new(temp.path()) {
-            log::debug!("{}", entry.unwrap().path().display());
+            log::debug!("file {}", entry.unwrap().path().display());
         }
         (temp, output_extracted)
     }
@@ -489,7 +493,8 @@ mod test {
         let contents = String::from_utf8(writer).unwrap();
         assert!(contents.contains("MODIFIED"));
         // the text should not be in the package
-        let test_file = fs::read_to_string(output.join("src/test/java/SimpleTest.java")).unwrap();
+        let test_file =
+            fs::read_to_string(dbg!(output.join("src/test/java/SimpleTest.java"))).unwrap();
         assert!(!test_file.contains("MODIFIED"));
     }
 

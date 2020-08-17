@@ -1,13 +1,12 @@
-//! Contains utilities for parsing text files, separating lines into
-//! strings, stubs and solutions so that they can be more easily filtered accordingly
+//! Contains utilities for parsing annotated exercise source files, separating lines into
+//! strings, stubs and solutions so that they can be more easily filtered later.
 
 use crate::{Result, TmcError};
 use lazy_static::lazy_static;
-use log::debug;
 use regex::{Captures, Regex};
 use std::io::{BufRead, BufReader, Read};
 
-// Meta syntaxes for each comment syntax
+// rules for finding comments in various languages
 lazy_static! {
     static ref META_SYNTAXES_C: [MetaSyntax; 2] = [
         MetaSyntax::new("//", None),
@@ -17,7 +16,7 @@ lazy_static! {
     static ref META_SYNTAXES_PY: [MetaSyntax; 1] = [MetaSyntax::new("#", None)];
 }
 
-// Used to classify lines of code based on the annotations in the file
+/// Used to classify lines of code based on the annotations in the file.
 #[derive(Debug, PartialEq, Eq)]
 pub enum MetaString {
     String(String),
@@ -26,7 +25,6 @@ pub enum MetaString {
 }
 
 impl MetaString {
-    // Borrows the underlying line of text
     pub fn as_str(&self) -> &str {
         match self {
             Self::String(s) => &s,
@@ -36,7 +34,7 @@ impl MetaString {
     }
 }
 
-// Contains the needed regexes for a given comment syntax
+/// Contains the needed regexes for a given comment syntax.
 #[derive(Debug)]
 struct MetaSyntax {
     solution_file: Regex,
@@ -48,11 +46,14 @@ struct MetaSyntax {
 
 impl MetaSyntax {
     fn new(comment_start: &'static str, comment_end: Option<&'static str>) -> Self {
+        // comment patterns
         let comment_start_pattern = format!("^(\\s*){}\\s*", comment_start);
         let comment_end_pattern = match comment_end {
             Some(s) => format!("(.*){}\\s*", s),
             None => "(.*)".to_string(),
         };
+
+        // annotation patterns
         let solution_file = Regex::new(&format!(
             "{}SOLUTION\\s+FILE{}",
             comment_start_pattern, comment_end_pattern
@@ -81,7 +82,7 @@ impl MetaSyntax {
     }
 }
 
-/// Parses a given text file into an iterator of `MetaString`s
+/// Parses a given text file into an iterator of `MetaString`s.
 #[derive(Debug)]
 pub struct MetaSyntaxParser<B: BufRead> {
     meta_syntaxes: &'static [MetaSyntax],
@@ -95,13 +96,14 @@ pub struct MetaSyntaxParser<B: BufRead> {
 impl<R: Read> MetaSyntaxParser<BufReader<R>> {
     pub fn new(target: R, target_extension: &str) -> Self {
         let reader = BufReader::new(target);
-        // Assigns each supported file extension with the proper comment syntax
+        // assigns each supported file extension with the proper comment syntax
         let meta_syntaxes: &[MetaSyntax] = match target_extension {
             "java" | "c" | "cpp" | "h" | "hpp" | "js" | "css" | "rs" | "qml" => &*META_SYNTAXES_C,
             "xml" | "http" | "html" | "qrc" => &*META_SYNTAXES_HTML,
             "properties" | "py" | "R" | "pro" => &*META_SYNTAXES_PY,
             _ => &[],
         };
+
         Self {
             meta_syntaxes,
             reader,
@@ -125,7 +127,7 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                 for meta_syntax in self.meta_syntaxes {
                     // check for stub
                     if self.in_stub.is_none() && meta_syntax.stub_begin.is_match(&s) {
-                        debug!("stub start: '{}'", s);
+                        log::debug!("stub start: '{}'", s);
                         // save the syntax that started the current stub
                         self.in_stub = Some(meta_syntax);
                         // remove stub start
@@ -133,29 +135,31 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                             .stub_begin
                             .replace(&s, |caps: &Captures| caps[1].to_string())
                             .to_string();
-                        debug!("parsed: '{}'", s);
+                        log::debug!("parsed: '{}'", s);
                         if s.trim().is_empty() {
                             // only metadata, skip
                             return self.next();
                         }
                     }
                     // if the line matches stub_end and the saved syntax matches
-                    // the start of the current meta syntax
+                    // the start of the current meta syntax, return stub contents if any
                     if meta_syntax.stub_end.is_match(&s)
                         && self.in_stub.map(|r| r.stub_begin.as_str())
                             == Some(meta_syntax.stub_begin.as_str())
                     {
-                        debug!("stub end: '{}'", s);
+                        log::debug!("stub end: '{}'", s);
                         self.in_stub = None;
+                        // remove stub end
                         s = meta_syntax
                             .stub_end
                             .replace(&s, |caps: &Captures| caps[1].to_string())
                             .to_string();
-                        debug!("parsed: '{}'", s);
+                        log::debug!("parsed: '{}'", s);
                         if s.trim().is_empty() {
                             // only metadata, skip
                             return self.next();
                         }
+                        // return the stub contents
                         return Some(Ok(MetaString::Stub(s)));
                     }
 
@@ -173,13 +177,13 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                 // after processing the line with each meta syntax,
                 // parse the current line accordingly
                 if self.in_solution {
-                    debug!("solution: '{}'", s);
+                    log::debug!("solution: '{}'", s);
                     Some(Ok(MetaString::Solution(s)))
                 } else if self.in_stub.is_some() {
-                    debug!("stub: '{}'", s);
+                    log::debug!("stub: '{}'", s);
                     Some(Ok(MetaString::Stub(s)))
                 } else {
-                    debug!("string: '{}'", s);
+                    log::debug!("string: '{}'", s);
                     Some(Ok(MetaString::String(s)))
                 }
             }

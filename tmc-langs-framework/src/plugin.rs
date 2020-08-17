@@ -6,14 +6,13 @@ use super::domain::{
     ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, TestResult, TmcProjectYml,
     ValidationResult,
 };
-use super::io::{submission_processing, tmc_zip};
+use super::io::{file_util, submission_processing, tmc_zip};
 use super::policy::StudentFilePolicy;
 use super::Result;
-use crate::TmcError;
+use crate::error::TmcError;
 
 use log::debug;
 use std::collections::{HashMap, HashSet};
-use std::fs::{self, File};
 use std::io::{Read, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
@@ -172,8 +171,7 @@ pub trait LanguagePlugin {
             target_location.display()
         );
 
-        let file = File::open(compressed_project)
-            .map_err(|e| TmcError::OpenFile(compressed_project.to_path_buf(), e))?;
+        let file = file_util::open_file(compressed_project)?;
         let mut zip_archive = ZipArchive::new(file)?;
 
         // find the exercise root directory inside the archive
@@ -201,13 +199,12 @@ pub trait LanguagePlugin {
 
             if file.is_dir() {
                 log::trace!("creating {:?}", path_in_target);
-                fs::create_dir_all(&path_in_target)
-                    .map_err(|e| TmcError::CreateDir(path_in_target.clone(), e))?;
+                file_util::create_dir_all(&path_in_target)?;
             } else {
                 let mut write = true;
                 let mut file_contents = vec![];
                 file.read_to_end(&mut file_contents)
-                    .map_err(|e| TmcError::FileRead(file_path.clone(), e))?;
+                    .map_err(|e| TmcError::ZipRead(file_path.clone(), e))?;
                 // always overwrite .tmcproject.yml
                 if path_in_target.exists()
                     && !path_in_target
@@ -215,12 +212,7 @@ pub trait LanguagePlugin {
                         .map(|o| o == ".tmcproject.yml")
                         .unwrap_or_default()
                 {
-                    let mut target_file = File::open(&path_in_target)
-                        .map_err(|e| TmcError::OpenFile(path_in_target.clone(), e))?;
-                    let mut target_file_contents = vec![];
-                    target_file
-                        .read_to_end(&mut target_file_contents)
-                        .map_err(|e| TmcError::FileRead(path_in_target.clone(), e))?;
+                    let target_file_contents = file_util::read_file(&path_in_target)?;
                     if file_contents == target_file_contents
                         || (policy.is_student_file(
                             &path_in_target,
@@ -234,14 +226,12 @@ pub trait LanguagePlugin {
                 if write {
                     log::trace!("writing to {}", path_in_target.display());
                     if let Some(parent) = path_in_target.parent() {
-                        fs::create_dir_all(parent)
-                            .map_err(|e| TmcError::CreateDir(parent.to_path_buf(), e))?;
+                        file_util::create_dir_all(parent)?;
                     }
-                    let mut overwrite_target = File::create(&path_in_target)
-                        .map_err(|e| TmcError::CreateFile(path_in_target.clone(), e))?;
+                    let mut overwrite_target = file_util::create_file(&path_in_target)?;
                     overwrite_target
                         .write_all(&file_contents)
-                        .map_err(|e| TmcError::Write(path_in_target.clone(), e))?;
+                        .map_err(|e| TmcError::ZipWrite(path_in_target.clone(), e))?;
                 }
             }
         }
@@ -271,13 +261,11 @@ pub trait LanguagePlugin {
                         // delete if empty
                         if WalkDir::new(entry.path()).max_depth(1).into_iter().count() == 1 {
                             log::debug!("deleting empty directory {}", entry.path().display());
-                            fs::remove_dir(entry.path())
-                                .map_err(|e| TmcError::RemoveDir(entry.path().to_path_buf(), e))?;
+                            file_util::remove_dir_empty(entry.path())?;
                         }
                     } else {
                         log::debug!("removing file {}", entry.path().display());
-                        fs::remove_file(entry.path())
-                            .map_err(|e| TmcError::RemoveFile(entry.path().to_path_buf(), e))?;
+                        file_util::remove_file(entry.path())?;
                     }
                 }
             }
@@ -300,8 +288,7 @@ pub trait LanguagePlugin {
             target_location.display()
         );
 
-        let file = File::open(compressed_project)
-            .map_err(|e| TmcError::OpenFile(compressed_project.to_path_buf(), e))?;
+        let file = file_util::open_file(compressed_project)?;
         let mut zip_archive = ZipArchive::new(file)?;
 
         // find the exercise root directory inside the archive
@@ -329,8 +316,7 @@ pub trait LanguagePlugin {
 
             if file.is_dir() {
                 log::trace!("creating {:?}", path_in_target);
-                fs::create_dir_all(&path_in_target)
-                    .map_err(|e| TmcError::CreateDir(path_in_target.clone(), e))?;
+                file_util::create_dir_all(&path_in_target)?;
             } else {
                 let mut write = true;
                 // always overwrite .tmcproject.yml
@@ -340,17 +326,15 @@ pub trait LanguagePlugin {
                 if write {
                     let mut file_contents = vec![];
                     file.read_to_end(&mut file_contents)
-                        .map_err(|e| TmcError::FileRead(file_path.clone(), e))?;
+                        .map_err(|e| TmcError::ZipRead(file_path.clone(), e))?;
                     log::trace!("writing to {}", path_in_target.display());
                     if let Some(parent) = path_in_target.parent() {
-                        fs::create_dir_all(parent)
-                            .map_err(|e| TmcError::CreateDir(parent.to_path_buf(), e))?;
+                        file_util::create_dir_all(parent)?;
                     }
-                    let mut overwrite_target = File::create(&path_in_target)
-                        .map_err(|e| TmcError::CreateFile(path_in_target.clone(), e))?;
+                    let mut overwrite_target = file_util::create_file(&path_in_target)?;
                     overwrite_target
                         .write_all(&file_contents)
-                        .map_err(|e| TmcError::Write(path_in_target.clone(), e))?;
+                        .map_err(|e| TmcError::ZipWrite(path_in_target.clone(), e))?;
                 }
             }
         }

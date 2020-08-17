@@ -50,13 +50,13 @@ pub enum CoreError {
     CacheDir,
 
     #[error(transparent)]
-    TmcLangs(#[from] tmc_langs_util::TmcError),
-    #[error(transparent)]
     Response(#[from] response::ResponseError),
     #[error(transparent)]
     ResponseErrors(#[from] response::ResponseErrors),
     #[error(transparent)]
     WalkDir(#[from] walkdir::Error),
+    #[error(transparent)]
+    Tmc(#[from] tmc_langs_util::error::UtilError),
 }
 
 impl From<TokenError> for CoreError {

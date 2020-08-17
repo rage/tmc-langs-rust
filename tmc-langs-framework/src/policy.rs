@@ -59,7 +59,7 @@ pub trait StudentFilePolicy {
     fn get_config_file_parent_path(&self) -> &Path;
 
     fn get_tmc_project_yml(&self) -> Result<TmcProjectYml> {
-        Ok(TmcProjectYml::from(self.get_config_file_parent_path())?)
+        TmcProjectYml::from(self.get_config_file_parent_path())
     }
 
     /// Determines whether a file is an extra student file.

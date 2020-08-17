@@ -2,12 +2,13 @@
 
 pub mod meta_syntax;
 
-use super::{Result, TmcError};
+use super::Result;
+use crate::io::file_util;
+
 use log::debug;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use std::fs::File;
 use std::path::{Path, PathBuf};
 
 /// A description of an exercise's test case.
@@ -157,7 +158,7 @@ impl TmcProjectYml {
             return Ok(Self::default());
         }
         debug!("reading .tmcproject.yml from {}", config_path.display());
-        let file = File::open(&config_path).map_err(|e| TmcError::OpenFile(config_path, e))?;
+        let file = file_util::open_file(&config_path)?;
         Ok(serde_yaml::from_reader(file)?)
     }
 }

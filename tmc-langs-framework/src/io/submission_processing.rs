@@ -1,14 +1,13 @@
 //! Functions for processing submissions.
 
-use crate::policy::StudentFilePolicy;
-use crate::{Result, TmcError};
-
 use crate::domain::meta_syntax::{MetaString, MetaSyntaxParser};
+use crate::io::file_util;
+use crate::policy::StudentFilePolicy;
+use crate::Result;
+
 use lazy_static::lazy_static;
 use log::{debug, info};
 use regex::Regex;
-use std::fs::{self, File};
-use std::io::Write;
 use std::path::{Path, PathBuf};
 use walkdir::{DirEntry, WalkDir};
 
@@ -41,12 +40,9 @@ pub fn move_files<P: StudentFilePolicy>(
             let relative = entry.path().strip_prefix(source).unwrap();
             let target_path = target.join(&relative);
             if let Some(parent) = target_path.parent() {
-                fs::create_dir_all(parent)
-                    .map_err(|e| TmcError::CreateDir(parent.to_path_buf(), e))?;
+                file_util::create_dir_all(parent)?;
             }
-            fs::rename(entry.path(), &target_path).map_err(|e| {
-                TmcError::Rename(entry.path().to_path_buf(), target_path.to_path_buf(), e)
-            })?;
+            file_util::rename(entry.path(), &target_path)?;
         }
     }
     Ok(())
@@ -113,7 +109,7 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
         .unwrap_or_else(|_| Path::new(""));
     let dest_path = dest_root.join(&relative_path);
     if let Some(parent) = dest_path.parent() {
-        fs::create_dir_all(parent).map_err(|e| TmcError::CreateDir(parent.to_path_buf(), e))?;
+        file_util::create_dir_all(parent)?;
     }
     let extension = entry.path().extension().and_then(|e| e.to_str());
     let is_binary = extension
@@ -126,8 +122,7 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
             entry.path(),
             dest_path
         );
-        fs::copy(entry.path(), &dest_path)
-            .map_err(|e| TmcError::FileCopy(entry.path().to_path_buf(), dest_path, e))?;
+        file_util::copy(entry.path(), &dest_path)?;
     } else {
         // filter text files
         debug!(
@@ -136,11 +131,7 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
             dest_path
         );
 
-        let source_file = File::open(entry.path())
-            .map_err(|e| TmcError::OpenFile(entry.path().to_path_buf(), e))?;
-
-        let mut target_file = File::create(&dest_path)
-            .map_err(|e| TmcError::CreateFile(entry.path().to_path_buf(), e))?;
+        let source_file = file_util::open_file(entry.path())?;
 
         let parser = MetaSyntaxParser::new(source_file, extension.unwrap_or_default());
 
@@ -158,9 +149,7 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
             .copied()
             .collect();
         // writes all lines
-        target_file
-            .write_all(&write_lines)
-            .map_err(|e| TmcError::Write(dest_path, e))?;
+        file_util::write_to_file(&mut write_lines.as_slice(), &dest_path)?;
     }
     Ok(())
 }
@@ -225,7 +214,8 @@ mod test {
     use crate::domain::TmcProjectYml;
     use crate::policy::{EverythingIsStudentFilePolicy, NothingIsStudentFilePolicy};
     use std::collections::HashSet;
-    use std::io::Read;
+    use std::fs::File;
+    use std::io::{Read, Write};
     use tempfile::tempdir;
 
     const TESTDATA_ROOT: &str = "tests/data";
