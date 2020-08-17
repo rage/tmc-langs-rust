@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["TmcError",""]],"struct":[["CommandNotFound",""]]});
+initSidebarItems({"enum":[["FileIo",""],["TmcError",""]],"struct":[["CommandNotFound","An error caused by a failed attempt to execute an external command."]]});

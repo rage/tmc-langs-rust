@@ -1,0 +1,1 @@
+initSidebarItems({"attr":[["with_methods","Generates an impl block for an enum containing the given methods, where the method is a simple match over all the variants, calling the same method on the matched variant's first field."]]});

@@ -69,12 +69,23 @@
 <span id="69">69</span>
 <span id="70">70</span>
 <span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Output format</span>
 
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Serialize</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_core</span>::<span class="ident">StatusType</span>;
 
+<span class="doccomment">/// The format for all messages written to stdout by the CLI</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Output</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Serialize</span><span class="op">&gt;</span> {
@@ -88,8 +99,11 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Status</span> {
+    <span class="doccomment">/// The command was ran without fatal errors</span>
     <span class="ident">Finished</span>,
+    <span class="doccomment">/// An unexpected issue occurred during the command</span>
     <span class="ident">Crashed</span>,
+    <span class="doccomment">/// The command is still in progress</span>
     <span class="ident">InProgress</span>,
 }
 
@@ -113,6 +127,7 @@
     <span class="ident">IntermediateStepFinished</span>,
 }
 
+<span class="comment">// converts a tmc_langs_core status to output result</span>
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">StatusType</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">OutputResult</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">status_type</span>: <span class="ident">StatusType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">status_type</span> {
@@ -128,17 +143,22 @@
     }
 }
 
+<span class="doccomment">/// The format for all error messages printed in Output.data</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ErrorData</span> {
     <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">Kind</span>,
+    <span class="doccomment">/// Contains the error cause chain</span>
     <span class="kw">pub</span> <span class="ident">trace</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Kind</span> {
+    <span class="doccomment">/// For all other errors</span>
     <span class="ident">Generic</span>,
+    <span class="doccomment">/// 403 from server</span>
     <span class="ident">AuthorizationError</span>,
+    <span class="doccomment">/// Failed to connect to the TMC server, likely due to no internet connection</span>
     <span class="ident">ConnectionError</span>,
 }
 </pre></div>

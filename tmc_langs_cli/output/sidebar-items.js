@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Kind",""],["OutputResult",""],["Status",""]],"struct":[["ErrorData",""],["Output",""]]});
+initSidebarItems({"enum":[["Kind",""],["OutputResult",""],["Status",""]],"struct":[["ErrorData","The format for all error messages printed in Output.data"],["Output","The format for all messages written to stdout by the CLI"]]});

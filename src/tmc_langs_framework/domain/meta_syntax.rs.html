@@ -300,17 +300,20 @@
 <span id="300">300</span>
 <span id="301">301</span>
 <span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">//! Contains utilities for parsing text files, separating lines into</span>
-<span class="doccomment">//! strings, stubs and solutions so that they can be more easily filtered accordingly</span>
+<span class="doccomment">//! Contains utilities for parsing annotated exercise source files, separating lines into</span>
+<span class="doccomment">//! strings, stubs and solutions so that they can be more easily filtered later.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="prelude-ty">Result</span>, <span class="ident">TmcError</span>};
 <span class="kw">use</span> <span class="ident">lazy_static</span>::<span class="ident">lazy_static</span>;
-<span class="kw">use</span> <span class="ident">log</span>::<span class="ident">debug</span>;
 <span class="kw">use</span> <span class="ident">regex</span>::{<span class="ident">Captures</span>, <span class="ident">Regex</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="ident">BufRead</span>, <span class="ident">BufReader</span>, <span class="ident">Read</span>};
 
-<span class="comment">// Meta syntaxes for each comment syntax</span>
+<span class="comment">// rules for finding comments in various languages</span>
 <span class="macro">lazy_static</span><span class="macro">!</span> {
     <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">META_SYNTAXES_C</span>: [<span class="ident">MetaSyntax</span>; <span class="number">2</span>] <span class="op">=</span> [
         <span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;//&quot;</span>, <span class="prelude-val">None</span>),
@@ -320,7 +323,7 @@
     <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">META_SYNTAXES_PY</span>: [<span class="ident">MetaSyntax</span>; <span class="number">1</span>] <span class="op">=</span> [<span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;#&quot;</span>, <span class="prelude-val">None</span>)];
 }
 
-<span class="comment">// Used to classify lines of code based on the annotations in the file</span>
+<span class="doccomment">/// Used to classify lines of code based on the annotations in the file.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MetaString</span> {
     <span class="ident">String</span>(<span class="ident">String</span>),
@@ -329,7 +332,6 @@
 }
 
 <span class="kw">impl</span> <span class="ident">MetaString</span> {
-    <span class="comment">// Borrows the underlying line of text</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="self">Self</span>::<span class="ident">String</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">s</span>,
@@ -339,7 +341,7 @@
     }
 }
 
-<span class="comment">// Contains the needed regexes for a given comment syntax</span>
+<span class="doccomment">/// Contains the needed regexes for a given comment syntax.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">MetaSyntax</span> {
     <span class="ident">solution_file</span>: <span class="ident">Regex</span>,
@@ -351,11 +353,14 @@
 
 <span class="kw">impl</span> <span class="ident">MetaSyntax</span> {
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">comment_start</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">comment_end</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="comment">// comment patterns</span>
         <span class="kw">let</span> <span class="ident">comment_start_pattern</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;^(\\s*){}\\s*&quot;</span>, <span class="ident">comment_start</span>);
         <span class="kw">let</span> <span class="ident">comment_end_pattern</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">comment_end</span> {
             <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;(.*){}\\s*&quot;</span>, <span class="ident">s</span>),
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;(.*)&quot;</span>.<span class="ident">to_string</span>(),
         };
+
+        <span class="comment">// annotation patterns</span>
         <span class="kw">let</span> <span class="ident">solution_file</span> <span class="op">=</span> <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
             <span class="string">&quot;{}SOLUTION\\s+FILE{}&quot;</span>,
             <span class="ident">comment_start_pattern</span>, <span class="ident">comment_end_pattern</span>
@@ -384,7 +389,7 @@
     }
 }
 
-<span class="doccomment">/// Parses a given text file into an iterator of `MetaString`s</span>
+<span class="doccomment">/// Parses a given text file into an iterator of `MetaString`s.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MetaSyntaxParser</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">BufRead</span><span class="op">&gt;</span> {
     <span class="ident">meta_syntaxes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">MetaSyntax</span>],
@@ -398,13 +403,14 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">MetaSyntaxParser</span><span class="op">&lt;</span><span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">target</span>: <span class="ident">R</span>, <span class="ident">target_extension</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader</span>::<span class="ident">new</span>(<span class="ident">target</span>);
-        <span class="comment">// Assigns each supported file extension with the proper comment syntax</span>
+        <span class="comment">// assigns each supported file extension with the proper comment syntax</span>
         <span class="kw">let</span> <span class="ident">meta_syntaxes</span>: <span class="kw-2">&amp;</span>[<span class="ident">MetaSyntax</span>] <span class="op">=</span> <span class="kw">match</span> <span class="ident">target_extension</span> {
             <span class="string">&quot;java&quot;</span> <span class="op">|</span> <span class="string">&quot;c&quot;</span> <span class="op">|</span> <span class="string">&quot;cpp&quot;</span> <span class="op">|</span> <span class="string">&quot;h&quot;</span> <span class="op">|</span> <span class="string">&quot;hpp&quot;</span> <span class="op">|</span> <span class="string">&quot;js&quot;</span> <span class="op">|</span> <span class="string">&quot;css&quot;</span> <span class="op">|</span> <span class="string">&quot;rs&quot;</span> <span class="op">|</span> <span class="string">&quot;qml&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">META_SYNTAXES_C</span>,
             <span class="string">&quot;xml&quot;</span> <span class="op">|</span> <span class="string">&quot;http&quot;</span> <span class="op">|</span> <span class="string">&quot;html&quot;</span> <span class="op">|</span> <span class="string">&quot;qrc&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">META_SYNTAXES_HTML</span>,
             <span class="string">&quot;properties&quot;</span> <span class="op">|</span> <span class="string">&quot;py&quot;</span> <span class="op">|</span> <span class="string">&quot;R&quot;</span> <span class="op">|</span> <span class="string">&quot;pro&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">META_SYNTAXES_PY</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[],
         };
+
         <span class="self">Self</span> {
             <span class="ident">meta_syntaxes</span>,
             <span class="ident">reader</span>,
@@ -428,7 +434,7 @@
                 <span class="kw">for</span> <span class="ident">meta_syntax</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">meta_syntaxes</span> {
                     <span class="comment">// check for stub</span>
                     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">in_stub</span>.<span class="ident">is_none</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">meta_syntax</span>.<span class="ident">stub_begin</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>) {
-                        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stub start: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
+                        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stub start: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
                         <span class="comment">// save the syntax that started the current stub</span>
                         <span class="self">self</span>.<span class="ident">in_stub</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">meta_syntax</span>);
                         <span class="comment">// remove stub start</span>
@@ -436,29 +442,31 @@
                             .<span class="ident">stub_begin</span>
                             .<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>, <span class="op">|</span><span class="ident">caps</span>: <span class="kw-2">&amp;</span><span class="ident">Captures</span><span class="op">|</span> <span class="ident">caps</span>[<span class="number">1</span>].<span class="ident">to_string</span>())
                             .<span class="ident">to_string</span>();
-                        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;parsed: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
+                        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;parsed: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
                         <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">trim</span>().<span class="ident">is_empty</span>() {
                             <span class="comment">// only metadata, skip</span>
                             <span class="kw">return</span> <span class="self">self</span>.<span class="ident">next</span>();
                         }
                     }
                     <span class="comment">// if the line matches stub_end and the saved syntax matches</span>
-                    <span class="comment">// the start of the current meta syntax</span>
+                    <span class="comment">// the start of the current meta syntax, return stub contents if any</span>
                     <span class="kw">if</span> <span class="ident">meta_syntax</span>.<span class="ident">stub_end</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>)
                         <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">in_stub</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">stub_begin</span>.<span class="ident">as_str</span>())
                             <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">meta_syntax</span>.<span class="ident">stub_begin</span>.<span class="ident">as_str</span>())
                     {
-                        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stub end: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
+                        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stub end: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
                         <span class="self">self</span>.<span class="ident">in_stub</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                        <span class="comment">// remove stub end</span>
                         <span class="ident">s</span> <span class="op">=</span> <span class="ident">meta_syntax</span>
                             .<span class="ident">stub_end</span>
                             .<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>, <span class="op">|</span><span class="ident">caps</span>: <span class="kw-2">&amp;</span><span class="ident">Captures</span><span class="op">|</span> <span class="ident">caps</span>[<span class="number">1</span>].<span class="ident">to_string</span>())
                             .<span class="ident">to_string</span>();
-                        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;parsed: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
+                        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;parsed: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
                         <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">trim</span>().<span class="ident">is_empty</span>() {
                             <span class="comment">// only metadata, skip</span>
                             <span class="kw">return</span> <span class="self">self</span>.<span class="ident">next</span>();
                         }
+                        <span class="comment">// return the stub contents</span>
                         <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">MetaString</span>::<span class="ident">Stub</span>(<span class="ident">s</span>)));
                     }
 
@@ -476,13 +484,13 @@
                 <span class="comment">// after processing the line with each meta syntax,</span>
                 <span class="comment">// parse the current line accordingly</span>
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">in_solution</span> {
-                    <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;solution: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
+                    <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;solution: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
                     <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">MetaString</span>::<span class="ident">Solution</span>(<span class="ident">s</span>)))
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">in_stub</span>.<span class="ident">is_some</span>() {
-                    <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stub: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
+                    <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stub: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
                     <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">MetaString</span>::<span class="ident">Stub</span>(<span class="ident">s</span>)))
                 } <span class="kw">else</span> {
-                    <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;string: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
+                    <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;string: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
                     <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">MetaString</span>::<span class="ident">String</span>(<span class="ident">s</span>)))
                 }
             }
@@ -517,7 +525,7 @@
     <span class="kw">fn</span> <span class="ident">parse_simple</span>() {
         <span class="ident">init</span>();
 
-        <span class="kw">const</span> <span class="ident">JAVA_FILE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;
+        <span class="kw">const</span> <span class="ident">JAVA_FILE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;
 public class JavaTestCase {
     public int foo() {
         return 3;
@@ -543,7 +551,7 @@ public class JavaTestCase {
     <span class="kw">fn</span> <span class="ident">parse_solution</span>() {
         <span class="ident">init</span>();
 
-        <span class="kw">const</span> <span class="ident">JAVA_FILE_SOLUTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;
+        <span class="kw">const</span> <span class="ident">JAVA_FILE_SOLUTION</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;
 /*    SOLUTION  FILE    */
 public class JavaTestCase {
     // BEGIN SOLUTION
@@ -572,7 +580,7 @@ public class JavaTestCase {
     <span class="kw">fn</span> <span class="ident">parse_stubs</span>() {
         <span class="ident">init</span>();
 
-        <span class="kw">const</span> <span class="ident">JAVA_FILE_STUB</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;
+        <span class="kw">const</span> <span class="ident">JAVA_FILE_STUB</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;
 public class JavaTestCase {
     public int foo() {
         return 3;
