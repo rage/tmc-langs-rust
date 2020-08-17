@@ -398,7 +398,6 @@ fn create_core_app() -> App<'static, 'static> {
             .arg(Arg::with_name("locale")
                 .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")
                 .long("locale")
-                .required(true)
                 .takes_value(true))
             .arg(Arg::with_name("paste-message")
                 .help("Optional message to attach to the paste.")
