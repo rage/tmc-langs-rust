@@ -150,6 +150,14 @@ impl LanguagePlugin for RPlugin {
     fn clean(&self, _path: &Path) -> Result<(), TmcError> {
         Ok(())
     }
+
+    fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
+        vec![PathBuf::from("R")]
+    }
+
+    fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
+        vec![PathBuf::from("tests")]
+    }
 }
 
 #[cfg(test)]

@@ -7,7 +7,7 @@ use crate::{LocalPy, PythonTestResult, LOCAL_PY};
 use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::BufReader;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
     command::{OutputWithTimeout, TmcCommand},
@@ -126,6 +126,10 @@ impl LanguagePlugin for Python3Plugin {
             }
         }
         Ok(())
+    }
+
+    fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
+        vec![PathBuf::from("test"), PathBuf::from("tmc")]
     }
 }
 

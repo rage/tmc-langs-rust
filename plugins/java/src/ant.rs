@@ -147,14 +147,6 @@ impl LanguagePlugin for AntPlugin {
             .into())
         }
     }
-
-    fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
-        vec![PathBuf::from("src/main")]
-    }
-
-    fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
-        vec![PathBuf::from("src/test")]
-    }
 }
 
 impl JavaPlugin for AntPlugin {
