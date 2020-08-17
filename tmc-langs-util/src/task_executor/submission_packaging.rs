@@ -404,8 +404,11 @@ mod test {
     use super::*;
     use std::fs;
     use std::path::PathBuf;
+    use std::sync::Once;
     use tempfile::TempDir;
     use walkdir::WalkDir;
+
+    static LOG_ENV: Once = Once::new();
 
     const MAVEN_CLONE: &str = "tests/data/MavenExercise";
     const MAVEN_ZIP: &str = "tests/data/MavenExercise.zip";
@@ -417,9 +420,11 @@ mod test {
     const PYTHON_ZIP: &str = "tests/data/PythonExercise.zip";
 
     fn init() {
-        if std::env::var("RUST_LOG").is_err() {
-            std::env::set_var("RUST_LOG", "debug,j4rs=warn");
-        }
+        LOG_ENV.call_once(|| {
+            if std::env::var("RUST_LOG").is_err() {
+                std::env::set_var("RUST_LOG", "debug,j4rs=warn");
+            }
+        });
         let _ = env_logger::builder().is_test(true).try_init();
     }
 
