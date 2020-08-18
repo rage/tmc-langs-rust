@@ -75,6 +75,7 @@ pub struct CommandNotFound {
     pub source: std::io::Error,
 }
 
+/// A wrapper for std::io::Error that provides more context for the failed operations.
 #[derive(Error, Debug)]
 pub enum FileIo {
     #[error("Failed to open file at {0}")]
