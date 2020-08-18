@@ -9,7 +9,7 @@ use policy::AntStudentFilePolicy;
 use std::env;
 use std::fs::{self, File};
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Stdio;
 use std::time::Duration;
 use tmc_langs_framework::{
