@@ -1,7 +1,8 @@
 //! Output format
 
+use schemars::JsonSchema;
 use serde::Serialize;
-use tmc_langs_core::StatusType;
+use tmc_langs_core::{CourseData, CourseDetails, CourseExercise, StatusType};
 
 /// The format for all messages written to stdout by the CLI
 #[derive(Debug, Serialize)]
@@ -78,4 +79,11 @@ pub enum Kind {
     AuthorizationError,
     /// Failed to connect to the TMC server, likely due to no internet connection
     ConnectionError,
+}
+
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct CombinedCourseData {
+    pub details: CourseDetails,
+    pub exercises: Vec<CourseExercise>,
+    pub settings: CourseData,
 }

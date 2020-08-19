@@ -1,5 +1,6 @@
 //! Create clap app
 
+use crate::output::CombinedCourseData;
 use clap::{App, AppSettings, Arg, SubCommand};
 use schemars::JsonSchema;
 use std::path::PathBuf;
@@ -264,6 +265,15 @@ fn create_core_app() -> App<'static, 'static> {
                 .number_of_values(2)
                 .value_names(&["exercise-id", "exercise-path"])
                 .multiple(true)))
+
+        .subcommand(SubCommand::with_name("get-course-data")
+            .about("Fetches course data. Combines course details, course exercises and course settings.")
+            .long_about(schema_leaked::<CombinedCourseData>())
+            .arg(Arg::with_name("course-id")
+                .help("The ID of the course.")
+                .long("course-id")
+                .required(true)
+                .takes_value(true)))
 
         .subcommand(SubCommand::with_name("get-course-details")
             .about("Fetches course details.")

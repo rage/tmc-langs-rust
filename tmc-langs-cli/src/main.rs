@@ -3,7 +3,7 @@
 mod app;
 mod output;
 
-use output::{ErrorData, Kind, Output, OutputResult, Status};
+use output::{CombinedCourseData, ErrorData, Kind, Output, OutputResult, Status};
 
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
@@ -604,11 +604,37 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
             };
             print_output(&output)?
         }
+        ("get-course-data", Some(matches)) => {
+            let course_id = matches.value_of("course-id").unwrap();
+            let course_id = into_usize(course_id)?;
+
+            let details = core
+                .get_course_details(course_id)
+                .context("Failed to get course details")?;
+            let exercises = core
+                .get_course_exercises(course_id)
+                .context("Failed to get course")?;
+            let settings = core.get_course(course_id).context("Failed to get course")?;
+            let data = CombinedCourseData {
+                details,
+                exercises,
+                settings,
+            };
+
+            let output = Output {
+                status: Status::Finished,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: Some(data),
+            };
+            print_output(&output)?
+        }
         ("get-course-details", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
             let course_id = into_usize(course_id)?;
 
-            let course_details = core
+            let details = core
                 .get_course_details(course_id)
                 .context("Failed to get course details")?;
 
@@ -617,7 +643,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(course_details),
+                data: Some(details),
             };
             print_output(&output)?
         }
@@ -625,7 +651,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
             let course_id = matches.value_of("course-id").unwrap();
             let course_id = into_usize(course_id)?;
 
-            let course = core
+            let exercises = core
                 .get_course_exercises(course_id)
                 .context("Failed to get course")?;
 
@@ -634,7 +660,7 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(course),
+                data: Some(exercises),
             };
             print_output(&output)?
         }
@@ -642,14 +668,14 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
             let course_id = matches.value_of("course-id").unwrap();
             let course_id = into_usize(course_id)?;
 
-            let course = core.get_course(course_id).context("Failed to get course")?;
+            let settings = core.get_course(course_id).context("Failed to get course")?;
 
             let output = Output {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(course),
+                data: Some(settings),
             };
             print_output(&output)?
         }
