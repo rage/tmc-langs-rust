@@ -7,6 +7,7 @@ use std::ffi::OsStr;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::io::Write;
 use std::path::Path;
+use tempfile::NamedTempFile;
 use tmc_langs_framework::io::file_util;
 use walkdir::WalkDir;
 use zip::{read::ZipFile, write::FileOptions, ZipWriter};
@@ -140,6 +141,12 @@ impl Display for ShellString {
     }
 }
 
+pub enum OutputFormat {
+    Tar,
+    Zip,
+    TarZstd,
+}
+
 // prepares a submission for further processing on the TMC server
 // todo: the function is currently long and unfocused
 pub fn prepare_submission(
@@ -149,7 +156,7 @@ pub fn prepare_submission(
     tmc_params: TmcParams,
     clone_path: &Path,
     stub_zip_path: Option<&Path>,
-    output_zip: bool,
+    output_format: OutputFormat,
 ) -> Result<(), UtilError> {
     log::debug!("preparing submission for {}", zip_path.display());
 
@@ -364,36 +371,59 @@ pub fn prepare_submission(
         .map(Path::new)
         .unwrap_or_else(|| Path::new(""));
     let archive_file = file_util::create_file(target_path)?;
-    if output_zip {
-        let mut archive = ZipWriter::new(archive_file);
-        for entry in WalkDir::new(&dest).into_iter().skip(1) {
-            let entry = entry?;
-            let entry_path = entry.path();
-            let stripped = prefix.join(entry_path.strip_prefix(&dest).unwrap());
+    match output_format {
+        OutputFormat::Tar => {
+            let mut archive = tar::Builder::new(archive_file);
             log::debug!(
-                "adding {} to zip at {}",
-                entry_path.display(),
-                stripped.display()
+                "appending \"{}\" at \"{}\"",
+                dest.display(),
+                prefix.display()
             );
-            if entry_path.is_dir() {
-                archive.add_directory_from_path(&stripped, FileOptions::default())?;
-            } else {
-                archive.start_file_from_path(&stripped, FileOptions::default())?;
-                let mut file = file_util::open_file(entry_path)?;
-                std::io::copy(&mut file, &mut archive).unwrap();
-            }
+            archive
+                .append_dir_all(prefix, &dest)
+                .map_err(|e| UtilError::TarAppend(dest, e))?;
         }
-        archive.finish()?;
-    } else {
-        let mut archive = tar::Builder::new(archive_file);
-        log::debug!(
-            "appending \"{}\" at \"{}\"",
-            dest.display(),
-            prefix.display()
-        );
-        archive
-            .append_dir_all(prefix, &dest)
-            .map_err(|e| UtilError::TarAppend(dest, e))?;
+        OutputFormat::Zip => {
+            let mut archive = ZipWriter::new(archive_file);
+            for entry in WalkDir::new(&dest).into_iter().skip(1) {
+                let entry = entry?;
+                let entry_path = entry.path();
+                let stripped = prefix.join(entry_path.strip_prefix(&dest).unwrap());
+                log::debug!(
+                    "adding {} to zip at {}",
+                    entry_path.display(),
+                    stripped.display()
+                );
+                if entry_path.is_dir() {
+                    archive.add_directory_from_path(&stripped, FileOptions::default())?;
+                } else {
+                    archive.start_file_from_path(&stripped, FileOptions::default())?;
+                    let mut file = file_util::open_file(entry_path)?;
+                    std::io::copy(&mut file, &mut archive)
+                        .map_err(|e| UtilError::TarAppend(entry_path.to_path_buf(), e))?;
+                }
+            }
+            archive.finish()?;
+        }
+        OutputFormat::TarZstd => {
+            // create temporary tar file
+            let temp = tempfile::NamedTempFile::new().map_err(UtilError::TempFile)?;
+            let mut archive = tar::Builder::new(temp);
+            log::debug!(
+                "appending \"{}\" at \"{}\"",
+                dest.display(),
+                prefix.display()
+            );
+            archive
+                .append_dir_all(prefix, &dest)
+                .map_err(|e| UtilError::TarAppend(dest, e))?;
+            archive.finish().map_err(UtilError::TarFinish)?;
+            let tar = archive.into_inner().map_err(UtilError::TarIntoInner)?;
+            // the existing file handle has been read to the end and is now empty, so we reopen it
+            let reopened = file_util::open_file(tar.path())?;
+            zstd::stream::copy_encode(reopened, archive_file, 0)
+                .map_err(|e| UtilError::Zstd(tar.path().to_path_buf(), e))?;
+        }
     }
     Ok(())
 }
@@ -445,7 +475,7 @@ mod test {
             tmc_params,
             Path::new(clone),
             None,
-            false,
+            OutputFormat::Tar,
         )
         .unwrap();
         assert!(output_archive.exists());
@@ -533,7 +563,7 @@ mod test {
             TmcParams::new(),
             Path::new(MAVEN_CLONE),
             None,
-            false,
+            OutputFormat::Tar,
         )
         .unwrap();
         assert!(output.exists());
@@ -552,6 +582,38 @@ mod test {
     }
 
     #[test]
+    fn packages_with_output_zstd() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        let output = temp.path().join("output.tar.zst");
+
+        assert!(!output.exists());
+        prepare_submission(
+            Path::new(MAVEN_ZIP),
+            &output,
+            None,
+            TmcParams::new(),
+            Path::new(MAVEN_CLONE),
+            None,
+            OutputFormat::TarZstd,
+        )
+        .unwrap();
+        assert!(output.exists());
+
+        let output = file_util::open_file(output).unwrap();
+        let output = std::io::Cursor::new(zstd::decode_all(output).unwrap());
+        let mut archive = tar::Archive::new(output);
+        let output = temp.path().join("output");
+        archive.unpack(&output).unwrap();
+        for entry in WalkDir::new(temp.path()) {
+            log::debug!("{}", entry.unwrap().path().display());
+        }
+        assert!(output.join("src/test/java/SimpleHiddenTest.java").exists());
+        assert!(output.join("pom.xml").exists());
+    }
+
+    #[test]
     fn packages_with_output_zip() {
         init();
 
@@ -566,7 +628,7 @@ mod test {
             TmcParams::new(),
             Path::new(MAVEN_CLONE),
             None,
-            true,
+            OutputFormat::Zip,
         )
         .unwrap();
         assert!(output.exists());
@@ -593,7 +655,7 @@ mod test {
             TmcParams::new(),
             Path::new(MAVEN_CLONE),
             None,
-            true,
+            OutputFormat::Zip,
         )
         .unwrap();
         assert!(output.exists());
@@ -621,7 +683,7 @@ mod test {
             TmcParams::new(),
             Path::new(MAVEN_CLONE),
             Some(Path::new("tests/data/MavenStub.zip")),
-            false,
+            OutputFormat::Tar,
         )
         .unwrap();
         assert!(output_arch.exists());

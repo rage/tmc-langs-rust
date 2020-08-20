@@ -3,7 +3,7 @@
 mod submission_packaging;
 mod tar_helper;
 
-pub use submission_packaging::TmcParams;
+pub use submission_packaging::{OutputFormat, TmcParams};
 
 use crate::error::UtilError;
 use crate::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, ValidationResult};
@@ -56,7 +56,7 @@ pub fn prepare_submission(
     tmc_params: TmcParams,
     clone_path: &Path,
     stub_zip_path: Option<&Path>,
-    output_zip: bool,
+    output_format: OutputFormat,
 ) -> Result<(), UtilError> {
     submission_packaging::prepare_submission(
         zip_path,
@@ -65,7 +65,7 @@ pub fn prepare_submission(
         tmc_params,
         clone_path,
         stub_zip_path,
-        output_zip,
+        output_format,
     )
 }
 

@@ -21,7 +21,7 @@ use tmc_langs_core::{CoreError, FeedbackAnswer, TmcCore, Token};
 use tmc_langs_framework::{domain::ValidationResult, error::CommandNotFound};
 use tmc_langs_util::{
     task_executor::{self, TmcParams},
-    Language,
+    Language, OutputFormat,
 };
 use url::Url;
 
@@ -305,7 +305,12 @@ fn run() -> Result<()> {
             print_output(&output)?
         }
         ("prepare-submission", Some(matches)) => {
-            let output_zip = matches.is_present("output-zip");
+            let output_format = match matches.value_of("output-format") {
+                Some("tar") => OutputFormat::Tar,
+                Some("zip") => OutputFormat::Zip,
+                Some("zstd") => OutputFormat::TarZstd,
+                _ => unreachable!("validation error"),
+            };
 
             let clone_path = matches.value_of("clone-path").unwrap();
             let clone_path = Path::new(clone_path);
@@ -360,7 +365,7 @@ fn run() -> Result<()> {
                 tmc_params,
                 clone_path,
                 stub_zip_path,
-                output_zip,
+                output_format,
             )?;
 
             let output = Output::<()> {
