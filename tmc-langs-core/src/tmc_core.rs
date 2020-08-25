@@ -1,6 +1,6 @@
 mod api;
 
-use crate::error::{CoreError, Result};
+use crate::error::CoreError;
 use crate::request::*;
 use crate::response::*;
 use crate::response::{Course, CourseDetails, Organization};
@@ -50,7 +50,7 @@ pub enum StatusType {
 
 // compatible with anyhow
 type DynError = Box<dyn StdError + Send + Sync + 'static>;
-type UpdateClosure = Box<dyn Fn(StatusUpdate) -> StdResult<(), DynError>>;
+type UpdateClosure = Box<dyn Fn(StatusUpdate) -> Result<(), DynError>>;
 
 /// A struct for interacting with the TestMyCode service, including authentication
 pub struct TmcCore {
@@ -86,7 +86,7 @@ impl TmcCore {
         root_url: String,
         client_name: String,
         client_version: String,
-    ) -> Result<Self> {
+    ) -> Result<Self, CoreError> {
         // guarantee a trailing slash, otherwise join will drop the last component
         let root_url = if root_url.ends_with('/') {
             root_url
@@ -128,7 +128,7 @@ impl TmcCore {
         root_url: String,
         client_name: String,
         client_version: String,
-    ) -> Result<Self> {
+    ) -> Result<Self, CoreError> {
         let config_dir = dirs::cache_dir().ok_or(CoreError::CacheDir)?;
         Self::new(config_dir, root_url, client_name, client_version)
     }
@@ -139,7 +139,7 @@ impl TmcCore {
 
     pub fn set_progress_report<F>(&mut self, progress_report: F)
     where
-        F: 'static + Fn(StatusUpdate) -> StdResult<(), Box<dyn StdError + Send + Sync + 'static>>,
+        F: 'static + Fn(StatusUpdate) -> Result<(), Box<dyn StdError + Send + Sync + 'static>>,
     {
         self.progress_report = Some(Box::new(progress_report));
     }
@@ -199,7 +199,7 @@ impl TmcCore {
         client_name: &str,
         email: String,
         password: String,
-    ) -> Result<Token> {
+    ) -> Result<Token, CoreError> {
         if self.token.is_some() {
             return Err(CoreError::AlreadyAuthenticated);
         }
@@ -238,7 +238,7 @@ impl TmcCore {
     ///
     /// # Errors
     /// Returns an error if there's some problem reaching the API, or if the API returns an error.
-    pub fn get_organizations(&self) -> Result<Vec<Organization>> {
+    pub fn get_organizations(&self) -> Result<Vec<Organization>, CoreError> {
         self.organizations()
     }
 
@@ -246,7 +246,7 @@ impl TmcCore {
     ///
     /// # Errors
     /// Returns an error if there's some problem reaching the API, or if the API returns an error.
-    pub fn get_organization(&self, organization_slug: &str) -> Result<Organization> {
+    pub fn get_organization(&self, organization_slug: &str) -> Result<Organization, CoreError> {
         self.organization(organization_slug)
     }
 
@@ -275,7 +275,10 @@ impl TmcCore {
     ///     (2345, Path::new("./exercises/2345")),
     /// ]);
     /// ```
-    pub fn download_or_update_exercises(&self, exercises: Vec<(usize, &Path)>) -> Result<()> {
+    pub fn download_or_update_exercises(
+        &self,
+        exercises: Vec<(usize, &Path)>,
+    ) -> Result<(), CoreError> {
         let exercises_len = exercises.len();
         let step = 1.0 / (2 * exercises_len) as f64;
 
@@ -335,15 +338,15 @@ impl TmcCore {
     /// // authenticate
     /// let course_details = core.get_course_details(600).unwrap();
     /// ```
-    pub fn get_course_details(&self, course_id: usize) -> Result<CourseDetails> {
+    pub fn get_course_details(&self, course_id: usize) -> Result<CourseDetails, CoreError> {
         self.core_course(course_id)
     }
 
-    pub fn get_exercise_details(&self, exercise_id: usize) -> Result<ExerciseDetails> {
+    pub fn get_exercise_details(&self, exercise_id: usize) -> Result<ExerciseDetails, CoreError> {
         self.core_exercise(exercise_id)
     }
 
-    pub fn get_course_submissions(&self, course_id: usize) -> Result<Vec<Submission>> {
+    pub fn get_course_submissions(&self, course_id: usize) -> Result<Vec<Submission>, CoreError> {
         self.course_submissions(course_id)
     }
 
@@ -360,21 +363,21 @@ impl TmcCore {
     /// // authenticate
     /// let courses = core.list_courses("hy").unwrap();
     /// ```
-    pub fn list_courses(&self, organization_slug: &str) -> Result<Vec<Course>> {
+    pub fn list_courses(&self, organization_slug: &str) -> Result<Vec<Course>, CoreError> {
         if self.token.is_none() {
             return Err(CoreError::AuthRequired);
         }
         self.organization_courses(organization_slug)
     }
 
-    pub fn get_course(&self, course_id: usize) -> Result<CourseData> {
+    pub fn get_course(&self, course_id: usize) -> Result<CourseData, CoreError> {
         if self.token.is_none() {
             return Err(CoreError::AuthRequired);
         }
         self.course(course_id)
     }
 
-    pub fn get_course_exercises(&self, course_id: usize) -> Result<Vec<CourseExercise>> {
+    pub fn get_course_exercises(&self, course_id: usize) -> Result<Vec<CourseExercise>, CoreError> {
         if self.token.is_none() {
             return Err(CoreError::AuthRequired);
         }
@@ -409,7 +412,7 @@ impl TmcCore {
         submission_path: &Path,
         paste_message: Option<String>,
         locale: Option<Language>,
-    ) -> Result<NewSubmission> {
+    ) -> Result<NewSubmission, CoreError> {
         // compress
         let compressed = task_executor::compress_project(submission_path)?;
         let mut file = NamedTempFile::new().map_err(CoreError::TempFile)?;
@@ -446,7 +449,7 @@ impl TmcCore {
         &self,
         path: &Path,
         locale: Language,
-    ) -> Result<Option<ValidationResult>> {
+    ) -> Result<Option<ValidationResult>, CoreError> {
         Ok(task_executor::run_check_code_style(path, locale)?)
     }
 
@@ -455,7 +458,7 @@ impl TmcCore {
     /// # Errors
     /// Returns an error if no matching language plugin for the project is found,
     /// or if the plugin returns an error while trying to run the tests.
-    pub fn run_tests(&self, path: &Path) -> Result<RunResult> {
+    pub fn run_tests(&self, path: &Path) -> Result<RunResult, CoreError> {
         Ok(task_executor::run_tests(path)?)
     }
 
@@ -467,7 +470,7 @@ impl TmcCore {
         &self,
         feedback_url: Url,
         feedback: Vec<FeedbackAnswer>,
-    ) -> Result<SubmissionFeedbackResponse> {
+    ) -> Result<SubmissionFeedbackResponse, CoreError> {
         self.post_feedback(feedback_url, feedback)
     }
 
@@ -486,7 +489,7 @@ impl TmcCore {
         submission_url: Url,
         submission_path: &Path,
         locale: Option<Language>,
-    ) -> Result<NewSubmission> {
+    ) -> Result<NewSubmission, CoreError> {
         self.report_progress(
             "Compressing submission...".to_string(),
             StatusType::Processing,
@@ -507,7 +510,7 @@ impl TmcCore {
         result
     }
 
-    pub fn reset(&self, exercise_id: usize, exercise_path: &Path) -> Result<()> {
+    pub fn reset(&self, exercise_id: usize, exercise_path: &Path) -> Result<(), CoreError> {
         // clear out the exercise directory
         if exercise_path.exists() {
             let mut tries = 0;
@@ -538,18 +541,25 @@ impl TmcCore {
         self.download_or_update_exercises(vec![(exercise_id, exercise_path)])
     }
 
-    pub fn download_old_submission(&self, submission_id: usize, target: &Path) -> Result<()> {
+    pub fn download_old_submission(
+        &self,
+        submission_id: usize,
+        target: &Path,
+    ) -> Result<(), CoreError> {
         self.download_submission(submission_id, target)
     }
 
     pub fn get_exercise_submissions_for_current_user(
         &self,
         exercise_id: usize,
-    ) -> Result<Vec<Submission>> {
+    ) -> Result<Vec<Submission>, CoreError> {
         self.exercise_submissions_for_current_user(exercise_id)
     }
 
-    pub fn wait_for_submission(&self, submission_url: &str) -> Result<SubmissionFinished> {
+    pub fn wait_for_submission(
+        &self,
+        submission_url: &str,
+    ) -> Result<SubmissionFinished, CoreError> {
         let mut previous_status = None;
         loop {
             match self.check_submission(submission_url)? {
@@ -650,7 +660,7 @@ impl TmcCore {
         &self,
         course_id: usize,
         checksums: HashMap<usize, String>,
-    ) -> Result<UpdateResult> {
+    ) -> Result<UpdateResult, CoreError> {
         let mut new_exercises = vec![];
         let mut updated_exercises = vec![];
 
@@ -676,7 +686,7 @@ impl TmcCore {
     ///
     /// # Errors
     /// Returns an error if there's some problem reaching the API, or if the API returns an error.
-    pub fn mark_review_as_read(&self, review_update_url: String) -> Result<()> {
+    pub fn mark_review_as_read(&self, review_update_url: String) -> Result<(), CoreError> {
         self.mark_review(review_update_url, true)
     }
 
@@ -684,7 +694,7 @@ impl TmcCore {
     ///
     /// # Errors
     /// Returns an error if there's some problem reaching the API, or if the API returns an error.
-    pub fn get_unread_reviews(&self, reviews_url: Url) -> Result<Vec<Review>> {
+    pub fn get_unread_reviews(&self, reviews_url: Url) -> Result<Vec<Review>, CoreError> {
         self.get_json_from_url(reviews_url)
     }
 
@@ -699,7 +709,7 @@ impl TmcCore {
         submission_path: &Path,
         message_for_reviewer: String,
         locale: Option<Language>,
-    ) -> Result<NewSubmission> {
+    ) -> Result<NewSubmission, CoreError> {
         // compress
         let compressed = task_executor::compress_project(submission_path)?;
         let mut file = NamedTempFile::new().map_err(CoreError::TempFile)?;
@@ -714,7 +724,11 @@ impl TmcCore {
     /// # Errors
     /// Returns an error if there's some problem reaching the API, or if the API returns an error.
     /// The method extracts the downloaded model solution archive, which may fail.
-    pub fn download_model_solution(&self, solution_download_url: Url, target: &Path) -> Result<()> {
+    pub fn download_model_solution(
+        &self,
+        solution_download_url: Url,
+        target: &Path,
+    ) -> Result<(), CoreError> {
         let zip_file = NamedTempFile::new().map_err(CoreError::TempFile)?;
         self.download_from(solution_download_url, zip_file.path())?;
         task_executor::extract_project(zip_file.path(), target, false)?;
@@ -726,7 +740,10 @@ impl TmcCore {
     /// # Errors
     /// Returns an error if the core has not been authenticated,
     /// or if there's some problem reaching the API, or if the API returns an error.
-    pub fn check_submission(&self, submission_url: &str) -> Result<SubmissionProcessingStatus> {
+    pub fn check_submission(
+        &self,
+        submission_url: &str,
+    ) -> Result<SubmissionProcessingStatus, CoreError> {
         if self.token.is_none() {
             return Err(CoreError::AuthRequired);
         }

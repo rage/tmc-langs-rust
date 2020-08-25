@@ -1,6 +1,6 @@
 //! Contains and additional impl for TmcCore for calling the TMC Server API.
 
-use crate::error::{CoreError, Result};
+use crate::error::CoreError;
 use crate::response::Response;
 use crate::{
     Course, CourseData, CourseDataExercise, CourseDataExercisePoint, CourseDetails, CourseExercise,
@@ -23,29 +23,29 @@ use url::Url;
 
 /// Provides a wrapper for reqwest Response's json that deserializes into Response<T> and converts it into a result
 trait CoreExt {
-    fn json_res<T: DeserializeOwned>(self) -> Result<T>;
-    fn check_error(self, url: Url) -> Result<Self>
+    fn json_res<T: DeserializeOwned>(self) -> Result<T, CoreError>;
+    fn check_error(self, url: Url) -> Result<Self, CoreError>
     where
         Self: Sized;
 }
 
 impl CoreExt for ReqwestResponse {
     #[cfg(not(test))]
-    fn json_res<T: DeserializeOwned>(self) -> Result<T> {
+    fn json_res<T: DeserializeOwned>(self) -> Result<T, CoreError> {
         let res: Response<T> = self.json().map_err(CoreError::HttpJsonResponse)?;
         res.into_result()
     }
 
     // logs received JSON for easier debugging in tests
     #[cfg(test)]
-    fn json_res<T: DeserializeOwned>(self) -> Result<T> {
+    fn json_res<T: DeserializeOwned>(self) -> Result<T, CoreError> {
         let res: Value = self.json().map_err(CoreError::HttpJsonResponse)?;
         log::debug!("JSON {}", res);
         let res: Response<T> = serde_json::from_value(res).unwrap();
         res.into_result()
     }
 
-    fn check_error(self, url: Url) -> Result<Self> {
+    fn check_error(self, url: Url) -> Result<Self, CoreError> {
         let status = self.status();
         if status.is_success() {
             Ok(self)
@@ -97,7 +97,7 @@ impl GetExt for RequestBuilder {
 #[allow(dead_code)]
 impl TmcCore {
     // convenience function
-    fn get_json<T: DeserializeOwned>(&self, url_tail: &str) -> Result<T> {
+    fn get_json<T: DeserializeOwned>(&self, url_tail: &str) -> Result<T, CoreError> {
         let url = self
             .api_url
             .join(url_tail)
@@ -105,7 +105,7 @@ impl TmcCore {
         self.get_json_from_url(url)
     }
     // convenience function
-    pub fn get_json_from_url<T: DeserializeOwned>(&self, url: Url) -> Result<T> {
+    pub fn get_json_from_url<T: DeserializeOwned>(&self, url: Url) -> Result<T, CoreError> {
         log::debug!("get {}", url);
         self.client
             .get(url.clone())
@@ -116,7 +116,7 @@ impl TmcCore {
             .json_res()
     }
 
-    fn download(&self, url_tail: &str, target: &Path) -> Result<()> {
+    fn download(&self, url_tail: &str, target: &Path) -> Result<(), CoreError> {
         let url = self
             .api_url
             .join(url_tail)
@@ -136,7 +136,7 @@ impl TmcCore {
         Ok(())
     }
 
-    pub(crate) fn download_from(&self, url: Url, target: &Path) -> Result<()> {
+    pub(crate) fn download_from(&self, url: Url, target: &Path) -> Result<(), CoreError> {
         // download zip
         let mut target_file = file_util::create_file(target)?;
         log::debug!("downloading {}", url);
@@ -151,25 +151,25 @@ impl TmcCore {
         Ok(())
     }
 
-    pub(super) fn user(&self, user_id: usize) -> Result<User> {
+    pub(super) fn user(&self, user_id: usize) -> Result<User, CoreError> {
         let url_tail = format!("users/{}", user_id);
         self.get_json(&url_tail)
     }
 
-    pub(super) fn user_current(&self) -> Result<User> {
+    pub(super) fn user_current(&self) -> Result<User, CoreError> {
         let url_tail = "users/current";
         self.get_json(url_tail)
     }
 
-    pub(super) fn basic_info_by_usernames(&self) -> Result<Vec<User>> {
+    pub(super) fn basic_info_by_usernames(&self) -> Result<Vec<User>, CoreError> {
         todo!("needs admin")
     }
 
-    pub(super) fn basic_info_by_emails(&self) -> Result<Vec<User>> {
+    pub(super) fn basic_info_by_emails(&self) -> Result<Vec<User>, CoreError> {
         todo!("needs admin")
     }
 
-    pub(super) fn course(&self, course_id: usize) -> Result<CourseData> {
+    pub(super) fn course(&self, course_id: usize) -> Result<CourseData, CoreError> {
         let url_tail = format!("courses/{}", course_id);
         self.get_json(&url_tail)
     }
@@ -178,7 +178,7 @@ impl TmcCore {
         &self,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<CourseData> {
+    ) -> Result<CourseData, CoreError> {
         let url_tail = format!(
             "org/{}/courses/{}",
             percent_encode(organization_slug),
@@ -187,7 +187,7 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub(super) fn course_points(&self, course_id: usize) -> Result<()> {
+    pub(super) fn course_points(&self, course_id: usize) -> Result<(), CoreError> {
         let _url_tail = format!("courses/{}/points", course_id);
         todo!("times out")
     }
@@ -196,7 +196,7 @@ impl TmcCore {
         &self,
         course_id: usize,
         exercise_name: &str,
-    ) -> Result<Vec<CourseDataExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
         let url_tail = format!(
             "courses/{}/exercises/{}/points",
             course_id,
@@ -210,7 +210,7 @@ impl TmcCore {
         course_id: usize,
         exercise_name: &str,
         user_id: usize,
-    ) -> Result<Vec<CourseDataExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
         let url_tail = format!(
             "courses/{}/exercises/{}/users/{}/points",
             course_id,
@@ -224,7 +224,7 @@ impl TmcCore {
         &self,
         course_id: usize,
         exercise_name: &str,
-    ) -> Result<Vec<CourseDataExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
         let url_tail = format!(
             "courses/{}/exercises/{}/users/current/points",
             course_id,
@@ -237,7 +237,7 @@ impl TmcCore {
         &self,
         course_id: usize,
         user_id: usize,
-    ) -> Result<Vec<CourseDataExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
         let url_tail = format!("courses/{}/users/{}/points", course_id, user_id);
         self.get_json(&url_tail)
     }
@@ -245,7 +245,7 @@ impl TmcCore {
     pub(super) fn course_points_for_current_user(
         &self,
         course_id: usize,
-    ) -> Result<Vec<CourseDataExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
         let url_tail = format!("courses/{}/users/current/points", course_id);
         self.get_json(&url_tail)
     }
@@ -254,7 +254,7 @@ impl TmcCore {
         &self,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<Vec<CourseDataExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
         let url_tail = format!(
             "org/{}/courses/{}/points",
             percent_encode(organization_slug),
@@ -267,7 +267,7 @@ impl TmcCore {
         &self,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<()> {
+    ) -> Result<(), CoreError> {
         let _url_tail = format!(
             "org/{}/courses/{}/eligible_students",
             percent_encode(organization_slug),
@@ -281,7 +281,7 @@ impl TmcCore {
         organization_slug: &str,
         course_name: &str,
         exercise_name: &str,
-    ) -> Result<()> {
+    ) -> Result<(), CoreError> {
         let url_tail = format!(
             "org/{}/courses/{}/exercises/{}/points",
             percent_encode(organization_slug),
@@ -296,7 +296,7 @@ impl TmcCore {
         organization_slug: &str,
         course_name: &str,
         exercise_name: &str,
-    ) -> Result<Vec<CourseDataExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
         let url_tail = format!(
             "org/{}/courses/{}/exercises/{}/users/current/points",
             percent_encode(organization_slug),
@@ -312,7 +312,7 @@ impl TmcCore {
         course_name: &str,
         exercise_name: &str,
         user_id: usize,
-    ) -> Result<Vec<CourseDataExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
         let url_tail = format!(
             "org/{}/courses/{}/exercises/{}/users/{}/points",
             percent_encode(organization_slug),
@@ -328,7 +328,7 @@ impl TmcCore {
         organization_slug: &str,
         course_name: &str,
         user_id: usize,
-    ) -> Result<Vec<CourseDataExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
         let url_tail = format!(
             "org/{}/courses/{}/users/{}/points",
             percent_encode(organization_slug),
@@ -342,7 +342,7 @@ impl TmcCore {
         &self,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<Vec<CourseDataExercisePoint>> {
+    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
         let url_tail = format!(
             "org/{}/courses/{}/users/current/points",
             percent_encode(organization_slug),
@@ -351,7 +351,10 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub(super) fn course_submissions(&self, course_id: usize) -> Result<Vec<Submission>> {
+    pub(super) fn course_submissions(
+        &self,
+        course_id: usize,
+    ) -> Result<Vec<Submission>, CoreError> {
         let url_tail = format!("courses/{}/submissions", course_id);
         self.get_json(&url_tail)
     }
@@ -359,7 +362,7 @@ impl TmcCore {
     pub(super) fn course_submissions_in_last_hour(
         &self,
         course_id: usize,
-    ) -> Result<Vec<Submission>> {
+    ) -> Result<Vec<Submission>, CoreError> {
         let url_tail = format!("courses/{}/submissions/last_hour", course_id);
         self.get_json(&url_tail)
     }
@@ -368,7 +371,7 @@ impl TmcCore {
         &self,
         course_id: usize,
         user_id: usize,
-    ) -> Result<Vec<Submission>> {
+    ) -> Result<Vec<Submission>, CoreError> {
         let url_tail = format!("courses/{}/users/{}/submissions", course_id, user_id);
         self.get_json(&url_tail)
     }
@@ -376,7 +379,7 @@ impl TmcCore {
     pub(super) fn course_submissions_for_current_user(
         &self,
         course_id: usize,
-    ) -> Result<Vec<Submission>> {
+    ) -> Result<Vec<Submission>, CoreError> {
         let url_tail = format!("courses/{}/users/current/submissions", course_id);
         self.get_json(&url_tail)
     }
@@ -385,7 +388,7 @@ impl TmcCore {
         &self,
         exercise_id: usize,
         user_id: usize,
-    ) -> Result<Vec<Submission>> {
+    ) -> Result<Vec<Submission>, CoreError> {
         let url_tail = format!("exercises/{}/users/{}/submissions", exercise_id, user_id);
         self.get_json(&url_tail)
     }
@@ -393,7 +396,7 @@ impl TmcCore {
     pub(super) fn exercise_submissions_for_current_user(
         &self,
         exercise_id: usize,
-    ) -> Result<Vec<Submission>> {
+    ) -> Result<Vec<Submission>, CoreError> {
         let url_tail = format!("exercises/{}/users/current/submissions", exercise_id);
         self.get_json(&url_tail)
     }
@@ -402,7 +405,7 @@ impl TmcCore {
         &self,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<Vec<Submission>> {
+    ) -> Result<Vec<Submission>, CoreError> {
         let url_tail = format!(
             "org/{}/courses/{}/submissions",
             percent_encode(organization_slug),
@@ -416,7 +419,7 @@ impl TmcCore {
         organization_slug: &str,
         course_name: &str,
         user_id: usize,
-    ) -> Result<Vec<Submission>> {
+    ) -> Result<Vec<Submission>, CoreError> {
         let url_tail = format!(
             "org/{}/courses/{}/users/{}/submissions",
             percent_encode(organization_slug),
@@ -430,7 +433,7 @@ impl TmcCore {
         &self,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<Vec<Submission>> {
+    ) -> Result<Vec<Submission>, CoreError> {
         let url_tail = format!(
             "org/{}/courses/{}/users/current/submissions",
             percent_encode(organization_slug),
@@ -439,7 +442,7 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub(super) fn exercises(&self, course_id: usize) -> Result<Vec<CourseExercise>> {
+    pub(super) fn exercises(&self, course_id: usize) -> Result<Vec<CourseExercise>, CoreError> {
         let url_tail = format!("courses/{}/exercises", course_id);
         self.get_json(&url_tail)
     }
@@ -448,7 +451,7 @@ impl TmcCore {
         &self,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<Vec<CourseDataExercise>> {
+    ) -> Result<Vec<CourseDataExercise>, CoreError> {
         let url_tail = format!(
             "org/{}/courses/{}/exercises",
             percent_encode(organization_slug),
@@ -463,7 +466,7 @@ impl TmcCore {
         course_name: &str,
         exercise_name: &str,
         target: &Path,
-    ) -> Result<()> {
+    ) -> Result<(), CoreError> {
         let url_tail = format!(
             "org/{}/courses/{}/exercises/{}/download",
             percent_encode(organization_slug),
@@ -473,47 +476,59 @@ impl TmcCore {
         self.download(&url_tail, target)
     }
 
-    pub(super) fn organizations(&self) -> Result<Vec<Organization>> {
+    pub(super) fn organizations(&self) -> Result<Vec<Organization>, CoreError> {
         let url_tail = "org.json";
         self.get_json(url_tail)
     }
 
-    pub(super) fn organization(&self, organization_slug: &str) -> Result<Organization> {
+    pub(super) fn organization(&self, organization_slug: &str) -> Result<Organization, CoreError> {
         let url_tail = format!("org/{}.json", organization_slug);
         self.get_json(&url_tail)
     }
 
-    pub(super) fn core_course(&self, course_id: usize) -> Result<CourseDetails> {
+    pub(super) fn core_course(&self, course_id: usize) -> Result<CourseDetails, CoreError> {
         let url_tail = format!("core/courses/{}", course_id);
         self.get_json(&url_tail)
     }
 
-    pub(super) fn reviews(&self, course_id: usize) -> Result<Vec<Review>> {
+    pub(super) fn reviews(&self, course_id: usize) -> Result<Vec<Review>, CoreError> {
         let url_tail = format!("core/courses/{}/reviews", course_id);
         self.get_json(&url_tail)
     }
 
-    pub(super) fn review(&self, course_id: usize, review_id: usize) -> Result<Vec<Review>> {
+    pub(super) fn review(
+        &self,
+        course_id: usize,
+        review_id: usize,
+    ) -> Result<Vec<Review>, CoreError> {
         let url_tail = format!("core/courses/{}/reviews/{}", course_id, review_id);
         self.get_json(&url_tail)
     }
 
-    pub(super) fn unlock(&self, course_id: usize) -> Result<()> {
+    pub(super) fn unlock(&self, course_id: usize) -> Result<(), CoreError> {
         let _url_tail = format!("core/courses/{}", course_id);
         todo!("needs admin?");
     }
 
-    pub(super) fn download_exercise(&self, exercise_id: usize, target: &Path) -> Result<()> {
+    pub(super) fn download_exercise(
+        &self,
+        exercise_id: usize,
+        target: &Path,
+    ) -> Result<(), CoreError> {
         let url_tail = format!("core/exercises/{}/download", exercise_id);
         self.download(&url_tail, target)
     }
 
-    pub(super) fn core_exercise(&self, exercise_id: usize) -> Result<ExerciseDetails> {
+    pub(super) fn core_exercise(&self, exercise_id: usize) -> Result<ExerciseDetails, CoreError> {
         let url_tail = format!("core/exercises/{}", exercise_id);
         self.get_json(&url_tail)
     }
 
-    pub(super) fn download_solution(&self, exercise_id: usize, target: &Path) -> Result<()> {
+    pub(super) fn download_solution(
+        &self,
+        exercise_id: usize,
+        target: &Path,
+    ) -> Result<(), CoreError> {
         let url_tail = format!("core/exercises/{}/solution/download", exercise_id);
         self.download(&url_tail, target)
     }
@@ -523,7 +538,7 @@ impl TmcCore {
         submission_url: Url,
         submission: &Path,
         locale: Option<Language>,
-    ) -> Result<NewSubmission> {
+    ) -> Result<NewSubmission, CoreError> {
         self.post_submission_with_params(submission_url, submission, None, locale)
     }
 
@@ -533,7 +548,7 @@ impl TmcCore {
         submission: &Path,
         paste_message: Option<String>,
         locale: Option<Language>,
-    ) -> Result<NewSubmission> {
+    ) -> Result<NewSubmission, CoreError> {
         let mut params = HashMap::new();
         params.insert("paste".to_string(), "1".to_string());
         params.insert(
@@ -549,7 +564,7 @@ impl TmcCore {
         submission: &Path,
         message_for_reviewer: String,
         locale: Option<Language>,
-    ) -> Result<NewSubmission> {
+    ) -> Result<NewSubmission, CoreError> {
         let mut params = HashMap::new();
         params.insert("request_review".to_string(), "1".to_string());
         params.insert("message_for_reviewer".to_string(), message_for_reviewer);
@@ -562,7 +577,7 @@ impl TmcCore {
         submission: &Path,
         params: Option<HashMap<String, String>>,
         locale: Option<Language>,
-    ) -> Result<NewSubmission> {
+    ) -> Result<NewSubmission, CoreError> {
         if self.token.is_none() {
             return Err(CoreError::AuthRequired);
         }
@@ -619,12 +634,19 @@ impl TmcCore {
         Ok(res)
     }
 
-    pub(super) fn organization_courses(&self, organization_slug: &str) -> Result<Vec<Course>> {
+    pub(super) fn organization_courses(
+        &self,
+        organization_slug: &str,
+    ) -> Result<Vec<Course>, CoreError> {
         let url_tail = format!("core/org/{}/courses", organization_slug);
         self.get_json(&url_tail)
     }
 
-    pub(super) fn download_submission(&self, submission_id: usize, target: &Path) -> Result<()> {
+    pub(super) fn download_submission(
+        &self,
+        submission_id: usize,
+        target: &Path,
+    ) -> Result<(), CoreError> {
         let url_tail = format!("core/submissions/{}/download", submission_id);
         self.download(&url_tail, target)
     }
@@ -633,7 +655,7 @@ impl TmcCore {
         &self,
         feedback_url: Url,
         feedback: Vec<FeedbackAnswer>,
-    ) -> Result<SubmissionFeedbackResponse> {
+    ) -> Result<SubmissionFeedbackResponse, CoreError> {
         // let url_tail = format!("core/submissions/{}/feedback", submission_id);
         // let url = self.api_url.join(&url_tail)?;
 
@@ -662,7 +684,7 @@ impl TmcCore {
         submission_id: usize,
         review_body: &str,
         review_points: &str,
-    ) -> Result<()> {
+    ) -> Result<(), CoreError> {
         let url_tail = format!("core/submissions/{}/reviews", submission_id);
         let url = self
             .api_url
@@ -684,7 +706,11 @@ impl TmcCore {
         Ok(())
     }
 
-    pub(super) fn mark_review(&self, review_update_url: String, read: bool) -> Result<()> {
+    pub(super) fn mark_review(
+        &self,
+        review_update_url: String,
+        read: bool,
+    ) -> Result<(), CoreError> {
         let url = format!("{}.json", review_update_url);
         let url = Url::parse(&url).map_err(|e| CoreError::UrlParse(url, e))?;
 
