@@ -14,6 +14,8 @@ pub enum UtilError {
     InvalidParam(String, #[source] ParamError),
     #[error("No project directory found in archive during unzip")]
     NoProjectDirInZip(PathBuf),
+    #[error("Failed to aquire mutex")]
+    MutexError,
 
     #[error("Error appending path {0} to tar")]
     TarAppend(PathBuf, #[source] std::io::Error),

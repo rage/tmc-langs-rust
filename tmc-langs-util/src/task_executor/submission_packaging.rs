@@ -146,6 +146,10 @@ pub enum OutputFormat {
     TarZstd,
 }
 
+lazy_static::lazy_static! {
+    static ref MUTEX: std::sync::Mutex<()> = std::sync::Mutex::new(());
+}
+
 // prepares a submission for further processing on the TMC server
 // todo: the function is currently long and unfocused
 pub fn prepare_submission(
@@ -157,6 +161,8 @@ pub fn prepare_submission(
     stub_zip_path: Option<&Path>,
     output_format: OutputFormat,
 ) -> Result<(), UtilError> {
+    // workaround for unknown issues when prepare_submission is ran multiple times in parallel
+    let _m = MUTEX.lock().map_err(|_| UtilError::MutexError)?;
     log::debug!("preparing submission for {}", zip_path.display());
 
     fn useless_file_filter(entry: &ZipFile) -> bool {
@@ -457,11 +463,7 @@ mod test {
         let _ = env_logger::builder().is_test(true).try_init();
     }
 
-    lazy_static::lazy_static! {
-        static ref MUTEX: std::sync::Mutex<()> = std::sync::Mutex::new(());
-    }
     fn generic_submission(clone: &str, zip: &str) -> (TempDir, PathBuf) {
-        let _m = MUTEX.lock().unwrap();
         let temp = tempfile::tempdir().unwrap();
         let output_archive = temp.path().join("output.tar");
         assert!(!output_archive.exists());
