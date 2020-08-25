@@ -3,7 +3,7 @@
 mod app;
 mod output;
 
-use output::{CombinedCourseData, ErrorData, Kind, Output, OutputResult, Status};
+use output::{CombinedCourseData, DownloadTarget, ErrorData, Kind, Output, OutputResult, Status};
 
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
@@ -17,7 +17,7 @@ use tempfile::NamedTempFile;
 use tmc_langs_core::oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
-use tmc_langs_core::{CoreError, FeedbackAnswer, TmcCore, Token};
+use tmc_langs_core::{CoreError, FeedbackAnswer, StatusType, TmcCore, Token};
 use tmc_langs_framework::{domain::ValidationResult, error::CommandError};
 use tmc_langs_util::{
     task_executor::{self, TmcParams},
@@ -481,12 +481,21 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
     // set progress report to print the updates to stdout as JSON
     core.set_progress_report(|update| {
         // convert to output
-        let output = Output::<()> {
+        let data = match &update.status_type {
+            StatusType::DownloadingExercise { id, path }
+            | StatusType::DownloadedExercise { id, path } => Some(DownloadTarget {
+                id: *id,
+                path: path.clone(),
+            }),
+            _ => None,
+        };
+
+        let output = Output {
             status: Status::InProgress,
             message: Some(update.message.to_string()),
             result: update.status_type.into(),
             percent_done: update.percent_done,
-            data: None,
+            data,
         };
         print_output(&output)?;
         Ok(())

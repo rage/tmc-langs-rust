@@ -2,6 +2,7 @@
 
 use schemars::JsonSchema;
 use serde::Serialize;
+use std::path::PathBuf;
 use tmc_langs_core::{CourseData, CourseDetails, CourseExercise, StatusType};
 
 /// The format for all messages written to stdout by the CLI
@@ -36,9 +37,9 @@ pub enum OutputResult {
     SentData,
     RetrievedData,
     ExecutedCommand,
-    Downloading,
+    DownloadingExercise,
     Compressing,
-    Extracting,
+    DownloadedExercise,
     Processing,
     Sending,
     WaitingForResults,
@@ -50,9 +51,9 @@ pub enum OutputResult {
 impl From<StatusType> for OutputResult {
     fn from(status_type: StatusType) -> Self {
         match status_type {
-            StatusType::Downloading => OutputResult::Downloading,
+            StatusType::DownloadingExercise { .. } => OutputResult::DownloadingExercise,
             StatusType::Compressing => OutputResult::Compressing,
-            StatusType::Extracting => OutputResult::Extracting,
+            StatusType::DownloadedExercise { .. } => OutputResult::DownloadedExercise,
             StatusType::Processing => OutputResult::Processing,
             StatusType::Sending => OutputResult::Sending,
             StatusType::WaitingForResults => OutputResult::WaitingForResults,
@@ -86,4 +87,10 @@ pub struct CombinedCourseData {
     pub details: CourseDetails,
     pub exercises: Vec<CourseExercise>,
     pub settings: CourseData,
+}
+
+#[derive(Debug, Serialize)]
+pub struct DownloadTarget {
+    pub id: usize,
+    pub path: PathBuf,
 }
