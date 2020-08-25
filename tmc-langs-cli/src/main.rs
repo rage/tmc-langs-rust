@@ -1120,6 +1120,9 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
             let submission_url = matches.value_of("submission-url").unwrap();
             let submission_url = into_url(submission_url)?;
 
+            if !dont_block {
+                core.increment_progress_steps();
+            }
             let new_submission = core
                 .submit(submission_url, submission_path, locale)
                 .context("Failed to submit")?;
