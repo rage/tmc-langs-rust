@@ -1,8 +1,7 @@
 //! Student file policy for C#
-use tmc_langs_framework::StudentFilePolicy;
-
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
+use tmc_langs_framework::StudentFilePolicy;
 
 pub struct CSharpStudentFilePolicy {
     config_file_parent_path: PathBuf,
@@ -20,7 +19,9 @@ impl CSharpStudentFilePolicy {
         let mut parent = path.parent();
         while let Some(next) = parent {
             if let Some(file_name) = next.file_name() {
-                if file_name == OsString::from("bin") || file_name == OsString::from("obj") {
+                if next.is_dir()
+                    && (file_name == OsString::from("bin") || file_name == OsString::from("obj"))
+                {
                     return true;
                 }
             }

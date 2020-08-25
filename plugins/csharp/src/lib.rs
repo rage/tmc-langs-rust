@@ -4,9 +4,8 @@ mod plugin;
 
 pub use error::CSharpError;
 pub use plugin::{CSharpPlugin, CSharpStudentFilePolicy};
-use tmc_langs_framework::domain::TestResult;
-
 use serde::Deserialize;
+use tmc_langs_framework::domain::TestResult;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]

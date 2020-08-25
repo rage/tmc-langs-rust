@@ -14,17 +14,18 @@ pub enum CSharpError {
     CacheDir,
     #[error("Could not locate boostrap DLL at {0}")]
     MissingBootstrapDll(PathBuf),
-    #[error("Error while handling tmc-csharp-runner zip")]
-    Zip(#[source] zip::result::ZipError),
 
     #[error("Command not found")]
     Command(#[from] CommandError),
     #[error("File IO error")]
     FileIo(#[from] FileIo),
-    #[error("Error")]
+    #[error("TMC error")]
     Tmc(#[from] TmcError),
+    #[error("Zip error")]
+    Zip(#[from] zip::result::ZipError),
 }
 
+// conversion from plugin error to TmcError::Plugin
 impl From<CSharpError> for TmcError {
     fn from(err: CSharpError) -> Self {
         Self::Plugin(Box::new(err))

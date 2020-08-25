@@ -1,10 +1,14 @@
 //! Implementation of LanguagePlugin for C#
 mod policy;
 
-pub use policy::CSharpStudentFilePolicy;
-
 use crate::{CSTestResult, CSharpError};
-
+pub use policy::CSharpStudentFilePolicy;
+use std::collections::HashMap;
+use std::env;
+use std::ffi::{OsStr, OsString};
+use std::io::{BufReader, Cursor, Read, Seek};
+use std::path::{Path, PathBuf};
+use std::time::Duration;
 use tmc_langs_framework::{
     command::{OutputWithTimeout, TmcCommand},
     domain::{
@@ -16,14 +20,6 @@ use tmc_langs_framework::{
     zip::ZipArchive,
     LanguagePlugin, TmcError,
 };
-
-use std::collections::HashMap;
-use std::env;
-use std::ffi::{OsStr, OsString};
-use std::fs::File;
-use std::io::{BufReader, Cursor, Read, Seek};
-use std::path::{Path, PathBuf};
-use std::time::Duration;
 use walkdir::WalkDir;
 
 const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../tmc-csharp-runner-1.0.1.zip");
@@ -36,29 +32,31 @@ impl CSharpPlugin {
         Self {}
     }
 
-    /// Extracts the included TMC_CSHARP_RUNNER to the given path
+    /// Extracts the bundled tmc-csharp-runner to the given path.
     fn extract_runner(target: &Path) -> Result<(), CSharpError> {
         log::debug!("extracting C# runner to {}", target.display());
 
-        let mut zip = ZipArchive::new(Cursor::new(TMC_CSHARP_RUNNER)).map_err(CSharpError::Zip)?;
+        let mut zip = ZipArchive::new(Cursor::new(TMC_CSHARP_RUNNER))?;
         for i in 0..zip.len() {
-            let file = zip.by_index(i).unwrap();
+            let file = zip.by_index(i)?;
             if file.is_file() {
                 let target_file_path = target.join(file.sanitized_name());
                 if let Some(parent) = target_file_path.parent() {
                     file_util::create_dir_all(&parent)?;
                 }
+
+                let file_path = file.sanitized_name();
                 let bytes: Vec<u8> = file
                     .bytes()
                     .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| FileIo::FileRead(target_file_path.clone(), e))?;
+                    .map_err(|e| FileIo::FileRead(file_path, e))?;
                 file_util::write_to_file(&mut bytes.as_slice(), target_file_path)?;
             }
         }
         Ok(())
     }
 
-    /// Returns the directory of the TMC C# runner, writing it to cache if it doesn't exist there yet
+    /// Returns the directory of the TMC C# runner, writing it to the cache dir if it doesn't exist there yet.
     fn get_runner_dir() -> Result<PathBuf, CSharpError> {
         match dirs::cache_dir() {
             Some(cache_dir) => {
@@ -72,19 +70,19 @@ impl CSharpPlugin {
         }
     }
 
-    /// Returns the path to the TMC C# runner in the cache. If TMC_CSHARP_BOOTSTRAP_PATH, it is returned instead.
+    /// Returns the path to the TMC C# runner in the cache. If TMC_CSHARP_BOOTSTRAP_PATH is set, it is returned instead.
     fn get_bootstrap_path() -> Result<PathBuf, CSharpError> {
         if let Ok(var) = env::var("TMC_CSHARP_BOOTSTRAP_PATH") {
             log::debug!("using bootstrap path TMC_CSHARP_BOOTSTRAP_PATH={}", var);
             Ok(PathBuf::from(var))
         } else {
             let runner_path = Self::get_runner_dir()?;
-            let bootstrap = runner_path.join("TestMyCode.CSharp.Bootstrap.dll");
-            if bootstrap.exists() {
-                log::debug!("found boostrap dll at {}", bootstrap.display());
-                Ok(bootstrap)
+            let bootstrap_path = runner_path.join("TestMyCode.CSharp.Bootstrap.dll");
+            if bootstrap_path.exists() {
+                log::debug!("found boostrap dll at {}", bootstrap_path.display());
+                Ok(bootstrap_path)
             } else {
-                Err(CSharpError::MissingBootstrapDll(bootstrap))
+                Err(CSharpError::MissingBootstrapDll(bootstrap_path))
             }
         }
     }
@@ -102,6 +100,7 @@ impl CSharpPlugin {
                 break;
             }
         }
+        // convert the parsed C# test results into TMC test results
         let test_results = test_results.into_iter().map(|t| t.into()).collect();
         Ok(RunResult {
             status,
@@ -115,7 +114,7 @@ impl LanguagePlugin for CSharpPlugin {
     const PLUGIN_NAME: &'static str = "csharp";
     type StudentFilePolicy = CSharpStudentFilePolicy;
 
-    // checks the directories in src for csproj files
+    /// Checks the directories in src for csproj files, up to 2 subdirectories deep.
     fn is_exercise_type_correct(path: &Path) -> bool {
         WalkDir::new(path.join("src"))
             .max_depth(2)
@@ -148,8 +147,13 @@ impl LanguagePlugin for CSharpPlugin {
         Self::StudentFilePolicy::new(project_path.to_path_buf())
     }
 
-    // runs --generate-points-file and parses the generated .tmc_available_points.json
+    /// Runs --generate-points-file and parses the generated .tmc_available_points.json.
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
+        let exercise_desc_json_path = path.join(".tmc_available_points.json");
+        if exercise_desc_json_path.exists() {
+            file_util::remove_file(&exercise_desc_json_path)?;
+        }
+
         let mut command = TmcCommand::new("dotnet".to_string());
         command
             .current_dir(path)
@@ -157,9 +161,7 @@ impl LanguagePlugin for CSharpPlugin {
             .arg("--generate-points-file");
         command.output_checked()?;
 
-        let exercise_desc_json_path = path.join(".tmc_available_points.json");
-        let exercise_desc_json = File::open(&exercise_desc_json_path)
-            .map_err(|e| FileIo::FileRead(exercise_desc_json_path.clone(), e))?;
+        let exercise_desc_json = file_util::open_file(&exercise_desc_json_path)?;
         let json: HashMap<String, Vec<String>> =
             serde_json::from_reader(BufReader::new(exercise_desc_json))
                 .map_err(|e| CSharpError::ParseExerciseDesc(exercise_desc_json_path, e))?;
@@ -174,7 +176,7 @@ impl LanguagePlugin for CSharpPlugin {
         })
     }
 
-    // removes any existing .tmc_test_results.json, runs --run-tests and parses the resulting .tmc_test_results.json
+    /// Runs --run-tests and parses the resulting .tmc_test_results.json.
     fn run_tests_with_timeout(
         &self,
         path: &Path,
@@ -184,19 +186,19 @@ impl LanguagePlugin for CSharpPlugin {
         if test_results_path.exists() {
             file_util::remove_file(&test_results_path)?;
         }
+
         let mut command = TmcCommand::new("dotnet".to_string());
         command
             .current_dir(path)
             .arg(Self::get_bootstrap_path()?)
             .arg("--run-tests");
         let output = if let Some(timeout) = timeout {
-            let output = command.wait_with_timeout(timeout)?;
-            log::trace!("stdout: {}", String::from_utf8_lossy(output.stdout()));
-            log::debug!("stderr: {}", String::from_utf8_lossy(output.stderr()));
-            output
+            command.wait_with_timeout(timeout)?
         } else {
             OutputWithTimeout::Output(command.output()?)
         };
+        log::trace!("stdout: {}", String::from_utf8_lossy(output.stdout()));
+        log::debug!("stderr: {}", String::from_utf8_lossy(output.stderr()));
 
         match output {
             OutputWithTimeout::Output(output) => {
@@ -234,7 +236,7 @@ impl LanguagePlugin for CSharpPlugin {
         }
     }
 
-    // no checkstyle for C#
+    /// No-op for C#.
     fn check_code_style(&self, _path: &Path, _locale: Language) -> Option<ValidationResult> {
         Some(ValidationResult {
             strategy: Strategy::Disabled,
@@ -242,7 +244,7 @@ impl LanguagePlugin for CSharpPlugin {
         })
     }
 
-    // removes all bin and obj sub-directories
+    /// Removes all bin and obj sub-directories.
     fn clean(&self, path: &Path) -> Result<(), TmcError> {
         let test_results_path = path.join(".tmc_test_results.json");
         if test_results_path.exists() {
@@ -263,7 +265,7 @@ impl LanguagePlugin for CSharpPlugin {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::fs;
+    use std::fs::{self, File};
     use std::sync::Once;
     use tempfile::TempDir;
 
