@@ -10,5 +10,7 @@ pub use tmc_langs_framework::{
         ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, Strategy,
         ValidationResult,
     },
+    error::*,
+    io::file_util,
     plugin::Language,
 };

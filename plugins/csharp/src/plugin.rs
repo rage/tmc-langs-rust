@@ -10,6 +10,8 @@ use tmc_langs_framework::{
     domain::{
         ExerciseDesc, RunResult, RunStatus, Strategy, TestDesc, TestResult, ValidationResult,
     },
+    error::FileIo,
+    io::file_util,
     plugin::Language,
     zip::ZipArchive,
     LanguagePlugin, TmcError,
@@ -18,8 +20,8 @@ use tmc_langs_framework::{
 use std::collections::HashMap;
 use std::env;
 use std::ffi::{OsStr, OsString};
-use std::fs::{self, File};
-use std::io::{BufReader, Cursor, Read, Seek, Write};
+use std::fs::File;
+use std::io::{BufReader, Cursor, Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use walkdir::WalkDir;
@@ -44,18 +46,13 @@ impl CSharpPlugin {
             if file.is_file() {
                 let target_file_path = target.join(file.sanitized_name());
                 if let Some(parent) = target_file_path.parent() {
-                    fs::create_dir_all(&parent)
-                        .map_err(|e| CSharpError::CreateDir(target_file_path.clone(), e))?;
+                    file_util::create_dir_all(&parent)?;
                 }
-                let mut target_file = File::create(&target_file_path)
-                    .map_err(|e| CSharpError::CreateFile(target_file_path.clone(), e))?;
                 let bytes: Vec<u8> = file
                     .bytes()
                     .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| CSharpError::ReadFile(target_file_path.clone(), e))?;
-                target_file
-                    .write_all(&bytes)
-                    .map_err(|e| CSharpError::WriteFile(target_file_path, e))?;
+                    .map_err(|e| FileIo::FileRead(target_file_path.clone(), e))?;
+                file_util::write_to_file(&mut bytes.as_slice(), target_file_path)?;
             }
         }
         Ok(())
@@ -94,8 +91,7 @@ impl CSharpPlugin {
 
     /// Parses the test results JSON file at the path argument.
     fn parse_test_results(test_results_path: &Path) -> Result<RunResult, CSharpError> {
-        let test_results = File::open(test_results_path)
-            .map_err(|e| CSharpError::ReadFile(test_results_path.to_path_buf(), e))?;
+        let test_results = file_util::open_file(test_results_path)?;
         let test_results: Vec<CSTestResult> = serde_json::from_reader(test_results)
             .map_err(|e| CSharpError::ParseTestResults(test_results_path.to_path_buf(), e))?;
 
@@ -122,14 +118,13 @@ impl LanguagePlugin for CSharpPlugin {
     // checks the directories in src for csproj files
     fn is_exercise_type_correct(path: &Path) -> bool {
         WalkDir::new(path.join("src"))
-            .min_depth(2)
             .max_depth(2)
             .into_iter()
             .filter_map(|e| e.ok())
             .any(|e| e.path().extension() == Some(&OsString::from("csproj")))
     }
 
-    /// Finds .csproj files and checks whether they are in a X/src/ directory, returning X if so.
+    /// Finds any directory X which contains a X/src/*.csproj file.
     fn find_project_dir_in_zip<R: Read + Seek>(
         zip_archive: &mut ZipArchive<R>,
     ) -> Result<PathBuf, TmcError> {
@@ -155,21 +150,16 @@ impl LanguagePlugin for CSharpPlugin {
 
     // runs --generate-points-file and parses the generated .tmc_available_points.json
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
-        let mut command = TmcCommand::new("dotnet");
+        let mut command = TmcCommand::new("dotnet".to_string());
         command
             .current_dir(path)
             .arg(Self::get_bootstrap_path()?)
             .arg("--generate-points-file");
-        let output = command.output()?;
-        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-        log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
-        if !output.status.success() {
-            return Err(CSharpError::CommandFailed("dotnet", output.status).into());
-        }
+        command.output_checked()?;
 
         let exercise_desc_json_path = path.join(".tmc_available_points.json");
         let exercise_desc_json = File::open(&exercise_desc_json_path)
-            .map_err(|e| CSharpError::ReadFile(exercise_desc_json_path.clone(), e))?;
+            .map_err(|e| FileIo::FileRead(exercise_desc_json_path.clone(), e))?;
         let json: HashMap<String, Vec<String>> =
             serde_json::from_reader(BufReader::new(exercise_desc_json))
                 .map_err(|e| CSharpError::ParseExerciseDesc(exercise_desc_json_path, e))?;
@@ -192,10 +182,9 @@ impl LanguagePlugin for CSharpPlugin {
     ) -> Result<RunResult, TmcError> {
         let test_results_path = path.join(".tmc_test_results.json");
         if test_results_path.exists() {
-            fs::remove_file(&test_results_path)
-                .map_err(|e| CSharpError::RemoveFile(test_results_path.clone(), e))?;
+            file_util::remove_file(&test_results_path)?;
         }
-        let mut command = TmcCommand::new("dotnet");
+        let mut command = TmcCommand::new("dotnet".to_string());
         command
             .current_dir(path)
             .arg(Self::get_bootstrap_path()?)
@@ -257,16 +246,14 @@ impl LanguagePlugin for CSharpPlugin {
     fn clean(&self, path: &Path) -> Result<(), TmcError> {
         let test_results_path = path.join(".tmc_test_results.json");
         if test_results_path.exists() {
-            fs::remove_file(&test_results_path)
-                .map_err(|e| CSharpError::RemoveFile(test_results_path.clone(), e))?;
+            file_util::remove_file(&test_results_path)?;
         }
         for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
             let file_name = entry.path().file_name();
             if file_name == Some(&OsString::from("bin"))
                 || file_name == Some(&OsString::from("obj"))
             {
-                fs::remove_dir_all(entry.path())
-                    .map_err(|e| CSharpError::RemoveDir(entry.path().to_path_buf(), e))?;
+                file_util::remove_dir_all(entry.path())?;
             }
         }
         Ok(())
@@ -276,6 +263,7 @@ impl LanguagePlugin for CSharpPlugin {
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::fs;
     use std::sync::Once;
     use tempfile::TempDir;
 

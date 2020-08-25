@@ -1,25 +1,22 @@
 //! Error type for the R plugin
 
 use thiserror::Error;
-use tmc_langs_framework::TmcError;
+use tmc_langs_framework::{
+    error::{CommandError, FileIo},
+    TmcError,
+};
 
 use std::path::PathBuf;
-use std::process::ExitStatus;
 
 #[derive(Debug, Error)]
 pub enum RError {
-    #[error("Error running command {0}")]
-    Command(&'static str, #[source] std::io::Error),
-    #[error("Command {0} failed with status {1}. stderr: {2}")]
-    CommandStatus(&'static str, ExitStatus, String),
-
-    #[error("Failed to open file {0}")]
-    FileOpen(PathBuf, #[source] std::io::Error),
-    #[error("Failed to remove file {0}")]
-    FileRemove(PathBuf, #[source] std::io::Error),
-
     #[error("Failed to deserialize file {0} into JSON")]
     JsonDeserialize(PathBuf, #[source] serde_json::Error),
+
+    #[error("Failed to run command")]
+    Command(#[from] CommandError),
+    #[error("File IO error")]
+    FileIo(#[from] FileIo),
 }
 
 impl From<RError> for TmcError {

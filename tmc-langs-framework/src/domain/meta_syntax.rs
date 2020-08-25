@@ -1,7 +1,7 @@
 //! Contains utilities for parsing annotated exercise source files, separating lines into
 //! strings, stubs and solutions so that they can be more easily filtered later.
 
-use crate::{Result, TmcError};
+use crate::TmcError;
 use lazy_static::lazy_static;
 use regex::{Captures, Regex};
 use std::io::{BufRead, BufReader, Read};
@@ -115,7 +115,7 @@ impl<R: Read> MetaSyntaxParser<BufReader<R>> {
 
 // iterates through the lines in the underlying file, parsing them to MetaStrings
 impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
-    type Item = Result<MetaString>;
+    type Item = Result<MetaString, TmcError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let mut s = String::new();

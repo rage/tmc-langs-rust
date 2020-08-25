@@ -8,12 +8,13 @@ use super::RRunResult;
 use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, TestDesc},
+    io::file_util,
     zip::ZipArchive,
     LanguagePlugin, TmcError,
 };
 
 use std::collections::HashMap;
-use std::fs::{self, File};
+use std::fs;
 use std::io::{Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
@@ -38,25 +39,13 @@ impl LanguagePlugin for RPlugin {
         } else {
             &["-e", "library(tmcRtestrunner);run_available_points()"]
         };
-        let mut command = TmcCommand::new("Rscript");
+        let mut command = TmcCommand::new("Rscript".to_string());
         command.current_dir(path).args(args);
-        let out = command.output()?;
-
-        if !out.status.success() {
-            return Err(RError::CommandStatus(
-                "Rscript",
-                out.status,
-                String::from_utf8_lossy(&out.stderr).into_owned(),
-            )
-            .into());
-        }
-        log::trace!("stdout: {}", String::from_utf8_lossy(&out.stdout));
-        log::debug!("stderr: {}", String::from_utf8_lossy(&out.stderr));
+        command.output_checked()?;
 
         // parse exercise desc
         let points_path = path.join(".available_points.json");
-        let json_file =
-            File::open(&points_path).map_err(|e| RError::FileOpen(points_path.clone(), e))?;
+        let json_file = file_util::open_file(&points_path)?;
         let test_descs: HashMap<String, Vec<String>> = serde_json::from_reader(json_file)
             .map_err(|e| RError::JsonDeserialize(points_path, e))?;
         let test_descs = test_descs
@@ -78,8 +67,7 @@ impl LanguagePlugin for RPlugin {
         // delete results json
         let results_path = path.join(".results.json");
         if results_path.exists() {
-            fs::remove_file(&results_path)
-                .map_err(|e| RError::FileRemove(results_path.clone(), e))?;
+            file_util::remove_file(&results_path)?;
         }
 
         // run test command
@@ -88,25 +76,12 @@ impl LanguagePlugin for RPlugin {
         } else {
             &["-e", "library(tmcRtestrunner);run_tests()"]
         };
-        let mut command = TmcCommand::new("Rscript");
+        let mut command = TmcCommand::new("Rscript".to_string());
         command.current_dir(path).args(args);
-        let out = command.output()?;
-
-        log::trace!("stdout: {}", String::from_utf8_lossy(&out.stdout));
-        log::debug!("stderr: {}", String::from_utf8_lossy(&out.stderr));
-
-        if !out.status.success() {
-            return Err(RError::CommandStatus(
-                "Rscript",
-                out.status,
-                String::from_utf8_lossy(&out.stderr).into_owned(),
-            )
-            .into());
-        }
+        command.output_checked()?;
 
         // parse test result
-        let json_file =
-            File::open(&results_path).map_err(|e| RError::FileOpen(results_path.clone(), e))?;
+        let json_file = file_util::open_file(&results_path)?;
         let run_result: RRunResult = serde_json::from_reader(json_file).map_err(|e| {
             if let Ok(s) = fs::read_to_string(&results_path) {
                 log::error!("json {}", s);
@@ -164,6 +139,7 @@ impl LanguagePlugin for RPlugin {
 #[cfg(target_os = "linux")] // tmc-r-testrunner not installed on other CI platforms
 mod test {
     use super::*;
+    use std::fs::File;
     use std::path::PathBuf;
     use tmc_langs_framework::domain::RunStatus;
 

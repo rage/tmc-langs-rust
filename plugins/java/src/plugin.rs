@@ -5,11 +5,11 @@ use super::{error::JavaError, CompileResult, TestCase, TestCaseStatus, TestMetho
 use j4rs::{InvocationArg, Jvm};
 use std::collections::HashMap;
 use std::convert::TryFrom;
-use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult, ValidationResult},
+    io::file_util,
     plugin::{Language, LanguagePlugin},
 };
 use walkdir::WalkDir;
@@ -40,15 +40,13 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
 
         let test_result = self.create_run_result_file(project_root_path, compile_result)?;
         let result = self.parse_test_result(&test_result);
-        fs::remove_file(&test_result.test_results)
-            .map_err(|e| JavaError::FileRemove(test_result.test_results, e))?;
+        file_util::remove_file(&test_result.test_results)?;
         Ok(result?)
     }
 
     /// Parses test results.
     fn parse_test_result(&self, results: &TestRun) -> Result<RunResult, JavaError> {
-        let result_file = File::open(&results.test_results)
-            .map_err(|e| JavaError::FileRead(results.test_results.clone(), e))?;
+        let result_file = file_util::open_file(&results.test_results)?;
         let test_case_records: Vec<TestCase> = serde_json::from_reader(&result_file)?;
 
         let mut test_results: Vec<TestResult> = vec![];
@@ -119,22 +117,12 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
 
     /// Tries to find the java.home property.
     fn get_java_home() -> Result<PathBuf, JavaError> {
-        let mut command = TmcCommand::new("java");
+        let mut command = TmcCommand::new("java".to_string());
         command.arg("-XshowSettings:properties").arg("-version");
-        let output = command.output()?;
-
-        if !output.status.success() {
-            return Err(JavaError::FailedCommand(
-                "java".to_string(),
-                output.status,
-                String::from_utf8_lossy(&output.stdout).into_owned(),
-                String::from_utf8_lossy(&output.stderr).into_owned(),
-            ));
-        }
+        let output = command.output_checked()?;
 
         // information is printed to stderr
         let stderr = String::from_utf8_lossy(&output.stderr);
-
         match Self::parse_java_home(&stderr) {
             Some(java_home) => Ok(java_home),
             None => Err(JavaError::NoJavaHome),
@@ -158,7 +146,10 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         if !Self::is_exercise_type_correct(path) {
             return Err(JavaError::InvalidExercise(path.to_path_buf()));
         } else if !compile_result.status_code.success() {
-            return Err(JavaError::Compilation(compile_result.stderr));
+            return Err(JavaError::Compilation {
+                stdout: String::from_utf8_lossy(&compile_result.stdout).into_owned(),
+                stderr: String::from_utf8_lossy(&compile_result.stderr).into_owned(),
+            });
         }
 
         let mut source_files = vec![];

@@ -7,7 +7,6 @@ use std::ffi::OsStr;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::io::Write;
 use std::path::Path;
-use tempfile::NamedTempFile;
 use tmc_langs_framework::io::file_util;
 use walkdir::WalkDir;
 use zip::{read::ZipFile, write::FileOptions, ZipWriter};
@@ -458,7 +457,11 @@ mod test {
         let _ = env_logger::builder().is_test(true).try_init();
     }
 
+    lazy_static::lazy_static! {
+        static ref MUTEX: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    }
     fn generic_submission(clone: &str, zip: &str) -> (TempDir, PathBuf) {
+        let _m = MUTEX.lock().unwrap();
         let temp = tempfile::tempdir().unwrap();
         let output_archive = temp.path().join("output.tar");
         assert!(!output_archive.exists());

@@ -16,10 +16,9 @@ use reqwest::{
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::collections::HashMap;
-use std::fs::File;
 use std::path::Path;
 use std::time::SystemTime;
-use tmc_langs_util::Language;
+use tmc_langs_util::{file_util, FileIo, Language};
 use url::Url;
 
 /// Provides a wrapper for reqwest Response's json that deserializes into Response<T> and converts it into a result
@@ -124,8 +123,7 @@ impl TmcCore {
             .map_err(|e| CoreError::UrlParse(url_tail.to_string(), e))?;
 
         // download zip
-        let mut target_file =
-            File::create(target).map_err(|e| CoreError::FileCreate(target.to_path_buf(), e))?;
+        let mut target_file = file_util::create_file(target)?;
         log::debug!("downloading {}", url);
         self.client
             .get(url.clone())
@@ -140,8 +138,7 @@ impl TmcCore {
 
     pub(crate) fn download_from(&self, url: Url, target: &Path) -> Result<()> {
         // download zip
-        let mut target_file =
-            File::create(target).map_err(|e| CoreError::FileCreate(target.to_path_buf(), e))?;
+        let mut target_file = file_util::create_file(target)?;
         log::debug!("downloading {}", url);
         self.client
             .get(url.clone())
@@ -600,7 +597,7 @@ impl TmcCore {
                     .to_string(),
             )
             .file("submission[file]", submission)
-            .map_err(|e| CoreError::FileOpen(submission.to_path_buf(), e))?;
+            .map_err(|e| CoreError::FileIo(FileIo::FileOpen(submission.to_path_buf(), e)))?;
 
         if let Some(params) = params {
             for (key, val) in params {

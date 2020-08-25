@@ -8,7 +8,6 @@ use flate2::read::GzDecoder;
 use j4rs::Jvm;
 use policy::MavenStudentFilePolicy;
 use std::ffi::OsString;
-use std::fs;
 use std::io::Cursor;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
@@ -17,6 +16,7 @@ use tar::Archive;
 use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, ValidationResult},
+    io::file_util,
     plugin::{Language, LanguagePlugin},
     TmcError,
 };
@@ -39,7 +39,7 @@ impl MavenPlugin {
     // finally, return the path to the extracted executable
     fn get_mvn_command() -> Result<OsString, JavaError> {
         // check if mvn is in PATH
-        if let Ok(status) = TmcCommand::new("mvn")
+        if let Ok(status) = TmcCommand::new("mvn".to_string())
             .arg("--version")
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
@@ -112,22 +112,7 @@ impl LanguagePlugin for MavenPlugin {
         let mvn_command = Self::get_mvn_command()?;
         let mut command = TmcCommand::named("maven", mvn_command);
         command.current_dir(path).arg("clean");
-        let output = command.output()?;
-
-        if !output.status.success() {
-            log::warn!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-            log::warn!("stderr: {}", String::from_utf8_lossy(&output.stderr));
-            return Err(JavaError::FailedCommand(
-                "mvn".to_string(),
-                output.status,
-                String::from_utf8_lossy(&output.stdout).into_owned(),
-                String::from_utf8_lossy(&output.stderr).into_owned(),
-            )
-            .into());
-        }
-
-        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-        log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+        command.output_checked()?;
 
         Ok(())
     }
@@ -161,24 +146,9 @@ impl JavaPlugin for MavenPlugin {
             .current_dir(path)
             .arg("dependency:build-classpath")
             .arg(output_arg);
-        let output = command.output()?;
+        command.output_checked()?;
 
-        if !output.status.success() {
-            log::warn!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-            log::warn!("stderr: {}", String::from_utf8_lossy(&output.stderr));
-            return Err(JavaError::FailedCommand(
-                mvn_path.as_os_str().to_string_lossy().to_string(),
-                output.status,
-                String::from_utf8_lossy(&output.stdout).into_owned(),
-                String::from_utf8_lossy(&output.stderr).into_owned(),
-            ));
-        }
-
-        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-        log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
-
-        let class_path = fs::read_to_string(&class_path_file)
-            .map_err(|e| JavaError::FileRead(class_path_file, e))?;
+        let class_path = file_util::read_file_to_string(&class_path_file)?;
         if class_path.is_empty() {
             return Err(JavaError::NoMvnClassPath);
         }
@@ -204,21 +174,7 @@ impl JavaPlugin for MavenPlugin {
             .arg("clean")
             .arg("compile")
             .arg("test-compile");
-        let output = command.output()?;
-
-        if !output.status.success() {
-            log::warn!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-            log::warn!("stderr: {}", String::from_utf8_lossy(&output.stderr));
-            return Err(JavaError::FailedCommand(
-                mvn_path.as_os_str().to_string_lossy().to_string(),
-                output.status,
-                String::from_utf8_lossy(&output.stdout).into_owned(),
-                String::from_utf8_lossy(&output.stderr).into_owned(),
-            ));
-        }
-
-        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-        log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+        let output = command.output_checked()?;
 
         Ok(CompileResult {
             status_code: output.status,
@@ -239,21 +195,7 @@ impl JavaPlugin for MavenPlugin {
         command
             .current_dir(path)
             .arg("fi.helsinki.cs.tmc:tmc-maven-plugin:1.12:test");
-        let output = command.output()?;
-
-        if !output.status.success() {
-            log::warn!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-            log::warn!("stderr: {}", String::from_utf8_lossy(&output.stderr));
-            return Err(JavaError::FailedCommand(
-                mvn_path.as_os_str().to_string_lossy().to_string(),
-                output.status,
-                String::from_utf8_lossy(&output.stdout).into_owned(),
-                String::from_utf8_lossy(&output.stderr).into_owned(),
-            ));
-        }
-
-        log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-        log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+        let output = command.output_checked()?;
 
         Ok(TestRun {
             test_results: path.join("target/test_output.txt"),
@@ -268,7 +210,7 @@ impl JavaPlugin for MavenPlugin {
 mod test {
     use super::super::{TestCase, TestCaseStatus};
     use super::*;
-    use std::fs::File;
+    use std::fs::{self, File};
     use tempfile::{tempdir, TempDir};
     use tmc_langs_framework::domain::Strategy;
     use tmc_langs_framework::zip::ZipArchive;

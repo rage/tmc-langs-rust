@@ -15,7 +15,6 @@ use serde::Serialize;
 use std::cell::Cell;
 use std::collections::HashMap;
 use std::error::Error as StdError;
-use std::fs;
 use std::io::Write;
 use std::path::Path;
 use std::path::PathBuf;
@@ -23,7 +22,7 @@ use std::result::Result as StdResult;
 use std::thread;
 use std::time::Duration;
 use tempfile::NamedTempFile;
-use tmc_langs_util::task_executor;
+use tmc_langs_util::{file_util, task_executor, FileIo};
 use walkdir::WalkDir;
 
 pub type Token =
@@ -389,7 +388,7 @@ impl TmcCore {
         let compressed = task_executor::compress_project(submission_path)?;
         let mut file = NamedTempFile::new().map_err(CoreError::TempFile)?;
         file.write_all(&compressed)
-            .map_err(|e| CoreError::FileWrite(file.path().to_path_buf(), e))?;
+            .map_err(|e| CoreError::Tmc(FileIo::FileWrite(file.path().to_path_buf(), e).into()))?;
 
         self.post_submission_to_paste(submission_url, file.path(), paste_message, locale)
     }
@@ -481,7 +480,7 @@ impl TmcCore {
             0.5,
         );
         file.write_all(&compressed)
-            .map_err(|e| CoreError::FileWrite(file.path().to_path_buf(), e))?;
+            .map_err(|e| CoreError::Tmc(FileIo::FileWrite(file.path().to_path_buf(), e).into()))?;
         self.report_progress(
             "Wrote compressed data. Posting submission...",
             StatusType::Sending,
@@ -503,18 +502,18 @@ impl TmcCore {
                 // windows sometimes fails due to files being in use, retry a few times
                 // todo: handle properly
                 if entry.path().is_dir() {
-                    while let Err(err) = fs::remove_dir_all(entry.path()) {
+                    while let Err(err) = file_util::remove_dir_all(entry.path()) {
                         tries += 1;
                         if tries > 8 {
-                            return Err(CoreError::DirRemove(entry.path().to_path_buf(), err));
+                            return Err(CoreError::FileIo(err));
                         }
                         thread::sleep(Duration::from_secs(1));
                     }
                 } else {
-                    while let Err(err) = fs::remove_file(entry.path()) {
+                    while let Err(err) = file_util::remove_file(entry.path()) {
                         tries += 1;
                         if tries > 8 {
-                            return Err(CoreError::DirRemove(entry.path().to_path_buf(), err));
+                            return Err(CoreError::FileIo(err));
                         }
                         thread::sleep(Duration::from_secs(1));
                     }
@@ -688,7 +687,7 @@ impl TmcCore {
         let compressed = task_executor::compress_project(submission_path)?;
         let mut file = NamedTempFile::new().map_err(CoreError::TempFile)?;
         file.write_all(&compressed)
-            .map_err(|e| CoreError::FileWrite(file.path().to_path_buf(), e))?;
+            .map_err(|e| CoreError::Tmc(FileIo::FileWrite(file.path().to_path_buf(), e).into()))?;
 
         self.post_submission_for_review(submission_url, file.path(), message_for_reviewer, locale)
     }

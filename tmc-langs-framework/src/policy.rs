@@ -1,6 +1,6 @@
 //! Contains StudentFilePolicy.
 
-use super::{Result, TmcProjectYml};
+use super::TmcProjectYml;
 use crate::TmcError;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
@@ -28,7 +28,7 @@ pub trait StudentFilePolicy {
         file_path: &Path,
         project_root_path: &Path,
         tmc_project_yml: &TmcProjectYml,
-    ) -> Result<bool> {
+    ) -> Result<bool, TmcError> {
         // non-existent files and .tmcproject.yml should never be considered student files
         if !file_path.exists() || file_path.file_name() == Some(OsStr::new(".tmcproject.yml")) {
             return Ok(false);
@@ -58,7 +58,7 @@ pub trait StudentFilePolicy {
 
     fn get_config_file_parent_path(&self) -> &Path;
 
-    fn get_tmc_project_yml(&self) -> Result<TmcProjectYml> {
+    fn get_tmc_project_yml(&self) -> Result<TmcProjectYml, TmcError> {
         TmcProjectYml::from(self.get_config_file_parent_path())
     }
 
@@ -69,7 +69,7 @@ pub trait StudentFilePolicy {
         &self,
         file_path: &Path,
         tmc_project_yml: &TmcProjectYml,
-    ) -> Result<bool> {
+    ) -> Result<bool, TmcError> {
         for extra_student_file in &tmc_project_yml.extra_student_files {
             if file_path.starts_with(extra_student_file) {
                 return Ok(true);
@@ -84,7 +84,11 @@ pub trait StudentFilePolicy {
     /// Used to check for files which should always be overwritten.
     ///
     /// The file_path should be relative, starting from the project root.
-    fn is_updating_forced(&self, path: &Path, tmc_project_yml: &TmcProjectYml) -> Result<bool> {
+    fn is_updating_forced(
+        &self,
+        path: &Path,
+        tmc_project_yml: &TmcProjectYml,
+    ) -> Result<bool, TmcError> {
         for force_update_path in &tmc_project_yml.force_update {
             if path.starts_with(force_update_path) {
                 return Ok(true);
@@ -102,7 +106,7 @@ impl StudentFilePolicy for NothingIsStudentFilePolicy {
         _path: &Path,
         _project_root_path: &Path,
         _tmc_project_yml: &TmcProjectYml,
-    ) -> Result<bool> {
+    ) -> Result<bool, TmcError> {
         Ok(false)
     }
 
@@ -114,7 +118,7 @@ impl StudentFilePolicy for NothingIsStudentFilePolicy {
         &self,
         _path: &Path,
         _tmc_project_yml: &TmcProjectYml,
-    ) -> Result<bool> {
+    ) -> Result<bool, TmcError> {
         unimplemented!()
     }
 
@@ -122,7 +126,11 @@ impl StudentFilePolicy for NothingIsStudentFilePolicy {
         unimplemented!()
     }
 
-    fn is_updating_forced(&self, _path: &Path, _tmc_project_yml: &TmcProjectYml) -> Result<bool> {
+    fn is_updating_forced(
+        &self,
+        _path: &Path,
+        _tmc_project_yml: &TmcProjectYml,
+    ) -> Result<bool, TmcError> {
         Ok(false)
     }
 }
@@ -145,7 +153,7 @@ impl StudentFilePolicy for EverythingIsStudentFilePolicy {
         _path: &Path,
         _project_root_path: &Path,
         _tmc_project_yml: &TmcProjectYml,
-    ) -> Result<bool> {
+    ) -> Result<bool, TmcError> {
         Ok(true)
     }
 
@@ -157,7 +165,7 @@ impl StudentFilePolicy for EverythingIsStudentFilePolicy {
         &self,
         _path: &Path,
         _tmc_project_yml: &TmcProjectYml,
-    ) -> Result<bool> {
+    ) -> Result<bool, TmcError> {
         unimplemented!()
     }
 
@@ -165,7 +173,11 @@ impl StudentFilePolicy for EverythingIsStudentFilePolicy {
         unimplemented!()
     }
 
-    fn is_updating_forced(&self, _path: &Path, _tmc_project_yml: &TmcProjectYml) -> Result<bool> {
+    fn is_updating_forced(
+        &self,
+        _path: &Path,
+        _tmc_project_yml: &TmcProjectYml,
+    ) -> Result<bool, TmcError> {
         Ok(false)
     }
 }

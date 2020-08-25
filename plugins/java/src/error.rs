@@ -2,9 +2,11 @@
 
 use std::io;
 use std::path::PathBuf;
-use std::process::ExitStatus;
 use thiserror::Error;
-use tmc_langs_framework::TmcError;
+use tmc_langs_framework::{
+    error::{CommandError, FileIo},
+    TmcError,
+};
 
 #[derive(Error, Debug)]
 pub enum JavaError {
@@ -14,48 +16,34 @@ pub enum JavaError {
     NoMvnClassPath,
     #[error("{0} did not contain a valid exercise")]
     InvalidExercise(PathBuf),
-    #[error("Failed to run {0}")]
-    FailedToRun(String, #[source] std::io::Error),
-    #[error(
-        r"Command '{0}' exited with a exit status {1}
-#### STDOUT ####
-{2}
-#### STDERR ####
-{3}"
-    )]
-    FailedCommand(String, ExitStatus, String, String),
     #[error("Failed to write temporary .jar file {0}")]
     JarWrite(PathBuf, #[source] io::Error),
-    #[error("Failed to create file at {0}")]
-    FileCreate(PathBuf, #[source] io::Error),
-    #[error("Failed to write to file at {0}")]
-    FileWrite(PathBuf, #[source] io::Error),
-    #[error("Failed to read to file at {0}")]
-    FileRead(PathBuf, #[source] io::Error),
-    #[error("Failed to remove file at {0}")]
-    FileRemove(PathBuf, #[source] io::Error),
-    #[error("Failed to create directory at {0}")]
-    DirCreate(PathBuf, #[source] io::Error),
     #[error("Failed to create temporary directory at")]
     TempDir(#[source] io::Error),
     #[error("Failed to find home directory")]
     HomeDir,
-    #[error("Failed to copy file from {0} to {1}")]
-    FileCopy(PathBuf, PathBuf, #[source] std::io::Error),
     #[error("Failed to find cache directory")]
     CacheDir,
     #[error("Failed to compile")]
-    Compilation(Vec<u8>),
+    Compilation { stdout: String, stderr: String },
 
     #[error(transparent)]
     Json(#[from] serde_json::Error),
-    #[error(transparent)]
-    Inner(#[from] TmcError),
+    #[error("Failed to run command")]
+    Command(#[from] CommandError),
+    #[error("Error")]
+    Tmc(#[from] TmcError),
 }
 
 impl From<JavaError> for TmcError {
     fn from(err: JavaError) -> TmcError {
         TmcError::Plugin(Box::new(err))
+    }
+}
+
+impl From<FileIo> for JavaError {
+    fn from(err: FileIo) -> JavaError {
+        JavaError::Tmc(TmcError::FileIo(err))
     }
 }
 

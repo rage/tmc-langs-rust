@@ -7,14 +7,13 @@ use super::{error::JavaError, plugin::JavaPlugin, CompileResult, TestRun, SEPARA
 use j4rs::Jvm;
 use policy::AntStudentFilePolicy;
 use std::env;
-use std::fs::{self, File};
-use std::io::Write;
 use std::path::Path;
 use std::process::Stdio;
 use std::time::Duration;
 use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, ValidationResult},
+    io::file_util,
     plugin::{Language, LanguagePlugin},
     TmcError,
 };
@@ -36,7 +35,7 @@ impl AntPlugin {
 
     fn get_ant_executable(&self) -> &'static str {
         if cfg!(windows) {
-            if let Ok(status) = TmcCommand::new("ant")
+            if let Ok(status) = TmcCommand::new("ant".to_string())
                 .arg("-version")
                 .stdout(Stdio::piped())
                 .stderr(Stdio::piped())
@@ -61,13 +60,8 @@ impl AntPlugin {
 
         // TODO: don't traverse symlinks
         if !runner_path.exists() {
-            fs::create_dir_all(&runner_dir).map_err(|e| JavaError::DirCreate(runner_dir, e))?;
             log::debug!("writing tmc-junit-runner to {}", runner_path.display());
-            let mut target_file = File::create(&runner_path)
-                .map_err(|e| JavaError::FileCreate(runner_path.clone(), e))?;
-            target_file
-                .write_all(JUNIT_RUNNER_ARCHIVE)
-                .map_err(|e| JavaError::JarWrite(runner_path, e))?;
+            file_util::write_to_file(&mut JUNIT_RUNNER_ARCHIVE, &runner_path)?;
         } else {
             log::debug!("already exists");
         }
@@ -118,34 +112,21 @@ impl LanguagePlugin for AntPlugin {
         log::debug!("Cleaning project at {}", path.display());
 
         let stdout_path = path.join("build_log.txt");
-        let stdout = File::create(&stdout_path)
-            .map_err(|e| JavaError::FileCreate(stdout_path.clone(), e))?;
+        let stdout = file_util::create_file(&stdout_path)?;
         let stderr_path = path.join("build_errors.txt");
-        let stderr = File::create(&stderr_path)
-            .map_err(|e| JavaError::FileCreate(stderr_path.clone(), e))?;
+        let stderr = file_util::create_file(&stderr_path)?;
 
         let ant_exec = self.get_ant_executable();
-        let mut command = TmcCommand::new(ant_exec);
+        let mut command = TmcCommand::new(ant_exec.to_string());
         command
             .arg("clean")
             .stdout(stdout)
             .stderr(stderr)
             .current_dir(path);
-        let output = command.output()?;
-
-        if output.status.success() {
-            fs::remove_file(&stdout_path).map_err(|e| JavaError::FileRemove(stdout_path, e))?;
-            fs::remove_file(&stderr_path).map_err(|e| JavaError::FileRemove(stderr_path, e))?;
-            Ok(())
-        } else {
-            Err(JavaError::FailedCommand(
-                "ant clean".to_string(),
-                output.status,
-                String::from_utf8_lossy(&output.stdout).into_owned(),
-                String::from_utf8_lossy(&output.stderr).into_owned(),
-            )
-            .into())
-        }
+        command.output_checked()?;
+        file_util::remove_file(&stdout_path)?;
+        file_util::remove_file(&stderr_path)?;
+        Ok(())
     }
 }
 
@@ -192,27 +173,18 @@ impl JavaPlugin for AntPlugin {
     fn build(&self, project_root_path: &Path) -> Result<CompileResult, JavaError> {
         log::info!("Building project at {}", project_root_path.display());
 
-        let stdout_path = project_root_path.join("build_log.txt");
-        let mut stdout = File::create(&stdout_path)
-            .map_err(|e| JavaError::FileCreate(stdout_path.clone(), e))?;
-        let stderr_path = project_root_path.join("build_errors.txt");
-        let mut stderr = File::create(&stderr_path)
-            .map_err(|e| JavaError::FileCreate(stderr_path.clone(), e))?;
-
         // TODO: don't require ant in path?
         let ant_exec = self.get_ant_executable();
-        let mut command = TmcCommand::new(ant_exec);
+        let mut command = TmcCommand::new(ant_exec.to_string());
         command.arg("compile-test").current_dir(project_root_path);
         let output = command.output()?;
 
         log::debug!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
-        stdout
-            .write_all(&output.stdout)
-            .map_err(|e| JavaError::FileWrite(stdout_path, e))?;
-        stderr
-            .write_all(&output.stderr)
-            .map_err(|e| JavaError::FileWrite(stderr_path, e))?;
+        let stdout_path = project_root_path.join("build_log.txt");
+        let stderr_path = project_root_path.join("build_errors.txt");
+        file_util::write_to_file(&mut output.stdout.as_slice(), stdout_path)?;
+        file_util::write_to_file(&mut output.stderr.as_slice(), stderr_path)?;
 
         Ok(CompileResult {
             status_code: output.status,
@@ -270,7 +242,7 @@ impl JavaPlugin for AntPlugin {
         }
 
         log::debug!("java args {} in {}", arguments.join(" "), path.display());
-        let mut command = TmcCommand::new("java");
+        let mut command = TmcCommand::new("java".to_string());
         command.current_dir(path).args(arguments);
         let output = command.output()?;
 
@@ -286,6 +258,7 @@ impl JavaPlugin for AntPlugin {
 #[cfg(not(target_os = "macos"))] // ant is not installed on github's macos-latest image
 mod test {
     use super::*;
+    use std::fs::{self, File};
     use tempfile::{tempdir, TempDir};
     use tmc_langs_framework::domain::Strategy;
     use tmc_langs_framework::zip::ZipArchive;

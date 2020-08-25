@@ -8,13 +8,14 @@ use crate::valgrind_log::ValgrindLog;
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{self, BufRead, BufReader, Read};
+use std::io::{self, BufRead, BufReader};
 use std::path::Path;
 use std::time::Duration;
 use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TmcProjectYml},
+    error::{CommandError, FileIo},
+    io::file_util,
     plugin::LanguagePlugin,
     TmcError,
 };
@@ -42,12 +43,11 @@ impl MakePlugin {
 
         let mut tests = vec![];
 
-        let file = File::open(available_points)
-            .map_err(|e| MakeError::FileOpen(available_points.to_path_buf(), e))?;
+        let file = file_util::open_file(available_points)?;
 
         let reader = BufReader::new(file);
         for line in reader.lines() {
-            let line = line.map_err(|e| MakeError::FileRead(available_points.to_path_buf(), e))?;
+            let line = line.map_err(|e| FileIo::FileRead(available_points.to_path_buf(), e))?;
 
             if let Some(captures) = RE.captures(&line) {
                 if &captures["type"] == "test" {
@@ -77,7 +77,7 @@ impl MakePlugin {
         };
         log::info!("Running make {}", arg);
 
-        let mut command = TmcCommand::new("make");
+        let mut command = TmcCommand::new("make".to_string());
         command.current_dir(path).arg(arg);
         let output = command.output()?;
 
@@ -103,7 +103,7 @@ impl MakePlugin {
     /// the process finished successfully or not.
     fn builds(&self, dir: &Path) -> Result<bool, MakeError> {
         log::debug!("building {}", dir.display());
-        let mut command = TmcCommand::new("make");
+        let mut command = TmcCommand::new("make".to_string());
         command.current_dir(dir).arg("test");
         let output = command.output()?;
 
@@ -152,22 +152,32 @@ impl LanguagePlugin for MakePlugin {
         let valgrind_run = self.run_tests_with_valgrind(path, true);
         if let Err(error) = valgrind_run {
             match error {
-                MakeError::MakeCommand(io_error)
-                    if io_error.kind() == io::ErrorKind::PermissionDenied =>
-                {
-                    // failed due to lacking permissions, try to clean and rerun
-                    let _output = self.clean(path)?;
-                    if let Err(err) = self.run_tests_with_valgrind(path, false) {
-                        log::error!(
-                            "Running with valgrind failed after trying to clean! {}",
-                            err
-                        );
-                        ran_valgrind = false;
-                        log::info!("Running without valgrind");
-                        self.run_tests_with_valgrind(path, false)?;
+                MakeError::Tmc(TmcError::Command(command_error)) => {
+                    match command_error {
+                        CommandError::Spawn(_, io_error)
+                        | CommandError::FailedToRun(_, io_error)
+                            if io_error.kind() == io::ErrorKind::PermissionDenied =>
+                        {
+                            // failed due to lacking permissions, try to clean and rerun
+                            let _output = self.clean(path)?;
+                            if let Err(err) = self.run_tests_with_valgrind(path, false) {
+                                log::error!(
+                                    "Running with valgrind failed after trying to clean! {}",
+                                    err
+                                );
+                                ran_valgrind = false;
+                                log::info!("Running without valgrind");
+                                self.run_tests_with_valgrind(path, false)?;
+                            }
+                        }
+                        _ => {
+                            ran_valgrind = false;
+                            log::info!("Running without valgrind");
+                            self.run_tests_with_valgrind(path, false)?;
+                        }
                     }
                 }
-                MakeError::MakeCommand(_) | MakeError::RunningTestsWithValgrind(..) => {
+                MakeError::RunningTestsWithValgrind(..) => {
                     ran_valgrind = false;
                     log::info!("Running without valgrind");
                     self.run_tests_with_valgrind(path, false)?;
@@ -208,11 +218,7 @@ impl LanguagePlugin for MakePlugin {
         // parse test results into RunResult
         let test_results_path = base_test_path.join("tmc_test_results.xml");
 
-        let mut file = File::open(&test_results_path)
-            .map_err(|e| MakeError::FileOpen(test_results_path.clone(), e))?;
-        let mut file_bytes = vec![];
-        file.read_to_end(&mut file_bytes)
-            .map_err(|e| MakeError::FileRead(test_results_path.clone(), e))?;
+        let file_bytes = file_util::read_file(&test_results_path)?;
 
         // xml may contain invalid utf-8, ignore invalid characters
         let file_string = String::from_utf8_lossy(&file_bytes);
@@ -255,7 +261,7 @@ impl LanguagePlugin for MakePlugin {
 
     // does not check for success
     fn clean(&self, path: &Path) -> Result<(), TmcError> {
-        let mut command = TmcCommand::new("make");
+        let mut command = TmcCommand::new("make".to_string());
         command.current_dir(path).arg("clean");
         let output = command.output()?;
 
@@ -273,6 +279,7 @@ impl LanguagePlugin for MakePlugin {
 #[cfg(target_os = "linux")] // check not installed on other CI platforms
 mod test {
     use super::*;
+    use std::fs::File;
     use std::path::PathBuf;
     use tempfile::{tempdir, TempDir};
     use tmc_langs_framework::zip::ZipArchive;

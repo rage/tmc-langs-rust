@@ -4,9 +4,9 @@ use crate::error::MakeError;
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashMap;
-use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
+use tmc_langs_framework::{error::FileIo, io::file_util};
 
 #[derive(Debug)]
 pub struct ValgrindLog {
@@ -26,15 +26,14 @@ impl ValgrindLog {
                 Regex::new(r#"== ERROR SUMMARY: (?P<error_count>\d+)"#).unwrap();
         }
 
-        let valgrind_log_file = File::open(valgrind_log_path)
-            .map_err(|e| MakeError::FileOpen(valgrind_log_path.to_path_buf(), e))?;
+        let valgrind_log_file = file_util::open_file(valgrind_log_path)?;
         let valgrind_log = BufReader::new(valgrind_log_file);
 
         let mut first_pid = None;
         let mut pid_info = HashMap::new();
         // parse all lines into a map of pid => ([lines of text], error count)
         for line in valgrind_log.lines() {
-            let line = line.map_err(|e| MakeError::FileRead(valgrind_log_path.to_path_buf(), e))?;
+            let line = line.map_err(|e| FileIo::FileRead(valgrind_log_path.to_path_buf(), e))?;
             let pid = match PID_REGEX.captures(&line) {
                 Some(captures) => captures["pid"].to_string(),
                 None => continue, // ignore lines without a PID

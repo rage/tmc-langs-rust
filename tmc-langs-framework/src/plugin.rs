@@ -8,7 +8,6 @@ use super::domain::{
 };
 use super::io::{file_util, submission_processing, tmc_zip};
 use super::policy::StudentFilePolicy;
-use super::Result;
 use crate::error::TmcError;
 
 use log::debug;
@@ -65,10 +64,10 @@ pub trait LanguagePlugin {
     ///
     /// Must return `Err` if the given path is not a valid exercise directory for
     /// this language.
-    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc>;
+    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError>;
 
     /// Runs the tests for the exercise.
-    fn run_tests(&self, path: &Path) -> Result<RunResult> {
+    fn run_tests(&self, path: &Path) -> Result<RunResult, TmcError> {
         let timeout = Self::get_student_file_policy(path)
             .get_tmc_project_yml()
             .ok()
@@ -95,7 +94,11 @@ pub trait LanguagePlugin {
     }
 
     /// Runs the tests for the exercise with the given timeout.
-    fn run_tests_with_timeout(&self, path: &Path, timeout: Option<Duration>) -> Result<RunResult>;
+    fn run_tests_with_timeout(
+        &self,
+        path: &Path,
+        timeout: Option<Duration>,
+    ) -> Result<RunResult, TmcError>;
 
     /// Prepares a submission for processing in the sandbox.
     ///
@@ -108,7 +111,7 @@ pub trait LanguagePlugin {
         policy: Self::StudentFilePolicy,
         submission_path: &Path,
         dest_path: &Path,
-    ) -> Result<()> {
+    ) -> Result<(), TmcError> {
         Ok(submission_processing::move_files(
             policy,
             submission_path,
@@ -120,7 +123,12 @@ pub trait LanguagePlugin {
     ///
     /// The stub is a copy of the original where the model solution and special
     /// comments have been stripped and stubs like ('return 0') have been added.
-    fn prepare_stub(&self, exercise_path: &Path, repo_path: &Path, dest_path: &Path) -> Result<()> {
+    fn prepare_stub(
+        &self,
+        exercise_path: &Path,
+        repo_path: &Path,
+        dest_path: &Path,
+    ) -> Result<(), TmcError> {
         submission_processing::prepare_stub(exercise_path, dest_path)?;
 
         let relative_path = exercise_path
@@ -133,7 +141,11 @@ pub trait LanguagePlugin {
     /// Prepares a presentable solution from the original.
     ///
     /// The solution usually has stubs and special comments stripped.
-    fn prepare_solution(&self, exercise_paths: Vec<PathBuf>, dest_path: &Path) -> Result<()> {
+    fn prepare_solution(
+        &self,
+        exercise_paths: Vec<PathBuf>,
+        dest_path: &Path,
+    ) -> Result<(), TmcError> {
         Ok(submission_processing::prepare_solutions(
             &exercise_paths,
             dest_path,
@@ -146,7 +158,7 @@ pub trait LanguagePlugin {
     }
 
     /// Compress a given project so that it can be sent to the TestMyCode server.
-    fn compress_project(&self, path: &Path) -> Result<Vec<u8>> {
+    fn compress_project(&self, path: &Path) -> Result<Vec<u8>, TmcError> {
         let policy = Self::get_student_file_policy(path);
         Ok(tmc_zip::zip(policy, path)?)
     }
@@ -162,7 +174,7 @@ pub trait LanguagePlugin {
         compressed_project: &Path,
         target_location: &Path,
         clean: bool,
-    ) -> Result<()> {
+    ) -> Result<(), TmcError> {
         let policy = Self::get_student_file_policy(target_location);
 
         log::debug!(
@@ -279,7 +291,7 @@ pub trait LanguagePlugin {
         &self,
         compressed_project: &Path,
         target_location: &Path,
-    ) -> Result<()> {
+    ) -> Result<(), TmcError> {
         let policy = Self::get_student_file_policy(target_location);
 
         log::debug!(
@@ -346,7 +358,9 @@ pub trait LanguagePlugin {
     /// Note that the returned path may not actually have an entry in the zip.
     /// The default implementation tries to find a directory that contains a "src" directory,
     /// which may be sufficient for some languages.
-    fn find_project_dir_in_zip<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<PathBuf> {
+    fn find_project_dir_in_zip<R: Read + Seek>(
+        zip_archive: &mut ZipArchive<R>,
+    ) -> Result<PathBuf, TmcError> {
         for i in 0..zip_archive.len() {
             // zips don't necessarily contain entries for intermediate directories,
             // so we need to check every path for src
@@ -369,7 +383,7 @@ pub trait LanguagePlugin {
 
     /// Copy shared stuff to stub or solution used for example for copying tmc-junit-runner.
     #[allow(unused_variables)]
-    fn maybe_copy_shared_stuff(&self, dest_path: &Path) -> Result<()> {
+    fn maybe_copy_shared_stuff(&self, dest_path: &Path) -> Result<(), TmcError> {
         // no op by default
         Ok(())
     }
@@ -378,7 +392,7 @@ pub trait LanguagePlugin {
     fn get_exercise_packaging_configuration(
         &self,
         path: &Path,
-    ) -> Result<ExercisePackagingConfiguration> {
+    ) -> Result<ExercisePackagingConfiguration, TmcError> {
         let configuration = TmcProjectYml::from(path)?;
         let extra_student_files = configuration.extra_student_files;
         let extra_test_files = configuration.extra_exercise_files;
@@ -401,7 +415,7 @@ pub trait LanguagePlugin {
     }
 
     /// Runs clean command e.g `make clean` for make or `mvn clean` for maven.
-    fn clean(&self, path: &Path) -> Result<()>;
+    fn clean(&self, path: &Path) -> Result<(), TmcError>;
 
     fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
         vec![PathBuf::from("src")]
@@ -439,11 +453,15 @@ mod test {
 
         fn find_project_dir_in_zip<R: Read + Seek>(
             _zip_archive: &mut ZipArchive<R>,
-        ) -> Result<PathBuf> {
+        ) -> Result<PathBuf, TmcError> {
             todo!()
         }
 
-        fn scan_exercise(&self, _path: &Path, _exercise_name: String) -> Result<ExerciseDesc> {
+        fn scan_exercise(
+            &self,
+            _path: &Path,
+            _exercise_name: String,
+        ) -> Result<ExerciseDesc, TmcError> {
             unimplemented!()
         }
 
@@ -451,7 +469,7 @@ mod test {
             &self,
             _path: &Path,
             _timeout: Option<Duration>,
-        ) -> Result<RunResult> {
+        ) -> Result<RunResult, TmcError> {
             Ok(RunResult {
                 status: RunStatus::Passed,
                 test_results: vec![],
@@ -463,7 +481,7 @@ mod test {
             !path.to_str().unwrap().contains("ignored")
         }
 
-        fn clean(&self, _path: &Path) -> Result<()> {
+        fn clean(&self, _path: &Path) -> Result<(), TmcError> {
             unimplemented!()
         }
     }

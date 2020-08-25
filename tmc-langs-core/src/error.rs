@@ -4,6 +4,7 @@ use crate::response;
 use reqwest::{Method, StatusCode};
 use std::path::PathBuf;
 use thiserror::Error;
+use tmc_langs_util::FileIo;
 use url::Url;
 
 pub(crate) type Result<T> = std::result::Result<T, CoreError>;
@@ -17,14 +18,6 @@ pub enum CoreError {
     // file IO
     #[error("Failed to create temporary file")]
     TempFile(#[source] std::io::Error),
-    #[error("Failed to create file at {0}")]
-    FileCreate(PathBuf, #[source] std::io::Error),
-    #[error("Failed to open file at {0}")]
-    FileOpen(PathBuf, #[source] std::io::Error),
-    #[error("Failed to write to file at {0}")]
-    FileWrite(PathBuf, #[source] std::io::Error),
-    #[error("Failed to remove directory at {0}")]
-    DirRemove(PathBuf, #[source] std::io::Error),
 
     // network
     #[error("HTTP error {1} for {0}: {2}")]
@@ -55,6 +48,8 @@ pub enum CoreError {
     ResponseErrors(#[from] response::ResponseErrors),
     #[error(transparent)]
     WalkDir(#[from] walkdir::Error),
+    #[error("File IO error")]
+    FileIo(#[from] FileIo),
     #[error(transparent)]
     Tmc(#[from] tmc_langs_util::error::UtilError),
 }

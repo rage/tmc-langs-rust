@@ -4,7 +4,7 @@ use std::num::ParseIntError;
 use std::path::PathBuf;
 use std::process::ExitStatus;
 use thiserror::Error;
-use tmc_langs_framework::TmcError;
+use tmc_langs_framework::{error::FileIo, TmcError};
 
 #[derive(Error, Debug)]
 pub enum MakeError {
@@ -21,17 +21,13 @@ pub enum MakeError {
 
     #[error("Failed to parse XML at {0}")]
     XmlParseError(PathBuf, #[source] serde_xml_rs::Error),
-    #[error("Failed to open file at {0}")]
-    FileOpen(PathBuf, #[source] std::io::Error),
-    #[error("Failed to read file at {0}")]
-    FileRead(PathBuf, #[source] std::io::Error),
-    #[error("Failed to run make")]
-    MakeCommand(#[source] std::io::Error),
     #[error(transparent)]
     ParseIntError(#[from] ParseIntError),
 
+    #[error("File IO error")]
+    FileIo(#[from] FileIo),
     #[error(transparent)]
-    TmcError(#[from] TmcError),
+    Tmc(#[from] TmcError),
 }
 
 impl From<MakeError> for TmcError {

@@ -12,11 +12,9 @@ pub use maven::MavenPlugin;
 use j4rs::{ClasspathEntry, Jvm, JvmBuilder};
 use serde::Deserialize;
 use std::fmt::Display;
-use std::fs;
-use std::fs::File;
-use std::io::Write;
 use std::path::PathBuf;
 use std::process::ExitStatus;
+use tmc_langs_framework::io::file_util;
 
 #[cfg(windows)]
 const SEPARATOR: &str = ";";
@@ -40,11 +38,7 @@ fn get_junit_runner_path() -> Result<PathBuf, JavaError> {
 
     let junit_path = jar_dir.join("tmc-junit-runner.jar");
     if !junit_path.exists() {
-        fs::create_dir_all(&jar_dir).map_err(|e| JavaError::DirCreate(jar_dir, e))?;
-        let mut file =
-            File::create(&junit_path).map_err(|e| JavaError::FileCreate(junit_path.clone(), e))?;
-        file.write_all(TMC_JUNIT_RUNNER_BYTES)
-            .map_err(|e| JavaError::FileWrite(junit_path.clone(), e))?;
+        file_util::write_to_file(&mut TMC_JUNIT_RUNNER_BYTES, &junit_path)?;
     }
     Ok(junit_path)
 }
@@ -55,11 +49,7 @@ fn get_checkstyle_runner_path() -> Result<PathBuf, JavaError> {
 
     let checkstyle_path = jar_dir.join("tmc-checkstyle-runner.jar");
     if !checkstyle_path.exists() {
-        fs::create_dir_all(&jar_dir).map_err(|e| JavaError::DirCreate(jar_dir, e))?;
-        let mut file = File::create(&checkstyle_path)
-            .map_err(|e| JavaError::FileCreate(checkstyle_path.clone(), e))?;
-        file.write_all(TMC_CHECKSTYLE_RUNNER_BYTES)
-            .map_err(|e| JavaError::FileWrite(checkstyle_path.clone(), e))?;
+        file_util::write_to_file(&mut TMC_CHECKSTYLE_RUNNER_BYTES, &checkstyle_path)?;
     }
     Ok(checkstyle_path)
 }
@@ -71,11 +61,7 @@ fn initialize_jassets() -> Result<PathBuf, JavaError> {
 
     let j4rs_path = jassets_dir.join("j4rs.jar");
     if !j4rs_path.exists() {
-        fs::create_dir_all(&jassets_dir).map_err(|e| JavaError::DirCreate(jassets_dir, e))?;
-        let mut file =
-            File::create(&j4rs_path).map_err(|e| JavaError::FileCreate(j4rs_path.clone(), e))?;
-        file.write_all(J4RS_BYTES)
-            .map_err(|e| JavaError::FileWrite(j4rs_path.clone(), e))?;
+        file_util::write_to_file(&mut J4RS_BYTES, &j4rs_path)?;
     }
     Ok(j4rs_path)
 }

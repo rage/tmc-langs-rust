@@ -5,13 +5,13 @@ use crate::policy::Python3StudentFilePolicy;
 use crate::{LocalPy, PythonTestResult, LOCAL_PY};
 
 use std::collections::HashMap;
-use std::fs::{self, File};
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
     command::{OutputWithTimeout, TmcCommand},
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
+    io::file_util,
     plugin::LanguagePlugin,
     TmcError,
 };
@@ -41,8 +41,7 @@ impl LanguagePlugin for Python3Plugin {
         let available_points_json = exercise_directory.join(".available_points.json");
         // remove any existing points json
         if available_points_json.exists() {
-            fs::remove_file(&available_points_json)
-                .map_err(|e| PythonError::FileRemove(available_points_json.clone(), e))?;
+            file_util::remove_file(&available_points_json)?;
         }
 
         let run_result = run_tmc_command(exercise_directory, &["available_points"], None);
@@ -53,8 +52,7 @@ impl LanguagePlugin for Python3Plugin {
         let test_descs_res = parse_exercise_description(&available_points_json);
         // remove file regardless of parse success
         if available_points_json.exists() {
-            fs::remove_file(&available_points_json)
-                .map_err(|e| PythonError::FileRemove(available_points_json.clone(), e))?;
+            file_util::remove_file(&available_points_json)?;
         }
         Ok(ExerciseDesc::new(exercise_name, test_descs_res?))
     }
@@ -67,8 +65,7 @@ impl LanguagePlugin for Python3Plugin {
         let test_results_json = exercise_directory.join(".tmc_test_results.json");
         // remove any existing results json
         if test_results_json.exists() {
-            fs::remove_file(&test_results_json)
-                .map_err(|e| PythonError::FileRemove(test_results_json.clone(), e))?;
+            file_util::remove_file(&test_results_json)?;
         }
 
         let output = run_tmc_command(exercise_directory, &[], timeout)?;
@@ -91,8 +88,7 @@ impl LanguagePlugin for Python3Plugin {
         let parse_res = parse_test_result(&test_results_json);
         // remove file regardless of parse success
         if test_results_json.exists() {
-            fs::remove_file(&test_results_json)
-                .map_err(|e| PythonError::FileRemove(test_results_json.clone(), e))?;
+            file_util::remove_file(&test_results_json)?;
         }
         Ok(parse_res?)
     }
@@ -117,11 +113,9 @@ impl LanguagePlugin for Python3Plugin {
                 || entry.file_name() == "__pycache__"
             {
                 if entry.path().is_file() {
-                    fs::remove_file(entry.path())
-                        .map_err(|e| PythonError::FileRemove(entry.path().to_path_buf(), e))?;
+                    file_util::remove_file(entry.path())?;
                 } else {
-                    fs::remove_dir_all(entry.path())
-                        .map_err(|e| PythonError::DirRemove(entry.path().to_path_buf(), e))?;
+                    file_util::remove_dir_all(entry.path())?;
                 }
             }
         }
@@ -174,8 +168,7 @@ fn run_tmc_command(
 /// Parse exercise description file
 fn parse_exercise_description(available_points_json: &Path) -> Result<Vec<TestDesc>, PythonError> {
     let mut test_descs = vec![];
-    let file = File::open(&available_points_json)
-        .map_err(|e| PythonError::FileOpen(available_points_json.to_path_buf(), e))?;
+    let file = file_util::open_file(&available_points_json)?;
     // TODO: deserialize directly into Vec<TestDesc>?
     let json: HashMap<String, Vec<String>> = serde_json::from_reader(BufReader::new(file))
         .map_err(|e| PythonError::Deserialize(available_points_json.to_path_buf(), e))?;
@@ -187,8 +180,7 @@ fn parse_exercise_description(available_points_json: &Path) -> Result<Vec<TestDe
 
 /// Parse test result file
 fn parse_test_result(test_results_json: &Path) -> Result<RunResult, PythonError> {
-    let results_file = File::open(&test_results_json)
-        .map_err(|e| PythonError::FileOpen(test_results_json.to_path_buf(), e))?;
+    let results_file = file_util::open_file(&test_results_json)?;
     let test_results: Vec<PythonTestResult> = serde_json::from_reader(BufReader::new(results_file))
         .map_err(|e| PythonError::Deserialize(test_results_json.to_path_buf(), e))?;
     let test_results: Vec<TestResult> = test_results
@@ -208,6 +200,7 @@ fn parse_test_result(test_results_json: &Path) -> Result<RunResult, PythonError>
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::fs::{self, File};
     use std::path::{Path, PathBuf};
     use tempfile::{tempdir, TempDir};
     use tmc_langs_framework::zip::ZipArchive;

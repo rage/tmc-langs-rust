@@ -1,6 +1,7 @@
 //! Custom wrapper for Command that supports timeouts and contains custom error handling.
 
-use crate::{Result, TmcError};
+use crate::{error::CommandError, TmcError};
+use std::fmt;
 use std::io::Read;
 use std::ops::{Deref, DerefMut};
 use std::path::PathBuf;
@@ -10,14 +11,24 @@ use std::time::{Duration, Instant};
 
 // todo: collect args?
 pub struct TmcCommand {
-    name: &'static str,
+    name: String,
     path: PathBuf,
     command: Command,
 }
 
+/// Textual representation of a command, e.g. "ls" "-a"
+#[derive(Debug)]
+pub struct CommandString(String);
+
+impl fmt::Display for CommandString {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 impl TmcCommand {
-    pub fn new(name: &'static str) -> Self {
-        let path = PathBuf::from(name);
+    pub fn new(name: String) -> Self {
+        let path = PathBuf::from(&name);
         Self {
             command: Command::new(&path),
             name,
@@ -25,53 +36,83 @@ impl TmcCommand {
         }
     }
 
-    pub fn named<P: Into<PathBuf>>(name: &'static str, path: P) -> Self {
+    pub fn into_inner(self) -> Command {
+        self.command
+    }
+
+    pub fn to_string(&self) -> CommandString {
+        CommandString(format!("{:?}", self.command))
+    }
+
+    pub fn named<P: Into<PathBuf>>(name: impl ToString, path: P) -> Self {
         let path = path.into();
         Self {
             command: Command::new(&path),
-            name,
+            name: name.to_string(),
             path,
         }
     }
 
     // shadows command's status
-    pub fn status(&mut self) -> Result<ExitStatus> {
+    pub fn status(&mut self) -> Result<ExitStatus, TmcError> {
         self.deref_mut().status().map_err(|e| {
             if let std::io::ErrorKind::NotFound = e.kind() {
-                TmcError::CommandNotFound(crate::error::CommandNotFound {
-                    name: self.name,
+                TmcError::Command(CommandError::NotFound {
+                    name: self.name.clone(),
                     path: self.path.clone(),
                     source: e,
                 })
             } else {
-                TmcError::CommandFailed(self.name, e)
+                TmcError::Command(CommandError::FailedToRun(self.to_string(), e))
             }
         })
     }
 
     // shadows command's output
-    pub fn output(&mut self) -> Result<Output> {
+    pub fn output(&mut self) -> Result<Output, TmcError> {
         self.deref_mut().output().map_err(|e| {
             if let std::io::ErrorKind::NotFound = e.kind() {
-                TmcError::CommandNotFound(crate::error::CommandNotFound {
-                    name: self.name,
+                TmcError::Command(CommandError::NotFound {
+                    name: self.name.clone(),
                     path: self.path.clone(),
                     source: e,
                 })
             } else {
-                TmcError::CommandFailed(self.name, e)
+                TmcError::Command(CommandError::FailedToRun(self.to_string(), e))
             }
         })
     }
 
+    // calls output and checks the exit status, returning an error if the exit status is failed
+    pub fn output_checked(&mut self) -> Result<Output, TmcError> {
+        let output = self.output()?;
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let stderr = String::from_utf8_lossy(&output.stderr);
+
+        if !output.status.success() {
+            log::warn!("stdout: {}", stdout);
+            log::warn!("stderr: {}", stderr);
+            return Err(CommandError::Failed {
+                command: self.to_string(),
+                status: output.status,
+                stdout: stdout.into_owned(),
+                stderr: stderr.into_owned(),
+            }
+            .into());
+        }
+        log::trace!("stdout: {}", stdout);
+        log::debug!("stderr: {}", stderr);
+        Ok(output)
+    }
+
     /// Waits with the given timeout. Sets stdout and stderr in order to capture them after erroring.
-    pub fn wait_with_timeout(&mut self, timeout: Duration) -> Result<OutputWithTimeout> {
+    pub fn wait_with_timeout(&mut self, timeout: Duration) -> Result<OutputWithTimeout, TmcError> {
         // spawn process and init timer
         let mut child = self
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
-            .map_err(|e| TmcError::CommandSpawn(self.name, e))?;
+            .map_err(|e| TmcError::Command(CommandError::Spawn(self.to_string(), e)))?;
         let timer = Instant::now();
 
         loop {
@@ -83,13 +124,13 @@ impl TmcCommand {
                         .map(OutputWithTimeout::Output)
                         .map_err(|e| {
                             if let std::io::ErrorKind::NotFound = e.kind() {
-                                TmcError::CommandNotFound(crate::error::CommandNotFound {
-                                    name: self.name,
+                                TmcError::Command(CommandError::NotFound {
+                                    name: self.name.clone(),
                                     path: self.path.clone(),
                                     source: e,
                                 })
                             } else {
-                                TmcError::CommandFailed(self.name, e)
+                                TmcError::Command(CommandError::FailedToRun(self.to_string(), e))
                             }
                         });
                 }
@@ -157,7 +198,7 @@ mod test {
 
     #[test]
     fn timeout() {
-        let mut cmd = TmcCommand::new("sleep");
+        let mut cmd = TmcCommand::new("sleep".to_string());
         cmd.arg("1");
         let res = cmd.wait_with_timeout(Duration::from_millis(100)).unwrap();
         if let OutputWithTimeout::Timeout { .. } = res {

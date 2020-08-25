@@ -3,7 +3,6 @@
 use crate::error::TmcError;
 use crate::io::file_util;
 use crate::policy::StudentFilePolicy;
-use crate::Result;
 
 use std::collections::HashSet;
 use std::io::{Cursor, Read, Seek, Write};
@@ -14,7 +13,7 @@ pub use zip::result::ZipError;
 use zip::{write::FileOptions, ZipArchive, ZipWriter};
 
 /// Zips the given directory, only including student files according to the given policy.
-pub fn zip<P: StudentFilePolicy>(policy: P, root_directory: &Path) -> Result<Vec<u8>> {
+pub fn zip<P: StudentFilePolicy>(policy: P, root_directory: &Path) -> Result<Vec<u8>, TmcError> {
     let mut writer = ZipWriter::new(Cursor::new(vec![]));
     let tmc_project_yml = policy.get_tmc_project_yml()?;
 
@@ -51,7 +50,7 @@ pub fn zip<P: StudentFilePolicy>(policy: P, root_directory: &Path) -> Result<Vec
 ///
 /// First a project directory is found within the directory. Only files within the project directory are unzipped.
 ///
-pub fn unzip<P>(policy: P, zip: &Path, target: &Path) -> Result<()>
+pub fn unzip<P>(policy: P, zip: &Path, target: &Path) -> Result<(), TmcError>
 where
     P: StudentFilePolicy,
 {
@@ -157,7 +156,7 @@ where
     Ok(())
 }
 
-fn find_project_dir<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<PathBuf> {
+fn find_project_dir<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<PathBuf, TmcError> {
     for i in 0..zip_archive.len() {
         let file = zip_archive.by_index(i)?;
         let file_path = file.sanitized_name();

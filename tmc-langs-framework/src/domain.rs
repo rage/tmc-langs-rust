@@ -2,8 +2,8 @@
 
 pub mod meta_syntax;
 
-use super::Result;
 use crate::io::file_util;
+use crate::TmcError;
 
 use log::debug;
 use schemars::JsonSchema;
@@ -149,7 +149,7 @@ pub struct TmcProjectYml {
 }
 
 impl TmcProjectYml {
-    pub fn from(project_dir: &Path) -> Result<Self> {
+    pub fn from(project_dir: &Path) -> Result<Self, TmcError> {
         let mut config_path = project_dir.to_owned();
         config_path.push(".tmcproject.yml");
 

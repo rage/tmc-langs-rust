@@ -18,7 +18,7 @@ use tmc_langs_core::oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
 use tmc_langs_core::{CoreError, FeedbackAnswer, TmcCore, Token};
-use tmc_langs_framework::{domain::ValidationResult, error::CommandNotFound};
+use tmc_langs_framework::{domain::ValidationResult, error::CommandError};
 use tmc_langs_util::{
     task_executor::{self, TmcParams},
     Language, OutputFormat,
@@ -82,7 +82,7 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
 fn error_message_special_casing(e: &anyhow::Error) -> String {
     for cause in e.chain() {
         // command not found errors are special cased to notify the user that they may need to install additional software
-        if let Some(cnf) = cause.downcast_ref::<CommandNotFound>() {
+        if let Some(cnf) = cause.downcast_ref::<CommandError>() {
             return cnf.to_string();
         }
     }

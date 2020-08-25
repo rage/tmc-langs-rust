@@ -13,5 +13,3 @@ pub use policy::StudentFilePolicy;
 pub use zip;
 
 use domain::TmcProjectYml;
-
-pub type Result<T> = std::result::Result<T, TmcError>;

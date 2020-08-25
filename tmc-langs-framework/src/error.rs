@@ -1,6 +1,8 @@
 use crate::io::tmc_zip;
 
+use crate::command::CommandString;
 use std::path::PathBuf;
+use std::process::ExitStatus;
 use thiserror::Error;
 
 // todo: make util error type and move variants there
@@ -45,14 +47,12 @@ pub enum TmcError {
     PluginNotFound(PathBuf),
     #[error("No project directory found in archive during unzip")]
     NoProjectDirInZip,
-    #[error("Running command '{0}' failed")]
-    CommandFailed(&'static str, #[source] std::io::Error),
-
-    #[error("Failed to spawn command: {0}")]
-    CommandSpawn(&'static str, #[source] std::io::Error),
 
     #[error("Error in plugin")]
     Plugin(#[from] Box<dyn std::error::Error + 'static + Send + Sync>),
+
+    #[error("Failed to run command")]
+    Command(#[from] CommandError),
 
     #[error(transparent)]
     YamlDeserialization(#[from] serde_yaml::Error),
@@ -60,19 +60,29 @@ pub enum TmcError {
     ZipError(#[from] tmc_zip::ZipError),
     #[error(transparent)]
     WalkDir(#[from] walkdir::Error),
-
-    #[error("Command not found")]
-    CommandNotFound(#[from] CommandNotFound),
 }
 
 // == Collection of errors likely to be useful in multiple plugins which can be special cased without needing a plugin's specific error type ==
 /// An error caused by a failed attempt to execute an external command.
 #[derive(Error, Debug)]
-#[error("The executable for \"{name}\" could not be found ({path}). Please make sure you have installed it correctly.")]
-pub struct CommandNotFound {
-    pub name: &'static str,
-    pub path: PathBuf,
-    pub source: std::io::Error,
+pub enum CommandError {
+    #[error("Failed to spawn command: {0:?}")]
+    Spawn(CommandString, #[source] std::io::Error),
+    #[error("The executable for \"{name}\" could not be found ({path}). Please make sure you have installed it correctly.")]
+    NotFound {
+        name: String,
+        path: PathBuf,
+        source: std::io::Error,
+    },
+    #[error("Failed to run command {0:?}")]
+    FailedToRun(CommandString, #[source] std::io::Error),
+    #[error("Command {command} exited with status {status}")]
+    Failed {
+        command: CommandString,
+        status: ExitStatus,
+        stdout: String,
+        stderr: String,
+    },
 }
 
 /// A wrapper for std::io::Error that provides more context for the failed operations.
@@ -116,4 +126,12 @@ pub enum FileIo {
         to: PathBuf,
         source: std::io::Error,
     },
+
+    #[error("Path {0} has no file name")]
+    NoFileName(PathBuf),
+    #[error("Expected {0} to be a directory, but it was a file")]
+    UnexpectedFile(PathBuf),
+
+    #[error("Directory walk error")]
+    Walkdir(#[from] walkdir::Error),
 }

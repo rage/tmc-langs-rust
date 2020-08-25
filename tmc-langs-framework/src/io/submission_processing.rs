@@ -3,7 +3,7 @@
 use crate::domain::meta_syntax::{MetaString, MetaSyntaxParser};
 use crate::io::file_util;
 use crate::policy::StudentFilePolicy;
-use crate::Result;
+use crate::TmcError;
 
 use lazy_static::lazy_static;
 use log::{debug, info};
@@ -24,7 +24,7 @@ pub fn move_files<P: StudentFilePolicy>(
     student_file_policy: P,
     source: &Path,
     target: &Path,
-) -> Result<()> {
+) -> Result<(), TmcError> {
     let tmc_project_yml = student_file_policy.get_tmc_project_yml()?;
     // silently skips over errors
     for entry in WalkDir::new(source)
@@ -97,7 +97,7 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
     source_root: &Path,
     dest_root: &Path,
     filter: &mut F,
-) -> Result<()> {
+) -> Result<(), TmcError> {
     let is_dir = entry.metadata().map(|e| e.is_dir()).unwrap_or_default();
     if is_dir {
         return Ok(());
@@ -138,7 +138,7 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
         // todo: reduce collection?
         // filtered metastrings
         let filtered: Vec<MetaString> = parser
-            .collect::<Result<Vec<_>>>()?
+            .collect::<Result<Vec<_>, _>>()?
             .into_iter()
             .filter(filter)
             .collect();
@@ -159,7 +159,7 @@ fn process_files<F: Fn(&MetaString) -> bool>(
     path: &Path,
     dest_root: &Path,
     mut filter: F,
-) -> Result<()> {
+) -> Result<(), TmcError> {
     info!("Project: {:?}", path);
 
     let walker = WalkDir::new(path).into_iter();
@@ -182,7 +182,7 @@ fn process_files<F: Fn(&MetaString) -> bool>(
 pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
     exercise_paths: I,
     dest_root: &Path,
-) -> Result<()> {
+) -> Result<(), TmcError> {
     for path in exercise_paths {
         process_files(path, dest_root, |meta| match meta {
             MetaString::Stub(_) => false,
@@ -200,7 +200,7 @@ pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
 /// Binary files are copied without extra processing, while text files are parsed to remove stub tags and solutions.
 ///
 /// Additionally, copies any shared files with the corresponding language plugins.
-pub fn prepare_stub(exercise_path: &Path, dest_root: &Path) -> Result<()> {
+pub fn prepare_stub(exercise_path: &Path, dest_root: &Path) -> Result<(), TmcError> {
     process_files(&exercise_path, dest_root, |meta| match meta {
         MetaString::Solution(_) => false,
         _ => true,
