@@ -28,30 +28,24 @@
 <span id="28">28</span>
 <span id="29">29</span>
 <span id="30">30</span>
-<span id="31">31</span>
-<span id="32">32</span>
-<span id="33">33</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Python plugin error type</span>
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
 <span class="kw">use</span> <span class="ident">thiserror</span>::<span class="ident">Error</span>;
-<span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::<span class="ident">TmcError</span>;
+<span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{<span class="ident">error</span>::<span class="ident">FileIo</span>, <span class="ident">TmcError</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Error</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PythonError</span> {
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to canonicalize path {0}&quot;</span>)]</span>
     <span class="ident">Canonicalize</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to open file {0}&quot;</span>)]</span>
-    <span class="ident">FileOpen</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to deserialize file at {0} to JSON&quot;</span>)]</span>
     <span class="ident">Deserialize</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">serde_json</span>::<span class="ident">Error</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to remove file {0}&quot;</span>)]</span>
-    <span class="ident">FileRemove</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to remove directory {0}&quot;</span>)]</span>
-    <span class="ident">DirRemove</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
-    <span class="ident">Framework</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">tmc_langs_framework</span>::<span class="ident">TmcError</span>),
+
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;File IO error&quot;</span>)]</span>
+    <span class="ident">FileIo</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">FileIo</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Error&quot;</span>)]</span>
+    <span class="ident">Tmc</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">tmc_langs_framework</span>::<span class="ident">TmcError</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">PythonError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TmcError</span> {

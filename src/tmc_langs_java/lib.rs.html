@@ -170,20 +170,6 @@
 <span id="170">170</span>
 <span id="171">171</span>
 <span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Java plugins for ant and maven</span>
 
@@ -199,11 +185,9 @@
 <span class="kw">use</span> <span class="ident">j4rs</span>::{<span class="ident">ClasspathEntry</span>, <span class="ident">Jvm</span>, <span class="ident">JvmBuilder</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Deserialize</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Display</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">process</span>::<span class="ident">ExitStatus</span>;
+<span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::<span class="ident">io</span>::<span class="ident">file_util</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
 <span class="kw">const</span> <span class="ident">SEPARATOR</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;;&quot;</span>;
@@ -227,11 +211,7 @@
 
     <span class="kw">let</span> <span class="ident">junit_path</span> <span class="op">=</span> <span class="ident">jar_dir</span>.<span class="ident">join</span>(<span class="string">&quot;tmc-junit-runner.jar&quot;</span>);
     <span class="kw">if</span> <span class="op">!</span><span class="ident">junit_path</span>.<span class="ident">exists</span>() {
-        <span class="ident">fs</span>::<span class="ident">create_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">jar_dir</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JavaError</span>::<span class="ident">DirCreate</span>(<span class="ident">jar_dir</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span>
-            <span class="ident">File</span>::<span class="ident">create</span>(<span class="kw-2">&amp;</span><span class="ident">junit_path</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JavaError</span>::<span class="ident">FileCreate</span>(<span class="ident">junit_path</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
-        <span class="ident">file</span>.<span class="ident">write_all</span>(<span class="ident">TMC_JUNIT_RUNNER_BYTES</span>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JavaError</span>::<span class="ident">FileWrite</span>(<span class="ident">junit_path</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+        <span class="ident">file_util</span>::<span class="ident">write_to_file</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TMC_JUNIT_RUNNER_BYTES</span>, <span class="kw-2">&amp;</span><span class="ident">junit_path</span>)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(<span class="ident">junit_path</span>)
 }
@@ -242,11 +222,7 @@
 
     <span class="kw">let</span> <span class="ident">checkstyle_path</span> <span class="op">=</span> <span class="ident">jar_dir</span>.<span class="ident">join</span>(<span class="string">&quot;tmc-checkstyle-runner.jar&quot;</span>);
     <span class="kw">if</span> <span class="op">!</span><span class="ident">checkstyle_path</span>.<span class="ident">exists</span>() {
-        <span class="ident">fs</span>::<span class="ident">create_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">jar_dir</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JavaError</span>::<span class="ident">DirCreate</span>(<span class="ident">jar_dir</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">create</span>(<span class="kw-2">&amp;</span><span class="ident">checkstyle_path</span>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JavaError</span>::<span class="ident">FileCreate</span>(<span class="ident">checkstyle_path</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
-        <span class="ident">file</span>.<span class="ident">write_all</span>(<span class="ident">TMC_CHECKSTYLE_RUNNER_BYTES</span>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JavaError</span>::<span class="ident">FileWrite</span>(<span class="ident">checkstyle_path</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+        <span class="ident">file_util</span>::<span class="ident">write_to_file</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TMC_CHECKSTYLE_RUNNER_BYTES</span>, <span class="kw-2">&amp;</span><span class="ident">checkstyle_path</span>)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(<span class="ident">checkstyle_path</span>)
 }
@@ -258,11 +234,7 @@
 
     <span class="kw">let</span> <span class="ident">j4rs_path</span> <span class="op">=</span> <span class="ident">jassets_dir</span>.<span class="ident">join</span>(<span class="string">&quot;j4rs.jar&quot;</span>);
     <span class="kw">if</span> <span class="op">!</span><span class="ident">j4rs_path</span>.<span class="ident">exists</span>() {
-        <span class="ident">fs</span>::<span class="ident">create_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">jassets_dir</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JavaError</span>::<span class="ident">DirCreate</span>(<span class="ident">jassets_dir</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span>
-            <span class="ident">File</span>::<span class="ident">create</span>(<span class="kw-2">&amp;</span><span class="ident">j4rs_path</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JavaError</span>::<span class="ident">FileCreate</span>(<span class="ident">j4rs_path</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
-        <span class="ident">file</span>.<span class="ident">write_all</span>(<span class="ident">J4RS_BYTES</span>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JavaError</span>::<span class="ident">FileWrite</span>(<span class="ident">j4rs_path</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+        <span class="ident">file_util</span>::<span class="ident">write_to_file</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">J4RS_BYTES</span>, <span class="kw-2">&amp;</span><span class="ident">j4rs_path</span>)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(<span class="ident">j4rs_path</span>)
 }

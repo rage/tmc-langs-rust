@@ -166,10 +166,52 @@
 <span id="166">166</span>
 <span id="167">167</span>
 <span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Custom wrapper for Command that supports timeouts and contains custom error handling.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="prelude-ty">Result</span>, <span class="ident">TmcError</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error</span>::<span class="ident">CommandError</span>, <span class="ident">TmcError</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
@@ -179,14 +221,24 @@
 
 <span class="comment">// todo: collect args?</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TmcCommand</span> {
-    <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
+    <span class="ident">name</span>: <span class="ident">String</span>,
     <span class="ident">path</span>: <span class="ident">PathBuf</span>,
     <span class="ident">command</span>: <span class="ident">Command</span>,
 }
 
+<span class="doccomment">/// Textual representation of a command, e.g. &quot;ls&quot; &quot;-a&quot;</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CommandString</span>(<span class="ident">String</span>);
+
+<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">CommandString</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+    }
+}
+
 <span class="kw">impl</span> <span class="ident">TmcCommand</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="ident">name</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>);
         <span class="self">Self</span> {
             <span class="ident">command</span>: <span class="ident">Command</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>),
             <span class="ident">name</span>,
@@ -194,53 +246,83 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">named</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Command</span> {
+        <span class="self">self</span>.<span class="ident">command</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CommandString</span> {
+        <span class="ident">CommandString</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.<span class="ident">command</span>))
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">named</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="kw">impl</span> <span class="ident">ToString</span>, <span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">into</span>();
         <span class="self">Self</span> {
             <span class="ident">command</span>: <span class="ident">Command</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>),
-            <span class="ident">name</span>,
+            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">to_string</span>(),
             <span class="ident">path</span>,
         }
     }
 
     <span class="comment">// shadows command&#39;s status</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExitStatus</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExitStatus</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">deref_mut</span>().<span class="ident">status</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">NotFound</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">kind</span>() {
-                <span class="ident">TmcError</span>::<span class="ident">CommandNotFound</span>(<span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">CommandNotFound</span> {
-                    <span class="ident">name</span>: <span class="self">self</span>.<span class="ident">name</span>,
+                <span class="ident">TmcError</span>::<span class="ident">Command</span>(<span class="ident">CommandError</span>::<span class="ident">NotFound</span> {
+                    <span class="ident">name</span>: <span class="self">self</span>.<span class="ident">name</span>.<span class="ident">clone</span>(),
                     <span class="ident">path</span>: <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">clone</span>(),
                     <span class="ident">source</span>: <span class="ident">e</span>,
                 })
             } <span class="kw">else</span> {
-                <span class="ident">TmcError</span>::<span class="ident">CommandFailed</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="ident">e</span>)
+                <span class="ident">TmcError</span>::<span class="ident">Command</span>(<span class="ident">CommandError</span>::<span class="ident">FailedToRun</span>(<span class="self">self</span>.<span class="ident">to_string</span>(), <span class="ident">e</span>))
             }
         })
     }
 
     <span class="comment">// shadows command&#39;s output</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">output</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Output</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">output</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Output</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">deref_mut</span>().<span class="ident">output</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">NotFound</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">kind</span>() {
-                <span class="ident">TmcError</span>::<span class="ident">CommandNotFound</span>(<span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">CommandNotFound</span> {
-                    <span class="ident">name</span>: <span class="self">self</span>.<span class="ident">name</span>,
+                <span class="ident">TmcError</span>::<span class="ident">Command</span>(<span class="ident">CommandError</span>::<span class="ident">NotFound</span> {
+                    <span class="ident">name</span>: <span class="self">self</span>.<span class="ident">name</span>.<span class="ident">clone</span>(),
                     <span class="ident">path</span>: <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">clone</span>(),
                     <span class="ident">source</span>: <span class="ident">e</span>,
                 })
             } <span class="kw">else</span> {
-                <span class="ident">TmcError</span>::<span class="ident">CommandFailed</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="ident">e</span>)
+                <span class="ident">TmcError</span>::<span class="ident">Command</span>(<span class="ident">CommandError</span>::<span class="ident">FailedToRun</span>(<span class="self">self</span>.<span class="ident">to_string</span>(), <span class="ident">e</span>))
             }
         })
     }
 
+    <span class="comment">// calls output and checks the exit status, returning an error if the exit status is failed</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">output_checked</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Output</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">output</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">stdout</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stdout</span>);
+        <span class="kw">let</span> <span class="ident">stderr</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stderr</span>);
+
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">output</span>.<span class="ident">status</span>.<span class="ident">success</span>() {
+            <span class="ident">log</span>::<span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;stdout: {}&quot;</span>, <span class="ident">stdout</span>);
+            <span class="ident">log</span>::<span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;stderr: {}&quot;</span>, <span class="ident">stderr</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CommandError</span>::<span class="ident">Failed</span> {
+                <span class="ident">command</span>: <span class="self">self</span>.<span class="ident">to_string</span>(),
+                <span class="ident">status</span>: <span class="ident">output</span>.<span class="ident">status</span>,
+                <span class="ident">stdout</span>: <span class="ident">stdout</span>.<span class="ident">into_owned</span>(),
+                <span class="ident">stderr</span>: <span class="ident">stderr</span>.<span class="ident">into_owned</span>(),
+            }
+            .<span class="ident">into</span>());
+        }
+        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;stdout: {}&quot;</span>, <span class="ident">stdout</span>);
+        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stderr: {}&quot;</span>, <span class="ident">stderr</span>);
+        <span class="prelude-val">Ok</span>(<span class="ident">output</span>)
+    }
+
     <span class="doccomment">/// Waits with the given timeout. Sets stdout and stderr in order to capture them after erroring.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wait_with_timeout</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OutputWithTimeout</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wait_with_timeout</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OutputWithTimeout</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="comment">// spawn process and init timer</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">child</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">stdout</span>(<span class="ident">Stdio</span>::<span class="ident">piped</span>())
             .<span class="ident">stderr</span>(<span class="ident">Stdio</span>::<span class="ident">piped</span>())
             .<span class="ident">spawn</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">TmcError</span>::<span class="ident">CommandSpawn</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">TmcError</span>::<span class="ident">Command</span>(<span class="ident">CommandError</span>::<span class="ident">Spawn</span>(<span class="self">self</span>.<span class="ident">to_string</span>(), <span class="ident">e</span>)))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">timer</span> <span class="op">=</span> <span class="ident">Instant</span>::<span class="ident">now</span>();
 
         <span class="kw">loop</span> {
@@ -252,13 +334,13 @@
                         .<span class="ident">map</span>(<span class="ident">OutputWithTimeout</span>::<span class="ident">Output</span>)
                         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
                             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">NotFound</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">kind</span>() {
-                                <span class="ident">TmcError</span>::<span class="ident">CommandNotFound</span>(<span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">CommandNotFound</span> {
-                                    <span class="ident">name</span>: <span class="self">self</span>.<span class="ident">name</span>,
+                                <span class="ident">TmcError</span>::<span class="ident">Command</span>(<span class="ident">CommandError</span>::<span class="ident">NotFound</span> {
+                                    <span class="ident">name</span>: <span class="self">self</span>.<span class="ident">name</span>.<span class="ident">clone</span>(),
                                     <span class="ident">path</span>: <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">clone</span>(),
                                     <span class="ident">source</span>: <span class="ident">e</span>,
                                 })
                             } <span class="kw">else</span> {
-                                <span class="ident">TmcError</span>::<span class="ident">CommandFailed</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="ident">e</span>)
+                                <span class="ident">TmcError</span>::<span class="ident">Command</span>(<span class="ident">CommandError</span>::<span class="ident">FailedToRun</span>(<span class="self">self</span>.<span class="ident">to_string</span>(), <span class="ident">e</span>))
                             }
                         });
                 }
@@ -326,7 +408,7 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">timeout</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cmd</span> <span class="op">=</span> <span class="ident">TmcCommand</span>::<span class="ident">new</span>(<span class="string">&quot;sleep&quot;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cmd</span> <span class="op">=</span> <span class="ident">TmcCommand</span>::<span class="ident">new</span>(<span class="string">&quot;sleep&quot;</span>.<span class="ident">to_string</span>());
         <span class="ident">cmd</span>.<span class="ident">arg</span>(<span class="string">&quot;1&quot;</span>);
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">wait_with_timeout</span>(<span class="ident">Duration</span>::<span class="ident">from_millis</span>(<span class="number">100</span>)).<span class="ident">unwrap</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">OutputWithTimeout</span>::<span class="ident">Timeout</span> { .. } <span class="op">=</span> <span class="ident">res</span> {

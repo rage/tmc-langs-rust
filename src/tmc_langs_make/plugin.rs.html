@@ -407,6 +407,13 @@
 <span id="407">407</span>
 <span id="408">408</span>
 <span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains the main plugin struct.</span>
 
@@ -418,13 +425,14 @@
 <span class="kw">use</span> <span class="ident">lazy_static</span>::<span class="ident">lazy_static</span>;
 <span class="kw">use</span> <span class="ident">regex</span>::<span class="ident">Regex</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">BufRead</span>, <span class="ident">BufReader</span>, <span class="ident">Read</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">BufRead</span>, <span class="ident">BufReader</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
     <span class="ident">command</span>::<span class="ident">TmcCommand</span>,
     <span class="ident">domain</span>::{<span class="ident">ExerciseDesc</span>, <span class="ident">RunResult</span>, <span class="ident">RunStatus</span>, <span class="ident">TestDesc</span>, <span class="ident">TmcProjectYml</span>},
+    <span class="ident">error</span>::{<span class="ident">CommandError</span>, <span class="ident">FileIo</span>},
+    <span class="ident">io</span>::<span class="ident">file_util</span>,
     <span class="ident">plugin</span>::<span class="ident">LanguagePlugin</span>,
     <span class="ident">TmcError</span>,
 };
@@ -452,12 +460,11 @@
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tests</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
 
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">open</span>(<span class="ident">available_points</span>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">MakeError</span>::<span class="ident">FileOpen</span>(<span class="ident">available_points</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">open_file</span>(<span class="ident">available_points</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader</span>::<span class="ident">new</span>(<span class="ident">file</span>);
         <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">reader</span>.<span class="ident">lines</span>() {
-            <span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">line</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">MakeError</span>::<span class="ident">FileRead</span>(<span class="ident">available_points</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">line</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FileIo</span>::<span class="ident">FileRead</span>(<span class="ident">available_points</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">captures</span>) <span class="op">=</span> <span class="ident">RE</span>.<span class="ident">captures</span>(<span class="kw-2">&amp;</span><span class="ident">line</span>) {
                 <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">captures</span>[<span class="string">&quot;type&quot;</span>] <span class="op">=</span><span class="op">=</span> <span class="string">&quot;test&quot;</span> {
@@ -487,7 +494,7 @@
         };
         <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Running make {}&quot;</span>, <span class="ident">arg</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">TmcCommand</span>::<span class="ident">new</span>(<span class="string">&quot;make&quot;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">TmcCommand</span>::<span class="ident">new</span>(<span class="string">&quot;make&quot;</span>.<span class="ident">to_string</span>());
         <span class="ident">command</span>.<span class="ident">current_dir</span>(<span class="ident">path</span>).<span class="ident">arg</span>(<span class="ident">arg</span>);
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">command</span>.<span class="ident">output</span>()<span class="question-mark">?</span>;
 
@@ -513,7 +520,7 @@
     <span class="doccomment">/// the process finished successfully or not.</span>
     <span class="kw">fn</span> <span class="ident">builds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dir</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">MakeError</span><span class="op">&gt;</span> {
         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;building {}&quot;</span>, <span class="ident">dir</span>.<span class="ident">display</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">TmcCommand</span>::<span class="ident">new</span>(<span class="string">&quot;make&quot;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">TmcCommand</span>::<span class="ident">new</span>(<span class="string">&quot;make&quot;</span>.<span class="ident">to_string</span>());
         <span class="ident">command</span>.<span class="ident">current_dir</span>(<span class="ident">dir</span>).<span class="ident">arg</span>(<span class="string">&quot;test&quot;</span>);
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">command</span>.<span class="ident">output</span>()<span class="question-mark">?</span>;
 
@@ -562,22 +569,32 @@
         <span class="kw">let</span> <span class="ident">valgrind_run</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">true</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span> <span class="ident">valgrind_run</span> {
             <span class="kw">match</span> <span class="ident">error</span> {
-                <span class="ident">MakeError</span>::<span class="ident">MakeCommand</span>(<span class="ident">io_error</span>)
-                    <span class="kw">if</span> <span class="ident">io_error</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">PermissionDenied</span> <span class="op">=</span><span class="op">&gt;</span>
-                {
-                    <span class="comment">// failed due to lacking permissions, try to clean and rerun</span>
-                    <span class="kw">let</span> <span class="ident">_output</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clean</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">false</span>) {
-                        <span class="ident">log</span>::<span class="macro">error</span><span class="macro">!</span>(
-                            <span class="string">&quot;Running with valgrind failed after trying to clean! {}&quot;</span>,
-                            <span class="ident">err</span>
-                        );
-                        <span class="ident">ran_valgrind</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                        <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Running without valgrind&quot;</span>);
-                        <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                <span class="ident">MakeError</span>::<span class="ident">Tmc</span>(<span class="ident">TmcError</span>::<span class="ident">Command</span>(<span class="ident">command_error</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">match</span> <span class="ident">command_error</span> {
+                        <span class="ident">CommandError</span>::<span class="ident">Spawn</span>(<span class="kw">_</span>, <span class="ident">io_error</span>)
+                        <span class="op">|</span> <span class="ident">CommandError</span>::<span class="ident">FailedToRun</span>(<span class="kw">_</span>, <span class="ident">io_error</span>)
+                            <span class="kw">if</span> <span class="ident">io_error</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">PermissionDenied</span> <span class="op">=</span><span class="op">&gt;</span>
+                        {
+                            <span class="comment">// failed due to lacking permissions, try to clean and rerun</span>
+                            <span class="kw">let</span> <span class="ident">_output</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clean</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">false</span>) {
+                                <span class="ident">log</span>::<span class="macro">error</span><span class="macro">!</span>(
+                                    <span class="string">&quot;Running with valgrind failed after trying to clean! {}&quot;</span>,
+                                    <span class="ident">err</span>
+                                );
+                                <span class="ident">ran_valgrind</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                                <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Running without valgrind&quot;</span>);
+                                <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                            }
+                        }
+                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="ident">ran_valgrind</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                            <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Running without valgrind&quot;</span>);
+                            <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                        }
                     }
                 }
-                <span class="ident">MakeError</span>::<span class="ident">MakeCommand</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">MakeError</span>::<span class="ident">RunningTestsWithValgrind</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">MakeError</span>::<span class="ident">RunningTestsWithValgrind</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">ran_valgrind</span> <span class="op">=</span> <span class="bool-val">false</span>;
                     <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Running without valgrind&quot;</span>);
                     <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
@@ -618,11 +635,7 @@
         <span class="comment">// parse test results into RunResult</span>
         <span class="kw">let</span> <span class="ident">test_results_path</span> <span class="op">=</span> <span class="ident">base_test_path</span>.<span class="ident">join</span>(<span class="string">&quot;tmc_test_results.xml&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">open</span>(<span class="kw-2">&amp;</span><span class="ident">test_results_path</span>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">MakeError</span>::<span class="ident">FileOpen</span>(<span class="ident">test_results_path</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file_bytes</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
-        <span class="ident">file</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">file_bytes</span>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">MakeError</span>::<span class="ident">FileRead</span>(<span class="ident">test_results_path</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">file_bytes</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">read_file</span>(<span class="kw-2">&amp;</span><span class="ident">test_results_path</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// xml may contain invalid utf-8, ignore invalid characters</span>
         <span class="kw">let</span> <span class="ident">file_string</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">file_bytes</span>);
@@ -665,7 +678,7 @@
 
     <span class="comment">// does not check for success</span>
     <span class="kw">fn</span> <span class="ident">clean</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TmcError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">TmcCommand</span>::<span class="ident">new</span>(<span class="string">&quot;make&quot;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">TmcCommand</span>::<span class="ident">new</span>(<span class="string">&quot;make&quot;</span>.<span class="ident">to_string</span>());
         <span class="ident">command</span>.<span class="ident">current_dir</span>(<span class="ident">path</span>).<span class="ident">arg</span>(<span class="string">&quot;clean&quot;</span>);
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">command</span>.<span class="ident">output</span>()<span class="question-mark">?</span>;
 
@@ -683,6 +696,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span> <span class="comment">// check not installed on other CI platforms</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
     <span class="kw">use</span> <span class="ident">tempfile</span>::{<span class="ident">tempdir</span>, <span class="ident">TempDir</span>};
     <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::<span class="ident">zip</span>::<span class="ident">ZipArchive</span>;

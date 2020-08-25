@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["OutputWithTimeout",""]],"struct":[["TmcCommand",""]]});
+initSidebarItems({"enum":[["OutputWithTimeout",""]],"struct":[["CommandString","Textual representation of a command, e.g. \"ls\" \"-a\""],["TmcCommand",""]]});
