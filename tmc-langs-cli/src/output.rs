@@ -38,7 +38,6 @@ pub enum OutputResult {
     RetrievedData,
     ExecutedCommand,
     DownloadingExercise,
-    Compressing,
     DownloadedExercise,
     Processing,
     Sending,
@@ -52,7 +51,6 @@ impl From<StatusType> for OutputResult {
     fn from(status_type: StatusType) -> Self {
         match status_type {
             StatusType::DownloadingExercise { .. } => OutputResult::DownloadingExercise,
-            StatusType::Compressing => OutputResult::Compressing,
             StatusType::DownloadedExercise { .. } => OutputResult::DownloadedExercise,
             StatusType::Processing => OutputResult::Processing,
             StatusType::Sending => OutputResult::Sending,

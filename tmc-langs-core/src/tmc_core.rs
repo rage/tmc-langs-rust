@@ -40,7 +40,6 @@ pub struct StatusUpdate {
 #[serde(rename_all = "kebab-case")]
 pub enum StatusType {
     DownloadingExercise { id: usize, path: PathBuf },
-    Compressing,
     DownloadedExercise { id: usize, path: PathBuf },
     Processing,
     Sending,
@@ -281,17 +280,16 @@ impl TmcCore {
         let step = 1.0 / (2 * exercises_len) as f64;
 
         let mut progress = 0.0;
-        let mut nth_exercise = 1;
-        for (exercise_id, target) in exercises {
+        for (n, (exercise_id, target)) in exercises.into_iter().enumerate() {
             // TODO: do in memory without zip_file?
             let zip_file = NamedTempFile::new().map_err(CoreError::TempFile)?;
 
             self.report_progress(
                 format!(
-                    "Downloading exercise {} to {}. ({} out of {})",
+                    "Downloading exercise {} to '{}'. ({} out of {})",
                     exercise_id,
                     target.display(),
-                    nth_exercise,
+                    n,
                     exercises_len
                 ),
                 StatusType::DownloadingExercise {
@@ -306,10 +304,10 @@ impl TmcCore {
             task_executor::extract_project(zip_file.path(), target, true)?;
             self.report_progress(
                 format!(
-                    "Downloaded exercise {} to {}. ({} out of {})",
+                    "Downloaded exercise {} to '{}'. ({} out of {})",
                     exercise_id,
                     target.display(),
-                    nth_exercise,
+                    n,
                     exercises_len
                 ),
                 StatusType::DownloadedExercise {
@@ -320,10 +318,7 @@ impl TmcCore {
             );
             progress += step;
         }
-        self.report_complete(format!(
-            "Finished downloading and extracting {} exercises.",
-            exercises_len
-        ));
+        self.report_complete(format!("Finished downloading {} exercises.", exercises_len));
         Ok(())
     }
 
@@ -492,30 +487,19 @@ impl TmcCore {
         submission_path: &Path,
         locale: Option<Language>,
     ) -> Result<NewSubmission> {
-        // compress
         self.report_progress(
-            "Submitting exercise. Compressing submission...".to_string(),
-            StatusType::Compressing,
+            "Compressing submission...".to_string(),
+            StatusType::Processing,
             0.0,
         );
         let compressed = task_executor::compress_project(submission_path)?;
-        self.report_progress(
-            "Compressed submission. Creating temporary file...".to_string(),
-            StatusType::Processing,
-            0.25,
-        );
         let mut file = NamedTempFile::new().map_err(CoreError::TempFile)?;
-        self.report_progress(
-            "Created temporary file. Writing compressed data...".to_string(),
-            StatusType::Processing,
-            0.5,
-        );
         file.write_all(&compressed)
             .map_err(|e| CoreError::Tmc(FileIo::FileWrite(file.path().to_path_buf(), e).into()))?;
         self.report_progress(
-            "Wrote compressed data. Posting submission...".to_string(),
+            "Compressed submission. Posting submission...".to_string(),
             StatusType::Sending,
-            0.75,
+            0.5,
         );
 
         let result = self.post_submission(submission_url, file.path(), locale);
