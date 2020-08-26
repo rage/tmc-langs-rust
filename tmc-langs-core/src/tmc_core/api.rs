@@ -597,19 +597,11 @@ impl TmcCore {
         form = form
             .text(
                 "client_time",
-                SystemTime::UNIX_EPOCH
-                    .elapsed()
-                    .unwrap()
-                    .as_secs()
-                    .to_string(),
+                SystemTime::UNIX_EPOCH.elapsed()?.as_secs().to_string(),
             )
             .text(
                 "client_nanotime",
-                SystemTime::UNIX_EPOCH
-                    .elapsed()
-                    .unwrap()
-                    .as_nanos()
-                    .to_string(),
+                SystemTime::UNIX_EPOCH.elapsed()?.as_nanos().to_string(),
             )
             .file("submission[file]", submission)
             .map_err(|e| CoreError::FileIo(FileIo::FileOpen(submission.to_path_buf(), e)))?;

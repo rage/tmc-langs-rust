@@ -70,12 +70,16 @@ fn initialize_jassets() -> Result<PathBuf, JavaError> {
 fn instantiate_jvm() -> Result<Jvm, JavaError> {
     let junit_runner_path = crate::get_junit_runner_path()?;
     log::debug!("junit runner at {}", junit_runner_path.display());
-    let junit_runner_path = junit_runner_path.to_str().unwrap();
+    let junit_runner_path = junit_runner_path
+        .to_str()
+        .ok_or_else(|| JavaError::InvalidUtf8Path(junit_runner_path.clone()))?;
     let junit_runner = ClasspathEntry::new(junit_runner_path);
 
     let checkstyle_runner_path = crate::get_checkstyle_runner_path()?;
     log::debug!("checkstyle runner at {}", checkstyle_runner_path.display());
-    let checkstyle_runner_path = checkstyle_runner_path.to_str().unwrap();
+    let checkstyle_runner_path = checkstyle_runner_path
+        .to_str()
+        .ok_or_else(|| JavaError::InvalidUtf8Path(checkstyle_runner_path.clone()))?;
     let checkstyle_runner = ClasspathEntry::new(checkstyle_runner_path);
 
     let j4rs_path = crate::initialize_jassets()?;
@@ -84,12 +88,15 @@ fn instantiate_jvm() -> Result<Jvm, JavaError> {
     let tmc_dir = tmc_dir()?;
 
     let jvm = JvmBuilder::new()
-        .with_base_path(tmc_dir.to_str().unwrap())
+        .with_base_path(
+            tmc_dir
+                .to_str()
+                .ok_or_else(|| JavaError::InvalidUtf8Path(tmc_dir.clone()))?,
+        )
         .classpath_entry(junit_runner)
         .classpath_entry(checkstyle_runner)
         .skip_setting_native_lib()
-        .build()
-        .expect("failed to build jvm");
+        .build()?;
 
     Ok(jvm)
 }

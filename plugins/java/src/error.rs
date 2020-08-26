@@ -10,6 +10,8 @@ use tmc_langs_framework::{
 
 #[derive(Error, Debug)]
 pub enum JavaError {
+    #[error("Path {0} was not valid UTF-8")]
+    InvalidUtf8Path(PathBuf),
     #[error("No java.home found in Java properties")]
     NoJavaHome,
     #[error("Maven did not output any class path")]

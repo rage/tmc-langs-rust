@@ -137,7 +137,6 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
             for entry in WalkDir::new(source) {
                 let entry = entry?;
                 let entry_path = entry.path();
-                debug_assert!(dbg!(entry_path).exists());
                 let stripped = entry_path.strip_prefix(prefix).unwrap();
 
                 let target = target.join(stripped);

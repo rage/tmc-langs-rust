@@ -42,6 +42,8 @@ pub enum CoreError {
     CacheDir,
 
     #[error(transparent)]
+    SystemTime(#[from] std::time::SystemTimeError),
+    #[error(transparent)]
     Response(#[from] response::ResponseError),
     #[error(transparent)]
     ResponseErrors(#[from] response::ResponseErrors),

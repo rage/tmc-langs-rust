@@ -145,8 +145,12 @@ impl TmcCommand {
                         let mut stderr = vec![];
                         let stdout_handle = child.stdout.as_mut().unwrap();
                         let stderr_handle = child.stderr.as_mut().unwrap();
-                        stdout_handle.read_to_end(&mut stdout).unwrap();
-                        stderr_handle.read_to_end(&mut stderr).unwrap();
+                        stdout_handle
+                            .read_to_end(&mut stdout)
+                            .map_err(TmcError::ReadStdio)?;
+                        stderr_handle
+                            .read_to_end(&mut stderr)
+                            .map_err(TmcError::ReadStdio)?;
                         return Ok(OutputWithTimeout::Timeout { stdout, stderr });
                     }
 

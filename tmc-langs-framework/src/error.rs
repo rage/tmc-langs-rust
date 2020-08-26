@@ -13,6 +13,8 @@ pub enum TmcError {
     FileIo(#[from] FileIo),
     #[error("{0} exists and is not a directory")]
     UnexpectedFile(PathBuf),
+    #[error("Failed to read stdio")]
+    ReadStdio(#[source] std::io::Error),
 
     #[error("Failed to read file inside zip archive with path {0}")]
     ZipRead(PathBuf, #[source] std::io::Error),
