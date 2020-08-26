@@ -1,4 +1,5 @@
 //! Implementation of LanguagePlugin for C#
+
 mod policy;
 
 use crate::{CSTestResult, CSharpError};
@@ -22,8 +23,6 @@ use tmc_langs_framework::{
 };
 use walkdir::WalkDir;
 
-const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../tmc-csharp-runner-1.0.1.zip");
-
 #[derive(Default)]
 pub struct CSharpPlugin {}
 
@@ -35,6 +34,7 @@ impl CSharpPlugin {
     /// Extracts the bundled tmc-csharp-runner to the given path.
     fn extract_runner(target: &Path) -> Result<(), CSharpError> {
         log::debug!("extracting C# runner to {}", target.display());
+        const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../tmc-csharp-runner-1.0.1.zip");
 
         let mut zip = ZipArchive::new(Cursor::new(TMC_CSHARP_RUNNER))?;
         for i in 0..zip.len() {
@@ -237,11 +237,15 @@ impl LanguagePlugin for CSharpPlugin {
     }
 
     /// No-op for C#.
-    fn check_code_style(&self, _path: &Path, _locale: Language) -> Option<ValidationResult> {
-        Some(ValidationResult {
+    fn check_code_style(
+        &self,
+        _path: &Path,
+        _locale: Language,
+    ) -> Result<Option<ValidationResult>, TmcError> {
+        Ok(Some(ValidationResult {
             strategy: Strategy::Disabled,
             validation_errors: None,
-        })
+        }))
     }
 
     /// Removes all bin and obj sub-directories.

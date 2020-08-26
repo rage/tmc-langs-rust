@@ -27,7 +27,11 @@ pub enum JavaError {
     #[error("Failed to compile")]
     Compilation { stdout: String, stderr: String },
 
+    #[error("J4RS error")]
+    J4rs(#[from] j4rs::errors::J4RsError),
     #[error(transparent)]
+    WalkDir(#[from] walkdir::Error),
+    #[error("JSON error")]
     Json(#[from] serde_json::Error),
     #[error("Failed to run command")]
     Command(#[from] CommandError),

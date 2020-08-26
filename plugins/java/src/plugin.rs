@@ -5,6 +5,7 @@ use super::{error::JavaError, CompileResult, TestCase, TestCaseStatus, TestMetho
 use j4rs::{InvocationArg, Jvm};
 use std::collections::HashMap;
 use std::convert::TryFrom;
+use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use tmc_langs_framework::{
     command::TmcCommand,
@@ -153,12 +154,10 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         }
 
         let mut source_files = vec![];
-        for entry in WalkDir::new(path.join(Self::TEST_DIR))
-            .into_iter()
-            .filter_map(|e| e.ok())
-        {
+        for entry in WalkDir::new(path.join(Self::TEST_DIR)) {
+            let entry = entry?;
             let ext = entry.path().extension();
-            if ext.map_or(false, |o| o == "java" || o == "jar") {
+            if ext == Some(OsStr::new("java")) || ext == Some(OsStr::new("jar")) {
                 source_files.push(entry.into_path());
             }
         }
@@ -169,44 +168,26 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
 
         let test_scanner = self
             .jvm()
-            .create_instance("fi.helsinki.cs.tmc.testscanner.TestScanner", &[])
-            .expect("failed to instantiate");
+            .create_instance("fi.helsinki.cs.tmc.testscanner.TestScanner", &[])?;
 
-        self.jvm()
-            .invoke(
-                &test_scanner,
-                "setClassPath",
-                &[InvocationArg::try_from(class_path).expect("failed to convert")],
-            )
-            .expect("failed to invoke");
+        self.jvm().invoke(
+            &test_scanner,
+            "setClassPath",
+            &[InvocationArg::try_from(class_path)?],
+        )?;
 
         for source_file in source_files {
-            let file = self
-                .jvm()
-                .create_instance(
-                    "java.io.File",
-                    &[InvocationArg::try_from(&*source_file.to_string_lossy())
-                        .expect("failed to convert")],
-                )
-                .expect("failed to instantiate");
+            let file = self.jvm().create_instance(
+                "java.io.File",
+                &[InvocationArg::try_from(&*source_file.to_string_lossy())?],
+            )?;
             self.jvm()
-                .invoke(
-                    &test_scanner,
-                    "addSource",
-                    &[InvocationArg::try_from(file).expect("failed to convert")],
-                )
-                .expect("failed to invoke");
+                .invoke(&test_scanner, "addSource", &[InvocationArg::from(file)])?;
         }
-        let scan_results = self
-            .jvm()
-            .invoke(&test_scanner, "findTests", &[])
-            .expect("failed to invoke");
-        self.jvm()
-            .invoke(&test_scanner, "clearSources", &[])
-            .expect("failed to invoke");
+        let scan_results = self.jvm().invoke(&test_scanner, "findTests", &[])?;
+        self.jvm().invoke(&test_scanner, "clearSources", &[])?;
 
-        let scan_results: Vec<TestMethod> =
-            self.jvm().to_rust(scan_results).expect("failed to convert");
+        let scan_results: Vec<TestMethod> = self.jvm().to_rust(scan_results)?;
 
         let tests = scan_results
             .into_iter()
@@ -241,37 +222,28 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
     }
 
     /// Runs checkstyle.
-    fn run_checkstyle(&self, locale: &Language, path: &Path) -> Option<ValidationResult> {
-        let file = self
-            .jvm()
-            .create_instance(
-                "java.io.File",
-                &[InvocationArg::try_from(&*path.to_string_lossy()).expect("failed to convert")],
-            )
-            .expect("failed to instantiate");
+    fn run_checkstyle(
+        &self,
+        locale: &Language,
+        path: &Path,
+    ) -> Result<ValidationResult, JavaError> {
+        let file = self.jvm().create_instance(
+            "java.io.File",
+            &[InvocationArg::try_from(&*path.to_string_lossy())?],
+        )?;
         let locale_code = locale.to_639_1().unwrap_or_else(|| locale.to_639_3()); // Java requires 639-1 if one exists
         let locale = self
             .jvm()
-            .create_instance(
-                "java.util.Locale",
-                &[InvocationArg::try_from(locale_code).expect("failed to convert")],
-            )
-            .expect("failed to instantiate");
-        let checkstyle_runner = self
-            .jvm()
-            .create_instance(
-                "fi.helsinki.cs.tmc.stylerunner.CheckstyleRunner",
-                &[InvocationArg::from(file), InvocationArg::from(locale)],
-            )
-            .expect("failed to instantiate");
-        let result = self
-            .jvm()
-            .invoke(&checkstyle_runner, "run", &[])
-            .expect("failed to invoke");
-        let result = self.jvm().to_rust(result).expect("failed to convert");
+            .create_instance("java.util.Locale", &[InvocationArg::try_from(locale_code)?])?;
+        let checkstyle_runner = self.jvm().create_instance(
+            "fi.helsinki.cs.tmc.stylerunner.CheckstyleRunner",
+            &[InvocationArg::from(file), InvocationArg::from(locale)],
+        )?;
+        let result = self.jvm().invoke(&checkstyle_runner, "run", &[])?;
+        let result: ValidationResult = self.jvm().to_rust(result)?;
 
         log::debug!("Validation result: {:?}", result);
-        result
+        Ok(result)
     }
 }
 

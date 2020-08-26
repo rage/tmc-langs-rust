@@ -18,7 +18,6 @@ use std::error::Error as StdError;
 use std::io::Write;
 use std::path::Path;
 use std::path::PathBuf;
-use std::result::Result as StdResult;
 use std::thread;
 use std::time::Duration;
 use tempfile::NamedTempFile;

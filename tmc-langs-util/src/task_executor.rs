@@ -74,7 +74,7 @@ pub fn run_check_code_style(
     path: &Path,
     locale: Language,
 ) -> Result<Option<ValidationResult>, UtilError> {
-    Ok(get_language_plugin(path)?.check_code_style(path, locale))
+    Ok(get_language_plugin(path)?.check_code_style(path, locale)?)
 }
 
 /// See `LanguagePlugin::run_tests`.
@@ -199,7 +199,7 @@ pub fn find_exercise_directories(exercise_path: &Path) -> Vec<PathBuf> {
     fn extract_student_files(&self, compressed_project: &Path, target_location: &Path) -> Result<(), TmcError> {}
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {}
     fn run_tests(&self, path: &Path) -> Result<RunResult, TmcError> {}
-    fn check_code_style(&self, path: &Path, locale: Language) -> Option<ValidationResult> {}
+    fn check_code_style(&self, path: &Path, locale: Language) -> Result<Option<ValidationResult>, TmcError> {}
     fn prepare_stub(&self, exercise_path: &Path, repo_path: &Path, dest_path: &Path) -> Result<(), TmcError> {}
 )]
 enum Plugin {

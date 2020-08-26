@@ -76,8 +76,12 @@ impl LanguagePlugin for MavenPlugin {
     const PLUGIN_NAME: &'static str = "apache-maven";
     type StudentFilePolicy = MavenStudentFilePolicy;
 
-    fn check_code_style(&self, path: &Path, locale: Language) -> Option<ValidationResult> {
-        self.run_checkstyle(&locale, path)
+    fn check_code_style(
+        &self,
+        path: &Path,
+        locale: Language,
+    ) -> Result<Option<ValidationResult>, TmcError> {
+        Ok(Some(self.run_checkstyle(&locale, path)?))
     }
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
@@ -338,6 +342,7 @@ mod test {
         let plugin = MavenPlugin::new().unwrap();
         let checkstyle_result = plugin
             .check_code_style(test_path, Language::from_639_3("fin").unwrap())
+            .unwrap()
             .unwrap();
 
         assert_eq!(checkstyle_result.strategy, Strategy::Fail);

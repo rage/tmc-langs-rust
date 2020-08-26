@@ -2,11 +2,11 @@
 
 pub mod policy;
 
-use super::{error::JavaError, plugin::JavaPlugin, CompileResult, TestRun, SEPARATOR};
-
+use crate::{error::JavaError, plugin::JavaPlugin, CompileResult, TestRun, SEPARATOR};
 use j4rs::Jvm;
 use policy::AntStudentFilePolicy;
 use std::env;
+use std::ffi::OsStr;
 use std::path::Path;
 use std::process::Stdio;
 use std::time::Duration;
@@ -18,10 +18,6 @@ use tmc_langs_framework::{
     TmcError,
 };
 use walkdir::WalkDir;
-
-const BUILD_FILE_NAME: &str = "build.xml";
-
-const JUNIT_RUNNER_ARCHIVE: &[u8] = include_bytes!("../jars/tmc-junit-runner-0.2.8.jar");
 
 pub struct AntPlugin {
     jvm: Jvm,
@@ -52,8 +48,10 @@ impl AntPlugin {
         }
     }
 
+    /// Copies the bundled tmc-junit-runner to the given path.
     fn copy_tmc_junit_runner(&self, path: &Path) -> Result<(), JavaError> {
         log::debug!("Copying TMC Junit runner");
+        const JUNIT_RUNNER_ARCHIVE: &[u8] = include_bytes!("../jars/tmc-junit-runner-0.2.8.jar");
 
         let runner_dir = path.join("lib").join("testrunner");
         let runner_path = runner_dir.join("tmc-junit-runner.jar");
@@ -73,8 +71,12 @@ impl LanguagePlugin for AntPlugin {
     const PLUGIN_NAME: &'static str = "apache-ant";
     type StudentFilePolicy = AntStudentFilePolicy;
 
-    fn check_code_style(&self, path: &Path, locale: Language) -> Option<ValidationResult> {
-        self.run_checkstyle(&locale, path)
+    fn check_code_style(
+        &self,
+        path: &Path,
+        locale: Language,
+    ) -> Result<Option<ValidationResult>, TmcError> {
+        Ok(Some(self.run_checkstyle(&locale, path)?))
     }
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
@@ -94,10 +96,9 @@ impl LanguagePlugin for AntPlugin {
         Ok(self.run_java_tests(project_root_path)?)
     }
 
-    /// Checks if the directory contains a src and a test directory.
+    /// Checks if the directory contains a build.xml file, or a src and a test directory.
     fn is_exercise_type_correct(path: &Path) -> bool {
-        path.join(BUILD_FILE_NAME).exists()
-            || path.join("test").exists() && path.join("src").exists()
+        path.join("build.xml").is_file() || path.join("test").is_dir() && path.join("src").is_dir()
     }
 
     fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
@@ -137,23 +138,24 @@ impl JavaPlugin for AntPlugin {
         &self.jvm
     }
 
+    /// Constructs the class path for the given path.
     fn get_project_class_path(&self, path: &Path) -> Result<String, JavaError> {
         let mut paths = vec![];
 
         // add all .jar files in lib
         let lib_dir = path.join("lib");
         for entry in WalkDir::new(&lib_dir).into_iter().filter_map(|e| e.ok()) {
-            if entry.path().is_file() && entry.path().extension().unwrap_or_default() == "jar" {
+            if entry.path().is_file() && entry.path().extension() == Some(OsStr::new("jar")) {
                 paths.push(entry.path().to_path_buf());
             }
         }
         paths.push(lib_dir);
 
-        paths.push(path.join("build").join("test").join("classes"));
-        paths.push(path.join("build").join("classes"));
+        paths.push(path.join("build/test/classes"));
+        paths.push(path.join("build/classes"));
 
         let java_home = Self::get_java_home()?;
-        let tools_jar_path = java_home.join("..").join("lib").join("tools.jar");
+        let tools_jar_path = java_home.join("../lib/tools.jar");
         if tools_jar_path.exists() {
             paths.push(tools_jar_path);
         } else {
@@ -423,6 +425,7 @@ mod test {
         let plugin = AntPlugin::new().unwrap();
         let checkstyle_result = plugin
             .check_code_style(test_path, Language::from_639_3("fin").unwrap())
+            .unwrap()
             .unwrap();
 
         assert_eq!(checkstyle_result.strategy, Strategy::Fail);

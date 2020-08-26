@@ -1,4 +1,5 @@
 //! Language plugin for C#
+
 mod error;
 mod plugin;
 
