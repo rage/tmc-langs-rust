@@ -5,10 +5,9 @@ mod plugin;
 mod policy;
 
 pub use error::PythonError;
+use lazy_static::lazy_static;
 pub use plugin::Python3Plugin;
 pub use policy::Python3StudentFilePolicy;
-
-use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::path::PathBuf;

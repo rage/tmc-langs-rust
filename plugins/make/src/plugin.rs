@@ -4,7 +4,6 @@ use crate::check_log::CheckLog;
 use crate::error::MakeError;
 use crate::policy::MakeStudentFilePolicy;
 use crate::valgrind_log::ValgrindLog;
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashMap;

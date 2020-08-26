@@ -1,10 +1,13 @@
 // Contains the RPlugin
 
 use crate::error::RError;
+use crate::RRunResult;
 use crate::RStudentFilePolicy;
-
-use super::RRunResult;
-
+use std::collections::HashMap;
+use std::fs;
+use std::io::{Read, Seek};
+use std::path::{Path, PathBuf};
+use std::time::Duration;
 use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, TestDesc},
@@ -12,12 +15,6 @@ use tmc_langs_framework::{
     zip::ZipArchive,
     LanguagePlugin, TmcError,
 };
-
-use std::collections::HashMap;
-use std::fs;
-use std::io::{Read, Seek};
-use std::path::{Path, PathBuf};
-use std::time::Duration;
 
 #[derive(Default)]
 pub struct RPlugin {}

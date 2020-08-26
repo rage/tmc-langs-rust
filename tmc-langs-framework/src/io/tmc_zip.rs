@@ -3,7 +3,6 @@
 use crate::error::TmcError;
 use crate::io::file_util;
 use crate::policy::StudentFilePolicy;
-
 use std::collections::HashSet;
 use std::io::{Cursor, Read, Seek, Write};
 use std::path::Path;

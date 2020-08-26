@@ -1,7 +1,6 @@
 //! Common functionality for all Java plugins
 
-use super::{error::JavaError, CompileResult, TestCase, TestCaseStatus, TestMethod, TestRun};
-
+use crate::{error::JavaError, CompileResult, TestCase, TestCaseStatus, TestMethod, TestRun};
 use j4rs::{InvocationArg, Jvm};
 use std::collections::HashMap;
 use std::convert::TryFrom;

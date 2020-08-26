@@ -1,6 +1,5 @@
-use crate::io::tmc_zip;
-
 use crate::command::CommandString;
+use crate::io::tmc_zip;
 use std::path::PathBuf;
 use std::process::ExitStatus;
 use thiserror::Error;

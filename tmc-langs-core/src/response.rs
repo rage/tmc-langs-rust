@@ -1,7 +1,6 @@
 //! Contains types which model the JSON responses from tmc-server
 
 use crate::CoreError;
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use schemars::JsonSchema;

@@ -7,9 +7,8 @@ pub mod io;
 pub mod plugin;
 pub mod policy;
 
+use domain::TmcProjectYml;
 pub use error::TmcError;
 pub use plugin::LanguagePlugin;
 pub use policy::StudentFilePolicy;
 pub use zip;
-
-use domain::TmcProjectYml;

@@ -3,10 +3,9 @@
 mod app;
 mod output;
 
-use output::{CombinedCourseData, DownloadTarget, ErrorData, Kind, Output, OutputResult, Status};
-
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
+use output::{CombinedCourseData, DownloadTarget, ErrorData, Kind, Output, OutputResult, Status};
 use serde::Serialize;
 use std::collections::HashMap;
 use std::env;

@@ -1,15 +1,13 @@
 //! Contains LanguagePlugin.
 
-pub use isolang::Language;
-
-use super::domain::{
+use crate::domain::{
     ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, TestResult, TmcProjectYml,
     ValidationResult,
 };
-use super::io::{file_util, submission_processing, tmc_zip};
-use super::policy::StudentFilePolicy;
 use crate::error::TmcError;
-
+use crate::io::{file_util, submission_processing, tmc_zip};
+use crate::policy::StudentFilePolicy;
+pub use isolang::Language;
 use log::debug;
 use std::collections::{HashMap, HashSet};
 use std::io::{Read, Seek, Write};

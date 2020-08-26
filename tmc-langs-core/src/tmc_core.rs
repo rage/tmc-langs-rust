@@ -5,7 +5,6 @@ use crate::request::*;
 use crate::response::*;
 use crate::response::{Course, CourseDetails, Organization};
 use crate::{Language, RunResult, ValidationResult};
-
 use oauth2::basic::BasicClient;
 use oauth2::{
     AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword, ResourceOwnerUsername, TokenUrl,

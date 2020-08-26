@@ -1,16 +1,15 @@
 //! Language plugin for no_tests exercises
 
+use std::collections::HashMap;
+use std::io::{Read, Seek};
+use std::path::{Path, PathBuf};
+use std::time::Duration;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     policy::EverythingIsStudentFilePolicy,
     zip::ZipArchive,
     LanguagePlugin, StudentFilePolicy, TmcError,
 };
-
-use std::collections::HashMap;
-use std::io::{Read, Seek};
-use std::path::{Path, PathBuf};
-use std::time::Duration;
 
 #[derive(Default)]
 pub struct NoTestsPlugin {}

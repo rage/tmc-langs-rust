@@ -1,12 +1,11 @@
 //! Error type for the R plugin
 
+use std::path::PathBuf;
 use thiserror::Error;
 use tmc_langs_framework::{
     error::{CommandError, FileIo},
     TmcError,
 };
-
-use std::path::PathBuf;
 
 #[derive(Debug, Error)]
 pub enum RError {

@@ -3,7 +3,6 @@
 use crate::error::PythonError;
 use crate::policy::Python3StudentFilePolicy;
 use crate::{LocalPy, PythonTestResult, LOCAL_PY};
-
 use std::collections::HashMap;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};

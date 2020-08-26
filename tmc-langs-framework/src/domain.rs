@@ -4,7 +4,6 @@ pub mod meta_syntax;
 
 use crate::io::file_util;
 use crate::TmcError;
-
 use log::debug;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

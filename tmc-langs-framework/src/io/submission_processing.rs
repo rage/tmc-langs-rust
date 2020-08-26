@@ -4,7 +4,6 @@ use crate::domain::meta_syntax::{MetaString, MetaSyntaxParser};
 use crate::io::file_util;
 use crate::policy::StudentFilePolicy;
 use crate::TmcError;
-
 use lazy_static::lazy_static;
 use log::{debug, info};
 use regex::Regex;

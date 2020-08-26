@@ -2,8 +2,7 @@
 
 pub mod policy;
 
-use super::{error::JavaError, plugin::JavaPlugin, CompileResult, TestRun, SEPARATOR};
-
+use crate::{error::JavaError, plugin::JavaPlugin, CompileResult, TestRun, SEPARATOR};
 use flate2::read::GzDecoder;
 use j4rs::Jvm;
 use policy::MavenStudentFilePolicy;

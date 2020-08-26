@@ -1,7 +1,7 @@
 //! Contains StudentFilePolicy.
 
-use super::TmcProjectYml;
 use crate::TmcError;
+use crate::TmcProjectYml;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 
