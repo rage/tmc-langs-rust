@@ -68,6 +68,9 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
                 return Kind::AuthorizationError;
             }
         }
+        if let Some(CoreError::AuthRequired) = cause.downcast_ref::<CoreError>() {
+            return Kind::AuthorizationError;
+        }
         // check for connection error
         if let Some(CoreError::ConnectionError(..)) = cause.downcast_ref::<CoreError>() {
             return Kind::ConnectionError;
