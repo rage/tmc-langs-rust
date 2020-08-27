@@ -1,4 +1,4 @@
-// Contains the RPlugin
+//! Contains the RPlugin
 
 use crate::error::RError;
 use crate::RRunResult;
