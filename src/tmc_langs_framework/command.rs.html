@@ -207,6 +207,10 @@
 <span id="207">207</span>
 <span id="208">208</span>
 <span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Custom wrapper for Command that supports timeouts and contains custom error handling.</span>
 
@@ -355,8 +359,12 @@
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stderr</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
                         <span class="kw">let</span> <span class="ident">stdout_handle</span> <span class="op">=</span> <span class="ident">child</span>.<span class="ident">stdout</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>();
                         <span class="kw">let</span> <span class="ident">stderr_handle</span> <span class="op">=</span> <span class="ident">child</span>.<span class="ident">stderr</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>();
-                        <span class="ident">stdout_handle</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">stdout</span>).<span class="ident">unwrap</span>();
-                        <span class="ident">stderr_handle</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">stderr</span>).<span class="ident">unwrap</span>();
+                        <span class="ident">stdout_handle</span>
+                            .<span class="ident">read_to_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">stdout</span>)
+                            .<span class="ident">map_err</span>(<span class="ident">TmcError</span>::<span class="ident">ReadStdio</span>)<span class="question-mark">?</span>;
+                        <span class="ident">stderr_handle</span>
+                            .<span class="ident">read_to_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">stderr</span>)
+                            .<span class="ident">map_err</span>(<span class="ident">TmcError</span>::<span class="ident">ReadStdio</span>)<span class="question-mark">?</span>;
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">OutputWithTimeout</span>::<span class="ident">Timeout</span> { <span class="ident">stdout</span>, <span class="ident">stderr</span> });
                     }
 

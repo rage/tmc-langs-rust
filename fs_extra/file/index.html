@@ -25,8 +25,10 @@ about process work with files.</p>
     <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">test_file</span>.<span class="number">1</span>.<span class="ident">exists</span>());
 
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">CopyOptions</span>::<span class="ident">new</span>();
-    <span class="ident">options</span>.<span class="ident">buffer_size</span> <span class="op">=</span> <span class="number">1</span>;
+    <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">CopyOptions</span> {
+        <span class="ident">buffer_size</span>: <span class="number">1</span>,
+        ..<span class="ident">Default</span>::<span class="ident">default</span>()
+    }
     <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">mpsc</span>::<span class="ident">channel</span>();
     <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
         <span class="kw">let</span> <span class="ident">handler</span> <span class="op">=</span> <span class="op">|</span><span class="ident">process_info</span>: <span class="ident">TransitProcess</span><span class="op">|</span> {

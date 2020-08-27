@@ -170,6 +170,13 @@
 <span id="170">170</span>
 <span id="171">171</span>
 <span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Java plugins for ant and maven</span>
 
@@ -243,12 +250,16 @@
 <span class="kw">fn</span> <span class="ident">instantiate_jvm</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Jvm</span>, <span class="ident">JavaError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">junit_runner_path</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">get_junit_runner_path</span>()<span class="question-mark">?</span>;
     <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;junit runner at {}&quot;</span>, <span class="ident">junit_runner_path</span>.<span class="ident">display</span>());
-    <span class="kw">let</span> <span class="ident">junit_runner_path</span> <span class="op">=</span> <span class="ident">junit_runner_path</span>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">junit_runner_path</span> <span class="op">=</span> <span class="ident">junit_runner_path</span>
+        .<span class="ident">to_str</span>()
+        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JavaError</span>::<span class="ident">InvalidUtf8Path</span>(<span class="ident">junit_runner_path</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">junit_runner</span> <span class="op">=</span> <span class="ident">ClasspathEntry</span>::<span class="ident">new</span>(<span class="ident">junit_runner_path</span>);
 
     <span class="kw">let</span> <span class="ident">checkstyle_runner_path</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">get_checkstyle_runner_path</span>()<span class="question-mark">?</span>;
     <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;checkstyle runner at {}&quot;</span>, <span class="ident">checkstyle_runner_path</span>.<span class="ident">display</span>());
-    <span class="kw">let</span> <span class="ident">checkstyle_runner_path</span> <span class="op">=</span> <span class="ident">checkstyle_runner_path</span>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">checkstyle_runner_path</span> <span class="op">=</span> <span class="ident">checkstyle_runner_path</span>
+        .<span class="ident">to_str</span>()
+        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JavaError</span>::<span class="ident">InvalidUtf8Path</span>(<span class="ident">checkstyle_runner_path</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">checkstyle_runner</span> <span class="op">=</span> <span class="ident">ClasspathEntry</span>::<span class="ident">new</span>(<span class="ident">checkstyle_runner_path</span>);
 
     <span class="kw">let</span> <span class="ident">j4rs_path</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">initialize_jassets</span>()<span class="question-mark">?</span>;
@@ -257,12 +268,15 @@
     <span class="kw">let</span> <span class="ident">tmc_dir</span> <span class="op">=</span> <span class="ident">tmc_dir</span>()<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="ident">jvm</span> <span class="op">=</span> <span class="ident">JvmBuilder</span>::<span class="ident">new</span>()
-        .<span class="ident">with_base_path</span>(<span class="ident">tmc_dir</span>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>())
+        .<span class="ident">with_base_path</span>(
+            <span class="ident">tmc_dir</span>
+                .<span class="ident">to_str</span>()
+                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JavaError</span>::<span class="ident">InvalidUtf8Path</span>(<span class="ident">tmc_dir</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>,
+        )
         .<span class="ident">classpath_entry</span>(<span class="ident">junit_runner</span>)
         .<span class="ident">classpath_entry</span>(<span class="ident">checkstyle_runner</span>)
         .<span class="ident">skip_setting_native_lib</span>()
-        .<span class="ident">build</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;failed to build jvm&quot;</span>);
+        .<span class="ident">build</span>()<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(<span class="ident">jvm</span>)
 }
