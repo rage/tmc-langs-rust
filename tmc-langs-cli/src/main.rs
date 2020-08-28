@@ -5,10 +5,7 @@ mod output;
 
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
-use output::{
-    CombinedCourseData, DownloadTarget, ErrorData, Kind, Output, OutputResult, Status,
-    SubmissionUrl,
-};
+use output::{CombinedCourseData, DownloadTarget, ErrorData, Kind, Output, OutputResult, Status};
 use serde::Serialize;
 use std::collections::HashMap;
 use std::env;
@@ -509,8 +506,8 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
                 };
                 print_output(&output)?;
             }
-            StatusType::PostedSubmission { url } => {
-                let data = Some(SubmissionUrl { url: url.clone() });
+            StatusType::PostedSubmission(ns) => {
+                let data = Some(ns.clone());
 
                 let output = Output {
                     status: Status::InProgress,

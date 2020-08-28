@@ -282,7 +282,7 @@ pub struct ExerciseSubmission {
     pub requests_review: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize, JsonSchema)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema, Clone)]
 pub struct NewSubmission {
     pub show_submission_url: String,
     pub paste_url: String, // use Option and serde_with::string_empty_as_none ?

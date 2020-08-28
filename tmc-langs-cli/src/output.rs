@@ -96,8 +96,3 @@ pub struct DownloadTarget {
     pub id: usize,
     pub path: PathBuf,
 }
-
-#[derive(Debug, Serialize)]
-pub struct SubmissionUrl {
-    pub url: String,
-}
