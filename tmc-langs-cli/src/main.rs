@@ -5,7 +5,10 @@ mod output;
 
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
-use output::{CombinedCourseData, DownloadTarget, ErrorData, Kind, Output, OutputResult, Status};
+use output::{
+    CombinedCourseData, DownloadTarget, ErrorData, Kind, Output, OutputResult, Status,
+    SubmissionUrl,
+};
 use serde::Serialize;
 use std::collections::HashMap;
 use std::env;
@@ -65,7 +68,7 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
         // check for authorization error
         if let Some(CoreError::HttpError(_, status_code, _)) = cause.downcast_ref::<CoreError>() {
             if status_code.as_u16() == 403 {
-                return Kind::AuthorizationError;
+                return Kind::Forbidden;
             }
         }
         // check for not logged in
@@ -489,23 +492,46 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
     // set progress report to print the updates to stdout as JSON
     core.set_progress_report(|update| {
         // convert to output
-        let data = match &update.status_type {
+        match &update.status_type {
             StatusType::DownloadingExercise { id, path }
-            | StatusType::DownloadedExercise { id, path } => Some(DownloadTarget {
-                id: *id,
-                path: path.clone(),
-            }),
-            _ => None,
-        };
+            | StatusType::DownloadedExercise { id, path } => {
+                let data = Some(DownloadTarget {
+                    id: *id,
+                    path: path.clone(),
+                });
 
-        let output = Output {
-            status: Status::InProgress,
-            message: Some(update.message.to_string()),
-            result: update.status_type.into(),
-            percent_done: update.percent_done,
-            data,
+                let output = Output {
+                    status: Status::InProgress,
+                    message: Some(update.message.to_string()),
+                    result: update.status_type.into(),
+                    percent_done: update.percent_done,
+                    data,
+                };
+                print_output(&output)?;
+            }
+            StatusType::PostedSubmission { url } => {
+                let data = Some(SubmissionUrl { url: url.clone() });
+
+                let output = Output {
+                    status: Status::InProgress,
+                    message: Some(update.message.to_string()),
+                    result: update.status_type.into(),
+                    percent_done: update.percent_done,
+                    data,
+                };
+                print_output(&output)?;
+            }
+            _ => {
+                let output = Output::<()> {
+                    status: Status::InProgress,
+                    message: Some(update.message.to_string()),
+                    result: update.status_type.into(),
+                    percent_done: update.percent_done,
+                    data: None,
+                };
+                print_output(&output)?;
+            }
         };
-        print_output(&output)?;
         Ok(())
     });
 

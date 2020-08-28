@@ -44,6 +44,7 @@ pub enum OutputResult {
     WaitingForResults,
     Finished,
     IntermediateStepFinished,
+    PostedSubmission,
 }
 
 // converts a tmc_langs_core status to output result
@@ -52,6 +53,7 @@ impl From<StatusType> for OutputResult {
         match status_type {
             StatusType::DownloadingExercise { .. } => OutputResult::DownloadingExercise,
             StatusType::DownloadedExercise { .. } => OutputResult::DownloadedExercise,
+            StatusType::PostedSubmission { .. } => OutputResult::PostedSubmission,
             StatusType::Processing => OutputResult::Processing,
             StatusType::Sending => OutputResult::Sending,
             StatusType::WaitingForResults => OutputResult::WaitingForResults,
@@ -75,8 +77,8 @@ pub enum Kind {
     /// For all other errors
     Generic,
     /// 403 from server
-    AuthorizationError,
-    /// Not logged in
+    Forbidden,
+    /// Not logged in, detected either by no token or 401 from server
     NotLoggedIn,
     /// Failed to connect to the TMC server, likely due to no internet connection
     ConnectionError,
@@ -93,4 +95,9 @@ pub struct CombinedCourseData {
 pub struct DownloadTarget {
     pub id: usize,
     pub path: PathBuf,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SubmissionUrl {
+    pub url: String,
 }

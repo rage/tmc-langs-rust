@@ -39,6 +39,7 @@ pub struct StatusUpdate {
 pub enum StatusType {
     DownloadingExercise { id: usize, path: PathBuf },
     DownloadedExercise { id: usize, path: PathBuf },
+    PostedSubmission { url: String },
     Processing,
     Sending,
     WaitingForResults,
@@ -503,9 +504,16 @@ impl TmcCore {
             0.5,
         );
 
-        let result = self.post_submission(submission_url, file.path(), locale);
+        let result = self.post_submission(submission_url, file.path(), locale)?;
+        self.report_progress(
+            format!("Submission running at {0}", result.submission_url),
+            StatusType::PostedSubmission {
+                url: result.submission_url.clone(),
+            },
+            1.0,
+        );
         self.report_complete("Submission finished!".to_string());
-        result
+        Ok(result)
     }
 
     pub fn reset(&self, exercise_id: usize, exercise_path: &Path) -> Result<(), CoreError> {
