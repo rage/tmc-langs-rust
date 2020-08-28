@@ -152,7 +152,7 @@ impl TmcCore {
 
     pub(super) fn user(&self, user_id: usize) -> Result<User, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!("users/{}", user_id);
         self.get_json(&url_tail)
@@ -160,7 +160,7 @@ impl TmcCore {
 
     pub(super) fn user_current(&self) -> Result<User, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = "users/current";
         self.get_json(url_tail)
@@ -176,7 +176,7 @@ impl TmcCore {
 
     pub(super) fn course(&self, course_id: usize) -> Result<CourseData, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!("courses/{}", course_id);
         self.get_json(&url_tail)
@@ -188,7 +188,7 @@ impl TmcCore {
         course_name: &str,
     ) -> Result<CourseData, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}",
@@ -212,7 +212,7 @@ impl TmcCore {
         exercise_name: &str,
     ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!(
             "courses/{}/exercises/{}/points",
@@ -229,7 +229,7 @@ impl TmcCore {
         user_id: usize,
     ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!(
             "courses/{}/exercises/{}/users/{}/points",
@@ -246,7 +246,7 @@ impl TmcCore {
         exercise_name: &str,
     ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!(
             "courses/{}/exercises/{}/users/current/points",
@@ -279,7 +279,7 @@ impl TmcCore {
         course_name: &str,
     ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/points",
@@ -295,7 +295,7 @@ impl TmcCore {
         course_name: &str,
     ) -> Result<(), CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let _url_tail = format!(
             "org/{}/courses/{}/eligible_students",
@@ -312,7 +312,7 @@ impl TmcCore {
         exercise_name: &str,
     ) -> Result<(), CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/exercises/{}/points",
@@ -330,7 +330,7 @@ impl TmcCore {
         exercise_name: &str,
     ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/exercises/{}/users/current/points",
@@ -349,7 +349,7 @@ impl TmcCore {
         user_id: usize,
     ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/exercises/{}/users/{}/points",
@@ -368,7 +368,7 @@ impl TmcCore {
         user_id: usize,
     ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/users/{}/points",
@@ -385,7 +385,7 @@ impl TmcCore {
         course_name: &str,
     ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/users/current/points",
@@ -400,7 +400,7 @@ impl TmcCore {
         course_id: usize,
     ) -> Result<Vec<Submission>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!("courses/{}/submissions", course_id);
         self.get_json(&url_tail)
@@ -411,7 +411,7 @@ impl TmcCore {
         course_id: usize,
     ) -> Result<Vec<Submission>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!("courses/{}/submissions/last_hour", course_id);
         self.get_json(&url_tail)
@@ -423,7 +423,7 @@ impl TmcCore {
         user_id: usize,
     ) -> Result<Vec<Submission>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!("courses/{}/users/{}/submissions", course_id, user_id);
         self.get_json(&url_tail)
@@ -434,7 +434,7 @@ impl TmcCore {
         course_id: usize,
     ) -> Result<Vec<Submission>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!("courses/{}/users/current/submissions", course_id);
         self.get_json(&url_tail)
@@ -446,7 +446,7 @@ impl TmcCore {
         user_id: usize,
     ) -> Result<Vec<Submission>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!("exercises/{}/users/{}/submissions", exercise_id, user_id);
         self.get_json(&url_tail)
@@ -457,7 +457,7 @@ impl TmcCore {
         exercise_id: usize,
     ) -> Result<Vec<Submission>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!("exercises/{}/users/current/submissions", exercise_id);
         self.get_json(&url_tail)
@@ -469,7 +469,7 @@ impl TmcCore {
         course_name: &str,
     ) -> Result<Vec<Submission>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/submissions",
@@ -486,7 +486,7 @@ impl TmcCore {
         user_id: usize,
     ) -> Result<Vec<Submission>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/users/{}/submissions",
@@ -503,7 +503,7 @@ impl TmcCore {
         course_name: &str,
     ) -> Result<Vec<Submission>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/users/current/submissions",
@@ -524,7 +524,7 @@ impl TmcCore {
         course_name: &str,
     ) -> Result<Vec<CourseDataExercise>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/exercises",
@@ -542,7 +542,7 @@ impl TmcCore {
         target: &Path,
     ) -> Result<(), CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/exercises/{}/download",
@@ -565,7 +565,7 @@ impl TmcCore {
 
     pub(super) fn core_course(&self, course_id: usize) -> Result<CourseDetails, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!("core/courses/{}", course_id);
         self.get_json(&url_tail)
@@ -573,7 +573,7 @@ impl TmcCore {
 
     pub(super) fn reviews(&self, course_id: usize) -> Result<Vec<Review>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!("core/courses/{}/reviews", course_id);
         self.get_json(&url_tail)
@@ -585,7 +585,7 @@ impl TmcCore {
         review_id: usize,
     ) -> Result<Vec<Review>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let _url_tail = format!("core/courses/{}/reviews/{}", course_id, review_id);
         // self.get_json(&url_tail)
@@ -608,7 +608,7 @@ impl TmcCore {
 
     pub(super) fn core_exercise(&self, exercise_id: usize) -> Result<ExerciseDetails, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!("core/exercises/{}", exercise_id);
         self.get_json(&url_tail)
@@ -620,7 +620,7 @@ impl TmcCore {
         target: &Path,
     ) -> Result<(), CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!("core/exercises/{}/solution/download", exercise_id);
         self.download(&url_tail, target)
@@ -720,7 +720,7 @@ impl TmcCore {
         organization_slug: &str,
     ) -> Result<Vec<Course>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!("core/org/{}/courses", organization_slug);
         self.get_json(&url_tail)
@@ -732,7 +732,7 @@ impl TmcCore {
         target: &Path,
     ) -> Result<(), CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         let url_tail = format!("core/submissions/{}/download", submission_id);
         self.download(&url_tail, target)

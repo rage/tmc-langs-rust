@@ -363,21 +363,21 @@ impl TmcCore {
     /// ```
     pub fn list_courses(&self, organization_slug: &str) -> Result<Vec<Course>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         self.organization_courses(organization_slug)
     }
 
     pub fn get_course(&self, course_id: usize) -> Result<CourseData, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         self.course(course_id)
     }
 
     pub fn get_course_exercises(&self, course_id: usize) -> Result<Vec<CourseExercise>, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
         self.exercises(course_id)
     }
@@ -743,7 +743,7 @@ impl TmcCore {
         submission_url: &str,
     ) -> Result<SubmissionProcessingStatus, CoreError> {
         if self.token.is_none() {
-            return Err(CoreError::AuthRequired);
+            return Err(CoreError::NotLoggedIn);
         }
 
         let url = Url::parse(submission_url)

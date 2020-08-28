@@ -76,6 +76,8 @@ pub enum Kind {
     Generic,
     /// 403 from server
     AuthorizationError,
+    /// Not logged in
+    NotLoggedIn,
     /// Failed to connect to the TMC server, likely due to no internet connection
     ConnectionError,
 }

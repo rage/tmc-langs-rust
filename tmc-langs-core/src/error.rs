@@ -37,7 +37,7 @@ pub enum CoreError {
     #[error("Already authenticated")]
     AlreadyAuthenticated,
     #[error("Authentication required")]
-    AuthRequired,
+    NotLoggedIn,
     #[error("Failed to find cache directory")]
     CacheDir,
 

@@ -68,8 +68,14 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
                 return Kind::AuthorizationError;
             }
         }
-        if let Some(CoreError::AuthRequired) = cause.downcast_ref::<CoreError>() {
-            return Kind::AuthorizationError;
+        // check for not logged in
+        if let Some(CoreError::HttpError(_, status_code, _)) = cause.downcast_ref::<CoreError>() {
+            if status_code.as_u16() == 401 {
+                return Kind::NotLoggedIn;
+            }
+        }
+        if let Some(CoreError::NotLoggedIn) = cause.downcast_ref::<CoreError>() {
+            return Kind::NotLoggedIn;
         }
         // check for connection error
         if let Some(CoreError::ConnectionError(..)) = cause.downcast_ref::<CoreError>() {
