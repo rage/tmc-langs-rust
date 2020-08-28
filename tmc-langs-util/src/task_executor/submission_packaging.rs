@@ -197,16 +197,20 @@ pub fn prepare_submission(
     );
 
     // write tmc params
-    log::debug!("writing .tmcparams");
-    let tmc_params_path = dest.join(".tmcparams");
-    let mut tmc_params_file = file_util::create_file(&tmc_params_path)?;
-    for (key, value) in tmc_params.0 {
-        // todo handle arrays, shell escapes
-        let export = format!("export {}={}\n", key, value);
-        log::debug!("{}", export);
-        tmc_params_file
-            .write_all(export.as_bytes())
-            .map_err(|e| FileIo::FileWrite(tmc_params_path.clone(), e))?;
+    if tmc_params.0.is_empty() {
+        log::debug!("no tmc params to write");
+    } else {
+        log::debug!("writing .tmcparams");
+        let tmc_params_path = dest.join(".tmcparams");
+        let mut tmc_params_file = file_util::create_file(&tmc_params_path)?;
+        for (key, value) in tmc_params.0 {
+            // todo handle arrays, shell escapes
+            let export = format!("export {}={}\n", key, value);
+            log::debug!("{}", export);
+            tmc_params_file
+                .write_all(export.as_bytes())
+                .map_err(|e| FileIo::FileWrite(tmc_params_path.clone(), e))?;
+        }
     }
 
     // copy IDE files
