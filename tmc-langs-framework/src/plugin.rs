@@ -30,7 +30,7 @@ use zip::ZipArchive;
 /// this interface are free to cache results if needed.
 pub trait LanguagePlugin {
     const PLUGIN_NAME: &'static str;
-    type StudentFilePolicy: StudentFilePolicy + 'static;
+    type StudentFilePolicy: StudentFilePolicy;
 
     /// Returns a list of all directories inside that contain an exercise in this
     /// language.

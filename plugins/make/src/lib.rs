@@ -8,3 +8,4 @@ mod valgrind_log;
 
 pub use error::MakeError;
 pub use plugin::MakePlugin;
+pub use policy::MakeStudentFilePolicy;
