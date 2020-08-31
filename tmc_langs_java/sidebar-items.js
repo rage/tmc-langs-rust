@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["JavaError",""]],"struct":[["AntPlugin",""],["MavenPlugin",""]]});
+initSidebarItems({"enum":[["JavaError",""]],"struct":[["AntPlugin",""],["AntStudentFilePolicy",""],["MavenPlugin",""],["MavenStudentFilePolicy",""]]});

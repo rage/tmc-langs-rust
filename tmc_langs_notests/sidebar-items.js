@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["NoTestsPlugin",""]]});
+initSidebarItems({"struct":[["NoTestsPlugin",""],["NoTestsStudentFilePolicy",""]]});

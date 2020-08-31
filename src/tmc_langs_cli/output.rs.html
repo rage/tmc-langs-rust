@@ -92,6 +92,10 @@
 <span id="92">92</span>
 <span id="93">93</span>
 <span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Output format</span>
 
@@ -139,6 +143,7 @@
     <span class="ident">WaitingForResults</span>,
     <span class="ident">Finished</span>,
     <span class="ident">IntermediateStepFinished</span>,
+    <span class="ident">PostedSubmission</span>,
 }
 
 <span class="comment">// converts a tmc_langs_core status to output result</span>
@@ -147,6 +152,7 @@
         <span class="kw">match</span> <span class="ident">status_type</span> {
             <span class="ident">StatusType</span>::<span class="ident">DownloadingExercise</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OutputResult</span>::<span class="ident">DownloadingExercise</span>,
             <span class="ident">StatusType</span>::<span class="ident">DownloadedExercise</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OutputResult</span>::<span class="ident">DownloadedExercise</span>,
+            <span class="ident">StatusType</span>::<span class="ident">PostedSubmission</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OutputResult</span>::<span class="ident">PostedSubmission</span>,
             <span class="ident">StatusType</span>::<span class="ident">Processing</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OutputResult</span>::<span class="ident">Processing</span>,
             <span class="ident">StatusType</span>::<span class="ident">Sending</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OutputResult</span>::<span class="ident">Sending</span>,
             <span class="ident">StatusType</span>::<span class="ident">WaitingForResults</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OutputResult</span>::<span class="ident">WaitingForResults</span>,
@@ -170,7 +176,9 @@
     <span class="doccomment">/// For all other errors</span>
     <span class="ident">Generic</span>,
     <span class="doccomment">/// 403 from server</span>
-    <span class="ident">AuthorizationError</span>,
+    <span class="ident">Forbidden</span>,
+    <span class="doccomment">/// Not logged in, detected either by no token or 401 from server</span>
+    <span class="ident">NotLoggedIn</span>,
     <span class="doccomment">/// Failed to connect to the TMC server, likely due to no internet connection</span>
     <span class="ident">ConnectionError</span>,
 }
