@@ -195,6 +195,7 @@ pub fn prepare_submission(
             .map(Path::new)
             .unwrap_or_else(|| Path::new("dest")),
     );
+    file_util::create_dir_all(&dest)?;
 
     // write tmc params
     if tmc_params.0.is_empty() {
