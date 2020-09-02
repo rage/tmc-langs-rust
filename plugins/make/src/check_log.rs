@@ -15,7 +15,11 @@ pub struct CheckLog {
 impl CheckLog {
     /// Converts the log into a RunResult. The point map should contain a mapping from test.id to a list of points, e.g.
     /// "test_one" => ["1.1", "1.2"].
-    pub fn into_run_result(self, mut point_map: HashMap<String, Vec<String>>) -> RunResult {
+    pub fn into_run_result(
+        self,
+        mut point_map: HashMap<String, Vec<String>>,
+        logs: HashMap<String, String>,
+    ) -> RunResult {
         let mut status = RunStatus::Passed;
         let mut test_results = vec![];
 
@@ -40,7 +44,7 @@ impl CheckLog {
         RunResult {
             status,
             test_results,
-            logs: HashMap::new(),
+            logs,
         }
     }
 }

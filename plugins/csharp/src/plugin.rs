@@ -88,7 +88,10 @@ impl CSharpPlugin {
     }
 
     /// Parses the test results JSON file at the path argument.
-    fn parse_test_results(test_results_path: &Path) -> Result<RunResult, CSharpError> {
+    fn parse_test_results(
+        test_results_path: &Path,
+        logs: HashMap<String, String>,
+    ) -> Result<RunResult, CSharpError> {
         let test_results = file_util::open_file(test_results_path)?;
         let test_results: Vec<CSTestResult> = serde_json::from_reader(test_results)
             .map_err(|e| CSharpError::ParseTestResults(test_results_path.to_path_buf(), e))?;
@@ -105,7 +108,7 @@ impl CSharpPlugin {
         Ok(RunResult {
             status,
             test_results,
-            logs: HashMap::new(),
+            logs,
         })
     }
 }
@@ -199,26 +202,26 @@ impl LanguagePlugin for CSharpPlugin {
         };
         log::trace!("stdout: {}", String::from_utf8_lossy(output.stdout()));
         log::debug!("stderr: {}", String::from_utf8_lossy(output.stderr()));
+        let mut logs = HashMap::new();
+        logs.insert(
+            "stdout".to_string(),
+            String::from_utf8_lossy(&output.stdout()).into_owned(),
+        );
+        logs.insert(
+            "stderr".to_string(),
+            String::from_utf8_lossy(&output.stderr()).into_owned(),
+        );
 
         match output {
             OutputWithTimeout::Output(output) => {
                 if !output.status.success() {
-                    let mut logs = HashMap::new();
-                    logs.insert(
-                        "stdout".to_string(),
-                        String::from_utf8_lossy(&output.stdout).into_owned(),
-                    );
-                    logs.insert(
-                        "stderr".to_string(),
-                        String::from_utf8_lossy(&output.stderr).into_owned(),
-                    );
                     return Ok(RunResult {
                         status: RunStatus::CompileFailed,
                         test_results: vec![],
                         logs,
                     });
                 }
-                Self::parse_test_results(&test_results_path).map_err(|e| e.into())
+                Self::parse_test_results(&test_results_path, logs).map_err(|e| e.into())
             }
             OutputWithTimeout::Timeout { .. } => Ok(RunResult {
                 status: RunStatus::TestsFailed,
@@ -231,7 +234,7 @@ impl LanguagePlugin for CSharpPlugin {
                             .to_string(),
                     exception: vec![],
                 }],
-                logs: HashMap::new(),
+                logs,
             }),
         }
     }
@@ -359,7 +362,7 @@ mod test {
         for tr in res.test_results {
             assert!(tr.successful);
         }
-        assert!(res.logs.is_empty());
+        // assert!(res.logs.is_empty());
     }
 
     #[test]
@@ -375,7 +378,7 @@ mod test {
         assert!(test_result.points.is_empty());
         assert!(test_result.message.contains("Expected: False"));
         assert_eq!(test_result.exception.len(), 2);
-        assert!(res.logs.is_empty());
+        // assert!(res.logs.is_empty());
     }
 
     #[test]

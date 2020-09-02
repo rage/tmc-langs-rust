@@ -68,6 +68,16 @@ impl LanguagePlugin for Python3Plugin {
         }
 
         let output = run_tmc_command(exercise_directory, &[], timeout)?;
+
+        let mut logs = HashMap::new();
+        logs.insert(
+            "stdout".to_string(),
+            String::from_utf8_lossy(output.stdout()).into_owned(),
+        );
+        logs.insert(
+            "stderr".to_string(),
+            String::from_utf8_lossy(output.stderr()).into_owned(),
+        );
         if let OutputWithTimeout::Timeout { .. } = output {
             return Ok(RunResult {
                 status: RunStatus::TestsFailed,
@@ -80,11 +90,11 @@ impl LanguagePlugin for Python3Plugin {
                             .to_string(),
                     exception: vec![],
                 }],
-                logs: HashMap::new(),
+                logs,
             });
         }
 
-        let parse_res = parse_test_result(&test_results_json);
+        let parse_res = parse_test_result(&test_results_json, logs);
         // remove file regardless of parse success
         if test_results_json.exists() {
             file_util::remove_file(&test_results_json)?;
@@ -178,7 +188,10 @@ fn parse_exercise_description(available_points_json: &Path) -> Result<Vec<TestDe
 }
 
 /// Parse test result file
-fn parse_test_result(test_results_json: &Path) -> Result<RunResult, PythonError> {
+fn parse_test_result(
+    test_results_json: &Path,
+    logs: HashMap<String, String>,
+) -> Result<RunResult, PythonError> {
     let results_file = file_util::open_file(&test_results_json)?;
     let test_results: Vec<PythonTestResult> = serde_json::from_reader(BufReader::new(results_file))
         .map_err(|e| PythonError::Deserialize(test_results_json.to_path_buf(), e))?;
@@ -193,7 +206,7 @@ fn parse_test_result(test_results_json: &Path) -> Result<RunResult, PythonError>
             status = RunStatus::TestsFailed;
         }
     }
-    Ok(RunResult::new(status, test_results, HashMap::new()))
+    Ok(RunResult::new(status, test_results, logs))
 }
 
 #[cfg(test)]
@@ -284,7 +297,7 @@ mod test {
         assert!(run_result.test_results[0].message.is_empty());
         assert!(run_result.test_results[0].exception.is_empty());
         assert_eq!(run_result.test_results.len(), 1);
-        assert!(run_result.logs.is_empty());
+        // assert!(run_result.logs.is_empty());
 
         let temp = copy_test("tests/data/failing");
         let run_result = plugin.run_tests(temp.path()).unwrap();
@@ -297,7 +310,7 @@ mod test {
         assert!(run_result.test_results[0].message.starts_with("'a' != 'b'"));
         assert!(!run_result.test_results[0].exception.is_empty());
         assert_eq!(run_result.test_results.len(), 1);
-        assert!(run_result.logs.is_empty());
+        // assert!(run_result.logs.is_empty());
 
         let temp = copy_test("tests/data/erroring");
         let run_result = plugin.run_tests(temp.path()).unwrap();
@@ -316,7 +329,7 @@ mod test {
         );
         assert!(!run_result.test_results[0].exception.is_empty());
         assert_eq!(run_result.test_results.len(), 1);
-        assert!(run_result.logs.is_empty());
+        // assert!(run_result.logs.is_empty());
     }
 
     #[test]

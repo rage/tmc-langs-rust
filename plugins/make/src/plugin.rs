@@ -9,6 +9,7 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::io::{self, BufRead, BufReader};
 use std::path::Path;
+use std::process::Output;
 use std::time::Duration;
 use tmc_langs_framework::{
     command::TmcCommand,
@@ -68,7 +69,11 @@ impl MakePlugin {
 
     /// Runs tests with or without valgrind according to the argument.
     /// Returns an error if the command finishes unsuccessfully.
-    fn run_tests_with_valgrind(&self, path: &Path, run_valgrind: bool) -> Result<(), MakeError> {
+    fn run_tests_with_valgrind(
+        &self,
+        path: &Path,
+        run_valgrind: bool,
+    ) -> Result<Output, MakeError> {
         let arg = if run_valgrind {
             "run-test-with-valgrind"
         } else {
@@ -95,12 +100,12 @@ impl MakePlugin {
             }
         }
 
-        Ok(())
+        Ok(output)
     }
 
     /// Tries to build the project at the given directory, returns whether
     /// the process finished successfully or not.
-    fn builds(&self, dir: &Path) -> Result<bool, MakeError> {
+    fn build(&self, dir: &Path) -> Result<Output, MakeError> {
         log::debug!("building {}", dir.display());
         let mut command = TmcCommand::new("make".to_string());
         command.current_dir(dir).arg("test");
@@ -109,7 +114,7 @@ impl MakePlugin {
         log::trace!("stdout:\n{}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr:\n{}", String::from_utf8_lossy(&output.stderr));
 
-        Ok(output.status.success())
+        Ok(output)
     }
 }
 
@@ -138,19 +143,30 @@ impl LanguagePlugin for MakePlugin {
         path: &Path,
         _timeout: Option<Duration>,
     ) -> Result<RunResult, TmcError> {
-        if !self.builds(path)? {
+        let output = self.build(path)?;
+        if !output.status.success() {
+            let mut logs = HashMap::new();
+            logs.insert(
+                "stdout".to_string(),
+                String::from_utf8_lossy(&output.stdout).into_owned(),
+            );
+            logs.insert(
+                "stderr".to_string(),
+                String::from_utf8_lossy(&output.stderr).into_owned(),
+            );
             return Ok(RunResult {
                 status: RunStatus::CompileFailed,
                 test_results: vec![],
-                logs: HashMap::new(),
+                logs,
             });
         }
 
         // try to run valgrind
         let mut ran_valgrind = true;
         let valgrind_run = self.run_tests_with_valgrind(path, true);
-        if let Err(error) = valgrind_run {
-            match error {
+        let output = match valgrind_run {
+            Ok(output) => output,
+            Err(error) => match error {
                 MakeError::Tmc(TmcError::Command(command_error)) => {
                     match command_error {
                         CommandError::Spawn(_, io_error)
@@ -159,35 +175,37 @@ impl LanguagePlugin for MakePlugin {
                         {
                             // failed due to lacking permissions, try to clean and rerun
                             let _output = self.clean(path)?;
-                            if let Err(err) = self.run_tests_with_valgrind(path, false) {
-                                log::error!(
-                                    "Running with valgrind failed after trying to clean! {}",
-                                    err
-                                );
-                                ran_valgrind = false;
-                                log::info!("Running without valgrind");
-                                self.run_tests_with_valgrind(path, false)?;
+                            match self.run_tests_with_valgrind(path, false) {
+                                Ok(output) => output,
+                                Err(err) => {
+                                    log::error!(
+                                        "Running with valgrind failed after trying to clean! {}",
+                                        err
+                                    );
+                                    ran_valgrind = false;
+                                    log::info!("Running without valgrind");
+                                    self.run_tests_with_valgrind(path, false)?
+                                }
                             }
                         }
                         _ => {
                             ran_valgrind = false;
                             log::info!("Running without valgrind");
-                            self.run_tests_with_valgrind(path, false)?;
+                            self.run_tests_with_valgrind(path, false)?
                         }
                     }
                 }
                 MakeError::RunningTestsWithValgrind(..) => {
                     ran_valgrind = false;
                     log::info!("Running without valgrind");
-                    self.run_tests_with_valgrind(path, false)?;
+                    self.run_tests_with_valgrind(path, false)?
                 }
                 err => {
                     log::warn!("unexpected error {:?}", err);
                     return Err(err.into());
                 }
-            }
-        }
-
+            },
+        };
         let base_test_path = path.join("test");
 
         // fails on valgrind by default
@@ -224,7 +242,16 @@ impl LanguagePlugin for MakePlugin {
 
         let check_log: CheckLog = serde_xml_rs::from_str(&file_string)
             .map_err(|e| MakeError::XmlParseError(test_results_path, e))?;
-        let mut run_result = check_log.into_run_result(ids_to_points);
+        let mut logs = HashMap::new();
+        logs.insert(
+            "stdout".to_string(),
+            String::from_utf8_lossy(&output.stdout).into_owned(),
+        );
+        logs.insert(
+            "stderr".to_string(),
+            String::from_utf8_lossy(&output.stdout).into_owned(),
+        );
+        let mut run_result = check_log.into_run_result(ids_to_points, logs);
 
         if let Some(valgrind_log) = valgrind_log {
             if valgrind_log.errors {
@@ -336,7 +363,7 @@ mod test {
         let plugin = MakePlugin::new();
         let run_result = plugin.run_tests(temp.path()).unwrap();
         assert_eq!(run_result.status, RunStatus::Passed);
-        assert!(run_result.logs.is_empty());
+        // assert!(run_result.logs.is_empty());
         let test_results = run_result.test_results;
         assert_eq!(test_results.len(), 1);
         let test_result = &test_results[0];
@@ -368,7 +395,7 @@ mod test {
         assert_eq!(points.len(), 1);
         assert_eq!(points[0], "1.1");
         let logs = &run_result.logs;
-        assert!(logs.is_empty());
+        // assert!(logs.is_empty());
     }
 
     //#[test]
