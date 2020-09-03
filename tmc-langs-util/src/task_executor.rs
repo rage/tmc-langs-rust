@@ -5,12 +5,13 @@ mod tar_helper;
 
 use crate::error::UtilError;
 use crate::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, ValidationResult};
+use regex::Regex;
 use std::path::{Path, PathBuf};
 pub use submission_packaging::{OutputFormat, TmcParams};
 use tmc_langs_csharp::CSharpPlugin;
 use tmc_langs_framework::{
     domain::TmcProjectYml,
-    io::{self, submission_processing},
+    io::{self, file_util, submission_processing},
     plugin::{Language, LanguagePlugin},
     policy::NothingIsStudentFilePolicy,
     TmcError,
@@ -188,6 +189,57 @@ pub fn find_exercise_directories(exercise_path: &Path) -> Vec<PathBuf> {
     paths
 }
 
+/// Parses available exercise points from the exercise without compiling it.
+pub fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, UtilError> {
+    let plugin = get_language_plugin(exercise_path)?;
+    let config = plugin.get_exercise_packaging_configuration(exercise_path)?;
+
+    let points_re = Regex::new(r#"(.*)@\s*[pP]oints\s*\(\s*['"](.*)['"]\s*\)"#).unwrap();
+    let mut points = Vec::new();
+    for exercise_file_path in config.exercise_file_paths {
+        let exercise_file_path = exercise_path.join(exercise_file_path);
+        if !exercise_file_path.exists() {
+            continue;
+        }
+
+        // file path may point to a directory of file, walkdir takes care of both
+        for entry in WalkDir::new(exercise_file_path) {
+            let entry = entry?;
+            if entry.path().is_file() {
+                log::debug!("parsing points from {}", entry.path().display());
+                let file_contents = file_util::read_file_to_string(entry.path())?;
+
+                let mut in_comment = false;
+                for line in file_contents.lines() {
+                    let start = line.trim_start();
+                    // skip commented lines
+                    if start.starts_with("//") || start.starts_with('#') {
+                        continue;
+                    }
+                    if start.starts_with("/*") {
+                        in_comment = true;
+                    }
+                    if !in_comment {
+                        if let Some(captures) = points_re.captures(line) {
+                            let first_end = captures[1].trim_end();
+                            if !first_end.ends_with("//")
+                                && !first_end.ends_with('#')
+                                && !first_end.ends_with("/*")
+                            {
+                                points.push(captures[2].to_string());
+                            }
+                        }
+                    }
+                    if start.ends_with("*/") {
+                        in_comment = false;
+                    }
+                }
+            }
+        }
+    }
+    Ok(points)
+}
+
 // enum containing all the plugins
 #[impl_enum::with_methods(
     fn clean(&self, path: &Path) -> Result<(), TmcError> {}
@@ -238,5 +290,22 @@ fn get_language_plugin(path: &Path) -> Result<Plugin, TmcError> {
         Ok(Plugin::Ant(AntPlugin::new()?))
     } else {
         Err(TmcError::PluginNotFound(path.to_path_buf()))
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn parses_available_points() {
+        let points = get_available_points(Path::new("tests/data/get_available_points_1")).unwrap();
+        assert!(points.is_empty());
+
+        let points = get_available_points(Path::new("tests/data/get_available_points_2")).unwrap();
+        assert_eq!(points, &["1", "2", "3"]);
+
+        let points = get_available_points(Path::new("tests/data/get_available_points_3")).unwrap();
+        assert_eq!(points, &["1"]);
     }
 }
