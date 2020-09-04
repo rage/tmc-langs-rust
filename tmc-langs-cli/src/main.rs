@@ -200,6 +200,21 @@ fn run() -> Result<()> {
             };
             print_output(&output)?
         }
+        ("fast-available-points", Some(matches)) => {
+            let exercise_path = matches.value_of("exercise-path").unwrap();
+            let exercise_path = Path::new(exercise_path);
+
+            let points = task_executor::get_available_points(exercise_path)?;
+
+            let output = Output {
+                status: Status::Finished,
+                message: Some(format!("found {} available points", points.len())),
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: Some(points),
+            };
+            print_output(&output)?
+        }
         ("find-exercises", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);

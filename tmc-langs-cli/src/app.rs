@@ -72,6 +72,15 @@ pub fn create_app() -> App<'static, 'static> {
                 .required(true)
                 .takes_value(true)))
 
+        .subcommand(SubCommand::with_name("fast-available-points")
+            .about("Parses @Points notations from an exercise's exercise files and returns the point names found.")
+            .long_about(schema_leaked::<Vec<String>>())
+            .arg(Arg::with_name("exercise-path")
+                .help("Path to the directory where the projects reside.")
+                .long("exercise-path")
+                .required(true)
+                .takes_value(true)))
+
         .subcommand(SubCommand::with_name("find-exercises")
             .about("Finds all exercise root directories inside the exercise-path.")
             .long_about(schema_leaked::<Vec<PathBuf>>())

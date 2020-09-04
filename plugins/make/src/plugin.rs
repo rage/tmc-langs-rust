@@ -394,7 +394,7 @@ mod test {
         let points = &test_result.points;
         assert_eq!(points.len(), 1);
         assert_eq!(points[0], "1.1");
-        let logs = &run_result.logs;
+        // let logs = &run_result.logs;
         // assert!(logs.is_empty());
     }
 
