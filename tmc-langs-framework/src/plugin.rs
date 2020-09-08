@@ -9,7 +9,7 @@ use crate::io::{file_util, submission_processing, tmc_zip};
 use crate::policy::StudentFilePolicy;
 pub use isolang::Language;
 use log::debug;
-use nom::{branch, bytes, character, combinator, multi, sequence, IResult};
+use nom::{branch, bytes, combinator, multi, sequence, IResult};
 use std::collections::{HashMap, HashSet};
 use std::io::{Read, Seek, Write};
 use std::path::{Path, PathBuf};
@@ -506,6 +506,7 @@ enum Parse {
 #[cfg(test)]
 mod test {
     use super::*;
+    use nom::character;
 
     struct MockPlugin {}
 

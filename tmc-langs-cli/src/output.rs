@@ -84,6 +84,8 @@ pub enum Kind {
     ConnectionError,
     /// Client out of date
     ObsoleteClient,
+    /// Invalid token
+    InvalidToken,
 }
 
 #[derive(Debug, Serialize, JsonSchema)]

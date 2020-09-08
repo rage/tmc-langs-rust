@@ -1,10 +1,12 @@
 //! CLI client for TMC
 
 mod app;
+mod error;
 mod output;
 
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
+use error::InvalidTokenError;
 use output::{CombinedCourseData, DownloadTarget, ErrorData, Kind, Output, OutputResult, Status};
 use serde::Serialize;
 use std::collections::HashMap;
@@ -62,6 +64,11 @@ fn main() {
 /// Goes through the error chain and checks for special error types that should be indicated by the Kind.
 fn solve_error_kind(e: &anyhow::Error) -> Kind {
     for cause in e.chain() {
+        // check for invalid token
+        if cause.downcast_ref::<InvalidTokenError>().is_some() {
+            return Kind::InvalidToken;
+        }
+
         // check for http errors
         if let Some(CoreError::HttpError {
             url: _,
@@ -181,7 +188,79 @@ fn run() -> Result<()> {
             };
             print_output(&output)?
         }
-        ("core", Some(matches)) => run_core(matches)?,
+        ("core", Some(matches)) => {
+            let client_name = matches.value_of("client-name").unwrap();
+
+            let client_version = matches.value_of("client-version").unwrap();
+
+            let root_url = env::var("TMC_LANGS_ROOT_URL")
+                .unwrap_or_else(|_| "https://tmc.mooc.fi".to_string());
+            let mut core = TmcCore::new_in_config(
+                root_url,
+                client_name.to_string(),
+                client_version.to_string(),
+            )
+            .context("Failed to create TmcCore")?;
+
+            // set token if a credentials.json is found for the client name
+            let tmc_dir = format!("tmc-{}", client_name);
+            let config_dir = match env::var("TMC_LANGS_CONFIG_DIR") {
+                Ok(v) => PathBuf::from(v),
+                Err(_) => dirs::config_dir().context("Failed to find config directory")?,
+            };
+            let credentials_path = config_dir.join(tmc_dir).join("credentials.json");
+            if let Ok(file) = File::open(&credentials_path) {
+                match serde_json::from_reader(file) {
+                    Ok(token) => core.set_token(token),
+                    Err(e) => {
+                        log::error!(
+                            "Failed to deserialize credentials.json due to \"{}\", deleting",
+                            e
+                        );
+                        fs::remove_file(&credentials_path).with_context(|| {
+                            format!(
+                                "Failed to remove malformed credentials.json file {}",
+                                credentials_path.display()
+                            )
+                        })?;
+                    }
+                }
+            };
+
+            match run_core(core, client_name, &credentials_path, matches) {
+                Ok(token) => token,
+                Err(error) => {
+                    for cause in error.chain() {
+                        // check if the token was rejected and delete it if so
+                        if let Some(CoreError::HttpError { status, .. }) =
+                            cause.downcast_ref::<CoreError>()
+                        {
+                            if status.as_u16() == 401 {
+                                // delete token
+                                log::info!(
+                                    "deleting credentials file at {} due to error {}",
+                                    credentials_path.display(),
+                                    error
+                                );
+                                fs::remove_file(&credentials_path).with_context(|| {
+                                    format!(
+                                        "Failed to remove credentials file at {} while handling error {}",
+                                        credentials_path.display(),
+                                        error
+                                    )
+                                })?;
+                                return Err(InvalidTokenError {
+                                    path: credentials_path,
+                                    source: error,
+                                }
+                                .into());
+                            }
+                        }
+                    }
+                    return Err(error);
+                }
+            }
+        }
         ("extract-project", Some(matches)) => {
             let archive_path = matches.value_of("archive-path").unwrap();
             let archive_path = Path::new(archive_path);
@@ -494,19 +573,12 @@ fn run() -> Result<()> {
     Ok(())
 }
 
-fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
-    let client_name = matches.value_of("client-name").unwrap();
-
-    let client_version = matches.value_of("client-version").unwrap();
-
-    let root_url =
-        env::var("TMC_LANGS_ROOT_URL").unwrap_or_else(|_| "https://tmc.mooc.fi".to_string());
-    let mut core = TmcCore::new_in_config(
-        root_url,
-        client_name.to_string(),
-        client_version.to_string(),
-    )
-    .context("Failed to create TmcCore")?;
+fn run_core(
+    mut core: TmcCore,
+    client_name: &str,
+    credentials_path: &Path,
+    matches: &ArgMatches,
+) -> Result<PrintToken> {
     // set progress report to print the updates to stdout as JSON
     core.set_progress_report(|update| {
         // convert to output
@@ -552,31 +624,6 @@ fn run_core(matches: &ArgMatches) -> Result<PrintToken> {
         };
         Ok(())
     });
-
-    // set token if a credentials.json is found for the client name
-    let tmc_dir = format!("tmc-{}", client_name);
-    let config_dir = match env::var("TMC_LANGS_CONFIG_DIR") {
-        Ok(v) => PathBuf::from(v),
-        Err(_) => dirs::config_dir().context("Failed to find config directory")?,
-    };
-    let credentials_path = config_dir.join(tmc_dir).join("credentials.json");
-    if let Ok(file) = File::open(&credentials_path) {
-        match serde_json::from_reader(file) {
-            Ok(token) => core.set_token(token),
-            Err(e) => {
-                log::error!(
-                    "Failed to deserialize credentials.json due to \"{}\", deleting",
-                    e
-                );
-                fs::remove_file(&credentials_path).with_context(|| {
-                    format!(
-                        "Failed to remove malformed credentials.json file {}",
-                        credentials_path.display()
-                    )
-                })?;
-            }
-        }
-    };
 
     // proof of having printed the output
     let printed: PrintToken = match matches.subcommand() {
