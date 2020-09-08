@@ -226,10 +226,10 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         locale: &Language,
         path: &Path,
     ) -> Result<ValidationResult, JavaError> {
-        let file = self.jvm().create_instance(
-            "java.io.File",
-            &[InvocationArg::try_from(&*path.to_string_lossy())?],
-        )?;
+        let path = path.to_string_lossy();
+        let file = self
+            .jvm()
+            .create_instance("java.io.File", &[InvocationArg::try_from(path.as_ref())?])?;
         let locale_code = locale.to_639_1().unwrap_or_else(|| locale.to_639_3()); // Java requires 639-1 if one exists
         let locale = self
             .jvm()
