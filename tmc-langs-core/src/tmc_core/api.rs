@@ -82,9 +82,10 @@ trait GetExt {
 
 impl GetExt for RequestBuilder {
     fn core_headers(self, core: &TmcCore) -> RequestBuilder {
-        let request = self
-            .header("client", &core.client_name)
-            .header("client_version", &core.client_version);
+        let request = self.query(&[
+            ("client", &core.client_name),
+            ("client_version", &core.client_version),
+        ]);
         if let Some(token) = core.token.as_ref() {
             request.bearer_auth(token.access_token().secret())
         } else {
