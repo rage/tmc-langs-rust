@@ -1,7 +1,7 @@
 //! Contains and additional impl for TmcCore for calling the TMC Server API.
 
 use crate::error::CoreError;
-use crate::response::Response;
+use crate::response::ErrorResponse;
 use crate::{
     Course, CourseData, CourseDataExercise, CourseDataExercisePoint, CourseDetails, CourseExercise,
     ExerciseDetails, FeedbackAnswer, NewSubmission, Organization, Review, Submission,
@@ -23,54 +23,28 @@ use url::Url;
 /// Provides a wrapper for reqwest Response's json that deserializes into Response<T> and converts it into a result
 trait CoreExt {
     fn json_res<T: DeserializeOwned>(self) -> Result<T, CoreError>;
-    fn check_error(self, url: Url) -> Result<Self, CoreError>
-    where
-        Self: Sized;
 }
 
 impl CoreExt for ReqwestResponse {
-    #[cfg(not(test))]
     fn json_res<T: DeserializeOwned>(self) -> Result<T, CoreError> {
-        let res: Response<T> = self.json().map_err(CoreError::HttpJsonResponse)?;
-        res.into_result()
-    }
-
-    // logs received JSON for easier debugging in tests
-    #[cfg(test)]
-    fn json_res<T: DeserializeOwned>(self) -> Result<T, CoreError> {
-        let res: Value = self.json().map_err(CoreError::HttpJsonResponse)?;
-        log::debug!("JSON {}", res);
-        let res: Response<T> = serde_json::from_value(res).unwrap();
-        res.into_result()
-    }
-
-    fn check_error(self, url: Url) -> Result<Self, CoreError> {
+        let url = self.url().clone();
         let status = self.status();
         if status.is_success() {
-            Ok(self)
+            Ok(self.json().map_err(CoreError::HttpJsonResponse)?)
         } else {
-            let text = self.text().unwrap_or_default();
-            // todo: clean the parsing
-            let parsed = serde_json::from_str::<Value>(&text)
-                .ok()
-                .and_then(|ok| {
-                    ok.as_object().and_then(|obj|
-                        // parses either the error string or errors string array
-                        if let Some(error) = obj.get("error").and_then(|e| e.as_str()) {
-                            Some(error.to_string())
-                        } else if let Some(errors) = obj.get("errors").and_then(|e| e.as_array()) {
-                            let errors = errors
-                                .iter()
-                                .filter_map(|e| e.as_str())
-                                .collect::<Vec<_>>()
-                                .join(". ");
-                            Some(errors)
-                        } else {
-                            None
-                        })
-                })
-                .unwrap_or(text);
-            Err(CoreError::HttpError(url, status, parsed))
+            let err: ErrorResponse = self.json().map_err(CoreError::HttpJsonResponse)?;
+            let error = match (err.error, err.errors) {
+                (Some(err), Some(errs)) => format!("{}, {}", err, errs.join(",")),
+                (Some(err), None) => err,
+                (None, Some(errs)) => errs.join(","),
+                _ => "".to_string(),
+            };
+            Err(CoreError::HttpError {
+                url,
+                status,
+                error,
+                obsolete_client: err.obsolete_client,
+            })
         }
     }
 }
@@ -111,8 +85,7 @@ impl TmcCore {
             .get(url.clone())
             .core_headers(self)
             .send()
-            .map_err(|e| CoreError::ConnectionError(Method::GET, url.clone(), e))?
-            .check_error(url)?
+            .map_err(|e| CoreError::ConnectionError(Method::GET, url, e))?
             .json_res()
     }
 
@@ -129,8 +102,7 @@ impl TmcCore {
             .get(url.clone())
             .core_headers(self)
             .send()
-            .map_err(|e| CoreError::ConnectionError(Method::GET, url.clone(), e))?
-            .check_error(url)?
+            .map_err(|e| CoreError::ConnectionError(Method::GET, url, e))?
             .copy_to(&mut target_file)
             .map_err(|e| CoreError::HttpWriteResponse(target.to_path_buf(), e))?;
         Ok(())
@@ -144,8 +116,7 @@ impl TmcCore {
             .get(url.clone())
             .core_headers(self)
             .send()
-            .map_err(|e| CoreError::ConnectionError(Method::GET, url.clone(), e))?
-            .check_error(url)?
+            .map_err(|e| CoreError::ConnectionError(Method::GET, url, e))?
             .copy_to(&mut target_file)
             .map_err(|e| CoreError::HttpWriteResponse(target.to_path_buf(), e))?;
         Ok(())
@@ -709,8 +680,7 @@ impl TmcCore {
             .multipart(form)
             .core_headers(self)
             .send()
-            .map_err(|e| CoreError::ConnectionError(Method::POST, submission_url.clone(), e))?
-            .check_error(submission_url)?
+            .map_err(|e| CoreError::ConnectionError(Method::POST, submission_url, e))?
             .json_res()?;
         log::debug!("received {:?}", res);
         Ok(res)
@@ -762,8 +732,7 @@ impl TmcCore {
             .multipart(form)
             .core_headers(self)
             .send()
-            .map_err(|e| CoreError::ConnectionError(Method::POST, feedback_url.clone(), e))?
-            .check_error(feedback_url)?
+            .map_err(|e| CoreError::ConnectionError(Method::POST, feedback_url, e))?
             .json_res()
     }
 
@@ -788,8 +757,7 @@ impl TmcCore {
             .query(&[("review[points]", review_points)])
             .core_headers(self)
             .send()
-            .map_err(|e| CoreError::ConnectionError(Method::POST, url.clone(), e))?
-            .check_error(url)?
+            .map_err(|e| CoreError::ConnectionError(Method::POST, url, e))?
             .json_res()?;
         log::trace!("received {:?}", res);
         Ok(())
@@ -815,8 +783,7 @@ impl TmcCore {
             .post(url.clone())
             .multipart(form)
             .send()
-            .map_err(|e| CoreError::ConnectionError(Method::POST, url.clone(), e))?
-            .check_error(url)?
+            .map_err(|e| CoreError::ConnectionError(Method::POST, url, e))?
             .json_res()
     }
 }

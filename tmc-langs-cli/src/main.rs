@@ -62,15 +62,21 @@ fn main() {
 /// Goes through the error chain and checks for special error types that should be indicated by the Kind.
 fn solve_error_kind(e: &anyhow::Error) -> Kind {
     for cause in e.chain() {
-        // check for authorization error
-        if let Some(CoreError::HttpError(_, status_code, _)) = cause.downcast_ref::<CoreError>() {
-            if status_code.as_u16() == 403 {
+        // check for http errors
+        if let Some(CoreError::HttpError {
+            url: _,
+            status,
+            error: _,
+            obsolete_client,
+        }) = cause.downcast_ref::<CoreError>()
+        {
+            if *obsolete_client {
+                return Kind::ObsoleteClient;
+            }
+            if status.as_u16() == 403 {
                 return Kind::Forbidden;
             }
-        }
-        // check for not logged in
-        if let Some(CoreError::HttpError(_, status_code, _)) = cause.downcast_ref::<CoreError>() {
-            if status_code.as_u16() == 401 {
+            if status.as_u16() == 401 {
                 return Kind::NotLoggedIn;
             }
         }

@@ -1,6 +1,5 @@
 //! Contains types which model the JSON responses from tmc-server
 
-use crate::CoreError;
 use lazy_static::lazy_static;
 use regex::Regex;
 use schemars::JsonSchema;
@@ -13,42 +12,15 @@ use std::str::FromStr;
 use thiserror::Error;
 use tmc_langs_util::ValidationResult;
 
-/// Models the responses from tmc-server, which can either
-/// be some successful response, a single error or a list of errors
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-pub enum Response<T> {
-    Ok(T),
-    Errs(ResponseErrors),
-    Err(ResponseError),
-}
-
-impl<T> Response<T> {
-    /// Convenience function to easily propagate error responses
-    pub fn into_result(self) -> Result<T, CoreError> {
-        match self {
-            Self::Ok(t) => Ok(t),
-            Self::Err(err) => Err(err.into()),
-            Self::Errs(errs) => Err(errs.into()),
-        }
-    }
-}
-
 /// Represents an error response from tmc-server
 #[derive(Debug, Error, Deserialize)]
-#[error("Response contained errors: {errors:#?}")]
+#[error("Response contained errors: {error:?}, {errors:#?}, obsolete client: {obsolete_client}")]
 #[serde(deny_unknown_fields)] // prevents responses with an errors field from being parsed as an error
-pub struct ResponseErrors {
-    pub errors: Vec<String>,
-}
-
-/// Represents an error response from tmc-server
-#[derive(Debug, Error, Deserialize)]
-#[error("Response contained an error: {error:#?}. Obsolete client: {}", obsolete_client.unwrap_or_default())]
-#[serde(deny_unknown_fields)] // prevents responses with an error field from being parsed as an error
-pub struct ResponseError {
-    pub error: String,
-    pub obsolete_client: Option<bool>,
+pub struct ErrorResponse {
+    pub error: Option<String>,
+    pub errors: Option<Vec<String>>,
+    #[serde(default)]
+    pub obsolete_client: bool,
 }
 
 /// OAuth2 credentials
@@ -525,36 +497,5 @@ mod test {
         let range = SubmissionFeedbackKind::IntRange { lower: 1, upper: 5 };
         let range = serde_json::to_value(&range).unwrap();
         assert_eq!(range, Value::String("intrange[1..5]".to_string()));
-    }
-
-    #[test]
-    fn deserializes_struct_with_error_field() {
-        let json = r#"{
-  "api_version": 7,
-  "all_tests_passed": false,
-  "user_id": 123,
-  "login": "log",
-  "course": "cou",
-  "exercise_name": "exe",
-  "status": "error",
-  "points": [],
-  "validations": null,
-  "valgrind": null,
-  "submission_url": "sub",
-  "solution_url": "sol",
-  "submitted_at": "sat",
-  "processing_time": null,
-  "reviewed": false,
-  "requests_review": false,
-  "paste_url": null,
-  "message_for_paste": null,
-  "missing_review_points": [],
-  "error": "error msg"
-}"#;
-        let s: Response<SubmissionProcessingStatus> = serde_json::from_str(json).unwrap();
-        if let Response::Ok(_) = s {
-        } else {
-            panic!("parse failed")
-        }
     }
 }

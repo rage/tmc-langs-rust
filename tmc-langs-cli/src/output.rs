@@ -82,6 +82,8 @@ pub enum Kind {
     NotLoggedIn,
     /// Failed to connect to the TMC server, likely due to no internet connection
     ConnectionError,
+    /// Client out of date
+    ObsoleteClient,
 }
 
 #[derive(Debug, Serialize, JsonSchema)]

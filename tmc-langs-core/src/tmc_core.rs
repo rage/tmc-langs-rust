@@ -754,8 +754,7 @@ impl TmcCore {
 
         let url = Url::parse(submission_url)
             .map_err(|e| CoreError::UrlParse(submission_url.to_string(), e))?;
-        let res: Response<SubmissionProcessingStatus> = self.get_json_from_url(url)?;
-        let res = res.into_result()?;
+        let res: SubmissionProcessingStatus = self.get_json_from_url(url)?;
         Ok(res)
     }
 }

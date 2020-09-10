@@ -1,6 +1,5 @@
 //! The core error type.
 
-use crate::response;
 use reqwest::{Method, StatusCode};
 use std::path::PathBuf;
 use thiserror::Error;
@@ -19,8 +18,13 @@ pub enum CoreError {
     TempFile(#[source] std::io::Error),
 
     // network
-    #[error("HTTP error {1} for {0}: {2}")]
-    HttpError(Url, StatusCode, String),
+    #[error("HTTP error {status} for {url}: {error}. Obsolete client: {obsolete_client}")]
+    HttpError {
+        url: Url,
+        status: StatusCode,
+        error: String,
+        obsolete_client: bool,
+    },
     #[error("Connection error trying to {0} {1}")]
     ConnectionError(Method, Url, #[source] reqwest::Error),
     #[error("OAuth2 password exchange error")]
@@ -43,10 +47,6 @@ pub enum CoreError {
 
     #[error(transparent)]
     SystemTime(#[from] std::time::SystemTimeError),
-    #[error(transparent)]
-    Response(#[from] response::ResponseError),
-    #[error(transparent)]
-    ResponseErrors(#[from] response::ResponseErrors),
     #[error(transparent)]
     WalkDir(#[from] walkdir::Error),
     #[error("File IO error")]
