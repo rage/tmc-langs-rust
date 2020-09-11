@@ -773,6 +773,7 @@ mod test {
         let _ = env_logger::builder().is_test(true).try_init();
 
         let _m = mock("GET", "/api/v8/application/client_name/credentials")
+            .match_query(Matcher::Any)
             .with_body(
                 serde_json::json!({
                     "application_id": "id",
@@ -782,6 +783,7 @@ mod test {
             )
             .create();
         let _m = mock("POST", "/oauth/token")
+            .match_query(Matcher::Any)
             .with_body(
                 serde_json::json!({
                     "access_token": "token",
@@ -807,8 +809,10 @@ mod test {
     fn gets_organizations() {
         let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/org.json")
-            .match_header("client", "some_client")
-            .match_header("client_version", "some_ver")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("client".into(), "some_client".into()),
+                Matcher::UrlEncoded("client_version".into(), "some_ver".into()),
+            ]))
             .with_body(
                 serde_json::json!([
                     {
@@ -830,8 +834,10 @@ mod test {
     fn downloads_or_update_exercises() {
         let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/core/exercises/1234/download")
-            .match_header("client", "some_client")
-            .match_header("client_version", "some_ver")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("client".into(), "some_client".into()),
+                Matcher::UrlEncoded("client_version".into(), "some_ver".into()),
+            ]))
             .with_body_from_file(Path::new("tests/data/81842.zip"))
             .create();
 
@@ -847,8 +853,10 @@ mod test {
     fn gets_course_details() {
         let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/core/courses/1234")
-            .match_header("client", "some_client")
-            .match_header("client_version", "some_ver")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("client".into(), "some_client".into()),
+                Matcher::UrlEncoded("client_version".into(), "some_ver".into()),
+            ]))
             .with_body(serde_json::json!({
                 "course": {
                     "id": 588,
@@ -899,8 +907,10 @@ mod test {
     fn lists_courses() {
         let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/core/org/slug/courses")
-            .match_header("client", "some_client")
-            .match_header("client_version", "some_ver")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("client".into(), "some_client".into()),
+                Matcher::UrlEncoded("client_version".into(), "some_ver".into()),
+            ]))
             .with_body(serde_json::json!([
                     {
                         "id": 277,
@@ -928,8 +938,10 @@ mod test {
         let (core, url) = init();
         let submission_url = Url::parse(&format!("{}/submission", url)).unwrap();
         let _m = mock("POST", "/submission")
-            .match_header("client", "some_client")
-            .match_header("client_version", "some_ver")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("client".into(), "some_client".into()),
+                Matcher::UrlEncoded("client_version".into(), "some_ver".into()),
+            ]))
             .match_body(Matcher::Regex("paste".to_string()))
             .match_body(Matcher::Regex("message_for_paste".to_string()))
             .match_body(Matcher::Regex("abcdefg".to_string()))
@@ -972,8 +984,10 @@ mod test {
         let (core, url) = init();
         let feedback_url = Url::parse(&format!("{}/feedback", url)).unwrap();
         let _m = mock("POST", "/feedback")
-            .match_header("client", "some_client")
-            .match_header("client_version", "some_ver")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("client".into(), "some_client".into()),
+                Matcher::UrlEncoded("client_version".into(), "some_ver".into()),
+            ]))
             .match_body(Matcher::AllOf(vec![
                 Matcher::Regex(r#"answers\[0\]\[question_id\]"#.to_string()),
                 Matcher::Regex(r#"answers\[0\]\[answer\]"#.to_string()),
@@ -1016,8 +1030,10 @@ mod test {
         let (core, url) = init();
         let submission_url = Url::parse(&format!("{}/submission", url)).unwrap();
         let _m = mock("POST", "/submission")
-            .match_header("client", "some_client")
-            .match_header("client_version", "some_ver")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("client".into(), "some_client".into()),
+                Matcher::UrlEncoded("client_version".into(), "some_ver".into()),
+            ]))
             .match_body(Matcher::Regex(r#"submission\[file\]"#.to_string()))
             .with_body(
                 serde_json::json!({
@@ -1046,8 +1062,10 @@ mod test {
     fn gets_exercise_updates() {
         let (core, _addr) = init();
         let _m = mock("GET", "/api/v8/core/courses/1234")
-            .match_header("client", "some_client")
-            .match_header("client_version", "some_ver")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("client".into(), "some_client".into()),
+                Matcher::UrlEncoded("client_version".into(), "some_ver".into()),
+            ]))
             .with_body(serde_json::json!({
                 "course": {
                     "id": 588,
@@ -1164,8 +1182,10 @@ mod test {
         let (core, addr) = init();
         let reviews_url = Url::parse(&format!("{}/reviews", addr)).unwrap();
         let _m = mock("GET", "/reviews")
-            .match_header("client", "some_client")
-            .match_header("client_version", "some_ver")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("client".into(), "some_client".into()),
+                Matcher::UrlEncoded("client_version".into(), "some_ver".into()),
+            ]))
             .with_body(
                 serde_json::json!([
                     {
@@ -1197,8 +1217,10 @@ mod test {
         let (core, url) = init();
         let submission_url = Url::parse(&format!("{}/submission", url)).unwrap();
         let _m = mock("POST", "/submission")
-            .match_header("client", "some_client")
-            .match_header("client_version", "some_ver")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("client".into(), "some_client".into()),
+                Matcher::UrlEncoded("client_version".into(), "some_ver".into()),
+            ]))
             .match_body(Matcher::Regex("request_review".to_string()))
             .match_body(Matcher::Regex("message_for_reviewer".to_string()))
             .match_body(Matcher::Regex("abcdefg".to_string()))
@@ -1231,8 +1253,10 @@ mod test {
         let (core, addr) = init();
         let solution_url = Url::parse(&format!("{}/solution", addr)).unwrap();
         let _m = mock("GET", "/solution")
-            .match_header("client", "some_client")
-            .match_header("client_version", "some_ver")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("client".into(), "some_client".into()),
+                Matcher::UrlEncoded("client_version".into(), "some_ver".into()),
+            ]))
             .with_body_from_file(Path::new("tests/data/81842.zip"))
             .create();
 
@@ -1247,8 +1271,10 @@ mod test {
     fn checks_submission_processing() {
         let (core, addr) = init();
         let _m = mock("GET", "/submission-url")
-            .match_header("client", "some_client")
-            .match_header("client_version", "some_ver")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("client".into(), "some_client".into()),
+                Matcher::UrlEncoded("client_version".into(), "some_ver".into()),
+            ]))
             .with_body(
                 serde_json::json!({
                   "status": "processing",
@@ -1272,6 +1298,10 @@ mod test {
     fn checks_submission_finished() {
         let (core, addr) = init();
         let _m = mock("GET", "/submission-url")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("client".into(), "some_client".into()),
+                Matcher::UrlEncoded("client_version".into(), "some_ver".into()),
+            ]))
             .with_body(serde_json::json!({
             "api_version": 7,
             "all_tests_passed": true,
