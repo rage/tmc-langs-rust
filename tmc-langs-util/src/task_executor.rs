@@ -191,52 +191,7 @@ pub fn find_exercise_directories(exercise_path: &Path) -> Vec<PathBuf> {
 
 /// Parses available exercise points from the exercise without compiling it.
 pub fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, UtilError> {
-    let plugin = get_language_plugin(exercise_path)?;
-    let config = plugin.get_exercise_packaging_configuration(exercise_path)?;
-
-    let points_re = Regex::new(r#"(.*)@\s*[pP]oints\s*\(\s*['"](.*)['"]\s*\)"#).unwrap();
-    let mut points = Vec::new();
-    for exercise_file_path in config.exercise_file_paths {
-        let exercise_file_path = exercise_path.join(exercise_file_path);
-        if !exercise_file_path.exists() {
-            continue;
-        }
-
-        // file path may point to a directory of file, walkdir takes care of both
-        for entry in WalkDir::new(exercise_file_path) {
-            let entry = entry?;
-            if entry.path().is_file() {
-                log::debug!("parsing points from {}", entry.path().display());
-                let file_contents = file_util::read_file_to_string(entry.path())?;
-
-                let mut in_comment = false;
-                for line in file_contents.lines() {
-                    let start = line.trim_start();
-                    // skip commented lines
-                    if start.starts_with("//") || start.starts_with('#') {
-                        continue;
-                    }
-                    if start.starts_with("/*") {
-                        in_comment = true;
-                    }
-                    if !in_comment {
-                        if let Some(captures) = points_re.captures(line) {
-                            let first_end = captures[1].trim_end();
-                            if !first_end.ends_with("//")
-                                && !first_end.ends_with('#')
-                                && !first_end.ends_with("/*")
-                            {
-                                points.push(captures[2].to_string());
-                            }
-                        }
-                    }
-                    if start.ends_with("*/") {
-                        in_comment = false;
-                    }
-                }
-            }
-        }
-    }
+    let points = get_language_plugin(exercise_path)?.get_available_points(exercise_path)?;
     Ok(points)
 }
 
@@ -251,6 +206,7 @@ pub fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, UtilErr
     fn run_tests(&self, path: &Path) -> Result<RunResult, TmcError> {}
     fn check_code_style(&self, path: &Path, locale: Language) -> Result<Option<ValidationResult>, TmcError> {}
     fn prepare_stub(&self, exercise_path: &Path, repo_path: &Path, dest_path: &Path) -> Result<(), TmcError> {}
+    fn get_available_points(&self, exercise_path: &Path) -> Result<Vec<String>, TmcError> {}
 )]
 enum Plugin {
     CSharp(CSharpPlugin),

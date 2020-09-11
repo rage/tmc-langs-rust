@@ -9,6 +9,7 @@ pub mod policy;
 
 use domain::TmcProjectYml;
 pub use error::TmcError;
+pub use nom;
 pub use plugin::LanguagePlugin;
 pub use policy::StudentFilePolicy;
 pub use zip;

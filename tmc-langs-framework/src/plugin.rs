@@ -9,6 +9,9 @@ use crate::io::{file_util, submission_processing, tmc_zip};
 use crate::policy::StudentFilePolicy;
 pub use isolang::Language;
 use log::debug;
+use nom::{bytes::complete, combinator, error::ErrorKind, error::ParseError, sequence, IResult};
+use once_cell::sync::Lazy;
+use regex::Regex;
 use std::collections::{HashMap, HashSet};
 use std::io::{Read, Seek, Write};
 use std::path::{Path, PathBuf};
@@ -426,6 +429,43 @@ pub trait LanguagePlugin {
     fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
         vec![PathBuf::from("test")]
     }
+
+    fn get_available_points(&self, exercise_path: &Path) -> Result<Vec<String>, TmcError> {
+        let config = self.get_exercise_packaging_configuration(exercise_path)?;
+
+        //let points_re = Regex::new(r#"(.*)@\s*[pP]oints\s*\(\s*['"](.*)['"]\s*\)"#).unwrap();
+
+        let mut points = Vec::new();
+        for exercise_file_path in config.exercise_file_paths {
+            let exercise_file_path = exercise_path.join(exercise_file_path);
+            if !exercise_file_path.exists() {
+                continue;
+            }
+
+            // file path may point to a directory of file, walkdir takes care of both
+            for entry in WalkDir::new(exercise_file_path) {
+                let entry = entry?;
+                if entry.path().is_file() {
+                    log::debug!("parsing points from {}", entry.path().display());
+                    let file_contents = file_util::read_file_to_string(entry.path())?;
+
+                    let parser = sequence::tuple((
+                        Self::line_comment_parser,
+                        Self::block_comment_parser,
+                        Self::points_parser,
+                        complete::take(1usize),
+                    ));
+                    let res: IResult<_, _, (&str, ErrorKind)> = parser(&file_contents);
+                    let (rem, (lc, bc, ps, nc)) = res.unwrap();
+                }
+            }
+        }
+        Ok(points)
+    }
+
+    fn line_comment_parser<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, (), E>;
+    fn block_comment_parser<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, (), E>;
+    fn points_parser<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &str, E>;
 }
 
 #[cfg(test)]
@@ -484,6 +524,16 @@ mod test {
         }
 
         fn clean(&self, _path: &Path) -> Result<(), TmcError> {
+            unimplemented!()
+        }
+
+        fn line_comment_parser<'a, E: ParseError<&'a str>>(_: &'a str) -> IResult<&'a str, (), E> {
+            unimplemented!()
+        }
+        fn block_comment_parser<'a, E: ParseError<&'a str>>(_: &'a str) -> IResult<&'a str, (), E> {
+            unimplemented!()
+        }
+        fn points_parser<'a, E: ParseError<&'a str>>(_: &'a str) -> IResult<&'a str, &str, E> {
             unimplemented!()
         }
     }
