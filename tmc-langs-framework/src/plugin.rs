@@ -495,14 +495,6 @@ pub trait LanguagePlugin {
     fn points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str>;
 }
 
-pub fn simple_delimited<'a>(limiter: char) -> impl Fn(&'a str) -> IResult<&'a str, &'a str> {
-    sequence::delimited(
-        character::complete::char(limiter),
-        bytes::complete::take_till(move |c| c == limiter),
-        character::complete::char(limiter),
-    )
-}
-
 #[derive(Debug, Clone)]
 enum Parse {
     LineComment,
