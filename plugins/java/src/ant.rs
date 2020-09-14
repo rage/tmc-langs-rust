@@ -166,11 +166,11 @@ impl JavaPlugin for AntPlugin {
         }
         paths.push(lib_dir);
 
-        paths.push(path.join("build/test/classes"));
-        paths.push(path.join("build/classes"));
+        paths.push(path.join("build").join("test").join("classes"));
+        paths.push(path.join("build").join("classes"));
 
         let java_home = Self::get_java_home()?;
-        let tools_jar_path = java_home.join("../lib/tools.jar");
+        let tools_jar_path = java_home.join("..").join("lib").join("tools.jar");
         if tools_jar_path.exists() {
             paths.push(tools_jar_path);
         } else {
@@ -335,8 +335,9 @@ mod test {
         );
         assert!(
             cp.contains(&format!("{0}{1}build{1}classes", test_path.display(), sep)),
-            "Classpath {} did not contain build/classes",
-            cp
+            "Classpath {} did not contain build{}classes",
+            cp,
+            sep
         );
         assert!(
             cp.contains(&format!(
