@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["add_method",""],["constructor",""],["create_base",""],["get_allocate_kernel",""],["get_call_kernel",""],["get_class_map",""],["get_construct_kernel",""],["get_instance_internals",""],["get_name",""],["has_instance",""],["metadata_to_constructor",""],["set_class_map",""],["set_name",""],["throw_call_error",""],["throw_this_error",""]]});

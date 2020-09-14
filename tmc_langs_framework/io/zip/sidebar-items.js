@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["ZipError","Error type for Zip"]],"fn":[["unzip","Finds a project directory in the given zip and unzips it."],["zip","Zips the given directory, only including student files according to the given policy."]]});

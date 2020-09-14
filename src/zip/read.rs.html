@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zip-0.5.6/src/read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../zip/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zip-0.5.8/src/read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../zip/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -750,23 +750,198 @@
 <span id="750">750</span>
 <span id="751">751</span>
 <span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">//! Structs for reading a ZIP archive</span>
+<span class="doccomment">//! Types for reading ZIP archives</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">crc32</span>::<span class="ident">Crc32Reader</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">compression</span>::<span class="ident">CompressionMethod</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">crc32</span>::<span class="ident">Crc32Reader</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">result</span>::{<span class="ident">InvalidPassword</span>, <span class="ident">ZipError</span>, <span class="ident">ZipResult</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">spec</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">result</span>::{<span class="ident">ZipResult</span>, <span class="ident">ZipError</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">zipcrypto</span>::<span class="ident">ZipCryptoReader</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">zipcrypto</span>::<span class="ident">ZipCryptoReaderValid</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">borrow</span>::<span class="ident">Cow</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
 
-<span class="kw">use</span> <span class="ident">podio</span>::{<span class="ident">ReadPodExt</span>, <span class="ident">LittleEndian</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::{<span class="ident">ZipFileData</span>, <span class="ident">System</span>, <span class="ident">DateTime</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">cp437</span>::<span class="ident">FromCp437</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::{<span class="ident">DateTime</span>, <span class="ident">System</span>, <span class="ident">ZipFileData</span>};
+<span class="kw">use</span> <span class="ident">byteorder</span>::{<span class="ident">LittleEndian</span>, <span class="ident">ReadBytesExt</span>};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>,
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-miniz&quot;</span>,
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-zlib&quot;</span>
+))]</span>
 <span class="kw">use</span> <span class="ident">flate2</span>::<span class="ident">read</span>::<span class="ident">DeflateDecoder</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bzip2&quot;</span>)]</span>
@@ -777,35 +952,24 @@
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">S_IFREG</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0o0100000</span>;
 }
 
-<span class="doccomment">/// Wrapper for reading the contents of a ZIP file.</span>
+<span class="doccomment">/// ZIP archive reader</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// fn doit() -&gt; zip::result::ZipResult&lt;()&gt;</span>
-<span class="doccomment">/// {</span>
-<span class="doccomment">///     use std::io::prelude::*;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     // For demonstration purposes we read from an empty buffer.</span>
-<span class="doccomment">///     // Normally a File object would be used.</span>
-<span class="doccomment">///     let buf: &amp;[u8] = &amp;[0u8; 128];</span>
-<span class="doccomment">///     let mut reader = std::io::Cursor::new(buf);</span>
-<span class="doccomment">///</span>
+<span class="doccomment">/// ```no_run</span>
+<span class="doccomment">/// use std::io::prelude::*;</span>
+<span class="doccomment">/// fn list_zip_contents(reader: impl Read + Seek) -&gt; zip::result::ZipResult&lt;()&gt; {</span>
 <span class="doccomment">///     let mut zip = zip::ZipArchive::new(reader)?;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">///     for i in 0..zip.len()</span>
-<span class="doccomment">///     {</span>
-<span class="doccomment">///         let mut file = zip.by_index(i).unwrap();</span>
+<span class="doccomment">///     for i in 0..zip.len() {</span>
+<span class="doccomment">///         let mut file = zip.by_index(i)?;</span>
 <span class="doccomment">///         println!(&quot;Filename: {}&quot;, file.name());</span>
-<span class="doccomment">///         let first_byte = file.bytes().next().unwrap()?;</span>
-<span class="doccomment">///         println!(&quot;{}&quot;, first_byte);</span>
+<span class="doccomment">///         std::io::copy(&amp;mut file, &amp;mut std::io::stdout());</span>
 <span class="doccomment">///     }</span>
+<span class="doccomment">///</span>
 <span class="doccomment">///     Ok(())</span>
 <span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// println!(&quot;Result: {:?}&quot;, doit());</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ZipArchive</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span> <span class="op">+</span> <span class="ident">io</span>::<span class="ident">Seek</span><span class="op">&gt;</span>
-{
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ZipArchive</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span> <span class="op">+</span> <span class="ident">io</span>::<span class="ident">Seek</span><span class="op">&gt;</span> {
     <span class="ident">reader</span>: <span class="ident">R</span>,
     <span class="ident">files</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ZipFileData</span><span class="op">&gt;</span>,
     <span class="ident">names_map</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">usize</span><span class="op">&gt;</span>,
@@ -813,13 +977,76 @@
     <span class="ident">comment</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 }
 
+<span class="kw">enum</span> <span class="ident">CryptoReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">Plaintext</span>(<span class="ident">io</span>::<span class="ident">Take</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">Read</span><span class="op">&gt;</span>),
+    <span class="ident">ZipCrypto</span>(<span class="ident">ZipCryptoReaderValid</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="ident">Take</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">Read</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">CryptoReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">CryptoReader</span>::<span class="ident">Plaintext</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">read</span>(<span class="ident">buf</span>),
+            <span class="ident">CryptoReader</span>::<span class="ident">ZipCrypto</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">read</span>(<span class="ident">buf</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">CryptoReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Consumes this decoder, returning the underlying reader.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="ident">Take</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">Read</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">CryptoReader</span>::<span class="ident">Plaintext</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>,
+            <span class="ident">CryptoReader</span>::<span class="ident">ZipCrypto</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">into_inner</span>(),
+        }
+    }
+}
+
 <span class="kw">enum</span> <span class="ident">ZipFileReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">NoReader</span>,
-    <span class="ident">Stored</span>(<span class="ident">Crc32Reader</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="ident">Take</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">Read</span><span class="op">&gt;</span><span class="op">&gt;</span>),
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>)]</span>
-    <span class="ident">Deflated</span>(<span class="ident">Crc32Reader</span><span class="op">&lt;</span><span class="ident">flate2</span>::<span class="ident">read</span>::<span class="ident">DeflateDecoder</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="ident">Take</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">Read</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+    <span class="ident">Stored</span>(<span class="ident">Crc32Reader</span><span class="op">&lt;</span><span class="ident">CryptoReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>,
+        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-miniz&quot;</span>,
+        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-zlib&quot;</span>
+    ))]</span>
+    <span class="ident">Deflated</span>(<span class="ident">Crc32Reader</span><span class="op">&lt;</span><span class="ident">flate2</span>::<span class="ident">read</span>::<span class="ident">DeflateDecoder</span><span class="op">&lt;</span><span class="ident">CryptoReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>),
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bzip2&quot;</span>)]</span>
-    <span class="ident">Bzip2</span>(<span class="ident">Crc32Reader</span><span class="op">&lt;</span><span class="ident">BzDecoder</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="ident">Take</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">Read</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+    <span class="ident">Bzip2</span>(<span class="ident">Crc32Reader</span><span class="op">&lt;</span><span class="ident">BzDecoder</span><span class="op">&lt;</span><span class="ident">CryptoReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">ZipFileReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">ZipFileReader</span>::<span class="ident">NoReader</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;ZipFileReader was in an invalid state&quot;</span>),
+            <span class="ident">ZipFileReader</span>::<span class="ident">Stored</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">read</span>(<span class="ident">buf</span>),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>,
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-miniz&quot;</span>,
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-zlib&quot;</span>
+            ))]</span>
+            <span class="ident">ZipFileReader</span>::<span class="ident">Deflated</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">read</span>(<span class="ident">buf</span>),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bzip2&quot;</span>)]</span>
+            <span class="ident">ZipFileReader</span>::<span class="ident">Bzip2</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">read</span>(<span class="ident">buf</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ZipFileReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Consumes this decoder, returning the underlying reader.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="ident">Take</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">Read</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">ZipFileReader</span>::<span class="ident">NoReader</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;ZipFileReader was in an invalid state&quot;</span>),
+            <span class="ident">ZipFileReader</span>::<span class="ident">Stored</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">into_inner</span>().<span class="ident">into_inner</span>(),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>,
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-miniz&quot;</span>,
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-zlib&quot;</span>
+            ))]</span>
+            <span class="ident">ZipFileReader</span>::<span class="ident">Deflated</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">into_inner</span>().<span class="ident">into_inner</span>().<span class="ident">into_inner</span>(),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bzip2&quot;</span>)]</span>
+            <span class="ident">ZipFileReader</span>::<span class="ident">Bzip2</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">into_inner</span>().<span class="ident">into_inner</span>().<span class="ident">into_inner</span>(),
+        }
+    }
 }
 
 <span class="doccomment">/// A struct for reading a zip file</span>
@@ -828,70 +1055,76 @@
     <span class="ident">reader</span>: <span class="ident">ZipFileReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">fn</span> <span class="ident">unsupported_zip_error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">detail</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-{
-    <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">UnsupportedArchive</span>(<span class="ident">detail</span>))
-}
-
-
 <span class="kw">fn</span> <span class="ident">make_reader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
     <span class="ident">compression_method</span>: <span class="kw">crate</span>::<span class="ident">compression</span>::<span class="ident">CompressionMethod</span>,
     <span class="ident">crc32</span>: <span class="ident">u32</span>,
-    <span class="ident">reader</span>: <span class="ident">io</span>::<span class="ident">Take</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">io</span>::<span class="ident">Read</span><span class="op">&gt;</span>)
-        <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="ident">ZipFileReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="ident">reader</span>: <span class="ident">io</span>::<span class="ident">Take</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">io</span>::<span class="ident">Read</span><span class="op">&gt;</span>,
+    <span class="ident">password</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ZipFileReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">InvalidPassword</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">reader</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">password</span> {
+        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">CryptoReader</span>::<span class="ident">Plaintext</span>(<span class="ident">reader</span>),
+        <span class="prelude-val">Some</span>(<span class="ident">password</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">ZipCryptoReader</span>::<span class="ident">new</span>(<span class="ident">reader</span>, <span class="ident">password</span>).<span class="ident">validate</span>(<span class="ident">crc32</span>)<span class="question-mark">?</span> {
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">InvalidPassword</span>)),
+            <span class="prelude-val">Some</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">CryptoReader</span>::<span class="ident">ZipCrypto</span>(<span class="ident">r</span>),
+        },
+    };
 
     <span class="kw">match</span> <span class="ident">compression_method</span> {
-        <span class="ident">CompressionMethod</span>::<span class="ident">Stored</span> <span class="op">=</span><span class="op">&gt;</span>
-        {
-            <span class="prelude-val">Ok</span>(<span class="ident">ZipFileReader</span>::<span class="ident">Stored</span>(<span class="ident">Crc32Reader</span>::<span class="ident">new</span>(
-                <span class="ident">reader</span>,
-                <span class="ident">crc32</span>)))
-        },
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>)]</span>
-        <span class="ident">CompressionMethod</span>::<span class="ident">Deflated</span> <span class="op">=</span><span class="op">&gt;</span>
-        {
+        <span class="ident">CompressionMethod</span>::<span class="ident">Stored</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(<span class="ident">ZipFileReader</span>::<span class="ident">Stored</span>(<span class="ident">Crc32Reader</span>::<span class="ident">new</span>(<span class="ident">reader</span>, <span class="ident">crc32</span>)))),
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-miniz&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-zlib&quot;</span>
+        ))]</span>
+        <span class="ident">CompressionMethod</span>::<span class="ident">Deflated</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">deflate_reader</span> <span class="op">=</span> <span class="ident">DeflateDecoder</span>::<span class="ident">new</span>(<span class="ident">reader</span>);
-            <span class="prelude-val">Ok</span>(<span class="ident">ZipFileReader</span>::<span class="ident">Deflated</span>(<span class="ident">Crc32Reader</span>::<span class="ident">new</span>(
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(<span class="ident">ZipFileReader</span>::<span class="ident">Deflated</span>(<span class="ident">Crc32Reader</span>::<span class="ident">new</span>(
                 <span class="ident">deflate_reader</span>,
-                <span class="ident">crc32</span>)))
-        },
+                <span class="ident">crc32</span>,
+            ))))
+        }
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bzip2&quot;</span>)]</span>
-        <span class="ident">CompressionMethod</span>::<span class="ident">Bzip2</span> <span class="op">=</span><span class="op">&gt;</span>
-        {
+        <span class="ident">CompressionMethod</span>::<span class="ident">Bzip2</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">bzip2_reader</span> <span class="op">=</span> <span class="ident">BzDecoder</span>::<span class="ident">new</span>(<span class="ident">reader</span>);
-            <span class="prelude-val">Ok</span>(<span class="ident">ZipFileReader</span>::<span class="ident">Bzip2</span>(<span class="ident">Crc32Reader</span>::<span class="ident">new</span>(
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(<span class="ident">ZipFileReader</span>::<span class="ident">Bzip2</span>(<span class="ident">Crc32Reader</span>::<span class="ident">new</span>(
                 <span class="ident">bzip2_reader</span>,
-                <span class="ident">crc32</span>)))
-        },
+                <span class="ident">crc32</span>,
+            ))))
+        }
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">unsupported_zip_error</span>(<span class="string">&quot;Compression method not supported&quot;</span>),
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">+</span><span class="ident">io</span>::<span class="ident">Seek</span><span class="op">&gt;</span> <span class="ident">ZipArchive</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
-{
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span> <span class="op">+</span> <span class="ident">io</span>::<span class="ident">Seek</span><span class="op">&gt;</span> <span class="ident">ZipArchive</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Get the directory start offset and number of files. This is done in a</span>
     <span class="doccomment">/// separate function to ease the control flow design.</span>
-    <span class="kw">fn</span> <span class="ident">get_directory_counts</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>,
-                            <span class="ident">footer</span>: <span class="kw-2">&amp;</span><span class="ident">spec</span>::<span class="ident">CentralDirectoryEnd</span>,
-                            <span class="ident">cde_start_pos</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span>(<span class="ident">u64</span>, <span class="ident">u64</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_directory_counts</span>(
+        <span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>,
+        <span class="ident">footer</span>: <span class="kw-2">&amp;</span><span class="ident">spec</span>::<span class="ident">CentralDirectoryEnd</span>,
+        <span class="ident">cde_start_pos</span>: <span class="ident">u64</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span>(<span class="ident">u64</span>, <span class="ident">u64</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
         <span class="comment">// See if there&#39;s a ZIP64 footer. The ZIP64 locator if present will</span>
         <span class="comment">// have its signature 20 bytes in front of the standard footer. The</span>
         <span class="comment">// standard footer, in turn, is 22+N bytes large, where N is the</span>
         <span class="comment">// comment length. Therefore:</span>
-        <span class="kw">let</span> <span class="ident">zip64locator</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">reader</span>.<span class="ident">seek</span>(<span class="ident">io</span>::<span class="ident">SeekFrom</span>::<span class="ident">End</span>(<span class="op">-</span>(<span class="number">20</span> <span class="op">+</span> <span class="number">22</span> <span class="op">+</span> <span class="ident">footer</span>.<span class="ident">zip_file_comment</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i64</span>))).<span class="ident">is_ok</span>() {
+        <span class="kw">let</span> <span class="ident">zip64locator</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">reader</span>
+            .<span class="ident">seek</span>(<span class="ident">io</span>::<span class="ident">SeekFrom</span>::<span class="ident">End</span>(
+                <span class="op">-</span>(<span class="number">20</span> <span class="op">+</span> <span class="number">22</span> <span class="op">+</span> <span class="ident">footer</span>.<span class="ident">zip_file_comment</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i64</span>),
+            ))
+            .<span class="ident">is_ok</span>()
+        {
             <span class="kw">match</span> <span class="ident">spec</span>::<span class="ident">Zip64CentralDirectoryEndLocator</span>::<span class="ident">parse</span>(<span class="ident">reader</span>) {
                 <span class="prelude-val">Ok</span>(<span class="ident">loc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">loc</span>),
                 <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// No ZIP64 header; that&#39;s actually fine. We&#39;re done here.</span>
                     <span class="prelude-val">None</span>
-                },
+                }
                 <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Yikes, a real problem</span>
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>);
                 }
             }
-        }
-        <span class="kw">else</span> {
+        } <span class="kw">else</span> {
             <span class="comment">// Empty Zip files will have nothing else so this error might be fine. If</span>
             <span class="comment">// not, we&#39;ll find out soon.</span>
             <span class="prelude-val">None</span>
@@ -903,19 +1136,24 @@
                 <span class="comment">// offsets all being too small. Get the amount of error by comparing</span>
                 <span class="comment">// the actual file position we found the CDE at with the offset</span>
                 <span class="comment">// recorded in the CDE.</span>
-                <span class="kw">let</span> <span class="ident">archive_offset</span> <span class="op">=</span> <span class="ident">cde_start_pos</span>.<span class="ident">checked_sub</span>(<span class="ident">footer</span>.<span class="ident">central_directory_size</span> <span class="kw">as</span> <span class="ident">u64</span>)
+                <span class="kw">let</span> <span class="ident">archive_offset</span> <span class="op">=</span> <span class="ident">cde_start_pos</span>
+                    .<span class="ident">checked_sub</span>(<span class="ident">footer</span>.<span class="ident">central_directory_size</span> <span class="kw">as</span> <span class="ident">u64</span>)
                     .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">checked_sub</span>(<span class="ident">footer</span>.<span class="ident">central_directory_offset</span> <span class="kw">as</span> <span class="ident">u64</span>))
-                    .<span class="ident">ok_or</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(<span class="string">&quot;Invalid central directory size or offset&quot;</span>))<span class="question-mark">?</span>;
+                    .<span class="ident">ok_or</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(
+                        <span class="string">&quot;Invalid central directory size or offset&quot;</span>,
+                    ))<span class="question-mark">?</span>;
 
                 <span class="kw">let</span> <span class="ident">directory_start</span> <span class="op">=</span> <span class="ident">footer</span>.<span class="ident">central_directory_offset</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">+</span> <span class="ident">archive_offset</span>;
                 <span class="kw">let</span> <span class="ident">number_of_files</span> <span class="op">=</span> <span class="ident">footer</span>.<span class="ident">number_of_files_on_this_disk</span> <span class="kw">as</span> <span class="ident">usize</span>;
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">archive_offset</span>, <span class="ident">directory_start</span>, <span class="ident">number_of_files</span>));
-            },
+                <span class="prelude-val">Ok</span>((<span class="ident">archive_offset</span>, <span class="ident">directory_start</span>, <span class="ident">number_of_files</span>))
+            }
             <span class="prelude-val">Some</span>(<span class="ident">locator64</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// If we got here, this is indeed a ZIP64 file.</span>
 
                 <span class="kw">if</span> <span class="ident">footer</span>.<span class="ident">disk_number</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">!</span><span class="op">=</span> <span class="ident">locator64</span>.<span class="ident">disk_with_central_directory</span> {
-                    <span class="kw">return</span> <span class="ident">unsupported_zip_error</span>(<span class="string">&quot;Support for multi-disk files is not implemented&quot;</span>)
+                    <span class="kw">return</span> <span class="ident">unsupported_zip_error</span>(
+                        <span class="string">&quot;Support for multi-disk files is not implemented&quot;</span>,
+                    );
                 }
 
                 <span class="comment">// We need to reassess `archive_offset`. We know where the ZIP64</span>
@@ -928,29 +1166,45 @@
 
                 <span class="kw">let</span> <span class="ident">search_upper_bound</span> <span class="op">=</span> <span class="ident">cde_start_pos</span>
                     .<span class="ident">checked_sub</span>(<span class="number">60</span>) <span class="comment">// minimum size of Zip64CentralDirectoryEnd + Zip64CentralDirectoryEndLocator</span>
-                    .<span class="ident">ok_or</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(<span class="string">&quot;File cannot contain ZIP64 central directory end&quot;</span>))<span class="question-mark">?</span>;
+                    .<span class="ident">ok_or</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(
+                        <span class="string">&quot;File cannot contain ZIP64 central directory end&quot;</span>,
+                    ))<span class="question-mark">?</span>;
                 <span class="kw">let</span> (<span class="ident">footer</span>, <span class="ident">archive_offset</span>) <span class="op">=</span> <span class="ident">spec</span>::<span class="ident">Zip64CentralDirectoryEnd</span>::<span class="ident">find_and_parse</span>(
                     <span class="ident">reader</span>,
                     <span class="ident">locator64</span>.<span class="ident">end_of_central_directory_offset</span>,
-                    <span class="ident">search_upper_bound</span>)<span class="question-mark">?</span>;
+                    <span class="ident">search_upper_bound</span>,
+                )<span class="question-mark">?</span>;
 
                 <span class="kw">if</span> <span class="ident">footer</span>.<span class="ident">disk_number</span> <span class="op">!</span><span class="op">=</span> <span class="ident">footer</span>.<span class="ident">disk_with_central_directory</span> {
-                    <span class="kw">return</span> <span class="ident">unsupported_zip_error</span>(<span class="string">&quot;Support for multi-disk files is not implemented&quot;</span>)
+                    <span class="kw">return</span> <span class="ident">unsupported_zip_error</span>(
+                        <span class="string">&quot;Support for multi-disk files is not implemented&quot;</span>,
+                    );
                 }
 
-                <span class="kw">let</span> <span class="ident">directory_start</span> <span class="op">=</span> <span class="ident">footer</span>.<span class="ident">central_directory_offset</span> <span class="op">+</span> <span class="ident">archive_offset</span>;
-                <span class="prelude-val">Ok</span>((<span class="ident">archive_offset</span>, <span class="ident">directory_start</span>, <span class="ident">footer</span>.<span class="ident">number_of_files</span> <span class="kw">as</span> <span class="ident">usize</span>))
-            },
+                <span class="kw">let</span> <span class="ident">directory_start</span> <span class="op">=</span> <span class="ident">footer</span>
+                    .<span class="ident">central_directory_offset</span>
+                    .<span class="ident">checked_add</span>(<span class="ident">archive_offset</span>)
+                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                        <span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(<span class="string">&quot;Invalid central directory size or offset&quot;</span>)
+                    })<span class="question-mark">?</span>;
+
+                <span class="prelude-val">Ok</span>((
+                    <span class="ident">archive_offset</span>,
+                    <span class="ident">directory_start</span>,
+                    <span class="ident">footer</span>.<span class="ident">number_of_files</span> <span class="kw">as</span> <span class="ident">usize</span>,
+                ))
+            }
         }
     }
 
-    <span class="doccomment">/// Opens a Zip archive and parses the central directory</span>
+    <span class="doccomment">/// Read a ZIP archive, collecting the files it contains</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This uses the central directory record of the ZIP file, and ignores local file headers</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="kw-2">mut</span> <span class="ident">reader</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="ident">ZipArchive</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">footer</span>, <span class="ident">cde_start_pos</span>) <span class="op">=</span> <span class="ident">spec</span>::<span class="ident">CentralDirectoryEnd</span>::<span class="ident">find_and_parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">reader</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">footer</span>.<span class="ident">disk_number</span> <span class="op">!</span><span class="op">=</span> <span class="ident">footer</span>.<span class="ident">disk_with_central_directory</span>
-        {
-            <span class="kw">return</span> <span class="ident">unsupported_zip_error</span>(<span class="string">&quot;Support for multi-disk files is not implemented&quot;</span>)
+        <span class="kw">if</span> <span class="ident">footer</span>.<span class="ident">disk_number</span> <span class="op">!</span><span class="op">=</span> <span class="ident">footer</span>.<span class="ident">disk_with_central_directory</span> {
+            <span class="kw">return</span> <span class="ident">unsupported_zip_error</span>(<span class="string">&quot;Support for multi-disk files is not implemented&quot;</span>);
         }
 
         <span class="kw">let</span> (<span class="ident">archive_offset</span>, <span class="ident">directory_start</span>, <span class="ident">number_of_files</span>) <span class="op">=</span>
@@ -960,40 +1214,34 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">names_map</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">seek</span>(<span class="ident">io</span>::<span class="ident">SeekFrom</span>::<span class="ident">Start</span>(<span class="ident">directory_start</span>)) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(<span class="string">&quot;Could not seek to start of central directory&quot;</span>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(
+                <span class="string">&quot;Could not seek to start of central directory&quot;</span>,
+            ));
         }
 
-        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span> .. <span class="ident">number_of_files</span>
-        {
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">number_of_files</span> {
             <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">central_header_to_zip_file</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">reader</span>, <span class="ident">archive_offset</span>)<span class="question-mark">?</span>;
             <span class="ident">names_map</span>.<span class="ident">insert</span>(<span class="ident">file</span>.<span class="ident">file_name</span>.<span class="ident">clone</span>(), <span class="ident">files</span>.<span class="ident">len</span>());
             <span class="ident">files</span>.<span class="ident">push</span>(<span class="ident">file</span>);
         }
 
         <span class="prelude-val">Ok</span>(<span class="ident">ZipArchive</span> {
-            <span class="ident">reader</span>: <span class="ident">reader</span>,
-            <span class="ident">files</span>: <span class="ident">files</span>,
-            <span class="ident">names_map</span>: <span class="ident">names_map</span>,
+            <span class="ident">reader</span>,
+            <span class="ident">files</span>,
+            <span class="ident">names_map</span>,
             <span class="ident">offset</span>: <span class="ident">archive_offset</span>,
             <span class="ident">comment</span>: <span class="ident">footer</span>.<span class="ident">zip_file_comment</span>,
         })
     }
 
     <span class="doccomment">/// Number of files contained in this zip.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// fn iter() {</span>
-    <span class="doccomment">///     let mut zip = zip::ZipArchive::new(std::io::Cursor::new(vec![])).unwrap();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     for i in 0..zip.len() {</span>
-    <span class="doccomment">///         let mut file = zip.by_index(i).unwrap();</span>
-    <span class="doccomment">///         // Do something with file i</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>
-    {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">files</span>.<span class="ident">len</span>()
+    }
+
+    <span class="doccomment">/// Whether this zip archive contains no files</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
     }
 
     <span class="doccomment">/// Get the offset from the beginning of the underlying reader that this zip begins at, in bytes.</span>
@@ -1014,63 +1262,118 @@
         <span class="self">self</span>.<span class="ident">names_map</span>.<span class="ident">keys</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">as_str</span>())
     }
 
+    <span class="doccomment">/// Search for a file entry by name, decrypt with given password</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">by_name_decrypt</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">password</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ZipFile</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">InvalidPassword</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">by_name_with_optional_password</span>(<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="ident">password</span>))
+    }
+
     <span class="doccomment">/// Search for a file entry by name</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">by_name</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="ident">ZipFile</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">by_name</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="ident">ZipFile</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">by_name_with_optional_password</span>(<span class="ident">name</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>.<span class="ident">unwrap</span>())
+    }
+
+    <span class="kw">fn</span> <span class="ident">by_name_with_optional_password</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">password</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ZipFile</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">InvalidPassword</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">names_map</span>.<span class="ident">get</span>(<span class="ident">name</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">index</span>,
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">FileNotFound</span>); },
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">FileNotFound</span>);
+            }
         };
-        <span class="self">self</span>.<span class="ident">by_index</span>(<span class="ident">index</span>)
+        <span class="self">self</span>.<span class="ident">by_index_with_optional_password</span>(<span class="ident">index</span>, <span class="ident">password</span>)
+    }
+
+    <span class="doccomment">/// Get a contained file by index, decrypt with given password</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">by_index_decrypt</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">file_number</span>: <span class="ident">usize</span>,
+        <span class="ident">password</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ZipFile</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">InvalidPassword</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">by_index_with_optional_password</span>(<span class="ident">file_number</span>, <span class="prelude-val">Some</span>(<span class="ident">password</span>))
     }
 
     <span class="doccomment">/// Get a contained file by index</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">by_index</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">file_number</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="ident">ZipFile</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    {
-        <span class="kw">if</span> <span class="ident">file_number</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">files</span>.<span class="ident">len</span>() { <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">FileNotFound</span>); }
-        <span class="kw">let</span> <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">files</span>[<span class="ident">file_number</span>];
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">by_index</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">file_number</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="ident">ZipFile</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>
+            .<span class="ident">by_index_with_optional_password</span>(<span class="ident">file_number</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>
+            .<span class="ident">unwrap</span>())
+    }
 
-        <span class="kw">if</span> <span class="ident">data</span>.<span class="ident">encrypted</span>
-        {
-            <span class="kw">return</span> <span class="ident">unsupported_zip_error</span>(<span class="string">&quot;Encrypted files are not supported&quot;</span>)
+    <span class="kw">fn</span> <span class="ident">by_index_with_optional_password</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">file_number</span>: <span class="ident">usize</span>,
+        <span class="kw-2">mut</span> <span class="ident">password</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ZipFile</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">InvalidPassword</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">file_number</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">files</span>.<span class="ident">len</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">FileNotFound</span>);
+        }
+        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">files</span>[<span class="ident">file_number</span>];
+
+        <span class="kw">match</span> (<span class="ident">password</span>, <span class="ident">data</span>.<span class="ident">encrypted</span>) {
+            (<span class="prelude-val">None</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">UnsupportedArchive</span>(
+                    <span class="string">&quot;Password required to decrypt file&quot;</span>,
+                ))
+            }
+            (<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">password</span> <span class="op">=</span> <span class="prelude-val">None</span>, <span class="comment">//Password supplied, but none needed! Discard.</span>
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
         }
 
         <span class="comment">// Parse local header</span>
         <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">seek</span>(<span class="ident">io</span>::<span class="ident">SeekFrom</span>::<span class="ident">Start</span>(<span class="ident">data</span>.<span class="ident">header_start</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">signature</span> <span class="op">!</span><span class="op">=</span> <span class="ident">spec</span>::<span class="ident">LOCAL_FILE_HEADER_SIGNATURE</span>
-        {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(<span class="string">&quot;Invalid local file header&quot;</span>))
+        <span class="kw">if</span> <span class="ident">signature</span> <span class="op">!</span><span class="op">=</span> <span class="ident">spec</span>::<span class="ident">LOCAL_FILE_HEADER_SIGNATURE</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(<span class="string">&quot;Invalid local file header&quot;</span>));
         }
 
         <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">seek</span>(<span class="ident">io</span>::<span class="ident">SeekFrom</span>::<span class="ident">Current</span>(<span class="number">22</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">file_name_length</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">read_u16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">u64</span>;
         <span class="kw">let</span> <span class="ident">extra_field_length</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">read_u16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">u64</span>;
         <span class="kw">let</span> <span class="ident">magic_and_header</span> <span class="op">=</span> <span class="number">4</span> <span class="op">+</span> <span class="number">22</span> <span class="op">+</span> <span class="number">2</span> <span class="op">+</span> <span class="number">2</span>;
-        <span class="ident">data</span>.<span class="ident">data_start</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">header_start</span> <span class="op">+</span> <span class="ident">magic_and_header</span> <span class="op">+</span> <span class="ident">file_name_length</span> <span class="op">+</span> <span class="ident">extra_field_length</span>;
+        <span class="ident">data</span>.<span class="ident">data_start</span> <span class="op">=</span>
+            <span class="ident">data</span>.<span class="ident">header_start</span> <span class="op">+</span> <span class="ident">magic_and_header</span> <span class="op">+</span> <span class="ident">file_name_length</span> <span class="op">+</span> <span class="ident">extra_field_length</span>;
 
         <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">seek</span>(<span class="ident">io</span>::<span class="ident">SeekFrom</span>::<span class="ident">Start</span>(<span class="ident">data</span>.<span class="ident">data_start</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">limit_reader</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">by_ref</span>() <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">Read</span>).<span class="ident">take</span>(<span class="ident">data</span>.<span class="ident">compressed_size</span>);
 
-        <span class="prelude-val">Ok</span>(<span class="ident">ZipFile</span> { <span class="ident">reader</span>: <span class="ident">make_reader</span>(<span class="ident">data</span>.<span class="ident">compression_method</span>, <span class="ident">data</span>.<span class="ident">crc32</span>, <span class="ident">limit_reader</span>)<span class="question-mark">?</span>, <span class="ident">data</span>: <span class="ident">Cow</span>::<span class="ident">Borrowed</span>(<span class="ident">data</span>) })
+        <span class="kw">match</span> <span class="ident">make_reader</span>(<span class="ident">data</span>.<span class="ident">compression_method</span>, <span class="ident">data</span>.<span class="ident">crc32</span>, <span class="ident">limit_reader</span>, <span class="ident">password</span>) {
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(<span class="ident">reader</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(<span class="ident">ZipFile</span> {
+                <span class="ident">reader</span>,
+                <span class="ident">data</span>: <span class="ident">Cow</span>::<span class="ident">Borrowed</span>(<span class="ident">data</span>),
+            })),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
+        }
     }
 
     <span class="doccomment">/// Unwrap and return the inner reader object</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The position of the reader is undefined.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
-    {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> {
         <span class="self">self</span>.<span class="ident">reader</span>
     }
 }
 
-<span class="kw">fn</span> <span class="ident">central_header_to_zip_file</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">+</span><span class="ident">io</span>::<span class="ident">Seek</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">archive_offset</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="ident">ZipFileData</span><span class="op">&gt;</span>
-{
+<span class="kw">fn</span> <span class="ident">unsupported_zip_error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">detail</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">UnsupportedArchive</span>(<span class="ident">detail</span>))
+}
+
+<span class="kw">fn</span> <span class="ident">central_header_to_zip_file</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span> <span class="op">+</span> <span class="ident">io</span>::<span class="ident">Seek</span><span class="op">&gt;</span>(
+    <span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>,
+    <span class="ident">archive_offset</span>: <span class="ident">u64</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="ident">ZipFileData</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">central_header_start</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">seek</span>(<span class="ident">io</span>::<span class="ident">SeekFrom</span>::<span class="ident">Current</span>(<span class="number">0</span>))<span class="question-mark">?</span>;
     <span class="comment">// Parse central header</span>
     <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-    <span class="kw">if</span> <span class="ident">signature</span> <span class="op">!</span><span class="op">=</span> <span class="ident">spec</span>::<span class="ident">CENTRAL_DIRECTORY_HEADER_SIGNATURE</span>
-    {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(<span class="string">&quot;Invalid Central Directory header&quot;</span>))
+    <span class="kw">if</span> <span class="ident">signature</span> <span class="op">!</span><span class="op">=</span> <span class="ident">spec</span>::<span class="ident">CENTRAL_DIRECTORY_HEADER_SIGNATURE</span> {
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(<span class="string">&quot;Invalid Central Directory header&quot;</span>));
     }
 
     <span class="kw">let</span> <span class="ident">version_made_by</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
@@ -1091,43 +1394,47 @@
     <span class="kw">let</span> <span class="ident">_internal_file_attributes</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">external_file_attributes</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">u64</span>;
-    <span class="kw">let</span> <span class="ident">file_name_raw</span> <span class="op">=</span> <span class="ident">ReadPodExt</span>::<span class="ident">read_exact</span>(<span class="ident">reader</span>, <span class="ident">file_name_length</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">extra_field</span> <span class="op">=</span> <span class="ident">ReadPodExt</span>::<span class="ident">read_exact</span>(<span class="ident">reader</span>, <span class="ident">extra_field_length</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">file_comment_raw</span>  <span class="op">=</span> <span class="ident">ReadPodExt</span>::<span class="ident">read_exact</span>(<span class="ident">reader</span>, <span class="ident">file_comment_length</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file_name_raw</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>; <span class="ident">file_name_length</span>];
+    <span class="ident">reader</span>.<span class="ident">read_exact</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">file_name_raw</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">extra_field</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>; <span class="ident">extra_field_length</span>];
+    <span class="ident">reader</span>.<span class="ident">read_exact</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">extra_field</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file_comment_raw</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>; <span class="ident">file_comment_length</span>];
+    <span class="ident">reader</span>.<span class="ident">read_exact</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">file_comment_raw</span>)<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">file_name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">is_utf8</span>
-    {
+    <span class="kw">let</span> <span class="ident">file_name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">is_utf8</span> {
         <span class="bool-val">true</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">file_name_raw</span>).<span class="ident">into_owned</span>(),
         <span class="bool-val">false</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">file_name_raw</span>.<span class="ident">clone</span>().<span class="ident">from_cp437</span>(),
     };
-    <span class="kw">let</span> <span class="ident">file_comment</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">is_utf8</span>
-    {
+    <span class="kw">let</span> <span class="ident">file_comment</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">is_utf8</span> {
         <span class="bool-val">true</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">file_comment_raw</span>).<span class="ident">into_owned</span>(),
         <span class="bool-val">false</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">file_comment_raw</span>.<span class="ident">from_cp437</span>(),
     };
 
     <span class="comment">// Construct the result</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">ZipFileData</span>
-    {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">ZipFileData</span> {
         <span class="ident">system</span>: <span class="ident">System</span>::<span class="ident">from_u8</span>((<span class="ident">version_made_by</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="kw">as</span> <span class="ident">u8</span>),
         <span class="ident">version_made_by</span>: <span class="ident">version_made_by</span> <span class="kw">as</span> <span class="ident">u8</span>,
-        <span class="ident">encrypted</span>: <span class="ident">encrypted</span>,
-        <span class="ident">compression_method</span>: <span class="ident">CompressionMethod</span>::<span class="ident">from_u16</span>(<span class="ident">compression_method</span>),
+        <span class="ident">encrypted</span>,
+        <span class="ident">compression_method</span>: {
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
+            <span class="ident">CompressionMethod</span>::<span class="ident">from_u16</span>(<span class="ident">compression_method</span>)
+        },
         <span class="ident">last_modified_time</span>: <span class="ident">DateTime</span>::<span class="ident">from_msdos</span>(<span class="ident">last_mod_date</span>, <span class="ident">last_mod_time</span>),
-        <span class="ident">crc32</span>: <span class="ident">crc32</span>,
+        <span class="ident">crc32</span>,
         <span class="ident">compressed_size</span>: <span class="ident">compressed_size</span> <span class="kw">as</span> <span class="ident">u64</span>,
         <span class="ident">uncompressed_size</span>: <span class="ident">uncompressed_size</span> <span class="kw">as</span> <span class="ident">u64</span>,
-        <span class="ident">file_name</span>: <span class="ident">file_name</span>,
-        <span class="ident">file_name_raw</span>: <span class="ident">file_name_raw</span>,
-        <span class="ident">file_comment</span>: <span class="ident">file_comment</span>,
+        <span class="ident">file_name</span>,
+        <span class="ident">file_name_raw</span>,
+        <span class="ident">file_comment</span>,
         <span class="ident">header_start</span>: <span class="ident">offset</span>,
+        <span class="ident">central_header_start</span>,
         <span class="ident">data_start</span>: <span class="number">0</span>,
         <span class="ident">external_attributes</span>: <span class="ident">external_file_attributes</span>,
     };
 
     <span class="kw">match</span> <span class="ident">parse_extra_field</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">result</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">extra_field</span>) {
-        <span class="prelude-val">Ok</span>(..) <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">Io</span>(..)) <span class="op">=</span><span class="op">&gt;</span> {},
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>)<span class="question-mark">?</span>,
+        <span class="prelude-val">Ok</span>(..) <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">Io</span>(..)) <span class="op">=</span><span class="op">&gt;</span> {}
+        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
     }
 
     <span class="comment">// Account for shifted zip offsets.</span>
@@ -1136,35 +1443,29 @@
     <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">parse_extra_field</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ZipFileData</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-{
+<span class="kw">fn</span> <span class="ident">parse_extra_field</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ZipFileData</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">io</span>::<span class="ident">Cursor</span>::<span class="ident">new</span>(<span class="ident">data</span>);
 
-    <span class="kw">while</span> (<span class="ident">reader</span>.<span class="ident">position</span>() <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="ident">data</span>.<span class="ident">len</span>()
-    {
+    <span class="kw">while</span> (<span class="ident">reader</span>.<span class="ident">position</span>() <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="ident">data</span>.<span class="ident">len</span>() {
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len_left</span> <span class="op">=</span> <span class="ident">len</span> <span class="kw">as</span> <span class="ident">i64</span>;
-        <span class="kw">match</span> <span class="ident">kind</span>
-        {
-            <span class="comment">// Zip64 extended information extra field</span>
-            <span class="number">0x0001</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">file</span>.<span class="ident">uncompressed_size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0xFFFFFFFF</span> {
-                    <span class="ident">file</span>.<span class="ident">uncompressed_size</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u64</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-                    <span class="ident">len_left</span> <span class="op">-</span><span class="op">=</span> <span class="number">8</span>;
-                }
-                <span class="kw">if</span> <span class="ident">file</span>.<span class="ident">compressed_size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0xFFFFFFFF</span> {
-                    <span class="ident">file</span>.<span class="ident">compressed_size</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u64</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-                    <span class="ident">len_left</span> <span class="op">-</span><span class="op">=</span> <span class="number">8</span>;
-                }
-                <span class="kw">if</span> <span class="ident">file</span>.<span class="ident">header_start</span> <span class="op">=</span><span class="op">=</span> <span class="number">0xFFFFFFFF</span> {
-                    <span class="ident">file</span>.<span class="ident">header_start</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u64</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-                    <span class="ident">len_left</span> <span class="op">-</span><span class="op">=</span> <span class="number">8</span>;
-                }
-                <span class="comment">// Unparsed fields:</span>
-                <span class="comment">// u32: disk start number</span>
-            },
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {},
+        <span class="comment">// Zip64 extended information extra field</span>
+        <span class="kw">if</span> <span class="ident">kind</span> <span class="op">=</span><span class="op">=</span> <span class="number">0x0001</span> {
+            <span class="kw">if</span> <span class="ident">file</span>.<span class="ident">uncompressed_size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0xFFFFFFFF</span> {
+                <span class="ident">file</span>.<span class="ident">uncompressed_size</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u64</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                <span class="ident">len_left</span> <span class="op">-</span><span class="op">=</span> <span class="number">8</span>;
+            }
+            <span class="kw">if</span> <span class="ident">file</span>.<span class="ident">compressed_size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0xFFFFFFFF</span> {
+                <span class="ident">file</span>.<span class="ident">compressed_size</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u64</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                <span class="ident">len_left</span> <span class="op">-</span><span class="op">=</span> <span class="number">8</span>;
+            }
+            <span class="kw">if</span> <span class="ident">file</span>.<span class="ident">header_start</span> <span class="op">=</span><span class="op">=</span> <span class="number">0xFFFFFFFF</span> {
+                <span class="ident">file</span>.<span class="ident">header_start</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u64</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                <span class="ident">len_left</span> <span class="op">-</span><span class="op">=</span> <span class="number">8</span>;
+            }
+            <span class="comment">// Unparsed fields:</span>
+            <span class="comment">// u32: disk start number</span>
         }
 
         <span class="comment">// We could also check for &lt; 0 to check for errors</span>
@@ -1175,67 +1476,75 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">get_reader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">ZipFileReader</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">Read</span> {
-    <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">reader</span> {
-        <span class="ident">ZipFileReader</span>::<span class="ident">NoReader</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;ZipFileReader was in an invalid state&quot;</span>),
-        <span class="ident">ZipFileReader</span>::<span class="ident">Stored</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">Read</span>,
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>)]</span>
-        <span class="ident">ZipFileReader</span>::<span class="ident">Deflated</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">Read</span>,
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bzip2&quot;</span>)]</span>
-        <span class="ident">ZipFileReader</span>::<span class="ident">Bzip2</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">Read</span>,
-    }
-}
-
 <span class="doccomment">/// Methods for retrieving information on zip files</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ZipFile</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">get_reader</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">Read</span> {
-        <span class="ident">get_reader</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">reader</span>)
-    }
     <span class="doccomment">/// Get the version of the file</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">version_made_by</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">u8</span>, <span class="ident">u8</span>) {
-        (<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">version_made_by</span> <span class="op">/</span> <span class="number">10</span>, <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">version_made_by</span> <span class="op">%</span> <span class="number">10</span>)
+        (
+            <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">version_made_by</span> <span class="op">/</span> <span class="number">10</span>,
+            <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">version_made_by</span> <span class="op">%</span> <span class="number">10</span>,
+        )
     }
+
     <span class="doccomment">/// Get the name of the file</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">data</span>.<span class="ident">file_name</span>
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>.<span class="ident">file_name</span>
     }
+
     <span class="doccomment">/// Get the name of the file, in the raw (internal) byte representation.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name_raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
-        <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">data</span>.<span class="ident">file_name_raw</span>
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>.<span class="ident">file_name_raw</span>
     }
+
     <span class="doccomment">/// Get the name of the file in a sanitized form. It truncates the name to the first NULL byte,</span>
     <span class="doccomment">/// removes a leading &#39;/&#39; and removes &#39;..&#39; parts.</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(
+        <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.5.7&quot;</span>,
+        <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;by stripping `..`s from the path, the meaning of paths can change.
+                You must use a sanitization strategy that&#39;s appropriate for your input&quot;</span>
+    )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sanitized_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span> {
         <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">file_name_sanitized</span>()
     }
+
     <span class="doccomment">/// Get the comment of the file</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">comment</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">data</span>.<span class="ident">file_comment</span>
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>.<span class="ident">file_comment</span>
     }
+
     <span class="doccomment">/// Get the compression method used to store the file</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compression</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CompressionMethod</span> {
         <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">compression_method</span>
     }
+
     <span class="doccomment">/// Get the size of the file in the archive</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compressed_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
         <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">compressed_size</span>
     }
+
     <span class="doccomment">/// Get the size of the file when uncompressed</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
         <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">uncompressed_size</span>
     }
+
     <span class="doccomment">/// Get the time the file was last modified</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_modified</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DateTime</span> {
         <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">last_modified_time</span>
     }
     <span class="doccomment">/// Returns whether the file is actually a directory</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_dir</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">name</span>().<span class="ident">chars</span>().<span class="ident">rev</span>().<span class="ident">next</span>().<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;/&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;\\&#39;</span>)
+        <span class="self">self</span>.<span class="ident">name</span>()
+            .<span class="ident">chars</span>()
+            .<span class="ident">rev</span>()
+            .<span class="ident">next</span>()
+            .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;/&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;\\&#39;</span>)
     }
+
     <span class="doccomment">/// Returns whether the file is a regular file</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="op">!</span><span class="self">self</span>.<span class="ident">is_dir</span>()
     }
+
     <span class="doccomment">/// Get unix mode for the file</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unix_mode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">external_attributes</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
@@ -1243,9 +1552,7 @@
         }
 
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">system</span> {
-            <span class="ident">System</span>::<span class="ident">Unix</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">external_attributes</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span>)
-            },
+            <span class="ident">System</span>::<span class="ident">Unix</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">external_attributes</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span>),
             <span class="ident">System</span>::<span class="ident">Dos</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// Interpret MSDOS directory bit</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mode</span> <span class="op">=</span> <span class="kw">if</span> <span class="number">0x10</span> <span class="op">=</span><span class="op">=</span> (<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">external_attributes</span> <span class="op">&amp;</span> <span class="number">0x10</span>) {
@@ -1258,10 +1565,11 @@
                     <span class="ident">mode</span> <span class="kw-2">&amp;</span><span class="op">=</span> <span class="number">0o0555</span>;
                 }
                 <span class="prelude-val">Some</span>(<span class="ident">mode</span>)
-            },
+            }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
+
     <span class="doccomment">/// Get the CRC32 hash of the original file</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">crc32</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">crc32</span>
@@ -1271,12 +1579,21 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">data_start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
         <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">data_start</span>
     }
+
+    <span class="doccomment">/// Get the starting offset of the zip header for this file</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">header_start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+        <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">header_start</span>
+    }
+    <span class="doccomment">/// Get the starting offset of the zip header in the central directory for this file</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">central_header_start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+        <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">central_header_start</span>
+    }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">ZipFile</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-     <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-         <span class="self">self</span>.<span class="ident">get_reader</span>().<span class="ident">read</span>(<span class="ident">buf</span>)
-     }
+    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">reader</span>.<span class="ident">read</span>(<span class="ident">buf</span>)
+    }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">ZipFile</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
@@ -1284,24 +1601,20 @@
         <span class="comment">// self.data is Owned, this reader is constructed by a streaming reader.</span>
         <span class="comment">// In this case, we want to exhaust the reader so that the next file is accessible.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Cow</span>::<span class="ident">Owned</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">1</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="number">16</span>];
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>];
 
-            <span class="comment">// Get the inner `Take` reader so all decompression and CRC calculation is skipped.</span>
+            <span class="comment">// Get the inner `Take` reader so all decryption, decompression and CRC calculation is skipped.</span>
             <span class="kw">let</span> <span class="ident">innerreader</span> <span class="op">=</span> ::<span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">reader</span>, <span class="ident">ZipFileReader</span>::<span class="ident">NoReader</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">innerreader</span> {
-                <span class="ident">ZipFileReader</span>::<span class="ident">NoReader</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;ZipFileReader was in an invalid state&quot;</span>),
-                <span class="ident">ZipFileReader</span>::<span class="ident">Stored</span>(<span class="ident">crcreader</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">crcreader</span>.<span class="ident">into_inner</span>(),
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>)]</span>
-                <span class="ident">ZipFileReader</span>::<span class="ident">Deflated</span>(<span class="ident">crcreader</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">crcreader</span>.<span class="ident">into_inner</span>().<span class="ident">into_inner</span>(),
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bzip2&quot;</span>)]</span>
-                <span class="ident">ZipFileReader</span>::<span class="ident">Bzip2</span>(<span class="ident">crcreader</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">crcreader</span>.<span class="ident">into_inner</span>().<span class="ident">into_inner</span>(),
-            };
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span>: <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Take</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">innerreader</span>.<span class="ident">into_inner</span>();
 
             <span class="kw">loop</span> {
                 <span class="kw">match</span> <span class="ident">reader</span>.<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>) {
                     <span class="prelude-val">Ok</span>(<span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
                     <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> (),
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Could not consume all of the output of the current ZipFile: {:?}&quot;</span>, <span class="ident">e</span>),
+                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(
+                        <span class="string">&quot;Could not consume all of the output of the current ZipFile: {:?}&quot;</span>,
+                        <span class="ident">e</span>
+                    ),
                 }
             }
         }
@@ -1324,7 +1637,9 @@
 <span class="doccomment">/// * `comment`: set to an empty string</span>
 <span class="doccomment">/// * `data_start`: set to 0</span>
 <span class="doccomment">/// * `external_attributes`: `unix_mode()`: will return None</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_zipfile_from_stream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <span class="ident">io</span>::<span class="ident">Read</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ZipFile</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_zipfile_from_stream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <span class="ident">io</span>::<span class="ident">Read</span><span class="op">&gt;</span>(
+    <span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">R</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ZipFile</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
     <span class="kw">match</span> <span class="ident">signature</span> {
@@ -1338,6 +1653,7 @@
     <span class="kw">let</span> <span class="ident">encrypted</span> <span class="op">=</span> <span class="ident">flags</span> <span class="op">&amp;</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span>;
     <span class="kw">let</span> <span class="ident">is_utf8</span> <span class="op">=</span> <span class="ident">flags</span> <span class="op">&amp;</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">11</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
     <span class="kw">let</span> <span class="ident">using_data_descriptor</span> <span class="op">=</span> <span class="ident">flags</span> <span class="op">&amp;</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">3</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>;
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
     <span class="kw">let</span> <span class="ident">compression_method</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">from_u16</span>(<span class="ident">reader</span>.<span class="ident">read_u16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>);
     <span class="kw">let</span> <span class="ident">last_mod_time</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">last_mod_date</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
@@ -1347,32 +1663,33 @@
     <span class="kw">let</span> <span class="ident">file_name_length</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">usize</span>;
     <span class="kw">let</span> <span class="ident">extra_field_length</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">usize</span>;
 
-    <span class="kw">let</span> <span class="ident">file_name_raw</span> <span class="op">=</span> <span class="ident">ReadPodExt</span>::<span class="ident">read_exact</span>(<span class="ident">reader</span>, <span class="ident">file_name_length</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">extra_field</span> <span class="op">=</span> <span class="ident">ReadPodExt</span>::<span class="ident">read_exact</span>(<span class="ident">reader</span>, <span class="ident">extra_field_length</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file_name_raw</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>; <span class="ident">file_name_length</span>];
+    <span class="ident">reader</span>.<span class="ident">read_exact</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">file_name_raw</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">extra_field</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>; <span class="ident">extra_field_length</span>];
+    <span class="ident">reader</span>.<span class="ident">read_exact</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">extra_field</span>)<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">file_name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">is_utf8</span>
-    {
+    <span class="kw">let</span> <span class="ident">file_name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">is_utf8</span> {
         <span class="bool-val">true</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">file_name_raw</span>).<span class="ident">into_owned</span>(),
         <span class="bool-val">false</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">file_name_raw</span>.<span class="ident">clone</span>().<span class="ident">from_cp437</span>(),
     };
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">ZipFileData</span>
-    {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">ZipFileData</span> {
         <span class="ident">system</span>: <span class="ident">System</span>::<span class="ident">from_u8</span>((<span class="ident">version_made_by</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="kw">as</span> <span class="ident">u8</span>),
         <span class="ident">version_made_by</span>: <span class="ident">version_made_by</span> <span class="kw">as</span> <span class="ident">u8</span>,
-        <span class="ident">encrypted</span>: <span class="ident">encrypted</span>,
-        <span class="ident">compression_method</span>: <span class="ident">compression_method</span>,
+        <span class="ident">encrypted</span>,
+        <span class="ident">compression_method</span>,
         <span class="ident">last_modified_time</span>: <span class="ident">DateTime</span>::<span class="ident">from_msdos</span>(<span class="ident">last_mod_date</span>, <span class="ident">last_mod_time</span>),
-        <span class="ident">crc32</span>: <span class="ident">crc32</span>,
+        <span class="ident">crc32</span>,
         <span class="ident">compressed_size</span>: <span class="ident">compressed_size</span> <span class="kw">as</span> <span class="ident">u64</span>,
         <span class="ident">uncompressed_size</span>: <span class="ident">uncompressed_size</span> <span class="kw">as</span> <span class="ident">u64</span>,
-        <span class="ident">file_name</span>: <span class="ident">file_name</span>,
-        <span class="ident">file_name_raw</span>: <span class="ident">file_name_raw</span>,
-        <span class="ident">file_comment</span>: <span class="ident">String</span>::<span class="ident">new</span>(),  <span class="comment">// file comment is only available in the central directory</span>
+        <span class="ident">file_name</span>,
+        <span class="ident">file_name_raw</span>,
+        <span class="ident">file_comment</span>: <span class="ident">String</span>::<span class="ident">new</span>(), <span class="comment">// file comment is only available in the central directory</span>
         <span class="comment">// header_start and data start are not available, but also don&#39;t matter, since seeking is</span>
         <span class="comment">// not available.</span>
         <span class="ident">header_start</span>: <span class="number">0</span>,
         <span class="ident">data_start</span>: <span class="number">0</span>,
+        <span class="ident">central_header_start</span>: <span class="number">0</span>,
         <span class="comment">// The external_attributes field is only available in the central directory.</span>
         <span class="comment">// We set this to zero, which should be valid as the docs state &#39;If input came</span>
         <span class="comment">// from standard input, this field is set to zero.&#39;</span>
@@ -1380,12 +1697,12 @@
     };
 
     <span class="kw">match</span> <span class="ident">parse_extra_field</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">result</span>, <span class="kw-2">&amp;</span><span class="ident">extra_field</span>) {
-        <span class="prelude-val">Ok</span>(..) <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">Io</span>(..)) <span class="op">=</span><span class="op">&gt;</span> {},
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>)<span class="question-mark">?</span>,
+        <span class="prelude-val">Ok</span>(..) <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">Io</span>(..)) <span class="op">=</span><span class="op">&gt;</span> {}
+        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
     }
 
     <span class="kw">if</span> <span class="ident">encrypted</span> {
-        <span class="kw">return</span> <span class="ident">unsupported_zip_error</span>(<span class="string">&quot;Encrypted files are not supported&quot;</span>)
+        <span class="kw">return</span> <span class="ident">unsupported_zip_error</span>(<span class="string">&quot;Encrypted files are not supported&quot;</span>);
     }
     <span class="kw">if</span> <span class="ident">using_data_descriptor</span> {
         <span class="kw">return</span> <span class="ident">unsupported_zip_error</span>(<span class="string">&quot;The file length is not available in the local header&quot;</span>);
@@ -1397,7 +1714,7 @@
     <span class="kw">let</span> <span class="ident">result_compression_method</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">compression_method</span>;
     <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">ZipFile</span> {
         <span class="ident">data</span>: <span class="ident">Cow</span>::<span class="ident">Owned</span>(<span class="ident">result</span>),
-        <span class="ident">reader</span>: <span class="ident">make_reader</span>(<span class="ident">result_compression_method</span>, <span class="ident">result_crc32</span>, <span class="ident">limit_reader</span>)<span class="question-mark">?</span>
+        <span class="ident">reader</span>: <span class="ident">make_reader</span>(<span class="ident">result_compression_method</span>, <span class="ident">result_crc32</span>, <span class="ident">limit_reader</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>.<span class="ident">unwrap</span>(),
     }))
 }
 
@@ -1405,8 +1722,8 @@
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">invalid_offset</span>() {
-        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
         <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">ZipArchive</span>;
+        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
         <span class="ident">v</span>.<span class="ident">extend_from_slice</span>(<span class="macro">include_bytes</span><span class="macro">!</span>(<span class="string">&quot;../tests/data/invalid_offset.zip&quot;</span>));
@@ -1415,9 +1732,20 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">zip64_with_leading_junk</span>() {
-        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
+    <span class="kw">fn</span> <span class="ident">invalid_offset2</span>() {
         <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">ZipArchive</span>;
+        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+        <span class="ident">v</span>.<span class="ident">extend_from_slice</span>(<span class="macro">include_bytes</span><span class="macro">!</span>(<span class="string">&quot;../tests/data/invalid_offset2.zip&quot;</span>));
+        <span class="kw">let</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">ZipArchive</span>::<span class="ident">new</span>(<span class="ident">io</span>::<span class="ident">Cursor</span>::<span class="ident">new</span>(<span class="ident">v</span>));
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">reader</span>.<span class="ident">is_err</span>());
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">zip64_with_leading_junk</span>() {
+        <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">ZipArchive</span>;
+        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
         <span class="ident">v</span>.<span class="ident">extend_from_slice</span>(<span class="macro">include_bytes</span><span class="macro">!</span>(<span class="string">&quot;../tests/data/zip64_demo.zip&quot;</span>));
@@ -1426,20 +1754,21 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">zip_comment</span>() {
-        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
+    <span class="kw">fn</span> <span class="ident">zip_contents</span>() {
         <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">ZipArchive</span>;
+        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
         <span class="ident">v</span>.<span class="ident">extend_from_slice</span>(<span class="macro">include_bytes</span><span class="macro">!</span>(<span class="string">&quot;../tests/data/mimetype.zip&quot;</span>));
-        <span class="kw">let</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">ZipArchive</span>::<span class="ident">new</span>(<span class="ident">io</span>::<span class="ident">Cursor</span>::<span class="ident">new</span>(<span class="ident">v</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">reader</span>.<span class="ident">comment</span>() <span class="op">=</span><span class="op">=</span> <span class="string">b&quot;zip-rs&quot;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">ZipArchive</span>::<span class="ident">new</span>(<span class="ident">io</span>::<span class="ident">Cursor</span>::<span class="ident">new</span>(<span class="ident">v</span>)).<span class="ident">unwrap</span>();
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">reader</span>.<span class="ident">comment</span>() <span class="op">=</span><span class="op">=</span> <span class="string">b&quot;&quot;</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">reader</span>.<span class="ident">by_index</span>(<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">central_header_start</span>(), <span class="number">77</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">zip_read_streaming</span>() {
-        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
         <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">read_zipfile_from_stream</span>;
+        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
         <span class="ident">v</span>.<span class="ident">extend_from_slice</span>(<span class="macro">include_bytes</span><span class="macro">!</span>(<span class="string">&quot;../tests/data/mimetype.zip&quot;</span>));
@@ -1454,8 +1783,8 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">zip_clone</span>() {
-        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">Read</span>};
         <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">ZipArchive</span>;
+        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">Read</span>};
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
         <span class="ident">v</span>.<span class="ident">extend_from_slice</span>(<span class="macro">include_bytes</span><span class="macro">!</span>(<span class="string">&quot;../tests/data/mimetype.zip&quot;</span>));
@@ -1466,7 +1795,17 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file2</span> <span class="op">=</span> <span class="ident">reader2</span>.<span class="ident">by_index</span>(<span class="number">0</span>).<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">file1</span>.<span class="ident">last_modified</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>((<span class="ident">t</span>.<span class="ident">year</span>(), <span class="ident">t</span>.<span class="ident">month</span>(), <span class="ident">t</span>.<span class="ident">day</span>(), <span class="ident">t</span>.<span class="ident">hour</span>(), <span class="ident">t</span>.<span class="ident">minute</span>(), <span class="ident">t</span>.<span class="ident">second</span>()), (<span class="number">1980</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            (
+                <span class="ident">t</span>.<span class="ident">year</span>(),
+                <span class="ident">t</span>.<span class="ident">month</span>(),
+                <span class="ident">t</span>.<span class="ident">day</span>(),
+                <span class="ident">t</span>.<span class="ident">hour</span>(),
+                <span class="ident">t</span>.<span class="ident">minute</span>(),
+                <span class="ident">t</span>.<span class="ident">second</span>()
+            ),
+            (<span class="number">1980</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)
+        );
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf1</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">5</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf2</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">5</span>];
@@ -1494,6 +1833,7 @@
 
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">zip</span>.<span class="ident">len</span>() {
             <span class="kw">let</span> <span class="ident">zip_file</span> <span class="op">=</span> <span class="ident">zip</span>.<span class="ident">by_index</span>(<span class="ident">i</span>).<span class="ident">unwrap</span>();
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
             <span class="kw">let</span> <span class="ident">full_name</span> <span class="op">=</span> <span class="ident">zip_file</span>.<span class="ident">sanitized_name</span>();
             <span class="kw">let</span> <span class="ident">file_name</span> <span class="op">=</span> <span class="ident">full_name</span>.<span class="ident">file_name</span>().<span class="ident">unwrap</span>().<span class="ident">to_str</span>().<span class="ident">unwrap</span>();
             <span class="macro">assert</span><span class="macro">!</span>(

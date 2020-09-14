@@ -1,4 +1,0 @@
-(function() {var implementors = {};
-implementors["failure"] = [];
-implementors["oauth2"] = [{"text":"impl&lt;RE, T&gt; <a class=\"trait\" href=\"failure/trait.Fail.html\" title=\"trait failure::Fail\">Fail</a> for <a class=\"enum\" href=\"oauth2/enum.RequestTokenError.html\" title=\"enum oauth2::RequestTokenError\">RequestTokenError</a>&lt;RE, T&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;RE: <a class=\"trait\" href=\"failure/trait.Fail.html\" title=\"trait failure::Fail\">Fail</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;T: <a class=\"trait\" href=\"oauth2/trait.ErrorResponse.html\" title=\"trait oauth2::ErrorResponse\">ErrorResponse</a> + 'static,&nbsp;</span>","synthetic":false,"types":["oauth2::RequestTokenError"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

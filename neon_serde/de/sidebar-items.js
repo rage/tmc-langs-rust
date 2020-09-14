@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["from_value","Deserialize an instance of type `T` from a `Handle<JsValue>`"],["from_value_opt",""]]});

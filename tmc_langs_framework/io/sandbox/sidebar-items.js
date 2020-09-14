@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["move_files","Moves some of the contents of source to target based on the given policy. For example, a file source/foo.java would be moved to target/foo.java."]]});

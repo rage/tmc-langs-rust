@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["len","Gets the length of an `v8::Array`."],["new","Mutates the `out` argument provided to refer to a newly created `v8::Array`."]]});

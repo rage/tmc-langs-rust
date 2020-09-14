@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["data","Mutates the `base_out` and `size_out` arguments to access the data of a `v8::ArrayBuffer` object."],["new","Mutates the `out` argument provided to refer to a newly created `v8::ArrayBuffer` object. Returns `false` if the value couldn't be created."]]});

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zip-0.5.6/src/spec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>spec.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../zip/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zip-0.5.8/src/spec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>spec.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../zip/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -183,25 +183,19 @@
 <span id="183">183</span>
 <span id="184">184</span>
 <span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">result</span>::{<span class="ident">ZipError</span>, <span class="ident">ZipResult</span>};
+<span class="kw">use</span> <span class="ident">byteorder</span>::{<span class="ident">LittleEndian</span>, <span class="ident">ReadBytesExt</span>, <span class="ident">WriteBytesExt</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">result</span>::{<span class="ident">ZipResult</span>, <span class="ident">ZipError</span>};
-<span class="kw">use</span> <span class="ident">podio</span>::{<span class="ident">ReadPodExt</span>, <span class="ident">WritePodExt</span>, <span class="ident">LittleEndian</span>};
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOCAL_FILE_HEADER_SIGNATURE</span> : <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x04034b50</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CENTRAL_DIRECTORY_HEADER_SIGNATURE</span> : <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x02014b50</span>;
-<span class="kw">const</span> <span class="ident">CENTRAL_DIRECTORY_END_SIGNATURE</span> : <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x06054b50</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ZIP64_CENTRAL_DIRECTORY_END_SIGNATURE</span> : <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x06064b50</span>;
-<span class="kw">const</span> <span class="ident">ZIP64_CENTRAL_DIRECTORY_END_LOCATOR_SIGNATURE</span> : <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x07064b50</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOCAL_FILE_HEADER_SIGNATURE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x04034b50</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CENTRAL_DIRECTORY_HEADER_SIGNATURE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x02014b50</span>;
+<span class="kw">const</span> <span class="ident">CENTRAL_DIRECTORY_END_SIGNATURE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x06054b50</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ZIP64_CENTRAL_DIRECTORY_END_SIGNATURE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x06064b50</span>;
+<span class="kw">const</span> <span class="ident">ZIP64_CENTRAL_DIRECTORY_END_LOCATOR_SIGNATURE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x07064b50</span>;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CentralDirectoryEnd</span>
-{
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CentralDirectoryEnd</span> {
     <span class="kw">pub</span> <span class="ident">disk_number</span>: <span class="ident">u16</span>,
     <span class="kw">pub</span> <span class="ident">disk_with_central_directory</span>: <span class="ident">u16</span>,
     <span class="kw">pub</span> <span class="ident">number_of_files_on_this_disk</span>: <span class="ident">u16</span>,
@@ -211,14 +205,11 @@
     <span class="kw">pub</span> <span class="ident">zip_file_comment</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">CentralDirectoryEnd</span>
-{
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="ident">CentralDirectoryEnd</span><span class="op">&gt;</span>
-    {
+<span class="kw">impl</span> <span class="ident">CentralDirectoryEnd</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="ident">CentralDirectoryEnd</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">magic</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">magic</span> <span class="op">!</span><span class="op">=</span> <span class="ident">CENTRAL_DIRECTORY_END_SIGNATURE</span>
-        {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(<span class="string">&quot;Invalid digital signature header&quot;</span>))
+        <span class="kw">if</span> <span class="ident">magic</span> <span class="op">!</span><span class="op">=</span> <span class="ident">CENTRAL_DIRECTORY_END_SIGNATURE</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(<span class="string">&quot;Invalid digital signature header&quot;</span>));
         }
         <span class="kw">let</span> <span class="ident">disk_number</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">disk_with_central_directory</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
@@ -227,42 +218,42 @@
         <span class="kw">let</span> <span class="ident">central_directory_size</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">central_directory_offset</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">zip_file_comment_length</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">usize</span>;
-        <span class="kw">let</span> <span class="ident">zip_file_comment</span> <span class="op">=</span> <span class="ident">ReadPodExt</span>::<span class="ident">read_exact</span>(<span class="ident">reader</span>, <span class="ident">zip_file_comment_length</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zip_file_comment</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>; <span class="ident">zip_file_comment_length</span>];
+        <span class="ident">reader</span>.<span class="ident">read_exact</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">zip_file_comment</span>)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">CentralDirectoryEnd</span>
-           {
-               <span class="ident">disk_number</span>: <span class="ident">disk_number</span>,
-               <span class="ident">disk_with_central_directory</span>: <span class="ident">disk_with_central_directory</span>,
-               <span class="ident">number_of_files_on_this_disk</span>: <span class="ident">number_of_files_on_this_disk</span>,
-               <span class="ident">number_of_files</span>: <span class="ident">number_of_files</span>,
-               <span class="ident">central_directory_size</span>: <span class="ident">central_directory_size</span>,
-               <span class="ident">central_directory_offset</span>: <span class="ident">central_directory_offset</span>,
-               <span class="ident">zip_file_comment</span>: <span class="ident">zip_file_comment</span>,
-           })
+        <span class="prelude-val">Ok</span>(<span class="ident">CentralDirectoryEnd</span> {
+            <span class="ident">disk_number</span>,
+            <span class="ident">disk_with_central_directory</span>,
+            <span class="ident">number_of_files_on_this_disk</span>,
+            <span class="ident">number_of_files</span>,
+            <span class="ident">central_directory_size</span>,
+            <span class="ident">central_directory_offset</span>,
+            <span class="ident">zip_file_comment</span>,
+        })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_and_parse</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Read</span><span class="op">+</span><span class="ident">io</span>::<span class="ident">Seek</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span>(<span class="ident">CentralDirectoryEnd</span>, <span class="ident">u64</span>)<span class="op">&gt;</span>
-    {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_and_parse</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Read</span> <span class="op">+</span> <span class="ident">io</span>::<span class="ident">Seek</span><span class="op">&gt;</span>(
+        <span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span>(<span class="ident">CentralDirectoryEnd</span>, <span class="ident">u64</span>)<span class="op">&gt;</span> {
         <span class="kw">const</span> <span class="ident">HEADER_SIZE</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">22</span>;
         <span class="kw">const</span> <span class="ident">BYTES_BETWEEN_MAGIC_AND_COMMENT_SIZE</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">HEADER_SIZE</span> <span class="op">-</span> <span class="number">6</span>;
         <span class="kw">let</span> <span class="ident">file_length</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">seek</span>(<span class="ident">io</span>::<span class="ident">SeekFrom</span>::<span class="ident">End</span>(<span class="number">0</span>))<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">search_upper_bound</span> <span class="op">=</span> <span class="ident">file_length</span>.<span class="ident">checked_sub</span>(<span class="ident">HEADER_SIZE</span> <span class="op">+</span> ::<span class="ident">std</span>::<span class="ident">u16</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">unwrap_or</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">search_upper_bound</span> <span class="op">=</span> <span class="ident">file_length</span>.<span class="ident">saturating_sub</span>(<span class="ident">HEADER_SIZE</span> <span class="op">+</span> ::<span class="ident">std</span>::<span class="ident">u16</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">u64</span>);
 
         <span class="kw">if</span> <span class="ident">file_length</span> <span class="op">&lt;</span> <span class="ident">HEADER_SIZE</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(<span class="string">&quot;Invalid zip header&quot;</span>));
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">file_length</span> <span class="op">-</span> <span class="ident">HEADER_SIZE</span>;
-        <span class="kw">while</span> <span class="ident">pos</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">search_upper_bound</span>
-        {
+        <span class="kw">while</span> <span class="ident">pos</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">search_upper_bound</span> {
             <span class="ident">reader</span>.<span class="ident">seek</span>(<span class="ident">io</span>::<span class="ident">SeekFrom</span>::<span class="ident">Start</span>(<span class="ident">pos</span> <span class="kw">as</span> <span class="ident">u64</span>))<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">reader</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span> <span class="op">=</span><span class="op">=</span> <span class="ident">CENTRAL_DIRECTORY_END_SIGNATURE</span>
-            {
-                <span class="ident">reader</span>.<span class="ident">seek</span>(<span class="ident">io</span>::<span class="ident">SeekFrom</span>::<span class="ident">Current</span>(<span class="ident">BYTES_BETWEEN_MAGIC_AND_COMMENT_SIZE</span> <span class="kw">as</span> <span class="ident">i64</span>))<span class="question-mark">?</span>;
+            <span class="kw">if</span> <span class="ident">reader</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span> <span class="op">=</span><span class="op">=</span> <span class="ident">CENTRAL_DIRECTORY_END_SIGNATURE</span> {
+                <span class="ident">reader</span>.<span class="ident">seek</span>(<span class="ident">io</span>::<span class="ident">SeekFrom</span>::<span class="ident">Current</span>(
+                    <span class="ident">BYTES_BETWEEN_MAGIC_AND_COMMENT_SIZE</span> <span class="kw">as</span> <span class="ident">i64</span>,
+                ))<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">comment_length</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">u64</span>;
-                <span class="kw">if</span> <span class="ident">file_length</span> <span class="op">-</span> <span class="ident">pos</span> <span class="op">-</span> <span class="ident">HEADER_SIZE</span> <span class="op">=</span><span class="op">=</span> <span class="ident">comment_length</span>
-                {
+                <span class="kw">if</span> <span class="ident">file_length</span> <span class="op">-</span> <span class="ident">pos</span> <span class="op">-</span> <span class="ident">HEADER_SIZE</span> <span class="op">=</span><span class="op">=</span> <span class="ident">comment_length</span> {
                     <span class="kw">let</span> <span class="ident">cde_start_pos</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">seek</span>(<span class="ident">io</span>::<span class="ident">SeekFrom</span>::<span class="ident">Start</span>(<span class="ident">pos</span> <span class="kw">as</span> <span class="ident">u64</span>))<span class="question-mark">?</span>;
                     <span class="kw">return</span> <span class="ident">CentralDirectoryEnd</span>::<span class="ident">parse</span>(<span class="ident">reader</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">cde</span><span class="op">|</span> (<span class="ident">cde</span>, <span class="ident">cde_start_pos</span>));
                 }
@@ -272,11 +263,12 @@
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
             };
         }
-        <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(<span class="string">&quot;Could not find central directory end&quot;</span>))
+        <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(
+            <span class="string">&quot;Could not find central directory end&quot;</span>,
+        ))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">writer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">writer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="ident">writer</span>.<span class="ident">write_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>(<span class="ident">CENTRAL_DIRECTORY_END_SIGNATURE</span>)<span class="question-mark">?</span>;
         <span class="ident">writer</span>.<span class="ident">write_u16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>(<span class="self">self</span>.<span class="ident">disk_number</span>)<span class="question-mark">?</span>;
         <span class="ident">writer</span>.<span class="ident">write_u16</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>(<span class="self">self</span>.<span class="ident">disk_with_central_directory</span>)<span class="question-mark">?</span>;
@@ -290,37 +282,33 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Zip64CentralDirectoryEndLocator</span>
-{
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Zip64CentralDirectoryEndLocator</span> {
     <span class="kw">pub</span> <span class="ident">disk_with_central_directory</span>: <span class="ident">u32</span>,
     <span class="kw">pub</span> <span class="ident">end_of_central_directory_offset</span>: <span class="ident">u64</span>,
     <span class="kw">pub</span> <span class="ident">number_of_disks</span>: <span class="ident">u32</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">Zip64CentralDirectoryEndLocator</span>
-{
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="ident">Zip64CentralDirectoryEndLocator</span><span class="op">&gt;</span>
-    {
+<span class="kw">impl</span> <span class="ident">Zip64CentralDirectoryEndLocator</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span><span class="ident">Zip64CentralDirectoryEndLocator</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">magic</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">magic</span> <span class="op">!</span><span class="op">=</span> <span class="ident">ZIP64_CENTRAL_DIRECTORY_END_LOCATOR_SIGNATURE</span>
-        {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(<span class="string">&quot;Invalid zip64 locator digital signature header&quot;</span>))
+        <span class="kw">if</span> <span class="ident">magic</span> <span class="op">!</span><span class="op">=</span> <span class="ident">ZIP64_CENTRAL_DIRECTORY_END_LOCATOR_SIGNATURE</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(
+                <span class="string">&quot;Invalid zip64 locator digital signature header&quot;</span>,
+            ));
         }
         <span class="kw">let</span> <span class="ident">disk_with_central_directory</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">end_of_central_directory_offset</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u64</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">number_of_disks</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Zip64CentralDirectoryEndLocator</span>
-           {
-               <span class="ident">disk_with_central_directory</span>: <span class="ident">disk_with_central_directory</span>,
-               <span class="ident">end_of_central_directory_offset</span>: <span class="ident">end_of_central_directory_offset</span>,
-               <span class="ident">number_of_disks</span>: <span class="ident">number_of_disks</span>,
-           })
+        <span class="prelude-val">Ok</span>(<span class="ident">Zip64CentralDirectoryEndLocator</span> {
+            <span class="ident">disk_with_central_directory</span>,
+            <span class="ident">end_of_central_directory_offset</span>,
+            <span class="ident">number_of_disks</span>,
+        })
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Zip64CentralDirectoryEnd</span>
-{
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Zip64CentralDirectoryEnd</span> {
     <span class="kw">pub</span> <span class="ident">version_made_by</span>: <span class="ident">u16</span>,
     <span class="kw">pub</span> <span class="ident">version_needed_to_extract</span>: <span class="ident">u16</span>,
     <span class="kw">pub</span> <span class="ident">disk_number</span>: <span class="ident">u32</span>,
@@ -332,20 +320,18 @@
     <span class="comment">//pub extensible_data_sector: Vec&lt;u8&gt;, &lt;-- We don&#39;t do anything with this at the moment.</span>
 }
 
-<span class="kw">impl</span> <span class="ident">Zip64CentralDirectoryEnd</span>
-{
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_and_parse</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Read</span><span class="op">+</span><span class="ident">io</span>::<span class="ident">Seek</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>,
-                                            <span class="ident">nominal_offset</span>: <span class="ident">u64</span>,
-                                            <span class="ident">search_upper_bound</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span>(<span class="ident">Zip64CentralDirectoryEnd</span>, <span class="ident">u64</span>)<span class="op">&gt;</span>
-    {
+<span class="kw">impl</span> <span class="ident">Zip64CentralDirectoryEnd</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_and_parse</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Read</span> <span class="op">+</span> <span class="ident">io</span>::<span class="ident">Seek</span><span class="op">&gt;</span>(
+        <span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>,
+        <span class="ident">nominal_offset</span>: <span class="ident">u64</span>,
+        <span class="ident">search_upper_bound</span>: <span class="ident">u64</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ZipResult</span><span class="op">&lt;</span>(<span class="ident">Zip64CentralDirectoryEnd</span>, <span class="ident">u64</span>)<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">nominal_offset</span>;
 
-        <span class="kw">while</span> <span class="ident">pos</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">search_upper_bound</span>
-        {
+        <span class="kw">while</span> <span class="ident">pos</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">search_upper_bound</span> {
             <span class="ident">reader</span>.<span class="ident">seek</span>(<span class="ident">io</span>::<span class="ident">SeekFrom</span>::<span class="ident">Start</span>(<span class="ident">pos</span>))<span class="question-mark">?</span>;
 
-            <span class="kw">if</span> <span class="ident">reader</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ZIP64_CENTRAL_DIRECTORY_END_SIGNATURE</span>
-            {
+            <span class="kw">if</span> <span class="ident">reader</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ZIP64_CENTRAL_DIRECTORY_END_SIGNATURE</span> {
                 <span class="kw">let</span> <span class="ident">archive_offset</span> <span class="op">=</span> <span class="ident">pos</span> <span class="op">-</span> <span class="ident">nominal_offset</span>;
 
                 <span class="kw">let</span> <span class="ident">_record_size</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u64</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
@@ -360,23 +346,27 @@
                 <span class="kw">let</span> <span class="ident">central_directory_size</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u64</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">central_directory_offset</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_u64</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">Zip64CentralDirectoryEnd</span>
-                          {
-                              <span class="ident">version_made_by</span>: <span class="ident">version_made_by</span>,
-                              <span class="ident">version_needed_to_extract</span>: <span class="ident">version_needed_to_extract</span>,
-                              <span class="ident">disk_number</span>: <span class="ident">disk_number</span>,
-                              <span class="ident">disk_with_central_directory</span>: <span class="ident">disk_with_central_directory</span>,
-                              <span class="ident">number_of_files_on_this_disk</span>: <span class="ident">number_of_files_on_this_disk</span>,
-                              <span class="ident">number_of_files</span>: <span class="ident">number_of_files</span>,
-                              <span class="ident">central_directory_size</span>: <span class="ident">central_directory_size</span>,
-                              <span class="ident">central_directory_offset</span>: <span class="ident">central_directory_offset</span>,
-                          }, <span class="ident">archive_offset</span>));
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>((
+                    <span class="ident">Zip64CentralDirectoryEnd</span> {
+                        <span class="ident">version_made_by</span>,
+                        <span class="ident">version_needed_to_extract</span>,
+                        <span class="ident">disk_number</span>,
+                        <span class="ident">disk_with_central_directory</span>,
+                        <span class="ident">number_of_files_on_this_disk</span>,
+                        <span class="ident">number_of_files</span>,
+                        <span class="ident">central_directory_size</span>,
+                        <span class="ident">central_directory_offset</span>,
+                    },
+                    <span class="ident">archive_offset</span>,
+                ));
             }
 
             <span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
 
-        <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(<span class="string">&quot;Could not find ZIP64 central directory end&quot;</span>))
+        <span class="prelude-val">Err</span>(<span class="ident">ZipError</span>::<span class="ident">InvalidArchive</span>(
+            <span class="string">&quot;Could not find ZIP64 central directory end&quot;</span>,
+        ))
     }
 }
 </pre></div>

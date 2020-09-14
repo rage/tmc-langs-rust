@@ -468,6 +468,22 @@
 <span id="468">468</span>
 <span id="469">469</span>
 <span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Java ant plugin</span>
 
@@ -478,13 +494,14 @@
 <span class="kw">use</span> <span class="ident">policy</span>::<span class="ident">AntStudentFilePolicy</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">env</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">OsStr</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">process</span>::<span class="ident">Stdio</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
     <span class="ident">command</span>::<span class="ident">TmcCommand</span>,
     <span class="ident">domain</span>::{<span class="ident">ExerciseDesc</span>, <span class="ident">RunResult</span>, <span class="ident">ValidationResult</span>},
     <span class="ident">io</span>::<span class="ident">file_util</span>,
+    <span class="ident">nom</span>::<span class="ident">IResult</span>,
     <span class="ident">plugin</span>::{<span class="ident">Language</span>, <span class="ident">LanguagePlugin</span>},
     <span class="ident">TmcError</span>,
 };
@@ -540,6 +557,8 @@
 
 <span class="kw">impl</span> <span class="ident">LanguagePlugin</span> <span class="kw">for</span> <span class="ident">AntPlugin</span> {
     <span class="kw">const</span> <span class="ident">PLUGIN_NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;apache-ant&quot;</span>;
+    <span class="kw">const</span> <span class="ident">LINE_COMMENT</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;//&quot;</span>;
+    <span class="kw">const</span> <span class="ident">BLOCK_COMMENT</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="string">&quot;/*&quot;</span>, <span class="string">&quot;*/&quot;</span>));
     <span class="kw">type</span> <span class="ident">StudentFilePolicy</span> <span class="op">=</span> <span class="ident">AntStudentFilePolicy</span>;
 
     <span class="kw">fn</span> <span class="ident">check_code_style</span>(
@@ -600,6 +619,18 @@
         <span class="ident">file_util</span>::<span class="ident">remove_file</span>(<span class="kw-2">&amp;</span><span class="ident">stderr_path</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
+
+    <span class="kw">fn</span> <span class="ident">points_parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> {
+        <span class="self">Self</span>::<span class="ident">java_points_parser</span>(<span class="ident">i</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">get_default_student_file_paths</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
+        <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;src&quot;</span>)]
+    }
+
+    <span class="kw">fn</span> <span class="ident">get_default_exercise_file_paths</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
+        <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;test&quot;</span>)]
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">JavaPlugin</span> <span class="kw">for</span> <span class="ident">AntPlugin</span> {
@@ -622,11 +653,11 @@
         }
         <span class="ident">paths</span>.<span class="ident">push</span>(<span class="ident">lib_dir</span>);
 
-        <span class="ident">paths</span>.<span class="ident">push</span>(<span class="ident">path</span>.<span class="ident">join</span>(<span class="string">&quot;build/test/classes&quot;</span>));
-        <span class="ident">paths</span>.<span class="ident">push</span>(<span class="ident">path</span>.<span class="ident">join</span>(<span class="string">&quot;build/classes&quot;</span>));
+        <span class="ident">paths</span>.<span class="ident">push</span>(<span class="ident">path</span>.<span class="ident">join</span>(<span class="string">&quot;build&quot;</span>).<span class="ident">join</span>(<span class="string">&quot;test&quot;</span>).<span class="ident">join</span>(<span class="string">&quot;classes&quot;</span>));
+        <span class="ident">paths</span>.<span class="ident">push</span>(<span class="ident">path</span>.<span class="ident">join</span>(<span class="string">&quot;build&quot;</span>).<span class="ident">join</span>(<span class="string">&quot;classes&quot;</span>));
 
         <span class="kw">let</span> <span class="ident">java_home</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">get_java_home</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">tools_jar_path</span> <span class="op">=</span> <span class="ident">java_home</span>.<span class="ident">join</span>(<span class="string">&quot;../lib/tools.jar&quot;</span>);
+        <span class="kw">let</span> <span class="ident">tools_jar_path</span> <span class="op">=</span> <span class="ident">java_home</span>.<span class="ident">join</span>(<span class="string">&quot;..&quot;</span>).<span class="ident">join</span>(<span class="string">&quot;lib&quot;</span>).<span class="ident">join</span>(<span class="string">&quot;tools.jar&quot;</span>);
         <span class="kw">if</span> <span class="ident">tools_jar_path</span>.<span class="ident">exists</span>() {
             <span class="ident">paths</span>.<span class="ident">push</span>(<span class="ident">tools_jar_path</span>);
         } <span class="kw">else</span> {
@@ -791,8 +822,9 @@
         );
         <span class="macro">assert</span><span class="macro">!</span>(
             <span class="ident">cp</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{0}{1}build{1}classes&quot;</span>, <span class="ident">test_path</span>.<span class="ident">display</span>(), <span class="ident">sep</span>)),
-            <span class="string">&quot;Classpath {} did not contain build/classes&quot;</span>,
-            <span class="ident">cp</span>
+            <span class="string">&quot;Classpath {} did not contain build{}classes&quot;</span>,
+            <span class="ident">cp</span>,
+            <span class="ident">sep</span>
         );
         <span class="macro">assert</span><span class="macro">!</span>(
             <span class="ident">cp</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(

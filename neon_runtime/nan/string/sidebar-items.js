@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["data","Writes data to a `v8::String` and returns the number of bytes writen."],["new","Mutates the `out` argument provided to refer to a newly created `v8::String`. Returns `false` if the value couldn't be created."],["utf8_len","Gets the length of a `v8::String`."]]});

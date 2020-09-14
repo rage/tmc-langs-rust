@@ -177,6 +177,25 @@
 <span id="177">177</span>
 <span id="178">178</span>
 <span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Java plugins for ant and maven</span>
 
@@ -205,7 +224,7 @@
 <span class="kw">const</span> <span class="ident">TMC_JUNIT_RUNNER_BYTES</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="macro">include_bytes</span><span class="macro">!</span>(<span class="string">&quot;../jars/tmc-junit-runner-0.2.8.jar&quot;</span>);
 <span class="kw">const</span> <span class="ident">TMC_CHECKSTYLE_RUNNER_BYTES</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span>
     <span class="macro">include_bytes</span><span class="macro">!</span>(<span class="string">&quot;../jars/tmc-checkstyle-runner-3.0.3-20200520.064542-3.jar&quot;</span>);
-<span class="kw">const</span> <span class="ident">J4RS_BYTES</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="macro">include_bytes</span><span class="macro">!</span>(<span class="string">&quot;../jars/j4rs-0.11.2-jar-with-dependencies.jar&quot;</span>);
+<span class="kw">const</span> <span class="ident">J4RS_BYTES</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="macro">include_bytes</span><span class="macro">!</span>(<span class="string">&quot;../jars/j4rs-0.12.0-jar-with-dependencies.jar&quot;</span>);
 
 <span class="kw">fn</span> <span class="ident">tmc_dir</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, <span class="ident">JavaError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">home_dir</span> <span class="op">=</span> <span class="ident">dirs</span>::<span class="ident">cache_dir</span>().<span class="ident">ok_or</span>(<span class="ident">JavaError</span>::<span class="ident">HomeDir</span>)<span class="question-mark">?</span>;
@@ -217,7 +236,13 @@
     <span class="kw">let</span> <span class="ident">jar_dir</span> <span class="op">=</span> <span class="ident">tmc_dir</span>()<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="ident">junit_path</span> <span class="op">=</span> <span class="ident">jar_dir</span>.<span class="ident">join</span>(<span class="string">&quot;tmc-junit-runner.jar&quot;</span>);
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">junit_path</span>.<span class="ident">exists</span>() {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">bytes</span>) <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">read_file</span>(<span class="kw-2">&amp;</span><span class="ident">junit_path</span>) {
+        <span class="kw">if</span> <span class="ident">TMC_CHECKSTYLE_RUNNER_BYTES</span> <span class="op">!</span><span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">as_slice</span>() {
+            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;updating tmc junit runner jar&quot;</span>);
+            <span class="ident">file_util</span>::<span class="ident">write_to_file</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TMC_JUNIT_RUNNER_BYTES</span>, <span class="kw-2">&amp;</span><span class="ident">junit_path</span>)<span class="question-mark">?</span>;
+        }
+    } <span class="kw">else</span> {
+        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;failed to read tmc junit runner jar, writing&quot;</span>);
         <span class="ident">file_util</span>::<span class="ident">write_to_file</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TMC_JUNIT_RUNNER_BYTES</span>, <span class="kw-2">&amp;</span><span class="ident">junit_path</span>)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(<span class="ident">junit_path</span>)
@@ -228,7 +253,13 @@
     <span class="kw">let</span> <span class="ident">jar_dir</span> <span class="op">=</span> <span class="ident">tmc_dir</span>()<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="ident">checkstyle_path</span> <span class="op">=</span> <span class="ident">jar_dir</span>.<span class="ident">join</span>(<span class="string">&quot;tmc-checkstyle-runner.jar&quot;</span>);
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">checkstyle_path</span>.<span class="ident">exists</span>() {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">bytes</span>) <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">read_file</span>(<span class="kw-2">&amp;</span><span class="ident">checkstyle_path</span>) {
+        <span class="kw">if</span> <span class="ident">TMC_CHECKSTYLE_RUNNER_BYTES</span> <span class="op">!</span><span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">as_slice</span>() {
+            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;updating checkstyle runner jar&quot;</span>);
+            <span class="ident">file_util</span>::<span class="ident">write_to_file</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TMC_CHECKSTYLE_RUNNER_BYTES</span>, <span class="kw-2">&amp;</span><span class="ident">checkstyle_path</span>)<span class="question-mark">?</span>;
+        }
+    } <span class="kw">else</span> {
+        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;failed to read checkstyle runner jar, writing&quot;</span>);
         <span class="ident">file_util</span>::<span class="ident">write_to_file</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TMC_CHECKSTYLE_RUNNER_BYTES</span>, <span class="kw-2">&amp;</span><span class="ident">checkstyle_path</span>)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(<span class="ident">checkstyle_path</span>)
@@ -240,7 +271,14 @@
     <span class="kw">let</span> <span class="ident">jassets_dir</span> <span class="op">=</span> <span class="ident">jar_dir</span>.<span class="ident">join</span>(<span class="string">&quot;jassets&quot;</span>);
 
     <span class="kw">let</span> <span class="ident">j4rs_path</span> <span class="op">=</span> <span class="ident">jassets_dir</span>.<span class="ident">join</span>(<span class="string">&quot;j4rs.jar&quot;</span>);
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">j4rs_path</span>.<span class="ident">exists</span>() {
+
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">bytes</span>) <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">read_file</span>(<span class="kw-2">&amp;</span><span class="ident">j4rs_path</span>) {
+        <span class="kw">if</span> <span class="ident">J4RS_BYTES</span> <span class="op">!</span><span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">as_slice</span>() {
+            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;updating j4rs jar&quot;</span>);
+            <span class="ident">file_util</span>::<span class="ident">write_to_file</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">J4RS_BYTES</span>, <span class="kw-2">&amp;</span><span class="ident">j4rs_path</span>)<span class="question-mark">?</span>;
+        }
+    } <span class="kw">else</span> {
+        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;failed to read j4rs jar, writing&quot;</span>);
         <span class="ident">file_util</span>::<span class="ident">write_to_file</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">J4RS_BYTES</span>, <span class="kw-2">&amp;</span><span class="ident">j4rs_path</span>)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(<span class="ident">j4rs_path</span>)

@@ -388,6 +388,13 @@
 <span id="388">388</span>
 <span id="389">389</span>
 <span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Java maven plugin</span>
 
@@ -407,6 +414,7 @@
     <span class="ident">command</span>::<span class="ident">TmcCommand</span>,
     <span class="ident">domain</span>::{<span class="ident">ExerciseDesc</span>, <span class="ident">RunResult</span>, <span class="ident">ValidationResult</span>},
     <span class="ident">io</span>::<span class="ident">file_util</span>,
+    <span class="ident">nom</span>::<span class="ident">IResult</span>,
     <span class="ident">plugin</span>::{<span class="ident">Language</span>, <span class="ident">LanguagePlugin</span>},
     <span class="ident">TmcError</span>,
 };
@@ -464,6 +472,8 @@
 
 <span class="kw">impl</span> <span class="ident">LanguagePlugin</span> <span class="kw">for</span> <span class="ident">MavenPlugin</span> {
     <span class="kw">const</span> <span class="ident">PLUGIN_NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;apache-maven&quot;</span>;
+    <span class="kw">const</span> <span class="ident">LINE_COMMENT</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;//&quot;</span>;
+    <span class="kw">const</span> <span class="ident">BLOCK_COMMENT</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="string">&quot;/*&quot;</span>, <span class="string">&quot;*/&quot;</span>));
     <span class="kw">type</span> <span class="ident">StudentFilePolicy</span> <span class="op">=</span> <span class="ident">MavenStudentFilePolicy</span>;
 
     <span class="kw">fn</span> <span class="ident">check_code_style</span>(
@@ -517,6 +527,10 @@
 
     <span class="kw">fn</span> <span class="ident">get_default_exercise_file_paths</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
         <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;src/test&quot;</span>)]
+    }
+
+    <span class="kw">fn</span> <span class="ident">points_parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> {
+        <span class="self">Self</span>::<span class="ident">java_points_parser</span>(<span class="ident">i</span>)
     }
 }
 

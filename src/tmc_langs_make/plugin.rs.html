@@ -413,6 +413,84 @@
 <span id="413">413</span>
 <span id="414">414</span>
 <span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains the main plugin struct.</span>
 
@@ -424,13 +502,15 @@
 <span class="kw">use</span> <span class="ident">regex</span>::<span class="ident">Regex</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">BufRead</span>, <span class="ident">BufReader</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">process</span>::<span class="ident">Output</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
     <span class="ident">command</span>::<span class="ident">TmcCommand</span>,
     <span class="ident">domain</span>::{<span class="ident">ExerciseDesc</span>, <span class="ident">RunResult</span>, <span class="ident">RunStatus</span>, <span class="ident">TestDesc</span>, <span class="ident">TmcProjectYml</span>},
     <span class="ident">error</span>::{<span class="ident">CommandError</span>, <span class="ident">FileIo</span>},
     <span class="ident">io</span>::<span class="ident">file_util</span>,
+    <span class="ident">nom</span>::{<span class="ident">bytes</span>, <span class="ident">character</span>, <span class="ident">combinator</span>, <span class="ident">sequence</span>, <span class="ident">IResult</span>},
     <span class="ident">plugin</span>::<span class="ident">LanguagePlugin</span>,
     <span class="ident">TmcError</span>,
 };
@@ -484,7 +564,11 @@
 
     <span class="doccomment">/// Runs tests with or without valgrind according to the argument.</span>
     <span class="doccomment">/// Returns an error if the command finishes unsuccessfully.</span>
-    <span class="kw">fn</span> <span class="ident">run_tests_with_valgrind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">run_valgrind</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MakeError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">run_tests_with_valgrind</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+        <span class="ident">run_valgrind</span>: <span class="ident">bool</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Output</span>, <span class="ident">MakeError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">run_valgrind</span> {
             <span class="string">&quot;run-test-with-valgrind&quot;</span>
         } <span class="kw">else</span> {
@@ -511,12 +595,12 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(())
+        <span class="prelude-val">Ok</span>(<span class="ident">output</span>)
     }
 
     <span class="doccomment">/// Tries to build the project at the given directory, returns whether</span>
     <span class="doccomment">/// the process finished successfully or not.</span>
-    <span class="kw">fn</span> <span class="ident">builds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dir</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">MakeError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dir</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Output</span>, <span class="ident">MakeError</span><span class="op">&gt;</span> {
         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;building {}&quot;</span>, <span class="ident">dir</span>.<span class="ident">display</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">TmcCommand</span>::<span class="ident">new</span>(<span class="string">&quot;make&quot;</span>.<span class="ident">to_string</span>());
         <span class="ident">command</span>.<span class="ident">current_dir</span>(<span class="ident">dir</span>).<span class="ident">arg</span>(<span class="string">&quot;test&quot;</span>);
@@ -525,12 +609,14 @@
         <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;stdout:\n{}&quot;</span>, <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stdout</span>));
         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stderr:\n{}&quot;</span>, <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stderr</span>));
 
-        <span class="prelude-val">Ok</span>(<span class="ident">output</span>.<span class="ident">status</span>.<span class="ident">success</span>())
+        <span class="prelude-val">Ok</span>(<span class="ident">output</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">LanguagePlugin</span> <span class="kw">for</span> <span class="ident">MakePlugin</span> {
     <span class="kw">const</span> <span class="ident">PLUGIN_NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;make&quot;</span>;
+    <span class="kw">const</span> <span class="ident">LINE_COMMENT</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;//&quot;</span>;
+    <span class="kw">const</span> <span class="ident">BLOCK_COMMENT</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="string">&quot;/*&quot;</span>, <span class="string">&quot;*/&quot;</span>));
     <span class="kw">type</span> <span class="ident">StudentFilePolicy</span> <span class="op">=</span> <span class="ident">MakeStudentFilePolicy</span>;
 
     <span class="kw">fn</span> <span class="ident">scan_exercise</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">exercise_name</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
@@ -554,19 +640,30 @@
         <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
         <span class="ident">_timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RunResult</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">builds</span>(<span class="ident">path</span>)<span class="question-mark">?</span> {
+        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">build</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">output</span>.<span class="ident">status</span>.<span class="ident">success</span>() {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">logs</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
+            <span class="ident">logs</span>.<span class="ident">insert</span>(
+                <span class="string">&quot;stdout&quot;</span>.<span class="ident">to_string</span>(),
+                <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stdout</span>).<span class="ident">into_owned</span>(),
+            );
+            <span class="ident">logs</span>.<span class="ident">insert</span>(
+                <span class="string">&quot;stderr&quot;</span>.<span class="ident">to_string</span>(),
+                <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stderr</span>).<span class="ident">into_owned</span>(),
+            );
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">RunResult</span> {
                 <span class="ident">status</span>: <span class="ident">RunStatus</span>::<span class="ident">CompileFailed</span>,
                 <span class="ident">test_results</span>: <span class="macro">vec</span><span class="macro">!</span>[],
-                <span class="ident">logs</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
+                <span class="ident">logs</span>,
             });
         }
 
         <span class="comment">// try to run valgrind</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ran_valgrind</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="kw">let</span> <span class="ident">valgrind_run</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">true</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span> <span class="ident">valgrind_run</span> {
-            <span class="kw">match</span> <span class="ident">error</span> {
+        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">valgrind_run</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">output</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">output</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">error</span> {
                 <span class="ident">MakeError</span>::<span class="ident">Tmc</span>(<span class="ident">TmcError</span>::<span class="ident">Command</span>(<span class="ident">command_error</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">match</span> <span class="ident">command_error</span> {
                         <span class="ident">CommandError</span>::<span class="ident">Spawn</span>(<span class="kw">_</span>, <span class="ident">io_error</span>)
@@ -575,35 +672,37 @@
                         {
                             <span class="comment">// failed due to lacking permissions, try to clean and rerun</span>
                             <span class="kw">let</span> <span class="ident">_output</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clean</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">false</span>) {
-                                <span class="ident">log</span>::<span class="macro">error</span><span class="macro">!</span>(
-                                    <span class="string">&quot;Running with valgrind failed after trying to clean! {}&quot;</span>,
-                                    <span class="ident">err</span>
-                                );
-                                <span class="ident">ran_valgrind</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                                <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Running without valgrind&quot;</span>);
-                                <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">false</span>) {
+                                <span class="prelude-val">Ok</span>(<span class="ident">output</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">output</span>,
+                                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                                    <span class="ident">log</span>::<span class="macro">error</span><span class="macro">!</span>(
+                                        <span class="string">&quot;Running with valgrind failed after trying to clean! {}&quot;</span>,
+                                        <span class="ident">err</span>
+                                    );
+                                    <span class="ident">ran_valgrind</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                                    <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Running without valgrind&quot;</span>);
+                                    <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>
+                                }
                             }
                         }
                         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="ident">ran_valgrind</span> <span class="op">=</span> <span class="bool-val">false</span>;
                             <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Running without valgrind&quot;</span>);
-                            <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>
                         }
                     }
                 }
                 <span class="ident">MakeError</span>::<span class="ident">RunningTestsWithValgrind</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">ran_valgrind</span> <span class="op">=</span> <span class="bool-val">false</span>;
                     <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Running without valgrind&quot;</span>);
-                    <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">run_tests_with_valgrind</span>(<span class="ident">path</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>
                 }
                 <span class="ident">err</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">log</span>::<span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;unexpected error {:?}&quot;</span>, <span class="ident">err</span>);
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>.<span class="ident">into</span>());
                 }
-            }
-        }
-
+            },
+        };
         <span class="kw">let</span> <span class="ident">base_test_path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">join</span>(<span class="string">&quot;test&quot;</span>);
 
         <span class="comment">// fails on valgrind by default</span>
@@ -640,7 +739,16 @@
 
         <span class="kw">let</span> <span class="ident">check_log</span>: <span class="ident">CheckLog</span> <span class="op">=</span> <span class="ident">serde_xml_rs</span>::<span class="ident">from_str</span>(<span class="kw-2">&amp;</span><span class="ident">file_string</span>)
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">MakeError</span>::<span class="ident">XmlParseError</span>(<span class="ident">test_results_path</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">run_result</span> <span class="op">=</span> <span class="ident">check_log</span>.<span class="ident">into_run_result</span>(<span class="ident">ids_to_points</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">logs</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
+        <span class="ident">logs</span>.<span class="ident">insert</span>(
+            <span class="string">&quot;stdout&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stdout</span>).<span class="ident">into_owned</span>(),
+        );
+        <span class="ident">logs</span>.<span class="ident">insert</span>(
+            <span class="string">&quot;stderr&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stdout</span>).<span class="ident">into_owned</span>(),
+        );
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">run_result</span> <span class="op">=</span> <span class="ident">check_log</span>.<span class="ident">into_run_result</span>(<span class="ident">ids_to_points</span>, <span class="ident">logs</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">valgrind_log</span>) <span class="op">=</span> <span class="ident">valgrind_log</span> {
             <span class="kw">if</span> <span class="ident">valgrind_log</span>.<span class="ident">errors</span> {
@@ -687,6 +795,37 @@
         }
 
         <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">fn</span> <span class="ident">get_default_student_file_paths</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
+        <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;src&quot;</span>)]
+    }
+
+    <span class="kw">fn</span> <span class="ident">get_default_exercise_file_paths</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
+        <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;test&quot;</span>)]
+    }
+
+    <span class="kw">fn</span> <span class="ident">points_parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> {
+        <span class="ident">combinator</span>::<span class="ident">map</span>(
+            <span class="ident">sequence</span>::<span class="ident">delimited</span>(
+                <span class="ident">sequence</span>::<span class="ident">tuple</span>((
+                    <span class="ident">bytes</span>::<span class="ident">complete</span>::<span class="ident">tag</span>(<span class="string">&quot;tmc_register_test&quot;</span>),
+                    <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">multispace0</span>,
+                    <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">char</span>(<span class="string">&#39;(&#39;</span>),
+                    <span class="ident">bytes</span>::<span class="ident">complete</span>::<span class="ident">is_not</span>(<span class="string">&quot;\&quot;&quot;</span>),
+                )),
+                <span class="ident">sequence</span>::<span class="ident">delimited</span>(
+                    <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">char</span>(<span class="string">&#39;&quot;&#39;</span>),
+                    <span class="ident">bytes</span>::<span class="ident">complete</span>::<span class="ident">is_not</span>(<span class="string">&quot;\&quot;&quot;</span>),
+                    <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">char</span>(<span class="string">&#39;&quot;&#39;</span>),
+                ),
+                <span class="ident">sequence</span>::<span class="ident">tuple</span>((
+                    <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">multispace0</span>,
+                    <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">char</span>(<span class="string">&#39;)&#39;</span>),
+                )),
+            ),
+            <span class="ident">str</span>::<span class="ident">trim</span>,
+        )(<span class="ident">i</span>)
     }
 }
 
@@ -752,7 +891,7 @@
         <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">MakePlugin</span>::<span class="ident">new</span>();
         <span class="kw">let</span> <span class="ident">run_result</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">run_tests</span>(<span class="ident">temp</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">run_result</span>.<span class="ident">status</span>, <span class="ident">RunStatus</span>::<span class="ident">Passed</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">run_result</span>.<span class="ident">logs</span>.<span class="ident">is_empty</span>());
+        <span class="comment">// assert!(run_result.logs.is_empty());</span>
         <span class="kw">let</span> <span class="ident">test_results</span> <span class="op">=</span> <span class="ident">run_result</span>.<span class="ident">test_results</span>;
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">test_results</span>.<span class="ident">len</span>(), <span class="number">1</span>);
         <span class="kw">let</span> <span class="ident">test_result</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">test_results</span>[<span class="number">0</span>];
@@ -783,8 +922,8 @@
         <span class="kw">let</span> <span class="ident">points</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">test_result</span>.<span class="ident">points</span>;
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">points</span>.<span class="ident">len</span>(), <span class="number">1</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">points</span>[<span class="number">0</span>], <span class="string">&quot;1.1&quot;</span>);
-        <span class="kw">let</span> <span class="ident">logs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">run_result</span>.<span class="ident">logs</span>;
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">logs</span>.<span class="ident">is_empty</span>());
+        <span class="comment">// let logs = &amp;run_result.logs;</span>
+        <span class="comment">// assert!(logs.is_empty());</span>
     }
 
     <span class="comment">//#[test]</span>
@@ -827,6 +966,23 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zip</span> <span class="op">=</span> <span class="ident">ZipArchive</span>::<span class="ident">new</span>(<span class="ident">file</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">MakePlugin</span>::<span class="ident">find_project_dir_in_zip</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">zip</span>);
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">dir</span>.<span class="ident">is_err</span>());
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">parses_points</span>() {
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">MakePlugin</span>::<span class="ident">points_parser</span>(
+            <span class="string">&quot;tmc_register_test(s, test_insertion_empty_list, \&quot;dlink_insert);&quot;</span>,
+        )
+        .<span class="ident">is_err</span>());
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">MakePlugin</span>::<span class="ident">points_parser</span>(
+                <span class="string">&quot;tmc_register_test(s, test_insertion_empty_list, \&quot;dlink_insert\&quot;);&quot;</span>,
+            )
+            .<span class="ident">unwrap</span>()
+            .<span class="number">1</span>,
+            <span class="string">&quot;dlink_insert&quot;</span>
+        );
     }
 }
 </pre></div>

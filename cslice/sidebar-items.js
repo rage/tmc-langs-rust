@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["CMutSlice","A mutable slice, equivalent to `&'a mut T`."],["CSlice","An immutable slice, equivalent to `&'a T`."]],"trait":[["AsCMutSlice","A cheap conversion to a `CMutSlice`."],["AsCSlice","A cheap conversion to a `CSlice`."]]});

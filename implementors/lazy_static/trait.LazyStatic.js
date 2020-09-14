@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["tmc_langs_python3"] = [{"text":"impl <a class=\"trait\" href=\"lazy_static/trait.LazyStatic.html\" title=\"trait lazy_static::LazyStatic\">LazyStatic</a> for <a class=\"struct\" href=\"tmc_langs_python3/struct.LOCAL_PY.html\" title=\"struct tmc_langs_python3::LOCAL_PY\">LOCAL_PY</a>","synthetic":false,"types":["tmc_langs_python3::LOCAL_PY"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

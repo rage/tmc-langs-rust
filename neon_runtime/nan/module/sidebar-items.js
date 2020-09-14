@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["exec_callback",""],["exec_kernel","Creates a new `v8::HandleScope` and calls `callback` provided with the argument signature `(kernel, exports, scope, vm)`."],["get_version",""]]});

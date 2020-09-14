@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zip-0.5.6/src/compression.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>compression.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../zip/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zip-0.5.8/src/compression.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>compression.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../zip/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -101,45 +101,120 @@
 <span id="101">101</span>
 <span id="102">102</span>
 <span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Possible ZIP compression methods.</span>
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 
-<span class="doccomment">/// Compression methods for the contents of a ZIP file.</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
+<span class="doccomment">/// Identifies the storage format used to compress a file within a ZIP archive.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Each file&#39;s compression method is stored alongside it, allowing the</span>
+<span class="doccomment">/// contents to be read without context.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// When creating ZIP files, you may choose the method to use with</span>
+<span class="doccomment">/// [`zip::write::FileOptions::compression_method`]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CompressionMethod</span>
-{
-    <span class="doccomment">/// The file is stored (no compression)</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CompressionMethod</span> {
+    <span class="doccomment">/// Store the file as is</span>
     <span class="ident">Stored</span>,
-    <span class="doccomment">/// Deflate in pure rust</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>)]</span>
+    <span class="doccomment">/// Compress the file using Deflate</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>,
+        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-miniz&quot;</span>,
+        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-zlib&quot;</span>
+    ))]</span>
     <span class="ident">Deflated</span>,
-    <span class="doccomment">/// File is compressed using BZIP2 algorithm</span>
+    <span class="doccomment">/// Compress the file using BZIP2</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bzip2&quot;</span>)]</span>
     <span class="ident">Bzip2</span>,
     <span class="doccomment">/// Unsupported compression method</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(
+        <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.5.7&quot;</span>,
+        <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;implementation details are being removed from the public API&quot;</span>
+    )]</span>
     <span class="ident">Unsupported</span>(<span class="ident">u16</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">CompressionMethod</span> {
     <span class="doccomment">/// Converts an u16 to its corresponding CompressionMethod</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(
+        <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.5.7&quot;</span>,
+        <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;implementation details are being removed from the public API&quot;</span>
+    )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_u16</span>(<span class="ident">val</span>: <span class="ident">u16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CompressionMethod</span> {
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
         <span class="kw">match</span> <span class="ident">val</span> {
             <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">CompressionMethod</span>::<span class="ident">Stored</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>)]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>,
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-miniz&quot;</span>,
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-zlib&quot;</span>
+            ))]</span>
             <span class="number">8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">CompressionMethod</span>::<span class="ident">Deflated</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bzip2&quot;</span>)]</span>
             <span class="number">12</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">CompressionMethod</span>::<span class="ident">Bzip2</span>,
+
             <span class="ident">v</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="ident">v</span>),
         }
     }
 
     <span class="doccomment">/// Converts a CompressionMethod to a u16</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(
+        <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.5.7&quot;</span>,
+        <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;implementation details are being removed from the public API&quot;</span>
+    )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_u16</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u16</span> {
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">CompressionMethod</span>::<span class="ident">Stored</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>)]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>,
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-miniz&quot;</span>,
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-zlib&quot;</span>
+            ))]</span>
             <span class="ident">CompressionMethod</span>::<span class="ident">Deflated</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">8</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bzip2&quot;</span>)]</span>
             <span class="ident">CompressionMethod</span>::<span class="ident">Bzip2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">12</span>,
@@ -161,9 +236,10 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">from_eq_to</span>() {
-        <span class="kw">for</span> <span class="ident">v</span> <span class="kw">in</span> <span class="number">0</span>..(::<span class="ident">std</span>::<span class="ident">u16</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> <span class="number">1</span>)
-        {
+        <span class="kw">for</span> <span class="ident">v</span> <span class="kw">in</span> <span class="number">0</span>..(::<span class="ident">std</span>::<span class="ident">u16</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> <span class="number">1</span>) {
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
             <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">from_u16</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="ident">u16</span>);
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
             <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">from</span>.<span class="ident">to_u16</span>() <span class="kw">as</span> <span class="ident">u32</span>;
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">v</span>, <span class="ident">to</span>);
         }
@@ -172,17 +248,25 @@
     <span class="kw">fn</span> <span class="ident">methods</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CompressionMethod</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">methods</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
         <span class="ident">methods</span>.<span class="ident">push</span>(<span class="ident">CompressionMethod</span>::<span class="ident">Stored</span>);
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;deflate&quot;</span>)]</span> <span class="ident">methods</span>.<span class="ident">push</span>(<span class="ident">CompressionMethod</span>::<span class="ident">Deflated</span>);
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;bzip2&quot;</span>)]</span> <span class="ident">methods</span>.<span class="ident">push</span>(<span class="ident">CompressionMethod</span>::<span class="ident">Bzip2</span>);
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-miniz&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-zlib&quot;</span>
+        ))]</span>
+        <span class="ident">methods</span>.<span class="ident">push</span>(<span class="ident">CompressionMethod</span>::<span class="ident">Deflated</span>);
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bzip2&quot;</span>)]</span>
+        <span class="ident">methods</span>.<span class="ident">push</span>(<span class="ident">CompressionMethod</span>::<span class="ident">Bzip2</span>);
         <span class="ident">methods</span>
     }
-
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">to_eq_from</span>() {
         <span class="kw">fn</span> <span class="ident">check_match</span>(<span class="ident">method</span>: <span class="ident">CompressionMethod</span>) {
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
             <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">method</span>.<span class="ident">to_u16</span>();
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
             <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">from_u16</span>(<span class="ident">to</span>);
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
             <span class="kw">let</span> <span class="ident">back</span> <span class="op">=</span> <span class="ident">from</span>.<span class="ident">to_u16</span>();
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">to</span>, <span class="ident">back</span>);
         }

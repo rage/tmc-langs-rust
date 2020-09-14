@@ -1409,6 +1409,35 @@
 <span id="1409">1409</span>
 <span id="1410">1410</span>
 <span id="1411">1411</span>
+<span id="1412">1412</span>
+<span id="1413">1413</span>
+<span id="1414">1414</span>
+<span id="1415">1415</span>
+<span id="1416">1416</span>
+<span id="1417">1417</span>
+<span id="1418">1418</span>
+<span id="1419">1419</span>
+<span id="1420">1420</span>
+<span id="1421">1421</span>
+<span id="1422">1422</span>
+<span id="1423">1423</span>
+<span id="1424">1424</span>
+<span id="1425">1425</span>
+<span id="1426">1426</span>
+<span id="1427">1427</span>
+<span id="1428">1428</span>
+<span id="1429">1429</span>
+<span id="1430">1430</span>
+<span id="1431">1431</span>
+<span id="1432">1432</span>
+<span id="1433">1433</span>
+<span id="1434">1434</span>
+<span id="1435">1435</span>
+<span id="1436">1436</span>
+<span id="1437">1437</span>
+<span id="1438">1438</span>
+<span id="1439">1439</span>
+<span id="1440">1440</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">mod</span> <span class="ident">api</span>;
 
@@ -2166,8 +2195,7 @@
 
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">Url</span>::<span class="ident">parse</span>(<span class="ident">submission_url</span>)
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">CoreError</span>::<span class="ident">UrlParse</span>(<span class="ident">submission_url</span>.<span class="ident">to_string</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">Response</span><span class="op">&lt;</span><span class="ident">SubmissionProcessingStatus</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_json_from_url</span>(<span class="ident">url</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">res</span>.<span class="ident">into_result</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">SubmissionProcessingStatus</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_json_from_url</span>(<span class="ident">url</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
     }
 }
@@ -2186,6 +2214,7 @@
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">env_logger</span>::<span class="ident">builder</span>().<span class="ident">is_test</span>(<span class="bool-val">true</span>).<span class="ident">try_init</span>();
 
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/application/client_name/credentials&quot;</span>)
+            .<span class="ident">match_query</span>(<span class="ident">Matcher</span>::<span class="ident">Any</span>)
             .<span class="ident">with_body</span>(
                 <span class="ident">serde_json</span>::<span class="macro">json</span><span class="macro">!</span>({
                     <span class="string">&quot;application_id&quot;</span>: <span class="string">&quot;id&quot;</span>,
@@ -2195,6 +2224,7 @@
             )
             .<span class="ident">create</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/oauth/token&quot;</span>)
+            .<span class="ident">match_query</span>(<span class="ident">Matcher</span>::<span class="ident">Any</span>)
             .<span class="ident">with_body</span>(
                 <span class="ident">serde_json</span>::<span class="macro">json</span><span class="macro">!</span>({
                     <span class="string">&quot;access_token&quot;</span>: <span class="string">&quot;token&quot;</span>,
@@ -2220,8 +2250,10 @@
     <span class="kw">fn</span> <span class="ident">gets_organizations</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">_addr</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/org.json&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client&quot;</span>, <span class="string">&quot;some_client&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client_version&quot;</span>, <span class="string">&quot;some_ver&quot;</span>)
+            .<span class="ident">match_query</span>(<span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_client&quot;</span>.<span class="ident">into</span>()),
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client_version&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_ver&quot;</span>.<span class="ident">into</span>()),
+            ]))
             .<span class="ident">with_body</span>(
                 <span class="ident">serde_json</span>::<span class="macro">json</span><span class="macro">!</span>([
                     {
@@ -2243,8 +2275,10 @@
     <span class="kw">fn</span> <span class="ident">downloads_or_update_exercises</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">_addr</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/exercises/1234/download&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client&quot;</span>, <span class="string">&quot;some_client&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client_version&quot;</span>, <span class="string">&quot;some_ver&quot;</span>)
+            .<span class="ident">match_query</span>(<span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_client&quot;</span>.<span class="ident">into</span>()),
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client_version&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_ver&quot;</span>.<span class="ident">into</span>()),
+            ]))
             .<span class="ident">with_body_from_file</span>(<span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;tests/data/81842.zip&quot;</span>))
             .<span class="ident">create</span>();
 
@@ -2260,8 +2294,10 @@
     <span class="kw">fn</span> <span class="ident">gets_course_details</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">_addr</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/courses/1234&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client&quot;</span>, <span class="string">&quot;some_client&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client_version&quot;</span>, <span class="string">&quot;some_ver&quot;</span>)
+            .<span class="ident">match_query</span>(<span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_client&quot;</span>.<span class="ident">into</span>()),
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client_version&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_ver&quot;</span>.<span class="ident">into</span>()),
+            ]))
             .<span class="ident">with_body</span>(<span class="ident">serde_json</span>::<span class="macro">json</span><span class="macro">!</span>({
                 <span class="string">&quot;course&quot;</span>: {
                     <span class="string">&quot;id&quot;</span>: <span class="number">588</span>,
@@ -2312,8 +2348,10 @@
     <span class="kw">fn</span> <span class="ident">lists_courses</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">_addr</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/org/slug/courses&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client&quot;</span>, <span class="string">&quot;some_client&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client_version&quot;</span>, <span class="string">&quot;some_ver&quot;</span>)
+            .<span class="ident">match_query</span>(<span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_client&quot;</span>.<span class="ident">into</span>()),
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client_version&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_ver&quot;</span>.<span class="ident">into</span>()),
+            ]))
             .<span class="ident">with_body</span>(<span class="ident">serde_json</span>::<span class="macro">json</span><span class="macro">!</span>([
                     {
                         <span class="string">&quot;id&quot;</span>: <span class="number">277</span>,
@@ -2341,8 +2379,10 @@
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">url</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">Url</span>::<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}/submission&quot;</span>, <span class="ident">url</span>)).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/submission&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client&quot;</span>, <span class="string">&quot;some_client&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client_version&quot;</span>, <span class="string">&quot;some_ver&quot;</span>)
+            .<span class="ident">match_query</span>(<span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_client&quot;</span>.<span class="ident">into</span>()),
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client_version&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_ver&quot;</span>.<span class="ident">into</span>()),
+            ]))
             .<span class="ident">match_body</span>(<span class="ident">Matcher</span>::<span class="ident">Regex</span>(<span class="string">&quot;paste&quot;</span>.<span class="ident">to_string</span>()))
             .<span class="ident">match_body</span>(<span class="ident">Matcher</span>::<span class="ident">Regex</span>(<span class="string">&quot;message_for_paste&quot;</span>.<span class="ident">to_string</span>()))
             .<span class="ident">match_body</span>(<span class="ident">Matcher</span>::<span class="ident">Regex</span>(<span class="string">&quot;abcdefg&quot;</span>.<span class="ident">to_string</span>()))
@@ -2385,8 +2425,10 @@
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">url</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">feedback_url</span> <span class="op">=</span> <span class="ident">Url</span>::<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}/feedback&quot;</span>, <span class="ident">url</span>)).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/feedback&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client&quot;</span>, <span class="string">&quot;some_client&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client_version&quot;</span>, <span class="string">&quot;some_ver&quot;</span>)
+            .<span class="ident">match_query</span>(<span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_client&quot;</span>.<span class="ident">into</span>()),
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client_version&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_ver&quot;</span>.<span class="ident">into</span>()),
+            ]))
             .<span class="ident">match_body</span>(<span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
                 <span class="ident">Matcher</span>::<span class="ident">Regex</span>(<span class="string">r#&quot;answers\[0\]\[question_id\]&quot;#</span>.<span class="ident">to_string</span>()),
                 <span class="ident">Matcher</span>::<span class="ident">Regex</span>(<span class="string">r#&quot;answers\[0\]\[answer\]&quot;#</span>.<span class="ident">to_string</span>()),
@@ -2429,8 +2471,10 @@
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">url</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">Url</span>::<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}/submission&quot;</span>, <span class="ident">url</span>)).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/submission&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client&quot;</span>, <span class="string">&quot;some_client&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client_version&quot;</span>, <span class="string">&quot;some_ver&quot;</span>)
+            .<span class="ident">match_query</span>(<span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_client&quot;</span>.<span class="ident">into</span>()),
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client_version&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_ver&quot;</span>.<span class="ident">into</span>()),
+            ]))
             .<span class="ident">match_body</span>(<span class="ident">Matcher</span>::<span class="ident">Regex</span>(<span class="string">r#&quot;submission\[file\]&quot;#</span>.<span class="ident">to_string</span>()))
             .<span class="ident">with_body</span>(
                 <span class="ident">serde_json</span>::<span class="macro">json</span><span class="macro">!</span>({
@@ -2459,8 +2503,10 @@
     <span class="kw">fn</span> <span class="ident">gets_exercise_updates</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">_addr</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/courses/1234&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client&quot;</span>, <span class="string">&quot;some_client&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client_version&quot;</span>, <span class="string">&quot;some_ver&quot;</span>)
+            .<span class="ident">match_query</span>(<span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_client&quot;</span>.<span class="ident">into</span>()),
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client_version&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_ver&quot;</span>.<span class="ident">into</span>()),
+            ]))
             .<span class="ident">with_body</span>(<span class="ident">serde_json</span>::<span class="macro">json</span><span class="macro">!</span>({
                 <span class="string">&quot;course&quot;</span>: {
                     <span class="string">&quot;id&quot;</span>: <span class="number">588</span>,
@@ -2577,8 +2623,10 @@
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">addr</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">reviews_url</span> <span class="op">=</span> <span class="ident">Url</span>::<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}/reviews&quot;</span>, <span class="ident">addr</span>)).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/reviews&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client&quot;</span>, <span class="string">&quot;some_client&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client_version&quot;</span>, <span class="string">&quot;some_ver&quot;</span>)
+            .<span class="ident">match_query</span>(<span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_client&quot;</span>.<span class="ident">into</span>()),
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client_version&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_ver&quot;</span>.<span class="ident">into</span>()),
+            ]))
             .<span class="ident">with_body</span>(
                 <span class="ident">serde_json</span>::<span class="macro">json</span><span class="macro">!</span>([
                     {
@@ -2610,8 +2658,10 @@
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">url</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">Url</span>::<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}/submission&quot;</span>, <span class="ident">url</span>)).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/submission&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client&quot;</span>, <span class="string">&quot;some_client&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client_version&quot;</span>, <span class="string">&quot;some_ver&quot;</span>)
+            .<span class="ident">match_query</span>(<span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_client&quot;</span>.<span class="ident">into</span>()),
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client_version&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_ver&quot;</span>.<span class="ident">into</span>()),
+            ]))
             .<span class="ident">match_body</span>(<span class="ident">Matcher</span>::<span class="ident">Regex</span>(<span class="string">&quot;request_review&quot;</span>.<span class="ident">to_string</span>()))
             .<span class="ident">match_body</span>(<span class="ident">Matcher</span>::<span class="ident">Regex</span>(<span class="string">&quot;message_for_reviewer&quot;</span>.<span class="ident">to_string</span>()))
             .<span class="ident">match_body</span>(<span class="ident">Matcher</span>::<span class="ident">Regex</span>(<span class="string">&quot;abcdefg&quot;</span>.<span class="ident">to_string</span>()))
@@ -2644,8 +2694,10 @@
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">addr</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">solution_url</span> <span class="op">=</span> <span class="ident">Url</span>::<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}/solution&quot;</span>, <span class="ident">addr</span>)).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/solution&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client&quot;</span>, <span class="string">&quot;some_client&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client_version&quot;</span>, <span class="string">&quot;some_ver&quot;</span>)
+            .<span class="ident">match_query</span>(<span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_client&quot;</span>.<span class="ident">into</span>()),
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client_version&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_ver&quot;</span>.<span class="ident">into</span>()),
+            ]))
             .<span class="ident">with_body_from_file</span>(<span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;tests/data/81842.zip&quot;</span>))
             .<span class="ident">create</span>();
 
@@ -2660,8 +2712,10 @@
     <span class="kw">fn</span> <span class="ident">checks_submission_processing</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">addr</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/submission-url&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client&quot;</span>, <span class="string">&quot;some_client&quot;</span>)
-            .<span class="ident">match_header</span>(<span class="string">&quot;client_version&quot;</span>, <span class="string">&quot;some_ver&quot;</span>)
+            .<span class="ident">match_query</span>(<span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_client&quot;</span>.<span class="ident">into</span>()),
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client_version&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_ver&quot;</span>.<span class="ident">into</span>()),
+            ]))
             .<span class="ident">with_body</span>(
                 <span class="ident">serde_json</span>::<span class="macro">json</span><span class="macro">!</span>({
                   <span class="string">&quot;status&quot;</span>: <span class="string">&quot;processing&quot;</span>,
@@ -2685,6 +2739,10 @@
     <span class="kw">fn</span> <span class="ident">checks_submission_finished</span>() {
         <span class="kw">let</span> (<span class="ident">core</span>, <span class="ident">addr</span>) <span class="op">=</span> <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/submission-url&quot;</span>)
+            .<span class="ident">match_query</span>(<span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_client&quot;</span>.<span class="ident">into</span>()),
+                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client_version&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;some_ver&quot;</span>.<span class="ident">into</span>()),
+            ]))
             .<span class="ident">with_body</span>(<span class="ident">serde_json</span>::<span class="macro">json</span><span class="macro">!</span>({
             <span class="string">&quot;api_version&quot;</span>: <span class="number">7</span>,
             <span class="string">&quot;all_tests_passed&quot;</span>: <span class="bool-val">true</span>,
