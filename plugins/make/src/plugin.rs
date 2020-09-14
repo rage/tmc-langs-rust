@@ -8,7 +8,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashMap;
 use std::io::{self, BufRead, BufReader};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Output;
 use std::time::Duration;
 use tmc_langs_framework::{
@@ -16,6 +16,7 @@ use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TmcProjectYml},
     error::{CommandError, FileIo},
     io::file_util,
+    nom::{self, IResult},
     plugin::LanguagePlugin,
     TmcError,
 };
@@ -120,6 +121,8 @@ impl MakePlugin {
 
 impl LanguagePlugin for MakePlugin {
     const PLUGIN_NAME: &'static str = "make";
+    const LINE_COMMENT: &'static str = "//";
+    const BLOCK_COMMENT: Option<(&'static str, &'static str)> = Some(("/*", "*/"));
     type StudentFilePolicy = MakeStudentFilePolicy;
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
@@ -299,6 +302,37 @@ impl LanguagePlugin for MakePlugin {
 
         Ok(())
     }
+
+    fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
+        vec![PathBuf::from("src")]
+    }
+
+    fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
+        vec![PathBuf::from("test")]
+    }
+
+    fn points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str> {
+        nom::combinator::map(
+            nom::sequence::delimited(
+                nom::sequence::tuple((
+                    nom::bytes::complete::tag("tmc_register_test"),
+                    nom::character::complete::multispace0,
+                    nom::character::complete::char('('),
+                    nom::bytes::complete::is_not("\""),
+                )),
+                nom::sequence::delimited(
+                    nom::character::complete::char('"'),
+                    nom::bytes::complete::is_not("\""),
+                    nom::character::complete::char('"'),
+                ),
+                nom::sequence::tuple((
+                    nom::character::complete::multispace0,
+                    nom::character::complete::char(')'),
+                )),
+            ),
+            str::trim,
+        )(i)
+    }
 }
 
 #[cfg(test)]
@@ -438,5 +472,22 @@ mod test {
         let mut zip = ZipArchive::new(file).unwrap();
         let dir = MakePlugin::find_project_dir_in_zip(&mut zip);
         assert!(dir.is_err());
+    }
+
+    #[test]
+    fn parses_points() {
+        assert!(MakePlugin::points_parser(
+            "tmc_register_test(s, test_insertion_empty_list, \"dlink_insert);",
+        )
+        .is_err());
+
+        assert_eq!(
+            MakePlugin::points_parser(
+                "tmc_register_test(s, test_insertion_empty_list, \"dlink_insert\");",
+            )
+            .unwrap()
+            .1,
+            "dlink_insert"
+        );
     }
 }

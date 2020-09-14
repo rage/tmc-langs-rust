@@ -5,13 +5,12 @@ mod tar_helper;
 
 use crate::error::UtilError;
 use crate::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, ValidationResult};
-use regex::Regex;
 use std::path::{Path, PathBuf};
 pub use submission_packaging::{OutputFormat, TmcParams};
 use tmc_langs_csharp::CSharpPlugin;
 use tmc_langs_framework::{
     domain::TmcProjectYml,
-    io::{self, file_util, submission_processing},
+    io::{self, submission_processing},
     plugin::{Language, LanguagePlugin},
     policy::NothingIsStudentFilePolicy,
     TmcError,

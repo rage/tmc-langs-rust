@@ -7,13 +7,14 @@ use j4rs::Jvm;
 use policy::AntStudentFilePolicy;
 use std::env;
 use std::ffi::OsStr;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::time::Duration;
 use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, ValidationResult},
     io::file_util,
+    nom::{self, IResult},
     plugin::{Language, LanguagePlugin},
     TmcError,
 };
@@ -69,6 +70,8 @@ impl AntPlugin {
 
 impl LanguagePlugin for AntPlugin {
     const PLUGIN_NAME: &'static str = "apache-ant";
+    const LINE_COMMENT: &'static str = "//";
+    const BLOCK_COMMENT: Option<(&'static str, &'static str)> = Some(("/*", "*/"));
     type StudentFilePolicy = AntStudentFilePolicy;
 
     fn check_code_style(
@@ -128,6 +131,18 @@ impl LanguagePlugin for AntPlugin {
         file_util::remove_file(&stdout_path)?;
         file_util::remove_file(&stderr_path)?;
         Ok(())
+    }
+
+    fn points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str> {
+        Self::java_points_parser(i)
+    }
+
+    fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
+        vec![PathBuf::from("src")]
+    }
+
+    fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
+        vec![PathBuf::from("test")]
     }
 }
 

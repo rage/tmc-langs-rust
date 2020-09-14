@@ -10,6 +10,7 @@ use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult, ValidationResult},
     io::file_util,
+    nom::{self, IResult},
     plugin::{Language, LanguagePlugin},
 };
 use walkdir::WalkDir;
@@ -243,6 +244,31 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
 
         log::debug!("Validation result: {:?}", result);
         Ok(result)
+    }
+
+    fn java_points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str> {
+        nom::combinator::map(
+            nom::sequence::delimited(
+                nom::sequence::tuple((
+                    nom::bytes::complete::tag("@"),
+                    nom::character::complete::multispace0,
+                    nom::bytes::complete::tag_no_case("points"),
+                    nom::character::complete::multispace0,
+                    nom::character::complete::char('('),
+                    nom::character::complete::multispace0,
+                )),
+                nom::sequence::delimited(
+                    nom::character::complete::char('"'),
+                    nom::bytes::complete::is_not("\""),
+                    nom::character::complete::char('"'),
+                ),
+                nom::sequence::tuple((
+                    nom::character::complete::multispace0,
+                    nom::character::complete::char(')'),
+                )),
+            ),
+            str::trim,
+        )(i)
     }
 }
 

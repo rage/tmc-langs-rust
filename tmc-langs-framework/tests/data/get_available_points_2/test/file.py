@@ -9,7 +9,6 @@ def b():
 def c():
     pass
 
-@POINTS("4")
+@pOiNtS("4")
 def d():
     pass
-

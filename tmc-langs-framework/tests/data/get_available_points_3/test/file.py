@@ -2,10 +2,11 @@
 def a():
     pass
 
-# @Points("2")
+// @Points("2")
 def b():
     pass
-// @Points("3")
+
+@Points("3") // comment
 def c():
     pass
 

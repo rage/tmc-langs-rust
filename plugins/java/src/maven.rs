@@ -16,6 +16,7 @@ use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, ValidationResult},
     io::file_util,
+    nom::{self, IResult},
     plugin::{Language, LanguagePlugin},
     TmcError,
 };
@@ -73,6 +74,8 @@ impl MavenPlugin {
 
 impl LanguagePlugin for MavenPlugin {
     const PLUGIN_NAME: &'static str = "apache-maven";
+    const LINE_COMMENT: &'static str = "//";
+    const BLOCK_COMMENT: Option<(&'static str, &'static str)> = Some(("/*", "*/"));
     type StudentFilePolicy = MavenStudentFilePolicy;
 
     fn check_code_style(
@@ -126,6 +129,10 @@ impl LanguagePlugin for MavenPlugin {
 
     fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
         vec![PathBuf::from("src/test")]
+    }
+
+    fn points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str> {
+        Self::java_points_parser(i)
     }
 }
 

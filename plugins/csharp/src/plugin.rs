@@ -17,6 +17,7 @@ use tmc_langs_framework::{
     },
     error::FileIo,
     io::file_util,
+    nom::{self, IResult},
     plugin::Language,
     zip::ZipArchive,
     LanguagePlugin, TmcError,
@@ -115,6 +116,8 @@ impl CSharpPlugin {
 
 impl LanguagePlugin for CSharpPlugin {
     const PLUGIN_NAME: &'static str = "csharp";
+    const LINE_COMMENT: &'static str = "//";
+    const BLOCK_COMMENT: Option<(&'static str, &'static str)> = Some(("/*", "*/"));
     type StudentFilePolicy = CSharpStudentFilePolicy;
 
     /// Checks the directories in src for csproj files, up to 2 subdirectories deep.
@@ -267,6 +270,39 @@ impl LanguagePlugin for CSharpPlugin {
         }
         Ok(())
     }
+
+    fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
+        vec![PathBuf::from("src")]
+    }
+
+    fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
+        vec![PathBuf::from("test")]
+    }
+
+    fn points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str> {
+        nom::combinator::map(
+            nom::sequence::delimited(
+                nom::sequence::tuple((
+                    nom::bytes::complete::tag("@"),
+                    nom::character::complete::multispace0,
+                    nom::bytes::complete::tag_no_case("points"),
+                    nom::character::complete::multispace0,
+                    nom::character::complete::char('('),
+                    nom::character::complete::multispace0,
+                )),
+                nom::sequence::delimited(
+                    nom::character::complete::char('"'),
+                    nom::bytes::complete::is_not("\""),
+                    nom::character::complete::char('"'),
+                ),
+                nom::sequence::tuple((
+                    nom::character::complete::multispace0,
+                    nom::character::complete::char(')'),
+                )),
+            ),
+            str::trim,
+        )(i)
+    }
 }
 
 #[cfg(test)]
@@ -415,5 +451,17 @@ mod test {
         plugin.clean(temp.path()).unwrap();
         assert!(!bin_path.exists());
         assert!(!obj_path_test.exists());
+    }
+
+    #[test]
+    fn parses_points() {
+        let res = CSharpPlugin::points_parser("asd");
+        assert!(res.is_err());
+
+        let res = CSharpPlugin::points_parser("@Points(\"1\")").unwrap();
+        assert_eq!(res.1, "1");
+
+        let res = CSharpPlugin::points_parser("@  pOiNtS  (  \"  1  \"  )  ").unwrap();
+        assert_eq!(res.1, "1");
     }
 }

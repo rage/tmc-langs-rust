@@ -12,6 +12,7 @@ use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, TestDesc},
     io::file_util,
+    nom::{self, IResult},
     zip::ZipArchive,
     LanguagePlugin, TmcError,
 };
@@ -27,6 +28,8 @@ impl RPlugin {
 
 impl LanguagePlugin for RPlugin {
     const PLUGIN_NAME: &'static str = "r";
+    const LINE_COMMENT: &'static str = "#";
+    const BLOCK_COMMENT: Option<(&'static str, &'static str)> = None;
     type StudentFilePolicy = RStudentFilePolicy;
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
@@ -129,6 +132,11 @@ impl LanguagePlugin for RPlugin {
 
     fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
         vec![PathBuf::from("tests")]
+    }
+
+    fn points_parser<'a>(_i: &'a str) -> IResult<&'a str, &'a str> {
+        // no points annotations
+        Ok(("", ""))
     }
 }
 

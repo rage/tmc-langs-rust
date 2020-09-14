@@ -33,6 +33,8 @@ use zip::ZipArchive;
 /// this interface are free to cache results if needed.
 pub trait LanguagePlugin {
     const PLUGIN_NAME: &'static str;
+    const LINE_COMMENT: &'static str;
+    const BLOCK_COMMENT: Option<(&'static str, &'static str)>;
     type StudentFilePolicy: StudentFilePolicy;
 
     /// Returns a list of all directories inside that contain an exercise in this
@@ -422,14 +424,11 @@ pub trait LanguagePlugin {
     /// Runs clean command e.g `make clean` for make or `mvn clean` for maven.
     fn clean(&self, path: &Path) -> Result<(), TmcError>;
 
-    fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
-        vec![PathBuf::from("src")]
-    }
+    fn get_default_student_file_paths(&self) -> Vec<PathBuf>;
 
-    fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
-        vec![PathBuf::from("test")]
-    }
+    fn get_default_exercise_file_paths(&self) -> Vec<PathBuf>;
 
+    /// Parses
     fn get_available_points(&self, exercise_path: &Path) -> Result<Vec<String>, TmcError> {
         let config = self.get_exercise_packaging_configuration(exercise_path)?;
 
@@ -449,23 +448,73 @@ pub trait LanguagePlugin {
                     log::debug!("parsing points from {}", entry.path().display());
                     let file_contents = file_util::read_file_to_string(entry.path())?;
 
-                    let parser = sequence::tuple((
-                        Self::line_comment_parser,
-                        Self::block_comment_parser,
-                        Self::points_parser,
-                        complete::take(1usize),
+                    let etc_parser = nom::combinator::value(Parse::Other, complete::take(1usize));
+                    let line_comment_parser = nom::combinator::value(
+                        Parse::LineComment,
+                        nom::sequence::pair(
+                            nom::bytes::complete::tag(Self::LINE_COMMENT),
+                            nom::bytes::complete::is_not("\n"),
+                        ),
+                    );
+                    let block_comment_parser: Box<dyn Fn(_) -> _> =
+                        if let Some(block_comment) = Self::BLOCK_COMMENT {
+                            Box::new(nom::combinator::value(
+                                Parse::BlockComment,
+                                nom::sequence::pair(
+                                    nom::bytes::complete::tag(block_comment.0),
+                                    nom::bytes::complete::is_not(block_comment.1),
+                                ),
+                            ))
+                        } else {
+                            Box::new(nom::combinator::value(
+                                Parse::Other,
+                                complete::take_while(|_| false),
+                            ))
+                        };
+                    let points_parser =
+                        nom::combinator::map(Self::points_parser, |p| Parse::Points(p.to_string()));
+
+                    let parser = nom::multi::many0(nom::multi::many_till(
+                        etc_parser,
+                        nom::branch::alt((
+                            line_comment_parser,
+                            block_comment_parser,
+                            points_parser,
+                        )),
                     ));
-                    let res: IResult<_, _, (&str, ErrorKind)> = parser(&file_contents);
-                    let (rem, (lc, bc, ps, nc)) = res.unwrap();
+                    let res: IResult<_, _> = parser(&file_contents);
+                    let (_, parsed) = res.unwrap();
+                    for (_, parse) in parsed {
+                        if let Parse::Points(parsed) = parse {
+                            points.push(parsed);
+                        }
+                    }
                 }
             }
         }
         Ok(points)
     }
 
-    fn line_comment_parser<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, (), E>;
-    fn block_comment_parser<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, (), E>;
-    fn points_parser<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &str, E>;
+    /// A nom parser that recognizes a points annotation and returns the inner points value.
+    ///
+    /// For example implementations, see the existing language plugins.
+    fn points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str>;
+}
+
+pub fn simple_delimited<'a>(limiter: char) -> impl Fn(&'a str) -> IResult<&'a str, &'a str> {
+    nom::sequence::delimited(
+        nom::character::complete::char(limiter),
+        nom::bytes::complete::take_till(move |c| c == limiter),
+        nom::character::complete::char(limiter),
+    )
+}
+
+#[derive(Debug, Clone)]
+enum Parse {
+    LineComment,
+    BlockComment,
+    Points(String),
+    Other,
 }
 
 #[cfg(test)]
@@ -487,6 +536,8 @@ mod test {
 
     impl LanguagePlugin for MockPlugin {
         const PLUGIN_NAME: &'static str = "mock_plugin";
+        const LINE_COMMENT: &'static str = "//";
+        const BLOCK_COMMENT: Option<(&'static str, &'static str)> = Some(("/*", "*/"));
         type StudentFilePolicy = MockPolicy;
 
         fn get_student_file_policy(_project_path: &Path) -> Self::StudentFilePolicy {
@@ -527,19 +578,54 @@ mod test {
             unimplemented!()
         }
 
-        fn line_comment_parser<'a, E: ParseError<&'a str>>(_: &'a str) -> IResult<&'a str, (), E> {
-            unimplemented!()
+        fn points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str> {
+            nom::combinator::map(
+                nom::sequence::delimited(
+                    nom::sequence::tuple((
+                        nom::bytes::complete::tag("@"),
+                        nom::character::complete::multispace0,
+                        nom::bytes::complete::tag_no_case("points"),
+                        nom::character::complete::multispace0,
+                        nom::character::complete::char('('),
+                        nom::character::complete::multispace0,
+                    )),
+                    nom::branch::alt((
+                        nom::sequence::delimited(
+                            nom::character::complete::char('"'),
+                            nom::bytes::complete::is_not("\""),
+                            nom::character::complete::char('"'),
+                        ),
+                        nom::sequence::delimited(
+                            nom::character::complete::char('\''),
+                            nom::bytes::complete::is_not("'"),
+                            nom::character::complete::char('\''),
+                        ),
+                    )),
+                    nom::sequence::tuple((
+                        nom::character::complete::multispace0,
+                        nom::character::complete::char(')'),
+                    )),
+                ),
+                str::trim,
+            )(i)
         }
-        fn block_comment_parser<'a, E: ParseError<&'a str>>(_: &'a str) -> IResult<&'a str, (), E> {
-            unimplemented!()
+
+        fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
+            vec![PathBuf::from("src")]
         }
-        fn points_parser<'a, E: ParseError<&'a str>>(_: &'a str) -> IResult<&'a str, &str, E> {
-            unimplemented!()
+
+        fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
+            vec![PathBuf::from("test")]
         }
+    }
+
+    fn init() {
+        let _ = env_logger::builder().is_test(true).try_init();
     }
 
     #[test]
     fn finds_exercises() {
+        init();
         let plugin = MockPlugin {};
         let exercises = plugin.find_exercises(&PathBuf::from("tests/data"));
         assert!(
@@ -566,6 +652,7 @@ mod test {
 
     #[test]
     fn gets_exercise_packaging_configuration() {
+        init();
         use std::fs::File;
         use std::io::Write;
 
@@ -607,9 +694,25 @@ extra_exercise_files:
 
     #[test]
     fn empty_run_result_is_err() {
+        init();
         let plugin = MockPlugin {};
         let res = plugin.run_tests(Path::new("")).unwrap();
         assert_eq!(res.status, RunStatus::TestsFailed);
         assert_eq!(res.test_results[0].name, "Tests found test")
+    }
+
+    #[test]
+    fn gets_available_points() {
+        init();
+        let plugin = MockPlugin {};
+        let points = plugin
+            .get_available_points(Path::new("tests/data/get_available_points_1"))
+            .unwrap();
+        assert!(points.is_empty());
+
+        let points = plugin
+            .get_available_points(Path::new("tests/data/get_available_points_2"))
+            .unwrap();
+        assert_eq!(points, &["1", "2", "3", "4"]);
     }
 }

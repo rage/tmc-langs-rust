@@ -7,6 +7,7 @@ use std::time::Duration;
 pub use tmc_langs_framework::policy::EverythingIsStudentFilePolicy as NoTestsStudentFilePolicy;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
+    nom::{self, IResult},
     zip::ZipArchive,
     LanguagePlugin, StudentFilePolicy, TmcError,
 };
@@ -30,6 +31,8 @@ impl NoTestsPlugin {
 
 impl LanguagePlugin for NoTestsPlugin {
     const PLUGIN_NAME: &'static str = "No-Tests";
+    const LINE_COMMENT: &'static str = "//";
+    const BLOCK_COMMENT: Option<(&'static str, &'static str)> = None;
     type StudentFilePolicy = NoTestsStudentFilePolicy;
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
@@ -80,6 +83,18 @@ impl LanguagePlugin for NoTestsPlugin {
 
     fn clean(&self, _path: &Path) -> Result<(), TmcError> {
         Ok(())
+    }
+
+    fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
+        vec![PathBuf::from("src")]
+    }
+
+    fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
+        vec![PathBuf::from("test")]
+    }
+
+    fn points_parser<'a>(_: &'a str) -> IResult<&'a str, &'a str> {
+        Ok(("", ""))
     }
 }
 
