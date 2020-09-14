@@ -247,20 +247,3 @@ fn get_language_plugin(path: &Path) -> Result<Plugin, TmcError> {
         Err(TmcError::PluginNotFound(path.to_path_buf()))
     }
 }
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn parses_available_points() {
-        let points = get_available_points(Path::new("tests/data/get_available_points_1")).unwrap();
-        assert!(points.is_empty());
-
-        let points = get_available_points(Path::new("tests/data/get_available_points_2")).unwrap();
-        assert_eq!(points, &["1", "2", "3"]);
-
-        let points = get_available_points(Path::new("tests/data/get_available_points_3")).unwrap();
-        assert_eq!(points, &["1"]);
-    }
-}

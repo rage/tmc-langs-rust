@@ -9,9 +9,7 @@ use crate::io::{file_util, submission_processing, tmc_zip};
 use crate::policy::StudentFilePolicy;
 pub use isolang::Language;
 use log::debug;
-use nom::{bytes::complete, combinator, error::ErrorKind, error::ParseError, sequence, IResult};
-use once_cell::sync::Lazy;
-use regex::Regex;
+use nom::{branch, bytes, character, combinator, multi, sequence, IResult};
 use std::collections::{HashMap, HashSet};
 use std::io::{Read, Seek, Write};
 use std::path::{Path, PathBuf};
@@ -448,39 +446,35 @@ pub trait LanguagePlugin {
                     log::debug!("parsing points from {}", entry.path().display());
                     let file_contents = file_util::read_file_to_string(entry.path())?;
 
-                    let etc_parser = nom::combinator::value(Parse::Other, complete::take(1usize));
-                    let line_comment_parser = nom::combinator::value(
+                    let etc_parser = combinator::value(Parse::Other, bytes::complete::take(1usize));
+                    let line_comment_parser = combinator::value(
                         Parse::LineComment,
-                        nom::sequence::pair(
-                            nom::bytes::complete::tag(Self::LINE_COMMENT),
-                            nom::bytes::complete::is_not("\n"),
+                        sequence::pair(
+                            bytes::complete::tag(Self::LINE_COMMENT),
+                            bytes::complete::is_not("\n"),
                         ),
                     );
                     let block_comment_parser: Box<dyn Fn(_) -> _> =
                         if let Some(block_comment) = Self::BLOCK_COMMENT {
-                            Box::new(nom::combinator::value(
+                            Box::new(combinator::value(
                                 Parse::BlockComment,
-                                nom::sequence::pair(
-                                    nom::bytes::complete::tag(block_comment.0),
-                                    nom::bytes::complete::is_not(block_comment.1),
+                                sequence::pair(
+                                    bytes::complete::tag(block_comment.0),
+                                    bytes::complete::is_not(block_comment.1),
                                 ),
                             ))
                         } else {
-                            Box::new(nom::combinator::value(
+                            Box::new(combinator::value(
                                 Parse::Other,
-                                complete::take_while(|_| false),
+                                bytes::complete::take_while(|_| false),
                             ))
                         };
                     let points_parser =
-                        nom::combinator::map(Self::points_parser, |p| Parse::Points(p.to_string()));
+                        combinator::map(Self::points_parser, |p| Parse::Points(p.to_string()));
 
-                    let parser = nom::multi::many0(nom::multi::many_till(
+                    let parser = multi::many0(multi::many_till(
                         etc_parser,
-                        nom::branch::alt((
-                            line_comment_parser,
-                            block_comment_parser,
-                            points_parser,
-                        )),
+                        branch::alt((line_comment_parser, block_comment_parser, points_parser)),
                     ));
                     let res: IResult<_, _> = parser(&file_contents);
                     let (_, parsed) = res.unwrap();
@@ -502,10 +496,10 @@ pub trait LanguagePlugin {
 }
 
 pub fn simple_delimited<'a>(limiter: char) -> impl Fn(&'a str) -> IResult<&'a str, &'a str> {
-    nom::sequence::delimited(
-        nom::character::complete::char(limiter),
-        nom::bytes::complete::take_till(move |c| c == limiter),
-        nom::character::complete::char(limiter),
+    sequence::delimited(
+        character::complete::char(limiter),
+        bytes::complete::take_till(move |c| c == limiter),
+        character::complete::char(limiter),
     )
 }
 
@@ -579,31 +573,31 @@ mod test {
         }
 
         fn points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str> {
-            nom::combinator::map(
-                nom::sequence::delimited(
-                    nom::sequence::tuple((
-                        nom::bytes::complete::tag("@"),
-                        nom::character::complete::multispace0,
-                        nom::bytes::complete::tag_no_case("points"),
-                        nom::character::complete::multispace0,
-                        nom::character::complete::char('('),
-                        nom::character::complete::multispace0,
+            combinator::map(
+                sequence::delimited(
+                    sequence::tuple((
+                        bytes::complete::tag("@"),
+                        character::complete::multispace0,
+                        bytes::complete::tag_no_case("points"),
+                        character::complete::multispace0,
+                        character::complete::char('('),
+                        character::complete::multispace0,
                     )),
-                    nom::branch::alt((
-                        nom::sequence::delimited(
-                            nom::character::complete::char('"'),
-                            nom::bytes::complete::is_not("\""),
-                            nom::character::complete::char('"'),
+                    branch::alt((
+                        sequence::delimited(
+                            character::complete::char('"'),
+                            bytes::complete::is_not("\""),
+                            character::complete::char('"'),
                         ),
-                        nom::sequence::delimited(
-                            nom::character::complete::char('\''),
-                            nom::bytes::complete::is_not("'"),
-                            nom::character::complete::char('\''),
+                        sequence::delimited(
+                            character::complete::char('\''),
+                            bytes::complete::is_not("'"),
+                            character::complete::char('\''),
                         ),
                     )),
-                    nom::sequence::tuple((
-                        nom::character::complete::multispace0,
-                        nom::character::complete::char(')'),
+                    sequence::tuple((
+                        character::complete::multispace0,
+                        character::complete::char(')'),
                     )),
                 ),
                 str::trim,

@@ -12,7 +12,7 @@ use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, TestDesc},
     io::file_util,
-    nom::{self, IResult},
+    nom::IResult,
     zip::ZipArchive,
     LanguagePlugin, TmcError,
 };

@@ -10,7 +10,7 @@ use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult, ValidationResult},
     io::file_util,
-    nom::{self, IResult},
+    nom::{bytes, character, combinator, sequence, IResult},
     plugin::{Language, LanguagePlugin},
 };
 use walkdir::WalkDir;
@@ -247,24 +247,24 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
     }
 
     fn java_points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str> {
-        nom::combinator::map(
-            nom::sequence::delimited(
-                nom::sequence::tuple((
-                    nom::bytes::complete::tag("@"),
-                    nom::character::complete::multispace0,
-                    nom::bytes::complete::tag_no_case("points"),
-                    nom::character::complete::multispace0,
-                    nom::character::complete::char('('),
-                    nom::character::complete::multispace0,
+        combinator::map(
+            sequence::delimited(
+                sequence::tuple((
+                    bytes::complete::tag("@"),
+                    character::complete::multispace0,
+                    bytes::complete::tag_no_case("points"),
+                    character::complete::multispace0,
+                    character::complete::char('('),
+                    character::complete::multispace0,
                 )),
-                nom::sequence::delimited(
-                    nom::character::complete::char('"'),
-                    nom::bytes::complete::is_not("\""),
-                    nom::character::complete::char('"'),
+                sequence::delimited(
+                    character::complete::char('"'),
+                    bytes::complete::is_not("\""),
+                    character::complete::char('"'),
                 ),
-                nom::sequence::tuple((
-                    nom::character::complete::multispace0,
-                    nom::character::complete::char(')'),
+                sequence::tuple((
+                    character::complete::multispace0,
+                    character::complete::char(')'),
                 )),
             ),
             str::trim,

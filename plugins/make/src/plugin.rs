@@ -16,7 +16,7 @@ use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TmcProjectYml},
     error::{CommandError, FileIo},
     io::file_util,
-    nom::{self, IResult},
+    nom::{bytes, character, combinator, sequence, IResult},
     plugin::LanguagePlugin,
     TmcError,
 };
@@ -312,22 +312,22 @@ impl LanguagePlugin for MakePlugin {
     }
 
     fn points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str> {
-        nom::combinator::map(
-            nom::sequence::delimited(
-                nom::sequence::tuple((
-                    nom::bytes::complete::tag("tmc_register_test"),
-                    nom::character::complete::multispace0,
-                    nom::character::complete::char('('),
-                    nom::bytes::complete::is_not("\""),
+        combinator::map(
+            sequence::delimited(
+                sequence::tuple((
+                    bytes::complete::tag("tmc_register_test"),
+                    character::complete::multispace0,
+                    character::complete::char('('),
+                    bytes::complete::is_not("\""),
                 )),
-                nom::sequence::delimited(
-                    nom::character::complete::char('"'),
-                    nom::bytes::complete::is_not("\""),
-                    nom::character::complete::char('"'),
+                sequence::delimited(
+                    character::complete::char('"'),
+                    bytes::complete::is_not("\""),
+                    character::complete::char('"'),
                 ),
-                nom::sequence::tuple((
-                    nom::character::complete::multispace0,
-                    nom::character::complete::char(')'),
+                sequence::tuple((
+                    character::complete::multispace0,
+                    character::complete::char(')'),
                 )),
             ),
             str::trim,

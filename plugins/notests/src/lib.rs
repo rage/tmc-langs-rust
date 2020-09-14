@@ -7,7 +7,7 @@ use std::time::Duration;
 pub use tmc_langs_framework::policy::EverythingIsStudentFilePolicy as NoTestsStudentFilePolicy;
 use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
-    nom::{self, IResult},
+    nom::IResult,
     zip::ZipArchive,
     LanguagePlugin, StudentFilePolicy, TmcError,
 };
