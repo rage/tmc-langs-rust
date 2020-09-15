@@ -12,7 +12,7 @@ use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, TestDesc},
     io::file_util,
-    nom::IResult,
+    nom::{bytes, character, combinator, sequence, IResult},
     zip::ZipArchive,
     LanguagePlugin, TmcError,
 };
@@ -134,9 +134,28 @@ impl LanguagePlugin for RPlugin {
         vec![PathBuf::from("tests")]
     }
 
-    fn points_parser<'a>(_i: &'a str) -> IResult<&'a str, &'a str> {
-        // no points annotations
-        Ok(("", ""))
+    fn points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str> {
+        combinator::map(
+            sequence::delimited(
+                sequence::tuple((
+                    bytes::complete::tag("test"),
+                    character::complete::multispace0,
+                    character::complete::char('('),
+                    bytes::complete::take_until(","),
+                    bytes::complete::take_until("\""),
+                )),
+                sequence::delimited(
+                    character::complete::char('"'),
+                    bytes::complete::is_not("\""),
+                    character::complete::char('"'),
+                ),
+                sequence::tuple((
+                    character::complete::multispace0,
+                    character::complete::char(')'),
+                )),
+            ),
+            str::trim,
+        )(i)
     }
 }
 
@@ -282,5 +301,21 @@ mod test {
         let mut zip = ZipArchive::new(file).unwrap();
         let dir = RPlugin::find_project_dir_in_zip(&mut zip);
         assert!(dir.is_err());
+    }
+
+    #[test]
+    fn parses_points() {
+        let target = "asd";
+        assert!(RPlugin::points_parser(target).is_err());
+
+        let target = "test ( \"first arg\", \"second arg but no brace\"";
+        assert!(RPlugin::points_parser(target).is_err());
+
+        let target = r#"test("1d and 1e are solved correctly", c("W1A.1.2"), {
+  expect_equivalent(z, z_correct, tolerance=1e-5)
+  expect_true(areEqual(res, res_correct))
+})
+"#;
+        assert_eq!(RPlugin::points_parser(target).unwrap().1, "W1A.1.2");
     }
 }
