@@ -9,15 +9,15 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::io::{self, BufRead, BufReader};
 use std::path::{Path, PathBuf};
-use std::process::Output;
 use std::time::Duration;
 use tmc_langs_framework::{
-    command::TmcCommand,
+    command::{Output, TmcCommand},
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TmcProjectYml},
     error::{CommandError, FileIo},
     io::file_util,
     nom::{bytes, character, combinator, sequence, IResult},
     plugin::LanguagePlugin,
+    subprocess::PopenError,
     TmcError,
 };
 
@@ -82,9 +82,9 @@ impl MakePlugin {
         };
         log::info!("Running make {}", arg);
 
-        let mut command = TmcCommand::new("make".to_string());
-        command.current_dir(path).arg(arg);
-        let output = command.output()?;
+        let output = TmcCommand::new_with_file_io("make")?
+            .with(|e| e.cwd(path).arg(arg))
+            .output()?;
 
         log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         let stderr = String::from_utf8_lossy(&output.stderr);
@@ -108,9 +108,9 @@ impl MakePlugin {
     /// the process finished successfully or not.
     fn build(&self, dir: &Path) -> Result<Output, MakeError> {
         log::debug!("building {}", dir.display());
-        let mut command = TmcCommand::new("make".to_string());
-        command.current_dir(dir).arg("test");
-        let output = command.output()?;
+        let output = TmcCommand::new_with_file_io("make")?
+            .with(|e| e.cwd(dir).arg("test"))
+            .output()?;
 
         log::trace!("stdout:\n{}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr:\n{}", String::from_utf8_lossy(&output.stderr));
@@ -172,8 +172,8 @@ impl LanguagePlugin for MakePlugin {
             Err(error) => match error {
                 MakeError::Tmc(TmcError::Command(command_error)) => {
                     match command_error {
-                        CommandError::Spawn(_, io_error)
-                        | CommandError::FailedToRun(_, io_error)
+                        CommandError::Popen(_, PopenError::IoError(io_error))
+                        | CommandError::FailedToRun(_, PopenError::IoError(io_error))
                             if io_error.kind() == io::ErrorKind::PermissionDenied =>
                         {
                             // failed due to lacking permissions, try to clean and rerun
@@ -290,9 +290,9 @@ impl LanguagePlugin for MakePlugin {
 
     // does not check for success
     fn clean(&self, path: &Path) -> Result<(), TmcError> {
-        let mut command = TmcCommand::new("make".to_string());
-        command.current_dir(path).arg("clean");
-        let output = command.output()?;
+        let output = TmcCommand::new_with_file_io("make")?
+            .with(|e| e.cwd(path).arg("clean"))
+            .output()?;
 
         if output.status.success() {
             log::info!("Cleaned make project");

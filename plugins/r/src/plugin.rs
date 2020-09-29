@@ -39,9 +39,9 @@ impl LanguagePlugin for RPlugin {
         } else {
             &["-e", "library(tmcRtestrunner);run_available_points()"]
         };
-        let mut command = TmcCommand::new("Rscript".to_string());
-        command.current_dir(path).args(args);
-        command.output_checked()?;
+        let _output = TmcCommand::new_with_file_io("Rscript")?
+            .with(|e| e.cwd(path).args(args))
+            .output_checked()?;
 
         // parse exercise desc
         let points_path = path.join(".available_points.json");
@@ -76,9 +76,9 @@ impl LanguagePlugin for RPlugin {
         } else {
             &["-e", "library(tmcRtestrunner);run_tests()"]
         };
-        let mut command = TmcCommand::new("Rscript".to_string());
-        command.current_dir(path).args(args);
-        command.output_checked()?;
+        let _command = TmcCommand::new_with_file_io("Rscript")?
+            .with(|e| e.cwd(path).args(args))
+            .output_checked()?;
 
         // parse test result
         let json_file = file_util::open_file(&results_path)?;

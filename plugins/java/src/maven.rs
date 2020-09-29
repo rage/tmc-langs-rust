@@ -9,7 +9,6 @@ use policy::MavenStudentFilePolicy;
 use std::ffi::OsString;
 use std::io::Cursor;
 use std::path::{Path, PathBuf};
-use std::process::Stdio;
 use std::time::Duration;
 use tar::Archive;
 use tmc_langs_framework::{
@@ -39,10 +38,8 @@ impl MavenPlugin {
     // finally, return the path to the extracted executable
     fn get_mvn_command() -> Result<OsString, JavaError> {
         // check if mvn is in PATH
-        if let Ok(status) = TmcCommand::new("mvn".to_string())
-            .arg("--version")
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
+        if let Ok(status) = TmcCommand::new_with_file_io("mvn")?
+            .with(|e| e.arg("--version"))
             .status()
         {
             if status.success() {
@@ -116,9 +113,9 @@ impl LanguagePlugin for MavenPlugin {
         log::info!("Cleaning maven project at {}", path.display());
 
         let mvn_command = Self::get_mvn_command()?;
-        let mut command = TmcCommand::named("maven", mvn_command);
-        command.current_dir(path).arg("clean");
-        command.output_checked()?;
+        let _output = TmcCommand::new_with_file_io(mvn_command)?
+            .with(|e| e.cwd(path).arg("clean"))
+            .output_checked()?;
 
         Ok(())
     }
@@ -151,12 +148,13 @@ impl JavaPlugin for MavenPlugin {
 
         let output_arg = format!("-Dmdep.outputFile={}", class_path_file.display());
         let mvn_path = Self::get_mvn_command()?;
-        let mut command = TmcCommand::named("maven", &mvn_path);
-        command
-            .current_dir(path)
-            .arg("dependency:build-classpath")
-            .arg(output_arg);
-        command.output_checked()?;
+        let _output = TmcCommand::new_with_file_io(mvn_path)?
+            .with(|e| {
+                e.cwd(path)
+                    .arg("dependency:build-classpath")
+                    .arg(output_arg)
+            })
+            .output_checked()?;
 
         let class_path = file_util::read_file_to_string(&class_path_file)?;
         if class_path.is_empty() {
@@ -178,13 +176,14 @@ impl JavaPlugin for MavenPlugin {
         log::info!("Building maven project at {}", project_root_path.display());
 
         let mvn_path = Self::get_mvn_command()?;
-        let mut command = TmcCommand::named("maven", &mvn_path);
-        command
-            .current_dir(project_root_path)
-            .arg("clean")
-            .arg("compile")
-            .arg("test-compile");
-        let output = command.output_checked()?;
+        let output = TmcCommand::new_with_file_io(mvn_path)?
+            .with(|e| {
+                e.cwd(project_root_path)
+                    .arg("clean")
+                    .arg("compile")
+                    .arg("test-compile")
+            })
+            .output_checked()?;
 
         Ok(CompileResult {
             status_code: output.status,
@@ -201,11 +200,12 @@ impl JavaPlugin for MavenPlugin {
         log::info!("Running tests for maven project at {}", path.display());
 
         let mvn_path = Self::get_mvn_command()?;
-        let mut command = TmcCommand::named("maven", &mvn_path);
-        command
-            .current_dir(path)
-            .arg("fi.helsinki.cs.tmc:tmc-maven-plugin:1.12:test");
-        let output = command.output_checked()?;
+        let output = TmcCommand::new_with_file_io(mvn_path)?
+            .with(|e| {
+                e.cwd(path)
+                    .arg("fi.helsinki.cs.tmc:tmc-maven-plugin:1.12:test")
+            })
+            .output_checked()?;
 
         Ok(TestRun {
             test_results: path.join("target/test_output.txt"),

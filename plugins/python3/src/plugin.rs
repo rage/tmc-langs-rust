@@ -8,8 +8,9 @@ use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    command::{OutputWithTimeout, TmcCommand},
+    command::{Output, TmcCommand},
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
+    error::CommandError,
     io::file_util,
     nom::{branch, bytes, character, combinator, sequence, IResult},
     plugin::LanguagePlugin,
@@ -70,39 +71,50 @@ impl LanguagePlugin for Python3Plugin {
             file_util::remove_file(&test_results_json)?;
         }
 
-        let output = run_tmc_command(exercise_directory, &[], timeout)?;
+        let output = run_tmc_command(exercise_directory, &[], timeout);
 
-        let mut logs = HashMap::new();
-        logs.insert(
-            "stdout".to_string(),
-            String::from_utf8_lossy(output.stdout()).into_owned(),
-        );
-        logs.insert(
-            "stderr".to_string(),
-            String::from_utf8_lossy(output.stderr()).into_owned(),
-        );
-        if let OutputWithTimeout::Timeout { .. } = output {
-            return Ok(RunResult {
-                status: RunStatus::TestsFailed,
-                test_results: vec![TestResult {
-                    name: "Timeout test".to_string(),
-                    successful: false,
-                    points: vec![],
-                    message:
-                        "Tests timed out.\nMake sure you don't have an infinite loop in your code."
-                            .to_string(),
-                    exception: vec![],
-                }],
-                logs,
-            });
+        match output {
+            Ok(output) => {
+                let mut logs = HashMap::new();
+                logs.insert(
+                    "stdout".to_string(),
+                    String::from_utf8_lossy(&output.stdout).into_owned(),
+                );
+                logs.insert(
+                    "stderr".to_string(),
+                    String::from_utf8_lossy(&output.stderr).into_owned(),
+                );
+                let parse_res = parse_test_result(&test_results_json, logs);
+                // remove file regardless of parse success
+                if test_results_json.exists() {
+                    file_util::remove_file(&test_results_json)?;
+                }
+                Ok(parse_res?)
+            }
+            Err(PythonError::Tmc(TmcError::Command(CommandError::TimeOut {
+                stdout,
+                stderr,
+                ..
+            }))) => {
+                let mut logs = HashMap::new();
+                logs.insert("stdout".to_string(), stdout);
+                logs.insert("stderr".to_string(), stderr);
+                Ok(RunResult {
+                    status: RunStatus::TestsFailed,
+                    test_results: vec![TestResult {
+                        name: "Timeout test".to_string(),
+                        successful: false,
+                        points: vec![],
+                        message:
+                            "Tests timed out.\nMake sure you don't have an infinite loop in your code."
+                                .to_string(),
+                        exception: vec![],
+                    }],
+                    logs,
+                })
+            }
+            Err(error) => Err(error.into()),
         }
-
-        let parse_res = parse_test_result(&test_results_json, logs);
-        // remove file regardless of parse success
-        if test_results_json.exists() {
-            file_util::remove_file(&test_results_json)?;
-        }
-        Ok(parse_res?)
     }
 
     /// Checks if the directory has one of setup.py, requirements.txt., test/__init__.py, or tmc/__main__.py
@@ -179,37 +191,28 @@ fn run_tmc_command(
     path: &Path,
     extra_args: &[&str],
     timeout: Option<Duration>,
-) -> Result<OutputWithTimeout, PythonError> {
+) -> Result<Output, PythonError> {
     let path = path
         .canonicalize()
         .map_err(|e| PythonError::Canonicalize(path.to_path_buf(), e))?;
     log::debug!("running tmc command at {}", path.display());
     let common_args = ["-m", "tmc"];
 
-    let mut command = match &*LOCAL_PY {
-        LocalPy::Unix => TmcCommand::named("python", "python3"),
-        LocalPy::Windows => TmcCommand::named("python", "py"),
-        LocalPy::WindowsConda { conda_path } => TmcCommand::named("python", conda_path),
-        LocalPy::Custom { python_exec } => TmcCommand::named("python", python_exec),
+    let command = match &*LOCAL_PY {
+        LocalPy::Unix => TmcCommand::new_with_file_io("python3")?,
+        LocalPy::Windows => TmcCommand::new_with_file_io("py")?.with(|e| e.arg("-3")),
+        LocalPy::WindowsConda { conda_path } => TmcCommand::new_with_file_io(conda_path)?,
+        LocalPy::Custom { python_exec } => TmcCommand::new_with_file_io(python_exec)?,
     };
-    match &*LOCAL_PY {
-        LocalPy::Unix => &mut command,
-        LocalPy::Windows => command.args(&["-3"]),
-        LocalPy::WindowsConda { .. } => &mut command,
-        LocalPy::Custom { .. } => &mut command,
-    };
-    command
-        .args(&common_args)
-        .args(extra_args)
-        .current_dir(path);
+    let command = command.with(|e| e.args(&common_args).args(extra_args).cwd(path));
     let output = if let Some(timeout) = timeout {
-        command.wait_with_timeout(timeout)?
+        command.output_with_timeout(timeout)?
     } else {
-        OutputWithTimeout::Output(command.output()?)
+        command.output()?
     };
 
-    log::trace!("stdout: {}", String::from_utf8_lossy(output.stdout()));
-    log::debug!("stderr: {}", String::from_utf8_lossy(output.stderr()));
+    log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+    log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
     Ok(output)
 }
 

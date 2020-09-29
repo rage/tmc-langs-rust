@@ -2,9 +2,8 @@
 
 use std::num::ParseIntError;
 use std::path::PathBuf;
-use std::process::ExitStatus;
 use thiserror::Error;
-use tmc_langs_framework::{error::FileIo, TmcError};
+use tmc_langs_framework::{error::FileIo, subprocess::ExitStatus, TmcError};
 
 #[derive(Error, Debug)]
 pub enum MakeError {
@@ -12,9 +11,9 @@ pub enum MakeError {
     NoExerciseFound(PathBuf),
     #[error("Can't parse exercise description: could not find {0}")]
     CantFindAvailablePoints(PathBuf),
-    #[error("Failed to run tests without valgrind. Exit code: {0}, stderr: {1}")]
+    #[error("Failed to run tests without valgrind. Exit code: {0:?}, stderr: {1}")]
     RunningTests(ExitStatus, String),
-    #[error("Failed to run tests with valgrind. Exit code: {0}, stderr: {1}")]
+    #[error("Failed to run tests with valgrind. Exit code: {0:?}, stderr: {1}")]
     RunningTestsWithValgrind(ExitStatus, String),
     #[error("Failed to parse valgrind logs: could not find pids")]
     NoPidsInValgrindLogs,

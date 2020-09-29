@@ -11,11 +11,11 @@ use std::io::{BufReader, Cursor, Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    command::{OutputWithTimeout, TmcCommand},
+    command::TmcCommand,
     domain::{
         ExerciseDesc, RunResult, RunStatus, Strategy, TestDesc, TestResult, ValidationResult,
     },
-    error::FileIo,
+    error::{CommandError, FileIo},
     io::file_util,
     nom::{bytes, character, combinator, sequence, IResult},
     plugin::Language,
@@ -160,12 +160,14 @@ impl LanguagePlugin for CSharpPlugin {
             file_util::remove_file(&exercise_desc_json_path)?;
         }
 
-        let mut command = TmcCommand::new("dotnet".to_string());
-        command
-            .current_dir(path)
-            .arg(Self::get_bootstrap_path()?)
-            .arg("--generate-points-file");
-        command.output_checked()?;
+        let bootstrap_path = Self::get_bootstrap_path()?;
+        let _output = TmcCommand::new_with_file_io("dotnet")?
+            .with(|e| {
+                e.cwd(path)
+                    .arg(bootstrap_path)
+                    .arg("--generate-points-file")
+            })
+            .output_checked()?;
 
         let exercise_desc_json = file_util::open_file(&exercise_desc_json_path)?;
         let json: HashMap<String, Vec<String>> =
@@ -193,30 +195,25 @@ impl LanguagePlugin for CSharpPlugin {
             file_util::remove_file(&test_results_path)?;
         }
 
-        let mut command = TmcCommand::new("dotnet".to_string());
-        command
-            .current_dir(path)
-            .arg(Self::get_bootstrap_path()?)
-            .arg("--run-tests");
+        let bootstrap_path = Self::get_bootstrap_path()?;
+        let command = TmcCommand::new_with_file_io("dotnet")?
+            .with(|e| e.cwd(path).arg(bootstrap_path).arg("--run-tests"));
         let output = if let Some(timeout) = timeout {
-            command.wait_with_timeout(timeout)?
+            command.output_with_timeout(timeout)
         } else {
-            OutputWithTimeout::Output(command.output()?)
+            command.output()
         };
-        log::trace!("stdout: {}", String::from_utf8_lossy(output.stdout()));
-        log::debug!("stderr: {}", String::from_utf8_lossy(output.stderr()));
-        let mut logs = HashMap::new();
-        logs.insert(
-            "stdout".to_string(),
-            String::from_utf8_lossy(&output.stdout()).into_owned(),
-        );
-        logs.insert(
-            "stderr".to_string(),
-            String::from_utf8_lossy(&output.stderr()).into_owned(),
-        );
 
         match output {
-            OutputWithTimeout::Output(output) => {
+            Ok(output) => {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                log::trace!("stdout: {}", stdout);
+                log::debug!("stderr: {}", stderr);
+                let mut logs = HashMap::new();
+                logs.insert("stdout".to_string(), stdout.into_owned());
+                logs.insert("stderr".to_string(), stderr.into_owned());
+
                 if !output.status.success() {
                     return Ok(RunResult {
                         status: RunStatus::CompileFailed,
@@ -226,9 +223,13 @@ impl LanguagePlugin for CSharpPlugin {
                 }
                 Self::parse_test_results(&test_results_path, logs).map_err(|e| e.into())
             }
-            OutputWithTimeout::Timeout { .. } => Ok(RunResult {
-                status: RunStatus::TestsFailed,
-                test_results: vec![TestResult {
+            Err(TmcError::Command(CommandError::TimeOut { stdout, stderr, .. })) => {
+                let mut logs = HashMap::new();
+                logs.insert("stdout".to_string(), stdout);
+                logs.insert("stderr".to_string(), stderr);
+                Ok(RunResult {
+                    status: RunStatus::TestsFailed,
+                    test_results: vec![TestResult {
                     name: "Timeout test".to_string(),
                     successful: false,
                     points: vec![],
@@ -237,8 +238,10 @@ impl LanguagePlugin for CSharpPlugin {
                             .to_string(),
                     exception: vec![],
                 }],
-                logs,
-            }),
+                    logs,
+                })
+            }
+            Err(error) => Err(error),
         }
     }
 

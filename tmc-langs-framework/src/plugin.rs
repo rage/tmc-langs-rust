@@ -10,7 +10,7 @@ use crate::policy::StudentFilePolicy;
 pub use isolang::Language;
 use log::debug;
 use nom::{branch, bytes, combinator, multi, sequence, IResult};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::io::{Read, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
@@ -87,7 +87,7 @@ pub trait LanguagePlugin {
                         .to_string(),
                     exception: vec![],
                 }],
-                logs: HashMap::new(),
+                logs: result.logs,
             })
         } else {
             Ok(result)
@@ -507,6 +507,7 @@ enum Parse {
 mod test {
     use super::*;
     use nom::character;
+    use std::collections::HashMap;
 
     struct MockPlugin {}
 
