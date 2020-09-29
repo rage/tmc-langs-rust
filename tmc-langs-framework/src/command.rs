@@ -1,18 +1,18 @@
 //! Custom wrapper for Command that supports timeouts and contains custom error handling.
 
 use crate::{error::CommandError, TmcError};
-use std::{fmt, sync::Mutex};
+use os_pipe::pipe;
+#[cfg(unix)]
+use shared_child::unix::SharedChildExt;
+use shared_child::SharedChild;
 use std::io::Read;
 use std::ops::{Deref, DerefMut};
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus, Output};
-use shared_child::SharedChild;
 use std::sync::Arc;
 use std::thread;
-use std::time::{Duration};
-use os_pipe::pipe;
-#[cfg(unix)]
-use shared_child::unix::SharedChildExt;
+use std::time::Duration;
+use std::{fmt, sync::Mutex};
 
 // todo: collect args?
 #[derive(Debug)]
@@ -123,8 +123,7 @@ impl TmcCommand {
 
         let (process_result, timed_out) = {
             let mut command = self.command;
-            command.stdout(stdout_writer)
-                .stderr(stderr_writer);
+            command.stdout(stdout_writer).stderr(stderr_writer);
 
             let shared_child = SharedChild::spawn(&mut command)
                 .map_err(|e| TmcError::Command(CommandError::Spawn(self_string, e)))?;
@@ -133,7 +132,6 @@ impl TmcCommand {
             let running = Arc::new(Mutex::new(true));
             let running_clone = running.clone();
             let timed_out = Arc::new(Mutex::new(false));
-
 
             let child_arc_clone = child_arc.clone();
             let timed_out_clone = timed_out.clone();
@@ -167,8 +165,6 @@ impl TmcCommand {
         // before we read, otherwise the read end will never report EOF.
         // The block above drops everything unnecessary
 
-
-
         let res = match process_result {
             Ok(exit_status) => {
                 let mut stdout = vec![];
@@ -180,7 +176,11 @@ impl TmcCommand {
                     .read_to_end(&mut stderr)
                     .map_err(TmcError::ReadStdio)?;
 
-                Output { status: exit_status, stdout: stdout, stderr: stderr}
+                Output {
+                    status: exit_status,
+                    stdout: stdout,
+                    stderr: stderr,
+                }
             }
             Err(e) => {
                 if let std::io::ErrorKind::NotFound = e.kind() {
@@ -190,13 +190,19 @@ impl TmcCommand {
                         source: e,
                     }));
                 } else {
-                    return Err(TmcError::Command(CommandError::FailedToRun(self_string2, e)));
+                    return Err(TmcError::Command(CommandError::FailedToRun(
+                        self_string2,
+                        e,
+                    )));
                 }
             }
         };
 
         if timed_out.lock().unwrap().clone() {
-            return Ok(OutputWithTimeout::Timeout { stdout: res.stdout, stderr: res.stderr});
+            return Ok(OutputWithTimeout::Timeout {
+                stdout: res.stdout,
+                stderr: res.stderr,
+            });
         }
 
         return Ok(OutputWithTimeout::Output(res));
