@@ -11,6 +11,7 @@ use std::sync::Arc;
 use std::thread;
 use std::time::{Duration};
 use os_pipe::pipe;
+#[cfg(unix)]
 use shared_child::unix::SharedChildExt;
 
 // todo: collect args?
@@ -145,7 +146,8 @@ impl TmcCommand {
                 let mut timed_out_handle = timed_out_clone.lock().unwrap();
                 *timed_out_handle = true;
 
-                if cfg!(unix) {
+                #[cfg(unix)]
+                {
                     // Ask process to terminate nicely
                     let _res2 = child_arc_clone.send_signal(15);
                     thread::sleep(Duration::from_millis(500));
