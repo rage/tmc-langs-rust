@@ -12,4 +12,5 @@ pub use error::TmcError;
 pub use nom;
 pub use plugin::LanguagePlugin;
 pub use policy::StudentFilePolicy;
+pub use subprocess;
 pub use zip;

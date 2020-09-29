@@ -8,7 +8,6 @@ use policy::AntStudentFilePolicy;
 use std::env;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
-use std::process::Stdio;
 use std::time::Duration;
 use tmc_langs_framework::{
     command::TmcCommand,
@@ -32,14 +31,11 @@ impl AntPlugin {
 
     fn get_ant_executable(&self) -> &'static str {
         if cfg!(windows) {
-            if let Ok(status) = TmcCommand::new("ant".to_string())
-                .arg("-version")
-                .stdout(Stdio::piped())
-                .stderr(Stdio::piped())
-                .status()
-            {
-                if status.success() {
-                    return "ant";
+            if let Ok(command) = TmcCommand::new_with_file_io("ant") {
+                if let Ok(status) = command.with(|e| e.arg("-version")).status() {
+                    if status.success() {
+                        return "ant";
+                    }
                 }
             }
             // if ant not found on windows, try ant.bat
@@ -121,13 +117,9 @@ impl LanguagePlugin for AntPlugin {
         let stderr = file_util::create_file(&stderr_path)?;
 
         let ant_exec = self.get_ant_executable();
-        let mut command = TmcCommand::new(ant_exec.to_string());
-        command
-            .arg("clean")
-            .stdout(stdout)
-            .stderr(stderr)
-            .current_dir(path);
-        command.output_checked()?;
+        let _output = TmcCommand::new(ant_exec.to_string())
+            .with(|e| e.arg("clean").stdout(stdout).stderr(stderr).cwd(path))
+            .output_checked()?;
         file_util::remove_file(&stdout_path)?;
         file_util::remove_file(&stderr_path)?;
         Ok(())
@@ -192,9 +184,9 @@ impl JavaPlugin for AntPlugin {
 
         // TODO: don't require ant in path?
         let ant_exec = self.get_ant_executable();
-        let mut command = TmcCommand::new(ant_exec.to_string());
-        command.arg("compile-test").current_dir(project_root_path);
-        let output = command.output()?;
+        let output = TmcCommand::new_with_file_io(ant_exec)?
+            .with(|e| e.arg("compile-test").cwd(project_root_path))
+            .output()?;
 
         log::debug!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
@@ -259,9 +251,9 @@ impl JavaPlugin for AntPlugin {
         }
 
         log::debug!("java args {} in {}", arguments.join(" "), path.display());
-        let mut command = TmcCommand::new("java".to_string());
-        command.current_dir(path).args(arguments);
-        let output = command.output()?;
+        let output = TmcCommand::new_with_file_io("java")?
+            .with(|e| e.cwd(path).args(&arguments))
+            .output()?;
 
         Ok(TestRun {
             test_results: result_file,

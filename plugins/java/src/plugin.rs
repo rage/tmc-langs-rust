@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult, ValidationResult},
@@ -118,9 +119,9 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
 
     /// Tries to find the java.home property.
     fn get_java_home() -> Result<PathBuf, JavaError> {
-        let mut command = TmcCommand::new("java".to_string());
-        command.arg("-XshowSettings:properties").arg("-version");
-        let output = command.output_checked()?;
+        let output = TmcCommand::new_with_file_io("java")?
+            .with(|e| e.arg("-XshowSettings:properties").arg("-version"))
+            .output()?;
 
         // information is printed to stderr
         let stderr = String::from_utf8_lossy(&output.stderr);

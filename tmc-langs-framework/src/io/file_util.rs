@@ -8,6 +8,10 @@ use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 use zip::{read::ZipFile, ZipArchive};
 
+pub fn temp_file() -> Result<File, FileIo> {
+    tempfile::tempfile().map_err(FileIo::TempFile)
+}
+
 pub fn open_file<P: AsRef<Path>>(path: P) -> Result<File, FileIo> {
     let path = path.as_ref();
     File::open(path).map_err(|e| FileIo::FileOpen(path.to_path_buf(), e))

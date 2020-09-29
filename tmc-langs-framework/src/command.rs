@@ -1,199 +1,171 @@
 //! Custom wrapper for Command that supports timeouts and contains custom error handling.
 
-use crate::{error::CommandError, TmcError};
-use std::fmt;
+use crate::{
+    error::{CommandError, FileIo},
+    io::file_util,
+    TmcError,
+};
+use std::ffi::OsStr;
+use std::fs::File;
 use std::io::Read;
-use std::ops::{Deref, DerefMut};
-use std::path::PathBuf;
-use std::process::{Command, ExitStatus, Output, Stdio};
-use std::thread;
-use std::time::{Duration, Instant};
+use std::io::Seek;
+use std::io::SeekFrom;
+use std::time::Duration;
+use subprocess::{Exec, ExitStatus, PopenError};
 
-// todo: collect args?
+/// Wrapper around subprocess::Exec
+#[must_use]
 pub struct TmcCommand {
-    name: String,
-    path: PathBuf,
-    command: Command,
+    exec: Exec,
+    stdout: Option<File>,
+    stderr: Option<File>,
 }
 
-/// Textual representation of a command, e.g. "ls" "-a"
-#[derive(Debug)]
-pub struct CommandString(String);
-
-impl fmt::Display for CommandString {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0)
+fn read_opt_file(f: Option<File>) -> Result<Vec<u8>, TmcError> {
+    let mut v = vec![];
+    if let Some(mut file) = f {
+        file.seek(SeekFrom::Start(0)).unwrap();
+        file.read_to_end(&mut v).map_err(FileIo::Generic)?;
     }
+    Ok(v)
 }
 
 impl TmcCommand {
-    pub fn new(name: String) -> Self {
-        let path = PathBuf::from(&name);
+    /// Creates a new command
+    pub fn new(cmd: impl AsRef<OsStr>) -> Self {
         Self {
-            command: Command::new(&path),
-            name,
-            path,
+            exec: Exec::cmd(cmd),
+            stdout: None,
+            stderr: None,
         }
     }
 
-    pub fn into_inner(self) -> Command {
-        self.command
+    /// Creates a new command with stdout and stderr redirected to files
+    pub fn new_with_file_io(cmd: impl AsRef<OsStr>) -> Result<Self, TmcError> {
+        let stdout = file_util::temp_file()?;
+        let stderr = file_util::temp_file()?;
+        Ok(Self {
+            exec: Exec::cmd(cmd)
+                .stdout(stdout.try_clone().map_err(FileIo::FileHandleClone)?)
+                .stderr(stderr.try_clone().map_err(FileIo::FileHandleClone)?),
+            stdout: Some(stdout),
+            stderr: Some(stderr),
+        })
     }
 
-    pub fn to_string(&self) -> CommandString {
-        CommandString(format!("{:?}", self.command))
-    }
-
-    pub fn named<P: Into<PathBuf>>(name: impl ToString, path: P) -> Self {
-        let path = path.into();
+    pub fn with(self, f: impl FnOnce(Exec) -> Exec) -> Self {
         Self {
-            command: Command::new(&path),
-            name: name.to_string(),
-            path,
+            exec: f(self.exec),
+            ..self
         }
     }
 
-    // shadows command's status
-    pub fn status(&mut self) -> Result<ExitStatus, TmcError> {
-        self.deref_mut().status().map_err(|e| {
-            if let std::io::ErrorKind::NotFound = e.kind() {
-                TmcError::Command(CommandError::NotFound {
-                    name: self.name.clone(),
-                    path: self.path.clone(),
-                    source: e,
-                })
-            } else {
-                TmcError::Command(CommandError::FailedToRun(self.to_string(), e))
+    // executes the given command and collects its output
+    fn execute(self, timeout: Option<Duration>, checked: bool) -> Result<Output, TmcError> {
+        let cmd = self.exec.to_cmdline_lossy();
+        log::info!("executing {}", cmd);
+
+        let Self {
+            exec,
+            stdout,
+            stderr,
+        } = self;
+
+        let mut popen = exec.popen().map_err(|e| popen_to_tmc_err(cmd.clone(), e))?;
+
+        let exit_status = if let Some(timeout) = timeout {
+            let exit_status = popen
+                .wait_timeout(timeout)
+                .map_err(|e| popen_to_tmc_err(cmd.clone(), e))?;
+
+            match exit_status {
+                Some(exit_status) => exit_status,
+                None => {
+                    popen
+                        .terminate()
+                        .map_err(|e| CommandError::Terminate(cmd.clone(), e))?;
+                    let stdout = read_opt_file(stdout)?;
+                    let stderr = read_opt_file(stderr)?;
+                    return Err(TmcError::Command(CommandError::TimeOut {
+                        command: cmd,
+                        timeout,
+                        stdout: String::from_utf8_lossy(&stdout).into_owned(),
+                        stderr: String::from_utf8_lossy(&stderr).into_owned(),
+                    }));
+                }
             }
-        })
-    }
+        } else {
+            popen.wait().map_err(|e| popen_to_tmc_err(cmd.clone(), e))?
+        };
 
-    // shadows command's output
-    pub fn output(&mut self) -> Result<Output, TmcError> {
-        self.deref_mut().output().map_err(|e| {
-            if let std::io::ErrorKind::NotFound = e.kind() {
-                TmcError::Command(CommandError::NotFound {
-                    name: self.name.clone(),
-                    path: self.path.clone(),
-                    source: e,
-                })
-            } else {
-                TmcError::Command(CommandError::FailedToRun(self.to_string(), e))
-            }
-        })
-    }
+        log::info!("finished executing {}", cmd);
+        let stdout = read_opt_file(stdout)?;
+        let stderr = read_opt_file(stderr)?;
 
-    // calls output and checks the exit status, returning an error if the exit status is failed
-    pub fn output_checked(&mut self) -> Result<Output, TmcError> {
-        let output = self.output()?;
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        let stderr = String::from_utf8_lossy(&output.stderr);
-
-        if !output.status.success() {
-            log::warn!("stdout: {}", stdout);
-            log::warn!("stderr: {}", stderr);
+        if checked && !exit_status.success() {
+            log::warn!("stdout: {}", String::from_utf8_lossy(&stdout));
+            log::warn!("stderr: {}", String::from_utf8_lossy(&stderr));
             return Err(CommandError::Failed {
-                command: self.to_string(),
-                status: output.status,
-                stdout: stdout.into_owned(),
-                stderr: stderr.into_owned(),
+                command: cmd,
+                status: exit_status,
+                stdout: String::from_utf8_lossy(&stdout).into_owned(),
+                stderr: String::from_utf8_lossy(&stderr).into_owned(),
             }
             .into());
         }
-        log::trace!("stdout: {}", stdout);
-        log::debug!("stderr: {}", stderr);
-        Ok(output)
+        log::trace!("stdout: {}", String::from_utf8_lossy(&stdout));
+        log::debug!("stderr: {}", String::from_utf8_lossy(&stderr));
+        Ok(Output {
+            status: exit_status,
+            stdout,
+            stderr,
+        })
     }
 
-    /// Waits with the given timeout. Sets stdout and stderr in order to capture them after erroring.
-    pub fn wait_with_timeout(&mut self, timeout: Duration) -> Result<OutputWithTimeout, TmcError> {
-        // spawn process and init timer
-        let mut child = self
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .map_err(|e| TmcError::Command(CommandError::Spawn(self.to_string(), e)))?;
-        let timer = Instant::now();
+    /// Executes the command and waits for its output.
+    pub fn status(self) -> Result<ExitStatus, TmcError> {
+        self.execute(None, false).map(|o| o.status)
+    }
 
-        loop {
-            match child.try_wait().map_err(TmcError::Process)? {
-                Some(_exit_status) => {
-                    // done, get output
-                    return child
-                        .wait_with_output()
-                        .map(OutputWithTimeout::Output)
-                        .map_err(|e| {
-                            if let std::io::ErrorKind::NotFound = e.kind() {
-                                TmcError::Command(CommandError::NotFound {
-                                    name: self.name.clone(),
-                                    path: self.path.clone(),
-                                    source: e,
-                                })
-                            } else {
-                                TmcError::Command(CommandError::FailedToRun(self.to_string(), e))
-                            }
-                        });
-                }
-                None => {
-                    // still running, check timeout
-                    if timer.elapsed() > timeout {
-                        log::warn!("command {} timed out", self.name);
-                        // todo: cleaner method for killing
-                        child.kill().map_err(TmcError::Process)?;
+    /// Executes the command and waits for its output.
+    pub fn output(self) -> Result<Output, TmcError> {
+        self.execute(None, false)
+    }
 
-                        let mut stdout = vec![];
-                        let mut stderr = vec![];
-                        let stdout_handle = child.stdout.as_mut().unwrap();
-                        let stderr_handle = child.stderr.as_mut().unwrap();
-                        stdout_handle
-                            .read_to_end(&mut stdout)
-                            .map_err(TmcError::ReadStdio)?;
-                        stderr_handle
-                            .read_to_end(&mut stderr)
-                            .map_err(TmcError::ReadStdio)?;
-                        return Ok(OutputWithTimeout::Timeout { stdout, stderr });
-                    }
+    /// Executes the command and waits for its output and errors if the status is not successful.
+    pub fn output_checked(self) -> Result<Output, TmcError> {
+        self.execute(None, true)
+    }
 
-                    // TODO: gradually increase sleep duration?
-                    thread::sleep(Duration::from_millis(100));
-                }
-            }
+    /// Executes the command and waits for its output with the given timeout.
+    pub fn output_with_timeout(self, timeout: Duration) -> Result<Output, TmcError> {
+        self.execute(Some(timeout), false)
+    }
+
+    /// Executes the command and waits for its output with the given timeout and errors if the status is not successful.
+    pub fn output_with_timeout_checked(self, timeout: Duration) -> Result<Output, TmcError> {
+        self.execute(Some(timeout), true)
+    }
+}
+
+// convenience function to convert an error while checking for command not found error
+fn popen_to_tmc_err(cmd: String, err: PopenError) -> TmcError {
+    if let PopenError::IoError(io) = &err {
+        if let std::io::ErrorKind::NotFound = io.kind() {
+            TmcError::Command(CommandError::NotFound { cmd, source: err })
+        } else {
+            TmcError::Command(CommandError::FailedToRun(cmd, err))
         }
+    } else {
+        TmcError::Command(CommandError::Popen(cmd, err))
     }
 }
 
-impl Deref for TmcCommand {
-    type Target = Command;
-
-    fn deref(&self) -> &Self::Target {
-        &self.command
-    }
-}
-
-impl DerefMut for TmcCommand {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.command
-    }
-}
-
-pub enum OutputWithTimeout {
-    Output(Output),
-    Timeout { stdout: Vec<u8>, stderr: Vec<u8> },
-}
-
-impl OutputWithTimeout {
-    pub fn stdout(&self) -> &[u8] {
-        match self {
-            Self::Output(output) => &output.stdout,
-            Self::Timeout { stdout, .. } => &stdout,
-        }
-    }
-    pub fn stderr(&self) -> &[u8] {
-        match self {
-            Self::Output(output) => &output.stderr,
-            Self::Timeout { stderr, .. } => &stderr,
-        }
-    }
+#[derive(Debug)]
+pub struct Output {
+    pub status: ExitStatus,
+    pub stdout: Vec<u8>,
+    pub stderr: Vec<u8>,
 }
 
 #[cfg(test)]
@@ -202,12 +174,13 @@ mod test {
 
     #[test]
     fn timeout() {
-        let mut cmd = TmcCommand::new("sleep".to_string());
-        cmd.arg("1");
-        let res = cmd.wait_with_timeout(Duration::from_millis(100)).unwrap();
-        if let OutputWithTimeout::Timeout { .. } = res {
-        } else {
-            panic!("unexpected result");
+        let cmd = TmcCommand::new_with_file_io("sleep")
+            .unwrap()
+            .with(|e| e.arg("1"));
+        if let Err(TmcError::Command(CommandError::Popen(_, PopenError::IoError(io)))) =
+            cmd.output_with_timeout(Duration::from_millis(100))
+        {
+            assert_eq!(io.kind(), std::io::ErrorKind::TimedOut)
         }
     }
 }

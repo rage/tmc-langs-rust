@@ -1,7 +1,7 @@
-use crate::command::CommandString;
 use crate::io::tmc_zip;
 use std::path::PathBuf;
-use std::process::ExitStatus;
+use std::time::Duration;
+use subprocess::ExitStatus;
 use thiserror::Error;
 
 // todo: make util error type and move variants there
@@ -67,23 +67,31 @@ pub enum TmcError {
 /// An error caused by a failed attempt to execute an external command.
 #[derive(Error, Debug)]
 pub enum CommandError {
-    #[error("Failed to spawn command: {0:?}")]
-    Spawn(CommandString, #[source] std::io::Error),
-    #[error("The executable for \"{name}\" could not be found ({path}). Please make sure you have installed it correctly.")]
+    #[error("Failed to execute command: {0}")]
+    Popen(String, #[source] subprocess::PopenError),
+    #[error("The executable for command {cmd} could not be found. Please make sure you have installed it correctly.")]
     NotFound {
-        name: String,
-        path: PathBuf,
-        source: std::io::Error,
+        cmd: String,
+        source: subprocess::PopenError,
     },
-    #[error("Failed to run command {0:?}")]
-    FailedToRun(CommandString, #[source] std::io::Error),
-    #[error("Command {command} exited with status {status}")]
+    #[error("Failed to run command {0}")]
+    FailedToRun(String, #[source] subprocess::PopenError),
+    #[error("Command {command} exited with status {status:?}")]
     Failed {
-        command: CommandString,
+        command: String,
         status: ExitStatus,
         stdout: String,
         stderr: String,
     },
+    #[error("Command {command} timed out after {} seconds.", .timeout.as_secs())]
+    TimeOut {
+        command: String,
+        timeout: Duration,
+        stdout: String,
+        stderr: String,
+    },
+    #[error("Failed to terminate command {0}")]
+    Terminate(String, #[source] std::io::Error),
 }
 
 /// A wrapper for std::io::Error that provides more context for the failed operations.
@@ -111,6 +119,10 @@ pub enum FileIo {
         to: PathBuf,
         source: std::io::Error,
     },
+    #[error("Failed to create temporary file")]
+    TempFile(#[source] std::io::Error),
+    #[error("Failed to clone file handle")]
+    FileHandleClone(#[source] std::io::Error),
 
     #[error("Failed to open directory at {0}")]
     DirOpen(PathBuf, #[source] std::io::Error),
@@ -135,4 +147,8 @@ pub enum FileIo {
 
     #[error("Directory walk error")]
     Walkdir(#[from] walkdir::Error),
+
+    // when there is no meaningful data that can be added to an error
+    #[error("transparent")]
+    Generic(#[from] std::io::Error),
 }
