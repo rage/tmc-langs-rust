@@ -136,11 +136,27 @@
 <span id="136">136</span>
 <span id="137">137</span>
 <span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">command</span>::<span class="ident">CommandString</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">io</span>::<span class="ident">tmc_zip</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">process</span>::<span class="ident">ExitStatus</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
+<span class="kw">use</span> <span class="ident">subprocess</span>::<span class="ident">ExitStatus</span>;
 <span class="kw">use</span> <span class="ident">thiserror</span>::<span class="ident">Error</span>;
 
 <span class="comment">// todo: make util error type and move variants there</span>
@@ -206,23 +222,31 @@
 <span class="doccomment">/// An error caused by a failed attempt to execute an external command.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Error</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CommandError</span> {
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to spawn command: {0:?}&quot;</span>)]</span>
-    <span class="ident">Spawn</span>(<span class="ident">CommandString</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;The executable for \&quot;{name}\&quot; could not be found ({path}). Please make sure you have installed it correctly.&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to execute command: {0}&quot;</span>)]</span>
+    <span class="ident">Popen</span>(<span class="ident">String</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">subprocess</span>::<span class="ident">PopenError</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;The executable for command {cmd} could not be found. Please make sure you have installed it correctly.&quot;</span>)]</span>
     <span class="ident">NotFound</span> {
-        <span class="ident">name</span>: <span class="ident">String</span>,
-        <span class="ident">path</span>: <span class="ident">PathBuf</span>,
-        <span class="ident">source</span>: <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>,
+        <span class="ident">cmd</span>: <span class="ident">String</span>,
+        <span class="ident">source</span>: <span class="ident">subprocess</span>::<span class="ident">PopenError</span>,
     },
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to run command {0:?}&quot;</span>)]</span>
-    <span class="ident">FailedToRun</span>(<span class="ident">CommandString</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Command {command} exited with status {status}&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to run command {0}&quot;</span>)]</span>
+    <span class="ident">FailedToRun</span>(<span class="ident">String</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">subprocess</span>::<span class="ident">PopenError</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Command {command} exited with status {status:?}&quot;</span>)]</span>
     <span class="ident">Failed</span> {
-        <span class="ident">command</span>: <span class="ident">CommandString</span>,
+        <span class="ident">command</span>: <span class="ident">String</span>,
         <span class="ident">status</span>: <span class="ident">ExitStatus</span>,
         <span class="ident">stdout</span>: <span class="ident">String</span>,
         <span class="ident">stderr</span>: <span class="ident">String</span>,
     },
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Command {command} timed out after {} seconds.&quot;</span>, .<span class="ident">timeout</span>.<span class="ident">as_secs</span>())]</span>
+    <span class="ident">TimeOut</span> {
+        <span class="ident">command</span>: <span class="ident">String</span>,
+        <span class="ident">timeout</span>: <span class="ident">Duration</span>,
+        <span class="ident">stdout</span>: <span class="ident">String</span>,
+        <span class="ident">stderr</span>: <span class="ident">String</span>,
+    },
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to terminate command {0}&quot;</span>)]</span>
+    <span class="ident">Terminate</span>(<span class="ident">String</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
 }
 
 <span class="doccomment">/// A wrapper for std::io::Error that provides more context for the failed operations.</span>
@@ -250,6 +274,10 @@
         <span class="ident">to</span>: <span class="ident">PathBuf</span>,
         <span class="ident">source</span>: <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>,
     },
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to create temporary file&quot;</span>)]</span>
+    <span class="ident">TempFile</span>(<span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to clone file handle&quot;</span>)]</span>
+    <span class="ident">FileHandleClone</span>(<span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
 
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to open directory at {0}&quot;</span>)]</span>
     <span class="ident">DirOpen</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
@@ -274,6 +302,10 @@
 
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Directory walk error&quot;</span>)]</span>
     <span class="ident">Walkdir</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">walkdir</span>::<span class="ident">Error</span>),
+
+    <span class="comment">// when there is no meaningful data that can be added to an error</span>
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;transparent&quot;</span>)]</span>
+    <span class="ident">Generic</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "tmc_langs_framework";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

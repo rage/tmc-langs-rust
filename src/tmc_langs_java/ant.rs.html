@@ -476,14 +476,6 @@
 <span id="476">476</span>
 <span id="477">477</span>
 <span id="478">478</span>
-<span id="479">479</span>
-<span id="480">480</span>
-<span id="481">481</span>
-<span id="482">482</span>
-<span id="483">483</span>
-<span id="484">484</span>
-<span id="485">485</span>
-<span id="486">486</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Java ant plugin</span>
 
@@ -495,7 +487,6 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">env</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">OsStr</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">process</span>::<span class="ident">Stdio</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
     <span class="ident">command</span>::<span class="ident">TmcCommand</span>,
@@ -519,14 +510,11 @@
 
     <span class="kw">fn</span> <span class="ident">get_ant_executable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">windows</span>) {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">status</span>) <span class="op">=</span> <span class="ident">TmcCommand</span>::<span class="ident">new</span>(<span class="string">&quot;ant&quot;</span>.<span class="ident">to_string</span>())
-                .<span class="ident">arg</span>(<span class="string">&quot;-version&quot;</span>)
-                .<span class="ident">stdout</span>(<span class="ident">Stdio</span>::<span class="ident">piped</span>())
-                .<span class="ident">stderr</span>(<span class="ident">Stdio</span>::<span class="ident">piped</span>())
-                .<span class="ident">status</span>()
-            {
-                <span class="kw">if</span> <span class="ident">status</span>.<span class="ident">success</span>() {
-                    <span class="kw">return</span> <span class="string">&quot;ant&quot;</span>;
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">command</span>) <span class="op">=</span> <span class="ident">TmcCommand</span>::<span class="ident">new_with_file_io</span>(<span class="string">&quot;ant&quot;</span>) {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">status</span>) <span class="op">=</span> <span class="ident">command</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">arg</span>(<span class="string">&quot;-version&quot;</span>)).<span class="ident">status</span>() {
+                    <span class="kw">if</span> <span class="ident">status</span>.<span class="ident">success</span>() {
+                        <span class="kw">return</span> <span class="string">&quot;ant&quot;</span>;
+                    }
                 }
             }
             <span class="comment">// if ant not found on windows, try ant.bat</span>
@@ -608,13 +596,9 @@
         <span class="kw">let</span> <span class="ident">stderr</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">create_file</span>(<span class="kw-2">&amp;</span><span class="ident">stderr_path</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">ant_exec</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_ant_executable</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">TmcCommand</span>::<span class="ident">new</span>(<span class="ident">ant_exec</span>.<span class="ident">to_string</span>());
-        <span class="ident">command</span>
-            .<span class="ident">arg</span>(<span class="string">&quot;clean&quot;</span>)
-            .<span class="ident">stdout</span>(<span class="ident">stdout</span>)
-            .<span class="ident">stderr</span>(<span class="ident">stderr</span>)
-            .<span class="ident">current_dir</span>(<span class="ident">path</span>);
-        <span class="ident">command</span>.<span class="ident">output_checked</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">_output</span> <span class="op">=</span> <span class="ident">TmcCommand</span>::<span class="ident">new</span>(<span class="ident">ant_exec</span>.<span class="ident">to_string</span>())
+            .<span class="ident">with</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">arg</span>(<span class="string">&quot;clean&quot;</span>).<span class="ident">stdout</span>(<span class="ident">stdout</span>).<span class="ident">stderr</span>(<span class="ident">stderr</span>).<span class="ident">cwd</span>(<span class="ident">path</span>))
+            .<span class="ident">output_checked</span>()<span class="question-mark">?</span>;
         <span class="ident">file_util</span>::<span class="ident">remove_file</span>(<span class="kw-2">&amp;</span><span class="ident">stdout_path</span>)<span class="question-mark">?</span>;
         <span class="ident">file_util</span>::<span class="ident">remove_file</span>(<span class="kw-2">&amp;</span><span class="ident">stderr_path</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -679,9 +663,9 @@
 
         <span class="comment">// TODO: don&#39;t require ant in path?</span>
         <span class="kw">let</span> <span class="ident">ant_exec</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_ant_executable</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">TmcCommand</span>::<span class="ident">new</span>(<span class="ident">ant_exec</span>.<span class="ident">to_string</span>());
-        <span class="ident">command</span>.<span class="ident">arg</span>(<span class="string">&quot;compile-test&quot;</span>).<span class="ident">current_dir</span>(<span class="ident">project_root_path</span>);
-        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">command</span>.<span class="ident">output</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">TmcCommand</span>::<span class="ident">new_with_file_io</span>(<span class="ident">ant_exec</span>)<span class="question-mark">?</span>
+            .<span class="ident">with</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">arg</span>(<span class="string">&quot;compile-test&quot;</span>).<span class="ident">cwd</span>(<span class="ident">project_root_path</span>))
+            .<span class="ident">output</span>()<span class="question-mark">?</span>;
 
         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stdout: {}&quot;</span>, <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stdout</span>));
         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stderr: {}&quot;</span>, <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stderr</span>));
@@ -746,9 +730,9 @@
         }
 
         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;java args {} in {}&quot;</span>, <span class="ident">arguments</span>.<span class="ident">join</span>(<span class="string">&quot; &quot;</span>), <span class="ident">path</span>.<span class="ident">display</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">TmcCommand</span>::<span class="ident">new</span>(<span class="string">&quot;java&quot;</span>.<span class="ident">to_string</span>());
-        <span class="ident">command</span>.<span class="ident">current_dir</span>(<span class="ident">path</span>).<span class="ident">args</span>(<span class="ident">arguments</span>);
-        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">command</span>.<span class="ident">output</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">TmcCommand</span>::<span class="ident">new_with_file_io</span>(<span class="string">&quot;java&quot;</span>)<span class="question-mark">?</span>
+            .<span class="ident">with</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">cwd</span>(<span class="ident">path</span>).<span class="ident">args</span>(<span class="kw-2">&amp;</span><span class="ident">arguments</span>))
+            .<span class="ident">output</span>()<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">TestRun</span> {
             <span class="ident">test_results</span>: <span class="ident">result_file</span>,

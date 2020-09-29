@@ -1,1 +1,1 @@
-initSidebarItems({"attr":[["main","Modifies the main function to exit with the code passed to [`with_code`]."]]});
+initSidebarItems({"attr":[["main",""]]});

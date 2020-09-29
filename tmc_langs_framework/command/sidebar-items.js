@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["OutputWithTimeout",""]],"struct":[["CommandString","Textual representation of a command, e.g. \"ls\" \"-a\""],["TmcCommand",""]]});
+initSidebarItems({"struct":[["Output",""],["TmcCommand","Wrapper around subprocess::Exec"]]});
