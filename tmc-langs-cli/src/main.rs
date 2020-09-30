@@ -236,24 +236,28 @@ fn run() -> Result<()> {
                             cause.downcast_ref::<CoreError>()
                         {
                             if status.as_u16() == 401 {
-                                // delete token
-                                log::info!(
-                                    "deleting credentials file at {} due to error {}",
-                                    credentials_path.display(),
-                                    error
-                                );
-                                fs::remove_file(&credentials_path).with_context(|| {
+                                if credentials_path.exists() {
+                                    // delete token
+                                    log::info!(
+                                        "deleting credentials file at {} due to error {}",
+                                        credentials_path.display(),
+                                        error
+                                    );
+                                    fs::remove_file(&credentials_path).with_context(|| {
                                     format!(
                                         "Failed to remove credentials file at {} while handling error {}",
                                         credentials_path.display(),
                                         error
                                     )
                                 })?;
-                                return Err(InvalidTokenError {
-                                    path: credentials_path,
-                                    source: error,
+                                    return Err(InvalidTokenError {
+                                        path: credentials_path,
+                                        source: error,
+                                    }
+                                    .into());
+                                } else {
+                                    log::warn!("401 without credentials");
                                 }
-                                .into());
                             }
                         }
                     }
