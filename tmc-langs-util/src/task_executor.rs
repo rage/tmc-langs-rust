@@ -1,10 +1,12 @@
 //! Module for calling different tasks of TMC-langs language plug-ins.
 
+mod course_refresher;
 mod submission_packaging;
 mod tar_helper;
 
 use crate::error::UtilError;
 use crate::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, ValidationResult};
+pub use course_refresher::refresh_course;
 use std::path::{Path, PathBuf};
 pub use submission_packaging::{OutputFormat, TmcParams};
 use tmc_langs_csharp::CSharpPlugin;
@@ -23,7 +25,7 @@ use tmc_langs_python3::Python3Plugin;
 use tmc_langs_r::RPlugin;
 use walkdir::WalkDir;
 
-/// See `domain::prepare_solutions`.
+/// See `submission_processing::prepare_solutions`.
 pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
     exercise_paths: I,
     dest_root: &Path,
