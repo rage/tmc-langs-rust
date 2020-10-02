@@ -6,7 +6,6 @@ use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
-use std::time::Duration;
 use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult, ValidationResult},
