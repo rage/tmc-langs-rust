@@ -10,10 +10,16 @@ pub enum SourceBackend {
     Git,
 }
 
+pub struct Point {
+    name: String,
+    requires_review: bool,
+}
+
 pub struct RefreshExercise {
     name: String,
     relative_path: PathBuf,
     has_tests: bool,
+    available_points: Vec<String>,
 }
 
 pub struct Course {
@@ -21,8 +27,10 @@ pub struct Course {
     name: String,
     cache_path: PathBuf,
     clone_path: PathBuf,
-    solution_path: PathBuf,
     stub_path: PathBuf,
+    stub_zip_path: PathBuf,
+    solution_path: PathBuf,
+    solution_zip_path: PathBuf,
     exercises: Vec<RefreshExercise>,
     source_backend: SourceBackend,
     source_url: String,
@@ -34,7 +42,14 @@ pub struct Options {
     no_background_operations: bool,
 }
 
-pub fn refresh_course(course: Course, options: Options) -> Result<(), UtilError> {
+pub fn refresh_course(
+    mut course: Course,
+    options: Options,
+    git_repos_chmod: Option<String>,
+    git_repos_chgrp: Option<String>,
+    cache_root: PathBuf,
+    rails_root: PathBuf,
+) -> Result<(), UtilError> {
     let old_cache_path = &course.cache_path;
 
     // increment_cached_version not implemented
@@ -194,16 +209,13 @@ pub fn refresh_course(course: Course, options: Options) -> Result<(), UtilError>
     };
 
     let mut review_points = HashMap::new();
+    let mut metadata_map = HashMap::new();
     for exercise in &course.exercises {
         let root_dir = &course.clone_path;
         let target_dir = course.clone_path.join(&exercise.relative_path);
         let file_name = "metadata.yml";
         let defaults = exercise_default_options.clone();
         let file_preprocessor = |opts: &mut Mapping| merge_course_specific_options(opts);
-
-        if !target_dir.starts_with(root_dir) {
-            panic!("target_dir must start with root_dir");
-        }
 
         let subdirs = target_dir.strip_prefix(root_dir).unwrap().components(); // safe unwrap due to check above
         let mut result = defaults;
@@ -243,23 +255,23 @@ pub fn refresh_course(course: Course, options: Options) -> Result<(), UtilError>
                 .filter_map(|v| v.as_str())
                 .map(|s| s.to_string())
                 .collect(),
-            _ => todo!("?"),
+            _ => vec![], // todo: what to do with other values?
         };
         review_points.insert(exercise.name.clone(), exercise_review_points);
-
-        // todo: edit exercise?
+        metadata_map.insert(exercise.name.clone(), metadata);
     }
 
-    // set_has_tests_flags
-    for exercise in &course.exercises {
-        // todo: exercise.has_tests = true;
-    }
+    // set_has_tests_flags not implemented here
+
+    let mut update_points = HashMap::new();
     if !options.no_background_operations {
         // update_available_points
-        for exercise in &course.exercises {
+        // scans the exercise directory and compares the points found (and review points) with what was given in the arguments
+        // to find new and removed points
+        for exercise in &mut course.exercises {
             let review_points = review_points.get(&exercise.name).unwrap(); // safe
             let mut point_names = HashSet::new();
-            let clone_path = course.clone_path.join(&exercise.relative_path);
+            // let clone_path = course.clone_path.join(&exercise.relative_path); // unused
 
             let points_data = {
                 if options.no_directory_changes {
@@ -273,14 +285,19 @@ pub fn refresh_course(course: Course, options: Options) -> Result<(), UtilError>
             point_names.extend(review_points.clone());
 
             let mut added = vec![];
-            let mut removed: Vec<String> = vec![];
+            let mut removed = vec![];
 
-            for name in point_names {
-                todo!("available points");
-                added.push(name);
+            for name in &point_names {
+                if !exercise.available_points.contains(name) {
+                    added.push(name.clone());
+                }
             }
 
-            todo!("removed");
+            for point in &exercise.available_points {
+                if !point_names.contains(point) {
+                    removed.push(point.clone());
+                }
+            }
 
             if !added.is_empty() {
                 log::info!(
@@ -291,11 +308,12 @@ pub fn refresh_course(course: Course, options: Options) -> Result<(), UtilError>
             }
             if !removed.is_empty() {
                 log::info!(
-                    "Removed points to exercise {}: {}",
+                    "Removed points from exercise {}: {}",
                     exercise.name,
                     removed.join(" ")
                 );
             }
+            update_points.insert(exercise.name.clone(), (added, removed));
         }
     }
 
@@ -306,15 +324,106 @@ pub fn refresh_course(course: Course, options: Options) -> Result<(), UtilError>
         let exercise_dirs = task_executor::find_exercise_directories(&course.clone_path);
         task_executor::prepare_stubs(exercise_dirs, &course.clone_path, &course.stub_path)?;
     }
+
     // checksum_stubs
+    // { exercise_name: checksum of file paths and file contents }
+    let mut checksum_stubs = HashMap::new();
+    for e in &course.exercises {
+        let mut digest = md5::Context::new();
+        for entry in WalkDir::new(course.stub_path.join(&e.relative_path))
+            .sort_by(|a, b| a.file_name().cmp(b.file_name()))
+        {
+            let entry = entry?;
+            if entry.path().is_file() {
+                digest.consume(entry.path().as_os_str().to_string_lossy().into_owned());
+                let file = file_util::read_file(entry.path())?;
+                digest.consume(file);
+            }
+        }
+        checksum_stubs.insert(e.name.clone(), digest.compute());
+    }
 
     if !options.no_directory_changes {
+        let execute_zip = |root_path: &Path, zip_path: &Path| -> Result<(), UtilError> {
+            file_util::create_dir_all(zip_path)?;
+            for e in &course.exercises {
+                let mut stdin = String::new();
+                let root = root_path.join(&e.relative_path);
+                for entry in WalkDir::new(&root)
+                    .min_depth(1)
+                    .sort_by(|a, b| a.file_name().cmp(b.file_name()))
+                {
+                    let entry = entry?;
+                    let stub_path = entry.path().strip_prefix(&root).unwrap(); // safe
+                    stdin.push_str(&format!("{}\n", e.relative_path.join(stub_path).display()));
+                }
+                let zip_file_path = zip_path.join(format!("{}.zip", e.name));
+                TmcCommand::new("zip")
+                    .with(|e| {
+                        e.arg("--quiet")
+                            .arg("-@")
+                            .arg(zip_file_path)
+                            .cwd(&root_path)
+                            .stdin(stdin.as_str())
+                    })
+                    .output_checked()?;
+            }
+            Ok(())
+        };
         // make_zips_of_stubs
+        execute_zip(&course.stub_path, &course.stub_zip_path)?;
+
         // make_zips_of_solutions
+        execute_zip(&course.solution_path, &course.solution_zip_path)?;
+
         // set_permissions
+        let chmod = git_repos_chmod;
+        let chgrp = git_repos_chgrp;
+
+        // check directories from rails root to cache root
+        let cache_relative = cache_root.strip_prefix(&rails_root).unwrap(); // todo: handle err
+        let components = cache_relative.components();
+        let mut next = rails_root.clone();
+
+        let run_chmod = |dir: &Path| -> Result<(), UtilError> {
+            if let Some(chmod) = &chmod {
+                TmcCommand::new("chmod")
+                    .with(|e| e.arg(chmod).cwd(dir))
+                    .output_checked()?;
+            }
+            Ok(())
+        };
+        let run_chgrp = |dir: &Path| -> Result<(), UtilError> {
+            if let Some(chgrp) = &chgrp {
+                TmcCommand::new("chgrp")
+                    .with(|e| e.arg(chgrp).cwd(dir))
+                    .output_checked()?;
+            }
+            Ok(())
+        };
+        run_chmod(&next)?;
+        run_chgrp(&next)?;
+        for component in components {
+            next.push(component);
+            run_chmod(&next)?;
+            run_chgrp(&next)?;
+        }
+        if let Some(chmod) = &chmod {
+            TmcCommand::new("chmod")
+                .with(|e| e.arg("-R").arg(chmod).cwd(&course.cache_path))
+                .output_checked()?;
+        }
+        if let Some(chgrp) = &chgrp {
+            TmcCommand::new("chgrp")
+                .with(|e| e.arg("-R").arg(chgrp).cwd(&course.cache_path))
+                .output_checked()?;
+        }
     }
-    // invalidate_unlocks
-    todo!()
+
+    // invalidate_unlocks not implemented
+    // kafka_publish_exercises not implemented
+
+    Ok(())
 }
 
 fn copy_and_update_repository(
