@@ -183,10 +183,7 @@ pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
     dest_root: &Path,
 ) -> Result<(), TmcError> {
     for path in exercise_paths {
-        process_files(path, dest_root, |meta| match meta {
-            MetaString::Stub(_) => false,
-            _ => true,
-        })?;
+        process_files(path, dest_root, |meta| !matches!(meta, MetaString::Stub(_)))?;
     }
     Ok(())
 }
@@ -200,9 +197,8 @@ pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
 ///
 /// Additionally, copies any shared files with the corresponding language plugins.
 pub fn prepare_stub(exercise_path: &Path, dest_root: &Path) -> Result<(), TmcError> {
-    process_files(&exercise_path, dest_root, |meta| match meta {
-        MetaString::Solution(_) => false,
-        _ => true,
+    process_files(&exercise_path, dest_root, |meta| {
+        !matches!(meta, MetaString::Solution(_))
     })?;
     Ok(())
 }

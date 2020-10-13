@@ -311,7 +311,13 @@ fn run() -> Result<()> {
             let output_path = matches.value_of("output-path");
             let output_path = output_path.map(Path::new);
 
-            let exercises = task_executor::find_exercise_directories(exercise_path);
+            let exercises =
+                task_executor::find_exercise_directories(exercise_path).with_context(|| {
+                    format!(
+                        "Failed to find exercise directories in {}",
+                        exercise_path.display(),
+                    )
+                })?;
 
             if let Some(output_path) = output_path {
                 write_result_to_file_as_json(&exercises, output_path)?;
@@ -392,7 +398,13 @@ fn run() -> Result<()> {
             let output_path = matches.value_of("output-path").unwrap();
             let output_path = Path::new(output_path);
 
-            let exercises = task_executor::find_exercise_directories(exercise_path);
+            let exercises =
+                task_executor::find_exercise_directories(exercise_path).with_context(|| {
+                    format!(
+                        "Failed to find exercise directories in {}",
+                        exercise_path.display(),
+                    )
+                })?;
 
             task_executor::prepare_stubs(exercises, exercise_path, output_path).with_context(
                 || {

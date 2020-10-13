@@ -33,7 +33,7 @@ pub enum UtilError {
     #[error("Path {0} contained a dash '-' which is currently not allowed")]
     InvalidDirectory(PathBuf),
     #[error("The cache path  ({0}) must be inside the rails root path ({1})")]
-    CacheNotInRailsRoot(PathBuf, PathBuf, #[source] std::path::StripPrefixError),
+    CacheNotInRailsRoot(PathBuf, PathBuf),
 
     #[error(transparent)]
     TmcError(#[from] tmc_langs_framework::TmcError),

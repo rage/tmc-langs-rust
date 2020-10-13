@@ -21,10 +21,16 @@ pub struct TmcCommand {
     stderr: Option<File>,
 }
 
-fn read_opt_file(f: Option<File>) -> Result<Vec<u8>, TmcError> {
+fn read_output(
+    file_handle: Option<File>,
+    exec_output: Option<&mut File>,
+) -> Result<Vec<u8>, TmcError> {
     let mut v = vec![];
-    if let Some(mut file) = f {
-        file.seek(SeekFrom::Start(0)).unwrap();
+    if let Some(mut file) = file_handle {
+        let _ = file.seek(SeekFrom::Start(0)); // ignore errors
+        file.read_to_end(&mut v).map_err(FileIo::Generic)?;
+    } else if let Some(file) = exec_output {
+        let _ = file.seek(SeekFrom::Start(0)); // ignore errors
         file.read_to_end(&mut v).map_err(FileIo::Generic)?;
     }
     Ok(v)
@@ -84,8 +90,8 @@ impl TmcCommand {
                     popen
                         .terminate()
                         .map_err(|e| CommandError::Terminate(cmd.clone(), e))?;
-                    let stdout = read_opt_file(stdout)?;
-                    let stderr = read_opt_file(stderr)?;
+                    let stdout = read_output(stdout, popen.stdout.as_mut())?;
+                    let stderr = read_output(stderr, popen.stderr.as_mut())?;
                     return Err(TmcError::Command(CommandError::TimeOut {
                         command: cmd,
                         timeout,
@@ -99,8 +105,8 @@ impl TmcCommand {
         };
 
         log::info!("finished executing {}", cmd);
-        let stdout = read_opt_file(stdout)?;
-        let stderr = read_opt_file(stderr)?;
+        let stdout = read_output(stdout, popen.stdout.as_mut())?;
+        let stderr = read_output(stderr, popen.stderr.as_mut())?;
 
         if checked && !exit_status.success() {
             log::warn!("stdout: {}", String::from_utf8_lossy(&stdout));

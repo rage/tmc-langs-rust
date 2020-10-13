@@ -173,21 +173,20 @@ pub fn clean(path: &Path) -> Result<(), UtilError> {
 }
 
 /// Recursively searches for valid exercise directories in the path.
-pub fn find_exercise_directories(exercise_path: &Path) -> Vec<PathBuf> {
+pub fn find_exercise_directories(exercise_path: &Path) -> Result<Vec<PathBuf>, UtilError> {
     let mut paths = vec![];
-    for entry in WalkDir::new(exercise_path)
-        .into_iter()
-        .filter_map(|e| e.ok())
-        .filter(submission_processing::is_hidden_dir)
-        .filter(|e| e.file_name() == "private")
-        .filter(submission_processing::contains_tmcignore)
-    {
+    for entry in WalkDir::new(exercise_path).into_iter().filter_entry(|e| {
+        !submission_processing::is_hidden_dir(e)
+            || e.file_name() == "private"
+            || submission_processing::contains_tmcignore(e)
+    }) {
+        let entry = entry?;
         // TODO: Java implementation doesn't scan root directories
         if is_exercise_root_directory(entry.path()) {
             paths.push(entry.into_path())
         }
     }
-    paths
+    Ok(paths)
 }
 
 /// Parses available exercise points from the exercise without compiling it.
