@@ -27,6 +27,8 @@ pub enum UtilError {
     TarIntoInner(#[source] std::io::Error),
     #[error("Error compressing file at {0} with zstd")]
     Zstd(PathBuf, #[source] std::io::Error),
+    #[error("Error while writing file to zip")]
+    ZipWrite(#[source] std::io::Error),
 
     #[error("Unsupported source backend")]
     UnsupportedSourceBackend,

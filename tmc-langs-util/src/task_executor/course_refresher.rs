@@ -2,6 +2,7 @@ use crate::{error::UtilError, task_executor};
 use md5::{Context, Digest};
 use serde_yaml::{Mapping, Value};
 use std::collections::{HashMap, HashSet};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use tmc_langs_framework::{command::TmcCommand, io::file_util, subprocess::Redirection};
 use walkdir::WalkDir;
@@ -474,30 +475,35 @@ fn checksum_stubs(
 fn execute_zip(
     course_exercises: &[RefreshExercise],
     root_path: &Path,
-    zip_path: &Path,
+    zip_dir: &Path,
 ) -> Result<(), UtilError> {
-    file_util::create_dir_all(zip_path)?;
+    file_util::create_dir_all(zip_dir)?;
     for e in course_exercises {
-        let mut stdin = String::new();
-        let root = root_path.join(&e.relative_path);
-        for entry in WalkDir::new(&root)
-            .min_depth(1)
-            .sort_by(|a, b| a.file_name().cmp(b.file_name()))
+        let exercise_root = root_path.join(&e.relative_path);
+        let zip_file_path = zip_dir.join(format!("{}.zip", e.name));
+
+        let mut writer = zip::ZipWriter::new(file_util::create_file(zip_file_path)?);
+        for entry in WalkDir::new(&exercise_root).into_iter().filter_entry(|e| {
+            !e.file_name()
+                .to_str()
+                .map(|e| e.starts_with('.'))
+                .unwrap_or_default()
+        })
+        // filter hidden
         {
             let entry = entry?;
-            let stub_path = entry.path().strip_prefix(&root).unwrap(); // safe
-            stdin.push_str(&format!("{}\n", e.relative_path.join(stub_path).display()));
+            if entry.path().is_file() {
+                let relative_path = entry.path().strip_prefix(&exercise_root).unwrap(); // safe
+                writer
+                    .start_file_from_path(
+                        e.relative_path.join(relative_path).as_path(),
+                        zip::write::FileOptions::default(),
+                    )
+                    .unwrap();
+                let bytes = file_util::read_file(entry.path())?;
+                writer.write_all(&bytes).map_err(UtilError::ZipWrite)?;
+            }
         }
-        let zip_file_path = zip_path.join(format!("{}.zip", e.name));
-        TmcCommand::new("zip")
-            .with(|e| {
-                e.arg("--quiet")
-                    .arg("-@")
-                    .arg(zip_file_path)
-                    .cwd(&root_path)
-                    .stdin(stdin.as_str())
-            })
-            .output_checked()?;
     }
     Ok(())
 }
@@ -868,5 +874,39 @@ mod test {
 
         assert_eq!(f, s);
         assert_ne!(f, t);
+    }
+
+    #[test]
+    fn executes_zip() {
+        let temp = tempfile::tempdir().unwrap();
+
+        execute_zip(
+            &[
+                RefreshExercise {
+                    available_points: vec![],
+                    name: "first".to_string(),
+                    relative_path: PathBuf::from("ex1"),
+                },
+                RefreshExercise {
+                    available_points: vec![],
+                    name: "second".to_string(),
+                    relative_path: PathBuf::from("ex2"),
+                },
+            ],
+            Path::new("tests/data/course_refresher/valid_exercises"),
+            temp.path(),
+        )
+        .unwrap();
+
+        let first_zip = temp.path().join("first.zip");
+        assert!(first_zip.exists());
+        let mut fz = zip::ZipArchive::new(file_util::open_file(first_zip).unwrap()).unwrap();
+        assert!(fz.by_name("ex1/test/test.py").is_ok());
+
+        let second_zip = temp.path().join("second.zip");
+        assert!(second_zip.exists());
+        let mut sz = zip::ZipArchive::new(file_util::open_file(second_zip).unwrap()).unwrap();
+        assert!(sz.by_name("ex2/setup.py").is_ok());
+        assert!(sz.by_name("ex2/.hiddenfile").is_err());
     }
 }
