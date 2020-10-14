@@ -45,6 +45,13 @@ pub enum UtilError {
     Zip(#[from] zip::result::ZipError),
     #[error(transparent)]
     FileIo(#[from] FileIo),
+
+    #[cfg(unix)]
+    #[error("Error changing permissions of {0}")]
+    NixPermissionChange(PathBuf, #[source] nix::Error),
+    #[cfg(unix)]
+    #[error("Invalid chmod flag: {0}")]
+    NixFlag(u32),
 }
 
 #[derive(Debug, Error)]

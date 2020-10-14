@@ -66,8 +66,8 @@ pub struct UpdatePoints {
 pub fn refresh_course(
     course: Course,
     options: Options,
-    git_repos_chmod: Option<String>,
-    git_repos_chgrp: Option<String>,
+    git_repos_chmod: Option<u32>,
+    git_repos_chgrp: Option<u32>,
     cache_root: PathBuf,
     rails_root: PathBuf,
 ) -> Result<RefreshData, UtilError> {
@@ -81,7 +81,13 @@ pub fn refresh_course(
     }
 
     if !options.no_directory_changes {
-        update_or_clone_repository(&course, &old_cache_path)?;
+        update_or_clone_repository(
+            &course.source_backend,
+            &course.clone_path,
+            &course.source_url,
+            &course.git_branch,
+            &old_cache_path,
+        )?;
         check_directory_names(&course.clone_path)?;
     }
 
@@ -148,8 +154,14 @@ pub fn refresh_course(
     })
 }
 
-fn update_or_clone_repository(course: &Course, old_cache_path: &Path) -> Result<(), UtilError> {
-    if course.source_backend != SourceBackend::Git {
+fn update_or_clone_repository(
+    course_source_backend: &SourceBackend,
+    course_clone_path: &Path,
+    course_source_url: &str,
+    course_git_branch: &str,
+    old_cache_path: &Path,
+) -> Result<(), UtilError> {
+    if course_source_backend != &SourceBackend::Git {
         log::error!("Source types other than git not yet implemented");
         return Err(UtilError::UnsupportedSourceBackend);
     }
@@ -157,12 +169,12 @@ fn update_or_clone_repository(course: &Course, old_cache_path: &Path) -> Result<
         // Try a fast path: copy old clone and git fetch new stuff
         let copy_and_update_repository = || -> Result<(), UtilError> {
             let old_clone_path = old_cache_path.join("clone");
-            file_util::copy(old_clone_path, &course.clone_path)?;
+            file_util::copy(old_clone_path, course_clone_path)?;
 
             let run_git = |args: &[&str]| {
                 TmcCommand::new("git".to_string())
                     .with(|e| {
-                        e.cwd(&course.clone_path)
+                        e.cwd(course_clone_path)
                             .args(args)
                             .stdout(Redirection::Pipe)
                             .stderr(Redirection::Pipe)
@@ -170,9 +182,9 @@ fn update_or_clone_repository(course: &Course, old_cache_path: &Path) -> Result<
                     .output_checked()
             };
 
-            run_git(&["remote", "set-url", "origin", &course.source_url])?;
+            run_git(&["remote", "set-url", "origin", course_source_url])?;
             run_git(&["fetch", "origin"])?;
-            run_git(&["checkout", &format!("origin/{}", &course.git_branch)])?;
+            run_git(&["checkout", &format!("origin/{}", course_git_branch)])?;
             run_git(&["clean", "-df"])?;
             run_git(&["checkout", "."])?;
             Ok(())
@@ -180,14 +192,14 @@ fn update_or_clone_repository(course: &Course, old_cache_path: &Path) -> Result<
         if let Err(error) = copy_and_update_repository() {
             log::warn!("failed to update repository: {}", error);
 
-            file_util::remove_dir_all(&course.clone_path)?;
+            file_util::remove_dir_all(course_clone_path)?;
             // clone_repository
             TmcCommand::new("git".to_string())
                 .with(|e| {
                     e.args(&["clone", "-q", "-b"])
-                        .arg(&course.git_branch)
-                        .arg(&course.source_url)
-                        .arg(&course.clone_path)
+                        .arg(course_git_branch)
+                        .arg(course_source_url)
+                        .arg(course_clone_path)
                         .stdout(Redirection::Pipe)
                         .stderr(Redirection::Pipe)
                 })
@@ -198,9 +210,9 @@ fn update_or_clone_repository(course: &Course, old_cache_path: &Path) -> Result<
         TmcCommand::new("git".to_string())
             .with(|e| {
                 e.args(&["clone", "-q", "-b"])
-                    .arg(&course.git_branch)
-                    .arg(&course.source_url)
-                    .arg(&course.clone_path)
+                    .arg(course_git_branch)
+                    .arg(course_source_url)
+                    .arg(course_clone_path)
                     .stdout(Redirection::Pipe)
                     .stderr(Redirection::Pipe)
             })
@@ -508,13 +520,30 @@ fn execute_zip(
     Ok(())
 }
 
+#[cfg(not(unix))]
+fn set_permissions(
+    _course_cache_path: &Path,
+    _chmod: Option<String>,
+    _chgrp: Option<String>,
+    _cache_root: &Path,
+    _rails_root: PathBuf,
+) -> Result<(), UtilError> {
+    // NOP on non-Unix platforms
+    Ok(())
+}
+
+#[cfg(unix)]
 fn set_permissions(
     course_cache_path: &Path,
-    chmod: Option<String>,
-    chgrp: Option<String>,
+    chmod: Option<u32>,
+    chgrp: Option<u32>,
     cache_root: &Path,
     rails_root: PathBuf,
 ) -> Result<(), UtilError> {
+    use nix::sys::stat;
+    use nix::unistd::{self, Uid};
+    use std::os::unix::io::AsRawFd;
+
     // verify that the cache root is inside the rails root
     if !cache_root.starts_with(&rails_root) {
         return Err(UtilError::CacheNotInRailsRoot(
@@ -523,19 +552,21 @@ fn set_permissions(
         ));
     };
 
-    let run_chmod = |dir: &Path| -> Result<(), UtilError> {
-        if let Some(chmod) = &chmod {
-            TmcCommand::new("chmod")
-                .with(|e| e.arg(chmod).cwd(dir))
-                .output_checked()?;
+    let run_chmod = |path: &Path| -> Result<(), UtilError> {
+        if let Some(chmod) = chmod {
+            let file = file_util::open_file(path)?;
+            stat::fchmod(
+                file.as_raw_fd(),
+                stat::Mode::from_bits(chmod).ok_or(UtilError::NixFlag(chmod))?,
+            )
+            .map_err(|e| UtilError::NixPermissionChange(path.to_path_buf(), e))?;
         }
         Ok(())
     };
-    let run_chgrp = |dir: &Path| -> Result<(), UtilError> {
-        if let Some(chgrp) = &chgrp {
-            TmcCommand::new("chgrp")
-                .with(|e| e.arg(chgrp).cwd(dir))
-                .output_checked()?;
+    let run_chgrp = |path: &Path| -> Result<(), UtilError> {
+        if let Some(chgrp) = chgrp {
+            unistd::chown(path, Some(Uid::from_raw(chgrp)), None)
+                .map_err(|e| UtilError::NixPermissionChange(path.to_path_buf(), e))?;
         }
         Ok(())
     };
@@ -543,7 +574,6 @@ fn set_permissions(
     // mod all directories from cache root up to rails root
     let mut next = cache_root;
     run_chmod(next)?;
-    run_chgrp(next)?;
     while let Some(parent) = next.parent() {
         run_chmod(parent)?;
         run_chgrp(parent)?;
@@ -553,15 +583,10 @@ fn set_permissions(
         next = parent;
     }
 
-    if let Some(chmod) = &chmod {
-        TmcCommand::new("chmod")
-            .with(|e| e.arg("-R").arg(chmod).cwd(&course_cache_path))
-            .output_checked()?;
-    }
-    if let Some(chgrp) = &chgrp {
-        TmcCommand::new("chgrp")
-            .with(|e| e.arg("-R").arg(chgrp).cwd(&course_cache_path))
-            .output_checked()?;
+    for entry in WalkDir::new(&course_cache_path) {
+        let entry = entry?;
+        run_chmod(entry.path())?;
+        run_chgrp(entry.path())?;
     }
     Ok(())
 }
@@ -585,7 +610,7 @@ fn recursive_merge(from: Mapping, into: &mut Mapping) {
 mod test {
     use super::*;
 
-    const GIT_REPO: &'static str = "https://github.com/rage/rfcs";
+    const GIT_REPO: &str = "https://github.com/rage/rfcs";
 
     fn init() {
         let _ = env_logger::builder().is_test(true).try_init();
@@ -615,20 +640,14 @@ mod test {
         run_git(&["init"], &clone.path());
         run_git(&["remote", "add", "origin", ""], &clone.path());
 
-        let course = Course {
-            name: "name".to_string(),
-            cache_path: PathBuf::from(""),
-            clone_path: clone.path().to_path_buf(),
-            stub_path: PathBuf::from(""),
-            stub_zip_path: PathBuf::from(""),
-            solution_path: PathBuf::from(""),
-            solution_zip_path: PathBuf::from(""),
-            exercises: vec![],
-            source_backend: SourceBackend::Git,
-            source_url: GIT_REPO.to_string(),
-            git_branch: "master".to_string(),
-        };
-        update_or_clone_repository(&course, cache.path()).unwrap();
+        update_or_clone_repository(
+            &SourceBackend::Git,
+            clone.path(),
+            GIT_REPO,
+            "master",
+            cache.path(),
+        )
+        .unwrap();
         assert!(clone.path().join("texts").exists());
     }
 
@@ -638,21 +657,16 @@ mod test {
 
         let clone = tempfile::TempDir::new().unwrap();
         assert!(!clone.path().join(".git").exists());
-        let course = Course {
-            name: "name".to_string(),
-            cache_path: PathBuf::from(""),
-            clone_path: clone.path().to_path_buf(),
-            stub_path: PathBuf::from(""),
-            stub_zip_path: PathBuf::from(""),
-            solution_path: PathBuf::from(""),
-            solution_zip_path: PathBuf::from(""),
-            exercises: vec![],
-            source_backend: SourceBackend::Git,
-            source_url: GIT_REPO.to_string(),
-            git_branch: "master".to_string(),
-        };
         let old_cache_path = Path::new("nonexistent");
-        update_or_clone_repository(&course, old_cache_path).unwrap();
+
+        update_or_clone_repository(
+            &SourceBackend::Git,
+            clone.path(),
+            GIT_REPO,
+            "master",
+            old_cache_path,
+        )
+        .unwrap();
         assert!(clone.path().join("texts").exists());
     }
 
@@ -798,6 +812,8 @@ mod test {
 
     #[test]
     fn updates_available_points() {
+        init();
+
         let mut review_points = HashMap::new();
         review_points.insert(
             "ex1".to_string(),
@@ -819,12 +835,16 @@ mod test {
         )
         .unwrap());
         let pts = update_points.get("ex1").unwrap();
-        assert_eq!(pts.added, &["rev_point", "test_point"]);
+        assert_eq!(pts.added.len(), 2);
+        assert!(pts.added.contains(&"rev_point".to_string()));
+        assert!(pts.added.contains(&"test_point".to_string()));
         assert_eq!(pts.removed, &["ex_point"]);
     }
 
     #[test]
     fn checksums_stubs() {
+        init();
+
         let first = tempfile::tempdir().unwrap();
         std::fs::create_dir(first.path().join("dir")).unwrap();
         std::fs::write(first.path().join("dir/file"), b"hello").unwrap();
@@ -878,8 +898,9 @@ mod test {
 
     #[test]
     fn executes_zip() {
-        let temp = tempfile::tempdir().unwrap();
+        init();
 
+        let temp = tempfile::tempdir().unwrap();
         execute_zip(
             &[
                 RefreshExercise {
@@ -908,5 +929,21 @@ mod test {
         let mut sz = zip::ZipArchive::new(file_util::open_file(second_zip).unwrap()).unwrap();
         assert!(sz.by_name("ex2/setup.py").is_ok());
         assert!(sz.by_name("ex2/.hiddenfile").is_err());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn sets_permissions() {
+        init();
+
+        let rails_root = Path::new("tests/data/course_refresher/rails_root");
+        set_permissions(
+            &rails_root.join("dir/cache_root"),
+            Some(0o0777),
+            Some(1000),
+            &rails_root.join("dir/cache_root"),
+            rails_root.to_path_buf(),
+        )
+        .unwrap();
     }
 }
