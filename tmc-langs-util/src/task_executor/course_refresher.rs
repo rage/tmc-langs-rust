@@ -512,8 +512,8 @@ fn execute_zip(
             if entry.path().is_file() {
                 let relative_path = entry.path().strip_prefix(&exercise_root).unwrap(); // safe
                 writer
-                    .start_file_from_path(
-                        e.relative_path.join(relative_path).as_path(),
+                    .start_file(
+                        e.relative_path.join(relative_path).to_string_lossy(),
                         zip::write::FileOptions::default(),
                     )
                     .unwrap();

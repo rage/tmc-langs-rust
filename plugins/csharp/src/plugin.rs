@@ -41,12 +41,12 @@ impl CSharpPlugin {
         for i in 0..zip.len() {
             let file = zip.by_index(i)?;
             if file.is_file() {
-                let target_file_path = target.join(file.sanitized_name());
+                let target_file_path = target.join(Path::new(file.name()));
                 if let Some(parent) = target_file_path.parent() {
                     file_util::create_dir_all(&parent)?;
                 }
 
-                let file_path = file.sanitized_name();
+                let file_path = PathBuf::from(file.name());
                 let bytes: Vec<u8> = file
                     .bytes()
                     .collect::<Result<Vec<_>, _>>()
@@ -135,7 +135,7 @@ impl LanguagePlugin for CSharpPlugin {
     ) -> Result<PathBuf, TmcError> {
         for i in 0..zip_archive.len() {
             let file = zip_archive.by_index(i)?;
-            let file_path = file.sanitized_name();
+            let file_path = Path::new(file.name());
             if file_path.extension() == Some(OsStr::new("csproj")) {
                 if let Some(csproj_parent) = file_path.parent().and_then(Path::parent) {
                     if csproj_parent.file_name() == Some(OsStr::new("src")) {

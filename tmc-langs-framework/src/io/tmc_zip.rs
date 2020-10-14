@@ -29,11 +29,11 @@ pub fn zip<P: StudentFilePolicy>(policy: P, root_directory: &Path) -> Result<Vec
                 .unwrap_or_else(|| entry.path());
             if entry.path().is_dir() {
                 log::trace!("adding directory {}", path.display());
-                writer.add_directory_from_path(path, FileOptions::default())?;
+                writer.add_directory(path.to_string_lossy(), FileOptions::default())?;
             } else {
                 let bytes = file_util::read_file(entry.path())?;
                 log::trace!("writing file {}", path.display());
-                writer.start_file_from_path(path, FileOptions::default())?;
+                writer.start_file(path.to_string_lossy(), FileOptions::default())?;
                 writer
                     .write_all(&bytes)
                     .map_err(|e| TmcError::ZipWrite(path.to_path_buf(), e))?;
@@ -69,7 +69,7 @@ where
 
     for i in 0..zip_archive.len() {
         let mut file = zip_archive.by_index(i)?;
-        let file_path = file.sanitized_name();
+        let file_path = PathBuf::from(file.name());
         let relative = match file_path.strip_prefix(&project_dir) {
             Ok(relative) => relative,
             _ => {
@@ -158,7 +158,7 @@ where
 fn find_project_dir<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<PathBuf, TmcError> {
     for i in 0..zip_archive.len() {
         let file = zip_archive.by_index(i)?;
-        let file_path = file.sanitized_name();
+        let file_path = Path::new(file.name());
 
         // directories may not have entries in the zip, e.g. it may only have
         // exercise/src/main... without an entry for src, so we need to check
