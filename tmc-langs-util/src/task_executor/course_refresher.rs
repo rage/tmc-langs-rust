@@ -12,6 +12,11 @@ pub type ModeBits = nix::sys::stat::mode_t;
 #[cfg(not(unix))]
 pub type ModeBits = u32;
 
+#[cfg(unix)]
+pub type GroupBits = nix::libc::uid_t;
+#[cfg(not(unix))]
+pub type GroupBits = u32;
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum SourceBackend {
     Git,
@@ -72,7 +77,7 @@ pub fn refresh_course(
     course: Course,
     options: Options,
     git_repos_chmod: Option<ModeBits>,
-    git_repos_chgrp: Option<ModeBits>,
+    git_repos_chgrp: Option<GroupBits>,
     cache_root: PathBuf,
     rails_root: PathBuf,
 ) -> Result<RefreshData, UtilError> {
@@ -541,7 +546,7 @@ fn set_permissions(
 fn set_permissions(
     course_cache_path: &Path,
     chmod: Option<ModeBits>,
-    chgrp: Option<ModeBits>,
+    chgrp: Option<GroupBits>,
     cache_root: &Path,
     rails_root: PathBuf,
 ) -> Result<(), UtilError> {

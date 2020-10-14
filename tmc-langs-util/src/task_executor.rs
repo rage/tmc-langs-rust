@@ -7,6 +7,7 @@ mod tar_helper;
 use crate::error::UtilError;
 use crate::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, ValidationResult};
 pub use course_refresher::refresh_course;
+pub use course_refresher::GroupBits;
 use std::path::{Path, PathBuf};
 pub use submission_packaging::{OutputFormat, TmcParams};
 use tmc_langs_csharp::CSharpPlugin;
