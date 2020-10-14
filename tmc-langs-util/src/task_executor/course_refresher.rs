@@ -7,6 +7,11 @@ use std::path::{Path, PathBuf};
 use tmc_langs_framework::{command::TmcCommand, io::file_util, subprocess::Redirection};
 use walkdir::WalkDir;
 
+#[cfg(unix)]
+pub type ModeBits = nix::sys::stat::mode_t;
+#[cfg(not(unix))]
+pub type ModeBits = u32;
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum SourceBackend {
     Git,
@@ -66,8 +71,8 @@ pub struct UpdatePoints {
 pub fn refresh_course(
     course: Course,
     options: Options,
-    git_repos_chmod: Option<u32>,
-    git_repos_chgrp: Option<u32>,
+    git_repos_chmod: Option<ModeBits>,
+    git_repos_chgrp: Option<ModeBits>,
     cache_root: PathBuf,
     rails_root: PathBuf,
 ) -> Result<RefreshData, UtilError> {
@@ -523,8 +528,8 @@ fn execute_zip(
 #[cfg(not(unix))]
 fn set_permissions(
     _course_cache_path: &Path,
-    _chmod: Option<u32>,
-    _chgrp: Option<u32>,
+    _chmod: Option<ModBits>,
+    _chgrp: Option<ModBits>,
     _cache_root: &Path,
     _rails_root: PathBuf,
 ) -> Result<(), UtilError> {
@@ -535,8 +540,8 @@ fn set_permissions(
 #[cfg(unix)]
 fn set_permissions(
     course_cache_path: &Path,
-    chmod: Option<u32>,
-    chgrp: Option<u32>,
+    chmod: Option<ModeBits>,
+    chgrp: Option<ModeBits>,
     cache_root: &Path,
     rails_root: PathBuf,
 ) -> Result<(), UtilError> {
