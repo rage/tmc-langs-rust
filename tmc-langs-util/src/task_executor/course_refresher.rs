@@ -523,8 +523,8 @@ fn execute_zip(
 #[cfg(not(unix))]
 fn set_permissions(
     _course_cache_path: &Path,
-    _chmod: Option<String>,
-    _chgrp: Option<String>,
+    _chmod: Option<u32>,
+    _chgrp: Option<u32>,
     _cache_root: &Path,
     _rails_root: PathBuf,
 ) -> Result<(), UtilError> {
