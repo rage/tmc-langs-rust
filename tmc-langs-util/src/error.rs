@@ -1,5 +1,6 @@
 //! Contains the crate error type
 
+use crate::task_executor::ModeBits;
 use std::path::PathBuf;
 use thiserror::Error;
 use tmc_langs_framework::error::FileIo;
@@ -16,6 +17,8 @@ pub enum UtilError {
     NoProjectDirInZip(PathBuf),
     #[error("Failed to aquire mutex")]
     MutexError,
+    #[error("Failed to canonicalize path {0}")]
+    Canonicalize(PathBuf, #[source] std::io::Error),
 
     #[error("Error appending path {0} to tar")]
     TarAppend(PathBuf, #[source] std::io::Error),
@@ -25,6 +28,15 @@ pub enum UtilError {
     TarIntoInner(#[source] std::io::Error),
     #[error("Error compressing file at {0} with zstd")]
     Zstd(PathBuf, #[source] std::io::Error),
+    #[error("Error while writing file to zip")]
+    ZipWrite(#[source] std::io::Error),
+
+    #[error("Unsupported source backend")]
+    UnsupportedSourceBackend,
+    #[error("Path {0} contained a dash '-' which is currently not allowed")]
+    InvalidDirectory(PathBuf),
+    #[error("The cache path  ({0}) must be inside the rails root path ({1})")]
+    CacheNotInRailsRoot(PathBuf, PathBuf),
 
     #[error(transparent)]
     TmcError(#[from] tmc_langs_framework::TmcError),
@@ -34,6 +46,13 @@ pub enum UtilError {
     Zip(#[from] zip::result::ZipError),
     #[error(transparent)]
     FileIo(#[from] FileIo),
+
+    #[cfg(unix)]
+    #[error("Error changing permissions of {0}")]
+    NixPermissionChange(PathBuf, #[source] nix::Error),
+    #[cfg(unix)]
+    #[error("Invalid chmod flag: {0}")]
+    NixFlag(ModeBits),
 }
 
 #[derive(Debug, Error)]

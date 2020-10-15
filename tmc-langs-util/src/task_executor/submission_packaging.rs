@@ -1,7 +1,6 @@
 use super::{get_language_plugin, Plugin, TmcProjectYml};
 use crate::error::{ParamError, UtilError};
 use std::collections::HashMap;
-use std::ffi::OsStr;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::io::Write;
 use std::path::Path;
@@ -166,13 +165,13 @@ pub fn prepare_submission(
 
     fn useless_file_filter(entry: &ZipFile) -> bool {
         let files_to_filter = &[
-            OsStr::new(".DS_Store"),
-            OsStr::new("desktop.ini"),
-            OsStr::new("Thumbs.db"),
-            OsStr::new(".directory"),
-            OsStr::new("__MACOSX"),
+            ".DS_Store",
+            "desktop.ini",
+            "Thumbs.db",
+            ".directory",
+            "__MACOSX",
         ];
-        files_to_filter.contains(&entry.sanitized_name().as_os_str())
+        files_to_filter.contains(&entry.name())
     }
 
     let temp = tempfile::tempdir().map_err(UtilError::TempDir)?;
@@ -404,9 +403,9 @@ pub fn prepare_submission(
                     stripped.display()
                 );
                 if entry_path.is_dir() {
-                    archive.add_directory_from_path(&stripped, FileOptions::default())?;
+                    archive.add_directory(stripped.to_string_lossy(), FileOptions::default())?;
                 } else {
-                    archive.start_file_from_path(&stripped, FileOptions::default())?;
+                    archive.start_file(stripped.to_string_lossy(), FileOptions::default())?;
                     let mut file = file_util::open_file(entry_path)?;
                     std::io::copy(&mut file, &mut archive)
                         .map_err(|e| UtilError::TarAppend(entry_path.to_path_buf(), e))?;

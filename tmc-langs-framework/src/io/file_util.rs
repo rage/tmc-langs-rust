@@ -183,7 +183,7 @@ where
             continue;
         }
 
-        let target_path = target.join(file.sanitized_name());
+        let target_path = target.join(Path::new(file.name()));
         if file.is_dir() {
             create_dir_all(target_path)?;
         } else {

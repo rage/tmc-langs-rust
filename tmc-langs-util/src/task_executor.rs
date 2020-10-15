@@ -1,10 +1,14 @@
 //! Module for calling different tasks of TMC-langs language plug-ins.
 
+mod course_refresher;
 mod submission_packaging;
 mod tar_helper;
 
 use crate::error::UtilError;
 use crate::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, ValidationResult};
+pub use course_refresher::{
+    Course, GroupBits, ModeBits, Options, RefreshData, RefreshExercise, SourceBackend,
+};
 use std::path::{Path, PathBuf};
 pub use submission_packaging::{OutputFormat, TmcParams};
 use tmc_langs_csharp::CSharpPlugin;
@@ -23,7 +27,7 @@ use tmc_langs_python3::Python3Plugin;
 use tmc_langs_r::RPlugin;
 use walkdir::WalkDir;
 
-/// See `domain::prepare_solutions`.
+/// See `submission_processing::prepare_solutions`.
 pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
     exercise_paths: I,
     dest_root: &Path,
@@ -171,27 +175,39 @@ pub fn clean(path: &Path) -> Result<(), UtilError> {
 }
 
 /// Recursively searches for valid exercise directories in the path.
-pub fn find_exercise_directories(exercise_path: &Path) -> Vec<PathBuf> {
+pub fn find_exercise_directories(exercise_path: &Path) -> Result<Vec<PathBuf>, UtilError> {
     let mut paths = vec![];
-    for entry in WalkDir::new(exercise_path)
-        .into_iter()
-        .filter_map(|e| e.ok())
-        .filter(submission_processing::is_hidden_dir)
-        .filter(|e| e.file_name() == "private")
-        .filter(submission_processing::contains_tmcignore)
-    {
+    for entry in WalkDir::new(exercise_path).into_iter().filter_entry(|e| {
+        !submission_processing::is_hidden_dir(e)
+            || e.file_name() == "private"
+            || submission_processing::contains_tmcignore(e)
+    }) {
+        let entry = entry?;
         // TODO: Java implementation doesn't scan root directories
         if is_exercise_root_directory(entry.path()) {
             paths.push(entry.into_path())
         }
     }
-    paths
+    Ok(paths)
 }
 
 /// Parses available exercise points from the exercise without compiling it.
 pub fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, UtilError> {
     let points = get_language_plugin(exercise_path)?.get_available_points(exercise_path)?;
     Ok(points)
+}
+
+pub fn refresh_course(
+    course: Course,
+    options: Options,
+    chmod_bits: Option<ModeBits>,
+    chgrp_uid: Option<GroupBits>,
+    cache_root: PathBuf,
+    rails_root: PathBuf,
+) -> Result<RefreshData, UtilError> {
+    course_refresher::refresh_course(
+        course, options, chmod_bits, chgrp_uid, cache_root, rails_root,
+    )
 }
 
 // enum containing all the plugins

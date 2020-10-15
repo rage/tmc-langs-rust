@@ -202,7 +202,7 @@ pub trait LanguagePlugin {
 
         for i in 0..zip_archive.len() {
             let mut file = zip_archive.by_index(i)?;
-            let file_path = file.sanitized_name();
+            let file_path = PathBuf::from(file.name());
             let relative = match file_path.strip_prefix(&project_dir) {
                 Ok(relative) => relative,
                 _ => {
@@ -319,7 +319,7 @@ pub trait LanguagePlugin {
 
         for i in 0..zip_archive.len() {
             let mut file = zip_archive.by_index(i)?;
-            let file_path = file.sanitized_name();
+            let file_path = PathBuf::from(file.name());
             let relative = match file_path.strip_prefix(&project_dir) {
                 Ok(relative) => relative,
                 _ => {
@@ -370,7 +370,7 @@ pub trait LanguagePlugin {
             // zips don't necessarily contain entries for intermediate directories,
             // so we need to check every path for src
             let file = zip_archive.by_index(i)?;
-            let file_path = file.sanitized_name();
+            let file_path = Path::new(file.name());
             // todo: do in one pass somehow
             if file_path.components().any(|c| c.as_os_str() == "src") {
                 let path: PathBuf = file_path

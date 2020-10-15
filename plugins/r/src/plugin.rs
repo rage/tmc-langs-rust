@@ -108,7 +108,7 @@ impl LanguagePlugin for RPlugin {
             // zips don't necessarily contain entries for intermediate directories,
             // so we need to check every path for R
             let file = zip_archive.by_index(i)?;
-            let file_path = file.sanitized_name();
+            let file_path = Path::new(file.name());
             // todo: do in one pass somehow
             if file_path.components().any(|c| c.as_os_str() == "R") {
                 let path: PathBuf = file_path

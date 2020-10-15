@@ -290,6 +290,7 @@ mod test {
     }
 
     #[test]
+    #[cfg(not(target_os = "windows"))] // CI problems
     fn creates_run_result_file() {
         init();
 
