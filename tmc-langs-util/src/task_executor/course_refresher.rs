@@ -1,5 +1,7 @@
 use crate::{error::UtilError, task_executor};
-use md5::{Context, Digest};
+use md5::Context;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use serde_yaml::{Mapping, Value};
 use std::collections::{HashMap, HashSet};
 use std::io::Write;
@@ -24,39 +26,39 @@ pub enum SourceBackend {
 
 #[derive(Debug)]
 pub struct RefreshExercise {
-    name: String,
-    relative_path: PathBuf,
-    available_points: Vec<String>,
+    pub name: String,
+    pub relative_path: PathBuf,
+    pub available_points: Vec<String>,
 }
 
 #[derive(Debug)]
 pub struct Course {
-    name: String,
-    cache_path: PathBuf,
-    clone_path: PathBuf,
-    stub_path: PathBuf,
-    stub_zip_path: PathBuf,
-    solution_path: PathBuf,
-    solution_zip_path: PathBuf,
-    exercises: Vec<RefreshExercise>,
-    source_backend: SourceBackend,
-    source_url: String,
-    git_branch: String,
+    pub name: String,
+    pub cache_path: PathBuf,
+    pub clone_path: PathBuf,
+    pub stub_path: PathBuf,
+    pub stub_zip_path: PathBuf,
+    pub solution_path: PathBuf,
+    pub solution_zip_path: PathBuf,
+    pub exercises: Vec<RefreshExercise>,
+    pub source_backend: SourceBackend,
+    pub source_url: String,
+    pub git_branch: String,
 }
 
 #[derive(Debug)]
 pub struct Options {
-    no_directory_changes: bool,
-    no_background_operations: bool,
+    pub no_directory_changes: bool,
+    pub no_background_operations: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct RefreshData {
     pub new_exercises: Vec<String>,
     pub removed_exercises: Vec<String>,
     pub review_points: HashMap<String, Vec<String>>,
     pub metadata: HashMap<String, Mapping>,
-    pub checksum_stubs: HashMap<String, Digest>,
+    pub checksum_stubs: HashMap<String, [u8; 16]>,
     pub course_options: Mapping,
     pub update_points: HashMap<String, UpdatePoints>,
 }
@@ -67,7 +69,7 @@ struct ExerciseOptions {
     metadata_map: HashMap<String, Mapping>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct UpdatePoints {
     added: Vec<String>,
     removed: Vec<String>,
@@ -466,7 +468,7 @@ fn update_available_points(
 fn checksum_stubs(
     course_exercises: &[RefreshExercise],
     course_stub_path: &Path,
-) -> Result<HashMap<String, Digest>, UtilError> {
+) -> Result<HashMap<String, [u8; 16]>, UtilError> {
     let mut checksum_stubs = HashMap::new();
     for e in course_exercises {
         let mut digest = Context::new();
@@ -489,7 +491,7 @@ fn checksum_stubs(
                 digest.consume(file);
             }
         }
-        checksum_stubs.insert(e.name.clone(), digest.compute());
+        checksum_stubs.insert(e.name.clone(), digest.compute().into());
     }
     Ok(checksum_stubs)
 }
@@ -567,7 +569,7 @@ fn set_permissions(
             let file = file_util::open_file(path)?;
             stat::fchmod(
                 file.as_raw_fd(),
-                stat::Mode::from_bits(chmod).ok_or(UtilError::NixFlag(chmod))?,
+                stat::Mode::from_bits(chmod).ok_or_else(|| UtilError::NixFlag(chmod))?,
             )
             .map_err(|e| UtilError::NixPermissionChange(path.to_path_buf(), e))?;
         }

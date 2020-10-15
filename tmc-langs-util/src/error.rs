@@ -1,6 +1,6 @@
 //! Contains the crate error type
 
-use crate::task_executor::GroupBits;
+use crate::task_executor::ModeBits;
 use std::path::PathBuf;
 use thiserror::Error;
 use tmc_langs_framework::error::FileIo;
@@ -52,7 +52,7 @@ pub enum UtilError {
     NixPermissionChange(PathBuf, #[source] nix::Error),
     #[cfg(unix)]
     #[error("Invalid chmod flag: {0}")]
-    NixFlag(GroupBits),
+    NixFlag(ModeBits),
 }
 
 #[derive(Debug, Error)]

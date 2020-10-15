@@ -6,8 +6,9 @@ mod tar_helper;
 
 use crate::error::UtilError;
 use crate::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, ValidationResult};
-pub use course_refresher::refresh_course;
-pub use course_refresher::GroupBits;
+pub use course_refresher::{
+    Course, GroupBits, ModeBits, Options, RefreshData, RefreshExercise, SourceBackend,
+};
 use std::path::{Path, PathBuf};
 pub use submission_packaging::{OutputFormat, TmcParams};
 use tmc_langs_csharp::CSharpPlugin;
@@ -194,6 +195,19 @@ pub fn find_exercise_directories(exercise_path: &Path) -> Result<Vec<PathBuf>, U
 pub fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, UtilError> {
     let points = get_language_plugin(exercise_path)?.get_available_points(exercise_path)?;
     Ok(points)
+}
+
+pub fn refresh_course(
+    course: Course,
+    options: Options,
+    chmod_bits: Option<ModeBits>,
+    chgrp_uid: Option<GroupBits>,
+    cache_root: PathBuf,
+    rails_root: PathBuf,
+) -> Result<RefreshData, UtilError> {
+    course_refresher::refresh_course(
+        course, options, chmod_bits, chgrp_uid, cache_root, rails_root,
+    )
 }
 
 // enum containing all the plugins
