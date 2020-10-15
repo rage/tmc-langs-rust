@@ -538,6 +538,7 @@ fn run() -> Result<()> {
                         available_points: available_points
                             .into_iter()
                             .map(str::to_string)
+                            .filter(|s| !s.is_empty())
                             .collect(),
                     });
                 }
