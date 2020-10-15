@@ -958,7 +958,8 @@ mod test {
     }
 
     #[cfg(unix)]
-    // #[test] // issues in CI, maybe due to the user ID?
+    #[test]
+    #[ignore = "issues in CI, maybe due to the user ID"]
     fn sets_permissions() {
         init();
 
