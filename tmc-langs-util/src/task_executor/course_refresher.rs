@@ -948,13 +948,24 @@ mod test {
         let first_zip = temp.path().join("first.zip");
         assert!(first_zip.exists());
         let mut fz = zip::ZipArchive::new(file_util::open_file(first_zip).unwrap()).unwrap();
-        assert!(fz.by_name("ex1/test/test.py").is_ok());
+        assert!(fz
+            .by_name(
+                &Path::new("ex1")
+                    .join("test")
+                    .join("test.py")
+                    .to_string_lossy()
+            )
+            .is_ok());
 
         let second_zip = temp.path().join("second.zip");
         assert!(second_zip.exists());
         let mut sz = zip::ZipArchive::new(file_util::open_file(second_zip).unwrap()).unwrap();
-        assert!(sz.by_name("ex2/setup.py").is_ok());
-        assert!(sz.by_name("ex2/.hiddenfile").is_err());
+        assert!(sz
+            .by_name(&Path::new("ex2").join("setup.py").to_string_lossy())
+            .is_ok());
+        assert!(sz
+            .by_name(&Path::new("ex2").join(".hiddenfile").to_string_lossy())
+            .is_err());
     }
 
     #[cfg(unix)]
