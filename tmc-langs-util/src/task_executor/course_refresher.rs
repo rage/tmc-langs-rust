@@ -549,8 +549,8 @@ fn execute_zip(
 #[cfg(not(unix))]
 fn set_permissions(
     _course_cache_path: &Path,
-    _chmod: Option<ModBits>,
-    _chgrp: Option<ModBits>,
+    _chmod: Option<ModeBits>,
+    _chgrp: Option<ModeBits>,
     _cache_root: &Path,
     _rails_root: PathBuf,
 ) -> Result<(), UtilError> {
