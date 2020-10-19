@@ -23,5 +23,5 @@ pub use response::{
     SubmissionFeedbackResponse, SubmissionFinished, SubmissionProcessingStatus, SubmissionStatus,
     UpdateResult, User,
 };
-pub use tmc_core::{StatusType, TmcCore, Token};
+pub use tmc_core::{CoreUpdateData, TmcCore, Token};
 pub use tmc_langs_util::{Language, RunResult, Strategy, ValidationResult};

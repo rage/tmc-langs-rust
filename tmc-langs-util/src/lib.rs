@@ -1,6 +1,7 @@
 //! Contains the task executor
 
 pub mod error;
+pub mod progress_reporter;
 pub mod task_executor;
 
 pub use error::UtilError;

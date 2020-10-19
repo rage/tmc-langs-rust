@@ -1,4 +1,8 @@
-use crate::{error::UtilError, task_executor};
+use crate::{
+    error::UtilError,
+    progress_reporter::{ProgressReporter, StatusUpdate},
+    task_executor,
+};
 use md5::Context;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -75,6 +79,166 @@ pub struct UpdatePoints {
     removed: Vec<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub enum RefreshUpdateData {}
+
+pub struct CourseRefresher {
+    progress_reporter: ProgressReporter<'static, RefreshUpdateData>,
+}
+
+impl CourseRefresher {
+    pub fn new(
+        progress_report: impl 'static
+            + Fn(
+                StatusUpdate<RefreshUpdateData>,
+            ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>,
+    ) -> Self {
+        Self {
+            progress_reporter: ProgressReporter::new(progress_report),
+        }
+    }
+
+    pub fn refresh_course(
+        self,
+        course: Course,
+        options: Options,
+        git_repos_chmod: Option<ModeBits>,
+        git_repos_chgrp: Option<GroupBits>,
+        cache_root: PathBuf,
+        rails_root: PathBuf,
+    ) -> Result<RefreshData, UtilError> {
+        log::info!("refreshing course {}", course.name);
+        self.progress_reporter.start_timer();
+
+        self.progress_reporter.increment_progress_steps(4);
+        if !options.no_directory_changes {
+            self.progress_reporter.increment_progress_steps(8);
+        }
+        if !options.no_background_operations {
+            self.progress_reporter.increment_progress_steps(1);
+        }
+
+        let old_cache_path = &course.cache_path;
+
+        // increment_cached_version not implemented
+
+        if !options.no_directory_changes {
+            log::info!("clearing cache at {}", course.cache_path.display());
+            file_util::remove_dir_all(&course.cache_path)?;
+            file_util::create_dir_all(&course.cache_path)?;
+            self.progress_reporter
+                .finish_step("Cleared cache".to_string(), None)?;
+
+            log::info!("updating repository at {}", course.clone_path.display());
+            update_or_clone_repository(
+                &course.source_backend,
+                &course.clone_path,
+                &course.source_url,
+                &course.git_branch,
+                &old_cache_path,
+            )?;
+            check_directory_names(&course.clone_path)?;
+            self.progress_reporter
+                .finish_step("Updated repository".to_string(), None)?;
+        }
+
+        log::info!("updating course options");
+        let course_options = update_course_options(&course.clone_path, &course.name)?;
+        self.progress_reporter
+            .finish_step("Updated course options".to_string(), None)?;
+
+        // add_records_for_new_exercises & delete_records_for_removed_exercises
+        log::info!("updating exercises");
+        let (new_exercises, removed_exercises) =
+            update_exercises(&course.clone_path, &course.exercises)?;
+        self.progress_reporter
+            .finish_step("Updated exercises".to_string(), None)?;
+        log::info!("updating exercise options");
+        let ExerciseOptions {
+            review_points,
+            metadata_map: metadata,
+        } = update_exercise_options(&course.exercises, &course.clone_path, &course.name)?;
+        self.progress_reporter
+            .finish_step("Updated exercise options".to_string(), None)?;
+
+        // set_has_tests_flags not implemented here
+
+        let update_points = if !options.no_background_operations {
+            log::info!("updating available points");
+            let result =
+                update_available_points(&course.exercises, &course.clone_path, &review_points)?;
+            self.progress_reporter
+                .finish_step("Updated available points".to_string(), None)?;
+            result
+        } else {
+            HashMap::new()
+        };
+
+        if !options.no_directory_changes {
+            // make_solutions
+            log::info!("preparing solutions");
+            task_executor::prepare_solutions(&[course.clone_path.clone()], &course.solution_path)?;
+            self.progress_reporter
+                .finish_step("Prepared solutions".to_string(), None)?;
+
+            // make_stubs
+            log::info!("preparing stubs");
+            let exercise_dirs = task_executor::find_exercise_directories(&course.clone_path)?;
+            task_executor::prepare_stubs(exercise_dirs, &course.clone_path, &course.stub_path)?;
+            self.progress_reporter
+                .finish_step("Prepared stubs".to_string(), None)?;
+        }
+
+        log::info!("calculating checksums");
+        let checksum_stubs = checksum_stubs(&course.exercises, &course.stub_path)?;
+        self.progress_reporter
+            .finish_step("Calculated checksums".to_string(), None)?;
+
+        if !options.no_directory_changes {
+            // make_zips_of_stubs
+            log::info!("compressing stubs");
+            execute_zip(&course.exercises, &course.stub_path, &course.stub_zip_path)?;
+            self.progress_reporter
+                .finish_step("Compressed stubs".to_string(), None)?;
+
+            // make_zips_of_solutions
+            log::info!("compressing solutions");
+            execute_zip(
+                &course.exercises,
+                &course.solution_path,
+                &course.solution_zip_path,
+            )?;
+            self.progress_reporter
+                .finish_step("Compressed solutions".to_string(), None)?;
+
+            // set_permissions
+            log::info!("setting permissions");
+            set_permissions(
+                &course.cache_path,
+                git_repos_chmod,
+                git_repos_chgrp,
+                &cache_root,
+                rails_root,
+            )?;
+            self.progress_reporter
+                .finish_step("Set permissions".to_string(), None)?;
+        }
+
+        // invalidate_unlocks not implemented
+        // kafka_publish_exercises not implemented
+
+        Ok(RefreshData {
+            new_exercises,
+            removed_exercises,
+            review_points,
+            metadata,
+            checksum_stubs,
+            course_options,
+            update_points,
+        })
+    }
+}
+
 pub fn refresh_course(
     course: Course,
     options: Options,
@@ -83,101 +247,17 @@ pub fn refresh_course(
     cache_root: PathBuf,
     rails_root: PathBuf,
 ) -> Result<RefreshData, UtilError> {
-    log::info!("refreshing course {}", course.name);
-
-    let old_cache_path = &course.cache_path;
-
-    // increment_cached_version not implemented
-
-    if !options.no_directory_changes {
-        log::info!("clearing cache at {}", course.cache_path.display());
-        file_util::remove_dir_all(&course.cache_path)?;
-        file_util::create_dir_all(&course.cache_path)?;
-    }
-
-    if !options.no_directory_changes {
-        log::info!("updating repository at {}", course.clone_path.display());
-        update_or_clone_repository(
-            &course.source_backend,
-            &course.clone_path,
-            &course.source_url,
-            &course.git_branch,
-            &old_cache_path,
-        )?;
-        check_directory_names(&course.clone_path)?;
-    }
-
-    log::info!("updating course options");
-    let course_options = update_course_options(&course.clone_path, &course.name)?;
-
-    // add_records_for_new_exercises & delete_records_for_removed_exercises
-    log::info!("updating exercises");
-    let (new_exercises, removed_exercises) =
-        update_exercises(&course.clone_path, &course.exercises)?;
-    log::info!("updating exercise options");
-    let ExerciseOptions {
-        review_points,
-        metadata_map: metadata,
-    } = update_exercise_options(&course.exercises, &course.clone_path, &course.name)?;
-
-    // set_has_tests_flags not implemented here
-
-    let update_points = if !options.no_background_operations {
-        log::info!("updating available points");
-        update_available_points(&course.exercises, &course.clone_path, &review_points)?
-    } else {
-        HashMap::new()
+    let course_refresher = CourseRefresher {
+        progress_reporter: ProgressReporter::new(|_| Ok(())),
     };
-
-    if !options.no_directory_changes {
-        // make_solutions
-        log::info!("preparing solutions");
-        task_executor::prepare_solutions(&[course.clone_path.clone()], &course.solution_path)?;
-        // make_stubs
-        log::info!("preparing stubs");
-        let exercise_dirs = task_executor::find_exercise_directories(&course.clone_path)?;
-        task_executor::prepare_stubs(exercise_dirs, &course.clone_path, &course.stub_path)?;
-    }
-
-    log::info!("calculating checksums");
-    let checksum_stubs = checksum_stubs(&course.exercises, &course.stub_path)?;
-
-    if !options.no_directory_changes {
-        // make_zips_of_stubs
-        log::info!("compressing stubs");
-        execute_zip(&course.exercises, &course.stub_path, &course.stub_zip_path)?;
-
-        // make_zips_of_solutions
-        log::info!("compressing solutions");
-        execute_zip(
-            &course.exercises,
-            &course.solution_path,
-            &course.solution_zip_path,
-        )?;
-
-        // set_permissions
-        log::info!("setting permissions");
-        set_permissions(
-            &course.cache_path,
-            git_repos_chmod,
-            git_repos_chgrp,
-            &cache_root,
-            rails_root,
-        )?;
-    }
-
-    // invalidate_unlocks not implemented
-    // kafka_publish_exercises not implemented
-
-    Ok(RefreshData {
-        new_exercises,
-        removed_exercises,
-        review_points,
-        metadata,
-        checksum_stubs,
-        course_options,
-        update_points,
-    })
+    course_refresher.refresh_course(
+        course,
+        options,
+        git_repos_chmod,
+        git_repos_chgrp,
+        cache_root,
+        rails_root,
+    )
 }
 
 fn update_or_clone_repository(

@@ -10,48 +10,28 @@ use oauth2::{
     AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword, ResourceOwnerUsername, TokenUrl,
 };
 use reqwest::{blocking::Client, Url};
-use serde::Serialize;
-use std::cell::Cell;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::error::Error as StdError;
 use std::io::Write;
 use std::path::Path;
 use std::path::PathBuf;
 use std::thread;
 use std::time::Duration;
 use tempfile::NamedTempFile;
-use tmc_langs_util::{file_util, task_executor, FileIo};
+use tmc_langs_util::{file_util, progress_reporter::ProgressReporter, task_executor, FileIo};
 use walkdir::WalkDir;
 
 pub type Token =
     oauth2::StandardTokenResponse<oauth2::EmptyExtraTokenFields, oauth2::basic::BasicTokenType>;
 
-#[derive(Debug, Serialize)]
-pub struct StatusUpdate {
-    pub finished: bool,
-    pub message: String,
-    pub percent_done: f64,
-    pub status_type: StatusType,
-}
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum StatusType {
-    DownloadingExercise { id: usize, path: PathBuf },
-    DownloadedExercise { id: usize, path: PathBuf },
+/// The update data type for the progress reporter.
+#[derive(Debug, Serialize, Deserialize)]
+pub enum CoreUpdateData {
+    ExerciseDownload { id: usize, path: PathBuf },
     PostedSubmission(NewSubmission),
-    Processing,
-    Sending,
-    WaitingForResults,
-    Finished,
-    IntermediateStepFinished,
 }
 
-// compatible with anyhow
-type DynError = Box<dyn StdError + Send + Sync + 'static>;
-type UpdateClosure = Box<dyn Fn(StatusUpdate) -> Result<(), DynError>>;
-
-/// A struct for interacting with the TestMyCode service, including authentication
+/// A struct for interacting with the TestMyCode service, including authentication.
 pub struct TmcCore {
     client: Client,
     #[allow(dead_code)]
@@ -59,9 +39,7 @@ pub struct TmcCore {
     api_url: Url,
     auth_url: String,
     token: Option<Token>,
-    progress_report: Option<UpdateClosure>,
-    progress_steps_done: Cell<u32>,
-    progress_steps_total: u32,
+    progress_reporter: Option<ProgressReporter<'static, CoreUpdateData>>,
     client_name: String,
     client_version: String,
 }
@@ -104,9 +82,7 @@ impl TmcCore {
             api_url,
             auth_url,
             token: None,
-            progress_report: None,
-            progress_steps_done: Cell::new(0),
-            progress_steps_total: 1,
+            progress_reporter: None,
             client_name,
             client_version,
         })
@@ -136,45 +112,45 @@ impl TmcCore {
         self.token = Some(token);
     }
 
-    pub fn set_progress_report<F>(&mut self, progress_report: F)
-    where
-        F: 'static + Fn(StatusUpdate) -> Result<(), Box<dyn StdError + Send + Sync + 'static>>,
-    {
-        self.progress_report = Some(Box::new(progress_report));
+    pub fn set_progress_reporter(
+        &mut self,
+        progress_reporter: ProgressReporter<'static, CoreUpdateData>,
+    ) {
+        self.progress_reporter = Some(progress_reporter);
     }
 
-    pub fn increment_progress_steps(&mut self) {
-        self.progress_steps_total += 1;
-    }
-
-    fn report_progress(&self, message: String, status_type: StatusType, percent_done: f64) {
-        let from_prev_steps = self.progress_steps_done.get() as f64;
-        let percent_done = (from_prev_steps + percent_done) / self.progress_steps_total as f64;
-
-        self.progress_report.as_ref().map(|f| {
-            f(StatusUpdate {
-                finished: false,
-                message,
-                percent_done,
-                status_type,
-            })
-        });
-    }
-
-    fn report_complete(&self, message: String) {
-        self.progress_steps_done
-            .set(self.progress_steps_done.get() + 1);
-        if self.progress_steps_done.get() == self.progress_steps_total {
-            self.progress_report.as_ref().map(|f| {
-                f(StatusUpdate {
-                    finished: true,
-                    message,
-                    percent_done: 1.0,
-                    status_type: StatusType::Finished,
-                })
-            });
+    fn progress(
+        &self,
+        message: String,
+        step_percent_done: f64,
+        data: Option<CoreUpdateData>,
+    ) -> Result<(), CoreError> {
+        if let Some(reporter) = &self.progress_reporter {
+            reporter
+                .progress(message, step_percent_done, data)
+                .map_err(CoreError::ProgressReport)
         } else {
-            self.report_progress(message, StatusType::IntermediateStepFinished, 0.0);
+            Ok(())
+        }
+    }
+
+    fn step_complete(
+        &self,
+        message: String,
+        data: Option<CoreUpdateData>,
+    ) -> Result<(), CoreError> {
+        if let Some(reporter) = &self.progress_reporter {
+            reporter
+                .finish_step(message, data)
+                .map_err(CoreError::ProgressReport)
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn increment_progress_steps(&self) {
+        if let Some(reporter) = &self.progress_reporter {
+            reporter.increment_progress_steps(1);
         }
     }
 
@@ -286,7 +262,7 @@ impl TmcCore {
             // TODO: do in memory without zip_file?
             let zip_file = NamedTempFile::new().map_err(CoreError::TempFile)?;
 
-            self.report_progress(
+            self.progress(
                 format!(
                     "Downloading exercise {} to '{}'. ({} out of {})",
                     exercise_id,
@@ -294,17 +270,17 @@ impl TmcCore {
                     n,
                     exercises_len
                 ),
-                StatusType::DownloadingExercise {
+                progress,
+                Some(CoreUpdateData::ExerciseDownload {
                     id: exercise_id,
                     path: target.to_path_buf(),
-                },
-                progress,
-            );
+                }),
+            )?;
             self.download_exercise(exercise_id, zip_file.path())?;
             progress += step;
 
             task_executor::extract_project(zip_file.path(), target, true)?;
-            self.report_progress(
+            self.progress(
                 format!(
                     "Downloaded exercise {} to '{}'. ({} out of {})",
                     exercise_id,
@@ -312,15 +288,18 @@ impl TmcCore {
                     n,
                     exercises_len
                 ),
-                StatusType::DownloadedExercise {
+                progress,
+                Some(CoreUpdateData::ExerciseDownload {
                     id: exercise_id,
                     path: target.to_path_buf(),
-                },
-                progress,
-            );
+                }),
+            )?;
             progress += step;
         }
-        self.report_complete(format!("Finished downloading {} exercises.", exercises_len));
+        self.step_complete(
+            format!("Finished downloading {} exercises.", exercises_len),
+            None,
+        )?;
         Ok(())
     }
 
@@ -489,28 +468,24 @@ impl TmcCore {
         submission_path: &Path,
         locale: Option<Language>,
     ) -> Result<NewSubmission, CoreError> {
-        self.report_progress(
-            "Compressing submission...".to_string(),
-            StatusType::Processing,
-            0.0,
-        );
+        self.progress("Compressing submission...".to_string(), 0.0, None)?;
         let compressed = task_executor::compress_project(submission_path)?;
         let mut file = NamedTempFile::new().map_err(CoreError::TempFile)?;
         file.write_all(&compressed)
             .map_err(|e| CoreError::Tmc(FileIo::FileWrite(file.path().to_path_buf(), e).into()))?;
-        self.report_progress(
+        self.progress(
             "Compressed submission. Posting submission...".to_string(),
-            StatusType::Sending,
             0.5,
-        );
+            None,
+        )?;
 
         let result = self.post_submission(submission_url, file.path(), locale)?;
-        self.report_progress(
+        self.progress(
             format!("Submission running at {0}", result.show_submission_url),
-            StatusType::PostedSubmission(result.clone()),
             1.0,
-        );
-        self.report_complete("Submission finished!".to_string());
+            Some(CoreUpdateData::PostedSubmission(result.clone())),
+        )?;
+        self.step_complete("Submission finished!".to_string(), None)?;
         Ok(result)
     }
 
@@ -568,15 +543,16 @@ impl TmcCore {
         loop {
             match self.check_submission(submission_url)? {
                 SubmissionProcessingStatus::Finished(f) => {
-                    self.report_complete("Submission finished processing!".to_string());
+                    self.step_complete("Submission finished processing!".to_string(), None)?;
                     return Ok(*f);
                 }
                 SubmissionProcessingStatus::Processing(p) => {
                     if p.status == SubmissionStatus::Hidden {
                         // hidden status, return constructed status
-                        self.report_complete(
+                        self.step_complete(
                             "Submission status hidden, stopping waiting.".to_string(),
-                        );
+                            None,
+                        )?;
                         let finished = SubmissionFinished {
                             api_version: 8,
                             all_tests_passed: Some(true),
@@ -616,21 +592,15 @@ impl TmcCore {
                         (_, status) => {
                             // new status, update progress
                             match status {
-                                SandboxStatus::Created => self.report_progress(
-                                    "Created on sandbox".to_string(),
-                                    StatusType::WaitingForResults,
-                                    0.25,
-                                ),
-                                SandboxStatus::SendingToSandbox => self.report_progress(
-                                    "Sending to sandbox".to_string(),
-                                    StatusType::WaitingForResults,
-                                    0.5,
-                                ),
-                                SandboxStatus::ProcessingOnSandbox => self.report_progress(
-                                    "Processing on sandbox".to_string(),
-                                    StatusType::WaitingForResults,
-                                    0.75,
-                                ),
+                                SandboxStatus::Created => {
+                                    self.progress("Created on sandbox".to_string(), 0.25, None)?
+                                }
+                                SandboxStatus::SendingToSandbox => {
+                                    self.progress("Sending to sandbox".to_string(), 0.5, None)?;
+                                }
+                                SandboxStatus::ProcessingOnSandbox => {
+                                    self.progress("Processing on sandbox".to_string(), 0.75, None)?;
+                                }
                             }
                             previous_status = Some(status);
                         }
@@ -1359,82 +1329,5 @@ mod test {
             }
             SubmissionProcessingStatus::Processing(_) => panic!("wrong status"),
         }
-    }
-
-    #[test]
-    fn status_serde() {
-        let p = StatusUpdate {
-            finished: false,
-            message: "submitting...".to_string(),
-            percent_done: 0.5,
-            status_type: StatusType::Sending,
-        };
-        assert_eq!(
-            r#"{"finished":false,"message":"submitting...","percent_done":0.5,"status_type":"sending"}"#,
-            serde_json::to_string(&p).unwrap()
-        );
-        let f = StatusUpdate {
-            finished: true,
-            message: "done".to_string(),
-            percent_done: 1.0,
-            status_type: StatusType::Finished,
-        };
-        assert_eq!(
-            r#"{"finished":true,"message":"done","percent_done":1.0,"status_type":"finished"}"#,
-            serde_json::to_string(&f).unwrap()
-        );
-    }
-
-    #[test]
-    fn multi_step_progress() {
-        use std::sync::{Arc, Mutex};
-
-        let (mut core, _) = init();
-        let report = Arc::new(Mutex::default());
-
-        let report_clone = Arc::clone(&report);
-        core.set_progress_report(move |rep| {
-            log::debug!("got {:#?}", rep);
-            let report = Arc::clone(&report_clone);
-            *report.lock().unwrap() = Some(rep);
-            Ok(())
-        });
-        core.increment_progress_steps();
-        core.increment_progress_steps();
-
-        core.report_progress(
-            "msg".to_string(),
-            StatusType::DownloadingExercise {
-                id: 0,
-                path: PathBuf::new(),
-            },
-            0.2,
-        );
-        let err = f64::EPSILON;
-        assert!((report.lock().unwrap().as_ref().unwrap().percent_done - (0.2 / 3.0)).abs() < err);
-        core.report_progress(
-            "msg".to_string(),
-            StatusType::DownloadingExercise {
-                id: 0,
-                path: PathBuf::new(),
-            },
-            0.8,
-        );
-        assert!((report.lock().unwrap().as_ref().unwrap().percent_done - (0.8 / 3.0)).abs() < err);
-        core.report_complete("msg".to_string());
-        assert!((report.lock().unwrap().as_ref().unwrap().percent_done - (1.0 / 3.0)).abs() < err);
-        core.report_complete("msg".to_string());
-        assert!((report.lock().unwrap().as_ref().unwrap().percent_done - (2.0 / 3.0)).abs() < err);
-        core.report_progress(
-            "msg".to_string(),
-            StatusType::DownloadingExercise {
-                id: 0,
-                path: PathBuf::new(),
-            },
-            0.5,
-        );
-        assert!((report.lock().unwrap().as_ref().unwrap().percent_done - (2.5 / 3.0)).abs() < err);
-        core.report_complete("msg".to_string());
-        assert!((report.lock().unwrap().as_ref().unwrap().percent_done - 1.0).abs() < err);
     }
 }

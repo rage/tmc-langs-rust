@@ -3,12 +3,21 @@
 use schemars::JsonSchema;
 use serde::Serialize;
 use std::path::PathBuf;
-use tmc_langs_core::{CourseData, CourseDetails, CourseExercise, StatusType};
+use tmc_langs_core::{CourseData, CourseDetails, CourseExercise};
+use tmc_langs_util::progress_reporter::StatusUpdate;
 
 /// The format for all messages written to stdout by the CLI
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
-pub struct Output<T: Serialize> {
+#[serde(tag = "output-kind")]
+pub enum Output<T: Serialize> {
+    OutputData(OutputData<T>),
+    StatusUpdate(StatusUpdate<T>),
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct OutputData<T: Serialize> {
     pub status: Status,
     pub message: Option<String>,
     pub result: OutputResult,
@@ -23,8 +32,6 @@ pub enum Status {
     Finished,
     /// An unexpected issue occurred during the command
     Crashed,
-    /// The command is still in progress
-    InProgress,
 }
 
 #[derive(Debug, Serialize)]
@@ -37,30 +44,6 @@ pub enum OutputResult {
     SentData,
     RetrievedData,
     ExecutedCommand,
-    DownloadingExercise,
-    DownloadedExercise,
-    Processing,
-    Sending,
-    WaitingForResults,
-    Finished,
-    IntermediateStepFinished,
-    PostedSubmission,
-}
-
-// converts a tmc_langs_core status to output result
-impl From<StatusType> for OutputResult {
-    fn from(status_type: StatusType) -> Self {
-        match status_type {
-            StatusType::DownloadingExercise { .. } => OutputResult::DownloadingExercise,
-            StatusType::DownloadedExercise { .. } => OutputResult::DownloadedExercise,
-            StatusType::PostedSubmission { .. } => OutputResult::PostedSubmission,
-            StatusType::Processing => OutputResult::Processing,
-            StatusType::Sending => OutputResult::Sending,
-            StatusType::WaitingForResults => OutputResult::WaitingForResults,
-            StatusType::Finished => OutputResult::Finished,
-            StatusType::IntermediateStepFinished => OutputResult::IntermediateStepFinished,
-        }
-    }
 }
 
 /// The format for all error messages printed in Output.data

@@ -53,6 +53,9 @@ pub enum UtilError {
     #[cfg(unix)]
     #[error("Invalid chmod flag: {0}")]
     NixFlag(ModeBits),
+
+    #[error(transparent)]
+    DynError(#[from] Box<dyn 'static + std::error::Error + Sync + Send>),
 }
 
 #[derive(Debug, Error)]

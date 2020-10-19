@@ -7,7 +7,7 @@ mod output;
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
 use error::InvalidTokenError;
-use output::{CombinedCourseData, DownloadTarget, ErrorData, Kind, Output, OutputResult, Status};
+use output::{CombinedCourseData, ErrorData, Kind, Output, OutputData, OutputResult, Status};
 use serde::Serialize;
 use std::collections::HashMap;
 use std::env;
@@ -18,11 +18,13 @@ use tempfile::NamedTempFile;
 use tmc_langs_core::oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
-use tmc_langs_core::{CoreError, FeedbackAnswer, StatusType, TmcCore, Token};
+use tmc_langs_core::{CoreError, CoreUpdateData, FeedbackAnswer, TmcCore, Token};
 use tmc_langs_framework::{domain::ValidationResult, error::CommandError};
 use tmc_langs_util::{
+    progress_reporter::ProgressReporter,
     task_executor::{
-        self, Course, GroupBits, ModeBits, Options, RefreshExercise, SourceBackend, TmcParams,
+        self, Course, CourseRefresher, GroupBits, ModeBits, Options, RefreshExercise,
+        SourceBackend, TmcParams,
     },
     Language, OutputFormat,
 };
@@ -37,7 +39,7 @@ fn main() {
         let causes: Vec<String> = e.chain().map(|e| format!("Caused by: {}", e)).collect();
         let message = error_message_special_casing(&e);
         let kind = solve_error_kind(&e);
-        let error_output = Output {
+        let error_output = Output::OutputData(OutputData {
             status: Status::Finished,
             message: Some(message),
             result: OutputResult::Error,
@@ -46,17 +48,17 @@ fn main() {
                 trace: causes,
             }),
             percent_done: 1.0,
-        };
+        });
         if let Err(err) = print_output(&error_output) {
             // the above function shouldn't fail ever, but in theory some data could
             // have a flawed Serialize implementation, so better safe than sorry
-            let output = Output::<()> {
+            let output = Output::OutputData::<()>(OutputData {
                 status: Status::Crashed,
                 message: Some(err.to_string()),
                 result: OutputResult::Error,
                 percent_done: 1.0,
                 data: None,
-            };
+            });
             print_output(&output).expect("this should never fail");
         }
         quit::with_code(1);
@@ -129,13 +131,13 @@ fn run() -> Result<()> {
 
             let check_result = run_checkstyle_write_results(exercise_path, output_path, locale)?;
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: Some("ran checkstyle".to_string()),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
                 data: check_result,
-            };
+            });
             print_output(&output)?
         }
         ("clean", Some(matches)) => {
@@ -146,13 +148,13 @@ fn run() -> Result<()> {
                 format!("Failed to clean exercise at {}", exercise_path.display(),)
             })?;
 
-            let output = Output::<()> {
+            let output = Output::OutputData::<()>(OutputData {
                 status: Status::Finished,
                 message: Some(format!("cleaned exercise at {}", exercise_path.display(),)),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
                 data: None,
-            };
+            });
             print_output(&output)?
         }
         ("compress-project", Some(matches)) => {
@@ -177,7 +179,7 @@ fn run() -> Result<()> {
                 )
             })?;
 
-            let output = Output::<()> {
+            let output = Output::OutputData::<()>(OutputData {
                 status: Status::Finished,
                 message: Some(format!(
                     "compressed project from {} to {}",
@@ -187,7 +189,7 @@ fn run() -> Result<()> {
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
                 data: None,
-            };
+            });
             print_output(&output)?
         }
         ("core", Some(matches)) => {
@@ -278,7 +280,7 @@ fn run() -> Result<()> {
                 format!("Failed to extract project at {}", output_path.display())
             })?;
 
-            let output = Output::<()> {
+            let output = Output::OutputData::<()>(OutputData {
                 status: Status::Finished,
                 message: Some(format!(
                     "extracted project from {} to {}",
@@ -288,7 +290,7 @@ fn run() -> Result<()> {
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
                 data: None,
-            };
+            });
             print_output(&output)?
         }
         ("fast-available-points", Some(matches)) => {
@@ -297,13 +299,13 @@ fn run() -> Result<()> {
 
             let points = task_executor::get_available_points(exercise_path)?;
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: Some(format!("found {} available points", points.len())),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
                 data: Some(points),
-            };
+            });
             print_output(&output)?
         }
         ("find-exercises", Some(matches)) => {
@@ -325,13 +327,13 @@ fn run() -> Result<()> {
                 write_result_to_file_as_json(&exercises, output_path)?;
             }
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: Some(format!("found exercises at {}", exercise_path.display(),)),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
                 data: Some(exercises),
-            };
+            });
             print_output(&output)?
         }
         ("get-exercise-packaging-configuration", Some(matches)) => {
@@ -353,7 +355,7 @@ fn run() -> Result<()> {
                 write_result_to_file_as_json(&config, output_path)?;
             }
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: Some(format!(
                     "created exercise packaging config from {}",
@@ -362,7 +364,7 @@ fn run() -> Result<()> {
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
                 data: Some(config),
-            };
+            });
             print_output(&output)?
         }
         ("prepare-solutions", Some(matches)) => {
@@ -380,7 +382,7 @@ fn run() -> Result<()> {
                     )
                 })?;
 
-            let output = Output::<()> {
+            let output = Output::OutputData::<()>(OutputData {
                 status: Status::Finished,
                 message: Some(format!(
                     "prepared solutions for {} at {}",
@@ -390,7 +392,7 @@ fn run() -> Result<()> {
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
                 data: None,
-            };
+            });
             print_output(&output)?
         }
         ("prepare-stubs", Some(matches)) => {
@@ -417,7 +419,7 @@ fn run() -> Result<()> {
                 },
             )?;
 
-            let output = Output::<()> {
+            let output = Output::OutputData::<()>(OutputData {
                 status: Status::Finished,
                 message: Some(format!(
                     "prepared stubs for {} at {}",
@@ -427,7 +429,7 @@ fn run() -> Result<()> {
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
                 data: None,
-            };
+            });
             print_output(&output)?
         }
         ("prepare-submission", Some(matches)) => {
@@ -494,7 +496,7 @@ fn run() -> Result<()> {
                 output_format,
             )?;
 
-            let output = Output::<()> {
+            let output = Output::OutputData::<()>(OutputData {
                 status: Status::Finished,
                 message: Some(format!(
                     "prepared submission for {} at {}",
@@ -504,7 +506,7 @@ fn run() -> Result<()> {
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
                 data: None,
-            };
+            });
             print_output(&output)?
         }
         ("refresh-course", Some(matches)) => {
@@ -578,23 +580,30 @@ fn run() -> Result<()> {
             } else {
                 None
             };
-            let refresh_result = task_executor::refresh_course(
-                course,
-                options,
-                chmod_bits,
-                chgrp_uid,
-                PathBuf::from(cache_root),
-                PathBuf::from(rails_root),
-            )
-            .with_context(|| format!("Failed to refresh course {}", course_name))?;
 
-            let output = Output {
+            let course_refresher = CourseRefresher::new(|update| {
+                let output = Output::StatusUpdate(update);
+                print_output(&output)?;
+                Ok(())
+            });
+            let refresh_result = course_refresher
+                .refresh_course(
+                    course,
+                    options,
+                    chmod_bits,
+                    chgrp_uid,
+                    PathBuf::from(cache_root),
+                    PathBuf::from(rails_root),
+                )
+                .with_context(|| format!("Failed to refresh course {}", course_name))?;
+
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: Some(format!("refreshed course {}", course_name)),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
                 data: Some(refresh_result),
-            };
+            });
             print_output(&output)?
         }
         ("run-tests", Some(matches)) => {
@@ -627,13 +636,13 @@ fn run() -> Result<()> {
                 run_checkstyle_write_results(exercise_path, Some(checkstyle_output_path), locale)?;
             }
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: Some(format!("ran tests for {}", exercise_path.display(),)),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
                 data: Some(test_result),
-            };
+            });
             print_output(&output)?
         }
         ("scan-exercise", Some(matches)) => {
@@ -667,13 +676,13 @@ fn run() -> Result<()> {
                 write_result_to_file_as_json(&scan_result, output_path)?;
             }
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: Some(format!("scanned exercise at {}", exercise_path.display(),)),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
                 data: Some(scan_result),
-            };
+            });
             print_output(&output)?
         }
         _ => unreachable!("missing subcommand arm"),
@@ -688,50 +697,11 @@ fn run_core(
     matches: &ArgMatches,
 ) -> Result<PrintToken> {
     // set progress report to print the updates to stdout as JSON
-    core.set_progress_report(|update| {
-        // convert to output
-        match &update.status_type {
-            StatusType::DownloadingExercise { id, path }
-            | StatusType::DownloadedExercise { id, path } => {
-                let data = Some(DownloadTarget {
-                    id: *id,
-                    path: path.clone(),
-                });
-
-                let output = Output {
-                    status: Status::InProgress,
-                    message: Some(update.message.to_string()),
-                    result: update.status_type.into(),
-                    percent_done: update.percent_done,
-                    data,
-                };
-                print_output(&output)?;
-            }
-            StatusType::PostedSubmission(ns) => {
-                let data = Some(ns.clone());
-
-                let output = Output {
-                    status: Status::InProgress,
-                    message: Some(update.message.to_string()),
-                    result: update.status_type.into(),
-                    percent_done: update.percent_done,
-                    data,
-                };
-                print_output(&output)?;
-            }
-            _ => {
-                let output = Output::<()> {
-                    status: Status::InProgress,
-                    message: Some(update.message.to_string()),
-                    result: update.status_type.into(),
-                    percent_done: update.percent_done,
-                    data: None,
-                };
-                print_output(&output)?;
-            }
-        };
+    core.set_progress_reporter(ProgressReporter::new(|update| {
+        let output = Output::StatusUpdate::<CoreUpdateData>(update);
+        print_output(&output)?;
         Ok(())
-    });
+    }));
 
     // proof of having printed the output
     let printed: PrintToken = match matches.subcommand() {
@@ -745,13 +715,13 @@ fn run_core(
             core.download_model_solution(solution_download_url, target)
                 .context("Failed to download model solution")?;
 
-            let output = Output::<()> {
+            let output = Output::OutputData::<()>(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: None,
-            };
+            });
             print_output(&output)?
         }
         ("download-old-submission", Some(matches)) => {
@@ -792,13 +762,13 @@ fn run_core(
             task_executor::extract_student_files(temp_zip.path(), output_path)?;
             log::debug!("extracted project");
 
-            let output = Output::<()> {
+            let output = Output::OutputData::<()>(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: None,
-            };
+            });
             print_output(&output)?
         }
         ("download-or-update-exercises", Some(matches)) => {
@@ -816,13 +786,13 @@ fn run_core(
             core.download_or_update_exercises(exercises)
                 .context("Failed to download exercises")?;
 
-            let output = Output::<()> {
+            let output = Output::OutputData::<()>(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: None,
-            };
+            });
             print_output(&output)?
         }
         ("get-course-data", Some(matches)) => {
@@ -842,13 +812,13 @@ fn run_core(
                 settings,
             };
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: Some(data),
-            };
+            });
             print_output(&output)?
         }
         ("get-course-details", Some(matches)) => {
@@ -859,13 +829,13 @@ fn run_core(
                 .get_course_details(course_id)
                 .context("Failed to get course details")?;
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: Some(details),
-            };
+            });
             print_output(&output)?
         }
         ("get-course-exercises", Some(matches)) => {
@@ -876,13 +846,13 @@ fn run_core(
                 .get_course_exercises(course_id)
                 .context("Failed to get course")?;
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: Some(exercises),
-            };
+            });
             print_output(&output)?
         }
         ("get-course-settings", Some(matches)) => {
@@ -891,13 +861,13 @@ fn run_core(
 
             let settings = core.get_course(course_id).context("Failed to get course")?;
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: Some(settings),
-            };
+            });
             print_output(&output)?
         }
         ("get-courses", Some(matches)) => {
@@ -907,13 +877,13 @@ fn run_core(
                 .list_courses(organization_slug)
                 .context("Failed to get courses")?;
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: Some(courses),
-            };
+            });
             print_output(&output)?
         }
         ("get-exercise-details", Some(matches)) => {
@@ -924,13 +894,13 @@ fn run_core(
                 .get_exercise_details(exercise_id)
                 .context("Failed to get course")?;
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: Some(course),
-            };
+            });
             print_output(&output)?
         }
         ("get-exercise-submissions", Some(matches)) => {
@@ -941,13 +911,13 @@ fn run_core(
                 .get_exercise_submissions_for_current_user(exercise_id)
                 .context("Failed to get submissions")?;
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: Some(submissions),
-            };
+            });
             print_output(&output)?
         }
         ("get-exercise-updates", Some(matches)) => {
@@ -967,13 +937,13 @@ fn run_core(
                 .get_exercise_updates(course_id, checksums)
                 .context("Failed to get exercise updates")?;
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: Some(update_result),
-            };
+            });
             print_output(&output)?
         }
         ("get-organization", Some(matches)) => {
@@ -983,13 +953,13 @@ fn run_core(
                 .get_organization(organization_slug)
                 .context("Failed to get organization")?;
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: Some(org),
-            };
+            });
             print_output(&output)?
         }
         ("get-organizations", Some(_matches)) => {
@@ -997,13 +967,13 @@ fn run_core(
                 .get_organizations()
                 .context("Failed to get organizations")?;
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: Some(orgs),
-            };
+            });
             print_output(&output)?
         }
         ("get-unread-reviews", Some(matches)) => {
@@ -1014,13 +984,13 @@ fn run_core(
                 .get_unread_reviews(reviews_url)
                 .context("Failed to get unread reviews")?;
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::LoggedOut,
                 percent_done: 1.0,
                 data: Some(reviews),
-            };
+            });
             print_output(&output)?
         }
         ("logged-in", Some(_matches)) => {
@@ -1037,22 +1007,22 @@ fn run_core(
                         credentials_path.display()
                     )
                 })?;
-                let output = Output {
+                let output = Output::OutputData(OutputData {
                     status: Status::Finished,
                     message: None,
                     result: OutputResult::LoggedIn,
                     percent_done: 1.0,
                     data: Some(token),
-                };
+                });
                 print_output(&output)?
             } else {
-                let output = Output::<()> {
+                let output = Output::OutputData::<()>(OutputData {
                     status: Status::Finished,
                     message: None,
                     result: OutputResult::NotLoggedIn,
                     percent_done: 1.0,
                     data: None,
-                };
+                });
                 print_output(&output)?
             }
         }
@@ -1113,13 +1083,13 @@ fn run_core(
                 })?;
             }
 
-            let output = Output::<()> {
+            let output = Output::OutputData::<()>(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::LoggedIn,
                 percent_done: 1.0,
                 data: None,
-            };
+            });
             print_output(&output)?
         }
         ("logout", Some(_matches)) => {
@@ -1132,13 +1102,13 @@ fn run_core(
                 })?;
             }
 
-            let output = Output::<()> {
+            let output = Output::OutputData::<()>(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::LoggedOut,
                 percent_done: 1.0,
                 data: None,
-            };
+            });
             print_output(&output)?
         }
         ("mark-review-as-read", Some(matches)) => {
@@ -1147,13 +1117,13 @@ fn run_core(
             core.mark_review_as_read(review_update_url.to_string())
                 .context("Failed to mark review as read")?;
 
-            let output = Output::<()> {
+            let output = Output::OutputData::<()>(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::SentData,
                 percent_done: 1.0,
                 data: None,
-            };
+            });
             print_output(&output)?
         }
         ("paste", Some(matches)) => {
@@ -1181,13 +1151,13 @@ fn run_core(
                 )
                 .context("Failed to get paste with comment")?;
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: Some(new_submission),
-            };
+            });
             print_output(&output)?
         }
         ("request-code-review", Some(matches)) => {
@@ -1215,13 +1185,13 @@ fn run_core(
                 )
                 .context("Failed to request code review")?;
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::SentData,
                 percent_done: 1.0,
                 data: Some(new_submission),
-            };
+            });
             print_output(&output)?
         }
         ("reset-exercise", Some(matches)) => {
@@ -1245,13 +1215,13 @@ fn run_core(
             // reset exercise
             core.reset(exercise_id, exercise_path)?;
 
-            let output = Output::<()> {
+            let output = Output::OutputData::<()>(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
                 data: None,
-            };
+            });
             print_output(&output)?
         }
         ("run-checkstyle", Some(matches)) => {
@@ -1265,13 +1235,13 @@ fn run_core(
                 .run_checkstyle(exercise_path, locale)
                 .context("Failed to run checkstyle")?;
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
                 data: Some(validation_result),
-            };
+            });
             print_output(&output)?
         }
         ("run-tests", Some(matches)) => {
@@ -1282,13 +1252,13 @@ fn run_core(
                 .run_tests(exercise_path)
                 .context("Failed to run tests")?;
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
                 data: Some(run_result),
-            };
+            });
             print_output(&output)?
         }
         ("send-feedback", Some(matches)) => {
@@ -1311,13 +1281,13 @@ fn run_core(
                 .send_feedback(feedback_url, feedback)
                 .context("Failed to send feedback")?;
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::SentData,
                 percent_done: 1.0,
                 data: Some(response),
-            };
+            });
             print_output(&output)?
         }
         ("submit", Some(matches)) => {
@@ -1344,13 +1314,13 @@ fn run_core(
                 .context("Failed to submit")?;
 
             if dont_block {
-                let output = Output {
+                let output = Output::OutputData(OutputData {
                     status: Status::Finished,
                     message: None,
                     result: OutputResult::SentData,
                     percent_done: 1.0,
                     data: Some(new_submission),
-                };
+                });
 
                 print_output(&output)?
             } else {
@@ -1360,13 +1330,13 @@ fn run_core(
                     .wait_for_submission(&submission_url)
                     .context("Failed while waiting for submissions")?;
 
-                let output = Output {
+                let output = Output::OutputData(OutputData {
                     status: Status::Finished,
                     message: None,
                     result: OutputResult::RetrievedData,
                     percent_done: 1.0,
                     data: Some(submission_finished),
-                };
+                });
                 print_output(&output)?
             }
         }
@@ -1379,13 +1349,13 @@ fn run_core(
             let submission_finished = serde_json::to_string(&submission_finished)
                 .context("Failed to serialize submission results")?;
 
-            let output = Output {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
                 data: Some(submission_finished),
-            };
+            });
             print_output(&output)?
         }
         _ => unreachable!(),

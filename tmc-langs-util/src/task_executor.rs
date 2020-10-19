@@ -7,7 +7,8 @@ mod tar_helper;
 use crate::error::UtilError;
 use crate::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, ValidationResult};
 pub use course_refresher::{
-    Course, GroupBits, ModeBits, Options, RefreshData, RefreshExercise, SourceBackend,
+    Course, CourseRefresher, GroupBits, ModeBits, Options, RefreshData, RefreshExercise,
+    SourceBackend,
 };
 use std::path::{Path, PathBuf};
 pub use submission_packaging::{OutputFormat, TmcParams};
