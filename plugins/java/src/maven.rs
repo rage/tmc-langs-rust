@@ -263,6 +263,7 @@ mod test {
     }
 
     #[test]
+    #[cfg(not(target_os = "windows"))] // CI problems
     fn gets_project_class_path() {
         init();
 
