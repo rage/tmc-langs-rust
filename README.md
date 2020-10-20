@@ -8,6 +8,8 @@ Documentation for the latest release is available at https://rage.github.io/tmc-
 
 The specifications for various configuration files are included in the spec directory.
 
+The student file policy of each plugin is explained in a `README.md` file in the plugin's subdirectory.
+
 ## Building
 
 Install Rust according to https://www.rust-lang.org/tools/install
