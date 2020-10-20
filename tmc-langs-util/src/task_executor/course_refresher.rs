@@ -227,6 +227,8 @@ impl CourseRefresher {
         // invalidate_unlocks not implemented
         // kafka_publish_exercises not implemented
 
+        self.progress_reporter
+            .finish_step("Refreshed course".to_string(), None)?;
         Ok(RefreshData {
             new_exercises,
             removed_exercises,
