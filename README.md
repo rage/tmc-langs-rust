@@ -6,6 +6,8 @@ TMC-langs provides an interface that encapsulates everything needed to support a
 
 Documentation for the latest release is available at https://rage.github.io/tmc-langs-rust
 
+The specifications for various configuration files are included in the spec directory.
+
 ## Building
 
 Install Rust according to https://www.rust-lang.org/tools/install
