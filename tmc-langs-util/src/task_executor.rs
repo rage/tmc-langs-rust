@@ -236,7 +236,10 @@ enum Plugin {
 
 // Get language plugin for the given path.
 fn get_language_plugin(path: &Path) -> Result<Plugin, TmcError> {
-    if CSharpPlugin::is_exercise_type_correct(path) {
+    if NoTestsPlugin::is_exercise_type_correct(path) {
+        log::info!("Detected project as {}", NoTestsPlugin::PLUGIN_NAME);
+        Ok(Plugin::NoTests(NoTestsPlugin::new()))
+    } else if CSharpPlugin::is_exercise_type_correct(path) {
         let csharp = CSharpPlugin::new();
         log::info!("Detected project as {}", CSharpPlugin::PLUGIN_NAME);
         Ok(Plugin::CSharp(csharp))
@@ -244,9 +247,6 @@ fn get_language_plugin(path: &Path) -> Result<Plugin, TmcError> {
         let make = MakePlugin::new();
         log::info!("Detected project as {}", MakePlugin::PLUGIN_NAME);
         Ok(Plugin::Make(make))
-    } else if NoTestsPlugin::is_exercise_type_correct(path) {
-        log::info!("Detected project as {}", NoTestsPlugin::PLUGIN_NAME);
-        Ok(Plugin::NoTests(NoTestsPlugin::new()))
     } else if Python3Plugin::is_exercise_type_correct(path) {
         log::info!("Detected project as {}", Python3Plugin::PLUGIN_NAME);
         Ok(Plugin::Python3(Python3Plugin::new()))

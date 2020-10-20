@@ -71,7 +71,9 @@ impl LanguagePlugin for NoTestsPlugin {
     fn is_exercise_type_correct(path: &Path) -> bool {
         Self::get_student_file_policy(path)
             .get_tmc_project_yml()
-            .map(|c| c.no_tests.is_some())
+            .ok()
+            .and_then(|c| c.no_tests)
+            .map(|nt| nt.flag)
             .unwrap_or(false)
     }
 
