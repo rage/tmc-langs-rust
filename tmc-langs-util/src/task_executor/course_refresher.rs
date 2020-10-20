@@ -62,7 +62,7 @@ pub struct RefreshData {
     pub removed_exercises: Vec<String>,
     pub review_points: HashMap<String, Vec<String>>,
     pub metadata: HashMap<String, Mapping>,
-    pub checksum_stubs: HashMap<String, [u8; 16]>,
+    pub checksum_stubs: HashMap<String, String>,
     pub course_options: Mapping,
     pub update_points: HashMap<String, UpdatePoints>,
 }
@@ -564,7 +564,7 @@ fn update_available_points(
 fn checksum_stubs(
     course_exercises: &[RefreshExercise],
     course_stub_path: &Path,
-) -> Result<HashMap<String, [u8; 16]>, UtilError> {
+) -> Result<HashMap<String, String>, UtilError> {
     let mut checksum_stubs = HashMap::new();
     for e in course_exercises {
         let mut digest = Context::new();
@@ -587,7 +587,11 @@ fn checksum_stubs(
                 digest.consume(file);
             }
         }
-        checksum_stubs.insert(e.name.clone(), digest.compute().into());
+
+        // convert the digest into a hex string
+        let digest = digest.compute();
+        let hex = format!("{:x}", digest);
+        checksum_stubs.insert(e.name.clone(), hex);
     }
     Ok(checksum_stubs)
 }
