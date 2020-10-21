@@ -281,6 +281,8 @@ pub fn create_app() -> App<'static, 'static> {
                 .long("output-path")
                 .takes_value(true)))
 
+        .subcommand(create_settings_app()) // "settings"
+
         .subcommand(SubCommand::with_name("scan-exercise")
             .about("Produces a description of an exercise using the appropriate language plugin.")
             .long_about(schema_leaked::<ExerciseDesc>())
@@ -637,6 +639,42 @@ fn create_core_app() -> App<'static, 'static> {
                 .long("submission-url")
                 .required(true)
                 .takes_value(true)))
+}
+
+fn create_settings_app() -> App<'static, 'static> {
+    App::new("settings")
+        .help("Configure the CLI.")
+        .arg(
+            Arg::with_name("client-name")
+                .help("The name of the client.")
+                .long("client-name")
+                .required(true)
+                .takes_value(true),
+        )
+        .subcommand(
+            SubCommand::with_name("get").arg(
+                Arg::with_name("setting")
+                    .help("The key of the setting.")
+                    .required(true)
+                    .takes_value(true),
+            ),
+        )
+        .subcommand(
+            SubCommand::with_name("set")
+                .arg(
+                    Arg::with_name("setting")
+                        .help("The key of the setting.")
+                        .required(true)
+                        .takes_value(true),
+                )
+                .arg(
+                    Arg::with_name("value")
+                        .help("The value of the setting.")
+                        .required(true)
+                        .takes_value(true),
+                ),
+        )
+        .subcommand(SubCommand::with_name("reset"))
 }
 
 // == utilities for printing the JSON schema of the objects printed to stdout by the CLI ==

@@ -1,6 +1,7 @@
 //! CLI client for TMC
 
 mod app;
+mod config;
 mod error;
 mod output;
 
@@ -206,13 +207,8 @@ fn run() -> Result<()> {
             )
             .context("Failed to create TmcCore")?;
 
-            // set token if a credentials.json is found for the client name
-            let tmc_dir = format!("tmc-{}", client_name);
-            let config_dir = match env::var("TMC_LANGS_CONFIG_DIR") {
-                Ok(v) => PathBuf::from(v),
-                Err(_) => dirs::config_dir().context("Failed to find config directory")?,
-            };
-            let credentials_path = config_dir.join(tmc_dir).join("credentials.json");
+            // set token from the credentials file if one exists
+            let credentials_path = config::get_credentials_path(client_name)?;
             if let Ok(file) = File::open(&credentials_path) {
                 match serde_json::from_reader(file) {
                     Ok(token) => core.set_token(token),
@@ -645,6 +641,7 @@ fn run() -> Result<()> {
             });
             print_output(&output)?
         }
+        ("settings", Some(matches)) => run_settings(matches)?,
         ("scan-exercise", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);
@@ -1362,6 +1359,53 @@ fn run_core(
     };
 
     Ok(printed)
+}
+
+fn run_settings(matches: &ArgMatches) -> Result<PrintToken> {
+    let client_name = matches.value_of("client-name").unwrap();
+    let mut map = config::load_config(client_name)?;
+
+    match matches.subcommand() {
+        ("get", Some(matches)) => {
+            let key = matches.value_of("setting").unwrap();
+            let output = Output::OutputData(OutputData {
+                status: Status::Finished,
+                result: OutputResult::RetrievedData,
+                message: Some("Retrieved value".to_string()),
+                percent_done: 1.0,
+                data: map.get(key),
+            });
+            print_output(&output)
+        }
+        ("set", Some(matches)) => {
+            let key = matches.value_of("setting").unwrap();
+            let value = matches.value_of("value").unwrap();
+            map.insert(key.to_string(), value.to_string());
+            config::save_config(client_name, map)?;
+
+            let output = Output::<()>::OutputData(OutputData {
+                status: Status::Finished,
+                result: OutputResult::ExecutedCommand,
+                message: Some("Saved value".to_string()),
+                percent_done: 1.0,
+                data: None,
+            });
+            print_output(&output)
+        }
+        ("reset", Some(_)) => {
+            config::reset_config(client_name)?;
+
+            let output = Output::<()>::OutputData(OutputData {
+                status: Status::Finished,
+                result: OutputResult::ExecutedCommand,
+                message: Some("Reset settings".to_string()),
+                percent_done: 1.0,
+                data: None,
+            });
+            print_output(&output)
+        }
+        _ => unreachable!("validation error"),
+    }
 }
 
 fn print_output<T: Serialize + Debug>(output: &Output<T>) -> Result<PrintToken> {
