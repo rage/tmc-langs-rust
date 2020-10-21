@@ -1392,6 +1392,20 @@ fn run_settings(matches: &ArgMatches) -> Result<PrintToken> {
             });
             print_output(&output)
         }
+        ("remove", Some(matches)) => {
+            let key = matches.value_of("setting").unwrap();
+            map.remove(key);
+            config::save_config(client_name, map)?;
+
+            let output = Output::<()>::OutputData(OutputData {
+                status: Status::Finished,
+                result: OutputResult::ExecutedCommand,
+                message: Some("Saved value".to_string()),
+                percent_done: 1.0,
+                data: None,
+            });
+            print_output(&output)
+        }
         ("reset", Some(_)) => {
             config::reset_config(client_name)?;
 

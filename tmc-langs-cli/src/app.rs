@@ -652,15 +652,18 @@ fn create_settings_app() -> App<'static, 'static> {
                 .takes_value(true),
         )
         .subcommand(
-            SubCommand::with_name("get").arg(
-                Arg::with_name("setting")
-                    .help("The key of the setting.")
-                    .required(true)
-                    .takes_value(true),
-            ),
+            SubCommand::with_name("get")
+                .help("Retrieves a value from the settings.")
+                .arg(
+                    Arg::with_name("setting")
+                        .help("The key of the setting.")
+                        .required(true)
+                        .takes_value(true),
+                ),
         )
         .subcommand(
             SubCommand::with_name("set")
+                .help("Saves a value in the settings.")
                 .arg(
                     Arg::with_name("setting")
                         .help("The key of the setting.")
@@ -674,7 +677,19 @@ fn create_settings_app() -> App<'static, 'static> {
                         .takes_value(true),
                 ),
         )
-        .subcommand(SubCommand::with_name("reset"))
+        .subcommand(
+            SubCommand::with_name("remove")
+                .help("Removes a value from the settings.")
+                .arg(
+                    Arg::with_name("setting")
+                        .help("The key of the setting.")
+                        .required(true)
+                        .takes_value(true),
+                ),
+        )
+        .subcommand(
+            SubCommand::with_name("reset").help("Resets the settings file to the defaults."),
+        )
 }
 
 // == utilities for printing the JSON schema of the objects printed to stdout by the CLI ==
