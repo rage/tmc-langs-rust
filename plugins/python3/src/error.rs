@@ -10,6 +10,13 @@ pub enum PythonError {
     Canonicalize(PathBuf, #[source] std::io::Error),
     #[error("Failed to deserialize file at {0} to JSON")]
     Deserialize(PathBuf, #[source] serde_json::Error),
+    #[error("Failed to parse Python version from {0}")]
+    VersionParseError(String, #[source] std::num::ParseIntError),
+    #[error("Python version found is too old: minimum major version required is {minimum_required}, but found {found}")]
+    OldPythonVersion {
+        found: usize,
+        minimum_required: usize,
+    },
 
     #[error("File IO error")]
     FileIo(#[from] FileIo),

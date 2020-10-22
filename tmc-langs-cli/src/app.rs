@@ -643,7 +643,8 @@ fn create_core_app() -> App<'static, 'static> {
 
 fn create_settings_app() -> App<'static, 'static> {
     App::new("settings")
-        .help("Configure the CLI.")
+        .setting(AppSettings::SubcommandRequiredElseHelp)
+        .about("Configure the CLI.")
         .arg(
             Arg::with_name("client-name")
                 .help("The name of the client.")
@@ -653,20 +654,33 @@ fn create_settings_app() -> App<'static, 'static> {
         )
         .subcommand(
             SubCommand::with_name("get")
-                .help("Retrieves a value from the settings.")
+                .about("Retrieves a value from the settings.")
                 .arg(
                     Arg::with_name("setting")
-                        .help("The key of the setting.")
+                        .help("The name of the setting.")
                         .required(true)
                         .takes_value(true),
                 ),
         )
         .subcommand(
-            SubCommand::with_name("set")
-                .help("Saves a value in the settings.")
+            SubCommand::with_name("remove")
+                .about("Removes a value from the settings.")
                 .arg(
                     Arg::with_name("setting")
-                        .help("The key of the setting.")
+                        .help("The name of the setting.")
+                        .required(true)
+                        .takes_value(true),
+                ),
+        )
+        .subcommand(
+            SubCommand::with_name("reset").about("Resets the settings file to the defaults."),
+        )
+        .subcommand(
+            SubCommand::with_name("set")
+                .about("Saves a value in the settings.")
+                .arg(
+                    Arg::with_name("setting")
+                        .help("The name of the setting.")
                         .required(true)
                         .takes_value(true),
                 )
@@ -676,19 +690,6 @@ fn create_settings_app() -> App<'static, 'static> {
                         .required(true)
                         .takes_value(true),
                 ),
-        )
-        .subcommand(
-            SubCommand::with_name("remove")
-                .help("Removes a value from the settings.")
-                .arg(
-                    Arg::with_name("setting")
-                        .help("The key of the setting.")
-                        .required(true)
-                        .takes_value(true),
-                ),
-        )
-        .subcommand(
-            SubCommand::with_name("reset").help("Resets the settings file to the defaults."),
         )
 }
 

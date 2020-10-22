@@ -187,23 +187,47 @@ impl LanguagePlugin for Python3Plugin {
     }
 }
 
-fn run_tmc_command(
-    path: &Path,
-    extra_args: &[&str],
-    timeout: Option<Duration>,
-) -> Result<Output, PythonError> {
-    let path = path
-        .canonicalize()
-        .map_err(|e| PythonError::Canonicalize(path.to_path_buf(), e))?;
-    log::debug!("running tmc command at {}", path.display());
-    let common_args = ["-m", "tmc"];
-
+fn get_local_python_command() -> Result<TmcCommand, PythonError> {
     let command = match &*LOCAL_PY {
         LocalPy::Unix => TmcCommand::new_with_file_io("python3")?,
         LocalPy::Windows => TmcCommand::new_with_file_io("py")?.with(|e| e.arg("-3")),
         LocalPy::WindowsConda { conda_path } => TmcCommand::new_with_file_io(conda_path)?,
         LocalPy::Custom { python_exec } => TmcCommand::new_with_file_io(python_exec)?,
     };
+    Ok(command)
+}
+
+fn run_tmc_command(
+    path: &Path,
+    extra_args: &[&str],
+    timeout: Option<Duration>,
+) -> Result<Output, PythonError> {
+    // validate python version
+    const MINIMUM_PYTHON_MAJOR: usize = 3;
+
+    let output = get_local_python_command()?
+        .with(|e| e.args(&["-c", "import sys; print(sys.version_info.major)"]))
+        .output_checked()?;
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let major: usize = stdout
+        .trim()
+        .parse()
+        .map_err(|e| PythonError::VersionParseError(stdout.into_owned(), e))?;
+
+    if major < MINIMUM_PYTHON_MAJOR {
+        return Err(PythonError::OldPythonVersion {
+            found: major,
+            minimum_required: MINIMUM_PYTHON_MAJOR,
+        });
+    }
+
+    let path = path
+        .canonicalize()
+        .map_err(|e| PythonError::Canonicalize(path.to_path_buf(), e))?;
+    log::debug!("running tmc command at {}", path.display());
+    let common_args = ["-m", "tmc"];
+
+    let command = get_local_python_command()?;
     let command = command.with(|e| e.args(&common_args).args(extra_args).cwd(path));
     let output = if let Some(timeout) = timeout {
         command.output_with_timeout(timeout)?
