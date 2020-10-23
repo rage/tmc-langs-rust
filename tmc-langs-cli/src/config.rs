@@ -1,11 +1,11 @@
 //! Handles the CLI's configuration files and credentials.
 
 use anyhow::{Context, Error};
-use std::collections::HashMap;
 use std::env;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use toml::{value::Table, Value};
 
 // base directory for a given plugin's settings files
 fn get_tmc_dir(client_name: &str) -> Result<PathBuf, Error> {
@@ -35,7 +35,7 @@ fn get_client_stub(client: &str) -> &str {
 }
 
 // initializes the default configuration file at the given path
-fn init_config_at(client_name: &str, path: &Path) -> Result<HashMap<String, String>, Error> {
+fn init_config_at(client_name: &str, path: &Path) -> Result<Table, Error> {
     let mut file = File::create(&path)
         .with_context(|| format!("Failed to create new config file at {}", path.display()))?;
 
@@ -50,10 +50,10 @@ fn init_config_at(client_name: &str, path: &Path) -> Result<HashMap<String, Stri
         )
     })?;
 
-    let mut config = HashMap::new();
+    let mut config = Table::new();
     config.insert(
         "projects-folder".to_string(),
-        default_project_dir.to_string_lossy().into_owned(),
+        Value::String(default_project_dir.to_string_lossy().into_owned()),
     );
 
     let toml = toml::to_string_pretty(&config).context("Failed to serialize config")?;
@@ -62,7 +62,7 @@ fn init_config_at(client_name: &str, path: &Path) -> Result<HashMap<String, Stri
     Ok(config)
 }
 
-pub fn load_config(client_name: &str) -> Result<HashMap<String, String>, Error> {
+pub fn load_config(client_name: &str) -> Result<Table, Error> {
     let path = get_config_path(client_name)?;
     match fs::read(&path) {
         Ok(bytes) => match toml::from_slice(&bytes) {
@@ -82,7 +82,7 @@ pub fn load_config(client_name: &str) -> Result<HashMap<String, String>, Error> 
     }
 }
 
-pub fn save_config(client_name: &str, config: HashMap<String, String>) -> Result<(), Error> {
+pub fn save_config(client_name: &str, config: Table) -> Result<(), Error> {
     let path = get_config_path(client_name)?;
     let toml = toml::to_string_pretty(&config).context("Failed to serialize HashMap")?;
     fs::write(&path, toml.as_bytes())

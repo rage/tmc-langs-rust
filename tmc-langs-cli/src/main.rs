@@ -29,6 +29,7 @@ use tmc_langs_util::{
     },
     Language, OutputFormat,
 };
+use toml::Value;
 use url::Url;
 
 #[quit::main]
@@ -1378,9 +1379,24 @@ fn run_settings(matches: &ArgMatches) -> Result<PrintToken> {
             print_output(&output)
         }
         ("set", Some(matches)) => {
-            let key = matches.value_of("setting").unwrap();
-            let value = matches.value_of("value").unwrap();
-            map.insert(key.to_string(), value.to_string());
+            let key_value_pair = matches.value_of("toml").unwrap();
+
+            let value: Value = key_value_pair
+                .parse()
+                .with_context(|| format!("Failed to deserialize {} as TOML", key_value_pair))?;
+            let (key, value) = if let Value::Table(table) = value {
+                if table.len() != 1 {
+                    anyhow::bail!(
+                        "Expected a single TOML key=value pair, found a table with {} elements",
+                        table.len()
+                    );
+                }
+                table.into_iter().next().unwrap()
+            } else {
+                anyhow::bail!("Expected a TOML key=value pair, found {}", value);
+            };
+
+            map.insert(key, value);
             config::save_config(client_name, map)?;
 
             let output = Output::<()>::OutputData(OutputData {
@@ -1389,6 +1405,16 @@ fn run_settings(matches: &ArgMatches) -> Result<PrintToken> {
                 message: Some("Saved value".to_string()),
                 percent_done: 1.0,
                 data: None,
+            });
+            print_output(&output)
+        }
+        ("list", Some(_)) => {
+            let output = Output::OutputData(OutputData {
+                status: Status::Finished,
+                result: OutputResult::RetrievedData,
+                message: Some("Retrieved settings".to_string()),
+                percent_done: 1.0,
+                data: Some(map),
             });
             print_output(&output)
         }
