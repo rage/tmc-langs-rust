@@ -16,25 +16,44 @@ fn get_tmc_dir(client_name: &str) -> Result<PathBuf, Error> {
     Ok(config_dir.join(format!("tmc-{}", client_name)))
 }
 
+// path to the credentials file
 pub fn get_credentials_path(client_name: &str) -> Result<PathBuf, Error> {
     get_tmc_dir(client_name).map(|dir| dir.join("credentials.json"))
 }
 
+// path to the configuration file
 fn get_config_path(client_name: &str) -> Result<PathBuf, Error> {
     get_tmc_dir(client_name).map(|dir| dir.join("config.toml"))
 }
 
-fn init_config(client_name: &str, path: &Path) -> Result<HashMap<String, String>, Error> {
+// some client use a different name for the directory
+fn get_client_stub(client: &str) -> &str {
+    match client {
+        "vscode_plugin" => "vscode",
+        s => s,
+    }
+}
+
+// initializes the default configuration file at the given path
+fn init_config_at(client_name: &str, path: &Path) -> Result<HashMap<String, String>, Error> {
     let mut file = File::create(&path)
         .with_context(|| format!("Failed to create new config file at {}", path.display()))?;
+
+    let default_project_dir = dirs::data_local_dir()
+        .context("Failed to find local data directory")?
+        .join("tmc")
+        .join(get_client_stub(client_name));
+    fs::create_dir_all(&default_project_dir).with_context(|| {
+        format!(
+            "Failed to create the TMC default project directory in {}",
+            default_project_dir.display()
+        )
+    })?;
 
     let mut config = HashMap::new();
     config.insert(
         "projects-folder".to_string(),
-        get_tmc_dir(client_name)?
-            .join("projects")
-            .to_string_lossy()
-            .into_owned(),
+        default_project_dir.to_string_lossy().into_owned(),
     );
 
     let toml = toml::to_string_pretty(&config).context("Failed to serialize config")?;
@@ -56,10 +75,10 @@ pub fn load_config(client_name: &str) -> Result<HashMap<String, String>, Error> 
                 fs::remove_file(&path).with_context(|| {
                     format!("Failed to remove invalid config file at {}", path.display())
                 })?;
-                init_config(client_name, &path)
+                init_config_at(client_name, &path)
             }
         },
-        Err(_) => init_config(client_name, &path),
+        Err(_) => init_config_at(client_name, &path),
     }
 }
 
@@ -73,6 +92,6 @@ pub fn save_config(client_name: &str, config: HashMap<String, String>) -> Result
 
 pub fn reset_config(client_name: &str) -> Result<(), Error> {
     let path = get_config_path(client_name)?;
-    init_config(client_name, &path)?;
+    init_config_at(client_name, &path)?;
     Ok(())
 }
