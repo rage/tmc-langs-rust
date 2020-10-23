@@ -91,13 +91,17 @@ pub fn rename<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> Result<(), File
 }
 
 pub fn find_project_root<P: AsRef<Path>>(path: P) -> Result<Option<PathBuf>, FileIo> {
-    for entry in WalkDir::new(path) {
+    for entry in WalkDir::new(&path) {
         let entry = entry?;
         if entry.path().is_dir() && entry.file_name() == OsStr::new("src") {
             return Ok(entry.path().parent().map(Path::to_path_buf));
         }
     }
-    Ok(None)
+    log::warn!(
+        "No src director found, defaulting the project root to the input path {}",
+        path.as_ref().display()
+    );
+    Ok(Some(path.as_ref().to_path_buf()))
 }
 
 /// Copies the file or directory at source into the target path.
