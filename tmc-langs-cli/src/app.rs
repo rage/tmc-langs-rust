@@ -17,7 +17,7 @@ pub fn create_app() -> App<'static, 'static> {
         .setting(AppSettings::SubcommandRequiredElseHelp)
 
         .subcommand(SubCommand::with_name("checkstyle")
-            .about("Checks the code style for the given exercise.")
+            .about("Checks the code style for the given exercise")
             .long_about(schema_leaked::<Option<ValidationResult>>())
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the project resides.")
@@ -35,7 +35,7 @@ pub fn create_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("clean")
-            .about("Cleans the target exercise using the appropriate language plugin.")
+            .about("Cleans the target exercise using the appropriate language plugin")
             .long_about(SCHEMA_NULL)
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the exercise resides.")
@@ -44,7 +44,7 @@ pub fn create_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("compress-project")
-            .about("Compresses the target exercise into a ZIP. Only includes student files using the student file policy of the exercise's plugin.")
+            .about("Compresses the target exercise into a ZIP. Only includes student files using the student file policy of the exercise's plugin")
             .long_about(SCHEMA_NULL)
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the exercise resides.")
@@ -60,7 +60,7 @@ pub fn create_app() -> App<'static, 'static> {
         .subcommand(create_core_app()) // "core"
 
         .subcommand(SubCommand::with_name("extract-project")
-            .about("Extracts an exercise from a ZIP archive. If the output-path is a project root, the plugin's student file policy will be used to avoid overwriting student files.")
+            .about("Extracts an exercise from a ZIP archive. If the output-path is a project root, the plugin's student file policy will be used to avoid overwriting student files")
             .long_about(SCHEMA_NULL)
             .arg(Arg::with_name("archive-path")
                 .help("Path to the ZIP archive.")
@@ -74,7 +74,7 @@ pub fn create_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("fast-available-points")
-            .about("Parses @Points notations from an exercise's exercise files and returns the point names found.")
+            .about("Parses @Points notations from an exercise's exercise files and returns the point names found")
             .long_about(schema_leaked::<Vec<String>>())
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the projects reside.")
@@ -83,7 +83,7 @@ pub fn create_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("find-exercises")
-            .about("Finds all exercise root directories inside the exercise-path.")
+            .about("Finds all exercise root directories inside the exercise-path")
             .long_about(schema_leaked::<Vec<PathBuf>>())
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the projects reside.")
@@ -96,7 +96,7 @@ pub fn create_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("get-exercise-packaging-configuration")
-            .about("Returns a configuration which separately lists the student files and exercise files inside the given exercise.")
+            .about("Returns a configuration which separately lists the student files and exercise files inside the given exercise")
             .long_about(schema_leaked::<ExercisePackagingConfiguration>())
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the exercise resides.")
@@ -109,7 +109,7 @@ pub fn create_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("prepare-solutions")
-            .about("Processes the exercise files in exercise-path, removing all code marked as stubs.")
+            .about("Processes the exercise files in exercise-path, removing all code marked as stubs")
             .long_about(SCHEMA_NULL)
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the exercise resides.")
@@ -123,7 +123,7 @@ pub fn create_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("prepare-stubs")
-            .about("Processes the exercise files in exercise-path, removing all code marked as solutions.")
+            .about("Processes the exercise files in exercise-path, removing all code marked as solutions")
             .long_about(SCHEMA_NULL)
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the exercise resides.")
@@ -137,7 +137,7 @@ pub fn create_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("prepare-submission")
-            .about("Takes a submission ZIP archive and turns it into an archive with reset test files, and tmc-params, ready for further processing.")
+            .about("Takes a submission ZIP archive and turns it into an archive with reset test files, and tmc-params, ready for further processing")
             .long_about(SCHEMA_NULL)
             .arg(Arg::with_name("output-format")
                 .help("The output format of the submission archive. Defaults to tar.")
@@ -174,7 +174,7 @@ pub fn create_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("refresh-course")
-            .about("Refresh the given course.")
+            .about("Refresh the given course")
             // .long_about(schema_leaked::<RefreshData>()) // can't format YAML mapping
             .arg(Arg::with_name("course-name")
                 .help("The name of the course.")
@@ -260,7 +260,7 @@ pub fn create_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("run-tests")
-            .about("Run the tests for the exercise using the appropriate language plugin.")
+            .about("Run the tests for the exercise using the appropriate language plugin")
             .long_about(schema_leaked::<RunResult>())
             .arg(Arg::with_name("checkstyle-output-path")
                 .help("Runs checkstyle if given. Path to the file where the style results will be written.")
@@ -284,7 +284,7 @@ pub fn create_app() -> App<'static, 'static> {
         .subcommand(create_settings_app()) // "settings"
 
         .subcommand(SubCommand::with_name("scan-exercise")
-            .about("Produces a description of an exercise using the appropriate language plugin.")
+            .about("Produces a description of an exercise using the appropriate language plugin")
             .long_about(schema_leaked::<ExerciseDesc>())
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the project resides.")
@@ -301,7 +301,7 @@ pub fn create_app() -> App<'static, 'static> {
 fn create_core_app() -> App<'static, 'static> {
     App::new("core")
         .setting(AppSettings::SubcommandRequiredElseHelp)
-        .about("Various commands that communicate with the TMC server.")
+        .about("Various commands that communicate with the TMC server")
         .arg(Arg::with_name("client-name")
             .help("Name used to differentiate between different TMC clients.")
             .long("client-name")
@@ -314,7 +314,7 @@ fn create_core_app() -> App<'static, 'static> {
             .takes_value(true))
 
         .subcommand(SubCommand::with_name("download-model-solution")
-            .about("Downloads an exercise's model solution.")
+            .about("Downloads an exercise's model solution")
             .long_about(SCHEMA_NULL)
             .arg(Arg::with_name("solution-download-url")
                 .help("URL to the solution download.")
@@ -328,7 +328,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("download-old-submission")
-            .about("Downloads an old submission. Resets the exercise at output-path if any, downloading the exercise base from the server. The old submission is then downloaded and extracted on top of the base, using the student file policy to retain student files.")
+            .about("Downloads an old submission. Resets the exercise at output-path if any, downloading the exercise base from the server. The old submission is then downloaded and extracted on top of the base, using the student file policy to retain student files")
             .long_about(SCHEMA_NULL)
             .arg(Arg::with_name("save-old-state")
                 .help("If set, the exercise is submitted to the server before resetting it.")
@@ -355,7 +355,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("download-or-update-exercises")
-            .about("Downloads exercises. If downloading an exercise on top of an existing one, the student file policy will be used to avoid overwriting student files, effectively just updating the exercise files.")
+            .about("Downloads exercises. If downloading an exercise on top of an existing one, the student file policy will be used to avoid overwriting student files, effectively just updating the exercise files")
             .long_about(SCHEMA_NULL)
             .arg(Arg::with_name("exercise")
                 .help("An exercise. Takes two values, an exercise id and an exercise path. Multiple exercises can be given.")
@@ -367,7 +367,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .multiple(true)))
 
         .subcommand(SubCommand::with_name("get-course-data")
-            .about("Fetches course data. Combines course details, course exercises and course settings.")
+            .about("Fetches course data. Combines course details, course exercises and course settings")
             .long_about(schema_leaked::<CombinedCourseData>())
             .arg(Arg::with_name("course-id")
                 .help("The ID of the course.")
@@ -376,7 +376,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("get-course-details")
-            .about("Fetches course details.")
+            .about("Fetches course details")
             .long_about(schema_leaked::<CourseDetails>())
             .arg(Arg::with_name("course-id")
                 .help("The ID of the course.")
@@ -385,7 +385,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("get-course-exercises")
-            .about("Lists a course's exercises.")
+            .about("Lists a course's exercises")
             .long_about(schema_leaked::<Vec<CourseExercise>>())
             .arg(Arg::with_name("course-id")
                 .help("The ID of the course.")
@@ -394,7 +394,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("get-course-settings")
-            .about("Fetches course settings.")
+            .about("Fetches course settings")
             .long_about(schema_leaked::<CourseData>())
             .arg(Arg::with_name("course-id")
                 .help("The ID of the course.")
@@ -403,7 +403,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("get-courses")
-            .about("Lists courses.")
+            .about("Lists courses")
             .long_about(schema_leaked::<Vec<CourseData>>())
             .arg(Arg::with_name("organization")
                 .help("Organization slug (e.g. mooc, hy).")
@@ -412,7 +412,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("get-exercise-details")
-            .about("Fetches exercise details.")
+            .about("Fetches exercise details")
             .long_about(schema_leaked::<ExerciseDetails>())
             .arg(Arg::with_name("exercise-id")
                 .help("The ID of the exercise.")
@@ -421,7 +421,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("get-exercise-submissions")
-            .about("Fetches the current user's old submissions for an exercise.")
+            .about("Fetches the current user's old submissions for an exercise")
             .long_about(schema_leaked::<Vec<Submission>>())
             .arg(Arg::with_name("exercise-id")
                 .help("The ID of the exercise.")
@@ -430,7 +430,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("get-exercise-updates")
-            .about("Checks for updates to exercises.")
+            .about("Checks for updates to exercises")
             .long_about(schema_leaked::<UpdateResult>())
             .arg(Arg::with_name("course-id")
                 .help("The ID of the course")
@@ -447,7 +447,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .multiple(true)))
 
         .subcommand(SubCommand::with_name("get-organization")
-            .about("Fetches an organization.")
+            .about("Fetches an organization")
             .long_about(schema_leaked::<Organization>())
             .arg(Arg::with_name("organization")
                 .help("Organization slug (e.g. mooc, hy).")
@@ -456,11 +456,11 @@ fn create_core_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("get-organizations")
-            .about("Fetches a list of all organizations from the TMC server.")
+            .about("Fetches a list of all organizations from the TMC server")
             .long_about(schema_leaked::<Vec<Organization>>()))
 
         .subcommand(SubCommand::with_name("get-unread-reviews")
-            .about("Fetches unread reviews.")
+            .about("Fetches unread reviews")
             .long_about(schema_leaked::<Vec<Review>>())
             .arg(Arg::with_name("reviews-url")
                 .help("URL to the reviews API.")
@@ -469,11 +469,11 @@ fn create_core_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("logged-in")
-            .about("Checks if the CLI is authenticated. Prints the access token if so.")
+            .about("Checks if the CLI is authenticated. Prints the access token if so")
             .long_about(SCHEMA_TOKEN))
 
         .subcommand(SubCommand::with_name("login")
-            .about("Authenticates with the TMC server and stores the OAuth2 token in config. You can log in either by email and password or an access token.")
+            .about("Authenticates with the TMC server and stores the OAuth2 token in config. You can log in either by email and password or an access token")
             .long_about(SCHEMA_NULL)
             .arg(Arg::with_name("base64")
                 .help("If set, the password is expected to be a base64 encoded string. This can be useful if the password contains special characters.")
@@ -490,11 +490,11 @@ fn create_core_app() -> App<'static, 'static> {
                 .required_unless("email")))
 
         .subcommand(SubCommand::with_name("logout")
-            .about("Logs out and removes the OAuth2 token from config.")
+            .about("Logs out and removes the OAuth2 token from config")
             .long_about(SCHEMA_NULL))
 
         .subcommand(SubCommand::with_name("mark-review-as-read")
-            .about("Marks a review as read.")
+            .about("Marks a review as read")
             .long_about(SCHEMA_NULL)
             .arg(Arg::with_name("review-update-url")
                 .help("URL to the review update API.")
@@ -503,7 +503,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("paste")
-            .about("Sends an exercise to the TMC pastebin.")
+            .about("Sends an exercise to the TMC pastebin")
             .long_about(schema_leaked::<NewSubmission>())
             .arg(Arg::with_name("locale")
                 .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")
@@ -525,7 +525,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("request-code-review")
-            .about("Requests code review.")
+            .about("Requests code review")
             .long_about(schema_leaked::<NewSubmission>())
             .arg(Arg::with_name("locale")
                 .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")
@@ -549,7 +549,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("reset-exercise")
-            .about("Resets an exercise. Removes the contents of the exercise directory and redownloads it from the server.")
+            .about("Resets an exercise. Removes the contents of the exercise directory and redownloads it from the server")
             .long_about(SCHEMA_NULL)
             .arg(Arg::with_name("save-old-state")
                 .help("If set, the exercise is submitted to the server before resetting it.")
@@ -571,7 +571,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("run-checkstyle")
-            .about("Checks the code style for the given exercise.")
+            .about("Checks the code style for the given exercise")
             .long_about(schema_leaked::<Option<ValidationResult>>())
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the exercise resides.")
@@ -585,7 +585,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("run-tests")
-            .about("Run tests.")
+            .about("Run tests")
             .long_about(schema_leaked::<RunResult>())
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the exercise resides.")
@@ -594,7 +594,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("send-feedback")
-            .about("Sends feedback for an exercise.")
+            .about("Sends feedback for an exercise")
             .long_about(schema_leaked::<SubmissionFeedbackResponse>())
             .arg(Arg::with_name("feedback")
                 .help("A feedback answer. Takes two values, a feedback answer id and the answer. Multiple feedback arguments can be given.")
@@ -611,7 +611,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("submit")
-            .about("Submits an exercise. By default blocks until the submission results are returned.")
+            .about("Submits an exercise. By default blocks until the submission results are returned")
             .long_about(schema_leaked::<SubmissionFinished>())
             .arg(Arg::with_name("dont-block")
                 .help("Set to avoid blocking.")
@@ -632,7 +632,7 @@ fn create_core_app() -> App<'static, 'static> {
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("wait-for-submission")
-            .about("Waits for a submission to finish.")
+            .about("Waits for a submission to finish")
             .long_about(schema_leaked::<SubmissionFinished>())
             .arg(Arg::with_name("submission-url")
                 .help("URL to the submission's status.")
@@ -644,7 +644,7 @@ fn create_core_app() -> App<'static, 'static> {
 fn create_settings_app() -> App<'static, 'static> {
     App::new("settings")
         .setting(AppSettings::SubcommandRequiredElseHelp)
-        .about("Configure the CLI.")
+        .about("Configure the CLI")
         .arg(
             Arg::with_name("client-name")
                 .help("The name of the client.")
@@ -654,7 +654,7 @@ fn create_settings_app() -> App<'static, 'static> {
         )
         .subcommand(
             SubCommand::with_name("get")
-                .about("Retrieves a value from the settings.")
+                .about("Retrieves a value from the settings")
                 .arg(
                     Arg::with_name("setting")
                         .help("The name of the setting.")
@@ -664,7 +664,7 @@ fn create_settings_app() -> App<'static, 'static> {
         )
         .subcommand(
             SubCommand::with_name("remove")
-                .about("Removes a value from the settings.")
+                .about("Removes a value from the settings")
                 .arg(
                     Arg::with_name("setting")
                         .help("The name of the setting.")
@@ -673,11 +673,11 @@ fn create_settings_app() -> App<'static, 'static> {
                 ),
         )
         .subcommand(
-            SubCommand::with_name("reset").about("Resets the settings file to the defaults."),
+            SubCommand::with_name("reset").about("Resets the settings file to the defaults"),
         )
         .subcommand(
             SubCommand::with_name("set")
-                .about("Saves a value in the settings.")
+                .about("Saves a value in the settings")
                 .arg(
                     Arg::with_name("setting")
                         .help("The name of the setting.")
