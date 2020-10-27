@@ -17,9 +17,12 @@ All of the keys listed below are optional.
 
 ```yml
 extra_student_files:
-  ["file_in_exercise_root.py", "./another_file_in_exercise_root.py"]
-extra_exercise_files: ["dir/file_in_subdirectory.xml"]
-force_update: ["./tests/forced_to_update"]
+  - "file_in_exercise_root.py"
+  - "./another_file_in_exercise_root.py"
+extra_exercise_files:
+  - "dir/file_in_subdirectory.xml"
+force_update:
+  - "./tests/forced_to_update"
 tests_timeout_ms: 1000
 no_tests: false
 fail_on_valgrind_error: false
