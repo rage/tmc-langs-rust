@@ -6,8 +6,12 @@ use crate::io::file_util;
 use crate::TmcError;
 use log::debug;
 use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use serde::{
+    de::{Error, Visitor},
+    Deserialize, Deserializer, Serialize,
+};
 use std::collections::{HashMap, HashSet};
+use std::fmt;
 use std::path::{Path, PathBuf};
 
 /// A description of an exercise's test case.
@@ -145,6 +149,9 @@ pub struct TmcProjectYml {
 
     #[serde(default)]
     pub fail_on_valgrind_error: Option<bool>,
+
+    #[serde(default)]
+    pub minimum_python_version: Option<PythonVer>,
 }
 
 impl TmcProjectYml {
@@ -159,6 +166,62 @@ impl TmcProjectYml {
         debug!("reading .tmcproject.yml from {}", config_path.display());
         let file = file_util::open_file(&config_path)?;
         Ok(serde_yaml::from_reader(file)?)
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct PythonVer {
+    pub major: Option<usize>,
+    pub minor: Option<usize>,
+    pub patch: Option<usize>,
+}
+
+impl<'de> Deserialize<'de> for PythonVer {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct PythonVerVisitor;
+
+        impl<'de> Visitor<'de> for PythonVerVisitor {
+            type Value = PythonVer;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("A string in one of the following formats: {major_ver}, {major_ver}.{minor_ver}, or {major_ver}.{minor_ver}.{patch_ver} where each version is a non-negative integer")
+            }
+
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+            where
+                E: Error,
+            {
+                let mut parts = v.split('.');
+                let major = if let Some(major) = parts.next() {
+                    let parsed: usize = major.parse().map_err(Error::custom)?;
+                    Some(parsed)
+                } else {
+                    None
+                };
+                let minor = if let Some(minor) = parts.next() {
+                    let parsed: usize = minor.parse().map_err(Error::custom)?;
+                    Some(parsed)
+                } else {
+                    None
+                };
+                let patch = if let Some(patch) = parts.next() {
+                    let parsed: usize = patch.parse().map_err(Error::custom)?;
+                    Some(parsed)
+                } else {
+                    None
+                };
+                Ok(PythonVer {
+                    major,
+                    minor,
+                    patch,
+                })
+            }
+        }
+
+        deserializer.deserialize_str(PythonVerVisitor)
     }
 }
 
@@ -250,5 +313,25 @@ mod test {
         let no_tests = cfg.no_tests.unwrap();
         assert!(no_tests.flag);
         assert!(!no_tests.points.is_empty());
+    }
+
+    #[test]
+    fn deserialize_python_ver() {
+        let python_ver: PythonVer = serde_yaml::from_str("1.2.3").unwrap();
+        assert_eq!(python_ver.major, Some(1));
+        assert_eq!(python_ver.minor, Some(2));
+        assert_eq!(python_ver.patch, Some(3));
+
+        let python_ver: PythonVer = serde_yaml::from_str("1.2").unwrap();
+        assert_eq!(python_ver.major, Some(1));
+        assert_eq!(python_ver.minor, Some(2));
+        assert_eq!(python_ver.patch, None);
+
+        let python_ver: PythonVer = serde_yaml::from_str("1").unwrap();
+        assert_eq!(python_ver.major, Some(1));
+        assert_eq!(python_ver.minor, None);
+        assert_eq!(python_ver.patch, None);
+
+        assert!(serde_yaml::from_str::<PythonVer>("asd").is_err())
     }
 }
