@@ -47,6 +47,7 @@ Documentation and binaries for the supported targets are built and deployed to G
 - Windows MSVC 64-bit (x86_64-pc-windows-msvc)
 - Windows MSVC 32-bit (i686-pc-windows-msvc)
 - MacOS 64-bit (x86_64-apple-darwin)
+- MacOS 11 (aarch64-apple-darwin)
 - ARM64 (aarch64-unknown-linux-gnu)
 - Armv7 (armv7-unknown-linux-gnueabihf)
 

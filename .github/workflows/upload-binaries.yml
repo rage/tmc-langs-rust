@@ -68,6 +68,21 @@ jobs:
       - name: Deploy
         run: gsutil cp target/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-x86_64-apple-darwin-$TAG
 
+  macos-11:
+    runs-on: macos-11.0
+    steps:
+      - uses: actions/checkout@v2
+      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+      - name: Cargo build
+        run: cargo build -p tmc-langs-cli --release --verbose
+      - name: Sign
+        run: codesign --force -s - target/release/tmc-langs-cli
+      - name: Deploy
+        run: gsutil cp target/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-aarch64-apple-darwin-$TAG
+
   arm:
     runs-on: ubuntu-16.04
     strategy:
