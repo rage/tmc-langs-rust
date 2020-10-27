@@ -69,12 +69,9 @@ pub fn load_config(client_name: &str) -> Result<Table, Error> {
             Ok(config) => Ok(config),
             Err(_) => {
                 log::error!(
-                    "Failed to deserialize config at {}, deleting",
+                    "Failed to deserialize config at {}, resetting",
                     path.display()
                 );
-                fs::remove_file(&path).with_context(|| {
-                    format!("Failed to remove invalid config file at {}", path.display())
-                })?;
                 init_config_at(client_name, &path)
             }
         },

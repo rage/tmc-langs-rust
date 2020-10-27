@@ -10,6 +10,7 @@ use clap::{ArgMatches, Error, ErrorKind};
 use error::InvalidTokenError;
 use output::{CombinedCourseData, ErrorData, Kind, Output, OutputData, OutputResult, Status};
 use serde::Serialize;
+use serde_json::Value as JsonValue;
 use std::collections::HashMap;
 use std::env;
 use std::fmt::Debug;
@@ -29,7 +30,7 @@ use tmc_langs_util::{
     },
     Language, OutputFormat,
 };
-use toml::Value;
+use toml::{map::Map as TomlMap, Value as TomlValue};
 use url::Url;
 
 #[quit::main]
@@ -1379,30 +1380,20 @@ fn run_settings(matches: &ArgMatches) -> Result<PrintToken> {
             print_output(&output)
         }
         ("set", Some(matches)) => {
-            let key_value_pair = matches.value_of("toml").unwrap();
+            let key = matches.value_of("key").unwrap();
+            let value = matches.value_of("json").unwrap();
 
-            let value: Value = key_value_pair
-                .parse()
-                .with_context(|| format!("Failed to deserialize {} as TOML", key_value_pair))?;
-            let (key, value) = if let Value::Table(table) = value {
-                if table.len() != 1 {
-                    anyhow::bail!(
-                        "Expected a single TOML key=value pair, found a table with {} elements",
-                        table.len()
-                    );
-                }
-                table.into_iter().next().unwrap()
-            } else {
-                anyhow::bail!("Expected a TOML key=value pair, found {}", value);
-            };
+            let value = serde_json::from_str(value)
+                .with_context(|| format!("Failed to deserialize {} as JSON", value))?;
+            let value = json_to_toml(value)?;
 
-            map.insert(key, value);
+            map.insert(key.to_string(), value);
             config::save_config(client_name, map)?;
 
             let output = Output::<()>::OutputData(OutputData {
                 status: Status::Finished,
                 result: OutputResult::ExecutedCommand,
-                message: Some("Saved value".to_string()),
+                message: Some("Set setting".to_string()),
                 percent_done: 1.0,
                 data: None,
             });
@@ -1418,20 +1409,6 @@ fn run_settings(matches: &ArgMatches) -> Result<PrintToken> {
             });
             print_output(&output)
         }
-        ("remove", Some(matches)) => {
-            let key = matches.value_of("setting").unwrap();
-            map.remove(key);
-            config::save_config(client_name, map)?;
-
-            let output = Output::<()>::OutputData(OutputData {
-                status: Status::Finished,
-                result: OutputResult::ExecutedCommand,
-                message: Some("Saved value".to_string()),
-                percent_done: 1.0,
-                data: None,
-            });
-            print_output(&output)
-        }
         ("reset", Some(_)) => {
             config::reset_config(client_name)?;
 
@@ -1439,6 +1416,20 @@ fn run_settings(matches: &ArgMatches) -> Result<PrintToken> {
                 status: Status::Finished,
                 result: OutputResult::ExecutedCommand,
                 message: Some("Reset settings".to_string()),
+                percent_done: 1.0,
+                data: None,
+            });
+            print_output(&output)
+        }
+        ("unset", Some(matches)) => {
+            let key = matches.value_of("setting").unwrap();
+            map.remove(key);
+            config::save_config(client_name, map)?;
+
+            let output = Output::<()>::OutputData(OutputData {
+                status: Status::Finished,
+                result: OutputResult::ExecutedCommand,
+                message: Some("Unset setting".to_string()),
                 percent_done: 1.0,
                 data: None,
             });
@@ -1521,6 +1512,38 @@ fn run_checkstyle_write_results(
         })?;
     }
     Ok(check_result)
+}
+
+fn json_to_toml(json: JsonValue) -> Result<TomlValue> {
+    match json {
+        JsonValue::Array(arr) => {
+            let mut v = vec![];
+            for value in arr {
+                v.push(json_to_toml(value)?);
+            }
+            Ok(TomlValue::Array(v))
+        }
+        JsonValue::Bool(b) => Ok(TomlValue::Boolean(b)),
+        JsonValue::Null => anyhow::bail!("The settings file cannot contain null values"),
+        JsonValue::Number(num) => {
+            if let Some(int) = num.as_i64() {
+                Ok(TomlValue::Integer(int))
+            } else if let Some(float) = num.as_f64() {
+                Ok(TomlValue::Float(float))
+            } else {
+                // this error can occur because serde_json supports u64 ints but toml doesn't
+                anyhow::bail!("The given number was too high: {}", num)
+            }
+        }
+        JsonValue::Object(obj) => {
+            let mut map = TomlMap::new();
+            for (key, value) in obj {
+                map.insert(key, json_to_toml(value)?);
+            }
+            Ok(TomlValue::Table(map))
+        }
+        JsonValue::String(s) => Ok(TomlValue::String(s)),
+    }
 }
 
 struct PrintToken;
