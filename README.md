@@ -38,7 +38,7 @@ Format using `cargo fmt`, use `cargo clippy` for linting.
 
 ## Deployment
 
-Documentation and binaries for the supported targets are built and deployed to Google Cloud when creating a GitHub release. Each binary uses the release tag as a version number in the filename, for example `tmc-langs-cli-x86_64-unknown-linux-gnu-0.5.0` for the release `0.5.0`.
+Documentation and binaries for the supported targets are built and the binaries deployed to Google Cloud when creating a GitHub release. Each binary uses the release tag as a version number in the filename, for example `tmc-langs-cli-x86_64-unknown-linux-gnu-0.5.0` for the release `0.5.0`.
 
 ### Supported targets
 
@@ -75,7 +75,7 @@ A TMC plugin for C#.
 
 ### plugins/java
 
-A TMC plugin for Java. Supports Maven and Ant.
+TMC plugins for Maven and Ant projects.
 
 ### plugins/make
 
