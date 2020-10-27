@@ -1,5 +1,6 @@
 //! Contains the crate error type
 
+#[cfg(unix)]
 use crate::task_executor::ModeBits;
 use std::path::PathBuf;
 use thiserror::Error;
