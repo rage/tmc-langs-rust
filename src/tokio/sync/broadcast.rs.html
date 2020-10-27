@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.22/src/sync/broadcast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>broadcast.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.22/src/sync/broadcast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>broadcast.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1392,7 +1393,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`broadcast`]: crate::sync::broadcast</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">shared</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Shared</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">shared</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Shared</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>,
 }
 
 <span class="doccomment">/// Receiving-half of the [`broadcast`] channel.</span>
@@ -1428,13 +1429,13 @@
 <span class="doccomment">/// [`broadcast`]: crate::sync::broadcast</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// State shared with all receivers and senders.</span>
-    <span class="ident">shared</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Shared</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">shared</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Shared</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>,
 
     <span class="doccomment">/// Next position to read from</span>
     <span class="ident">next</span>: <span class="ident">u64</span>,
 
     <span class="doccomment">/// Used to support the deprecated `poll_recv` fn</span>
-    <span class="ident">waiter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">waiter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>,
 }
 
 <span class="doccomment">/// Error returned by [`Sender::send`][Sender::send].</span>
@@ -1487,7 +1488,7 @@
 <span class="doccomment">/// Data shared between senders and receivers</span>
 <span class="kw">struct</span> <span class="ident">Shared</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// slots in the channel</span>
-    <span class="ident">buffer</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">Slot</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>]<span class="op">&gt;</span>,
+    <span class="ident">buffer</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">Slot</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>]<span class="op">&gt;</span>,
 
     <span class="doccomment">/// Mask a position -&gt; index</span>
     <span class="ident">mask</span>: <span class="ident">usize</span>,
@@ -1534,7 +1535,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The value is set by `send` when the write lock is held. When a reader</span>
     <span class="doccomment">/// drops, `rem` is decremented. When it hits zero, the value is dropped.</span>
-    <span class="ident">val</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">val</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>,
 }
 
 <span class="doccomment">/// An entry in the wait queue</span>
@@ -1553,13 +1554,13 @@
 }
 
 <span class="kw">struct</span> <span class="ident">RecvGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">slot</span>: <span class="ident">RwLockReadGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Slot</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">slot</span>: <span class="ident">RwLockReadGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Slot</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>,
 }
 
 <span class="doccomment">/// Receive a value future</span>
 <span class="kw">struct</span> <span class="ident">Recv</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">R</span>: <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>,
 {
     <span class="doccomment">/// Receiver being waited on</span>
     <span class="ident">receiver</span>: <span class="ident">R</span>,
@@ -1575,23 +1576,23 @@
 <span class="doccomment">/// type. Instead, `Borrow` is used internally to bridge the gap.</span>
 <span class="kw">struct</span> <span class="ident">Borrow</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">T</span>);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Borrow</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span> <span class="kw">for</span> <span class="ident">Borrow</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">0</span>
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Borrow</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span> <span class="kw">for</span> <span class="ident">Borrow</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>, <span class="ident">T</span>: <span class="ident">Send</span><span class="op">&gt;</span> <span class="ident">Send</span> <span class="kw">for</span> <span class="ident">Recv</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sync</span>, <span class="ident">T</span>: <span class="ident">Send</span><span class="op">&gt;</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">Recv</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span> <span class="op">+</span> <span class="ident">Send</span>, <span class="ident">T</span>: <span class="ident">Send</span><span class="op">&gt;</span> <span class="ident">Send</span> <span class="kw">for</span> <span class="ident">Recv</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span> <span class="op">+</span> <span class="ident">Sync</span>, <span class="ident">T</span>: <span class="ident">Send</span><span class="op">&gt;</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">Recv</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span> {}
 
 <span class="doccomment">/// Max number of receivers. Reserve space to lock.</span>
-<span class="kw">const</span> <span class="ident">MAX_RECEIVERS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">usize</span>::<span class="ident">MAX</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">2</span>;
+<span class="kw">const</span> <span class="ident">MAX_RECEIVERS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">usize</span>::<span class="ident">MAX</span> <span class="op">&gt;&gt;</span> <span class="number">2</span>;
 
 <span class="doccomment">/// Create a bounded, multi-producer, multi-consumer channel where each sent</span>
 <span class="doccomment">/// value is broadcasted to all active receivers.</span>
@@ -1638,9 +1639,9 @@
 <span class="doccomment">///     tx.send(20).unwrap();</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">capacity</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">capacity</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> (<span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
     <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">capacity</span> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;capacity is empty&quot;</span>);
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">capacity</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">usize</span>::<span class="ident">MAX</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>, <span class="string">&quot;requested capacity too large&quot;</span>);
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">capacity</span> <span class="op">&lt;=</span> <span class="ident">usize</span>::<span class="ident">MAX</span> <span class="op">&gt;&gt;</span> <span class="number">1</span>, <span class="string">&quot;requested capacity too large&quot;</span>);
 
     <span class="comment">// Round to a power of two</span>
     <span class="ident">capacity</span> <span class="op">=</span> <span class="ident">capacity</span>.<span class="ident">next_power_of_two</span>();
@@ -1736,7 +1737,7 @@
     <span class="doccomment">///     tx.send(20).unwrap();</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span> {
         <span class="self">self</span>.<span class="ident">send2</span>(<span class="prelude-val">Some</span>(<span class="ident">value</span>))
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">SendError</span>(<span class="ident">maybe_v</span>)<span class="op">|</span> <span class="ident">SendError</span>(<span class="ident">maybe_v</span>.<span class="ident">unwrap</span>()))
     }
@@ -1764,12 +1765,12 @@
     <span class="doccomment">///     assert_eq!(20, value);</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subscribe</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subscribe</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">shared</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">clone</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <span class="ident">shared</span>.<span class="ident">tail</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
 
-        <span class="kw">if</span> <span class="ident">tail</span>.<span class="ident">rx_cnt</span> <span class="op">=</span><span class="op">=</span> <span class="ident">MAX_RECEIVERS</span> {
+        <span class="kw">if</span> <span class="ident">tail</span>.<span class="ident">rx_cnt</span> <span class="op">==</span> <span class="ident">MAX_RECEIVERS</span> {
             <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;max receivers&quot;</span>);
         }
 
@@ -1821,15 +1822,15 @@
     <span class="doccomment">///     tx.send(10).unwrap();</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">receiver_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">receiver_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">tail</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
         <span class="ident">tail</span>.<span class="ident">rx_cnt</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">send2</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">SendError</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">send2</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">SendError</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">tail</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
 
-        <span class="kw">if</span> <span class="ident">tail</span>.<span class="ident">rx_cnt</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">tail</span>.<span class="ident">rx_cnt</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SendError</span>(<span class="ident">value</span>));
         }
 
@@ -1888,7 +1889,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">shared</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">clone</span>();
         <span class="ident">shared</span>.<span class="ident">num_tx</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">SeqCst</span>);
 
@@ -1898,7 +1899,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">num_tx</span>.<span class="ident">fetch_sub</span>(<span class="number">1</span>, <span class="ident">SeqCst</span>) {
+        <span class="kw">if</span> <span class="number">1</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">num_tx</span>.<span class="ident">fetch_sub</span>(<span class="number">1</span>, <span class="ident">SeqCst</span>) {
             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">send2</span>(<span class="prelude-val">None</span>);
         }
     }
@@ -1909,18 +1910,18 @@
     <span class="kw">fn</span> <span class="ident">recv_ref</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">waiter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="ident">Waker</span>)<span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RecvGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">TryRecvError</span><span class="op">&gt;</span> {
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RecvGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">TryRecvError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">next</span> <span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">mask</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="kw">as</span> <span class="ident">usize</span>;
 
         <span class="comment">// The slot holding the next value to read</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">slot</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">buffer</span>[<span class="ident">idx</span>].<span class="ident">read</span>().<span class="ident">unwrap</span>();
 
-        <span class="kw">if</span> <span class="ident">slot</span>.<span class="ident">pos</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span> {
+        <span class="kw">if</span> <span class="ident">slot</span>.<span class="ident">pos</span> <span class="op">!=</span> <span class="self">self</span>.<span class="ident">next</span> {
             <span class="kw">let</span> <span class="ident">next_pos</span> <span class="op">=</span> <span class="ident">slot</span>.<span class="ident">pos</span>.<span class="ident">wrapping_add</span>(<span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">buffer</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>);
 
             <span class="comment">// The receiver has read all current values in the channel and there</span>
             <span class="comment">// is no waiter to register</span>
-            <span class="kw">if</span> <span class="ident">waiter</span>.<span class="ident">is_none</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">next_pos</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span> {
+            <span class="kw">if</span> <span class="ident">waiter</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">next_pos</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">next</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Empty</span>);
             }
 
@@ -1941,10 +1942,10 @@
             <span class="comment">// Make sure the position did not change. This could happen in the</span>
             <span class="comment">// unlikely event that the buffer is wrapped between dropping the</span>
             <span class="comment">// read lock and acquiring the tail lock.</span>
-            <span class="kw">if</span> <span class="ident">slot</span>.<span class="ident">pos</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span> {
+            <span class="kw">if</span> <span class="ident">slot</span>.<span class="ident">pos</span> <span class="op">!=</span> <span class="self">self</span>.<span class="ident">next</span> {
                 <span class="kw">let</span> <span class="ident">next_pos</span> <span class="op">=</span> <span class="ident">slot</span>.<span class="ident">pos</span>.<span class="ident">wrapping_add</span>(<span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">buffer</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>);
 
-                <span class="kw">if</span> <span class="ident">next_pos</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span> {
+                <span class="kw">if</span> <span class="ident">next_pos</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">next</span> {
                     <span class="comment">// Store the waker</span>
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">waiter</span>, <span class="ident">waker</span>)) <span class="op">=</span> <span class="ident">waiter</span> {
                         <span class="comment">// Safety: called while locked.</span>
@@ -1956,8 +1957,8 @@
                                 <span class="comment">// track the tasks&#39; waker to be notified on</span>
                                 <span class="comment">// receipt of a new value.</span>
                                 <span class="kw">match</span> (<span class="kw-2">*</span><span class="ident">ptr</span>).<span class="ident">waker</span> {
-                                    <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">w</span>) <span class="kw">if</span> <span class="ident">w</span>.<span class="ident">will_wake</span>(<span class="ident">waker</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-                                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                                    <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">w</span>) <span class="kw">if</span> <span class="ident">w</span>.<span class="ident">will_wake</span>(<span class="ident">waker</span>) <span class="op">=&gt;</span> {}
+                                    <span class="kw">_</span> <span class="op">=&gt;</span> {
                                         (<span class="kw-2">*</span><span class="ident">ptr</span>).<span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>.<span class="ident">clone</span>());
                                     }
                                 }
@@ -2000,7 +2001,7 @@
                 <span class="ident">drop</span>(<span class="ident">tail</span>);
 
                 <span class="comment">// The receiver is slow but no values have been missed</span>
-                <span class="kw">if</span> <span class="ident">missed</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="kw">if</span> <span class="ident">missed</span> <span class="op">==</span> <span class="number">0</span> {
                     <span class="self">self</span>.<span class="ident">next</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>);
 
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">RecvGuard</span> { <span class="ident">slot</span> });
@@ -2065,14 +2066,14 @@
     <span class="doccomment">///     assert_eq!(10, value);</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_recv</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">TryRecvError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_recv</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">TryRecvError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">recv_ref</span>(<span class="prelude-val">None</span>)<span class="question-mark">?</span>;
         <span class="ident">guard</span>.<span class="ident">clone_value</span>().<span class="ident">ok_or</span>(<span class="ident">TryRecvError</span>::<span class="ident">Closed</span>)
     }
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
     <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.2.21&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use async fn recv()&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_recv</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">RecvError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_recv</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">RecvError</span><span class="op">&gt;&gt;</span> {
         <span class="kw">use</span> <span class="ident">Poll</span>::{<span class="ident">Pending</span>, <span class="ident">Ready</span>};
 
         <span class="comment">// The borrow checker prohibits calling `self.poll_ref` while passing in</span>
@@ -2087,7 +2088,7 @@
         <span class="comment">// panic, the waiter node is replaced on `self`.</span>
 
         <span class="kw">struct</span> <span class="ident">Guard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-            <span class="ident">waiter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+            <span class="ident">waiter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>,
             <span class="ident">receiver</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
         }
 
@@ -2097,7 +2098,7 @@
             }
         }
 
-        <span class="kw">let</span> <span class="ident">waiter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">waiter</span>.<span class="ident">take</span>().<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">waiter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">waiter</span>.<span class="ident">take</span>().<span class="ident">or_else</span>(<span class="op">||</span> {
             <span class="prelude-val">Some</span>(<span class="ident">Box</span>::<span class="ident">pin</span>(<span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="ident">Waiter</span> {
                 <span class="ident">queued</span>: <span class="bool-val">false</span>,
                 <span class="ident">waker</span>: <span class="prelude-val">None</span>,
@@ -2115,10 +2116,10 @@
             .<span class="ident">recv_ref</span>(<span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span><span class="ident">guard</span>.<span class="ident">waiter</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(), <span class="ident">cx</span>.<span class="ident">waker</span>())));
 
         <span class="kw">match</span> <span class="ident">res</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">guard</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ready</span>(<span class="ident">guard</span>.<span class="ident">clone_value</span>().<span class="ident">ok_or</span>(<span class="ident">RecvError</span>::<span class="ident">Closed</span>)),
-            <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Closed</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">RecvError</span>::<span class="ident">Closed</span>)),
-            <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Lagged</span>(<span class="ident">n</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">RecvError</span>::<span class="ident">Lagged</span>(<span class="ident">n</span>))),
-            <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Empty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Pending</span>,
+            <span class="prelude-val">Ok</span>(<span class="ident">guard</span>) <span class="op">=&gt;</span> <span class="ident">Ready</span>(<span class="ident">guard</span>.<span class="ident">clone_value</span>().<span class="ident">ok_or</span>(<span class="ident">RecvError</span>::<span class="ident">Closed</span>)),
+            <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Closed</span>) <span class="op">=&gt;</span> <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">RecvError</span>::<span class="ident">Closed</span>)),
+            <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Lagged</span>(<span class="ident">n</span>)) <span class="op">=&gt;</span> <span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">RecvError</span>::<span class="ident">Lagged</span>(<span class="ident">n</span>))),
+            <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Empty</span>) <span class="op">=&gt;</span> <span class="ident">Pending</span>,
         }
     }
 
@@ -2186,7 +2187,7 @@
     <span class="doccomment">///     assert_eq!(20, rx.recv().await.unwrap());</span>
     <span class="doccomment">///     assert_eq!(30, rx.recv().await.unwrap());</span>
     <span class="doccomment">/// }</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">recv</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">RecvError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">recv</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">RecvError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="ident">Recv</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">new</span>(<span class="ident">Borrow</span>(<span class="self">self</span>));
         <span class="ident">fut</span>.<span class="kw">await</span>
     }
@@ -2204,12 +2205,12 @@
     <span class="kw">fn</span> <span class="ident">poll_next</span>(
         <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">std</span>::<span class="ident">pin</span>::<span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">RecvError</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">RecvError</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
         <span class="self">self</span>.<span class="ident">poll_recv</span>(<span class="ident">cx</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">v</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">v</span>)),
-            <span class="ident">lag</span> @ <span class="prelude-val">Err</span>(<span class="ident">RecvError</span>::<span class="ident">Lagged</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">lag</span>),
-            <span class="prelude-val">Err</span>(<span class="ident">RecvError</span>::<span class="ident">Closed</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">v</span>)),
+            <span class="ident">lag</span> @ <span class="prelude-val">Err</span>(<span class="ident">RecvError</span>::<span class="ident">Lagged</span>(<span class="kw">_</span>)) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">lag</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">RecvError</span>::<span class="ident">Closed</span>) <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
         })
     }
 }
@@ -2235,20 +2236,20 @@
             }
         }
 
-        <span class="ident">tail</span>.<span class="ident">rx_cnt</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="ident">tail</span>.<span class="ident">rx_cnt</span> <span class="op">-=</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">until</span> <span class="op">=</span> <span class="ident">tail</span>.<span class="ident">pos</span>;
 
         <span class="ident">drop</span>(<span class="ident">tail</span>);
 
-        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">next</span> <span class="op">!</span><span class="op">=</span> <span class="ident">until</span> {
+        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">next</span> <span class="op">!=</span> <span class="ident">until</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">recv_ref</span>(<span class="prelude-val">None</span>) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {}
                 <span class="comment">// The channel is closed</span>
-                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Closed</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Closed</span>) <span class="op">=&gt;</span> <span class="kw">break</span>,
                 <span class="comment">// Ignore lagging, we will catch up</span>
-                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Lagged</span>(..)) <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Lagged</span>(..)) <span class="op">=&gt;</span> {}
                 <span class="comment">// Can&#39;t be empty</span>
-                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Empty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;unexpected empty broadcast channel&quot;</span>),
+                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Empty</span>) <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;unexpected empty broadcast channel&quot;</span>),
             }
         }
     }
@@ -2256,9 +2257,9 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Recv</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">R</span>: <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">receiver</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Recv</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">receiver</span>: <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="ident">Recv</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident">Recv</span> {
             <span class="ident">receiver</span>,
             <span class="ident">waiter</span>: <span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="ident">Waiter</span> {
@@ -2273,10 +2274,10 @@
 
     <span class="doccomment">/// A custom `project` implementation is used in place of `pin-project-lite`</span>
     <span class="doccomment">/// as a custom drop implementation is needed.</span>
-    <span class="kw">fn</span> <span class="ident">project</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">project</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>) {
         <span class="kw">unsafe</span> {
             <span class="comment">// Safety: Receiver is Unpin</span>
-            <span class="ident">is_unpin</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+            <span class="ident">is_unpin</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>();
 
             <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_unchecked_mut</span>();
             (<span class="ident">me</span>.<span class="ident">receiver</span>.<span class="ident">as_mut</span>(), <span class="kw-2">&amp;</span><span class="ident">me</span>.<span class="ident">waiter</span>)
@@ -2286,19 +2287,19 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">Recv</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">R</span>: <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>,
     <span class="ident">T</span>: <span class="ident">Clone</span>,
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">RecvError</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">RecvError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">RecvError</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> (<span class="ident">receiver</span>, <span class="ident">waiter</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
 
         <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">receiver</span>.<span class="ident">recv_ref</span>(<span class="prelude-val">Some</span>((<span class="ident">waiter</span>, <span class="ident">cx</span>.<span class="ident">waker</span>()))) {
-            <span class="prelude-val">Ok</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Empty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Pending</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Lagged</span>(<span class="ident">n</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">RecvError</span>::<span class="ident">Lagged</span>(<span class="ident">n</span>))),
-            <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Closed</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">RecvError</span>::<span class="ident">Closed</span>)),
+            <span class="prelude-val">Ok</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> <span class="ident">value</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Empty</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Pending</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Lagged</span>(<span class="ident">n</span>)) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">RecvError</span>::<span class="ident">Lagged</span>(<span class="ident">n</span>))),
+            <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Closed</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">RecvError</span>::<span class="ident">Closed</span>)),
         };
 
         <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">guard</span>.<span class="ident">clone_value</span>().<span class="ident">ok_or</span>(<span class="ident">RecvError</span>::<span class="ident">Closed</span>))
@@ -2345,26 +2346,26 @@
         <span class="doccomment">///     }</span>
         <span class="doccomment">/// }</span>
         <span class="doccomment">/// ```</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_stream</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">RecvError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_stream</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">RecvError</span><span class="op">&gt;&gt;</span> {
             <span class="ident">Recv</span>::<span class="ident">new</span>(<span class="ident">Borrow</span>(<span class="self">self</span>))
         }
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">T</span>: <span class="ident">Clone</span><span class="op">&gt;</span> <span class="ident">Stream</span> <span class="kw">for</span> <span class="ident">Recv</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">R</span>: <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">R</span>: <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>,
         <span class="ident">T</span>: <span class="ident">Clone</span>,
     {
         <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">RecvError</span><span class="op">&gt;</span>;
 
-        <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;&gt;</span> {
             <span class="kw">let</span> (<span class="ident">receiver</span>, <span class="ident">waiter</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
 
             <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">receiver</span>.<span class="ident">recv_ref</span>(<span class="prelude-val">Some</span>((<span class="ident">waiter</span>, <span class="ident">cx</span>.<span class="ident">waker</span>()))) {
-                <span class="prelude-val">Ok</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Empty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Pending</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Lagged</span>(<span class="ident">n</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">RecvError</span>::<span class="ident">Lagged</span>(<span class="ident">n</span>)))),
-                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Closed</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">None</span>),
+                <span class="prelude-val">Ok</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> <span class="ident">value</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Empty</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Pending</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Lagged</span>(<span class="ident">n</span>)) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">RecvError</span>::<span class="ident">Lagged</span>(<span class="ident">n</span>)))),
+                <span class="prelude-val">Err</span>(<span class="ident">TryRecvError</span>::<span class="ident">Closed</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">None</span>),
             };
 
             <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">guard</span>.<span class="ident">clone_value</span>().<span class="ident">map</span>(<span class="prelude-val">Ok</span>))
@@ -2374,7 +2375,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Recv</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">R</span>: <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>,
 {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="comment">// Acquire the tail lock. This is required for safety before accessing</span>
@@ -2405,33 +2406,33 @@
     <span class="kw">type</span> <span class="ident">Handle</span> <span class="op">=</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>;
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">Waiter</span>;
 
-    <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span> {
         <span class="kw-2">*</span><span class="ident">handle</span>
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span> {
         <span class="ident">ptr</span>
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">pointers</span>(<span class="kw-2">mut</span> <span class="ident">target</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">linked_list</span>::<span class="ident">Pointers</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">pointers</span>(<span class="kw-2">mut</span> <span class="ident">target</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">linked_list</span>::<span class="ident">Pointers</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;&gt;</span> {
         <span class="ident">NonNull</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">target</span>.<span class="ident">as_mut</span>().<span class="ident">pointers</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="macro">write</span><span class="macro">!</span>(<span class="ident">fmt</span>, <span class="string">&quot;broadcast::Sender&quot;</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="macro">write</span><span class="macro">!</span>(<span class="ident">fmt</span>, <span class="string">&quot;broadcast::Receiver&quot;</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">RecvGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">clone_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">clone_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">Clone</span>,
     {
@@ -2442,7 +2443,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">RecvGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="comment">// Decrement the remaining counter</span>
-        <span class="kw">if</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">slot</span>.<span class="ident">rem</span>.<span class="ident">fetch_sub</span>(<span class="number">1</span>, <span class="ident">SeqCst</span>) {
+        <span class="kw">if</span> <span class="number">1</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">slot</span>.<span class="ident">rem</span>.<span class="ident">fetch_sub</span>(<span class="number">1</span>, <span class="ident">SeqCst</span>) {
             <span class="comment">// Safety: Last receiver, drop the value</span>
             <span class="self">self</span>.<span class="ident">slot</span>.<span class="ident">val</span>.<span class="ident">with_mut</span>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span><span class="ident">ptr</span> <span class="op">=</span> <span class="prelude-val">None</span> });
         }
@@ -2450,10 +2451,10 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">RecvError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">RecvError</span>::<span class="ident">Closed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;channel closed&quot;</span>),
-            <span class="ident">RecvError</span>::<span class="ident">Lagged</span>(<span class="ident">amt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;channel lagged by {}&quot;</span>, <span class="ident">amt</span>),
+            <span class="ident">RecvError</span>::<span class="ident">Closed</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;channel closed&quot;</span>),
+            <span class="ident">RecvError</span>::<span class="ident">Lagged</span>(<span class="ident">amt</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;channel lagged by {}&quot;</span>, <span class="ident">amt</span>),
         }
     }
 }
@@ -2461,11 +2462,11 @@
 <span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">for</span> <span class="ident">RecvError</span> {}
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">TryRecvError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TryRecvError</span>::<span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;channel empty&quot;</span>),
-            <span class="ident">TryRecvError</span>::<span class="ident">Closed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;channel closed&quot;</span>),
-            <span class="ident">TryRecvError</span>::<span class="ident">Lagged</span>(<span class="ident">amt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;channel lagged by {}&quot;</span>, <span class="ident">amt</span>),
+            <span class="ident">TryRecvError</span>::<span class="ident">Empty</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;channel empty&quot;</span>),
+            <span class="ident">TryRecvError</span>::<span class="ident">Closed</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;channel closed&quot;</span>),
+            <span class="ident">TryRecvError</span>::<span class="ident">Lagged</span>(<span class="ident">amt</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;channel lagged by {}&quot;</span>, <span class="ident">amt</span>),
         }
     }
 }

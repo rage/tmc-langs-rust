@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["ProgressReporter",""],["StatusUpdate","The format for all status updates. May contain some data."]]});

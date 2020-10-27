@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.10.8/src/connect.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connect.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../reqwest/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.10.8/src/connect.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connect.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../reqwest/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1253,12 +1254,12 @@
 }
 
 <span class="kw">impl</span> <span class="ident">HttpConnector</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_gai</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_gai</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">Gai</span>(<span class="ident">hyper</span>::<span class="ident">client</span>::<span class="ident">HttpConnector</span>::<span class="ident">new</span>())
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;trust-dns&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_trust_dns</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HttpConnector</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_trust_dns</span>() <span class="op">-&gt;</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HttpConnector</span><span class="op">&gt;</span> {
         <span class="ident">TrustDnsResolver</span>::<span class="ident">new</span>()
             .<span class="ident">map</span>(<span class="ident">hyper</span>::<span class="ident">client</span>::<span class="ident">HttpConnector</span>::<span class="ident">new_with_resolver</span>)
             .<span class="ident">map</span>(<span class="self">Self</span>::<span class="ident">TrustDns</span>)
@@ -1267,15 +1268,15 @@
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_http_connector</span> {
-    ($(<span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">par_name</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">par_type</span>:<span class="ident">ty</span>),<span class="kw-2">*</span>)$( <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">return</span>:<span class="macro-nonterminal">ty</span>)<span class="question-mark">?</span>;)<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">par_name</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">par_type</span>:<span class="ident">ty</span>),<span class="kw-2">*</span>)$( <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">return</span>:<span class="macro-nonterminal">ty</span>)<span class="question-mark">?</span>;)<span class="op">+</span>) <span class="op">=&gt;</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
         <span class="kw">impl</span> <span class="ident">HttpConnector</span> {
             $(
-                <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">par_name</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">par_type</span>),<span class="kw-2">*</span>)$( <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">return</span>)<span class="question-mark">?</span> {
+                <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">par_name</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">par_type</span>),<span class="kw-2">*</span>)$( <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">return</span>)<span class="question-mark">?</span> {
                     <span class="kw">match</span> <span class="self">self</span> {
-                        <span class="self">Self</span>::<span class="macro-nonterminal">Gai</span>(<span class="ident">resolver</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resolver</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">par_name</span>),<span class="kw-2">*</span>),
+                        <span class="self">Self</span>::<span class="macro-nonterminal">Gai</span>(<span class="ident">resolver</span>) <span class="op">=&gt;</span> <span class="ident">resolver</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">par_name</span>),<span class="kw-2">*</span>),
                         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;trust-dns&quot;</span>)]</span>
-                        <span class="self">Self</span>::<span class="ident">TrustDns</span>(<span class="ident">resolver</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resolver</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">par_name</span>),<span class="kw-2">*</span>),
+                        <span class="self">Self</span>::<span class="ident">TrustDns</span>(<span class="ident">resolver</span>) <span class="op">=&gt;</span> <span class="ident">resolver</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">par_name</span>),<span class="kw-2">*</span>),
                     }
                 }
             )<span class="op">+</span>
@@ -1290,32 +1291,32 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Service</span><span class="op">&lt;</span><span class="ident">Uri</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">HttpConnector</span> {
-    <span class="kw">type</span> <span class="ident">Response</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">hyper</span>::<span class="ident">client</span>::<span class="ident">HttpConnector</span> <span class="kw">as</span> <span class="ident">Service</span><span class="op">&lt;</span><span class="ident">Uri</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">Response</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">hyper</span>::<span class="ident">client</span>::<span class="ident">HttpConnector</span> <span class="kw">as</span> <span class="ident">Service</span><span class="op">&lt;</span><span class="ident">Uri</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">Error</span>;
+    <span class="kw">type</span> <span class="ident">Response</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">hyper</span>::<span class="ident">client</span>::<span class="ident">HttpConnector</span> <span class="kw">as</span> <span class="ident">Service</span><span class="op">&lt;</span><span class="ident">Uri</span><span class="op">&gt;&gt;</span>::<span class="ident">Response</span>;
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">hyper</span>::<span class="ident">client</span>::<span class="ident">HttpConnector</span> <span class="kw">as</span> <span class="ident">Service</span><span class="op">&lt;</span><span class="ident">Uri</span><span class="op">&gt;&gt;</span>::<span class="ident">Error</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;trust-dns&quot;</span>)]</span>
     <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <span class="ident">Either</span><span class="op">&lt;</span>
-        <span class="op">&lt;</span><span class="ident">hyper</span>::<span class="ident">client</span>::<span class="ident">HttpConnector</span> <span class="kw">as</span> <span class="ident">Service</span><span class="op">&lt;</span><span class="ident">Uri</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">Future</span>,
-        <span class="op">&lt;</span><span class="ident">hyper</span>::<span class="ident">client</span>::<span class="ident">HttpConnector</span><span class="op">&lt;</span><span class="ident">TrustDnsResolver</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="ident">Service</span><span class="op">&lt;</span><span class="ident">Uri</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">Future</span>,
+        <span class="op">&lt;</span><span class="ident">hyper</span>::<span class="ident">client</span>::<span class="ident">HttpConnector</span> <span class="kw">as</span> <span class="ident">Service</span><span class="op">&lt;</span><span class="ident">Uri</span><span class="op">&gt;&gt;</span>::<span class="ident">Future</span>,
+        <span class="op">&lt;</span><span class="ident">hyper</span>::<span class="ident">client</span>::<span class="ident">HttpConnector</span><span class="op">&lt;</span><span class="ident">TrustDnsResolver</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="ident">Service</span><span class="op">&lt;</span><span class="ident">Uri</span><span class="op">&gt;&gt;</span>::<span class="ident">Future</span>,
     <span class="op">&gt;</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;trust-dns&quot;</span>))]</span>
     <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <span class="ident">Either</span><span class="op">&lt;</span>
-        <span class="op">&lt;</span><span class="ident">hyper</span>::<span class="ident">client</span>::<span class="ident">HttpConnector</span> <span class="kw">as</span> <span class="ident">Service</span><span class="op">&lt;</span><span class="ident">Uri</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">Future</span>,
-        <span class="op">&lt;</span><span class="ident">hyper</span>::<span class="ident">client</span>::<span class="ident">HttpConnector</span> <span class="kw">as</span> <span class="ident">Service</span><span class="op">&lt;</span><span class="ident">Uri</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">Future</span>,
+        <span class="op">&lt;</span><span class="ident">hyper</span>::<span class="ident">client</span>::<span class="ident">HttpConnector</span> <span class="kw">as</span> <span class="ident">Service</span><span class="op">&lt;</span><span class="ident">Uri</span><span class="op">&gt;&gt;</span>::<span class="ident">Future</span>,
+        <span class="op">&lt;</span><span class="ident">hyper</span>::<span class="ident">client</span>::<span class="ident">HttpConnector</span> <span class="kw">as</span> <span class="ident">Service</span><span class="op">&lt;</span><span class="ident">Uri</span><span class="op">&gt;&gt;</span>::<span class="ident">Future</span>,
     <span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span>::<span class="ident">Gai</span>(<span class="ident">resolver</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resolver</span>.<span class="ident">poll_ready</span>(<span class="ident">cx</span>),
+            <span class="self">Self</span>::<span class="ident">Gai</span>(<span class="ident">resolver</span>) <span class="op">=&gt;</span> <span class="ident">resolver</span>.<span class="ident">poll_ready</span>(<span class="ident">cx</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;trust-dns&quot;</span>)]</span>
-            <span class="self">Self</span>::<span class="ident">TrustDns</span>(<span class="ident">resolver</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resolver</span>.<span class="ident">poll_ready</span>(<span class="ident">cx</span>),
+            <span class="self">Self</span>::<span class="ident">TrustDns</span>(<span class="ident">resolver</span>) <span class="op">=&gt;</span> <span class="ident">resolver</span>.<span class="ident">poll_ready</span>(<span class="ident">cx</span>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="ident">Uri</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Future</span> {
+    <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="ident">Uri</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Future</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span>::<span class="ident">Gai</span>(<span class="ident">resolver</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Either</span>::<span class="ident">Left</span>(<span class="ident">resolver</span>.<span class="ident">call</span>(<span class="ident">dst</span>)),
+            <span class="self">Self</span>::<span class="ident">Gai</span>(<span class="ident">resolver</span>) <span class="op">=&gt;</span> <span class="ident">Either</span>::<span class="ident">Left</span>(<span class="ident">resolver</span>.<span class="ident">call</span>(<span class="ident">dst</span>)),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;trust-dns&quot;</span>)]</span>
-            <span class="self">Self</span>::<span class="ident">TrustDns</span>(<span class="ident">resolver</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Either</span>::<span class="ident">Right</span>(<span class="ident">resolver</span>.<span class="ident">call</span>(<span class="ident">dst</span>)),
+            <span class="self">Self</span>::<span class="ident">TrustDns</span>(<span class="ident">resolver</span>) <span class="op">=&gt;</span> <span class="ident">Either</span>::<span class="ident">Right</span>(<span class="ident">resolver</span>.<span class="ident">call</span>(<span class="ident">dst</span>)),
         }
     }
 }
@@ -1323,7 +1324,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Connector</span> {
     <span class="ident">inner</span>: <span class="ident">Inner</span>,
-    <span class="ident">proxies</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Proxy</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">proxies</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Proxy</span><span class="op">&gt;&gt;</span>,
     <span class="ident">verbose</span>: <span class="ident">verbose</span>::<span class="ident">Wrapper</span>,
     <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__tls&quot;</span>)]</span>
@@ -1350,12 +1351,12 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__tls&quot;</span>))]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
         <span class="kw-2">mut</span> <span class="ident">http</span>: <span class="ident">HttpConnector</span>,
-        <span class="ident">proxies</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Proxy</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">proxies</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Proxy</span><span class="op">&gt;&gt;</span>,
         <span class="ident">local_addr</span>: <span class="ident">T</span>,
         <span class="ident">nodelay</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Connector</span>
+    ) <span class="op">-&gt;</span> <span class="ident">Connector</span>
     <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IpAddr</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IpAddr</span><span class="op">&gt;&gt;</span>,
     {
         <span class="ident">http</span>.<span class="ident">set_local_address</span>(<span class="ident">local_addr</span>.<span class="ident">into</span>());
         <span class="ident">http</span>.<span class="ident">set_nodelay</span>(<span class="ident">nodelay</span>);
@@ -1371,13 +1372,13 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_default_tls</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
         <span class="ident">http</span>: <span class="ident">HttpConnector</span>,
         <span class="ident">tls</span>: <span class="ident">TlsConnectorBuilder</span>,
-        <span class="ident">proxies</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Proxy</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">proxies</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Proxy</span><span class="op">&gt;&gt;</span>,
         <span class="ident">user_agent</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HeaderValue</span><span class="op">&gt;</span>,
         <span class="ident">local_addr</span>: <span class="ident">T</span>,
         <span class="ident">nodelay</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Connector</span><span class="op">&gt;</span>
+    ) <span class="op">-&gt;</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Connector</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IpAddr</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IpAddr</span><span class="op">&gt;&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">tls</span> <span class="op">=</span> <span class="ident">tls</span>.<span class="ident">build</span>().<span class="ident">map_err</span>(<span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">builder</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">from_built_default_tls</span>(
@@ -1394,12 +1395,12 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_built_default_tls</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> (
         <span class="kw-2">mut</span> <span class="ident">http</span>: <span class="ident">HttpConnector</span>,
         <span class="ident">tls</span>: <span class="ident">TlsConnector</span>,
-        <span class="ident">proxies</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Proxy</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">proxies</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Proxy</span><span class="op">&gt;&gt;</span>,
         <span class="ident">user_agent</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HeaderValue</span><span class="op">&gt;</span>,
         <span class="ident">local_addr</span>: <span class="ident">T</span>,
-        <span class="ident">nodelay</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Connector</span>
+        <span class="ident">nodelay</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">Connector</span>
         <span class="kw">where</span>
-            <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IpAddr</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+            <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IpAddr</span><span class="op">&gt;&gt;</span>,
     {
         <span class="ident">http</span>.<span class="ident">set_local_address</span>(<span class="ident">local_addr</span>.<span class="ident">into</span>());
         <span class="ident">http</span>.<span class="ident">enforce_http</span>(<span class="bool-val">false</span>);
@@ -1418,13 +1419,13 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_rustls_tls</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
         <span class="kw-2">mut</span> <span class="ident">http</span>: <span class="ident">HttpConnector</span>,
         <span class="ident">tls</span>: <span class="ident">rustls</span>::<span class="ident">ClientConfig</span>,
-        <span class="ident">proxies</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Proxy</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">proxies</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Proxy</span><span class="op">&gt;&gt;</span>,
         <span class="ident">user_agent</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HeaderValue</span><span class="op">&gt;</span>,
         <span class="ident">local_addr</span>: <span class="ident">T</span>,
         <span class="ident">nodelay</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Connector</span>
+    ) <span class="op">-&gt;</span> <span class="ident">Connector</span>
     <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IpAddr</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IpAddr</span><span class="op">&gt;&gt;</span>,
     {
         <span class="ident">http</span>.<span class="ident">set_local_address</span>(<span class="ident">local_addr</span>.<span class="ident">into</span>());
         <span class="ident">http</span>.<span class="ident">enforce_http</span>(<span class="bool-val">false</span>);
@@ -1465,23 +1466,23 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">dst</span>: <span class="ident">Uri</span>,
         <span class="ident">proxy</span>: <span class="ident">ProxyScheme</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Conn</span>, <span class="ident">BoxError</span><span class="op">&gt;</span> {
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Conn</span>, <span class="ident">BoxError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">dns</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">proxy</span> {
             <span class="ident">ProxyScheme</span>::<span class="ident">Socks5</span> {
                 <span class="ident">remote_dns</span>: <span class="bool-val">false</span>, ..
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">socks</span>::<span class="ident">DnsResolve</span>::<span class="ident">Local</span>,
+            } <span class="op">=&gt;</span> <span class="ident">socks</span>::<span class="ident">DnsResolve</span>::<span class="ident">Local</span>,
             <span class="ident">ProxyScheme</span>::<span class="ident">Socks5</span> {
                 <span class="ident">remote_dns</span>: <span class="bool-val">true</span>, ..
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">socks</span>::<span class="ident">DnsResolve</span>::<span class="ident">Proxy</span>,
-            <span class="ident">ProxyScheme</span>::<span class="ident">Http</span> { .. } <span class="op">|</span> <span class="ident">ProxyScheme</span>::<span class="ident">Https</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+            } <span class="op">=&gt;</span> <span class="ident">socks</span>::<span class="ident">DnsResolve</span>::<span class="ident">Proxy</span>,
+            <span class="ident">ProxyScheme</span>::<span class="ident">Http</span> { .. } <span class="op">|</span> <span class="ident">ProxyScheme</span>::<span class="ident">Https</span> { .. } <span class="op">=&gt;</span> {
                 <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;connect_socks is only called for socks proxies&quot;</span>);
             },
         };
 
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>)]</span>
-            <span class="ident">Inner</span>::<span class="ident">DefaultTls</span>(<span class="ident">_http</span>, <span class="ident">tls</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">dst</span>.<span class="ident">scheme</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme</span>::<span class="ident">HTTPS</span>) {
+            <span class="ident">Inner</span>::<span class="ident">DefaultTls</span>(<span class="ident">_http</span>, <span class="ident">tls</span>) <span class="op">=&gt;</span> {
+                <span class="kw">if</span> <span class="ident">dst</span>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme</span>::<span class="ident">HTTPS</span>) {
                     <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <span class="ident">dst</span>
                         .<span class="ident">host</span>()
                         .<span class="ident">ok_or</span>(<span class="string">&quot;no host in url&quot;</span>)<span class="question-mark">?</span>
@@ -1498,8 +1499,8 @@
                 }
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-tls&quot;</span>)]</span>
-            <span class="ident">Inner</span>::<span class="ident">RustlsTls</span> { <span class="ident">tls_proxy</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">dst</span>.<span class="ident">scheme</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme</span>::<span class="ident">HTTPS</span>) {
+            <span class="ident">Inner</span>::<span class="ident">RustlsTls</span> { <span class="ident">tls_proxy</span>, .. } <span class="op">=&gt;</span> {
+                <span class="kw">if</span> <span class="ident">dst</span>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme</span>::<span class="ident">HTTPS</span>) {
                     <span class="kw">use</span> <span class="ident">tokio_rustls</span>::<span class="ident">webpki</span>::<span class="ident">DNSNameRef</span>;
                     <span class="kw">use</span> <span class="ident">tokio_rustls</span>::<span class="ident">TlsConnector</span> <span class="kw">as</span> <span class="ident">RustlsConnector</span>;
 
@@ -1522,7 +1523,7 @@
                 }
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__tls&quot;</span>))]</span>
-            <span class="ident">Inner</span>::<span class="ident">Http</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> ()
+            <span class="ident">Inner</span>::<span class="ident">Http</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> ()
         }
 
         <span class="ident">socks</span>::<span class="ident">connect</span>(<span class="ident">proxy</span>, <span class="ident">dst</span>, <span class="ident">dns</span>).<span class="kw">await</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">tcp</span><span class="op">|</span> <span class="ident">Conn</span> {
@@ -1535,10 +1536,10 @@
         <span class="self">self</span>,
         <span class="ident">dst</span>: <span class="ident">Uri</span>,
         <span class="ident">is_proxy</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Conn</span>, <span class="ident">BoxError</span><span class="op">&gt;</span> {
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Conn</span>, <span class="ident">BoxError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__tls&quot;</span>))]</span>
-            <span class="ident">Inner</span>::<span class="ident">Http</span>(<span class="kw-2">mut</span> <span class="ident">http</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Inner</span>::<span class="ident">Http</span>(<span class="kw-2">mut</span> <span class="ident">http</span>) <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">http</span>.<span class="ident">call</span>(<span class="ident">dst</span>).<span class="kw">await</span><span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="ident">Conn</span> {
                     <span class="ident">inner</span>: <span class="self">self</span>.<span class="ident">verbose</span>.<span class="ident">wrap</span>(<span class="ident">io</span>),
@@ -1546,14 +1547,14 @@
                 })
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>)]</span>
-            <span class="ident">Inner</span>::<span class="ident">DefaultTls</span>(<span class="ident">http</span>, <span class="ident">tls</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Inner</span>::<span class="ident">DefaultTls</span>(<span class="ident">http</span>, <span class="ident">tls</span>) <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">http</span> <span class="op">=</span> <span class="ident">http</span>.<span class="ident">clone</span>();
 
 
                 <span class="comment">// Disable Nagle&#39;s algorithm for TLS handshake</span>
                 <span class="comment">//</span>
                 <span class="comment">// https://www.openssl.org/docs/man1.1.1/man3/SSL_connect.html#NOTES</span>
-                <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">nodelay</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> (<span class="ident">dst</span>.<span class="ident">scheme</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme</span>::<span class="ident">HTTPS</span>)) {
+                <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">nodelay</span> <span class="op">&amp;&amp;</span> (<span class="ident">dst</span>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme</span>::<span class="ident">HTTPS</span>)) {
                     <span class="ident">http</span>.<span class="ident">set_nodelay</span>(<span class="bool-val">true</span>);
                 }
 
@@ -1573,13 +1574,13 @@
                 })
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-tls&quot;</span>)]</span>
-            <span class="ident">Inner</span>::<span class="ident">RustlsTls</span> { <span class="ident">http</span>, <span class="ident">tls</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Inner</span>::<span class="ident">RustlsTls</span> { <span class="ident">http</span>, <span class="ident">tls</span>, .. } <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">http</span> <span class="op">=</span> <span class="ident">http</span>.<span class="ident">clone</span>();
 
                 <span class="comment">// Disable Nagle&#39;s algorithm for TLS handshake</span>
                 <span class="comment">//</span>
                 <span class="comment">// https://www.openssl.org/docs/man1.1.1/man3/SSL_connect.html#NOTES</span>
-                <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">nodelay</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> (<span class="ident">dst</span>.<span class="ident">scheme</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme</span>::<span class="ident">HTTPS</span>)) {
+                <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">nodelay</span> <span class="op">&amp;&amp;</span> (<span class="ident">dst</span>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme</span>::<span class="ident">HTTPS</span>)) {
                     <span class="ident">http</span>.<span class="ident">set_nodelay</span>(<span class="bool-val">true</span>);
                 }
 
@@ -1605,14 +1606,14 @@
         <span class="self">self</span>,
         <span class="ident">dst</span>: <span class="ident">Uri</span>,
         <span class="ident">proxy_scheme</span>: <span class="ident">ProxyScheme</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Conn</span>, <span class="ident">BoxError</span><span class="op">&gt;</span> {
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Conn</span>, <span class="ident">BoxError</span><span class="op">&gt;</span> {
         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;proxy({:?}) intercepts &#39;{:?}&#39;&quot;</span>, <span class="ident">proxy_scheme</span>, <span class="ident">dst</span>);
 
         <span class="kw">let</span> (<span class="ident">proxy_dst</span>, <span class="ident">_auth</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">proxy_scheme</span> {
-            <span class="ident">ProxyScheme</span>::<span class="ident">Http</span> { <span class="ident">host</span>, <span class="ident">auth</span> } <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">into_uri</span>(<span class="ident">Scheme</span>::<span class="ident">HTTP</span>, <span class="ident">host</span>), <span class="ident">auth</span>),
-            <span class="ident">ProxyScheme</span>::<span class="ident">Https</span> { <span class="ident">host</span>, <span class="ident">auth</span> } <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">into_uri</span>(<span class="ident">Scheme</span>::<span class="ident">HTTPS</span>, <span class="ident">host</span>), <span class="ident">auth</span>),
+            <span class="ident">ProxyScheme</span>::<span class="ident">Http</span> { <span class="ident">host</span>, <span class="ident">auth</span> } <span class="op">=&gt;</span> (<span class="ident">into_uri</span>(<span class="ident">Scheme</span>::<span class="ident">HTTP</span>, <span class="ident">host</span>), <span class="ident">auth</span>),
+            <span class="ident">ProxyScheme</span>::<span class="ident">Https</span> { <span class="ident">host</span>, <span class="ident">auth</span> } <span class="op">=&gt;</span> (<span class="ident">into_uri</span>(<span class="ident">Scheme</span>::<span class="ident">HTTPS</span>, <span class="ident">host</span>), <span class="ident">auth</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;socks&quot;</span>)]</span>
-            <span class="ident">ProxyScheme</span>::<span class="ident">Socks5</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="self">self</span>.<span class="ident">connect_socks</span>(<span class="ident">dst</span>, <span class="ident">proxy_scheme</span>).<span class="kw">await</span>,
+            <span class="ident">ProxyScheme</span>::<span class="ident">Socks5</span> { .. } <span class="op">=&gt;</span> <span class="kw">return</span> <span class="self">self</span>.<span class="ident">connect_socks</span>(<span class="ident">dst</span>, <span class="ident">proxy_scheme</span>).<span class="kw">await</span>,
         };
 
 
@@ -1621,8 +1622,8 @@
 
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>)]</span>
-            <span class="ident">Inner</span>::<span class="ident">DefaultTls</span>(<span class="ident">http</span>, <span class="ident">tls</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">dst</span>.<span class="ident">scheme</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme</span>::<span class="ident">HTTPS</span>) {
+            <span class="ident">Inner</span>::<span class="ident">DefaultTls</span>(<span class="ident">http</span>, <span class="ident">tls</span>) <span class="op">=&gt;</span> {
+                <span class="kw">if</span> <span class="ident">dst</span>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme</span>::<span class="ident">HTTPS</span>) {
                     <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <span class="ident">dst</span>.<span class="ident">host</span>().<span class="ident">to_owned</span>();
                     <span class="kw">let</span> <span class="ident">port</span> <span class="op">=</span> <span class="ident">dst</span>.<span class="ident">port</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">as_u16</span>()).<span class="ident">unwrap_or</span>(<span class="number">443</span>);
                     <span class="kw">let</span> <span class="ident">http</span> <span class="op">=</span> <span class="ident">http</span>.<span class="ident">clone</span>();
@@ -1654,8 +1655,8 @@
                 <span class="ident">http</span>,
                 <span class="ident">tls</span>,
                 <span class="ident">tls_proxy</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">dst</span>.<span class="ident">scheme</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme</span>::<span class="ident">HTTPS</span>) {
+            } <span class="op">=&gt;</span> {
+                <span class="kw">if</span> <span class="ident">dst</span>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme</span>::<span class="ident">HTTPS</span>) {
                     <span class="kw">use</span> <span class="ident">tokio_rustls</span>::<span class="ident">webpki</span>::<span class="ident">DNSNameRef</span>;
                     <span class="kw">use</span> <span class="ident">tokio_rustls</span>::<span class="ident">TlsConnector</span> <span class="kw">as</span> <span class="ident">RustlsConnector</span>;
 
@@ -1685,14 +1686,14 @@
                 }
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__tls&quot;</span>))]</span>
-            <span class="ident">Inner</span>::<span class="ident">Http</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> (),
+            <span class="ident">Inner</span>::<span class="ident">Http</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> (),
         }
 
         <span class="self">self</span>.<span class="ident">connect_with_maybe_proxy</span>(<span class="ident">proxy_dst</span>, <span class="bool-val">true</span>).<span class="kw">await</span>
     }
 }
 
-<span class="kw">fn</span> <span class="ident">into_uri</span>(<span class="ident">scheme</span>: <span class="ident">Scheme</span>, <span class="ident">host</span>: <span class="ident">Authority</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Uri</span> {
+<span class="kw">fn</span> <span class="ident">into_uri</span>(<span class="ident">scheme</span>: <span class="ident">Scheme</span>, <span class="ident">host</span>: <span class="ident">Authority</span>) <span class="op">-&gt;</span> <span class="ident">Uri</span> {
     <span class="comment">// TODO: Should the `http` crate get `From&lt;(Scheme, Authority)&gt; for Uri`?</span>
     <span class="ident">http</span>::<span class="ident">Uri</span>::<span class="ident">builder</span>()
         .<span class="ident">scheme</span>(<span class="ident">scheme</span>)
@@ -1702,15 +1703,15 @@
         .<span class="ident">expect</span>(<span class="string">&quot;scheme and authority is valid Uri&quot;</span>)
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">with_timeout</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">BoxError</span><span class="op">&gt;</span>
+<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">with_timeout</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">BoxError</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">BoxError</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">BoxError</span><span class="op">&gt;&gt;</span>,
 {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">to</span>) <span class="op">=</span> <span class="ident">timeout</span> {
         <span class="kw">match</span> <span class="ident">tokio</span>::<span class="ident">time</span>::<span class="ident">timeout</span>(<span class="ident">to</span>, <span class="ident">f</span>).<span class="kw">await</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">_elapsed</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">TimedOut</span>) <span class="kw">as</span> <span class="ident">BoxError</span>),
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(<span class="ident">try_res</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">try_res</span>),
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">_elapsed</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">TimedOut</span>) <span class="kw">as</span> <span class="ident">BoxError</span>),
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(<span class="ident">try_res</span>)) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">try_res</span>),
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
         }
     } <span class="kw">else</span> {
         <span class="ident">f</span>.<span class="kw">await</span>
@@ -1722,11 +1723,11 @@
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">BoxError</span>;
     <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <span class="ident">Connecting</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> {
         <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()))
     }
 
-    <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="ident">Uri</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Future</span> {
+    <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="ident">Uri</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Future</span> {
         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;starting new connection: {:?}&quot;</span>, <span class="ident">dst</span>);
         <span class="kw">let</span> <span class="ident">timeout</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">timeout</span>;
         <span class="kw">for</span> <span class="ident">prox</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">proxies</span>.<span class="ident">iter</span>() {
@@ -1764,7 +1765,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Connection</span> <span class="kw">for</span> <span class="ident">Conn</span> {
-    <span class="kw">fn</span> <span class="ident">connected</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Connected</span> {
+    <span class="kw">fn</span> <span class="ident">connected</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Connected</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">connected</span>().<span class="ident">proxy</span>(<span class="self">self</span>.<span class="ident">is_proxy</span>)
     }
 }
@@ -1774,7 +1775,7 @@
         <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
         <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
         <span class="ident">AsyncRead</span>::<span class="ident">poll_read</span>(<span class="ident">this</span>.<span class="ident">inner</span>, <span class="ident">cx</span>, <span class="ident">buf</span>)
     }
@@ -1782,7 +1783,7 @@
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">prepare_uninitialized_buffer</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>]
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    ) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">prepare_uninitialized_buffer</span>(<span class="ident">buf</span>)
     }
 
@@ -1790,7 +1791,7 @@
         <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
         <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">B</span>
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;&gt;</span>
         <span class="kw">where</span>
             <span class="self">Self</span>: <span class="ident">Sized</span>
     {
@@ -1804,12 +1805,12 @@
         <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
         <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
         <span class="ident">AsyncWrite</span>::<span class="ident">poll_write</span>(<span class="ident">this</span>.<span class="ident">inner</span>, <span class="ident">cx</span>, <span class="ident">buf</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
         <span class="ident">AsyncWrite</span>::<span class="ident">poll_flush</span>(<span class="ident">this</span>.<span class="ident">inner</span>, <span class="ident">cx</span>)
     }
@@ -1817,7 +1818,7 @@
     <span class="kw">fn</span> <span class="ident">poll_shutdown</span>(
         <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
         <span class="ident">AsyncWrite</span>::<span class="ident">poll_shutdown</span>(<span class="ident">this</span>.<span class="ident">inner</span>, <span class="ident">cx</span>)
     }
@@ -1826,7 +1827,7 @@
         <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
         <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">B</span>
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">where</span>
+    ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
         <span class="ident">AsyncWrite</span>::<span class="ident">poll_write_buf</span>(<span class="ident">this</span>.<span class="ident">inner</span>, <span class="ident">cx</span>, <span class="ident">buf</span>)
@@ -1834,7 +1835,7 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">Connecting</span> <span class="op">=</span>
-    <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Conn</span>, <span class="ident">BoxError</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Conn</span>, <span class="ident">BoxError</span><span class="op">&gt;&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;&gt;</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__tls&quot;</span>)]</span>
 <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">tunnel</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
@@ -1843,7 +1844,7 @@
     <span class="ident">port</span>: <span class="ident">u16</span>,
     <span class="ident">user_agent</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HeaderValue</span><span class="op">&gt;</span>,
     <span class="ident">auth</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HeaderValue</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">BoxError</span><span class="op">&gt;</span>
+) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">BoxError</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Unpin</span>,
 {
@@ -1886,17 +1887,17 @@
     <span class="kw">loop</span> {
         <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">conn</span>.<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[<span class="ident">pos</span>..]).<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">n</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">tunnel_eof</span>());
         }
-        <span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="ident">n</span>;
+        <span class="ident">pos</span> <span class="op">+=</span> <span class="ident">n</span>;
 
         <span class="kw">let</span> <span class="ident">recvd</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">buf</span>[..<span class="ident">pos</span>];
-        <span class="kw">if</span> <span class="ident">recvd</span>.<span class="ident">starts_with</span>(<span class="string">b&quot;HTTP/1.1 200&quot;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">recvd</span>.<span class="ident">starts_with</span>(<span class="string">b&quot;HTTP/1.0 200&quot;</span>) {
+        <span class="kw">if</span> <span class="ident">recvd</span>.<span class="ident">starts_with</span>(<span class="string">b&quot;HTTP/1.1 200&quot;</span>) <span class="op">||</span> <span class="ident">recvd</span>.<span class="ident">starts_with</span>(<span class="string">b&quot;HTTP/1.0 200&quot;</span>) {
             <span class="kw">if</span> <span class="ident">recvd</span>.<span class="ident">ends_with</span>(<span class="string">b&quot;\r\n\r\n&quot;</span>) {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">conn</span>);
             }
-            <span class="kw">if</span> <span class="ident">pos</span> <span class="op">=</span><span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>() {
+            <span class="kw">if</span> <span class="ident">pos</span> <span class="op">==</span> <span class="ident">buf</span>.<span class="ident">len</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(
                     <span class="string">&quot;proxy headers too long for tunnel&quot;</span>.<span class="ident">into</span>()
                 );
@@ -1913,7 +1914,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__tls&quot;</span>)]</span>
-<span class="kw">fn</span> <span class="ident">tunnel_eof</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BoxError</span> {
+<span class="kw">fn</span> <span class="ident">tunnel_eof</span>() <span class="op">-&gt;</span> <span class="ident">BoxError</span> {
     <span class="string">&quot;unexpected eof while tunneling&quot;</span>.<span class="ident">into</span>()
 }
 
@@ -1935,7 +1936,7 @@
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Connection</span> <span class="op">+</span> <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Unpin</span><span class="op">&gt;</span> <span class="ident">Connection</span> <span class="kw">for</span> <span class="ident">NativeTlsConn</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">connected</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Connected</span> {
+        <span class="kw">fn</span> <span class="ident">connected</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Connected</span> {
             <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">connected</span>()
         }
     }
@@ -1945,7 +1946,7 @@
             <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
             <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">tokio</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">tokio</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;&gt;</span> {
             <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
             <span class="ident">AsyncRead</span>::<span class="ident">poll_read</span>(<span class="ident">this</span>.<span class="ident">inner</span>, <span class="ident">cx</span>, <span class="ident">buf</span>)
         }
@@ -1953,7 +1954,7 @@
         <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">prepare_uninitialized_buffer</span>(
             <span class="kw-2">&amp;</span><span class="self">self</span>,
             <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>]
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        ) <span class="op">-&gt;</span> <span class="ident">bool</span> {
             <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">prepare_uninitialized_buffer</span>(<span class="ident">buf</span>)
         }
 
@@ -1961,7 +1962,7 @@
             <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
             <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">B</span>
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">tokio</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span>
+        ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">tokio</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;&gt;</span>
             <span class="kw">where</span>
                 <span class="self">Self</span>: <span class="ident">Sized</span>
         {
@@ -1975,12 +1976,12 @@
             <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
             <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">tokio</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">tokio</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> {
             <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
             <span class="ident">AsyncWrite</span>::<span class="ident">poll_write</span>(<span class="ident">this</span>.<span class="ident">inner</span>, <span class="ident">cx</span>, <span class="ident">buf</span>)
         }
 
-        <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">tokio</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">tokio</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> {
             <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
             <span class="ident">AsyncWrite</span>::<span class="ident">poll_flush</span>(<span class="ident">this</span>.<span class="ident">inner</span>, <span class="ident">cx</span>)
         }
@@ -1988,7 +1989,7 @@
         <span class="kw">fn</span> <span class="ident">poll_shutdown</span>(
             <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">tokio</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">tokio</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> {
             <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
             <span class="ident">AsyncWrite</span>::<span class="ident">poll_shutdown</span>(<span class="ident">this</span>.<span class="ident">inner</span>, <span class="ident">cx</span>)
         }
@@ -1997,7 +1998,7 @@
             <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
             <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">B</span>
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">tokio</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">where</span>
+        ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">tokio</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> <span class="kw">where</span>
             <span class="self">Self</span>: <span class="ident">Sized</span> {
             <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
             <span class="ident">AsyncWrite</span>::<span class="ident">poll_write_buf</span>(<span class="ident">this</span>.<span class="ident">inner</span>, <span class="ident">cx</span>, <span class="ident">buf</span>)
@@ -2024,8 +2025,8 @@
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Connection</span> <span class="op">+</span> <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Unpin</span><span class="op">&gt;</span> <span class="ident">Connection</span> <span class="kw">for</span> <span class="ident">RustlsTlsConn</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">connected</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Connected</span> {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="number">1</span>.<span class="ident">get_alpn_protocol</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">b&quot;h2&quot;</span>) {
+        <span class="kw">fn</span> <span class="ident">connected</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Connected</span> {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="number">1</span>.<span class="ident">get_alpn_protocol</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">b&quot;h2&quot;</span>) {
                 <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="number">0</span>.<span class="ident">connected</span>().<span class="ident">negotiated_h2</span>()
             } <span class="kw">else</span> {
                 <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="number">0</span>.<span class="ident">connected</span>()
@@ -2038,7 +2039,7 @@
             <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
             <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">tokio</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">tokio</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;&gt;</span> {
             <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
             <span class="ident">AsyncRead</span>::<span class="ident">poll_read</span>(<span class="ident">this</span>.<span class="ident">inner</span>, <span class="ident">cx</span>, <span class="ident">buf</span>)
         }
@@ -2046,7 +2047,7 @@
         <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">prepare_uninitialized_buffer</span>(
             <span class="kw-2">&amp;</span><span class="self">self</span>,
             <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>]
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        ) <span class="op">-&gt;</span> <span class="ident">bool</span> {
             <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">prepare_uninitialized_buffer</span>(<span class="ident">buf</span>)
         }
 
@@ -2054,7 +2055,7 @@
             <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
             <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">B</span>
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">tokio</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span>
+        ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">tokio</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;&gt;</span>
             <span class="kw">where</span>
                 <span class="self">Self</span>: <span class="ident">Sized</span>
         {
@@ -2068,12 +2069,12 @@
             <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
             <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">tokio</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">tokio</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> {
             <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
             <span class="ident">AsyncWrite</span>::<span class="ident">poll_write</span>(<span class="ident">this</span>.<span class="ident">inner</span>, <span class="ident">cx</span>, <span class="ident">buf</span>)
         }
 
-        <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">tokio</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">tokio</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> {
             <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
             <span class="ident">AsyncWrite</span>::<span class="ident">poll_flush</span>(<span class="ident">this</span>.<span class="ident">inner</span>, <span class="ident">cx</span>)
         }
@@ -2081,7 +2082,7 @@
         <span class="kw">fn</span> <span class="ident">poll_shutdown</span>(
             <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">tokio</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">tokio</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> {
             <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
             <span class="ident">AsyncWrite</span>::<span class="ident">poll_shutdown</span>(<span class="ident">this</span>.<span class="ident">inner</span>, <span class="ident">cx</span>)
         }
@@ -2090,7 +2091,7 @@
             <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
             <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">B</span>
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">tokio</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">where</span>
+        ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">tokio</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> <span class="kw">where</span>
             <span class="self">Self</span>: <span class="ident">Sized</span> {
             <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
             <span class="ident">AsyncWrite</span>::<span class="ident">poll_write_buf</span>(<span class="ident">this</span>.<span class="ident">inner</span>, <span class="ident">cx</span>, <span class="ident">buf</span>)
@@ -2119,16 +2120,16 @@
         <span class="ident">proxy</span>: <span class="ident">ProxyScheme</span>,
         <span class="ident">dst</span>: <span class="ident">Uri</span>,
         <span class="ident">dns</span>: <span class="ident">DnsResolve</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TcpStream</span>, <span class="ident">BoxError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">https</span> <span class="op">=</span> <span class="ident">dst</span>.<span class="ident">scheme</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme</span>::<span class="ident">HTTPS</span>);
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TcpStream</span>, <span class="ident">BoxError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">https</span> <span class="op">=</span> <span class="ident">dst</span>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme</span>::<span class="ident">HTTPS</span>);
         <span class="kw">let</span> <span class="ident">original_host</span> <span class="op">=</span> <span class="ident">dst</span>
             .<span class="ident">host</span>()
             .<span class="ident">ok_or</span>(<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">new</span>(<span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">Other</span>, <span class="string">&quot;no host in url&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">host</span> <span class="op">=</span> <span class="ident">original_host</span>.<span class="ident">to_owned</span>();
         <span class="kw">let</span> <span class="ident">port</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">dst</span>.<span class="ident">port</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">p</span>.<span class="ident">as_u16</span>(),
-            <span class="prelude-val">None</span> <span class="kw">if</span> <span class="ident">https</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">443u16</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">80u16</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=&gt;</span> <span class="ident">p</span>.<span class="ident">as_u16</span>(),
+            <span class="prelude-val">None</span> <span class="kw">if</span> <span class="ident">https</span> <span class="op">=&gt;</span> <span class="number">443u16</span>,
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="number">80u16</span>,
         };
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DnsResolve</span>::<span class="ident">Local</span> <span class="op">=</span> <span class="ident">dns</span> {
@@ -2139,8 +2140,8 @@
         }
 
         <span class="kw">let</span> (<span class="ident">socket_addr</span>, <span class="ident">auth</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">proxy</span> {
-            <span class="ident">ProxyScheme</span>::<span class="ident">Socks5</span> { <span class="ident">addr</span>, <span class="ident">auth</span>, .. } <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">addr</span>, <span class="ident">auth</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+            <span class="ident">ProxyScheme</span>::<span class="ident">Socks5</span> { <span class="ident">addr</span>, <span class="ident">auth</span>, .. } <span class="op">=&gt;</span> (<span class="ident">addr</span>, <span class="ident">auth</span>),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
         };
 
         <span class="comment">// Get a Tokio TcpStream</span>
@@ -2176,8 +2177,8 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Wrapper</span>(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">bool</span>);
 
     <span class="kw">impl</span> <span class="ident">Wrapper</span> {
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">wrap</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="kw">super</span>::<span class="ident">AsyncConn</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">conn</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">super</span>::<span class="ident">BoxConn</span> {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">log</span>::<span class="macro">log_enabled</span><span class="macro">!</span>(<span class="ident">log</span>::<span class="ident">Level</span>::<span class="ident">Trace</span>) {
+        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">wrap</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="kw">super</span>::<span class="ident">AsyncConn</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">conn</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="kw">super</span>::<span class="ident">BoxConn</span> {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">log</span>::<span class="macro">log_enabled</span><span class="macro">!</span>(<span class="ident">log</span>::<span class="ident">Level</span>::<span class="ident">Trace</span>) {
                 <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Verbose</span> {
                     <span class="comment">// truncate is fine</span>
                     <span class="ident">id</span>: <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">fast_random</span>() <span class="kw">as</span> <span class="ident">u32</span>,
@@ -2195,7 +2196,7 @@
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Connection</span> <span class="op">+</span> <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Unpin</span><span class="op">&gt;</span> <span class="ident">Connection</span> <span class="kw">for</span> <span class="ident">Verbose</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">connected</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Connected</span> {
+        <span class="kw">fn</span> <span class="ident">connected</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Connected</span> {
             <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">connected</span>()
         }
     }
@@ -2205,16 +2206,16 @@
             <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
             <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;&gt;</span> {
             <span class="kw">match</span> <span class="ident">Pin</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">inner</span>).<span class="ident">poll_read</span>(<span class="ident">cx</span>, <span class="ident">buf</span>) {
-                <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">n</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">n</span>)) <span class="op">=&gt;</span> {
                     <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;{:08x} read: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">id</span>, <span class="ident">Escape</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..<span class="ident">n</span>]));
                     <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">n</span>))
                 },
-                <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) <span class="op">=&gt;</span> {
                     <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>))
                 },
-                <span class="ident">Poll</span>::<span class="ident">Pending</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Poll</span>::<span class="ident">Pending</span>,
+                <span class="ident">Poll</span>::<span class="ident">Pending</span> <span class="op">=&gt;</span> <span class="ident">Poll</span>::<span class="ident">Pending</span>,
             }
         }
     }
@@ -2224,27 +2225,27 @@
             <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
             <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> {
             <span class="kw">match</span> <span class="ident">Pin</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">inner</span>).<span class="ident">poll_write</span>(<span class="ident">cx</span>, <span class="ident">buf</span>) {
-                <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">n</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">n</span>)) <span class="op">=&gt;</span> {
                     <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;{:08x} write: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">id</span>, <span class="ident">Escape</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..<span class="ident">n</span>]));
                     <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">n</span>))
                 },
-                <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) <span class="op">=&gt;</span> {
                     <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>))
                 },
-                <span class="ident">Poll</span>::<span class="ident">Pending</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Poll</span>::<span class="ident">Pending</span>,
+                <span class="ident">Poll</span>::<span class="ident">Pending</span> <span class="op">=&gt;</span> <span class="ident">Poll</span>::<span class="ident">Pending</span>,
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> {
             <span class="ident">Pin</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">inner</span>).<span class="ident">poll_flush</span>(<span class="ident">cx</span>)
         }
 
         <span class="kw">fn</span> <span class="ident">poll_shutdown</span>(
             <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> {
             <span class="ident">Pin</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">inner</span>).<span class="ident">poll_shutdown</span>(<span class="ident">cx</span>)
         }
     }
@@ -2252,22 +2253,22 @@
     <span class="kw">struct</span> <span class="ident">Escape</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]);
 
     <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Escape</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
             <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;b\&quot;&quot;</span>)<span class="question-mark">?</span>;
             <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">c</span> <span class="kw">in</span> <span class="self">self</span>.<span class="number">0</span> {
                 <span class="comment">// https://doc.rust-lang.org/reference.html#byte-escapes</span>
-                <span class="kw">if</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;\n&#39;</span> {
+                <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">b&#39;\n&#39;</span> {
                     <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;\\n&quot;</span>)<span class="question-mark">?</span>;
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;\r&#39;</span> {
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">b&#39;\r&#39;</span> {
                     <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;\\r&quot;</span>)<span class="question-mark">?</span>;
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;\t&#39;</span> {
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">b&#39;\t&#39;</span> {
                     <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;\\t&quot;</span>)<span class="question-mark">?</span>;
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;\\&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;&quot;&#39;</span> {
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">b&#39;\\&#39;</span> <span class="op">||</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">b&#39;&quot;&#39;</span> {
                     <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;\\{}&quot;</span>, <span class="ident">c</span> <span class="kw">as</span> <span class="ident">char</span>)<span class="question-mark">?</span>;
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;\0&#39;</span> {
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">b&#39;\0&#39;</span> {
                     <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;\\0&quot;</span>)<span class="question-mark">?</span>;
                 <span class="comment">// ASCII printable</span>
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0x20</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">c</span> <span class="op">&lt;</span> <span class="number">0x7f</span> {
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">&gt;=</span> <span class="number">0x20</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">&lt;</span> <span class="number">0x7f</span> {
                     <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">c</span> <span class="kw">as</span> <span class="ident">char</span>)<span class="question-mark">?</span>;
                 } <span class="kw">else</span> {
                     <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;\\x{:02x}&quot;</span>, <span class="ident">c</span>)<span class="question-mark">?</span>;
@@ -2297,13 +2298,13 @@
     &quot;</span>;
 
     <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">mock_tunnel</span> {
-        () <span class="op">=</span><span class="op">&gt;</span> {{
+        () <span class="op">=&gt;</span> {{
             <span class="macro">mock_tunnel</span><span class="macro">!</span>(<span class="ident">TUNNEL_OK</span>)
         }};
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {{
             <span class="macro">mock_tunnel</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>, <span class="string">&quot;&quot;</span>)
         }};
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">auth</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">auth</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {{
             <span class="kw">let</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">TcpListener</span>::<span class="ident">bind</span>(<span class="string">&quot;127.0.0.1:0&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">listener</span>.<span class="ident">local_addr</span>().<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">connect_expected</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(
@@ -2321,7 +2322,7 @@
             )
             .<span class="ident">into_bytes</span>();
 
-            <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
+            <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">||</span> {
                 <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">sock</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">listener</span>.<span class="ident">accept</span>().<span class="ident">unwrap</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">4096</span>];
                 <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">sock</span>.<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>).<span class="ident">unwrap</span>();
@@ -2333,7 +2334,7 @@
         }};
     }
 
-    <span class="kw">fn</span> <span class="ident">ua</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">http</span>::<span class="ident">header</span>::<span class="ident">HeaderValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">ua</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">http</span>::<span class="ident">header</span>::<span class="ident">HeaderValue</span><span class="op">&gt;</span> {
         <span class="prelude-val">Some</span>(<span class="ident">http</span>::<span class="ident">header</span>::<span class="ident">HeaderValue</span>::<span class="ident">from_static</span>(<span class="ident">TUNNEL_UA</span>))
     }
 

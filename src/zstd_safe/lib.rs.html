@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zstd-safe-2.0.5+zstd.1.4.5/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../zstd_safe/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zstd-safe-2.0.5+zstd.1.4.5/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../zstd_safe/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1329,15 +1330,15 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">SafeResult</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">ErrorCode</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// Returns true if code represents error.</span>
-<span class="kw">fn</span> <span class="ident">is_error</span>(<span class="ident">code</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_isError</span>(<span class="ident">code</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> }
+<span class="kw">fn</span> <span class="ident">is_error</span>(<span class="ident">code</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_isError</span>(<span class="ident">code</span>) <span class="op">!=</span> <span class="number">0</span> }
 }
 
 <span class="doccomment">/// Parse the result code</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Returns the number of bytes written if the code represents success,</span>
 <span class="doccomment">/// or the error message code otherwise.</span>
-<span class="kw">fn</span> <span class="ident">parse_code</span>(<span class="ident">code</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+<span class="kw">fn</span> <span class="ident">parse_code</span>(<span class="ident">code</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">if</span> <span class="op">!</span><span class="ident">is_error</span>(<span class="ident">code</span>) {
         <span class="prelude-val">Ok</span>(<span class="ident">code</span>)
     } <span class="kw">else</span> {
@@ -1345,29 +1346,29 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">ptr_void</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_void</span> {
+<span class="kw">fn</span> <span class="ident">ptr_void</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_void</span> {
     <span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_void</span>
 }
 
-<span class="kw">fn</span> <span class="ident">ptr_mut_void</span>(<span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span> {
+<span class="kw">fn</span> <span class="ident">ptr_mut_void</span>(<span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span> {
     <span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">version_number</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">version_number</span>() <span class="op">-&gt;</span> <span class="ident">u32</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_versionNumber</span>() <span class="kw">as</span> <span class="ident">u32</span> }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">version_string</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">version_string</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
     <span class="kw">unsafe</span> { <span class="ident">c_char_to_str</span>(<span class="ident">zstd_sys</span>::<span class="ident">ZSTD_versionString</span>()) }
 }
 
 <span class="doccomment">/// Returns the minimum (fastest) compression level supported.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">min_c_level</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CompressionLevel</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">min_c_level</span>() <span class="op">-&gt;</span> <span class="ident">CompressionLevel</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_minCLevel</span>() <span class="kw">as</span> <span class="ident">CompressionLevel</span> }
 }
 
 <span class="doccomment">/// Returns the maximum (slowest) compression level supported.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_c_level</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CompressionLevel</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_c_level</span>() <span class="op">-&gt;</span> <span class="ident">CompressionLevel</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_maxCLevel</span>() <span class="kw">as</span> <span class="ident">CompressionLevel</span> }
 }
 
@@ -1376,7 +1377,7 @@
     <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>],
     <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     <span class="ident">compression_level</span>: <span class="ident">CompressionLevel</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_compress</span>(
             <span class="ident">ptr_mut_void</span>(<span class="ident">dst</span>),
@@ -1390,7 +1391,7 @@
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_decompress` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decompress</span>(<span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decompress</span>(<span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_decompress</span>(
             <span class="ident">ptr_mut_void</span>(<span class="ident">dst</span>),
@@ -1404,26 +1405,26 @@
 
 <span class="doccomment">/// Wraps the `ZSTD_getDecompressedSize` function.</span>
 <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use ZSTD_getFrameContentSize instead&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_decompressed_size</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_decompressed_size</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">u64</span> {
     <span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_getDecompressedSize</span>(<span class="ident">ptr_void</span>(<span class="ident">src</span>), <span class="ident">src</span>.<span class="ident">len</span>()) <span class="kw">as</span> <span class="ident">u64</span>
     }
 }
 
 <span class="doccomment">/// maximum compressed size in worst case single-pass scenario</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compress_bound</span>(<span class="ident">src_size</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compress_bound</span>(<span class="ident">src_size</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_compressBound</span>(<span class="ident">src_size</span>) }
 }
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CCtx</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_CCtx</span>, <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> ()<span class="op">&gt;</span>);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">CCtx</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="ident">create_cctx</span>()
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_cctx</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CCtx</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_cctx</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="ident">CCtx</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">CCtx</span>(<span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_createCCtx</span>() }, <span class="ident">PhantomData</span>)
 }
 
@@ -1438,7 +1439,7 @@
 <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Send</span> <span class="kw">for</span> <span class="ident">CCtx</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {}
 <span class="comment">// CCtx can&#39;t be shared across threads, so it does not implement Sync.</span>
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">c_char_to_str</span>(<span class="ident">text</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">c_char_to_str</span>(<span class="ident">text</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
     {
         <span class="comment">// To be safe, we need to compute right now its length</span>
@@ -1458,7 +1459,7 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_error_name</span>(<span class="ident">code</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_error_name</span>(<span class="ident">code</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
     <span class="kw">unsafe</span> {
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_getErrorName</span>(<span class="ident">code</span>);
         <span class="ident">c_char_to_str</span>(<span class="ident">name</span>)
@@ -1471,7 +1472,7 @@
     <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>],
     <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     <span class="ident">compression_level</span>: <span class="ident">CompressionLevel</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_compressCCtx</span>(
             <span class="ident">ctx</span>.<span class="number">0</span>,
@@ -1486,7 +1487,7 @@
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_compress2()` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compress2</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CCtx</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compress2</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CCtx</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="ident">parse_code</span>(<span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_compress2</span>(
             <span class="ident">ctx</span>.<span class="number">0</span>,
@@ -1508,13 +1509,13 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DCtx</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_DCtx</span>, <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> ()<span class="op">&gt;</span>);
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">DCtx</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="ident">create_dctx</span>()
     }
 }
 
 <span class="doccomment">/// Prepares a new decompression context without dictionary.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_dctx</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DCtx</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_dctx</span>() <span class="op">-&gt;</span> <span class="ident">DCtx</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
     <span class="ident">DCtx</span>(<span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_createDCtx</span>() }, <span class="ident">PhantomData</span>)
 }
 
@@ -1534,7 +1535,7 @@
     <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DCtx</span>,
     <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>],
     <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_decompressDCtx</span>(
             <span class="ident">ctx</span>.<span class="number">0</span>,
@@ -1554,7 +1555,7 @@
     <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     <span class="ident">dict</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     <span class="ident">compression_level</span>: <span class="ident">CompressionLevel</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_compress_usingDict</span>(
             <span class="ident">ctx</span>.<span class="number">0</span>,
@@ -1576,7 +1577,7 @@
     <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>],
     <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     <span class="ident">dict</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_decompress_usingDict</span>(
             <span class="ident">dctx</span>.<span class="number">0</span>,
@@ -1598,7 +1599,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_cdict</span>(
     <span class="ident">dict_buffer</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     <span class="ident">compression_level</span>: <span class="ident">CompressionLevel</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CDict</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
+) <span class="op">-&gt;</span> <span class="ident">CDict</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
     <span class="ident">CDict</span>(
         <span class="kw">unsafe</span> {
             <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_createCDict</span>(
@@ -1628,7 +1629,7 @@
     <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>],
     <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     <span class="ident">cdict</span>: <span class="kw-2">&amp;</span><span class="ident">CDict</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_compress_usingCDict</span>(
             <span class="ident">cctx</span>.<span class="number">0</span>,
@@ -1647,7 +1648,7 @@
 <span class="doccomment">/// Wraps the `ZSTD_createDDict()` function.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// It copies the dictionary internally, so the resulting `DDict` is `&#39;static`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_ddict</span>(<span class="ident">dict_buffer</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DDict</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_ddict</span>(<span class="ident">dict_buffer</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">DDict</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
     <span class="ident">DDict</span>(
         <span class="kw">unsafe</span> {
             <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_createDDict</span>(
@@ -1676,7 +1677,7 @@
     <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>],
     <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     <span class="ident">ddict</span>: <span class="kw-2">&amp;</span><span class="ident">DDict</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_decompress_usingDDict</span>(
             <span class="ident">dctx</span>.<span class="number">0</span>,
@@ -1698,7 +1699,7 @@
 <span class="comment">// CStream can&#39;t be shared across threads, so it does not implement Sync.</span>
 
 <span class="doccomment">/// Allocates a new `CStream`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_cstream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CStream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_cstream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="ident">CStream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">CCtx</span>(<span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_createCStream</span>() }, <span class="ident">PhantomData</span>)
 }
 
@@ -1706,7 +1707,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init_cstream</span>(
     <span class="ident">zcs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CStream</span>,
     <span class="ident">compression_level</span>: <span class="ident">CompressionLevel</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+) <span class="op">-&gt;</span> <span class="ident">usize</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_initCStream</span>(<span class="ident">zcs</span>.<span class="number">0</span>, <span class="ident">compression_level</span>) }
 }
 
@@ -1733,7 +1734,7 @@
 }
 
 <span class="doccomment">/// Convenience method to get a mut pointer from a mut ref.</span>
-<span class="kw">fn</span> <span class="ident">ptr_mut</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">ptr_void</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">B</span> {
+<span class="kw">fn</span> <span class="ident">ptr_mut</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">ptr_void</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">B</span>) <span class="op">-&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">B</span> {
     <span class="ident">ptr_void</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">B</span>
 }
 
@@ -1748,13 +1749,13 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">OutBufferWrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_outBuffer</span>;
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Target</span> {
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Target</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">buf</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">DerefMut</span> <span class="kw">for</span> <span class="ident">OutBufferWrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">Target</span> {
+    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">Target</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">buf</span>
     }
 }
@@ -1763,11 +1764,11 @@
     <span class="doccomment">/// Returns a new `OutBuffer` around the given slice.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Starts with `pos = 0`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">around</span>(<span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">around</span>(<span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="ident">OutBuffer</span> { <span class="ident">dst</span>, <span class="ident">pos</span>: <span class="number">0</span> }
     }
 
-    <span class="kw">fn</span> <span class="ident">wrap</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OutBufferWrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">wrap</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">OutBufferWrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">OutBufferWrapper</span> {
             <span class="ident">buf</span>: <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_outBuffer</span> {
                 <span class="ident">dst</span>: <span class="ident">ptr_mut_void</span>(<span class="self">self</span>.<span class="ident">dst</span>),
@@ -1779,7 +1780,7 @@
     }
 
     <span class="doccomment">/// Returns the part of this buffer that was written to.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_slice</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_slice</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]
     <span class="kw">where</span>
         <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>,
     {
@@ -1802,13 +1803,13 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">InBufferWrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_inBuffer</span>;
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Target</span> {
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Target</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">buf</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">DerefMut</span> <span class="kw">for</span> <span class="ident">InBufferWrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">Target</span> {
+    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">Target</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">buf</span>
     }
 }
@@ -1817,11 +1818,11 @@
     <span class="doccomment">/// Returns a new `InBuffer` around the given slice.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Starts with `pos = 0`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">around</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">around</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="ident">InBuffer</span> { <span class="ident">src</span>, <span class="ident">pos</span>: <span class="number">0</span> }
     }
 
-    <span class="kw">fn</span> <span class="ident">wrap</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">InBufferWrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">wrap</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">InBufferWrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">InBufferWrapper</span> {
             <span class="ident">buf</span>: <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_inBuffer</span> {
                 <span class="ident">src</span>: <span class="ident">ptr_void</span>(<span class="self">self</span>.<span class="ident">src</span>),
@@ -1844,7 +1845,7 @@
     <span class="ident">zcs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CStream</span>,
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">OutBuffer</span>,
     <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">InBuffer</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">wrap</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">wrap</span>();
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
@@ -1863,7 +1864,7 @@
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">OutBuffer</span>,
     <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">InBuffer</span>,
     <span class="ident">end_op</span>: <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_EndDirective</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">wrap</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">wrap</span>();
     <span class="ident">parse_code</span>(<span class="kw">unsafe</span> {
@@ -1877,7 +1878,7 @@
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_flushStream()` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flush_stream</span>(<span class="ident">zcs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CStream</span>, <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">OutBuffer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flush_stream</span>(<span class="ident">zcs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CStream</span>, <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">OutBuffer</span>) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">wrap</span>();
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span>
         <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_flushStream</span>(<span class="ident">zcs</span>.<span class="number">0</span>, <span class="ident">ptr_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">output</span>)) };
@@ -1885,7 +1886,7 @@
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_endStream()` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">end_stream</span>(<span class="ident">zcs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CStream</span>, <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">OutBuffer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">end_stream</span>(<span class="ident">zcs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CStream</span>, <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">OutBuffer</span>) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">wrap</span>();
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span>
         <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_endStream</span>(<span class="ident">zcs</span>.<span class="number">0</span>, <span class="ident">ptr_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">output</span>)) };
@@ -1893,12 +1894,12 @@
 }
 
 <span class="doccomment">/// Wraps `ZSTD_CStreamInSize()`</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cstream_in_size</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cstream_in_size</span>() <span class="op">-&gt;</span> <span class="ident">usize</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_CStreamInSize</span>() }
 }
 
 <span class="doccomment">/// Wraps `ZSTD_CStreamOutSize()`</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cstream_out_size</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cstream_out_size</span>() <span class="op">-&gt;</span> <span class="ident">usize</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_CStreamOutSize</span>() }
 }
 
@@ -1907,14 +1908,14 @@
 <span class="doccomment">/// Same as `DCtx`.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">DStream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">DCtx</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_dstream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DStream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_dstream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="ident">DStream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">DCtx</span>(<span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_createDStream</span>() }, <span class="ident">PhantomData</span>)
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_initCStream()` function.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Initializes an existing `DStream` for decompression.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init_dstream</span>(<span class="ident">zds</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init_dstream</span>(<span class="ident">zds</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DStream</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_initDStream</span>(<span class="ident">zds</span>.<span class="number">0</span>) }
 }
 
@@ -1923,7 +1924,7 @@
     <span class="ident">zds</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DStream</span>,
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">OutBuffer</span>,
     <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">InBuffer</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">wrap</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">wrap</span>();
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
@@ -1939,21 +1940,21 @@
 <span class="doccomment">/// Wraps the `ZSTD_DStreamInSize()` function.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Returns a hint for the recommended size of the input buffer for decompression.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dstream_in_size</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dstream_in_size</span>() <span class="op">-&gt;</span> <span class="ident">usize</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_DStreamInSize</span>() }
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_DStreamOutSize()` function.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Returns a hint for the recommended size of the output buffer for decompression.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dstream_out_size</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dstream_out_size</span>() <span class="op">-&gt;</span> <span class="ident">usize</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_DStreamOutSize</span>() }
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_findFrameCompressedSize()` function.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// `src` should contain at least an entire frame.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_frame_compressed_size</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_frame_compressed_size</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_findFrameCompressedSize</span>(<span class="ident">ptr_void</span>(<span class="ident">src</span>), <span class="ident">src</span>.<span class="ident">len</span>())
     };
@@ -1962,7 +1963,7 @@
 <span class="doccomment">/// Wraps the `ZSTD_getFrameContentSize()` function.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// `src` should contain at least a frame header.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_frame_content_size</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_frame_content_size</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">u64</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_getFrameContentSize</span>(<span class="ident">ptr_void</span>(<span class="ident">src</span>), <span class="ident">src</span>.<span class="ident">len</span>()) }
 }
 
@@ -1970,37 +1971,37 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// `src` should be exactly a sequence of ZSTD frames.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;experimental&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_decompressed_size</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_decompressed_size</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">u64</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_findDecompressedSize</span>(<span class="ident">ptr_void</span>(<span class="ident">src</span>), <span class="ident">src</span>.<span class="ident">len</span>()) }
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_sizeofCCtx()` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sizeof_cctx</span>(<span class="ident">cctx</span>: <span class="kw-2">&amp;</span><span class="ident">CCtx</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sizeof_cctx</span>(<span class="ident">cctx</span>: <span class="kw-2">&amp;</span><span class="ident">CCtx</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_sizeof_CCtx</span>(<span class="ident">cctx</span>.<span class="number">0</span>) }
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_sizeof_DCtx()` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sizeof_dctx</span>(<span class="ident">dctx</span>: <span class="kw-2">&amp;</span><span class="ident">DCtx</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sizeof_dctx</span>(<span class="ident">dctx</span>: <span class="kw-2">&amp;</span><span class="ident">DCtx</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_sizeof_DCtx</span>(<span class="ident">dctx</span>.<span class="number">0</span>) }
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_sizeof_CStream()` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sizeof_cstream</span>(<span class="ident">zcs</span>: <span class="kw-2">&amp;</span><span class="ident">CStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sizeof_cstream</span>(<span class="ident">zcs</span>: <span class="kw-2">&amp;</span><span class="ident">CStream</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_sizeof_CStream</span>(<span class="ident">zcs</span>.<span class="number">0</span>) }
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_sizeof_DStream()` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sizeof_dstream</span>(<span class="ident">zds</span>: <span class="kw-2">&amp;</span><span class="ident">DStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sizeof_dstream</span>(<span class="ident">zds</span>: <span class="kw-2">&amp;</span><span class="ident">DStream</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_sizeof_DStream</span>(<span class="ident">zds</span>.<span class="number">0</span>) }
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_sizeof_CDict()` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sizeof_cdict</span>(<span class="ident">cdict</span>: <span class="kw-2">&amp;</span><span class="ident">CDict</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sizeof_cdict</span>(<span class="ident">cdict</span>: <span class="kw-2">&amp;</span><span class="ident">CDict</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_sizeof_CDict</span>(<span class="ident">cdict</span>.<span class="number">0</span>) }
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_sizeof_DDict()` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sizeof_ddict</span>(<span class="ident">ddict</span>: <span class="kw-2">&amp;</span><span class="ident">DDict</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sizeof_ddict</span>(<span class="ident">ddict</span>: <span class="kw-2">&amp;</span><span class="ident">DDict</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_sizeof_DDict</span>(<span class="ident">ddict</span>.<span class="number">0</span>) }
 }
 
@@ -2011,7 +2012,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_cdict_by_reference</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
     <span class="ident">dict_buffer</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     <span class="ident">compression_level</span>: <span class="ident">CompressionLevel</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CDict</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+) <span class="op">-&gt;</span> <span class="ident">CDict</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">CDict</span>(
         <span class="kw">unsafe</span> {
             <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_createCDict_byReference</span>(
@@ -2026,7 +2027,7 @@
 
 <span class="doccomment">/// Wraps the `ZSTD_isFrame()` function.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;experimental&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_frame</span>(<span class="ident">buffer</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_frame</span>(<span class="ident">buffer</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">u32</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_isFrame</span>(<span class="ident">ptr_void</span>(<span class="ident">buffer</span>), <span class="ident">buffer</span>.<span class="ident">len</span>()) <span class="kw">as</span> <span class="ident">u32</span> }
 }
 
@@ -2034,7 +2035,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// The dictionary will keep referencing `dict_buffer`.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;experimental&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_ddict_by_reference</span>(<span class="ident">dict_buffer</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DDict</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_ddict_by_reference</span>(<span class="ident">dict_buffer</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">DDict</span> {
     <span class="ident">DDict</span>(
         <span class="kw">unsafe</span> {
             <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_createDDict_byReference</span>(
@@ -2047,19 +2048,19 @@
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_getDictID_fromDict()` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_dict_id_from_dict</span>(<span class="ident">dict</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_dict_id_from_dict</span>(<span class="ident">dict</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">u32</span> {
     <span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_getDictID_fromDict</span>(<span class="ident">ptr_void</span>(<span class="ident">dict</span>), <span class="ident">dict</span>.<span class="ident">len</span>()) <span class="kw">as</span> <span class="ident">u32</span>
     }
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_getDictID_fromDDict()` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_dict_id_from_ddict</span>(<span class="ident">ddict</span>: <span class="kw-2">&amp;</span><span class="ident">DDict</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_dict_id_from_ddict</span>(<span class="ident">ddict</span>: <span class="kw-2">&amp;</span><span class="ident">DDict</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_getDictID_fromDDict</span>(<span class="ident">ddict</span>.<span class="number">0</span>) <span class="kw">as</span> <span class="ident">u32</span> }
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_getDictID_fromFrame()` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_dict_id_from_frame</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_dict_id_from_frame</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">u32</span> {
     <span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_getDictID_fromFrame</span>(<span class="ident">ptr_void</span>(<span class="ident">src</span>), <span class="ident">src</span>.<span class="ident">len</span>()) <span class="kw">as</span> <span class="ident">u32</span>
     }
@@ -2071,7 +2072,7 @@
     <span class="ident">zcs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CStream</span>,
     <span class="ident">compression_level</span>: <span class="ident">CompressionLevel</span>,
     <span class="ident">pledged_src_size</span>: <span class="ident">u64</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+) <span class="op">-&gt;</span> <span class="ident">usize</span> {
     <span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_initCStream_srcSize</span>(
             <span class="ident">zcs</span>.<span class="number">0</span>,
@@ -2087,7 +2088,7 @@
     <span class="ident">zcs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CStream</span>,
     <span class="ident">dict</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     <span class="ident">compression_level</span>: <span class="ident">CompressionLevel</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_initCStream_usingDict</span>(
             <span class="ident">zcs</span>.<span class="number">0</span>,
@@ -2104,14 +2105,14 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init_cstream_using_cdict</span>(
     <span class="ident">zcs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CStream</span>,
     <span class="ident">cdict</span>: <span class="kw-2">&amp;</span><span class="ident">CDict</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span>
         <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_initCStream_usingCDict</span>(<span class="ident">zcs</span>.<span class="number">0</span>, <span class="ident">cdict</span>.<span class="number">0</span>) };
     <span class="ident">parse_code</span>(<span class="ident">code</span>)
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_CCtx_loadDictionary()` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cctx_load_dictionary</span>(<span class="ident">cctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CCtx</span>, <span class="ident">dict</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cctx_load_dictionary</span>(<span class="ident">cctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CCtx</span>, <span class="ident">dict</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="ident">parse_code</span>(<span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_CCtx_loadDictionary</span>(<span class="ident">cctx</span>.<span class="number">0</span>, <span class="ident">ptr_void</span>(<span class="ident">dict</span>), <span class="ident">dict</span>.<span class="ident">len</span>())
     })
@@ -2123,7 +2124,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cctx_ref_cdict</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>(
     <span class="ident">cctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CCtx</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     <span class="ident">cdict</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">CDict</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span>
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span>
 <span class="kw">where</span>
     <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>,
 {
@@ -2136,7 +2137,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cctx_ref_prefix</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>(
     <span class="ident">cctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CCtx</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     <span class="ident">prefix</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">u8</span>],
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span>
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span>
 <span class="kw">where</span>
     <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>,
 {
@@ -2146,7 +2147,7 @@
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_DCtx_loadDictionary()` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dctx_load_dictionary</span>(<span class="ident">dctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DCtx</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">dict</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dctx_load_dictionary</span>(<span class="ident">dctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DCtx</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">dict</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="ident">parse_code</span>(<span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_DCtx_loadDictionary</span>(<span class="ident">dctx</span>.<span class="number">0</span>, <span class="ident">ptr_void</span>(<span class="ident">dict</span>), <span class="ident">dict</span>.<span class="ident">len</span>())
     })
@@ -2156,7 +2157,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dctx_ref_ddict</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>(
     <span class="ident">dctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DCtx</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     <span class="ident">ddict</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">DDict</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span>
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span>
 <span class="kw">where</span>
     <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>,
 {
@@ -2167,7 +2168,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dctx_ref_prefix</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>(
     <span class="ident">dctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DCtx</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     <span class="ident">prefix</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">u8</span>],
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span>
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span>
 <span class="kw">where</span>
     <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>,
 {
@@ -2177,18 +2178,18 @@
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_CCtx_reset()` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cctx_reset</span>(<span class="ident">cctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CCtx</span>, <span class="ident">reset</span>: <span class="ident">ResetDirective</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cctx_reset</span>(<span class="ident">cctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CCtx</span>, <span class="ident">reset</span>: <span class="ident">ResetDirective</span>) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="ident">parse_code</span>(<span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_CCtx_reset</span>(<span class="ident">cctx</span>.<span class="number">0</span>, <span class="ident">reset</span>) })
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_DCtx_reset()` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dctx_reset</span>(<span class="ident">dctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DCtx</span>, <span class="ident">reset</span>: <span class="ident">ResetDirective</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dctx_reset</span>(<span class="ident">dctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DCtx</span>, <span class="ident">reset</span>: <span class="ident">ResetDirective</span>) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="ident">parse_code</span>(<span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_DCtx_reset</span>(<span class="ident">dctx</span>.<span class="number">0</span>, <span class="ident">reset</span>) })
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_resetCStream()` function.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;experimental&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset_cstream</span>(<span class="ident">zcs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CStream</span>, <span class="ident">pledged_src_size</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset_cstream</span>(<span class="ident">zcs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CStream</span>, <span class="ident">pledged_src_size</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_resetCStream</span>(<span class="ident">zcs</span>.<span class="number">0</span>, <span class="ident">pledged_src_size</span> <span class="kw">as</span> <span class="ident">c_ulonglong</span>)
     };
@@ -2197,7 +2198,7 @@
 
 <span class="doccomment">/// Wraps the `ZSTD_initDStream_usingDict()` function.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;experimental&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init_dstream_using_dict</span>(<span class="ident">zds</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DStream</span>, <span class="ident">dict</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init_dstream_using_dict</span>(<span class="ident">zds</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DStream</span>, <span class="ident">dict</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_initDStream_usingDict</span>(<span class="ident">zds</span>.<span class="number">0</span>, <span class="ident">ptr_void</span>(<span class="ident">dict</span>), <span class="ident">dict</span>.<span class="ident">len</span>())
     };
@@ -2209,7 +2210,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init_dstream_using_ddict</span>(
     <span class="ident">zds</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DStream</span>,
     <span class="ident">ddict</span>: <span class="kw-2">&amp;</span><span class="ident">DDict</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span>
         <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_initDStream_usingDDict</span>(<span class="ident">zds</span>.<span class="number">0</span>, <span class="ident">ddict</span>.<span class="number">0</span>) };
     <span class="ident">parse_code</span>(<span class="ident">code</span>)
@@ -2217,7 +2218,7 @@
 
 <span class="doccomment">/// Wraps the `ZSTD_resetDStream()` function.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;experimental&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset_dstream</span>(<span class="ident">zds</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset_dstream</span>(<span class="ident">zds</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DStream</span>) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_resetDStream</span>(<span class="ident">zds</span>.<span class="number">0</span>) };
     <span class="ident">parse_code</span>(<span class="ident">code</span>)
 }
@@ -2286,7 +2287,7 @@
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_DCtx_setParameter()` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dctx_set_parameter</span>(<span class="ident">dctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DCtx</span>, <span class="ident">param</span>: <span class="ident">DParameter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dctx_set_parameter</span>(<span class="ident">dctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DCtx</span>, <span class="ident">param</span>: <span class="ident">DParameter</span>) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;experimental&quot;</span>)]</span>
     <span class="kw">use</span> <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_dParameter</span>::<span class="ident">ZSTD_d_experimentalParam1</span> <span class="kw">as</span> <span class="ident">ZSTD_d_format</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;experimental&quot;</span>)]</span>
@@ -2297,16 +2298,16 @@
 
     <span class="kw">let</span> (<span class="ident">param</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">param</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;experimental&quot;</span>)]</span>
-        <span class="ident">Format</span>(<span class="ident">FrameFormat</span>::<span class="ident">One</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Format</span>(<span class="ident">FrameFormat</span>::<span class="ident">One</span>) <span class="op">=&gt;</span> {
             (<span class="ident">ZSTD_d_format</span>, <span class="ident">ZSTD_format_e</span>::<span class="ident">ZSTD_f_zstd1</span> <span class="kw">as</span> <span class="ident">c_int</span>)
         }
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;experimental&quot;</span>)]</span>
-        <span class="ident">Format</span>(<span class="ident">FrameFormat</span>::<span class="ident">Magicless</span>) <span class="op">=</span><span class="op">&gt;</span> (
+        <span class="ident">Format</span>(<span class="ident">FrameFormat</span>::<span class="ident">Magicless</span>) <span class="op">=&gt;</span> (
             <span class="ident">ZSTD_d_format</span>,
             <span class="ident">ZSTD_format_e</span>::<span class="ident">ZSTD_f_zstd1_magicless</span> <span class="kw">as</span> <span class="ident">c_int</span>,
         ),
 
-        <span class="ident">WindowLogMax</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ZSTD_d_windowLogMax</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
+        <span class="ident">WindowLogMax</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="ident">ZSTD_d_windowLogMax</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
     };
 
     <span class="ident">parse_code</span>(<span class="kw">unsafe</span> {
@@ -2315,7 +2316,7 @@
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_CCtx_setParameter()` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cctx_set_parameter</span>(<span class="ident">cctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CCtx</span>, <span class="ident">param</span>: <span class="ident">CParameter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cctx_set_parameter</span>(<span class="ident">cctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CCtx</span>, <span class="ident">param</span>: <span class="ident">CParameter</span>) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="comment">// TODO: Until bindgen properly generates a binding for this, we&#39;ll need to do it here.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;experimental&quot;</span>)]</span>
     <span class="kw">use</span> <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_cParameter</span>::<span class="ident">ZSTD_c_experimentalParam2</span> <span class="kw">as</span> <span class="ident">ZSTD_c_format</span>;
@@ -2327,38 +2328,38 @@
 
     <span class="kw">let</span> (<span class="ident">param</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">param</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;experimental&quot;</span>)]</span>
-        <span class="ident">Format</span>(<span class="ident">FrameFormat</span>::<span class="ident">One</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Format</span>(<span class="ident">FrameFormat</span>::<span class="ident">One</span>) <span class="op">=&gt;</span> {
             (<span class="ident">ZSTD_c_format</span>, <span class="ident">ZSTD_format_e</span>::<span class="ident">ZSTD_f_zstd1</span> <span class="kw">as</span> <span class="ident">c_int</span>)
         }
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;experimental&quot;</span>)]</span>
-        <span class="ident">Format</span>(<span class="ident">FrameFormat</span>::<span class="ident">Magicless</span>) <span class="op">=</span><span class="op">&gt;</span> (
+        <span class="ident">Format</span>(<span class="ident">FrameFormat</span>::<span class="ident">Magicless</span>) <span class="op">=&gt;</span> (
             <span class="ident">ZSTD_c_format</span>,
             <span class="ident">ZSTD_format_e</span>::<span class="ident">ZSTD_f_zstd1_magicless</span> <span class="kw">as</span> <span class="ident">c_int</span>,
         ),
-        <span class="ident">CompressionLevel</span>(<span class="ident">level</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ZSTD_c_compressionLevel</span>, <span class="ident">level</span>),
-        <span class="ident">WindowLog</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ZSTD_c_windowLog</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
-        <span class="ident">HashLog</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ZSTD_c_hashLog</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
-        <span class="ident">ChainLog</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ZSTD_c_chainLog</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
-        <span class="ident">SearchLog</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ZSTD_c_searchLog</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
-        <span class="ident">MinMatch</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ZSTD_c_minMatch</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
-        <span class="ident">TargetLength</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ZSTD_c_targetLength</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
-        <span class="ident">Strategy</span>(<span class="ident">strategy</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ZSTD_c_strategy</span>, <span class="ident">strategy</span> <span class="kw">as</span> <span class="ident">c_int</span>),
-        <span class="ident">EnableLongDistanceMatching</span>(<span class="ident">flag</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">CompressionLevel</span>(<span class="ident">level</span>) <span class="op">=&gt;</span> (<span class="ident">ZSTD_c_compressionLevel</span>, <span class="ident">level</span>),
+        <span class="ident">WindowLog</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="ident">ZSTD_c_windowLog</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
+        <span class="ident">HashLog</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="ident">ZSTD_c_hashLog</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
+        <span class="ident">ChainLog</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="ident">ZSTD_c_chainLog</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
+        <span class="ident">SearchLog</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="ident">ZSTD_c_searchLog</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
+        <span class="ident">MinMatch</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="ident">ZSTD_c_minMatch</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
+        <span class="ident">TargetLength</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="ident">ZSTD_c_targetLength</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
+        <span class="ident">Strategy</span>(<span class="ident">strategy</span>) <span class="op">=&gt;</span> (<span class="ident">ZSTD_c_strategy</span>, <span class="ident">strategy</span> <span class="kw">as</span> <span class="ident">c_int</span>),
+        <span class="ident">EnableLongDistanceMatching</span>(<span class="ident">flag</span>) <span class="op">=&gt;</span> {
             (<span class="ident">ZSTD_c_enableLongDistanceMatching</span>, <span class="ident">flag</span> <span class="kw">as</span> <span class="ident">c_int</span>)
         }
-        <span class="ident">LdmHashLog</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ZSTD_c_ldmHashLog</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
-        <span class="ident">LdmMinMatch</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ZSTD_c_ldmMinMatch</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
-        <span class="ident">LdmBucketSizeLog</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ZSTD_c_ldmBucketSizeLog</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
-        <span class="ident">LdmHashRateLog</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ZSTD_c_ldmHashRateLog</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
-        <span class="ident">ContentSizeFlag</span>(<span class="ident">flag</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ZSTD_c_contentSizeFlag</span>, <span class="ident">flag</span> <span class="kw">as</span> <span class="ident">c_int</span>),
-        <span class="ident">ChecksumFlag</span>(<span class="ident">flag</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ZSTD_c_checksumFlag</span>, <span class="ident">flag</span> <span class="kw">as</span> <span class="ident">c_int</span>),
-        <span class="ident">DictIdFlag</span>(<span class="ident">flag</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ZSTD_c_dictIDFlag</span>, <span class="ident">flag</span> <span class="kw">as</span> <span class="ident">c_int</span>),
+        <span class="ident">LdmHashLog</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="ident">ZSTD_c_ldmHashLog</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
+        <span class="ident">LdmMinMatch</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="ident">ZSTD_c_ldmMinMatch</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
+        <span class="ident">LdmBucketSizeLog</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="ident">ZSTD_c_ldmBucketSizeLog</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
+        <span class="ident">LdmHashRateLog</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="ident">ZSTD_c_ldmHashRateLog</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
+        <span class="ident">ContentSizeFlag</span>(<span class="ident">flag</span>) <span class="op">=&gt;</span> (<span class="ident">ZSTD_c_contentSizeFlag</span>, <span class="ident">flag</span> <span class="kw">as</span> <span class="ident">c_int</span>),
+        <span class="ident">ChecksumFlag</span>(<span class="ident">flag</span>) <span class="op">=&gt;</span> (<span class="ident">ZSTD_c_checksumFlag</span>, <span class="ident">flag</span> <span class="kw">as</span> <span class="ident">c_int</span>),
+        <span class="ident">DictIdFlag</span>(<span class="ident">flag</span>) <span class="op">=&gt;</span> (<span class="ident">ZSTD_c_dictIDFlag</span>, <span class="ident">flag</span> <span class="kw">as</span> <span class="ident">c_int</span>),
 
-        <span class="ident">NbWorkers</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ZSTD_c_nbWorkers</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
+        <span class="ident">NbWorkers</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="ident">ZSTD_c_nbWorkers</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
 
-        <span class="ident">JobSize</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ZSTD_c_jobSize</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
+        <span class="ident">JobSize</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="ident">ZSTD_c_jobSize</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
 
-        <span class="ident">OverlapSizeLog</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">ZSTD_c_overlapLog</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
+        <span class="ident">OverlapSizeLog</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="ident">ZSTD_c_overlapLog</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">c_int</span>),
     };
 
     <span class="ident">parse_code</span>(<span class="kw">unsafe</span> {
@@ -2370,7 +2371,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cctx_set_pledged_src_size</span>(
     <span class="ident">cctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CCtx</span>,
     <span class="ident">pledged_src_size</span>: <span class="ident">u64</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="ident">parse_code</span>(<span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_CCtx_setPledgedSrcSize</span>(
             <span class="ident">cctx</span>.<span class="number">0</span>,
@@ -2384,7 +2385,7 @@
     <span class="ident">dict_buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>],
     <span class="ident">samples_buffer</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     <span class="ident">samples_sizes</span>: <span class="kw-2">&amp;</span>[<span class="ident">usize</span>],
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">samples_buffer</span>.<span class="ident">len</span>(), <span class="ident">samples_sizes</span>.<span class="ident">iter</span>().<span class="ident">sum</span>());
     <span class="ident">parse_code</span>(<span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZDICT_trainFromBuffer</span>(
@@ -2398,7 +2399,7 @@
 }
 
 <span class="doccomment">/// Wraps the `ZSTD_getDictID_fromDict()` function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_dict_id</span>(<span class="ident">dict_buffer</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_dict_id</span>(<span class="ident">dict_buffer</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZDICT_getDictID</span>(<span class="ident">ptr_void</span>(<span class="ident">dict_buffer</span>), <span class="ident">dict_buffer</span>.<span class="ident">len</span>())
     };
@@ -2411,7 +2412,7 @@
 
 <span class="doccomment">/// Wraps the `ZSTD_getBlockSize()` function.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;experimental&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_block_size</span>(<span class="ident">cctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CCtx</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_block_size</span>(<span class="ident">cctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CCtx</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_getBlockSize</span>(<span class="ident">cctx</span>.<span class="number">0</span>) }
 }
 
@@ -2421,7 +2422,7 @@
     <span class="ident">cctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CCtx</span>,
     <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>],
     <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SafeResult</span> {
+) <span class="op">-&gt;</span> <span class="ident">SafeResult</span> {
     <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_compressBlock</span>(
             <span class="ident">cctx</span>.<span class="number">0</span>,
@@ -2436,7 +2437,7 @@
 
 <span class="doccomment">/// Wraps the `ZSTD_decompressBlock()` function.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;experimental&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decompress_block</span>(<span class="ident">dctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DCtx</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decompress_block</span>(<span class="ident">dctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DCtx</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">usize</span> {
     <span class="kw">unsafe</span> {
         <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_decompressBlock</span>(
             <span class="ident">dctx</span>.<span class="number">0</span>,
@@ -2450,7 +2451,7 @@
 
 <span class="doccomment">/// Wraps the `ZSTD_insertBlock()` function.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;experimental&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert_block</span>(<span class="ident">dctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DCtx</span>, <span class="ident">block</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert_block</span>(<span class="ident">dctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DCtx</span>, <span class="ident">block</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">usize</span> {
     <span class="kw">unsafe</span> { <span class="ident">zstd_sys</span>::<span class="ident">ZSTD_insertBlock</span>(<span class="ident">dctx</span>.<span class="number">0</span>, <span class="ident">ptr_void</span>(<span class="ident">block</span>), <span class="ident">block</span>.<span class="ident">len</span>()) }
 }
 </pre></div>

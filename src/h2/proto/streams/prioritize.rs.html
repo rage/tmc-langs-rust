@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.2.6/src/proto/streams/prioritize.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>prioritize.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../h2/index.html'><div class='logo-container'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.2.7/src/proto/streams/prioritize.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>prioritize.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../h2/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -865,9 +866,6 @@
 <span id="865">865</span>
 <span id="866">866</span>
 <span id="867">867</span>
-<span id="868">868</span>
-<span id="869">869</span>
-<span id="870">870</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">store</span>::<span class="ident">Resolve</span>;
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
@@ -947,7 +945,7 @@
 <span class="comment">// ===== impl Prioritize =====</span>
 
 <span class="kw">impl</span> <span class="ident">Prioritize</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Config</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Prioritize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Config</span>) <span class="op">-&gt;</span> <span class="ident">Prioritize</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flow</span> <span class="op">=</span> <span class="ident">FlowControl</span>::<span class="ident">new</span>();
 
         <span class="ident">flow</span>.<span class="ident">inc_window</span>(<span class="ident">config</span>.<span class="ident">remote_init_window_sz</span>)
@@ -971,10 +969,12 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">queue_frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">frame</span>: <span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-        <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span>,
         <span class="ident">stream</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">store</span>::<span class="ident">Ptr</span>,
         <span class="ident">task</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Waker</span><span class="op">&gt;</span>,
     ) {
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">tracing</span>::<span class="macro">trace_span</span><span class="macro">!</span>(<span class="string">&quot;Prioritize::queue_frame&quot;</span>, <span class="question-mark">?</span><span class="ident">stream</span>.<span class="ident">id</span>);
+        <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">enter</span>();
         <span class="comment">// Queue the frame in the buffer</span>
         <span class="ident">stream</span>.<span class="ident">pending_send</span>.<span class="ident">push_back</span>(<span class="ident">buffer</span>, <span class="ident">frame</span>);
         <span class="self">self</span>.<span class="ident">schedule_send</span>(<span class="ident">stream</span>, <span class="ident">task</span>);
@@ -983,7 +983,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_send</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stream</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">store</span>::<span class="ident">Ptr</span>, <span class="ident">task</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Waker</span><span class="op">&gt;</span>) {
         <span class="comment">// If the stream is waiting to be opened, nothing more to do.</span>
         <span class="kw">if</span> <span class="ident">stream</span>.<span class="ident">is_send_ready</span>() {
-            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;schedule_send; {:?}&quot;</span>, <span class="ident">stream</span>.<span class="ident">id</span>);
+            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="question-mark">?</span><span class="ident">stream</span>.<span class="ident">id</span>, <span class="string">&quot;schedule_send&quot;</span>);
             <span class="comment">// Queue the stream</span>
             <span class="self">self</span>.<span class="ident">pending_send</span>.<span class="ident">push</span>(<span class="ident">stream</span>);
 
@@ -1002,11 +1002,11 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send_data</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">frame</span>: <span class="ident">frame</span>::<span class="ident">Data</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-        <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span>,
         <span class="ident">stream</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">store</span>::<span class="ident">Ptr</span>,
         <span class="ident">counts</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Counts</span>,
         <span class="ident">task</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Waker</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UserError</span><span class="op">&gt;</span>
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UserError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">B</span>: <span class="ident">Buf</span>,
     {
@@ -1027,14 +1027,12 @@
         }
 
         <span class="comment">// Update the buffered data counter</span>
-        <span class="ident">stream</span>.<span class="ident">buffered_send_data</span> <span class="op">+</span><span class="op">=</span> <span class="ident">sz</span>;
+        <span class="ident">stream</span>.<span class="ident">buffered_send_data</span> <span class="op">+=</span> <span class="ident">sz</span>;
 
-        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
-            <span class="string">&quot;send_data; sz={}; buffered={}; requested={}&quot;</span>,
-            <span class="ident">sz</span>,
-            <span class="ident">stream</span>.<span class="ident">buffered_send_data</span>,
-            <span class="ident">stream</span>.<span class="ident">requested_send_capacity</span>
-        );
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span>
+            <span class="ident">tracing</span>::<span class="macro">trace_span</span><span class="macro">!</span>(<span class="string">&quot;send_data&quot;</span>, <span class="ident">sz</span>, <span class="ident">requested</span> <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">requested_send_capacity</span>);
+        <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">enter</span>();
+        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="ident">buffered</span> <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">buffered_send_data</span>);
 
         <span class="comment">// Implicitly request more send capacity if not enough has been</span>
         <span class="comment">// requested yet.</span>
@@ -1051,9 +1049,8 @@
         }
 
         <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
-            <span class="string">&quot;send_data (2); available={}; buffered={}&quot;</span>,
-            <span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">available</span>(),
-            <span class="ident">stream</span>.<span class="ident">buffered_send_data</span>
+            <span class="ident">available</span> <span class="op">=</span> <span class="op">%</span><span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">available</span>(),
+            <span class="ident">buffered</span> <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">buffered_send_data</span>,
         );
 
         <span class="comment">// The `stream.buffered_send_data == 0` check is here so that, if a zero</span>
@@ -1064,7 +1061,7 @@
         <span class="comment">// Sending out zero length data frames can be done to signal</span>
         <span class="comment">// end-of-stream.</span>
         <span class="comment">//</span>
-        <span class="kw">if</span> <span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">available</span>() <span class="op">&gt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">stream</span>.<span class="ident">buffered_send_data</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">available</span>() <span class="op">&gt;</span> <span class="number">0</span> <span class="op">||</span> <span class="ident">stream</span>.<span class="ident">buffered_send_data</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="comment">// The stream currently has capacity to send the data frame, so</span>
             <span class="comment">// queue it up and notify the connection task.</span>
             <span class="self">self</span>.<span class="ident">queue_frame</span>(<span class="ident">frame</span>.<span class="ident">into</span>(), <span class="ident">buffer</span>, <span class="ident">stream</span>, <span class="ident">task</span>);
@@ -1085,19 +1082,20 @@
         <span class="ident">stream</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">store</span>::<span class="ident">Ptr</span>,
         <span class="ident">counts</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Counts</span>,
     ) {
-        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
-            <span class="string">&quot;reserve_capacity; stream={:?}; requested={:?}; effective={:?}; curr={:?}&quot;</span>,
-            <span class="ident">stream</span>.<span class="ident">id</span>,
-            <span class="ident">capacity</span>,
-            <span class="ident">capacity</span> <span class="op">+</span> <span class="ident">stream</span>.<span class="ident">buffered_send_data</span>,
-            <span class="ident">stream</span>.<span class="ident">requested_send_capacity</span>
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">tracing</span>::<span class="macro">trace_span</span><span class="macro">!</span>(
+            <span class="string">&quot;reserve_capacity&quot;</span>,
+            <span class="question-mark">?</span><span class="ident">stream</span>.<span class="ident">id</span>,
+            <span class="ident">requested</span> <span class="op">=</span> <span class="ident">capacity</span>,
+            <span class="ident">effective</span> <span class="op">=</span> <span class="ident">capacity</span> <span class="op">+</span> <span class="ident">stream</span>.<span class="ident">buffered_send_data</span>,
+            <span class="ident">curr</span> <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">requested_send_capacity</span>
         );
+        <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">enter</span>();
 
         <span class="comment">// Actual capacity is `capacity` + the current amount of buffered data.</span>
         <span class="comment">// If it were less, then we could never send out the buffered data.</span>
         <span class="kw">let</span> <span class="ident">capacity</span> <span class="op">=</span> <span class="ident">capacity</span> <span class="op">+</span> <span class="ident">stream</span>.<span class="ident">buffered_send_data</span>;
 
-        <span class="kw">if</span> <span class="ident">capacity</span> <span class="op">=</span><span class="op">=</span> <span class="ident">stream</span>.<span class="ident">requested_send_capacity</span> {
+        <span class="kw">if</span> <span class="ident">capacity</span> <span class="op">==</span> <span class="ident">stream</span>.<span class="ident">requested_send_capacity</span> {
             <span class="comment">// Nothing to do</span>
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">capacity</span> <span class="op">&lt;</span> <span class="ident">stream</span>.<span class="ident">requested_send_capacity</span> {
             <span class="comment">// Update the target requested capacity</span>
@@ -1136,16 +1134,17 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">inc</span>: <span class="ident">WindowSize</span>,
         <span class="ident">stream</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">store</span>::<span class="ident">Ptr</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Reason</span><span class="op">&gt;</span> {
-        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
-            <span class="string">&quot;recv_stream_window_update; stream={:?}; state={:?}; inc={}; flow={:?}&quot;</span>,
-            <span class="ident">stream</span>.<span class="ident">id</span>,
-            <span class="ident">stream</span>.<span class="ident">state</span>,
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Reason</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">tracing</span>::<span class="macro">trace_span</span><span class="macro">!</span>(
+            <span class="string">&quot;recv_stream_window_update&quot;</span>,
+            <span class="question-mark">?</span><span class="ident">stream</span>.<span class="ident">id</span>,
+            <span class="question-mark">?</span><span class="ident">stream</span>.<span class="ident">state</span>,
             <span class="ident">inc</span>,
-            <span class="ident">stream</span>.<span class="ident">send_flow</span>
+            <span class="ident">flow</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">stream</span>.<span class="ident">send_flow</span>
         );
+        <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">enter</span>();
 
-        <span class="kw">if</span> <span class="ident">stream</span>.<span class="ident">state</span>.<span class="ident">is_send_closed</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">stream</span>.<span class="ident">buffered_send_data</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">stream</span>.<span class="ident">state</span>.<span class="ident">is_send_closed</span>() <span class="op">&amp;&amp;</span> <span class="ident">stream</span>.<span class="ident">buffered_send_data</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="comment">// We can&#39;t send any data, so don&#39;t bother doing anything else.</span>
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
         }
@@ -1165,7 +1164,7 @@
         <span class="ident">inc</span>: <span class="ident">WindowSize</span>,
         <span class="ident">store</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Store</span>,
         <span class="ident">counts</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Counts</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Reason</span><span class="op">&gt;</span> {
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Reason</span><span class="op">&gt;</span> {
         <span class="comment">// Update the connection&#39;s window</span>
         <span class="self">self</span>.<span class="ident">flow</span>.<span class="ident">inc_window</span>(<span class="ident">inc</span>)<span class="question-mark">?</span>;
 
@@ -1195,9 +1194,11 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_pending_capacity</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">store</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Store</span>, <span class="ident">counts</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Counts</span>) {
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">tracing</span>::<span class="macro">trace_span</span><span class="macro">!</span>(<span class="string">&quot;clear_pending_capacity&quot;</span>);
+        <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">enter</span>();
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stream</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">pending_capacity</span>.<span class="ident">pop</span>(<span class="ident">store</span>) {
             <span class="ident">counts</span>.<span class="ident">transition</span>(<span class="ident">stream</span>, <span class="op">|</span><span class="kw">_</span>, <span class="ident">stream</span><span class="op">|</span> {
-                <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;clear_pending_capacity; stream={:?}&quot;</span>, <span class="ident">stream</span>.<span class="ident">id</span>);
+                <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="question-mark">?</span><span class="ident">stream</span>.<span class="ident">id</span>, <span class="string">&quot;clear_pending_capacity&quot;</span>);
             })
         }
     }
@@ -1210,22 +1211,23 @@
     ) <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Resolve</span>,
     {
-        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;assign_connection_capacity; inc={}&quot;</span>, <span class="ident">inc</span>);
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">tracing</span>::<span class="macro">trace_span</span><span class="macro">!</span>(<span class="string">&quot;assign_connection_capacity&quot;</span>, <span class="ident">inc</span>);
+        <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">enter</span>();
 
         <span class="self">self</span>.<span class="ident">flow</span>.<span class="ident">assign_capacity</span>(<span class="ident">inc</span>);
 
         <span class="comment">// Assign newly acquired capacity to streams pending capacity.</span>
         <span class="kw">while</span> <span class="self">self</span>.<span class="ident">flow</span>.<span class="ident">available</span>() <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">pending_capacity</span>.<span class="ident">pop</span>(<span class="ident">store</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">stream</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">stream</span>,
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">stream</span>) <span class="op">=&gt;</span> <span class="ident">stream</span>,
+                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">return</span>,
             };
 
             <span class="comment">// Streams pending capacity may have been reset before capacity</span>
             <span class="comment">// became available. In that case, the stream won&#39;t want any</span>
             <span class="comment">// capacity, and so we shouldn&#39;t &quot;transition&quot; on it, but just evict</span>
             <span class="comment">// it and continue the loop.</span>
-            <span class="kw">if</span> <span class="op">!</span>(<span class="ident">stream</span>.<span class="ident">state</span>.<span class="ident">is_send_streaming</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">stream</span>.<span class="ident">buffered_send_data</span> <span class="op">&gt;</span> <span class="number">0</span>) {
+            <span class="kw">if</span> <span class="op">!</span>(<span class="ident">stream</span>.<span class="ident">state</span>.<span class="ident">is_send_streaming</span>() <span class="op">||</span> <span class="ident">stream</span>.<span class="ident">buffered_send_data</span> <span class="op">&gt;</span> <span class="number">0</span>) {
                 <span class="kw">continue</span>;
             }
 
@@ -1244,7 +1246,7 @@
 
         <span class="comment">// Total requested should never go below actual assigned</span>
         <span class="comment">// (Note: the window size can go lower than assigned)</span>
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">total_requested</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">available</span>());
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">total_requested</span> <span class="op">&gt;=</span> <span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">available</span>());
 
         <span class="comment">// The amount of additional capacity that the stream requests.</span>
         <span class="comment">// Don&#39;t assign more than the window has available!</span>
@@ -1253,18 +1255,17 @@
             <span class="comment">// Can&#39;t assign more than what is available</span>
             <span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">window_size</span>() <span class="op">-</span> <span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">available</span>().<span class="ident">as_size</span>(),
         );
-
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">tracing</span>::<span class="macro">trace_span</span><span class="macro">!</span>(<span class="string">&quot;try_assign_capacity&quot;</span>, <span class="question-mark">?</span><span class="ident">stream</span>.<span class="ident">id</span>);
+        <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">enter</span>();
         <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
-            <span class="string">&quot;try_assign_capacity; stream={:?}, requested={}; additional={}; buffered={}; window={}; conn={}&quot;</span>,
-            <span class="ident">stream</span>.<span class="ident">id</span>,
-            <span class="ident">total_requested</span>,
+            <span class="ident">requested</span> <span class="op">=</span> <span class="ident">total_requested</span>,
             <span class="ident">additional</span>,
-            <span class="ident">stream</span>.<span class="ident">buffered_send_data</span>,
-            <span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">window_size</span>(),
-            <span class="self">self</span>.<span class="ident">flow</span>.<span class="ident">available</span>()
+            <span class="ident">buffered</span> <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">buffered_send_data</span>,
+            <span class="ident">window</span> <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">window_size</span>(),
+            <span class="ident">conn</span> <span class="op">=</span> <span class="op">%</span><span class="self">self</span>.<span class="ident">flow</span>.<span class="ident">available</span>()
         );
 
-        <span class="kw">if</span> <span class="ident">additional</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">additional</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="comment">// Nothing more to do</span>
             <span class="kw">return</span>;
         }
@@ -1273,7 +1274,7 @@
         <span class="comment">// streaming state (more data could be sent) or there is buffered data</span>
         <span class="comment">// waiting to be sent.</span>
         <span class="macro">debug_assert</span><span class="macro">!</span>(
-            <span class="ident">stream</span>.<span class="ident">state</span>.<span class="ident">is_send_streaming</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">stream</span>.<span class="ident">buffered_send_data</span> <span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">stream</span>.<span class="ident">state</span>.<span class="ident">is_send_streaming</span>() <span class="op">||</span> <span class="ident">stream</span>.<span class="ident">buffered_send_data</span> <span class="op">&gt;</span> <span class="number">0</span>,
             <span class="string">&quot;state={:?}&quot;</span>,
             <span class="ident">stream</span>.<span class="ident">state</span>
         );
@@ -1287,7 +1288,7 @@
             <span class="comment">// TODO: Should prioritization factor into this?</span>
             <span class="kw">let</span> <span class="ident">assign</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">conn_available</span>, <span class="ident">additional</span>);
 
-            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;  assigning; stream={:?}, capacity={}&quot;</span>, <span class="ident">stream</span>.<span class="ident">id</span>, <span class="ident">assign</span>,);
+            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="ident">capacity</span> <span class="op">=</span> <span class="ident">assign</span>, <span class="string">&quot;assigning&quot;</span>);
 
             <span class="comment">// Assign the capacity to the stream</span>
             <span class="ident">stream</span>.<span class="ident">assign_capacity</span>(<span class="ident">assign</span>);
@@ -1297,15 +1298,14 @@
         }
 
         <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
-            <span class="string">&quot;try_assign_capacity(2); available={}; requested={}; buffered={}; has_unavailable={:?}&quot;</span>,
-            <span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">available</span>(),
-            <span class="ident">stream</span>.<span class="ident">requested_send_capacity</span>,
-            <span class="ident">stream</span>.<span class="ident">buffered_send_data</span>,
-            <span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">has_unavailable</span>()
+            <span class="ident">available</span> <span class="op">=</span> <span class="op">%</span><span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">available</span>(),
+            <span class="ident">requested</span> <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">requested_send_capacity</span>,
+            <span class="ident">buffered</span> <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">buffered_send_data</span>,
+            <span class="ident">has_unavailable</span> <span class="op">=</span> <span class="op">%</span><span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">has_unavailable</span>()
         );
 
         <span class="kw">if</span> <span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">available</span>() <span class="op">&lt;</span> <span class="ident">stream</span>.<span class="ident">requested_send_capacity</span>
-            <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">has_unavailable</span>()
+            <span class="op">&amp;&amp;</span> <span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">has_unavailable</span>()
         {
             <span class="comment">// The stream requires additional capacity and the stream&#39;s</span>
             <span class="comment">// window has available capacity, but the connection window</span>
@@ -1318,7 +1318,7 @@
 
         <span class="comment">// If data is buffered and the stream is send ready, then</span>
         <span class="comment">// schedule the stream for execution</span>
-        <span class="kw">if</span> <span class="ident">stream</span>.<span class="ident">buffered_send_data</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">stream</span>.<span class="ident">is_send_ready</span>() {
+        <span class="kw">if</span> <span class="ident">stream</span>.<span class="ident">buffered_send_data</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">stream</span>.<span class="ident">is_send_ready</span>() {
             <span class="comment">// TODO: This assertion isn&#39;t *exactly* correct. There can still be</span>
             <span class="comment">// buffered send data while the stream&#39;s pending send queue is</span>
             <span class="comment">// empty. This can happen when a large data frame is in the process</span>
@@ -1338,11 +1338,11 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_complete</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-        <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span>,
         <span class="ident">store</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Store</span>,
         <span class="ident">counts</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Counts</span>,
-        <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Codec</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Prioritized</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>
+        <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Codec</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Prioritized</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span>,
+    ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Unpin</span>,
         <span class="ident">B</span>: <span class="ident">Buf</span>,
@@ -1362,8 +1362,8 @@
             <span class="self">self</span>.<span class="ident">schedule_pending_open</span>(<span class="ident">store</span>, <span class="ident">counts</span>);
 
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">pop_frame</span>(<span class="ident">buffer</span>, <span class="ident">store</span>, <span class="ident">max_frame_len</span>, <span class="ident">counts</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">frame</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;writing frame={:?}&quot;</span>, <span class="ident">frame</span>);
+                <span class="prelude-val">Some</span>(<span class="ident">frame</span>) <span class="op">=&gt;</span> {
+                    <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;writing&quot;</span>);
 
                     <span class="macro">debug_assert_eq</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">in_flight_data_frame</span>, <span class="ident">InFlightData</span>::<span class="ident">Nothing</span>);
                     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Frame</span>::<span class="ident">Data</span>(<span class="kw-2">ref</span> <span class="ident">frame</span>) <span class="op">=</span> <span class="ident">frame</span> {
@@ -1377,7 +1377,7 @@
                     <span class="comment">// Because, always try to reclaim...</span>
                     <span class="self">self</span>.<span class="ident">reclaim_frame</span>(<span class="ident">buffer</span>, <span class="ident">store</span>, <span class="ident">dst</span>);
                 }
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">None</span> <span class="op">=&gt;</span> {
                     <span class="comment">// Try to flush the codec.</span>
                     <span class="macro">ready</span><span class="macro">!</span>(<span class="ident">dst</span>.<span class="ident">flush</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
 
@@ -1402,33 +1402,34 @@
     <span class="doccomment">/// In this case, the stream needs to be reprioritized.</span>
     <span class="kw">fn</span> <span class="ident">reclaim_frame</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span>,
         <span class="ident">store</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Store</span>,
-        <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Codec</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Prioritized</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
+        <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Codec</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Prioritized</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span>,
+    ) <span class="op">-&gt;</span> <span class="ident">bool</span>
     <span class="kw">where</span>
         <span class="ident">B</span>: <span class="ident">Buf</span>,
     {
-        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;try reclaim frame&quot;</span>);
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">tracing</span>::<span class="macro">trace_span</span><span class="macro">!</span>(<span class="string">&quot;try_reclaim_frame&quot;</span>);
+        <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">enter</span>();
 
         <span class="comment">// First check if there are any data chunks to take back</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">frame</span>) <span class="op">=</span> <span class="ident">dst</span>.<span class="ident">take_last_data_frame</span>() {
             <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
-                <span class="string">&quot;  -&gt; reclaimed; frame={:?}; sz={}&quot;</span>,
-                <span class="ident">frame</span>,
-                <span class="ident">frame</span>.<span class="ident">payload</span>().<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">remaining</span>()
+                <span class="question-mark">?</span><span class="ident">frame</span>,
+                <span class="ident">sz</span> <span class="op">=</span> <span class="ident">frame</span>.<span class="ident">payload</span>().<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">remaining</span>(),
+                <span class="string">&quot;reclaimed&quot;</span>
             );
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">eos</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">frame</span>.<span class="ident">payload</span>().<span class="ident">stream</span>;
 
             <span class="kw">match</span> <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">in_flight_data_frame</span>, <span class="ident">InFlightData</span>::<span class="ident">Nothing</span>) {
-                <span class="ident">InFlightData</span>::<span class="ident">Nothing</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;wasn&#39;t expecting a frame to reclaim&quot;</span>),
-                <span class="ident">InFlightData</span>::<span class="ident">Drop</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">InFlightData</span>::<span class="ident">Nothing</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;wasn&#39;t expecting a frame to reclaim&quot;</span>),
+                <span class="ident">InFlightData</span>::<span class="ident">Drop</span> <span class="op">=&gt;</span> {
                     <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;not reclaiming frame for cancelled stream&quot;</span>);
                     <span class="kw">return</span> <span class="bool-val">false</span>;
                 }
-                <span class="ident">InFlightData</span>::<span class="ident">DataFrame</span>(<span class="ident">k</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">InFlightData</span>::<span class="ident">DataFrame</span>(<span class="ident">k</span>) <span class="op">=&gt;</span> {
                     <span class="macro">debug_assert_eq</span><span class="macro">!</span>(<span class="ident">k</span>, <span class="ident">key</span>);
                 }
             }
@@ -1460,7 +1461,7 @@
     <span class="kw">fn</span> <span class="ident">push_back_frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">frame</span>: <span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-        <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span>,
         <span class="ident">stream</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">store</span>::<span class="ident">Ptr</span>,
     ) {
         <span class="comment">// Push the frame to the front of the stream&#39;s deque</span>
@@ -1473,18 +1474,19 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_queue</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">stream</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">store</span>::<span class="ident">Ptr</span>) {
-        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;clear_queue; stream={:?}&quot;</span>, <span class="ident">stream</span>.<span class="ident">id</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_queue</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span>, <span class="ident">stream</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">store</span>::<span class="ident">Ptr</span>) {
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">tracing</span>::<span class="macro">trace_span</span><span class="macro">!</span>(<span class="string">&quot;clear_queue&quot;</span>, <span class="question-mark">?</span><span class="ident">stream</span>.<span class="ident">id</span>);
+        <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">enter</span>();
 
         <span class="comment">// TODO: make this more efficient?</span>
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">frame</span>) <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">pending_send</span>.<span class="ident">pop_front</span>(<span class="ident">buffer</span>) {
-            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;dropping; frame={:?}&quot;</span>, <span class="ident">frame</span>);
+            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;dropping&quot;</span>);
         }
 
         <span class="ident">stream</span>.<span class="ident">buffered_send_data</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="ident">stream</span>.<span class="ident">requested_send_capacity</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">InFlightData</span>::<span class="ident">DataFrame</span>(<span class="ident">key</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">in_flight_data_frame</span> {
-            <span class="kw">if</span> <span class="ident">stream</span>.<span class="ident">key</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">key</span> {
+            <span class="kw">if</span> <span class="ident">stream</span>.<span class="ident">key</span>() <span class="op">==</span> <span class="ident">key</span> {
                 <span class="comment">// This stream could get cleaned up now - don&#39;t allow the buffered frame to get reclaimed.</span>
                 <span class="self">self</span>.<span class="ident">in_flight_data_frame</span> <span class="op">=</span> <span class="ident">InFlightData</span>::<span class="ident">Drop</span>;
             }
@@ -1507,24 +1509,22 @@
 
     <span class="kw">fn</span> <span class="ident">pop_frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span>,
         <span class="ident">store</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Store</span>,
         <span class="ident">max_len</span>: <span class="ident">usize</span>,
         <span class="ident">counts</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Counts</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">Prioritized</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">Prioritized</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">B</span>: <span class="ident">Buf</span>,
     {
-        <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;pop_frame&quot;</span>);
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">tracing</span>::<span class="macro">trace_span</span><span class="macro">!</span>(<span class="string">&quot;pop_frame&quot;</span>);
+        <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">enter</span>();
 
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">pending_send</span>.<span class="ident">pop</span>(<span class="ident">store</span>) {
-                <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">stream</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
-                        <span class="string">&quot;pop_frame; stream={:?}; stream.state={:?}&quot;</span>,
-                        <span class="ident">stream</span>.<span class="ident">id</span>,
-                        <span class="ident">stream</span>.<span class="ident">state</span>
-                    );
+                <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">stream</span>) <span class="op">=&gt;</span> {
+                    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">tracing</span>::<span class="macro">trace_span</span><span class="macro">!</span>(<span class="string">&quot;popped&quot;</span>, <span class="question-mark">?</span><span class="ident">stream</span>.<span class="ident">id</span>, <span class="question-mark">?</span><span class="ident">stream</span>.<span class="ident">state</span>);
+                    <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">enter</span>();
 
                     <span class="comment">// It&#39;s possible that this stream, besides having data to send,</span>
                     <span class="comment">// is also queued to send a reset, and thus is already in the queue</span>
@@ -1533,38 +1533,29 @@
                     <span class="comment">// To be safe, we just always ask the stream.</span>
                     <span class="kw">let</span> <span class="ident">is_pending_reset</span> <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">is_pending_reset_expiration</span>();
 
-                    <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
-                        <span class="string">&quot; --&gt; stream={:?}; is_pending_reset={:?};&quot;</span>,
-                        <span class="ident">stream</span>.<span class="ident">id</span>,
-                        <span class="ident">is_pending_reset</span>
-                    );
+                    <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="ident">is_pending_reset</span>);
 
                     <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">stream</span>.<span class="ident">pending_send</span>.<span class="ident">pop_front</span>(<span class="ident">buffer</span>) {
-                        <span class="prelude-val">Some</span>(<span class="ident">Frame</span>::<span class="ident">Data</span>(<span class="kw-2">mut</span> <span class="ident">frame</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Some</span>(<span class="ident">Frame</span>::<span class="ident">Data</span>(<span class="kw-2">mut</span> <span class="ident">frame</span>)) <span class="op">=&gt;</span> {
                             <span class="comment">// Get the amount of capacity remaining for stream&#39;s</span>
                             <span class="comment">// window.</span>
                             <span class="kw">let</span> <span class="ident">stream_capacity</span> <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">available</span>();
                             <span class="kw">let</span> <span class="ident">sz</span> <span class="op">=</span> <span class="ident">frame</span>.<span class="ident">payload</span>().<span class="ident">remaining</span>();
 
                             <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
-                                <span class="string">&quot; --&gt; data frame; stream={:?}; sz={}; eos={:?}; window={}; \
-                                 available={}; requested={}; buffered={};&quot;</span>,
-                                <span class="ident">frame</span>.<span class="ident">stream_id</span>(),
                                 <span class="ident">sz</span>,
-                                <span class="ident">frame</span>.<span class="ident">is_end_stream</span>(),
-                                <span class="ident">stream_capacity</span>,
-                                <span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">available</span>(),
-                                <span class="ident">stream</span>.<span class="ident">requested_send_capacity</span>,
-                                <span class="ident">stream</span>.<span class="ident">buffered_send_data</span>,
+                                <span class="ident">eos</span> <span class="op">=</span> <span class="ident">frame</span>.<span class="ident">is_end_stream</span>(),
+                                <span class="ident">window</span> <span class="op">=</span> <span class="op">%</span><span class="ident">stream_capacity</span>,
+                                <span class="ident">available</span> <span class="op">=</span> <span class="op">%</span><span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">available</span>(),
+                                <span class="ident">requested</span> <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">requested_send_capacity</span>,
+                                <span class="ident">buffered</span> <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">buffered_send_data</span>,
+                                <span class="string">&quot;data frame&quot;</span>
                             );
 
                             <span class="comment">// Zero length data frames always have capacity to</span>
                             <span class="comment">// be sent.</span>
-                            <span class="kw">if</span> <span class="ident">sz</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">stream_capacity</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-                                <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(
-                                    <span class="string">&quot; --&gt; stream capacity is 0; requested={}&quot;</span>,
-                                    <span class="ident">stream</span>.<span class="ident">requested_send_capacity</span>
-                                );
+                            <span class="kw">if</span> <span class="ident">sz</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">stream_capacity</span> <span class="op">==</span> <span class="number">0</span> {
+                                <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;stream capacity is 0&quot;</span>);
 
                                 <span class="comment">// Ensure that the stream is waiting for</span>
                                 <span class="comment">// connection level capacity</span>
@@ -1590,36 +1581,40 @@
 
                             <span class="comment">// There *must* be be enough connection level</span>
                             <span class="comment">// capacity at this point.</span>
-                            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">flow</span>.<span class="ident">window_size</span>());
+                            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">len</span> <span class="op">&lt;=</span> <span class="self">self</span>.<span class="ident">flow</span>.<span class="ident">window_size</span>());
 
-                            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot; --&gt; sending data frame; len={}&quot;</span>, <span class="ident">len</span>);
+                            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="ident">len</span>, <span class="string">&quot;sending data frame&quot;</span>);
 
                             <span class="comment">// Update the flow control</span>
-                            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot; -- updating stream flow --&quot;</span>);
-                            <span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">send_data</span>(<span class="ident">len</span>);
+                            <span class="ident">tracing</span>::<span class="macro">trace_span</span><span class="macro">!</span>(<span class="string">&quot;updating stream flow&quot;</span>).<span class="ident">in_scope</span>(<span class="op">||</span> {
+                                <span class="ident">stream</span>.<span class="ident">send_flow</span>.<span class="ident">send_data</span>(<span class="ident">len</span>);
 
-                            <span class="comment">// Decrement the stream&#39;s buffered data counter</span>
-                            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">stream</span>.<span class="ident">buffered_send_data</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">len</span>);
-                            <span class="ident">stream</span>.<span class="ident">buffered_send_data</span> <span class="op">-</span><span class="op">=</span> <span class="ident">len</span>;
-                            <span class="ident">stream</span>.<span class="ident">requested_send_capacity</span> <span class="op">-</span><span class="op">=</span> <span class="ident">len</span>;
+                                <span class="comment">// Decrement the stream&#39;s buffered data counter</span>
+                                <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">stream</span>.<span class="ident">buffered_send_data</span> <span class="op">&gt;=</span> <span class="ident">len</span>);
+                                <span class="ident">stream</span>.<span class="ident">buffered_send_data</span> <span class="op">-=</span> <span class="ident">len</span>;
+                                <span class="ident">stream</span>.<span class="ident">requested_send_capacity</span> <span class="op">-=</span> <span class="ident">len</span>;
 
-                            <span class="comment">// Assign the capacity back to the connection that</span>
-                            <span class="comment">// was just consumed from the stream in the previous</span>
-                            <span class="comment">// line.</span>
-                            <span class="self">self</span>.<span class="ident">flow</span>.<span class="ident">assign_capacity</span>(<span class="ident">len</span>);
+                                <span class="comment">// Assign the capacity back to the connection that</span>
+                                <span class="comment">// was just consumed from the stream in the previous</span>
+                                <span class="comment">// line.</span>
+                                <span class="self">self</span>.<span class="ident">flow</span>.<span class="ident">assign_capacity</span>(<span class="ident">len</span>);
+                            });
 
-                            <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot; -- updating connection flow --&quot;</span>);
-                            <span class="self">self</span>.<span class="ident">flow</span>.<span class="ident">send_data</span>(<span class="ident">len</span>);
+                            <span class="kw">let</span> (<span class="ident">eos</span>, <span class="ident">len</span>) <span class="op">=</span> <span class="ident">tracing</span>::<span class="macro">trace_span</span><span class="macro">!</span>(<span class="string">&quot;updating connection flow&quot;</span>)
+                                .<span class="ident">in_scope</span>(<span class="op">||</span> {
+                                    <span class="self">self</span>.<span class="ident">flow</span>.<span class="ident">send_data</span>(<span class="ident">len</span>);
 
-                            <span class="comment">// Wrap the frame&#39;s data payload to ensure that the</span>
-                            <span class="comment">// correct amount of data gets written.</span>
+                                    <span class="comment">// Wrap the frame&#39;s data payload to ensure that the</span>
+                                    <span class="comment">// correct amount of data gets written.</span>
 
-                            <span class="kw">let</span> <span class="ident">eos</span> <span class="op">=</span> <span class="ident">frame</span>.<span class="ident">is_end_stream</span>();
-                            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">len</span> <span class="kw">as</span> <span class="ident">usize</span>;
+                                    <span class="kw">let</span> <span class="ident">eos</span> <span class="op">=</span> <span class="ident">frame</span>.<span class="ident">is_end_stream</span>();
+                                    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">len</span> <span class="kw">as</span> <span class="ident">usize</span>;
 
-                            <span class="kw">if</span> <span class="ident">frame</span>.<span class="ident">payload</span>().<span class="ident">remaining</span>() <span class="op">&gt;</span> <span class="ident">len</span> {
-                                <span class="ident">frame</span>.<span class="ident">set_end_stream</span>(<span class="bool-val">false</span>);
-                            }
+                                    <span class="kw">if</span> <span class="ident">frame</span>.<span class="ident">payload</span>().<span class="ident">remaining</span>() <span class="op">&gt;</span> <span class="ident">len</span> {
+                                        <span class="ident">frame</span>.<span class="ident">set_end_stream</span>(<span class="bool-val">false</span>);
+                                    }
+                                    (<span class="ident">eos</span>, <span class="ident">len</span>)
+                                });
 
                             <span class="ident">Frame</span>::<span class="ident">Data</span>(<span class="ident">frame</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">buf</span><span class="op">|</span> <span class="ident">Prioritized</span> {
                                 <span class="ident">inner</span>: <span class="ident">buf</span>.<span class="ident">take</span>(<span class="ident">len</span>),
@@ -1627,7 +1622,7 @@
                                 <span class="ident">stream</span>: <span class="ident">stream</span>.<span class="ident">key</span>(),
                             }))
                         }
-                        <span class="prelude-val">Some</span>(<span class="ident">Frame</span>::<span class="ident">PushPromise</span>(<span class="ident">pp</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Some</span>(<span class="ident">Frame</span>::<span class="ident">PushPromise</span>(<span class="ident">pp</span>)) <span class="op">=&gt;</span> {
                             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pushed</span> <span class="op">=</span>
                                 <span class="ident">stream</span>.<span class="ident">store_mut</span>().<span class="ident">find_mut</span>(<span class="kw-2">&amp;</span><span class="ident">pp</span>.<span class="ident">promised_id</span>()).<span class="ident">unwrap</span>();
                             <span class="ident">pushed</span>.<span class="ident">is_pending_push</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -1643,13 +1638,13 @@
                             }
                             <span class="ident">Frame</span>::<span class="ident">PushPromise</span>(<span class="ident">pp</span>)
                         }
-                        <span class="prelude-val">Some</span>(<span class="ident">frame</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">frame</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                        <span class="prelude-val">Some</span>(<span class="ident">frame</span>) <span class="op">=&gt;</span> <span class="ident">frame</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
                             <span class="macro">unreachable</span><span class="macro">!</span>(
                                 <span class="string">&quot;Frame::map closure will only be called \
                                  on DATA frames.&quot;</span>
                             )
                         }),
-                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">None</span> <span class="op">=&gt;</span> {
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">reason</span>) <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">state</span>.<span class="ident">get_scheduled_reset</span>() {
                                 <span class="ident">stream</span>.<span class="ident">state</span>.<span class="ident">set_reset</span>(<span class="ident">reason</span>);
 
@@ -1672,12 +1667,12 @@
 
                     <span class="ident">tracing</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;pop_frame; frame={:?}&quot;</span>, <span class="ident">frame</span>);
 
-                    <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">debug_assertions</span>) <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">stream</span>.<span class="ident">state</span>.<span class="ident">is_idle</span>() {
+                    <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">debug_assertions</span>) <span class="op">&amp;&amp;</span> <span class="ident">stream</span>.<span class="ident">state</span>.<span class="ident">is_idle</span>() {
                         <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">stream</span>.<span class="ident">id</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">last_opened_id</span>);
                         <span class="self">self</span>.<span class="ident">last_opened_id</span> <span class="op">=</span> <span class="ident">stream</span>.<span class="ident">id</span>;
                     }
 
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">stream</span>.<span class="ident">pending_send</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">stream</span>.<span class="ident">state</span>.<span class="ident">is_scheduled_reset</span>() {
+                    <span class="kw">if</span> <span class="op">!</span><span class="ident">stream</span>.<span class="ident">pending_send</span>.<span class="ident">is_empty</span>() <span class="op">||</span> <span class="ident">stream</span>.<span class="ident">state</span>.<span class="ident">is_scheduled_reset</span>() {
                         <span class="comment">// TODO: Only requeue the sender IF it is ready to send</span>
                         <span class="comment">// the next frame. i.e. don&#39;t requeue it if the next</span>
                         <span class="comment">// frame is a data frame and the stream does not have</span>
@@ -1689,7 +1684,7 @@
 
                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">frame</span>);
                 }
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
+                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
             }
         }
     }
@@ -1717,11 +1712,11 @@
 <span class="kw">where</span>
     <span class="ident">B</span>: <span class="ident">Buf</span>,
 {
-    <span class="kw">fn</span> <span class="ident">remaining</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">remaining</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">remaining</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+    <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">bytes</span>()
     }
 
@@ -1731,7 +1726,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">Buf</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Prioritized</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="ident">fmt</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Prioritized&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;remaining&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">remaining</span>())
             .<span class="ident">field</span>(<span class="string">&quot;end_of_stream&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">end_of_stream</span>)

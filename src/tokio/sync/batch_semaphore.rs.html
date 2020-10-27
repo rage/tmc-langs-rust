@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.22/src/sync/batch_semaphore.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>batch_semaphore.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.22/src/sync/batch_semaphore.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>batch_semaphore.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -632,7 +633,7 @@
     <span class="doccomment">/// # Safety</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This may only be accessed while the wait queue is locked.</span>
-    <span class="ident">waker</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Waker</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">waker</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Waker</span><span class="op">&gt;&gt;</span>,
 
     <span class="doccomment">/// Intrusive linked-list pointers.</span>
     <span class="doccomment">///</span>
@@ -660,21 +661,21 @@
     <span class="doccomment">/// implementation used three bits, so we will continue to reserve them to</span>
     <span class="doccomment">/// avoid a breaking change if additional flags need to be aadded in the</span>
     <span class="doccomment">/// future.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">MAX_PERMITS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">usize</span>::<span class="ident">MAX</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">3</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">MAX_PERMITS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">usize</span>::<span class="ident">MAX</span> <span class="op">&gt;&gt;</span> <span class="number">3</span>;
     <span class="kw">const</span> <span class="ident">CLOSED</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
     <span class="kw">const</span> <span class="ident">PERMIT_SHIFT</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
 
     <span class="doccomment">/// Creates a new semaphore with the initial number of permits</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Maximum number of permits on 32-bit platforms is `1&lt;&lt;29`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">permits</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">permits</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="macro">assert</span><span class="macro">!</span>(
-            <span class="ident">permits</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">MAX_PERMITS</span>,
+            <span class="ident">permits</span> <span class="op">&lt;=</span> <span class="self">Self</span>::<span class="ident">MAX_PERMITS</span>,
             <span class="string">&quot;a semaphore may not have more than MAX_PERMITS permits ({})&quot;</span>,
             <span class="self">Self</span>::<span class="ident">MAX_PERMITS</span>
         );
         <span class="self">Self</span> {
-            <span class="ident">permits</span>: <span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="ident">permits</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">Self</span>::<span class="ident">PERMIT_SHIFT</span>),
+            <span class="ident">permits</span>: <span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="ident">permits</span> <span class="op">&lt;&lt;</span> <span class="self">Self</span>::<span class="ident">PERMIT_SHIFT</span>),
             <span class="ident">waiters</span>: <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">Waitlist</span> {
                 <span class="ident">queue</span>: <span class="ident">LinkedList</span>::<span class="ident">new</span>(),
                 <span class="ident">closed</span>: <span class="bool-val">false</span>,
@@ -683,15 +684,15 @@
     }
 
     <span class="doccomment">/// Returns the current number of available permits</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">available_permits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">permits</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">PERMIT_SHIFT</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">available_permits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="ident">permits</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>) <span class="op">&gt;&gt;</span> <span class="self">Self</span>::<span class="ident">PERMIT_SHIFT</span>
     }
 
     <span class="doccomment">/// Adds `added` new permits to the semaphore.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The maximum number of permits is `usize::MAX &gt;&gt; 3`, and this function will panic if the limit is exceeded.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">release</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">added</span>: <span class="ident">usize</span>) {
-        <span class="kw">if</span> <span class="ident">added</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">added</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">return</span>;
         }
 
@@ -723,13 +724,13 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_acquire</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">num_permits</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TryAcquireError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_acquire</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">num_permits</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TryAcquireError</span><span class="op">&gt;</span> {
         <span class="macro">assert</span><span class="macro">!</span>(
-            <span class="ident">num_permits</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">MAX_PERMITS</span>,
+            <span class="ident">num_permits</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&lt;=</span> <span class="self">Self</span>::<span class="ident">MAX_PERMITS</span>,
             <span class="string">&quot;a semaphore may not have more than MAX_PERMITS permits ({})&quot;</span>,
             <span class="self">Self</span>::<span class="ident">MAX_PERMITS</span>
         );
-        <span class="kw">let</span> <span class="ident">num_permits</span> <span class="op">=</span> (<span class="ident">num_permits</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">Self</span>::<span class="ident">PERMIT_SHIFT</span>;
+        <span class="kw">let</span> <span class="ident">num_permits</span> <span class="op">=</span> (<span class="ident">num_permits</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;&lt;</span> <span class="self">Self</span>::<span class="ident">PERMIT_SHIFT</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">permits</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>);
         <span class="kw">loop</span> {
             <span class="comment">// Has the semaphore closed?git</span>
@@ -745,13 +746,13 @@
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">curr</span> <span class="op">-</span> <span class="ident">num_permits</span>;
 
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">permits</span>.<span class="ident">compare_exchange</span>(<span class="ident">curr</span>, <span class="ident">next</span>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
-                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">actual</span>,
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
+                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=&gt;</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">actual</span>,
             }
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">acquire</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">num_permits</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Acquire</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">acquire</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">num_permits</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">Acquire</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="ident">Acquire</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">num_permits</span>)
     }
 
@@ -765,16 +766,16 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lock</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">waiters</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_empty</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">while</span> <span class="ident">rem</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <span class="ident">lock</span>.<span class="ident">take</span>().<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">waiters</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>());
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <span class="ident">lock</span>.<span class="ident">take</span>().<span class="ident">unwrap_or_else</span>(<span class="op">||</span> <span class="self">self</span>.<span class="ident">waiters</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>());
             <span class="lifetime">&#39;inner</span>: <span class="kw">for</span> <span class="ident">slot</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">wakers</span>[..] {
                 <span class="comment">// Was the waiter assigned enough permits to wake it?</span>
                 <span class="kw">match</span> <span class="ident">waiters</span>.<span class="ident">queue</span>.<span class="ident">last</span>() {
-                    <span class="prelude-val">Some</span>(<span class="ident">waiter</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">waiter</span>) <span class="op">=&gt;</span> {
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">waiter</span>.<span class="ident">assign_permits</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rem</span>) {
                             <span class="kw">break</span> <span class="lifetime">&#39;inner</span>;
                         }
                     }
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">None</span> <span class="op">=&gt;</span> {
                         <span class="ident">is_empty</span> <span class="op">=</span> <span class="bool-val">true</span>;
                         <span class="comment">// If we assigned permits to all the waiters in the queue, and there are</span>
                         <span class="comment">// still permits left over, assign them back to the semaphore.</span>
@@ -785,16 +786,16 @@
                 <span class="kw-2">*</span><span class="ident">slot</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">waiter</span>.<span class="ident">as_mut</span>().<span class="ident">waker</span>.<span class="ident">with_mut</span>(<span class="op">|</span><span class="ident">waker</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">waker</span>).<span class="ident">take</span>()) };
             }
 
-            <span class="kw">if</span> <span class="ident">rem</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">is_empty</span> {
-                <span class="kw">let</span> <span class="ident">permits</span> <span class="op">=</span> <span class="ident">rem</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">Self</span>::<span class="ident">PERMIT_SHIFT</span>;
+            <span class="kw">if</span> <span class="ident">rem</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">is_empty</span> {
+                <span class="kw">let</span> <span class="ident">permits</span> <span class="op">=</span> <span class="ident">rem</span> <span class="op">&lt;&lt;</span> <span class="self">Self</span>::<span class="ident">PERMIT_SHIFT</span>;
                 <span class="macro">assert</span><span class="macro">!</span>(
                     <span class="ident">permits</span> <span class="op">&lt;</span> <span class="self">Self</span>::<span class="ident">MAX_PERMITS</span>,
                     <span class="string">&quot;cannot add more than MAX_PERMITS permits ({})&quot;</span>,
                     <span class="self">Self</span>::<span class="ident">MAX_PERMITS</span>
                 );
-                <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">permits</span>.<span class="ident">fetch_add</span>(<span class="ident">rem</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">Self</span>::<span class="ident">PERMIT_SHIFT</span>, <span class="ident">Release</span>);
+                <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">permits</span>.<span class="ident">fetch_add</span>(<span class="ident">rem</span> <span class="op">&lt;&lt;</span> <span class="self">Self</span>::<span class="ident">PERMIT_SHIFT</span>, <span class="ident">Release</span>);
                 <span class="macro">assert</span><span class="macro">!</span>(
-                    <span class="ident">prev</span> <span class="op">+</span> <span class="ident">permits</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">MAX_PERMITS</span>,
+                    <span class="ident">prev</span> <span class="op">+</span> <span class="ident">permits</span> <span class="op">&lt;=</span> <span class="self">Self</span>::<span class="ident">MAX_PERMITS</span>,
                     <span class="string">&quot;number of added permits ({}) would overflow MAX_PERMITS ({})&quot;</span>,
                     <span class="ident">rem</span>,
                     <span class="self">Self</span>::<span class="ident">MAX_PERMITS</span>
@@ -819,13 +820,13 @@
         <span class="ident">num_permits</span>: <span class="ident">u32</span>,
         <span class="ident">node</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Waiter</span><span class="op">&gt;</span>,
         <span class="ident">queued</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AcquireError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AcquireError</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">acquired</span> <span class="op">=</span> <span class="number">0</span>;
 
         <span class="kw">let</span> <span class="ident">needed</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">queued</span> {
-            <span class="ident">node</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">Self</span>::<span class="ident">PERMIT_SHIFT</span>
+            <span class="ident">node</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>) <span class="op">&lt;&lt;</span> <span class="self">Self</span>::<span class="ident">PERMIT_SHIFT</span>
         } <span class="kw">else</span> {
-            (<span class="ident">num_permits</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">Self</span>::<span class="ident">PERMIT_SHIFT</span>
+            (<span class="ident">num_permits</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;&lt;</span> <span class="self">Self</span>::<span class="ident">PERMIT_SHIFT</span>
         };
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lock</span> <span class="op">=</span> <span class="prelude-val">None</span>;
@@ -842,15 +843,15 @@
             <span class="kw">let</span> <span class="ident">total</span> <span class="op">=</span> <span class="ident">curr</span>
                 .<span class="ident">checked_add</span>(<span class="ident">acquired</span>)
                 .<span class="ident">expect</span>(<span class="string">&quot;number of permits must not overflow&quot;</span>);
-            <span class="kw">let</span> (<span class="ident">next</span>, <span class="ident">acq</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">total</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">needed</span> {
+            <span class="kw">let</span> (<span class="ident">next</span>, <span class="ident">acq</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">total</span> <span class="op">&gt;=</span> <span class="ident">needed</span> {
                 <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">curr</span> <span class="op">-</span> (<span class="ident">needed</span> <span class="op">-</span> <span class="ident">acquired</span>);
-                (<span class="ident">next</span>, <span class="ident">needed</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">PERMIT_SHIFT</span>)
+                (<span class="ident">next</span>, <span class="ident">needed</span> <span class="op">&gt;&gt;</span> <span class="self">Self</span>::<span class="ident">PERMIT_SHIFT</span>)
             } <span class="kw">else</span> {
                 <span class="ident">remaining</span> <span class="op">=</span> (<span class="ident">needed</span> <span class="op">-</span> <span class="ident">acquired</span>) <span class="op">-</span> <span class="ident">curr</span>;
-                (<span class="number">0</span>, <span class="ident">curr</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">PERMIT_SHIFT</span>)
+                (<span class="number">0</span>, <span class="ident">curr</span> <span class="op">&gt;&gt;</span> <span class="self">Self</span>::<span class="ident">PERMIT_SHIFT</span>)
             };
 
-            <span class="kw">if</span> <span class="ident">remaining</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">lock</span>.<span class="ident">is_none</span>() {
+            <span class="kw">if</span> <span class="ident">remaining</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">lock</span>.<span class="ident">is_none</span>() {
                 <span class="comment">// No permits were immediately available, so this permit will</span>
                 <span class="comment">// (probably) need to wait. We&#39;ll need to acquire a lock on the</span>
                 <span class="comment">// wait queue before continuing. We need to do this _before_ the</span>
@@ -862,9 +863,9 @@
             }
 
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">permits</span>.<span class="ident">compare_exchange</span>(<span class="ident">curr</span>, <span class="ident">next</span>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">acquired</span> <span class="op">+</span><span class="op">=</span> <span class="ident">acq</span>;
-                    <span class="kw">if</span> <span class="ident">remaining</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
+                    <span class="ident">acquired</span> <span class="op">+=</span> <span class="ident">acq</span>;
+                    <span class="kw">if</span> <span class="ident">remaining</span> <span class="op">==</span> <span class="number">0</span> {
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">queued</span> {
                             <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()));
                         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lock</span>.<span class="ident">is_none</span>() {
@@ -873,7 +874,7 @@
                     }
                     <span class="kw">break</span> <span class="ident">lock</span>.<span class="ident">expect</span>(<span class="string">&quot;lock must be acquired before waiting&quot;</span>);
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">actual</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=&gt;</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">actual</span>,
             }
         };
 
@@ -917,7 +918,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Semaphore</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="ident">fmt</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Semaphore&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;permits&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">permits</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>))
             .<span class="ident">finish</span>()
@@ -925,7 +926,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Waiter</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_permits</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_permits</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="ident">Waiter</span> {
             <span class="ident">waker</span>: <span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>),
             <span class="ident">state</span>: <span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="ident">num_permits</span> <span class="kw">as</span> <span class="ident">usize</span>),
@@ -937,17 +938,17 @@
     <span class="doccomment">/// Assign permits to the waiter.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `true` if the waiter should be removed from the queue</span>
-    <span class="kw">fn</span> <span class="ident">assign_permits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">assign_permits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>);
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">assign</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">curr</span>, <span class="kw-2">*</span><span class="ident">n</span>);
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">curr</span> <span class="op">-</span> <span class="ident">assign</span>;
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(<span class="ident">curr</span>, <span class="ident">next</span>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw-2">*</span><span class="ident">n</span> <span class="op">-</span><span class="op">=</span> <span class="ident">assign</span>;
-                    <span class="kw">return</span> <span class="ident">next</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>;
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
+                    <span class="kw-2">*</span><span class="ident">n</span> <span class="op">-=</span> <span class="ident">assign</span>;
+                    <span class="kw">return</span> <span class="ident">next</span> <span class="op">==</span> <span class="number">0</span>;
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">actual</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=&gt;</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">actual</span>,
             }
         }
     }
@@ -956,18 +957,18 @@
 <span class="kw">impl</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">Acquire</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AcquireError</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
         <span class="comment">// First, ensure the current task has enough budget to proceed.</span>
         <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">ready</span><span class="macro">!</span>(<span class="kw">crate</span>::<span class="ident">coop</span>::<span class="ident">poll_proceed</span>(<span class="ident">cx</span>));
 
         <span class="kw">let</span> (<span class="ident">node</span>, <span class="ident">semaphore</span>, <span class="ident">needed</span>, <span class="ident">queued</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
 
         <span class="kw">match</span> <span class="ident">semaphore</span>.<span class="ident">poll_acquire</span>(<span class="ident">cx</span>, <span class="ident">needed</span>, <span class="ident">node</span>, <span class="kw-2">*</span><span class="ident">queued</span>) {
-            <span class="ident">Pending</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Pending</span> <span class="op">=&gt;</span> {
                 <span class="kw-2">*</span><span class="ident">queued</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 <span class="ident">Pending</span>
             }
-            <span class="ident">Ready</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Ready</span>(<span class="ident">r</span>) <span class="op">=&gt;</span> {
                 <span class="ident">coop</span>.<span class="ident">made_progress</span>();
                 <span class="ident">r</span><span class="question-mark">?</span>;
                 <span class="kw-2">*</span><span class="ident">queued</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -978,7 +979,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Acquire</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">semaphore</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Semaphore</span>, <span class="ident">num_permits</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">semaphore</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Semaphore</span>, <span class="ident">num_permits</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">node</span>: <span class="ident">Waiter</span>::<span class="ident">new</span>(<span class="ident">num_permits</span>),
             <span class="ident">semaphore</span>,
@@ -987,7 +988,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">project</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Waiter</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="ident">Semaphore</span>, <span class="ident">u32</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bool</span>) {
+    <span class="kw">fn</span> <span class="ident">project</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> (<span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Waiter</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="ident">Semaphore</span>, <span class="ident">u32</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bool</span>) {
         <span class="kw">fn</span> <span class="ident">is_unpin</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Unpin</span><span class="op">&gt;</span>() {}
         <span class="kw">unsafe</span> {
             <span class="comment">// Safety: all fields other than `node` are `Unpin`</span>
@@ -1019,12 +1020,12 @@
         <span class="comment">// which means we must ensure that the waiter entry is no longer stored</span>
         <span class="comment">// in the linked list.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiters</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">semaphore</span>.<span class="ident">waiters</span>.<span class="ident">lock</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">lock</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">lock</span>,
+            <span class="prelude-val">Ok</span>(<span class="ident">lock</span>) <span class="op">=&gt;</span> <span class="ident">lock</span>,
             <span class="comment">// Removing the node from the linked list is necessary to ensure</span>
             <span class="comment">// safety. Even if the lock was poisoned, we need to make sure it is</span>
             <span class="comment">// removed from the linked list before dropping it --- otherwise,</span>
             <span class="comment">// the list will contain a dangling pointer to this node.</span>
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">into_inner</span>(),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="ident">e</span>.<span class="ident">into_inner</span>(),
         };
 
         <span class="comment">// remove the entry from the list</span>
@@ -1049,13 +1050,13 @@
 <span class="comment">// ===== impl AcquireError ====</span>
 
 <span class="kw">impl</span> <span class="ident">AcquireError</span> {
-    <span class="kw">fn</span> <span class="ident">closed</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AcquireError</span> {
+    <span class="kw">fn</span> <span class="ident">closed</span>() <span class="op">-&gt;</span> <span class="ident">AcquireError</span> {
         <span class="ident">AcquireError</span>(())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">AcquireError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="macro">write</span><span class="macro">!</span>(<span class="ident">fmt</span>, <span class="string">&quot;semaphore closed&quot;</span>)
     }
 }
@@ -1067,29 +1068,29 @@
 <span class="kw">impl</span> <span class="ident">TryAcquireError</span> {
     <span class="doccomment">/// Returns `true` if the error was caused by a closed semaphore.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span> <span class="comment">// may be used later!</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TryAcquireError</span>::<span class="ident">Closed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">TryAcquireError</span>::<span class="ident">Closed</span> <span class="op">=&gt;</span> <span class="bool-val">true</span>,
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns `true` if the error was caused by calling `try_acquire` on a</span>
     <span class="doccomment">/// semaphore with no available permits.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span> <span class="comment">// may be used later!</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_no_permits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_no_permits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TryAcquireError</span>::<span class="ident">NoPermits</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">TryAcquireError</span>::<span class="ident">NoPermits</span> <span class="op">=&gt;</span> <span class="bool-val">true</span>,
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">TryAcquireError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TryAcquireError</span>::<span class="ident">Closed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">fmt</span>, <span class="string">&quot;semaphore closed&quot;</span>),
-            <span class="ident">TryAcquireError</span>::<span class="ident">NoPermits</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">fmt</span>, <span class="string">&quot;no permits available&quot;</span>),
+            <span class="ident">TryAcquireError</span>::<span class="ident">Closed</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">fmt</span>, <span class="string">&quot;semaphore closed&quot;</span>),
+            <span class="ident">TryAcquireError</span>::<span class="ident">NoPermits</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">fmt</span>, <span class="string">&quot;no permits available&quot;</span>),
         }
     }
 }
@@ -1109,15 +1110,15 @@
     <span class="kw">type</span> <span class="ident">Handle</span> <span class="op">=</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>;
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">Waiter</span>;
 
-    <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Handle</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Handle</span>) <span class="op">-&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span> {
         <span class="kw-2">*</span><span class="ident">handle</span>
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span> {
         <span class="ident">ptr</span>
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">pointers</span>(<span class="kw-2">mut</span> <span class="ident">target</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">linked_list</span>::<span class="ident">Pointers</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">pointers</span>(<span class="kw-2">mut</span> <span class="ident">target</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">linked_list</span>::<span class="ident">Pointers</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;&gt;</span> {
         <span class="ident">NonNull</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">target</span>.<span class="ident">as_mut</span>().<span class="ident">pointers</span>)
     }
 }

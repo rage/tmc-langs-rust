@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["FxEventType","Types of FX events."]],"struct":[["FxController",""]],"trait":[["JavaFxSupport","Provides JavaFx support."]]});

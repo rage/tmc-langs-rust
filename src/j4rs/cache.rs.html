@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/j4rs-0.12.0/src/cache.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cache.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../j4rs/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/j4rs-0.13.0/src/cache.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cache.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../j4rs/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1751,6 +1752,44 @@
 <span id="1751">1751</span>
 <span id="1752">1752</span>
 <span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
+<span id="1758">1758</span>
+<span id="1759">1759</span>
+<span id="1760">1760</span>
+<span id="1761">1761</span>
+<span id="1762">1762</span>
+<span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
+<span id="1767">1767</span>
+<span id="1768">1768</span>
+<span id="1769">1769</span>
+<span id="1770">1770</span>
+<span id="1771">1771</span>
+<span id="1772">1772</span>
+<span id="1773">1773</span>
+<span id="1774">1774</span>
+<span id="1775">1775</span>
+<span id="1776">1776</span>
+<span id="1777">1777</span>
+<span id="1778">1778</span>
+<span id="1779">1779</span>
+<span id="1780">1780</span>
+<span id="1781">1781</span>
+<span id="1782">1782</span>
+<span id="1783">1783</span>
+<span id="1784">1784</span>
+<span id="1785">1785</span>
+<span id="1786">1786</span>
+<span id="1787">1787</span>
+<span id="1788">1788</span>
+<span id="1789">1789</span>
+<span id="1790">1790</span>
+<span id="1791">1791</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2018 astonbitecode</span>
 <span class="comment">//</span>
@@ -1774,9 +1813,11 @@
     <span class="self">self</span>,
     <span class="ident">jboolean</span>,
     <span class="ident">jclass</span>,
+    <span class="ident">jdouble</span>,
+    <span class="ident">jfloat</span>,
+    <span class="ident">jint</span>,
     <span class="ident">jmethodID</span>,
     <span class="ident">JNIEnv</span>,
-    <span class="ident">jint</span>,
     <span class="ident">jobject</span>,
     <span class="ident">jobjectArray</span>,
     <span class="ident">jsize</span>,
@@ -1794,30 +1835,34 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">UNKNOWN_FOR_RUST</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;known_in_java_world&quot;</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">J4RS_ARRAY</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;org.astonbitecode.j4rs.api.dtos.Array&quot;</span>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniGetMethodId</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">jni_sys</span>::<span class="ident">JNINativeInterface_</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">jni_sys</span>::<span class="ident">_jobject</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">jni_sys</span>::<span class="ident">_jmethodID</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniGetStaticMethodId</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">jni_sys</span>::<span class="ident">JNINativeInterface_</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">jni_sys</span>::<span class="ident">_jobject</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">jni_sys</span>::<span class="ident">_jmethodID</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniGetMethodId</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">jni_sys</span>::<span class="ident">JNINativeInterface_</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">jni_sys</span>::<span class="ident">_jobject</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">jni_sys</span>::<span class="ident">_jmethodID</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniGetStaticMethodId</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">jni_sys</span>::<span class="ident">JNINativeInterface_</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">jni_sys</span>::<span class="ident">_jobject</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">jni_sys</span>::<span class="ident">_jmethodID</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniNewObject</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">env</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="ident">clazz</span>: <span class="ident">jclass</span>, <span class="ident">methodID</span>: <span class="ident">jmethodID</span>, ...) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">jobject</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniNewStringUTF</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="ident">env</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="ident">utf</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">jstring</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniNewObject</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">env</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="ident">clazz</span>: <span class="ident">jclass</span>, <span class="ident">methodID</span>: <span class="ident">jmethodID</span>, ...) <span class="op">-&gt;</span> <span class="ident">jobject</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniNewStringUTF</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="ident">env</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="ident">utf</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-&gt;</span> <span class="ident">jstring</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniGetStringUTFChars</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="ident">env</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="ident">str</span>: <span class="ident">jstring</span>, <span class="ident">isCopy</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">jboolean</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniGetStringUTFChars</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="ident">env</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="ident">str</span>: <span class="ident">jstring</span>, <span class="ident">isCopy</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">jboolean</span>) <span class="op">-&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniReleaseStringUTFChars</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="ident">env</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="ident">str</span>: <span class="ident">jstring</span>, <span class="ident">utf</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>);
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniCallObjectMethod</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">env</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="ident">obj</span>: <span class="ident">jobject</span>, <span class="ident">methodID</span>: <span class="ident">jmethodID</span>, ...) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">jobject</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniCallObjectMethod</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">env</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="ident">obj</span>: <span class="ident">jobject</span>, <span class="ident">methodID</span>: <span class="ident">jmethodID</span>, ...) <span class="op">-&gt;</span> <span class="ident">jobject</span>;
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniCallFloatMethod</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="kw">_</span>: <span class="ident">jobject</span>, <span class="kw">_</span>: <span class="ident">jmethodID</span>, ...) <span class="op">-&gt;</span> <span class="ident">jfloat</span>;
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniCallDoubleMethod</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="kw">_</span>: <span class="ident">jobject</span>, <span class="kw">_</span>: <span class="ident">jmethodID</span>, ...) <span class="op">-&gt;</span> <span class="ident">jdouble</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniCallVoidMethod</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">env</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="ident">obj</span>: <span class="ident">jobject</span>, <span class="ident">methodID</span>: <span class="ident">jmethodID</span>, ...);
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniCallStaticObjectMethod</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">env</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="ident">obj</span>: <span class="ident">jobject</span>, <span class="ident">methodID</span>: <span class="ident">jmethodID</span>, ...) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">jobject</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniNewObjectArray</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="ident">env</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="ident">len</span>: <span class="ident">jsize</span>, <span class="ident">clazz</span>: <span class="ident">jclass</span>, <span class="ident">init</span>: <span class="ident">jobject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">jobjectArray</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniCallStaticObjectMethod</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">env</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="ident">obj</span>: <span class="ident">jobject</span>, <span class="ident">methodID</span>: <span class="ident">jmethodID</span>, ...) <span class="op">-&gt;</span> <span class="ident">jobject</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniNewObjectArray</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="ident">env</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="ident">len</span>: <span class="ident">jsize</span>, <span class="ident">clazz</span>: <span class="ident">jclass</span>, <span class="ident">init</span>: <span class="ident">jobject</span>) <span class="op">-&gt;</span> <span class="ident">jobjectArray</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniSetObjectArrayElement</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">jni_sys</span>::<span class="ident">JNINativeInterface_</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">jni_sys</span>::<span class="ident">_jobject</span>, <span class="ident">i32</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">jni_sys</span>::<span class="ident">_jobject</span>);
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniExceptionCheck</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">jboolean</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniExceptionCheck</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>) <span class="op">-&gt;</span> <span class="ident">jboolean</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniExceptionDescribe</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>);
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniExceptionClear</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>);
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniDeleteLocalRef</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="kw">_</span>: <span class="ident">jobject</span>) <span class="op">-</span><span class="op">&gt;</span> ();
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniDeleteGlobalRef</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="kw">_</span>: <span class="ident">jobject</span>) <span class="op">-</span><span class="op">&gt;</span> ();
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniNewGlobalRef</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="kw">_</span>: <span class="ident">jobject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">jobject</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniThrowNew</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="kw">_</span>: <span class="ident">jclass</span>, <span class="kw">_</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">jint</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniIsSameObject</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="kw">_</span>: <span class="ident">jobject</span>, <span class="kw">_</span>: <span class="ident">jobject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">jboolean</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniDeleteLocalRef</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="kw">_</span>: <span class="ident">jobject</span>) <span class="op">-&gt;</span> ();
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniDeleteGlobalRef</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="kw">_</span>: <span class="ident">jobject</span>) <span class="op">-&gt;</span> ();
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniNewGlobalRef</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="kw">_</span>: <span class="ident">jobject</span>) <span class="op">-&gt;</span> <span class="ident">jobject</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniThrowNew</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="kw">_</span>: <span class="ident">jclass</span>, <span class="kw">_</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-&gt;</span> <span class="ident">jint</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">JniIsSameObject</span> <span class="op">=</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;system&quot;</span> <span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span>, <span class="kw">_</span>: <span class="ident">jobject</span>, <span class="kw">_</span>: <span class="ident">jobject</span>) <span class="op">-&gt;</span> <span class="ident">jboolean</span>;
 
 <span class="kw">const</span> <span class="ident">CLASS_CACHING_ENABLED</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="op">!</span>(<span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>));
 
@@ -1825,102 +1870,104 @@
     <span class="comment">// Synchronize the creation of Jvm</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">MUTEX</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="bool-val">false</span>);
     <span class="comment">// If a Jvm is created with defining a jassets_path other than the default, this is set here</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">JASSETS_PATH</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">JASSETS_PATH</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
 }
 
 <span class="macro">thread_local</span><span class="macro">!</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_ENV</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_ENV</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">ACTIVE_JVMS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="number">0</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_GET_METHOD_ID</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetMethodId</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_GET_STATIC_METHOD_ID</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetStaticMethodId</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_NEW_OBJECT</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewObject</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_NEW_STRING_UTF</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewStringUTF</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_GET_STRING_UTF_CHARS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetStringUTFChars</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_RELEASE_STRING_UTF_CHARS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniReleaseStringUTFChars</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_CALL_OBJECT_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallObjectMethod</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_CALL_VOID_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallVoidMethod</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_CALL_STATIC_OBJECT_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallStaticObjectMethod</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_NEW_OBJECT_ARRAY</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewObjectArray</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_SET_OBJECT_ARRAY_ELEMENT</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniSetObjectArrayElement</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_EXCEPTION_CHECK</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionCheck</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_EXCEPTION_DESCRIBE</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionDescribe</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_EXCEPTION_CLEAR</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionClear</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_DELETE_LOCAL_REF</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniDeleteLocalRef</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_DELETE_GLOBAL_REF</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniDeleteGlobalRef</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_NEW_GLOBAL_REF</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewGlobalRef</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_THROW_NEW</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniThrowNew</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_IS_SAME_OBJECT</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniIsSameObject</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_GET_METHOD_ID</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetMethodId</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_GET_STATIC_METHOD_ID</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetStaticMethodId</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_NEW_OBJECT</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewObject</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_NEW_STRING_UTF</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewStringUTF</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_GET_STRING_UTF_CHARS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetStringUTFChars</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_RELEASE_STRING_UTF_CHARS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniReleaseStringUTFChars</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_CALL_OBJECT_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallObjectMethod</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_CALL_FLOAT_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallFloatMethod</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_CALL_DOUBLE_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallDoubleMethod</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_CALL_VOID_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallVoidMethod</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_CALL_STATIC_OBJECT_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallStaticObjectMethod</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_NEW_OBJECT_ARRAY</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewObjectArray</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_SET_OBJECT_ARRAY_ELEMENT</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniSetObjectArrayElement</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_EXCEPTION_CHECK</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionCheck</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_EXCEPTION_DESCRIBE</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionDescribe</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_EXCEPTION_CLEAR</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionClear</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_DELETE_LOCAL_REF</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniDeleteLocalRef</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_DELETE_GLOBAL_REF</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniDeleteGlobalRef</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_NEW_GLOBAL_REF</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewGlobalRef</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_THROW_NEW</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniThrowNew</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JNI_IS_SAME_OBJECT</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniIsSameObject</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// This is the factory class. It creates instances using reflection. Currently the `NativeInstantiationImpl`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FACTORY_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FACTORY_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The constructor method of the `NativeInstantiationImpl`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FACTORY_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FACTORY_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The method id of the `instantiate` method of the `NativeInstantiation`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FACTORY_INSTANTIATE_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FACTORY_INSTANTIATE_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The method id of the `createForStatic` method of the `NativeInstantiation`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FACTORY_CREATE_FOR_STATIC_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FACTORY_CREATE_FOR_STATIC_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The method id of the `createJavaArray` method of the `NativeInstantiation`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FACTORY_CREATE_JAVA_ARRAY_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FACTORY_CREATE_JAVA_ARRAY_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The method id of the `createJavaList` method of the `NativeInstantiation`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FACTORY_CREATE_JAVA_LIST_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FACTORY_CREATE_JAVA_LIST_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The `Instance` class.</span>
     <span class="comment">// This is optional because it exists only in Android for Java7 compatibility</span>
     <span class="comment">// because Java7 does not support static method implementations in interfaces.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JAVA_INSTANCE_BASE_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JAVA_INSTANCE_BASE_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The `Instance` class.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JAVA_INSTANCE_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">JAVA_INSTANCE_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The Java class for the `InvocationArg`.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INVOCATION_ARG_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INVOCATION_ARG_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The invoke method</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INVOKE_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INVOKE_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The invoke static method</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INVOKE_STATIC_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INVOKE_STATIC_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The invoke to channel method</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INVOKE_TO_CHANNEL_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INVOKE_TO_CHANNEL_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The init callback channel method</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INIT_CALLBACK_CHANNEL_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INIT_CALLBACK_CHANNEL_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The field method</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FIELD_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">CLASS_TO_INVOKE_CLONE_AND_CAST</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FIELD_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">CLASS_TO_INVOKE_CLONE_AND_CAST</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The clone method</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">CLONE_STATIC_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">CLONE_STATIC_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The cast method</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">CAST_STATIC_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">CAST_STATIC_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The get json method</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">GET_JSON_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">GET_JSON_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The get object class method</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">GET_OBJECT_CLASS_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">GET_OBJECT_CLASS_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The get object method</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">GET_OBJECT_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">GET_OBJECT_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The invstatic ocation argument constructor method for objects created by Java</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INV_ARG_JAVA_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INV_ARG_JAVA_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The invstatic ocation argument constructor method for objects created by Rust</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INV_ARG_RUST_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INV_ARG_RUST_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// The invstatic ocation argument constructor method for objects of Basic type created by Rust</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INV_ARG_BASIC_RUST_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INV_ARG_BASIC_RUST_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
     <span class="comment">// Basic types definitions</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INTEGER_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INTEGER_TO_INT_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INTEGER_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">LONG_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">LONG_TO_LONG_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">LONG_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">SHORT_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">SHORT_TO_SHORT_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">SHORT_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">BYTE_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">BYTE_TO_BYTE_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">BYTE_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FLOAT_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FLOAT_TO_FLOAT_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FLOAT_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">DOUBLE_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">DOUBLE_TO_DOUBLE_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">DOUBLE_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INVOCATION_EXCEPTION_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INTEGER_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INTEGER_TO_INT_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INTEGER_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">LONG_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">LONG_TO_LONG_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">LONG_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">SHORT_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">SHORT_TO_SHORT_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">SHORT_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">BYTE_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">BYTE_TO_BYTE_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">BYTE_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FLOAT_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FLOAT_TO_FLOAT_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">FLOAT_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">DOUBLE_CONSTRUCTOR_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">DOUBLE_TO_DOUBLE_METHOD</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">DOUBLE_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">INVOCATION_EXCEPTION_CLASS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">get_cached</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">opt_name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">do_retrieve</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">setter_name</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">opt_name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">do_retrieve</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">setter_name</span>:<span class="ident">ident</span>) <span class="op">=&gt;</span> {
         {
             <span class="kw">let</span> <span class="ident">jopt</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">CLASS_CACHING_ENABLED</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">opt_name</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
@@ -1951,7 +1998,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">remove_active_jvm</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">remove_active_jvm</span>() <span class="op">-&gt;</span> <span class="ident">i32</span> {
     <span class="ident">ACTIVE_JVMS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">active_jvms</span><span class="op">|</span> {
         <span class="kw">let</span> <span class="ident">active_number</span> <span class="op">=</span> {
             <span class="kw-2">*</span><span class="ident">active_jvms</span>.<span class="ident">borrow</span>() <span class="op">-</span> <span class="number">1</span>
@@ -1961,11 +2008,11 @@
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_thread_local_env_opt</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_thread_local_env_opt</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span><span class="op">&gt;</span> {
     <span class="ident">JNI_ENV</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">existing_jni_env_opt</span><span class="op">|</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">existing_jni_env_opt</span>.<span class="ident">borrow</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">env</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">env</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">env</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">env</span>),
+            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
         }
     })
 }
@@ -1977,14 +2024,14 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_thread_local_env</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_thread_local_env</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">JNIEnv</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">get_thread_local_env_opt</span>() {
-        <span class="prelude-val">Some</span>(<span class="ident">env</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">env</span>),
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">errors</span>::<span class="ident">J4RsError</span>::<span class="ident">JavaError</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Could not find the JNIEnv in the thread local&quot;</span>))),
+        <span class="prelude-val">Some</span>(<span class="ident">env</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">env</span>),
+        <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">errors</span>::<span class="ident">J4RsError</span>::<span class="ident">JavaError</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Could not find the JNIEnv in the thread local&quot;</span>))),
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_get_method_id</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetMethodId</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetMethodId</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_get_method_id</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetMethodId</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetMethodId</span><span class="op">&gt;</span> {
     <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_get_method_id&quot;</span>);
     <span class="ident">JNI_GET_METHOD_ID</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
@@ -1992,13 +2039,13 @@
     <span class="ident">get_jni_get_method_id</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_get_method_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetMethodId</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_get_method_id</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetMethodId</span><span class="op">&gt;</span> {
     <span class="ident">JNI_GET_METHOD_ID</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_get_static_method_id</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetMethodId</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetStaticMethodId</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_get_static_method_id</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetMethodId</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetStaticMethodId</span><span class="op">&gt;</span> {
     <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_get_static_method_id&quot;</span>);
     <span class="ident">JNI_GET_STATIC_METHOD_ID</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
@@ -2006,13 +2053,13 @@
     <span class="ident">get_jni_get_static_method_id</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_get_static_method_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetStaticMethodId</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_get_static_method_id</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetStaticMethodId</span><span class="op">&gt;</span> {
     <span class="ident">JNI_GET_STATIC_METHOD_ID</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_new_object</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewObject</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewObject</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_new_object</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewObject</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewObject</span><span class="op">&gt;</span> {
     <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_new_object&quot;</span>);
     <span class="ident">JNI_NEW_OBJECT</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
@@ -2020,13 +2067,13 @@
     <span class="ident">get_jni_new_object</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_new_object</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewObject</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_new_object</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewObject</span><span class="op">&gt;</span> {
     <span class="ident">JNI_NEW_OBJECT</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_new_string_utf</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewStringUTF</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewStringUTF</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_new_string_utf</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewStringUTF</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewStringUTF</span><span class="op">&gt;</span> {
     <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_new_string_utf&quot;</span>);
     <span class="ident">JNI_NEW_STRING_UTF</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
@@ -2034,13 +2081,13 @@
     <span class="ident">get_jni_new_string_utf</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_new_string_utf</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewStringUTF</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_new_string_utf</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewStringUTF</span><span class="op">&gt;</span> {
     <span class="ident">JNI_NEW_STRING_UTF</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_get_string_utf_chars</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetStringUTFChars</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetStringUTFChars</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_get_string_utf_chars</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetStringUTFChars</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetStringUTFChars</span><span class="op">&gt;</span> {
     <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_get_string_utf_chars&quot;</span>);
     <span class="ident">JNI_GET_STRING_UTF_CHARS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
@@ -2048,13 +2095,13 @@
     <span class="ident">get_jni_get_string_utf_chars</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_get_string_utf_chars</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetStringUTFChars</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_get_string_utf_chars</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniGetStringUTFChars</span><span class="op">&gt;</span> {
     <span class="ident">JNI_GET_STRING_UTF_CHARS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_release_string_utf_chars</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniReleaseStringUTFChars</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniReleaseStringUTFChars</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_release_string_utf_chars</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniReleaseStringUTFChars</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniReleaseStringUTFChars</span><span class="op">&gt;</span> {
     <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_release_string_utf_chars&quot;</span>);
     <span class="ident">JNI_RELEASE_STRING_UTF_CHARS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
@@ -2062,13 +2109,13 @@
     <span class="ident">get_jni_release_string_utf_chars</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_release_string_utf_chars</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniReleaseStringUTFChars</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_release_string_utf_chars</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniReleaseStringUTFChars</span><span class="op">&gt;</span> {
     <span class="ident">JNI_RELEASE_STRING_UTF_CHARS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_call_object_method</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallObjectMethod</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallObjectMethod</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_call_object_method</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallObjectMethod</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallObjectMethod</span><span class="op">&gt;</span> {
     <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_call_object_method&quot;</span>);
     <span class="ident">JNI_CALL_OBJECT_METHOD</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
@@ -2076,13 +2123,13 @@
     <span class="ident">get_jni_call_object_method</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_call_object_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallObjectMethod</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_call_object_method</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallObjectMethod</span><span class="op">&gt;</span> {
     <span class="ident">JNI_CALL_OBJECT_METHOD</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_call_void_method</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallVoidMethod</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallVoidMethod</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_call_void_method</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallVoidMethod</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallVoidMethod</span><span class="op">&gt;</span> {
     <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_call_void_method&quot;</span>);
     <span class="ident">JNI_CALL_VOID_METHOD</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
@@ -2090,13 +2137,43 @@
     <span class="ident">get_jni_call_void_method</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_call_void_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallVoidMethod</span><span class="op">&gt;</span> {
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_call_float_method</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallFloatMethod</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallFloatMethod</span><span class="op">&gt;</span> {
+    <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_call_float_method&quot;</span>);
+    <span class="ident">JNI_CALL_FLOAT_METHOD</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
+        <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
+    });
+    <span class="ident">get_jni_call_float_method</span>()
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_call_float_method</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallFloatMethod</span><span class="op">&gt;</span> {
+    <span class="ident">JNI_CALL_FLOAT_METHOD</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
+        <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
+    })
+}
+
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_call_double_method</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallDoubleMethod</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallDoubleMethod</span><span class="op">&gt;</span> {
+    <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_call_double_method&quot;</span>);
+    <span class="ident">JNI_CALL_DOUBLE_METHOD</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
+        <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
+    });
+    <span class="ident">get_jni_call_double_method</span>()
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_call_double_method</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallDoubleMethod</span><span class="op">&gt;</span> {
+    <span class="ident">JNI_CALL_DOUBLE_METHOD</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
+        <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
+    })
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_call_void_method</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallVoidMethod</span><span class="op">&gt;</span> {
     <span class="ident">JNI_CALL_VOID_METHOD</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_call_static_object_method</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallStaticObjectMethod</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallStaticObjectMethod</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_call_static_object_method</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallStaticObjectMethod</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallStaticObjectMethod</span><span class="op">&gt;</span> {
     <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_call_static_object_method&quot;</span>);
     <span class="ident">JNI_CALL_STATIC_OBJECT_METHOD</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
@@ -2104,13 +2181,13 @@
     <span class="ident">get_jni_call_static_object_method</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_call_static_object_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallStaticObjectMethod</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_call_static_object_method</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniCallStaticObjectMethod</span><span class="op">&gt;</span> {
     <span class="ident">JNI_CALL_STATIC_OBJECT_METHOD</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_new_object_array</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewObjectArray</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewObjectArray</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_new_object_array</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewObjectArray</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewObjectArray</span><span class="op">&gt;</span> {
     <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_new_object_array&quot;</span>);
 
     <span class="ident">JNI_NEW_OBJECT_ARRAY</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
@@ -2119,13 +2196,13 @@
     <span class="ident">get_jni_new_object_array</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_new_object_array</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewObjectArray</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_new_object_array</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewObjectArray</span><span class="op">&gt;</span> {
     <span class="ident">JNI_NEW_OBJECT_ARRAY</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_set_object_array_element</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniSetObjectArrayElement</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniSetObjectArrayElement</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_set_object_array_element</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniSetObjectArrayElement</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniSetObjectArrayElement</span><span class="op">&gt;</span> {
     <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_set_object_array_element&quot;</span>);
     <span class="ident">JNI_SET_OBJECT_ARRAY_ELEMENT</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
@@ -2133,13 +2210,13 @@
     <span class="ident">get_jni_set_object_array_element</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_set_object_array_element</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniSetObjectArrayElement</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_set_object_array_element</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniSetObjectArrayElement</span><span class="op">&gt;</span> {
     <span class="ident">JNI_SET_OBJECT_ARRAY_ELEMENT</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_exception_check</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionCheck</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionCheck</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_exception_check</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionCheck</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionCheck</span><span class="op">&gt;</span> {
     <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_exception_check&quot;</span>);
     <span class="ident">JNI_EXCEPTION_CHECK</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
@@ -2147,13 +2224,13 @@
     <span class="ident">get_jni_exception_check</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_exception_check</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionCheck</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_exception_check</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionCheck</span><span class="op">&gt;</span> {
     <span class="ident">JNI_EXCEPTION_CHECK</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_exception_describe</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionDescribe</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionDescribe</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_exception_describe</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionDescribe</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionDescribe</span><span class="op">&gt;</span> {
     <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_exception_describe&quot;</span>);
     <span class="ident">JNI_EXCEPTION_DESCRIBE</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
@@ -2161,13 +2238,13 @@
     <span class="ident">get_jni_exception_describe</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_exception_describe</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionDescribe</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_exception_describe</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionDescribe</span><span class="op">&gt;</span> {
     <span class="ident">JNI_EXCEPTION_DESCRIBE</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_exception_clear</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionClear</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionClear</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_exception_clear</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionClear</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionClear</span><span class="op">&gt;</span> {
     <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_exception_clear&quot;</span>);
     <span class="ident">JNI_EXCEPTION_CLEAR</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
@@ -2175,13 +2252,13 @@
     <span class="ident">get_jni_exception_clear</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_exception_clear</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionClear</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_exception_clear</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniExceptionClear</span><span class="op">&gt;</span> {
     <span class="ident">JNI_EXCEPTION_CLEAR</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_delete_local_ref</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniDeleteLocalRef</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniDeleteLocalRef</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_delete_local_ref</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniDeleteLocalRef</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniDeleteLocalRef</span><span class="op">&gt;</span> {
     <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_delete_local_ref&quot;</span>);
     <span class="ident">JNI_DELETE_LOCAL_REF</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
@@ -2189,13 +2266,13 @@
     <span class="ident">get_jni_delete_local_ref</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_delete_local_ref</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniDeleteLocalRef</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_delete_local_ref</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniDeleteLocalRef</span><span class="op">&gt;</span> {
     <span class="ident">JNI_DELETE_LOCAL_REF</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_delete_global_ref</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniDeleteGlobalRef</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniDeleteGlobalRef</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_delete_global_ref</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniDeleteGlobalRef</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniDeleteGlobalRef</span><span class="op">&gt;</span> {
     <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_delete_global_ref&quot;</span>);
     <span class="ident">JNI_DELETE_GLOBAL_REF</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
@@ -2203,13 +2280,13 @@
     <span class="ident">get_jni_delete_global_ref</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_delete_global_ref</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniDeleteGlobalRef</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_delete_global_ref</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniDeleteGlobalRef</span><span class="op">&gt;</span> {
     <span class="ident">JNI_DELETE_GLOBAL_REF</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_new_global_ref</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewGlobalRef</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewGlobalRef</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_new_global_ref</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewGlobalRef</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewGlobalRef</span><span class="op">&gt;</span> {
     <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_new_global_ref&quot;</span>);
     <span class="ident">JNI_NEW_GLOBAL_REF</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
@@ -2217,13 +2294,13 @@
     <span class="ident">get_jni_new_global_ref</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_new_global_ref</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewGlobalRef</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_new_global_ref</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniNewGlobalRef</span><span class="op">&gt;</span> {
     <span class="ident">JNI_NEW_GLOBAL_REF</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_throw_new</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniThrowNew</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniThrowNew</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_jni_throw_new</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniThrowNew</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniThrowNew</span><span class="op">&gt;</span> {
     <span class="ident">debug</span>(<span class="string">&quot;Called set_jni_throw_new&quot;</span>);
     <span class="ident">JNI_THROW_NEW</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
@@ -2231,13 +2308,13 @@
     <span class="ident">get_jni_throw_new</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_throw_new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniThrowNew</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_jni_throw_new</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniThrowNew</span><span class="op">&gt;</span> {
     <span class="ident">JNI_THROW_NEW</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
     })
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_is_same_object</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniIsSameObject</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniIsSameObject</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_is_same_object</span>(<span class="ident">j</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniIsSameObject</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniIsSameObject</span><span class="op">&gt;</span> {
     <span class="ident">debug</span>(<span class="string">&quot;Called set_is_same_object&quot;</span>);
     <span class="ident">JNI_IS_SAME_OBJECT</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">j</span>;
@@ -2245,7 +2322,7 @@
     <span class="ident">get_is_same_object</span>()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_is_same_object</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniIsSameObject</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_is_same_object</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JniIsSameObject</span><span class="op">&gt;</span> {
     <span class="ident">JNI_IS_SAME_OBJECT</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">opt</span><span class="op">|</span> {
         <span class="kw-2">*</span><span class="ident">opt</span>.<span class="ident">borrow</span>()
     })
@@ -2258,7 +2335,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_factory_class</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_factory_class</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">FACTORY_CLASS</span>,
         {
@@ -2276,7 +2353,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_invocation_arg_class</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_invocation_arg_class</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">INVOCATION_ARG_CLASS</span>,
         {
@@ -2296,7 +2373,7 @@
 }
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_factory_constructor_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_factory_constructor_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">FACTORY_CONSTRUCTOR_METHOD</span>,
         {
@@ -2326,7 +2403,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_factory_instantiate_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_factory_instantiate_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">FACTORY_INSTANTIATE_METHOD</span>,
         {
@@ -2359,7 +2436,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_factory_create_for_static_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_factory_create_for_static_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">FACTORY_CREATE_FOR_STATIC_METHOD</span>,
         {
@@ -2393,7 +2470,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_factory_create_java_array_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_factory_create_java_array_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">FACTORY_CREATE_JAVA_ARRAY_METHOD</span>,
         {
@@ -2427,7 +2504,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_factory_create_java_list_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_factory_create_java_list_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">FACTORY_CREATE_JAVA_LIST_METHOD</span>,
         {
@@ -2461,7 +2538,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_java_instance_base_class</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_java_instance_base_class</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">JAVA_INSTANCE_BASE_CLASS</span>,
         {
@@ -2485,7 +2562,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_java_instance_class</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_java_instance_class</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">JAVA_INSTANCE_CLASS</span>,
         {
@@ -2509,7 +2586,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_invoke_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_invoke_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">INVOKE_METHOD</span>,
         {
@@ -2544,7 +2621,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_invoke_static_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_invoke_static_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">INVOKE_STATIC_METHOD</span>,
         {
@@ -2579,7 +2656,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_invoke_to_channel_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_invoke_to_channel_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">INVOKE_TO_CHANNEL_METHOD</span>,
         {
@@ -2612,7 +2689,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_init_callback_channel_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_init_callback_channel_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">INIT_CALLBACK_CHANNEL_METHOD</span>,
         {
@@ -2645,7 +2722,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_field_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_field_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">FIELD_METHOD</span>,
         {
@@ -2680,7 +2757,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_clone_static_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_clone_static_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">CLONE_STATIC_METHOD</span>,
         {
@@ -2716,7 +2793,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_cast_static_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_cast_static_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">CAST_STATIC_METHOD</span>,
         {
@@ -2753,7 +2830,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_get_json_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_get_json_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">GET_JSON_METHOD</span>,
         {
@@ -2787,7 +2864,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_get_object_class_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_get_object_class_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">GET_OBJECT_CLASS_METHOD</span>,
         {
@@ -2821,7 +2898,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_get_object_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_get_object_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">GET_OBJECT_METHOD</span>,
         {
@@ -2855,7 +2932,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_inv_arg_java_constructor_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_inv_arg_java_constructor_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">INV_ARG_JAVA_CONSTRUCTOR_METHOD</span>,
         {
@@ -2886,7 +2963,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_inv_arg_rust_constructor_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_inv_arg_rust_constructor_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">INV_ARG_RUST_CONSTRUCTOR_METHOD</span>,
         {
@@ -2918,7 +2995,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_inv_arg_basic_rust_constructor_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_inv_arg_basic_rust_constructor_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">INV_ARG_BASIC_RUST_CONSTRUCTOR_METHOD</span>,
         {
@@ -2949,7 +3026,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_class_to_invoke_clone_and_cast</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_class_to_invoke_clone_and_cast</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">CLASS_TO_INVOKE_CLONE_AND_CAST</span>,
         {
@@ -2975,7 +3052,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_integer_class</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_integer_class</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">INTEGER_CLASS</span>,
         {
@@ -2997,7 +3074,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_integer_constructor_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_integer_constructor_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">INTEGER_CONSTRUCTOR_METHOD</span>,
         {
@@ -3028,7 +3105,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_integer_to_int_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_integer_to_int_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">INTEGER_TO_INT_METHOD</span>,
         {
@@ -3059,7 +3136,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_long_class</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_long_class</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">LONG_CLASS</span>,
         {
@@ -3081,7 +3158,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_invocation_exception_class</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_invocation_exception_class</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">INVOCATION_EXCEPTION_CLASS</span>,
         {
@@ -3103,7 +3180,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_long_constructor_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_long_constructor_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">LONG_CONSTRUCTOR_METHOD</span>,
         {
@@ -3134,7 +3211,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_long_to_long_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_long_to_long_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">LONG_TO_LONG_METHOD</span>,
         {
@@ -3165,7 +3242,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_short_class</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_short_class</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">SHORT_CLASS</span>,
         {
@@ -3187,7 +3264,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_short_constructor_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_short_constructor_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">SHORT_CONSTRUCTOR_METHOD</span>,
         {
@@ -3218,7 +3295,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_short_to_short_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_short_to_short_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">SHORT_TO_SHORT_METHOD</span>,
         {
@@ -3249,7 +3326,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_byte_class</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_byte_class</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">BYTE_CLASS</span>,
         {
@@ -3271,7 +3348,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_byte_constructor_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_byte_constructor_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">BYTE_CONSTRUCTOR_METHOD</span>,
         {
@@ -3302,7 +3379,7 @@
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_byte_to_byte_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_byte_to_byte_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">BYTE_TO_BYTE_METHOD</span>,
         {
@@ -3335,7 +3412,7 @@
 }
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_float_class</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_float_class</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">FLOAT_CLASS</span>,
         {
@@ -3359,7 +3436,7 @@
 }
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_float_constructor_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_float_constructor_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">FLOAT_CONSTRUCTOR_METHOD</span>,
         {
@@ -3392,7 +3469,7 @@
 }
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_float_to_float_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_float_to_float_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">FLOAT_TO_FLOAT_METHOD</span>,
         {
@@ -3425,7 +3502,7 @@
 }
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_double_class</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_double_class</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jclass</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">DOUBLE_CLASS</span>,
         {
@@ -3449,7 +3526,7 @@
 }
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_double_constructor_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_double_constructor_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">DOUBLE_CONSTRUCTOR_METHOD</span>,
         {
@@ -3482,7 +3559,7 @@
 }
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_double_to_double_method</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_double_to_double_method</span>() <span class="op">-&gt;</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">jmethodID</span><span class="op">&gt;</span> {
     <span class="macro">get_cached</span><span class="macro">!</span>(
         <span class="ident">DOUBLE_TO_DOUBLE_METHOD</span>,
         {

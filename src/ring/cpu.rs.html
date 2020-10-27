@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/ring-0.16.15/src/cpu.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cpu.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../ring/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/ring-0.16.15/src/cpu.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cpu.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../ring/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -344,7 +345,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Features</span>(());
 
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">features</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Features</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">features</span>() <span class="op">-&gt;</span> <span class="ident">Features</span> {
     <span class="comment">// We don&#39;t do runtime feature detection on iOS. instead some features are</span>
     <span class="comment">// assumed to be present; see `arm::Feature`.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
@@ -358,7 +359,7 @@
     ))]</span>
     {
         <span class="kw">static</span> <span class="ident">INIT</span>: <span class="ident">spin</span>::<span class="ident">Once</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">spin</span>::<span class="ident">Once</span>::<span class="ident">new</span>();
-        <span class="kw">let</span> () <span class="op">=</span> <span class="ident">INIT</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="kw">let</span> () <span class="op">=</span> <span class="ident">INIT</span>.<span class="ident">call_once</span>(<span class="op">||</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>))]</span>
             {
                 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
@@ -398,27 +399,27 @@
         <span class="comment">// XXX: The `libc` crate doesn&#39;t provide `libc::getauxval` consistently</span>
         <span class="comment">// across all Android/Linux targets, e.g. musl.</span>
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">fn</span> <span class="ident">getauxval</span>(<span class="ident">type_</span>: <span class="ident">c_ulong</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_ulong</span>;
+            <span class="kw">fn</span> <span class="ident">getauxval</span>(<span class="ident">type_</span>: <span class="ident">c_ulong</span>) <span class="op">-&gt;</span> <span class="ident">c_ulong</span>;
         }
 
         <span class="kw">const</span> <span class="ident">AT_HWCAP</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">16</span>;
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;aarch64&quot;</span>)]</span>
-        <span class="kw">const</span> <span class="ident">HWCAP_NEON</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>;
+        <span class="kw">const</span> <span class="ident">HWCAP_NEON</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">1</span>;
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>)]</span>
-        <span class="kw">const</span> <span class="ident">HWCAP_NEON</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">12</span>;
+        <span class="kw">const</span> <span class="ident">HWCAP_NEON</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">12</span>;
 
         <span class="kw">let</span> <span class="ident">caps</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">getauxval</span>(<span class="ident">AT_HWCAP</span>) };
 
         <span class="comment">// We assume NEON is available on AARCH64 because it is a required</span>
         <span class="comment">// feature.</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;aarch64&quot;</span>)]</span>
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">caps</span> <span class="op">&amp;</span> <span class="ident">HWCAP_NEON</span> <span class="op">=</span><span class="op">=</span> <span class="ident">HWCAP_NEON</span>);
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">caps</span> <span class="op">&amp;</span> <span class="ident">HWCAP_NEON</span> <span class="op">==</span> <span class="ident">HWCAP_NEON</span>);
 
         <span class="comment">// OpenSSL and BoringSSL don&#39;t enable any other features if NEON isn&#39;t</span>
         <span class="comment">// available.</span>
-        <span class="kw">if</span> <span class="ident">caps</span> <span class="op">&amp;</span> <span class="ident">HWCAP_NEON</span> <span class="op">=</span><span class="op">=</span> <span class="ident">HWCAP_NEON</span> {
+        <span class="kw">if</span> <span class="ident">caps</span> <span class="op">&amp;</span> <span class="ident">HWCAP_NEON</span> <span class="op">==</span> <span class="ident">HWCAP_NEON</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">features</span> <span class="op">=</span> <span class="ident">NEON</span>.<span class="ident">mask</span>;
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;aarch64&quot;</span>)]</span>
@@ -433,18 +434,18 @@
                 <span class="kw">unsafe</span> { <span class="ident">getauxval</span>(<span class="ident">AT_HWCAP2</span>) }
             };
 
-            <span class="kw">const</span> <span class="ident">HWCAP_AES</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span> <span class="op">+</span> <span class="ident">OFFSET</span>;
-            <span class="kw">const</span> <span class="ident">HWCAP_PMULL</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span> <span class="op">+</span> <span class="ident">OFFSET</span>;
-            <span class="kw">const</span> <span class="ident">HWCAP_SHA2</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">3</span> <span class="op">+</span> <span class="ident">OFFSET</span>;
+            <span class="kw">const</span> <span class="ident">HWCAP_AES</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">0</span> <span class="op">+</span> <span class="ident">OFFSET</span>;
+            <span class="kw">const</span> <span class="ident">HWCAP_PMULL</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">1</span> <span class="op">+</span> <span class="ident">OFFSET</span>;
+            <span class="kw">const</span> <span class="ident">HWCAP_SHA2</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">3</span> <span class="op">+</span> <span class="ident">OFFSET</span>;
 
-            <span class="kw">if</span> <span class="ident">caps</span> <span class="op">&amp;</span> <span class="ident">HWCAP_AES</span> <span class="op">=</span><span class="op">=</span> <span class="ident">HWCAP_AES</span> {
-                <span class="ident">features</span> <span class="op">|</span><span class="op">=</span> <span class="ident">AES</span>.<span class="ident">mask</span>;
+            <span class="kw">if</span> <span class="ident">caps</span> <span class="op">&amp;</span> <span class="ident">HWCAP_AES</span> <span class="op">==</span> <span class="ident">HWCAP_AES</span> {
+                <span class="ident">features</span> <span class="op">|=</span> <span class="ident">AES</span>.<span class="ident">mask</span>;
             }
-            <span class="kw">if</span> <span class="ident">caps</span> <span class="op">&amp;</span> <span class="ident">HWCAP_PMULL</span> <span class="op">=</span><span class="op">=</span> <span class="ident">HWCAP_PMULL</span> {
-                <span class="ident">features</span> <span class="op">|</span><span class="op">=</span> <span class="ident">PMULL</span>.<span class="ident">mask</span>;
+            <span class="kw">if</span> <span class="ident">caps</span> <span class="op">&amp;</span> <span class="ident">HWCAP_PMULL</span> <span class="op">==</span> <span class="ident">HWCAP_PMULL</span> {
+                <span class="ident">features</span> <span class="op">|=</span> <span class="ident">PMULL</span>.<span class="ident">mask</span>;
             }
-            <span class="kw">if</span> <span class="ident">caps</span> <span class="op">&amp;</span> <span class="ident">HWCAP_SHA2</span> <span class="op">=</span><span class="op">=</span> <span class="ident">HWCAP_SHA2</span> {
-                <span class="ident">features</span> <span class="op">|</span><span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>;
+            <span class="kw">if</span> <span class="ident">caps</span> <span class="op">&amp;</span> <span class="ident">HWCAP_SHA2</span> <span class="op">==</span> <span class="ident">HWCAP_SHA2</span> {
+                <span class="ident">features</span> <span class="op">|=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">4</span>;
             }
 
             <span class="kw">unsafe</span> { <span class="ident">GFp_armcap_P</span> <span class="op">=</span> <span class="ident">features</span> };
@@ -457,32 +458,32 @@
 
         <span class="attribute">#[<span class="ident">link</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;zircon&quot;</span>)]</span>
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-            <span class="kw">fn</span> <span class="ident">zx_system_get_features</span>(<span class="ident">kind</span>: <span class="ident">u32</span>, <span class="ident">features</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">zx_status_t</span>;
+            <span class="kw">fn</span> <span class="ident">zx_system_get_features</span>(<span class="ident">kind</span>: <span class="ident">u32</span>, <span class="ident">features</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">zx_status_t</span>;
         }
 
         <span class="kw">const</span> <span class="ident">ZX_OK</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">const</span> <span class="ident">ZX_FEATURE_KIND_CPU</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">const</span> <span class="ident">ZX_ARM64_FEATURE_ISA_ASIMD</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">2</span>;
-        <span class="kw">const</span> <span class="ident">ZX_ARM64_FEATURE_ISA_AES</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">3</span>;
-        <span class="kw">const</span> <span class="ident">ZX_ARM64_FEATURE_ISA_PMULL</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>;
-        <span class="kw">const</span> <span class="ident">ZX_ARM64_FEATURE_ISA_SHA2</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">6</span>;
+        <span class="kw">const</span> <span class="ident">ZX_ARM64_FEATURE_ISA_ASIMD</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">2</span>;
+        <span class="kw">const</span> <span class="ident">ZX_ARM64_FEATURE_ISA_AES</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">3</span>;
+        <span class="kw">const</span> <span class="ident">ZX_ARM64_FEATURE_ISA_PMULL</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">4</span>;
+        <span class="kw">const</span> <span class="ident">ZX_ARM64_FEATURE_ISA_SHA2</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">6</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">caps</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="ident">rc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">zx_system_get_features</span>(<span class="ident">ZX_FEATURE_KIND_CPU</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">caps</span>) };
 
         <span class="comment">// OpenSSL and BoringSSL don&#39;t enable any other features if NEON isn&#39;t</span>
         <span class="comment">// available.</span>
-        <span class="kw">if</span> <span class="ident">rc</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ZX_OK</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> (<span class="ident">caps</span> <span class="op">&amp;</span> <span class="ident">ZX_ARM64_FEATURE_ISA_ASIMD</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ZX_ARM64_FEATURE_ISA_ASIMD</span>) {
+        <span class="kw">if</span> <span class="ident">rc</span> <span class="op">==</span> <span class="ident">ZX_OK</span> <span class="op">&amp;&amp;</span> (<span class="ident">caps</span> <span class="op">&amp;</span> <span class="ident">ZX_ARM64_FEATURE_ISA_ASIMD</span> <span class="op">==</span> <span class="ident">ZX_ARM64_FEATURE_ISA_ASIMD</span>) {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">features</span> <span class="op">=</span> <span class="ident">NEON</span>.<span class="ident">mask</span>;
 
-            <span class="kw">if</span> <span class="ident">caps</span> <span class="op">&amp;</span> <span class="ident">ZX_ARM64_FEATURE_ISA_AES</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ZX_ARM64_FEATURE_ISA_AES</span> {
-                <span class="ident">features</span> <span class="op">|</span><span class="op">=</span> <span class="ident">AES</span>.<span class="ident">mask</span>;
+            <span class="kw">if</span> <span class="ident">caps</span> <span class="op">&amp;</span> <span class="ident">ZX_ARM64_FEATURE_ISA_AES</span> <span class="op">==</span> <span class="ident">ZX_ARM64_FEATURE_ISA_AES</span> {
+                <span class="ident">features</span> <span class="op">|=</span> <span class="ident">AES</span>.<span class="ident">mask</span>;
             }
-            <span class="kw">if</span> <span class="ident">caps</span> <span class="op">&amp;</span> <span class="ident">ZX_ARM64_FEATURE_ISA_PMULL</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ZX_ARM64_FEATURE_ISA_PMULL</span> {
-                <span class="ident">features</span> <span class="op">|</span><span class="op">=</span> <span class="ident">PMULL</span>.<span class="ident">mask</span>;
+            <span class="kw">if</span> <span class="ident">caps</span> <span class="op">&amp;</span> <span class="ident">ZX_ARM64_FEATURE_ISA_PMULL</span> <span class="op">==</span> <span class="ident">ZX_ARM64_FEATURE_ISA_PMULL</span> {
+                <span class="ident">features</span> <span class="op">|=</span> <span class="ident">PMULL</span>.<span class="ident">mask</span>;
             }
-            <span class="kw">if</span> <span class="ident">caps</span> <span class="op">&amp;</span> <span class="ident">ZX_ARM64_FEATURE_ISA_SHA2</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ZX_ARM64_FEATURE_ISA_SHA2</span> {
-                <span class="ident">features</span> <span class="op">|</span><span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>;
+            <span class="kw">if</span> <span class="ident">caps</span> <span class="op">&amp;</span> <span class="ident">ZX_ARM64_FEATURE_ISA_SHA2</span> <span class="op">==</span> <span class="ident">ZX_ARM64_FEATURE_ISA_SHA2</span> {
+                <span class="ident">features</span> <span class="op">|=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">4</span>;
             }
 
             <span class="kw">unsafe</span> { <span class="ident">GFp_armcap_P</span> <span class="op">=</span> <span class="ident">features</span> };
@@ -507,7 +508,7 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>))]</span>
     <span class="kw">impl</span> <span class="ident">Feature</span> {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">available</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw">super</span>::<span class="ident">Features</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">available</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw">super</span>::<span class="ident">Features</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;aarch64&quot;</span>)))]</span>
             {
                 <span class="kw">return</span> <span class="self">self</span>.<span class="ident">ios</span>;
@@ -518,7 +519,7 @@
                 <span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;aarch64&quot;</span>)
             ))]</span>
             {
-                <span class="kw">return</span> <span class="self">self</span>.<span class="ident">mask</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">mask</span> <span class="op">&amp;</span> <span class="kw">unsafe</span> { <span class="ident">GFp_armcap_P</span> };
+                <span class="kw">return</span> <span class="self">self</span>.<span class="ident">mask</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">mask</span> <span class="op">&amp;</span> <span class="kw">unsafe</span> { <span class="ident">GFp_armcap_P</span> };
             }
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;aarch64&quot;</span>)))]</span>
@@ -531,7 +532,7 @@
     <span class="comment">// Keep in sync with `ARMV7_NEON`.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;aarch64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>))]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">NEON</span>: <span class="ident">Feature</span> <span class="op">=</span> <span class="ident">Feature</span> {
-        <span class="ident">mask</span>: <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>,
+        <span class="ident">mask</span>: <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">0</span>,
         <span class="ident">ios</span>: <span class="bool-val">true</span>,
     };
 
@@ -543,7 +544,7 @@
         <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>
     ))]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">AES</span>: <span class="ident">Feature</span> <span class="op">=</span> <span class="ident">Feature</span> {
-        <span class="ident">mask</span>: <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">2</span>,
+        <span class="ident">mask</span>: <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">2</span>,
         <span class="ident">ios</span>: <span class="bool-val">true</span>,
     };
 
@@ -555,7 +556,7 @@
         <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>
     ))]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">PMULL</span>: <span class="ident">Feature</span> <span class="op">=</span> <span class="ident">Feature</span> {
-        <span class="ident">mask</span>: <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">5</span>,
+        <span class="ident">mask</span>: <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">5</span>,
         <span class="ident">ios</span>: <span class="bool-val">true</span>,
     };
 
@@ -580,13 +581,13 @@
 
     <span class="kw">impl</span> <span class="ident">Feature</span> {
         <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">available</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw">super</span>::<span class="ident">Features</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">available</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw">super</span>::<span class="ident">Features</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>))]</span>
             {
                 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
                     <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">GFp_ia32cap_P</span>: [<span class="ident">u32</span>; <span class="number">4</span>];
                 }
-                <span class="kw">return</span> <span class="self">self</span>.<span class="ident">mask</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">mask</span> <span class="op">&amp;</span> <span class="kw">unsafe</span> { <span class="ident">GFp_ia32cap_P</span>[<span class="self">self</span>.<span class="ident">word</span>] };
+                <span class="kw">return</span> <span class="self">self</span>.<span class="ident">mask</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">mask</span> <span class="op">&amp;</span> <span class="kw">unsafe</span> { <span class="ident">GFp_ia32cap_P</span>[<span class="self">self</span>.<span class="ident">word</span>] };
             }
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>)))]</span>
@@ -598,34 +599,34 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">FXSR</span>: <span class="ident">Feature</span> <span class="op">=</span> <span class="ident">Feature</span> {
         <span class="ident">word</span>: <span class="number">0</span>,
-        <span class="ident">mask</span>: <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">24</span>,
+        <span class="ident">mask</span>: <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">24</span>,
     };
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">PCLMULQDQ</span>: <span class="ident">Feature</span> <span class="op">=</span> <span class="ident">Feature</span> {
         <span class="ident">word</span>: <span class="number">1</span>,
-        <span class="ident">mask</span>: <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>,
+        <span class="ident">mask</span>: <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">1</span>,
     };
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">SSSE3</span>: <span class="ident">Feature</span> <span class="op">=</span> <span class="ident">Feature</span> {
         <span class="ident">word</span>: <span class="number">1</span>,
-        <span class="ident">mask</span>: <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">9</span>,
+        <span class="ident">mask</span>: <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">9</span>,
     };
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">MOVBE</span>: <span class="ident">Feature</span> <span class="op">=</span> <span class="ident">Feature</span> {
         <span class="ident">word</span>: <span class="number">1</span>,
-        <span class="ident">mask</span>: <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">22</span>,
+        <span class="ident">mask</span>: <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">22</span>,
     };
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">AES</span>: <span class="ident">Feature</span> <span class="op">=</span> <span class="ident">Feature</span> {
         <span class="ident">word</span>: <span class="number">1</span>,
-        <span class="ident">mask</span>: <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">25</span>,
+        <span class="ident">mask</span>: <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">25</span>,
     };
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">AVX</span>: <span class="ident">Feature</span> <span class="op">=</span> <span class="ident">Feature</span> {
         <span class="ident">word</span>: <span class="number">1</span>,
-        <span class="ident">mask</span>: <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">28</span>,
+        <span class="ident">mask</span>: <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">28</span>,
     };
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">test</span>))]</span>
@@ -635,7 +636,7 @@
         <span class="attribute">#[<span class="ident">test</span>]</span>
         <span class="kw">fn</span> <span class="ident">test_avx_movbe_mask</span>() {
             <span class="comment">// This is the OpenSSL style of testing these bits.</span>
-            <span class="macro">assert_eq</span><span class="macro">!</span>((<span class="ident">AVX</span>.<span class="ident">mask</span> <span class="op">|</span> <span class="ident">MOVBE</span>.<span class="ident">mask</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">22</span>, <span class="number">0x41</span>);
+            <span class="macro">assert_eq</span><span class="macro">!</span>((<span class="ident">AVX</span>.<span class="ident">mask</span> <span class="op">|</span> <span class="ident">MOVBE</span>.<span class="ident">mask</span>) <span class="op">&gt;&gt;</span> <span class="number">22</span>, <span class="number">0x41</span>);
         }
     }
 }

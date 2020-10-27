@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/lexical-core-0.7.4/src/float/rounding.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rounding.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../lexical_core/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/lexical-core-0.7.4/src/float/rounding.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rounding.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../lexical_core/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -618,7 +619,7 @@
 <span class="comment">// Return if we are above halfway and if we are halfway.</span>
 <span class="macro">perftools_inline</span><span class="macro">!</span>{
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">round_nearest</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="ident">fp</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ExtendedFloat</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>, <span class="ident">shift</span>: <span class="ident">i32</span>)
-    <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">bool</span>, <span class="ident">bool</span>)
+    <span class="op">-&gt;</span> (<span class="ident">bool</span>, <span class="ident">bool</span>)
     <span class="kw">where</span> <span class="ident">M</span>: <span class="ident">Mantissa</span>
 {
     <span class="comment">// Extract the truncated bits using mask.</span>
@@ -632,7 +633,7 @@
 
     <span class="kw">let</span> <span class="ident">truncated_bits</span> <span class="op">=</span> <span class="ident">fp</span>.<span class="ident">mant</span> <span class="op">&amp;</span> <span class="ident">mask</span>;
     <span class="kw">let</span> <span class="ident">is_above</span> <span class="op">=</span> <span class="ident">truncated_bits</span> <span class="op">&gt;</span> <span class="ident">halfway</span>;
-    <span class="kw">let</span> <span class="ident">is_halfway</span> <span class="op">=</span> <span class="ident">truncated_bits</span> <span class="op">=</span><span class="op">=</span> <span class="ident">halfway</span>;
+    <span class="kw">let</span> <span class="ident">is_halfway</span> <span class="op">=</span> <span class="ident">truncated_bits</span> <span class="op">==</span> <span class="ident">halfway</span>;
 
     <span class="comment">// Bit shift so the leading bit is in the hidden bit.</span>
     <span class="ident">overflowing_shr</span>(<span class="ident">fp</span>, <span class="ident">shift</span>);
@@ -646,13 +647,13 @@
     <span class="kw">where</span> <span class="ident">M</span>: <span class="ident">Mantissa</span>
 {
     <span class="comment">// Extract the last bit after shifting (and determine if it is odd).</span>
-    <span class="kw">let</span> <span class="ident">is_odd</span> <span class="op">=</span> <span class="ident">fp</span>.<span class="ident">mant</span> <span class="op">&amp;</span> <span class="ident">M</span>::<span class="ident">ONE</span> <span class="op">=</span><span class="op">=</span> <span class="ident">M</span>::<span class="ident">ONE</span>;
+    <span class="kw">let</span> <span class="ident">is_odd</span> <span class="op">=</span> <span class="ident">fp</span>.<span class="ident">mant</span> <span class="op">&amp;</span> <span class="ident">M</span>::<span class="ident">ONE</span> <span class="op">==</span> <span class="ident">M</span>::<span class="ident">ONE</span>;
 
     <span class="comment">// Calculate if we need to roundup.</span>
     <span class="comment">// We need to roundup if we are above halfway, or if we are odd</span>
     <span class="comment">// and at half-way (need to tie-to-even).</span>
-    <span class="kw">if</span> <span class="ident">is_above</span> <span class="op">|</span><span class="op">|</span> (<span class="ident">is_odd</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">is_halfway</span>) {
-        <span class="ident">fp</span>.<span class="ident">mant</span> <span class="op">+</span><span class="op">=</span> <span class="ident">M</span>::<span class="ident">ONE</span>;
+    <span class="kw">if</span> <span class="ident">is_above</span> <span class="op">||</span> (<span class="ident">is_odd</span> <span class="op">&amp;&amp;</span> <span class="ident">is_halfway</span>) {
+        <span class="ident">fp</span>.<span class="ident">mant</span> <span class="op">+=</span> <span class="ident">M</span>::<span class="ident">ONE</span>;
     }
 }}
 
@@ -678,8 +679,8 @@
     <span class="comment">// We need to roundup if we are halfway or above halfway,</span>
     <span class="comment">// since the value is always positive and we need to round away</span>
     <span class="comment">// from zero.</span>
-    <span class="kw">if</span> <span class="ident">is_above</span> <span class="op">|</span><span class="op">|</span> <span class="ident">is_halfway</span> {
-        <span class="ident">fp</span>.<span class="ident">mant</span> <span class="op">+</span><span class="op">=</span> <span class="ident">M</span>::<span class="ident">ONE</span>;
+    <span class="kw">if</span> <span class="ident">is_above</span> <span class="op">||</span> <span class="ident">is_halfway</span> {
+        <span class="ident">fp</span>.<span class="ident">mant</span> <span class="op">+=</span> <span class="ident">M</span>::<span class="ident">ONE</span>;
     }
 }}
 
@@ -703,7 +704,7 @@
 <span class="comment">// Return if we have any truncated bytes.</span>
 <span class="macro">perftools_inline</span><span class="macro">!</span>{
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">round_toward</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="ident">fp</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ExtendedFloat</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>, <span class="ident">shift</span>: <span class="ident">i32</span>)
-    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
+    <span class="op">-&gt;</span> <span class="ident">bool</span>
     <span class="kw">where</span> <span class="ident">M</span>: <span class="ident">Mantissa</span>
 {
     <span class="kw">let</span> <span class="ident">mask</span>: <span class="ident">M</span> <span class="op">=</span> <span class="ident">lower_n_mask</span>(<span class="ident">as_cast</span>(<span class="ident">shift</span>));
@@ -712,7 +713,7 @@
     <span class="comment">// Bit shift so the leading bit is in the hidden bit.</span>
     <span class="ident">overflowing_shr</span>(<span class="ident">fp</span>, <span class="ident">shift</span>);
 
-    <span class="ident">truncated_bits</span> <span class="op">!</span><span class="op">=</span> <span class="ident">M</span>::<span class="ident">ZERO</span>
+    <span class="ident">truncated_bits</span> <span class="op">!=</span> <span class="ident">M</span>::<span class="ident">ZERO</span>
 }}
 
 <span class="comment">// Round up.</span>
@@ -721,7 +722,7 @@
     <span class="kw">where</span> <span class="ident">M</span>: <span class="ident">Mantissa</span>
 {
     <span class="kw">if</span> <span class="ident">is_truncated</span> {
-        <span class="ident">fp</span>.<span class="ident">mant</span> <span class="op">+</span><span class="op">=</span> <span class="ident">M</span>::<span class="ident">ONE</span>;
+        <span class="ident">fp</span>.<span class="ident">mant</span> <span class="op">+=</span> <span class="ident">M</span>::<span class="ident">ONE</span>;
     }
 }}
 
@@ -774,7 +775,7 @@
 
 <span class="comment">// Literals don&#39;t work for generic types, we need to use this as a hack.</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">float_rounding_f32</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> ($(
         <span class="kw">impl</span> <span class="ident">FloatRounding</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">f32</span> {
             <span class="kw">const</span> <span class="ident">DEFAULT_SHIFT</span>: <span class="ident">i32</span>    <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>::<span class="ident">FULL</span> <span class="op">-</span> <span class="ident">f32</span>::<span class="ident">MANTISSA_SIZE</span> <span class="op">-</span> <span class="number">1</span>;
             <span class="kw">const</span> <span class="ident">CARRY_MASK</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>        <span class="op">=</span> <span class="number">0x1000000</span>;
@@ -786,7 +787,7 @@
 
 <span class="comment">// Literals don&#39;t work for generic types, we need to use this as a hack.</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">float_rounding_f64</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> ($(
         <span class="kw">impl</span> <span class="ident">FloatRounding</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">f64</span> {
             <span class="kw">const</span> <span class="ident">DEFAULT_SHIFT</span>: <span class="ident">i32</span>    <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>::<span class="ident">FULL</span> <span class="op">-</span> <span class="ident">f64</span>::<span class="ident">MANTISSA_SIZE</span> <span class="op">-</span> <span class="number">1</span>;
             <span class="kw">const</span> <span class="ident">CARRY_MASK</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>        <span class="op">=</span> <span class="number">0x20000000000000</span>;
@@ -820,7 +821,7 @@
         <span class="comment">// is already normalized, so we shouldn&#39;t have any issue zeroing</span>
         <span class="comment">// out the value.</span>
         <span class="kw">let</span> <span class="ident">diff</span> <span class="op">=</span> <span class="ident">T</span>::<span class="ident">DENORMAL_EXPONENT</span> <span class="op">-</span> <span class="ident">fp</span>.<span class="ident">exp</span>;
-        <span class="kw">if</span> <span class="ident">diff</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">M</span>::<span class="ident">FULL</span> {
+        <span class="kw">if</span> <span class="ident">diff</span> <span class="op">&lt;=</span> <span class="ident">M</span>::<span class="ident">FULL</span> {
             <span class="comment">// We can avoid underflow, can get a valid representation.</span>
             <span class="ident">cb</span>(<span class="ident">fp</span>, <span class="ident">diff</span>);
         } <span class="kw">else</span> {
@@ -832,7 +833,7 @@
         <span class="ident">cb</span>(<span class="ident">fp</span>, <span class="ident">T</span>::<span class="ident">DEFAULT_SHIFT</span>);
     }
 
-    <span class="kw">if</span> <span class="ident">fp</span>.<span class="ident">mant</span> <span class="op">&amp;</span> <span class="ident">T</span>::<span class="ident">CARRY_MASK</span> <span class="op">=</span><span class="op">=</span> <span class="ident">T</span>::<span class="ident">CARRY_MASK</span> {
+    <span class="kw">if</span> <span class="ident">fp</span>.<span class="ident">mant</span> <span class="op">&amp;</span> <span class="ident">T</span>::<span class="ident">CARRY_MASK</span> <span class="op">==</span> <span class="ident">T</span>::<span class="ident">CARRY_MASK</span> {
         <span class="comment">// Roundup carried over to 1 past the hidden bit.</span>
         <span class="ident">shr</span>(<span class="ident">fp</span>, <span class="number">1</span>);
     }
@@ -850,9 +851,9 @@
 {
     <span class="comment">// Calculate the difference to allow a single calculation</span>
     <span class="comment">// rather than a loop, minimizing the number of ops required.</span>
-    <span class="kw">if</span> <span class="ident">fp</span>.<span class="ident">exp</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">T</span>::<span class="ident">MAX_EXPONENT</span> {
+    <span class="kw">if</span> <span class="ident">fp</span>.<span class="ident">exp</span> <span class="op">&gt;=</span> <span class="ident">T</span>::<span class="ident">MAX_EXPONENT</span> {
         <span class="kw">let</span> <span class="ident">diff</span> <span class="op">=</span> <span class="ident">fp</span>.<span class="ident">exp</span> <span class="op">-</span> <span class="ident">T</span>::<span class="ident">MAX_EXPONENT</span>;
-        <span class="kw">if</span> <span class="ident">diff</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">T</span>::<span class="ident">MANTISSA_SIZE</span> {
+        <span class="kw">if</span> <span class="ident">diff</span> <span class="op">&lt;=</span> <span class="ident">T</span>::<span class="ident">MANTISSA_SIZE</span> {
             <span class="comment">// Our overflow mask needs to start at the hidden bit, or at</span>
             <span class="comment">// `T::MANTISSA_SIZE+1`, and needs to have `diff+1` bits set,</span>
             <span class="comment">// to see if our value overflows.</span>
@@ -892,7 +893,7 @@
 <span class="macro">perftools_inline</span><span class="macro">!</span>{
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">internal_rounding</span>(<span class="ident">kind</span>: <span class="ident">RoundingKind</span>, <span class="ident">sign</span>: <span class="ident">Sign</span>)
-    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RoundingKind</span>
+    <span class="op">-&gt;</span> <span class="ident">RoundingKind</span>
 {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rounding&quot;</span>))]</span> {
         <span class="ident">RoundingKind</span>::<span class="ident">NearestTieEven</span>
@@ -900,20 +901,20 @@
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rounding&quot;</span>)]</span> {
         <span class="kw">match</span> <span class="ident">sign</span> {
-            <span class="ident">Sign</span>::<span class="ident">Positive</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Sign</span>::<span class="ident">Positive</span> <span class="op">=&gt;</span> {
                 <span class="kw">match</span> <span class="ident">kind</span> {
-                    <span class="ident">RoundingKind</span>::<span class="ident">TowardPositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">RoundingKind</span>::<span class="ident">Upward</span>,
-                    <span class="ident">RoundingKind</span>::<span class="ident">TowardNegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">RoundingKind</span>::<span class="ident">Downward</span>,
-                    <span class="ident">RoundingKind</span>::<span class="ident">TowardZero</span>             <span class="op">=</span><span class="op">&gt;</span> <span class="ident">RoundingKind</span>::<span class="ident">Downward</span>,
-                    <span class="kw">_</span>                                    <span class="op">=</span><span class="op">&gt;</span> <span class="ident">kind</span>,
+                    <span class="ident">RoundingKind</span>::<span class="ident">TowardPositiveInfinity</span> <span class="op">=&gt;</span> <span class="ident">RoundingKind</span>::<span class="ident">Upward</span>,
+                    <span class="ident">RoundingKind</span>::<span class="ident">TowardNegativeInfinity</span> <span class="op">=&gt;</span> <span class="ident">RoundingKind</span>::<span class="ident">Downward</span>,
+                    <span class="ident">RoundingKind</span>::<span class="ident">TowardZero</span>             <span class="op">=&gt;</span> <span class="ident">RoundingKind</span>::<span class="ident">Downward</span>,
+                    <span class="kw">_</span>                                    <span class="op">=&gt;</span> <span class="ident">kind</span>,
                 }
             },
-            <span class="ident">Sign</span>::<span class="ident">Negative</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Sign</span>::<span class="ident">Negative</span> <span class="op">=&gt;</span> {
                 <span class="kw">match</span> <span class="ident">kind</span> {
-                    <span class="ident">RoundingKind</span>::<span class="ident">TowardPositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">RoundingKind</span>::<span class="ident">Downward</span>,
-                    <span class="ident">RoundingKind</span>::<span class="ident">TowardNegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">RoundingKind</span>::<span class="ident">Upward</span>,
-                    <span class="ident">RoundingKind</span>::<span class="ident">TowardZero</span>             <span class="op">=</span><span class="op">&gt;</span> <span class="ident">RoundingKind</span>::<span class="ident">Downward</span>,
-                    <span class="kw">_</span>                                    <span class="op">=</span><span class="op">&gt;</span> <span class="ident">kind</span>,
+                    <span class="ident">RoundingKind</span>::<span class="ident">TowardPositiveInfinity</span> <span class="op">=&gt;</span> <span class="ident">RoundingKind</span>::<span class="ident">Downward</span>,
+                    <span class="ident">RoundingKind</span>::<span class="ident">TowardNegativeInfinity</span> <span class="op">=&gt;</span> <span class="ident">RoundingKind</span>::<span class="ident">Upward</span>,
+                    <span class="ident">RoundingKind</span>::<span class="ident">TowardZero</span>             <span class="op">=&gt;</span> <span class="ident">RoundingKind</span>::<span class="ident">Downward</span>,
+                    <span class="kw">_</span>                                    <span class="op">=&gt;</span> <span class="ident">kind</span>,
                 }
             },
         }
@@ -924,7 +925,7 @@
 <span class="macro">perftools_inline</span><span class="macro">!</span>{
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;correct&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">global_rounding</span>(<span class="ident">sign</span>: <span class="ident">Sign</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RoundingKind</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">global_rounding</span>(<span class="ident">sign</span>: <span class="ident">Sign</span>) <span class="op">-&gt;</span> <span class="ident">RoundingKind</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rounding&quot;</span>))]</span> {
         <span class="ident">RoundingKind</span>::<span class="ident">NearestTieEven</span>
     }
@@ -1082,43 +1083,43 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">round_to_float_test</span>() {
         <span class="comment">// Denormal</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fp</span> <span class="op">=</span> <span class="ident">ExtendedFloat80</span> { <span class="ident">mant</span>: <span class="number">1</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="number">63</span>, <span class="ident">exp</span>: <span class="ident">f64</span>::<span class="ident">DENORMAL_EXPONENT</span> <span class="op">-</span> <span class="number">15</span> };
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fp</span> <span class="op">=</span> <span class="ident">ExtendedFloat80</span> { <span class="ident">mant</span>: <span class="number">1</span><span class="op">&lt;&lt;</span><span class="number">63</span>, <span class="ident">exp</span>: <span class="ident">f64</span>::<span class="ident">DENORMAL_EXPONENT</span> <span class="op">-</span> <span class="number">15</span> };
         <span class="ident">round_to_float</span>::<span class="op">&lt;</span><span class="ident">f64</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fp</span>, <span class="ident">round_nearest_tie_even</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, <span class="number">1</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="number">48</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, <span class="number">1</span><span class="op">&lt;&lt;</span><span class="number">48</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">exp</span>, <span class="ident">f64</span>::<span class="ident">DENORMAL_EXPONENT</span>);
 
         <span class="comment">// Halfway, round-down (b&#39;1000000000000000000000000000000000000000000000000000010000000000&#39;)</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fp</span> <span class="op">=</span> <span class="ident">ExtendedFloat80</span> { <span class="ident">mant</span>: <span class="number">0x8000000000000400</span>, <span class="ident">exp</span>: <span class="op">-</span><span class="number">63</span> };
         <span class="ident">round_to_float</span>::<span class="op">&lt;</span><span class="ident">f64</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fp</span>, <span class="ident">round_nearest_tie_even</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, <span class="number">1</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="number">52</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, <span class="number">1</span><span class="op">&lt;&lt;</span><span class="number">52</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">exp</span>, <span class="op">-</span><span class="number">52</span>);
 
         <span class="comment">// Halfway, round-up (b&#39;1000000000000000000000000000000000000000000000000000110000000000&#39;)</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fp</span> <span class="op">=</span> <span class="ident">ExtendedFloat80</span> { <span class="ident">mant</span>: <span class="number">0x8000000000000C00</span>, <span class="ident">exp</span>: <span class="op">-</span><span class="number">63</span> };
         <span class="ident">round_to_float</span>::<span class="op">&lt;</span><span class="ident">f64</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fp</span>, <span class="ident">round_nearest_tie_even</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, (<span class="number">1</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="number">52</span>) <span class="op">+</span> <span class="number">2</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, (<span class="number">1</span><span class="op">&lt;&lt;</span><span class="number">52</span>) <span class="op">+</span> <span class="number">2</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">exp</span>, <span class="op">-</span><span class="number">52</span>);
 
         <span class="comment">// Above halfway</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fp</span> <span class="op">=</span> <span class="ident">ExtendedFloat80</span> { <span class="ident">mant</span>: <span class="number">0x8000000000000401</span>, <span class="ident">exp</span>: <span class="op">-</span><span class="number">63</span> };
         <span class="ident">round_to_float</span>::<span class="op">&lt;</span><span class="ident">f64</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fp</span>, <span class="ident">round_nearest_tie_even</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, (<span class="number">1</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="number">52</span>)<span class="op">+</span><span class="number">1</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, (<span class="number">1</span><span class="op">&lt;&lt;</span><span class="number">52</span>)<span class="op">+</span><span class="number">1</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">exp</span>, <span class="op">-</span><span class="number">52</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fp</span> <span class="op">=</span> <span class="ident">ExtendedFloat80</span> { <span class="ident">mant</span>: <span class="number">0x8000000000000C01</span>, <span class="ident">exp</span>: <span class="op">-</span><span class="number">63</span> };
         <span class="ident">round_to_float</span>::<span class="op">&lt;</span><span class="ident">f64</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fp</span>, <span class="ident">round_nearest_tie_even</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, (<span class="number">1</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="number">52</span>) <span class="op">+</span> <span class="number">2</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, (<span class="number">1</span><span class="op">&lt;&lt;</span><span class="number">52</span>) <span class="op">+</span> <span class="number">2</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">exp</span>, <span class="op">-</span><span class="number">52</span>);
 
         <span class="comment">// Below halfway</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fp</span> <span class="op">=</span> <span class="ident">ExtendedFloat80</span> { <span class="ident">mant</span>: <span class="number">0x80000000000003FF</span>, <span class="ident">exp</span>: <span class="op">-</span><span class="number">63</span> };
         <span class="ident">round_to_float</span>::<span class="op">&lt;</span><span class="ident">f64</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fp</span>, <span class="ident">round_nearest_tie_even</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, <span class="number">1</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="number">52</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, <span class="number">1</span><span class="op">&lt;&lt;</span><span class="number">52</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">exp</span>, <span class="op">-</span><span class="number">52</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fp</span> <span class="op">=</span> <span class="ident">ExtendedFloat80</span> { <span class="ident">mant</span>: <span class="number">0x8000000000000BFF</span>, <span class="ident">exp</span>: <span class="op">-</span><span class="number">63</span> };
         <span class="ident">round_to_float</span>::<span class="op">&lt;</span><span class="ident">f64</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fp</span>, <span class="ident">round_nearest_tie_even</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, (<span class="number">1</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="number">52</span>) <span class="op">+</span> <span class="number">1</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, (<span class="number">1</span><span class="op">&lt;&lt;</span><span class="number">52</span>) <span class="op">+</span> <span class="number">1</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">exp</span>, <span class="op">-</span><span class="number">52</span>);
     }
 
@@ -1148,41 +1149,41 @@
         <span class="comment">// Need denormal</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fp</span> <span class="op">=</span> <span class="ident">ExtendedFloat80</span> { <span class="ident">mant</span>: <span class="number">1</span>, <span class="ident">exp</span>: <span class="ident">f64</span>::<span class="ident">DENORMAL_EXPONENT</span> <span class="op">+</span><span class="number">48</span> };
         <span class="ident">round_to_native</span>::<span class="op">&lt;</span><span class="ident">f64</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fp</span>, <span class="ident">round_nearest_tie_even</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, <span class="number">1</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="number">48</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, <span class="number">1</span><span class="op">&lt;&lt;</span><span class="number">48</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">exp</span>, <span class="ident">f64</span>::<span class="ident">DENORMAL_EXPONENT</span>);
 
         <span class="comment">// Halfway, round-down (b&#39;10000000000000000000000000000000000000000000000000000100000&#39;)</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fp</span> <span class="op">=</span> <span class="ident">ExtendedFloat80</span> { <span class="ident">mant</span>: <span class="number">0x400000000000020</span>, <span class="ident">exp</span>: <span class="op">-</span><span class="number">58</span> };
         <span class="ident">round_to_native</span>::<span class="op">&lt;</span><span class="ident">f64</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fp</span>, <span class="ident">round_nearest_tie_even</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, <span class="number">1</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="number">52</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, <span class="number">1</span><span class="op">&lt;&lt;</span><span class="number">52</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">exp</span>, <span class="op">-</span><span class="number">52</span>);
 
         <span class="comment">// Halfway, round-up (b&#39;10000000000000000000000000000000000000000000000000001100000&#39;)</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fp</span> <span class="op">=</span> <span class="ident">ExtendedFloat80</span> { <span class="ident">mant</span>: <span class="number">0x400000000000060</span>, <span class="ident">exp</span>: <span class="op">-</span><span class="number">58</span> };
         <span class="ident">round_to_native</span>::<span class="op">&lt;</span><span class="ident">f64</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fp</span>, <span class="ident">round_nearest_tie_even</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, (<span class="number">1</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="number">52</span>) <span class="op">+</span> <span class="number">2</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, (<span class="number">1</span><span class="op">&lt;&lt;</span><span class="number">52</span>) <span class="op">+</span> <span class="number">2</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">exp</span>, <span class="op">-</span><span class="number">52</span>);
 
         <span class="comment">// Above halfway</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fp</span> <span class="op">=</span> <span class="ident">ExtendedFloat80</span> { <span class="ident">mant</span>: <span class="number">0x400000000000021</span>, <span class="ident">exp</span>: <span class="op">-</span><span class="number">58</span> };
         <span class="ident">round_to_native</span>::<span class="op">&lt;</span><span class="ident">f64</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fp</span>, <span class="ident">round_nearest_tie_even</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, (<span class="number">1</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="number">52</span>)<span class="op">+</span><span class="number">1</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, (<span class="number">1</span><span class="op">&lt;&lt;</span><span class="number">52</span>)<span class="op">+</span><span class="number">1</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">exp</span>, <span class="op">-</span><span class="number">52</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fp</span> <span class="op">=</span> <span class="ident">ExtendedFloat80</span> { <span class="ident">mant</span>: <span class="number">0x400000000000061</span>, <span class="ident">exp</span>: <span class="op">-</span><span class="number">58</span> };
         <span class="ident">round_to_native</span>::<span class="op">&lt;</span><span class="ident">f64</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fp</span>, <span class="ident">round_nearest_tie_even</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, (<span class="number">1</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="number">52</span>) <span class="op">+</span> <span class="number">2</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, (<span class="number">1</span><span class="op">&lt;&lt;</span><span class="number">52</span>) <span class="op">+</span> <span class="number">2</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">exp</span>, <span class="op">-</span><span class="number">52</span>);
 
         <span class="comment">// Below halfway</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fp</span> <span class="op">=</span> <span class="ident">ExtendedFloat80</span> { <span class="ident">mant</span>: <span class="number">0x40000000000001F</span>, <span class="ident">exp</span>: <span class="op">-</span><span class="number">58</span> };
         <span class="ident">round_to_native</span>::<span class="op">&lt;</span><span class="ident">f64</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fp</span>, <span class="ident">round_nearest_tie_even</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, <span class="number">1</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="number">52</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, <span class="number">1</span><span class="op">&lt;&lt;</span><span class="number">52</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">exp</span>, <span class="op">-</span><span class="number">52</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fp</span> <span class="op">=</span> <span class="ident">ExtendedFloat80</span> { <span class="ident">mant</span>: <span class="number">0x40000000000005F</span>, <span class="ident">exp</span>: <span class="op">-</span><span class="number">58</span> };
         <span class="ident">round_to_native</span>::<span class="op">&lt;</span><span class="ident">f64</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fp</span>, <span class="ident">round_nearest_tie_even</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, (<span class="number">1</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="number">52</span>) <span class="op">+</span> <span class="number">1</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">mant</span>, (<span class="number">1</span><span class="op">&lt;&lt;</span><span class="number">52</span>) <span class="op">+</span> <span class="number">1</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fp</span>.<span class="ident">exp</span>, <span class="op">-</span><span class="number">52</span>);
 
         <span class="comment">// Underflow</span>

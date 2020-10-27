@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.13.8/src/server/conn.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>conn.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../hyper/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.13.8/src/server/conn.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>conn.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../hyper/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1230,7 +1231,7 @@
 <span class="kw">where</span>
     <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">conn</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ProtoServer</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span>::<span class="ident">ResBody</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">conn</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ProtoServer</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span>::<span class="ident">ResBody</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;&gt;</span>,
     <span class="ident">fallback</span>: <span class="ident">Fallback</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
 }
 
@@ -1259,10 +1260,10 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Fallback</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">to_h2</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">to_h2</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Fallback</span>::<span class="ident">ToHttp2</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="ident">Fallback</span>::<span class="ident">Http1Only</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">Fallback</span>::<span class="ident">ToHttp2</span>(..) <span class="op">=&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident">Fallback</span>::<span class="ident">Http1Only</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
         }
     }
 }
@@ -1296,7 +1297,7 @@
 <span class="kw">impl</span> <span class="ident">Http</span> {
     <span class="doccomment">/// Creates a new instance of the HTTP protocol, ready to spawn a server or</span>
     <span class="doccomment">/// start accepting connections.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Http</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">Http</span> {
         <span class="ident">Http</span> {
             <span class="ident">exec</span>: <span class="ident">Exec</span>::<span class="ident">Default</span>,
             <span class="ident">h1_half_close</span>: <span class="bool-val">false</span>,
@@ -1314,7 +1315,7 @@
     <span class="doccomment">/// Sets whether HTTP1 is required.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Default is false</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http1_only</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http1_only</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">val</span> {
             <span class="self">self</span>.<span class="ident">mode</span> <span class="op">=</span> <span class="ident">ConnectionMode</span>::<span class="ident">H1Only</span>;
         } <span class="kw">else</span> {
@@ -1331,7 +1332,7 @@
     <span class="doccomment">/// detects an EOF in the middle of a request.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Default is `false`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http1_half_close</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http1_half_close</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">h1_half_close</span> <span class="op">=</span> <span class="ident">val</span>;
         <span class="self">self</span>
     }
@@ -1339,7 +1340,7 @@
     <span class="doccomment">/// Enables or disables HTTP/1 keep-alive.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Default is true.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http1_keep_alive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http1_keep_alive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">h1_keep_alive</span> <span class="op">=</span> <span class="ident">val</span>;
         <span class="self">self</span>
     }
@@ -1347,7 +1348,7 @@
     <span class="comment">// renamed due different semantics of http2 keep alive</span>
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
     <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;renamed to `http1_keep_alive`&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">keep_alive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">keep_alive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">http1_keep_alive</span>(<span class="ident">val</span>)
     }
 
@@ -1364,7 +1365,7 @@
     <span class="doccomment">/// Default is `auto`. In this mode hyper will try to guess which</span>
     <span class="doccomment">/// mode to use</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http1_writev</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http1_writev</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">h1_writev</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>);
         <span class="self">self</span>
     }
@@ -1372,7 +1373,7 @@
     <span class="doccomment">/// Sets whether HTTP2 is required.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Default is false</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http2_only</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http2_only</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">val</span> {
             <span class="self">self</span>.<span class="ident">mode</span> <span class="op">=</span> <span class="ident">ConnectionMode</span>::<span class="ident">H2Only</span>;
         } <span class="kw">else</span> {
@@ -1389,7 +1390,7 @@
     <span class="doccomment">/// If not set, hyper will use a default.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://http2.github.io/http2-spec/#SETTINGS_INITIAL_WINDOW_SIZE</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http2_initial_stream_window_size</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">sz</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http2_initial_stream_window_size</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">sz</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;&gt;</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sz</span>) <span class="op">=</span> <span class="ident">sz</span>.<span class="ident">into</span>() {
             <span class="self">self</span>.<span class="ident">h2_builder</span>.<span class="ident">adaptive_window</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="self">self</span>.<span class="ident">h2_builder</span>.<span class="ident">initial_stream_window_size</span> <span class="op">=</span> <span class="ident">sz</span>;
@@ -1404,8 +1405,8 @@
     <span class="doccomment">/// If not set, hyper will use a default.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http2_initial_connection_window_size</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">sz</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+        <span class="ident">sz</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;&gt;</span>,
+    ) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sz</span>) <span class="op">=</span> <span class="ident">sz</span>.<span class="ident">into</span>() {
             <span class="self">self</span>.<span class="ident">h2_builder</span>.<span class="ident">adaptive_window</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="self">self</span>.<span class="ident">h2_builder</span>.<span class="ident">initial_conn_window_size</span> <span class="op">=</span> <span class="ident">sz</span>;
@@ -1418,7 +1419,7 @@
     <span class="doccomment">/// Enabling this will override the limits set in</span>
     <span class="doccomment">/// `http2_initial_stream_window_size` and</span>
     <span class="doccomment">/// `http2_initial_connection_window_size`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http2_adaptive_window</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">enabled</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http2_adaptive_window</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">enabled</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="kw">use</span> <span class="ident">proto</span>::<span class="ident">h2</span>::<span class="ident">SPEC_WINDOW_SIZE</span>;
 
         <span class="self">self</span>.<span class="ident">h2_builder</span>.<span class="ident">adaptive_window</span> <span class="op">=</span> <span class="ident">enabled</span>;
@@ -1434,7 +1435,7 @@
     <span class="doccomment">/// Passing `None` will do nothing.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If not set, hyper will use a default.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http2_max_frame_size</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">sz</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http2_max_frame_size</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">sz</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;&gt;</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sz</span>) <span class="op">=</span> <span class="ident">sz</span>.<span class="ident">into</span>() {
             <span class="self">self</span>.<span class="ident">h2_builder</span>.<span class="ident">max_frame_size</span> <span class="op">=</span> <span class="ident">sz</span>;
         }
@@ -1447,7 +1448,7 @@
     <span class="doccomment">/// Default is no limit (`std::u32::MAX`). Passing `None` will do nothing.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://http2.github.io/http2-spec/#SETTINGS_MAX_CONCURRENT_STREAMS</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http2_max_concurrent_streams</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">max</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http2_max_concurrent_streams</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">max</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;&gt;</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">h2_builder</span>.<span class="ident">max_concurrent_streams</span> <span class="op">=</span> <span class="ident">max</span>.<span class="ident">into</span>();
         <span class="self">self</span>
     }
@@ -1465,8 +1466,8 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http2_keep_alive_interval</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">interval</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+        <span class="ident">interval</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;&gt;</span>,
+    ) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">h2_builder</span>.<span class="ident">keep_alive_interval</span> <span class="op">=</span> <span class="ident">interval</span>.<span class="ident">into</span>();
         <span class="self">self</span>
     }
@@ -1482,7 +1483,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Requires the `runtime` cargo feature to be enabled.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http2_keep_alive_timeout</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http2_keep_alive_timeout</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident">Duration</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">h2_builder</span>.<span class="ident">keep_alive_timeout</span> <span class="op">=</span> <span class="ident">timeout</span>;
         <span class="self">self</span>
     }
@@ -1494,9 +1495,9 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The minimum value allowed is 8192. This method panics if the passed `max` is less than the minimum.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_buf_size</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">max</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_buf_size</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">max</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="macro">assert</span><span class="macro">!</span>(
-            <span class="ident">max</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">proto</span>::<span class="ident">h1</span>::<span class="ident">MINIMUM_MAX_BUFFER_SIZE</span>,
+            <span class="ident">max</span> <span class="op">&gt;=</span> <span class="ident">proto</span>::<span class="ident">h1</span>::<span class="ident">MINIMUM_MAX_BUFFER_SIZE</span>,
             <span class="string">&quot;the max_buf_size cannot be smaller than the minimum that h1 specifies.&quot;</span>
         );
         <span class="self">self</span>.<span class="ident">max_buf_size</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">max</span>);
@@ -1508,7 +1509,7 @@
     <span class="doccomment">/// Experimental, may have bugs.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Default is false.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pipeline_flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">enabled</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pipeline_flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">enabled</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">pipeline_flush</span> <span class="op">=</span> <span class="ident">enabled</span>;
         <span class="self">self</span>
     }
@@ -1516,7 +1517,7 @@
     <span class="doccomment">/// Set the executor used to spawn background tasks.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Default uses implicit default (like `tokio::spawn`).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_executor</span><span class="op">&lt;</span><span class="ident">E2</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">exec</span>: <span class="ident">E2</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Http</span><span class="op">&lt;</span><span class="ident">E2</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_executor</span><span class="op">&lt;</span><span class="ident">E2</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">exec</span>: <span class="ident">E2</span>) <span class="op">-&gt;</span> <span class="ident">Http</span><span class="op">&lt;</span><span class="ident">E2</span><span class="op">&gt;</span> {
         <span class="ident">Http</span> {
             <span class="ident">exec</span>,
             <span class="ident">h1_half_close</span>: <span class="self">self</span>.<span class="ident">h1_half_close</span>,
@@ -1557,17 +1558,17 @@
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// # fn main() {}</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">serve_connection</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">I</span>, <span class="ident">Bd</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">io</span>: <span class="ident">I</span>, <span class="ident">service</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Connection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">serve_connection</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">I</span>, <span class="ident">Bd</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">io</span>: <span class="ident">I</span>, <span class="ident">service</span>: <span class="ident">S</span>) <span class="op">-&gt;</span> <span class="ident">Connection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span>, <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">Bd</span><span class="op">&gt;</span>,
-        <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
         <span class="ident">Bd</span>: <span class="ident">HttpBody</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">Bd</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">Bd</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
         <span class="ident">I</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Unpin</span>,
         <span class="ident">E</span>: <span class="ident">H2Exec</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="ident">Future</span>, <span class="ident">Bd</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">mode</span> {
-            <span class="ident">ConnectionMode</span>::<span class="ident">H1Only</span> <span class="op">|</span> <span class="ident">ConnectionMode</span>::<span class="ident">Fallback</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ConnectionMode</span>::<span class="ident">H1Only</span> <span class="op">|</span> <span class="ident">ConnectionMode</span>::<span class="ident">Fallback</span> <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">conn</span> <span class="op">=</span> <span class="ident">proto</span>::<span class="ident">Conn</span>::<span class="ident">new</span>(<span class="ident">io</span>);
                 <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">h1_keep_alive</span> {
                     <span class="ident">conn</span>.<span class="ident">disable_keep_alive</span>();
@@ -1589,7 +1590,7 @@
                 <span class="kw">let</span> <span class="ident">sd</span> <span class="op">=</span> <span class="ident">proto</span>::<span class="ident">h1</span>::<span class="ident">dispatch</span>::<span class="ident">Server</span>::<span class="ident">new</span>(<span class="ident">service</span>);
                 <span class="ident">ProtoServer</span>::<span class="ident">H1</span>(<span class="ident">proto</span>::<span class="ident">h1</span>::<span class="ident">Dispatcher</span>::<span class="ident">new</span>(<span class="ident">sd</span>, <span class="ident">conn</span>))
             }
-            <span class="ident">ConnectionMode</span>::<span class="ident">H2Only</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ConnectionMode</span>::<span class="ident">H2Only</span> <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="ident">rewind_io</span> <span class="op">=</span> <span class="ident">Rewind</span>::<span class="ident">new</span>(<span class="ident">io</span>);
                 <span class="kw">let</span> <span class="ident">h2</span> <span class="op">=</span>
                     <span class="ident">proto</span>::<span class="ident">h2</span>::<span class="ident">Server</span>::<span class="ident">new</span>(<span class="ident">rewind_io</span>, <span class="ident">service</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">h2_builder</span>, <span class="self">self</span>.<span class="ident">exec</span>.<span class="ident">clone</span>());
@@ -1599,7 +1600,7 @@
 
         <span class="ident">Connection</span> {
             <span class="ident">conn</span>: <span class="prelude-val">Some</span>(<span class="ident">proto</span>),
-            <span class="ident">fallback</span>: <span class="kw">if</span> <span class="self">self</span>.<span class="ident">mode</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ConnectionMode</span>::<span class="ident">Fallback</span> {
+            <span class="ident">fallback</span>: <span class="kw">if</span> <span class="self">self</span>.<span class="ident">mode</span> <span class="op">==</span> <span class="ident">ConnectionMode</span>::<span class="ident">Fallback</span> {
                 <span class="ident">Fallback</span>::<span class="ident">ToHttp2</span>(<span class="self">self</span>.<span class="ident">h2_builder</span>.<span class="ident">clone</span>(), <span class="self">self</span>.<span class="ident">exec</span>.<span class="ident">clone</span>())
             } <span class="kw">else</span> {
                 <span class="ident">Fallback</span>::<span class="ident">Http1Only</span>
@@ -1607,15 +1608,15 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">serve</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">IO</span>, <span class="ident">IE</span>, <span class="ident">S</span>, <span class="ident">Bd</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">incoming</span>: <span class="ident">I</span>, <span class="ident">make_service</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Serve</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">serve</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">IO</span>, <span class="ident">IE</span>, <span class="ident">S</span>, <span class="ident">Bd</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">incoming</span>: <span class="ident">I</span>, <span class="ident">make_service</span>: <span class="ident">S</span>) <span class="op">-&gt;</span> <span class="ident">Serve</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">Accept</span><span class="op">&lt;</span><span class="ident">Conn</span> <span class="op">=</span> <span class="ident">IO</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">IE</span><span class="op">&gt;</span>,
-        <span class="ident">IE</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">IE</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
         <span class="ident">IO</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Unpin</span>,
         <span class="ident">S</span>: <span class="ident">MakeServiceRef</span><span class="op">&lt;</span><span class="ident">IO</span>, <span class="ident">Body</span>, <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">Bd</span><span class="op">&gt;</span>,
-        <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
         <span class="ident">Bd</span>: <span class="ident">HttpBody</span>,
-        <span class="ident">E</span>: <span class="ident">H2Exec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="ident">Service</span> <span class="kw">as</span> <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">Future</span>, <span class="ident">Bd</span><span class="op">&gt;</span>,
+        <span class="ident">E</span>: <span class="ident">H2Exec</span><span class="op">&lt;&lt;</span><span class="ident">S</span>::<span class="ident">Service</span> <span class="kw">as</span> <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;&gt;</span>::<span class="ident">Future</span>, <span class="ident">Bd</span><span class="op">&gt;</span>,
     {
         <span class="ident">Serve</span> {
             <span class="ident">incoming</span>,
@@ -1630,10 +1631,10 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">B</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Connection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span>, <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">B</span><span class="op">&gt;</span>,
-    <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
     <span class="ident">I</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Unpin</span>,
     <span class="ident">B</span>: <span class="ident">HttpBody</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">B</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">B</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
     <span class="ident">E</span>: <span class="ident">H2Exec</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="ident">Future</span>, <span class="ident">B</span><span class="op">&gt;</span>,
 {
     <span class="doccomment">/// Start a graceful shutdown process for this connection.</span>
@@ -1648,13 +1649,13 @@
     <span class="doccomment">/// nothing.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">graceful_shutdown</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>) {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">project</span>().<span class="ident">conn</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">ProtoServer</span>::<span class="ident">H1</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">h1</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">ProtoServer</span>::<span class="ident">H1</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">h1</span>)) <span class="op">=&gt;</span> {
                 <span class="ident">h1</span>.<span class="ident">disable_keep_alive</span>();
             }
-            <span class="prelude-val">Some</span>(<span class="ident">ProtoServer</span>::<span class="ident">H2</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">h2</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">ProtoServer</span>::<span class="ident">H2</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">h2</span>)) <span class="op">=&gt;</span> {
                 <span class="ident">h2</span>.<span class="ident">graceful_shutdown</span>();
             }
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> (),
+            <span class="prelude-val">None</span> <span class="op">=&gt;</span> (),
         }
     }
 
@@ -1667,17 +1668,17 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">/// This method will panic if this connection is using an h2 protocol.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_parts</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Parts</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_parts</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Parts</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">try_into_parts</span>()
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;h2 cannot into_inner&quot;</span>))
+            .<span class="ident">unwrap_or_else</span>(<span class="op">||</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;h2 cannot into_inner&quot;</span>))
     }
 
     <span class="doccomment">/// Return the inner IO object, and additional information, if available.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This method will return a `None` if this connection is using an h2 protocol.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_into_parts</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Parts</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_into_parts</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Parts</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span><span class="op">&gt;&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">unwrap</span>() {
-            <span class="ident">ProtoServer</span>::<span class="ident">H1</span>(<span class="ident">h1</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ProtoServer</span>::<span class="ident">H1</span>(<span class="ident">h1</span>) <span class="op">=&gt;</span> {
                 <span class="kw">let</span> (<span class="ident">io</span>, <span class="ident">read_buf</span>, <span class="ident">dispatch</span>) <span class="op">=</span> <span class="ident">h1</span>.<span class="ident">into_inner</span>();
                 <span class="prelude-val">Some</span>(<span class="ident">Parts</span> {
                     <span class="ident">io</span>,
@@ -1686,7 +1687,7 @@
                     <span class="ident">_inner</span>: (),
                 })
             }
-            <span class="ident">ProtoServer</span>::<span class="ident">H2</span>(<span class="ident">_h2</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">ProtoServer</span>::<span class="ident">H2</span>(<span class="ident">_h2</span>) <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 
@@ -1701,7 +1702,7 @@
     <span class="doccomment">/// Use [`poll_fn`](https://docs.rs/futures/0.1.25/futures/future/fn.poll_fn.html)</span>
     <span class="doccomment">/// and [`try_ready!`](https://docs.rs/futures/0.1.25/futures/macro.try_ready.html)</span>
     <span class="doccomment">/// to work with this function; or use the `without_shutdown` wrapper.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_without_shutdown</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_without_shutdown</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;&gt;</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">Unpin</span>,
         <span class="ident">S</span>::<span class="ident">Future</span>: <span class="ident">Unpin</span>,
@@ -1709,17 +1710,17 @@
     {
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">polled</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>() {
-                <span class="ident">ProtoServer</span>::<span class="ident">H1</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">h1</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">h1</span>.<span class="ident">poll_without_shutdown</span>(<span class="ident">cx</span>),
-                <span class="ident">ProtoServer</span>::<span class="ident">H2</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">h2</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Pin</span>::<span class="ident">new</span>(<span class="ident">h2</span>).<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">map_ok</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ()),
+                <span class="ident">ProtoServer</span>::<span class="ident">H1</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">h1</span>) <span class="op">=&gt;</span> <span class="ident">h1</span>.<span class="ident">poll_without_shutdown</span>(<span class="ident">cx</span>),
+                <span class="ident">ProtoServer</span>::<span class="ident">H2</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">h2</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">Pin</span>::<span class="ident">new</span>(<span class="ident">h2</span>).<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">map_ok</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ()),
             };
             <span class="kw">match</span> <span class="macro">ready</span><span class="macro">!</span>(<span class="ident">polled</span>) {
-                <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(())),
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">e</span>.<span class="ident">kind</span>() {
-                    <span class="ident">Kind</span>::<span class="ident">Parse</span>(<span class="ident">Parse</span>::<span class="ident">VersionH2</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">fallback</span>.<span class="ident">to_h2</span>() <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(()) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(())),
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">e</span>.<span class="ident">kind</span>() {
+                    <span class="ident">Kind</span>::<span class="ident">Parse</span>(<span class="ident">Parse</span>::<span class="ident">VersionH2</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">fallback</span>.<span class="ident">to_h2</span>() <span class="op">=&gt;</span> {
                         <span class="self">self</span>.<span class="ident">upgrade_h2</span>();
                         <span class="kw">continue</span>;
                     }
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
+                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
                 },
             }
         }
@@ -1727,7 +1728,7 @@
 
     <span class="doccomment">/// Prevent shutdown of the underlying IO object at the end of service the request,</span>
     <span class="doccomment">/// instead run `into_parts`. This is a convenience wrapper over `poll_without_shutdown`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">without_shutdown</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Parts</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">without_shutdown</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Parts</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">Unpin</span>,
         <span class="ident">S</span>::<span class="ident">Future</span>: <span class="ident">Unpin</span>,
@@ -1745,16 +1746,16 @@
         <span class="kw">let</span> <span class="ident">conn</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">take</span>();
 
         <span class="kw">let</span> (<span class="ident">io</span>, <span class="ident">read_buf</span>, <span class="ident">dispatch</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">conn</span>.<span class="ident">unwrap</span>() {
-            <span class="ident">ProtoServer</span>::<span class="ident">H1</span>(<span class="ident">h1</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">h1</span>.<span class="ident">into_inner</span>(),
-            <span class="ident">ProtoServer</span>::<span class="ident">H2</span>(<span class="ident">_h2</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ProtoServer</span>::<span class="ident">H1</span>(<span class="ident">h1</span>) <span class="op">=&gt;</span> <span class="ident">h1</span>.<span class="ident">into_inner</span>(),
+            <span class="ident">ProtoServer</span>::<span class="ident">H2</span>(<span class="ident">_h2</span>) <span class="op">=&gt;</span> {
                 <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;h2 cannot into_inner&quot;</span>);
             }
         };
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rewind_io</span> <span class="op">=</span> <span class="ident">Rewind</span>::<span class="ident">new</span>(<span class="ident">io</span>);
         <span class="ident">rewind_io</span>.<span class="ident">rewind</span>(<span class="ident">read_buf</span>);
         <span class="kw">let</span> (<span class="ident">builder</span>, <span class="ident">exec</span>) <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">fallback</span> {
-            <span class="ident">Fallback</span>::<span class="ident">ToHttp2</span>(<span class="kw-2">ref</span> <span class="ident">builder</span>, <span class="kw-2">ref</span> <span class="ident">exec</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">builder</span>, <span class="ident">exec</span>),
-            <span class="ident">Fallback</span>::<span class="ident">Http1Only</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;upgrade_h2 with Fallback::Http1Only&quot;</span>),
+            <span class="ident">Fallback</span>::<span class="ident">ToHttp2</span>(<span class="kw-2">ref</span> <span class="ident">builder</span>, <span class="kw-2">ref</span> <span class="ident">exec</span>) <span class="op">=&gt;</span> (<span class="ident">builder</span>, <span class="ident">exec</span>),
+            <span class="ident">Fallback</span>::<span class="ident">Http1Only</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;upgrade_h2 with Fallback::Http1Only&quot;</span>),
         };
         <span class="kw">let</span> <span class="ident">h2</span> <span class="op">=</span> <span class="ident">proto</span>::<span class="ident">h2</span>::<span class="ident">Server</span>::<span class="ident">new</span>(<span class="ident">rewind_io</span>, <span class="ident">dispatch</span>.<span class="ident">into_service</span>(), <span class="ident">builder</span>, <span class="ident">exec</span>.<span class="ident">clone</span>());
 
@@ -1765,7 +1766,7 @@
     <span class="doccomment">/// Enable this connection to support higher-level HTTP upgrades.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See [the `upgrade` module](crate::upgrade) for more.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_upgrades</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UpgradeableConnection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_upgrades</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">UpgradeableConnection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">Send</span>,
     {
@@ -1776,18 +1777,18 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">B</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">Connection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span>, <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">B</span><span class="op">&gt;</span>,
-    <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
     <span class="ident">I</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Unpin</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">B</span>: <span class="ident">HttpBody</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">B</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">B</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
     <span class="ident">E</span>: <span class="ident">H2Exec</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="ident">Future</span>, <span class="ident">B</span><span class="op">&gt;</span>,
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="macro">ready</span><span class="macro">!</span>(<span class="ident">Pin</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>()).<span class="ident">poll</span>(<span class="ident">cx</span>)) {
-                <span class="prelude-val">Ok</span>(<span class="ident">done</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">done</span>) <span class="op">=&gt;</span> {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">proto</span>::<span class="ident">Dispatched</span>::<span class="ident">Upgrade</span>(<span class="ident">pending</span>) <span class="op">=</span> <span class="ident">done</span> {
                         <span class="comment">// With no `Send` bound on `I`, we can&#39;t try to do</span>
                         <span class="comment">// upgrades here. In case a user was trying to use</span>
@@ -1797,12 +1798,12 @@
                     }
                     <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()));
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">e</span>.<span class="ident">kind</span>() {
-                    <span class="ident">Kind</span>::<span class="ident">Parse</span>(<span class="ident">Parse</span>::<span class="ident">VersionH2</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">fallback</span>.<span class="ident">to_h2</span>() <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">e</span>.<span class="ident">kind</span>() {
+                    <span class="ident">Kind</span>::<span class="ident">Parse</span>(<span class="ident">Parse</span>::<span class="ident">VersionH2</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">fallback</span>.<span class="ident">to_h2</span>() <span class="op">=&gt;</span> {
                         <span class="self">self</span>.<span class="ident">upgrade_h2</span>();
                         <span class="kw">continue</span>;
                     }
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
+                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
                 },
             }
         }
@@ -1813,7 +1814,7 @@
 <span class="kw">where</span>
     <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Connection&quot;</span>).<span class="ident">finish</span>()
     }
 }
@@ -1822,7 +1823,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Serve</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Get a reference to the incoming stream.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">incoming_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">I</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">incoming_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">I</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">incoming</span>
     }
 
@@ -1835,7 +1836,7 @@
     */</span>
 
     <span class="doccomment">/// Spawn all incoming connections onto the executor in `Http`.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">spawn_all</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SpawnAll</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">spawn_all</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">SpawnAll</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span> {
         <span class="ident">SpawnAll</span> { <span class="ident">serve</span>: <span class="self">self</span> }
     }
 }
@@ -1844,19 +1845,19 @@
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">Accept</span><span class="op">&lt;</span><span class="ident">Conn</span> <span class="op">=</span> <span class="ident">IO</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">IE</span><span class="op">&gt;</span>,
     <span class="ident">IO</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Unpin</span>,
-    <span class="ident">IE</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">IE</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
     <span class="ident">S</span>: <span class="ident">MakeServiceRef</span><span class="op">&lt;</span><span class="ident">IO</span>, <span class="ident">Body</span>, <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">B</span><span class="op">&gt;</span>,
     <span class="ident">B</span>: <span class="ident">HttpBody</span>,
-    <span class="ident">E</span>: <span class="ident">H2Exec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="ident">Service</span> <span class="kw">as</span> <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">Future</span>, <span class="ident">B</span><span class="op">&gt;</span>,
+    <span class="ident">E</span>: <span class="ident">H2Exec</span><span class="op">&lt;&lt;</span><span class="ident">S</span>::<span class="ident">Service</span> <span class="kw">as</span> <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;&gt;</span>::<span class="ident">Future</span>, <span class="ident">B</span><span class="op">&gt;</span>,
 {
     <span class="kw">fn</span> <span class="ident">poll_next_</span>(
         <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Connecting</span><span class="op">&lt;</span><span class="ident">IO</span>, <span class="ident">S</span>::<span class="ident">Future</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Connecting</span><span class="op">&lt;</span><span class="ident">IO</span>, <span class="ident">S</span>::<span class="ident">Future</span>, <span class="ident">E</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
         <span class="kw">match</span> <span class="macro">ready</span><span class="macro">!</span>(<span class="ident">me</span>.<span class="ident">make_service</span>.<span class="ident">poll_ready_ref</span>(<span class="ident">cx</span>)) {
-            <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> (),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(()) <span class="op">=&gt;</span> (),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> {
                 <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;make_service closed&quot;</span>);
                 <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::<span class="ident">Error</span>::<span class="ident">new_user_make_service</span>(<span class="ident">e</span>))));
             }
@@ -1881,15 +1882,15 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span>, <span class="ident">S</span>, <span class="ident">FE</span>, <span class="ident">E</span>, <span class="ident">B</span><span class="op">&gt;</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">Connecting</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Unpin</span>,
-    <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">FE</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">FE</span><span class="op">&gt;&gt;</span>,
     <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span>, <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">B</span><span class="op">&gt;</span>,
     <span class="ident">B</span>: <span class="ident">HttpBody</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">B</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">B</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
     <span class="ident">E</span>: <span class="ident">H2Exec</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="ident">Future</span>, <span class="ident">B</span><span class="op">&gt;</span>,
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Connection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>, <span class="ident">FE</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
         <span class="kw">let</span> <span class="ident">service</span> <span class="op">=</span> <span class="macro">ready</span><span class="macro">!</span>(<span class="ident">me</span>.<span class="ident">future</span>.<span class="ident">poll</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">me</span>.<span class="ident">io</span>.<span class="ident">take</span>().<span class="ident">expect</span>(<span class="string">&quot;polled after complete&quot;</span>);
@@ -1901,13 +1902,13 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tcp&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">SpawnAll</span><span class="op">&lt;</span><span class="ident">AddrIncoming</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">local_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SocketAddr</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">local_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">SocketAddr</span> {
         <span class="self">self</span>.<span class="ident">serve</span>.<span class="ident">incoming</span>.<span class="ident">local_addr</span>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">SpawnAll</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">incoming_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">I</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">incoming_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">I</span> {
         <span class="self">self</span>.<span class="ident">serve</span>.<span class="ident">incoming_ref</span>()
     }
 }
@@ -1915,17 +1916,17 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">IO</span>, <span class="ident">IE</span>, <span class="ident">S</span>, <span class="ident">B</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">SpawnAll</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">Accept</span><span class="op">&lt;</span><span class="ident">Conn</span> <span class="op">=</span> <span class="ident">IO</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">IE</span><span class="op">&gt;</span>,
-    <span class="ident">IE</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">IE</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
     <span class="ident">IO</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Unpin</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">S</span>: <span class="ident">MakeServiceRef</span><span class="op">&lt;</span><span class="ident">IO</span>, <span class="ident">Body</span>, <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">B</span><span class="op">&gt;</span>,
     <span class="ident">B</span>: <span class="ident">HttpBody</span>,
-    <span class="ident">E</span>: <span class="ident">H2Exec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="ident">Service</span> <span class="kw">as</span> <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">Future</span>, <span class="ident">B</span><span class="op">&gt;</span>,
+    <span class="ident">E</span>: <span class="ident">H2Exec</span><span class="op">&lt;&lt;</span><span class="ident">S</span>::<span class="ident">Service</span> <span class="kw">as</span> <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;&gt;</span>::<span class="ident">Future</span>, <span class="ident">B</span><span class="op">&gt;</span>,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">poll_watch</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(
         <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">watcher</span>: <span class="kw-2">&amp;</span><span class="ident">W</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>
+    ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;&gt;</span>
     <span class="kw">where</span>
         <span class="ident">E</span>: <span class="ident">NewSvcExec</span><span class="op">&lt;</span><span class="ident">IO</span>, <span class="ident">S</span>::<span class="ident">Future</span>, <span class="ident">S</span>::<span class="ident">Service</span>, <span class="ident">E</span>, <span class="ident">W</span><span class="op">&gt;</span>,
         <span class="ident">W</span>: <span class="ident">Watcher</span><span class="op">&lt;</span><span class="ident">IO</span>, <span class="ident">S</span>::<span class="ident">Service</span>, <span class="ident">E</span><span class="op">&gt;</span>,
@@ -1953,17 +1954,17 @@
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Unpin</span>,
     <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span>, <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">B</span><span class="op">&gt;</span>,
-    <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
     <span class="ident">B</span>: <span class="ident">HttpBody</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">B</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">B</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
     <span class="ident">E</span>: <span class="ident">H2Exec</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="ident">Future</span>, <span class="ident">B</span><span class="op">&gt;</span>,
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">proto</span>::<span class="ident">Dispatched</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">project</span>() {
-            <span class="ident">ProtoServerProj</span>::<span class="ident">H1</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">poll</span>(<span class="ident">cx</span>),
-            <span class="ident">ProtoServerProj</span>::<span class="ident">H2</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">poll</span>(<span class="ident">cx</span>),
+            <span class="ident">ProtoServerProj</span>::<span class="ident">H1</span>(<span class="ident">s</span>) <span class="op">=&gt;</span> <span class="ident">s</span>.<span class="ident">poll</span>(<span class="ident">cx</span>),
+            <span class="ident">ProtoServerProj</span>::<span class="ident">H2</span>(<span class="ident">s</span>) <span class="op">=&gt;</span> <span class="ident">s</span>.<span class="ident">poll</span>(<span class="ident">cx</span>),
         }
     }
 }
@@ -1988,9 +1989,9 @@
     <span class="comment">// connections, and signal that they start to shutdown when prompted, so</span>
     <span class="comment">// it has a `GracefulWatcher` implementation to do that.</span>
     <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Watcher</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>, <span class="ident">E</span><span class="op">&gt;</span>: <span class="ident">Clone</span> {
-        <span class="kw">type</span> <span class="ident">Future</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>;
+        <span class="kw">type</span> <span class="ident">Future</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;&gt;</span>;
 
-        <span class="kw">fn</span> <span class="ident">watch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">conn</span>: <span class="ident">UpgradeableConnection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Future</span>;
+        <span class="kw">fn</span> <span class="ident">watch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">conn</span>: <span class="ident">UpgradeableConnection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Future</span>;
     }
 
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
@@ -2003,11 +2004,11 @@
         <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>,
         <span class="ident">E</span>: <span class="ident">H2Exec</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="ident">Future</span>, <span class="ident">S</span>::<span class="ident">ResBody</span><span class="op">&gt;</span>,
         <span class="ident">S</span>::<span class="ident">ResBody</span>: <span class="lifetime">&#39;static</span>,
-        <span class="op">&lt;</span><span class="ident">S</span>::<span class="ident">ResBody</span> <span class="kw">as</span> <span class="ident">HttpBody</span><span class="op">&gt;</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="op">&lt;</span><span class="ident">S</span>::<span class="ident">ResBody</span> <span class="kw">as</span> <span class="ident">HttpBody</span><span class="op">&gt;</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
     {
         <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <span class="ident">UpgradeableConnection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>;
 
-        <span class="kw">fn</span> <span class="ident">watch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">conn</span>: <span class="ident">UpgradeableConnection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Future</span> {
+        <span class="kw">fn</span> <span class="ident">watch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">conn</span>: <span class="ident">UpgradeableConnection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Future</span> {
             <span class="ident">conn</span>
         }
     }
@@ -2024,19 +2025,19 @@
 
     <span class="attribute">#[<span class="ident">pin_project</span>]</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NewSvcTask</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>, <span class="ident">E</span>, <span class="ident">W</span>: <span class="ident">Watcher</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NewSvcTask</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>, <span class="ident">E</span>, <span class="ident">W</span>: <span class="ident">Watcher</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;&gt;</span> {
         <span class="attribute">#[<span class="ident">pin</span>]</span>
         <span class="ident">state</span>: <span class="ident">State</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">S</span>, <span class="ident">E</span>, <span class="ident">W</span><span class="op">&gt;</span>,
     }
 
     <span class="attribute">#[<span class="ident">pin_project</span>(<span class="ident">project</span> <span class="op">=</span> <span class="ident">StateProj</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>, <span class="ident">E</span>, <span class="ident">W</span>: <span class="ident">Watcher</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>, <span class="ident">E</span>, <span class="ident">W</span>: <span class="ident">Watcher</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;&gt;</span> {
         <span class="ident">Connecting</span>(<span class="attribute">#[<span class="ident">pin</span>]</span> <span class="ident">Connecting</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">E</span><span class="op">&gt;</span>, <span class="ident">W</span>),
         <span class="ident">Connected</span>(<span class="attribute">#[<span class="ident">pin</span>]</span> <span class="ident">W</span>::<span class="ident">Future</span>),
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>, <span class="ident">E</span>, <span class="ident">W</span>: <span class="ident">Watcher</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">NewSvcTask</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">S</span>, <span class="ident">E</span>, <span class="ident">W</span><span class="op">&gt;</span> {
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">connecting</span>: <span class="ident">Connecting</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">E</span><span class="op">&gt;</span>, <span class="ident">watcher</span>: <span class="ident">W</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>, <span class="ident">E</span>, <span class="ident">W</span>: <span class="ident">Watcher</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;&gt;</span> <span class="ident">NewSvcTask</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">S</span>, <span class="ident">E</span>, <span class="ident">W</span><span class="op">&gt;</span> {
+        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">connecting</span>: <span class="ident">Connecting</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">E</span><span class="op">&gt;</span>, <span class="ident">watcher</span>: <span class="ident">W</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
             <span class="ident">NewSvcTask</span> {
                 <span class="ident">state</span>: <span class="ident">State</span>::<span class="ident">Connecting</span>(<span class="ident">connecting</span>, <span class="ident">watcher</span>),
             }
@@ -2046,17 +2047,17 @@
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">S</span>, <span class="ident">NE</span>, <span class="ident">B</span>, <span class="ident">E</span>, <span class="ident">W</span><span class="op">&gt;</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">NewSvcTask</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">N</span>, <span class="ident">S</span>, <span class="ident">E</span>, <span class="ident">W</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Unpin</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">N</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">NE</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">NE</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">NE</span><span class="op">&gt;&gt;</span>,
+        <span class="ident">NE</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
         <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span>, <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">B</span><span class="op">&gt;</span>,
         <span class="ident">B</span>: <span class="ident">HttpBody</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">B</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">B</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
         <span class="ident">E</span>: <span class="ident">H2Exec</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="ident">Future</span>, <span class="ident">B</span><span class="op">&gt;</span>,
         <span class="ident">W</span>: <span class="ident">Watcher</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>,
     {
         <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> ();
 
-        <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
             <span class="comment">// If it weren&#39;t for needing to name this type so the `Send` bounds</span>
             <span class="comment">// could be projected to the `Serve` executor, this could just be</span>
             <span class="comment">// an `async fn`, and much safer. Woe is me.</span>
@@ -2065,11 +2066,11 @@
             <span class="kw">loop</span> {
                 <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> {
                     <span class="kw">match</span> <span class="ident">me</span>.<span class="ident">state</span>.<span class="ident">as_mut</span>().<span class="ident">project</span>() {
-                        <span class="ident">StateProj</span>::<span class="ident">Connecting</span>(<span class="ident">connecting</span>, <span class="ident">watcher</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">StateProj</span>::<span class="ident">Connecting</span>(<span class="ident">connecting</span>, <span class="ident">watcher</span>) <span class="op">=&gt;</span> {
                             <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro">ready</span><span class="macro">!</span>(<span class="ident">connecting</span>.<span class="ident">poll</span>(<span class="ident">cx</span>));
                             <span class="kw">let</span> <span class="ident">conn</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">res</span> {
-                                <span class="prelude-val">Ok</span>(<span class="ident">conn</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">conn</span>,
-                                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                                <span class="prelude-val">Ok</span>(<span class="ident">conn</span>) <span class="op">=&gt;</span> <span class="ident">conn</span>,
+                                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
                                     <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">Error</span>::<span class="ident">new_user_make_service</span>(<span class="ident">err</span>);
                                     <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;connecting error: {}&quot;</span>, <span class="ident">err</span>);
                                     <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(());
@@ -2078,7 +2079,7 @@
                             <span class="kw">let</span> <span class="ident">connected</span> <span class="op">=</span> <span class="ident">watcher</span>.<span class="ident">watch</span>(<span class="ident">conn</span>.<span class="ident">with_upgrades</span>());
                             <span class="ident">State</span>::<span class="ident">Connected</span>(<span class="ident">connected</span>)
                         }
-                        <span class="ident">StateProj</span>::<span class="ident">Connected</span>(<span class="ident">future</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">StateProj</span>::<span class="ident">Connected</span>(<span class="ident">future</span>) <span class="op">=&gt;</span> {
                             <span class="kw">return</span> <span class="ident">future</span>.<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> {
                                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">res</span> {
                                     <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;connection error: {}&quot;</span>, <span class="ident">err</span>);
@@ -2113,10 +2114,10 @@
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">B</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">UpgradeableConnection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span>, <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">B</span><span class="op">&gt;</span>,
-        <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
         <span class="ident">I</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Unpin</span>,
         <span class="ident">B</span>: <span class="ident">HttpBody</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">B</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">B</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
         <span class="ident">E</span>: <span class="ident">H2Exec</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="ident">Future</span>, <span class="ident">B</span><span class="op">&gt;</span>,
     {
         <span class="doccomment">/// Start a graceful shutdown process for this connection.</span>
@@ -2131,34 +2132,34 @@
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">B</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">UpgradeableConnection</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span>, <span class="ident">E</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span>, <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">B</span><span class="op">&gt;</span>,
-        <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
         <span class="ident">I</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Unpin</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
         <span class="ident">B</span>: <span class="ident">HttpBody</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">B</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">B</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
         <span class="ident">E</span>: <span class="kw">super</span>::<span class="ident">H2Exec</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="ident">Future</span>, <span class="ident">B</span><span class="op">&gt;</span>,
     {
         <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 
-        <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
             <span class="kw">loop</span> {
                 <span class="kw">match</span> <span class="macro">ready</span><span class="macro">!</span>(<span class="ident">Pin</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">conn</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>()).<span class="ident">poll</span>(<span class="ident">cx</span>)) {
-                    <span class="prelude-val">Ok</span>(<span class="ident">proto</span>::<span class="ident">Dispatched</span>::<span class="ident">Shutdown</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(())),
-                    <span class="prelude-val">Ok</span>(<span class="ident">proto</span>::<span class="ident">Dispatched</span>::<span class="ident">Upgrade</span>(<span class="ident">pending</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Ok</span>(<span class="ident">proto</span>::<span class="ident">Dispatched</span>::<span class="ident">Shutdown</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(())),
+                    <span class="prelude-val">Ok</span>(<span class="ident">proto</span>::<span class="ident">Dispatched</span>::<span class="ident">Upgrade</span>(<span class="ident">pending</span>)) <span class="op">=&gt;</span> {
                         <span class="kw">let</span> <span class="ident">h1</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">conn</span>, <span class="prelude-val">None</span>) {
-                            <span class="prelude-val">Some</span>(<span class="ident">ProtoServer</span>::<span class="ident">H1</span>(<span class="ident">h1</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">h1</span>,
-                            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Upgrade expects h1&quot;</span>),
+                            <span class="prelude-val">Some</span>(<span class="ident">ProtoServer</span>::<span class="ident">H1</span>(<span class="ident">h1</span>)) <span class="op">=&gt;</span> <span class="ident">h1</span>,
+                            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Upgrade expects h1&quot;</span>),
                         };
 
                         <span class="kw">let</span> (<span class="ident">io</span>, <span class="ident">buf</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">h1</span>.<span class="ident">into_inner</span>();
                         <span class="ident">pending</span>.<span class="ident">fulfill</span>(<span class="ident">Upgraded</span>::<span class="ident">new</span>(<span class="ident">io</span>, <span class="ident">buf</span>));
                         <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()));
                     }
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">e</span>.<span class="ident">kind</span>() {
-                        <span class="ident">Kind</span>::<span class="ident">Parse</span>(<span class="ident">Parse</span>::<span class="ident">VersionH2</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">fallback</span>.<span class="ident">to_h2</span>() <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">e</span>.<span class="ident">kind</span>() {
+                        <span class="ident">Kind</span>::<span class="ident">Parse</span>(<span class="ident">Parse</span>::<span class="ident">VersionH2</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">fallback</span>.<span class="ident">to_h2</span>() <span class="op">=&gt;</span> {
                             <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">upgrade_h2</span>();
                             <span class="kw">continue</span>;
                         }
-                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
+                        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
                     },
                 }
             }

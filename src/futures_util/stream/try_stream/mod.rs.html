@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.5/src/stream/try_stream/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../futures_util/index.html'><div class='logo-container'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.7/src/stream/try_stream/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../futures_util/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -873,6 +874,53 @@
 <span id="873">873</span>
 <span id="874">874</span>
 <span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Streams</span>
 <span class="doccomment">//!</span>
@@ -899,21 +947,21 @@
 <span class="macro">delegate_all</span><span class="macro">!</span>(
     <span class="doccomment">/// Stream for the [`err_into`](super::TryStreamExt::err_into) method.</span>
     <span class="ident">ErrInto</span><span class="op">&lt;</span><span class="ident">St</span>, <span class="ident">E</span><span class="op">&gt;</span>(
-        <span class="ident">MapErr</span><span class="op">&lt;</span><span class="ident">St</span>, <span class="ident">IntoFn</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>
+        <span class="ident">MapErr</span><span class="op">&lt;</span><span class="ident">St</span>, <span class="ident">IntoFn</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;&gt;</span>
     ): <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Sink</span> <span class="op">+</span> <span class="ident">Stream</span> <span class="op">+</span> <span class="ident">FusedStream</span> <span class="op">+</span> <span class="ident">AccessInner</span>[<span class="ident">St</span>, (.)] <span class="op">+</span> <span class="ident">New</span>[<span class="op">|</span><span class="ident">x</span>: <span class="ident">St</span><span class="op">|</span> <span class="ident">MapErr</span>::<span class="ident">new</span>(<span class="ident">x</span>, <span class="ident">into_fn</span>())]
 );
 
 <span class="macro">delegate_all</span><span class="macro">!</span>(
     <span class="doccomment">/// Stream for the [`inspect_ok`](super::TryStreamExt::inspect_ok) method.</span>
     <span class="ident">InspectOk</span><span class="op">&lt;</span><span class="ident">St</span>, <span class="ident">F</span><span class="op">&gt;</span>(
-        <span class="ident">Inspect</span><span class="op">&lt;</span><span class="ident">IntoStream</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>, <span class="ident">InspectOkFn</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>
+        <span class="ident">Inspect</span><span class="op">&lt;</span><span class="ident">IntoStream</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>, <span class="ident">InspectOkFn</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;&gt;</span>
     ): <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Sink</span> <span class="op">+</span> <span class="ident">Stream</span> <span class="op">+</span> <span class="ident">FusedStream</span> <span class="op">+</span> <span class="ident">AccessInner</span>[<span class="ident">St</span>, (. .)] <span class="op">+</span> <span class="ident">New</span>[<span class="op">|</span><span class="ident">x</span>: <span class="ident">St</span>, <span class="ident">f</span>: <span class="ident">F</span><span class="op">|</span> <span class="ident">Inspect</span>::<span class="ident">new</span>(<span class="ident">IntoStream</span>::<span class="ident">new</span>(<span class="ident">x</span>), <span class="ident">inspect_ok_fn</span>(<span class="ident">f</span>))]
 );
 
 <span class="macro">delegate_all</span><span class="macro">!</span>(
     <span class="doccomment">/// Stream for the [`inspect_err`](super::TryStreamExt::inspect_err) method.</span>
     <span class="ident">InspectErr</span><span class="op">&lt;</span><span class="ident">St</span>, <span class="ident">F</span><span class="op">&gt;</span>(
-        <span class="ident">Inspect</span><span class="op">&lt;</span><span class="ident">IntoStream</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>, <span class="ident">InspectErrFn</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>
+        <span class="ident">Inspect</span><span class="op">&lt;</span><span class="ident">IntoStream</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>, <span class="ident">InspectErrFn</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;&gt;</span>
     ): <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Sink</span> <span class="op">+</span> <span class="ident">Stream</span> <span class="op">+</span> <span class="ident">FusedStream</span> <span class="op">+</span> <span class="ident">AccessInner</span>[<span class="ident">St</span>, (. .)] <span class="op">+</span> <span class="ident">New</span>[<span class="op">|</span><span class="ident">x</span>: <span class="ident">St</span>, <span class="ident">f</span>: <span class="ident">F</span><span class="op">|</span> <span class="ident">Inspect</span>::<span class="ident">new</span>(<span class="ident">IntoStream</span>::<span class="ident">new</span>(<span class="ident">x</span>), <span class="ident">inspect_err_fn</span>(<span class="ident">f</span>))]
 );
 
@@ -924,14 +972,14 @@
 <span class="macro">delegate_all</span><span class="macro">!</span>(
     <span class="doccomment">/// Stream for the [`map_ok`](super::TryStreamExt::map_ok) method.</span>
     <span class="ident">MapOk</span><span class="op">&lt;</span><span class="ident">St</span>, <span class="ident">F</span><span class="op">&gt;</span>(
-        <span class="ident">Map</span><span class="op">&lt;</span><span class="ident">IntoStream</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>, <span class="ident">MapOkFn</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>
+        <span class="ident">Map</span><span class="op">&lt;</span><span class="ident">IntoStream</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>, <span class="ident">MapOkFn</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;&gt;</span>
     ): <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Sink</span> <span class="op">+</span> <span class="ident">Stream</span> <span class="op">+</span> <span class="ident">FusedStream</span> <span class="op">+</span> <span class="ident">AccessInner</span>[<span class="ident">St</span>, (. .)] <span class="op">+</span> <span class="ident">New</span>[<span class="op">|</span><span class="ident">x</span>: <span class="ident">St</span>, <span class="ident">f</span>: <span class="ident">F</span><span class="op">|</span> <span class="ident">Map</span>::<span class="ident">new</span>(<span class="ident">IntoStream</span>::<span class="ident">new</span>(<span class="ident">x</span>), <span class="ident">map_ok_fn</span>(<span class="ident">f</span>))]
 );
 
 <span class="macro">delegate_all</span><span class="macro">!</span>(
     <span class="doccomment">/// Stream for the [`map_err`](super::TryStreamExt::map_err) method.</span>
     <span class="ident">MapErr</span><span class="op">&lt;</span><span class="ident">St</span>, <span class="ident">F</span><span class="op">&gt;</span>(
-        <span class="ident">Map</span><span class="op">&lt;</span><span class="ident">IntoStream</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>, <span class="ident">MapErrFn</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>
+        <span class="ident">Map</span><span class="op">&lt;</span><span class="ident">IntoStream</span><span class="op">&lt;</span><span class="ident">St</span><span class="op">&gt;</span>, <span class="ident">MapErrFn</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;&gt;</span>
     ): <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Sink</span> <span class="op">+</span> <span class="ident">Stream</span> <span class="op">+</span> <span class="ident">FusedStream</span> <span class="op">+</span> <span class="ident">AccessInner</span>[<span class="ident">St</span>, (. .)] <span class="op">+</span> <span class="ident">New</span>[<span class="op">|</span><span class="ident">x</span>: <span class="ident">St</span>, <span class="ident">f</span>: <span class="ident">F</span><span class="op">|</span> <span class="ident">Map</span>::<span class="ident">new</span>(<span class="ident">IntoStream</span>::<span class="ident">new</span>(<span class="ident">x</span>), <span class="ident">map_err_fn</span>(<span class="ident">f</span>))]
 );
 
@@ -979,6 +1027,10 @@
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unreachable_pub</span>)]</span> <span class="comment">// https://github.com/rust-lang/rust/issues/57411</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">try_skip_while</span>::<span class="ident">TrySkipWhile</span>;
 
+<span class="kw">mod</span> <span class="ident">try_take_while</span>;
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unreachable_pub</span>)]</span> <span class="comment">// https://github.com/rust-lang/rust/issues/57411</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">try_take_while</span>::<span class="ident">TryTakeWhile</span>;
+
 <span class="macro">cfg_target_has_atomic</span><span class="macro">!</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
     <span class="kw">mod</span> <span class="ident">try_buffer_unordered</span>;
@@ -997,9 +1049,12 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">into_async_read</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;io&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;io&quot;</span>)))]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unreachable_pub</span>)]</span> <span class="comment">// https://github.com/rust-lang/rust/issues/57411</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">into_async_read</span>::<span class="ident">IntoAsyncRead</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">future</span>::<span class="ident">assert_future</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">stream</span>::<span class="ident">assert_stream</span>;
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">TryStream</span><span class="op">&gt;</span> <span class="ident">TryStreamExt</span> <span class="kw">for</span> <span class="ident">S</span> {}
 
@@ -1022,12 +1077,12 @@
     <span class="doccomment">/// assert_eq!(stream.try_next().await, Err(5i64));</span>
     <span class="doccomment">/// # })</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">err_into</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ErrInto</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">E</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">err_into</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ErrInto</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">E</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span>,
         <span class="self">Self</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     {
-        <span class="ident">ErrInto</span>::<span class="ident">new</span>(<span class="self">self</span>)
+        <span class="ident">assert_stream</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span>, <span class="ident">E</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">ErrInto</span>::<span class="ident">new</span>(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Wraps the current stream in a new stream which maps the success value</span>
@@ -1047,12 +1102,12 @@
     <span class="doccomment">/// assert_eq!(stream.try_next().await, Err(0));</span>
     <span class="doccomment">/// # })</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">map_ok</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MapOk</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">map_ok</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">MapOk</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span>,
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="self">Self</span>::<span class="prelude-val">Ok</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="self">Self</span>::<span class="prelude-val">Ok</span>) <span class="op">-&gt;</span> <span class="ident">T</span>,
     {
-        <span class="ident">MapOk</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>)
+        <span class="ident">assert_stream</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">MapOk</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>))
     }
 
     <span class="doccomment">/// Wraps the current stream in a new stream which maps the error value</span>
@@ -1072,12 +1127,12 @@
     <span class="doccomment">/// assert_eq!(stream.try_next().await, Err(2));</span>
     <span class="doccomment">/// # })</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">map_err</span><span class="op">&lt;</span><span class="ident">E</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MapErr</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">map_err</span><span class="op">&lt;</span><span class="ident">E</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">MapErr</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span>,
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="self">Self</span>::<span class="ident">Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">E</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="self">Self</span>::<span class="ident">Error</span>) <span class="op">-&gt;</span> <span class="ident">E</span>,
     {
-        <span class="ident">MapErr</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>)
+        <span class="ident">assert_stream</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span>, <span class="ident">E</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">MapErr</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>))
     }
 
     <span class="doccomment">/// Chain on a computation for when a value is ready, passing the successful</span>
@@ -1118,13 +1173,13 @@
     <span class="doccomment">///     })</span>
     <span class="doccomment">/// });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">and_then</span><span class="op">&lt;</span><span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AndThen</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">and_then</span><span class="op">&lt;</span><span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">AndThen</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="self">Self</span>::<span class="prelude-val">Ok</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Fut</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="self">Self</span>::<span class="prelude-val">Ok</span>) <span class="op">-&gt;</span> <span class="ident">Fut</span>,
         <span class="ident">Fut</span>: <span class="ident">TryFuture</span><span class="op">&lt;</span><span class="ident">Error</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>,
         <span class="self">Self</span>: <span class="ident">Sized</span>,
     {
-        <span class="ident">AndThen</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>)
+        <span class="ident">assert_stream</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Fut</span>::<span class="prelude-val">Ok</span>, <span class="ident">Fut</span>::<span class="ident">Error</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">AndThen</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>))
     }
 
     <span class="doccomment">/// Chain on a computation for when an error happens, passing the</span>
@@ -1144,13 +1199,13 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Note that this function consumes the receiving stream and returns a</span>
     <span class="doccomment">/// wrapped version of it.</span>
-    <span class="kw">fn</span> <span class="ident">or_else</span><span class="op">&lt;</span><span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OrElse</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">or_else</span><span class="op">&lt;</span><span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">OrElse</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="self">Self</span>::<span class="ident">Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Fut</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="self">Self</span>::<span class="ident">Error</span>) <span class="op">-&gt;</span> <span class="ident">Fut</span>,
         <span class="ident">Fut</span>: <span class="ident">TryFuture</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <span class="self">Self</span>::<span class="prelude-val">Ok</span><span class="op">&gt;</span>,
         <span class="self">Self</span>: <span class="ident">Sized</span>,
     {
-        <span class="ident">OrElse</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>)
+        <span class="ident">assert_stream</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span>, <span class="ident">Fut</span>::<span class="ident">Error</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">OrElse</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>))
     }
 
     <span class="doccomment">/// Do something with the success value of this stream, afterwards passing</span>
@@ -1159,12 +1214,12 @@
     <span class="doccomment">/// This is similar to the `StreamExt::inspect` method where it allows</span>
     <span class="doccomment">/// easily inspecting the success value as it passes through the stream, for</span>
     <span class="doccomment">/// example to debug what&#39;s going on.</span>
-    <span class="kw">fn</span> <span class="ident">inspect_ok</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">InspectOk</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">inspect_ok</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">InspectOk</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span>),
         <span class="self">Self</span>: <span class="ident">Sized</span>,
     {
-        <span class="ident">InspectOk</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>)
+        <span class="ident">assert_stream</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">InspectOk</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>))
     }
 
     <span class="doccomment">/// Do something with the error value of this stream, afterwards passing it on.</span>
@@ -1172,12 +1227,12 @@
     <span class="doccomment">/// This is similar to the `StreamExt::inspect` method where it allows</span>
     <span class="doccomment">/// easily inspecting the error value as it passes through the stream, for</span>
     <span class="doccomment">/// example to debug what&#39;s going on.</span>
-    <span class="kw">fn</span> <span class="ident">inspect_err</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">InspectErr</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">inspect_err</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">InspectErr</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Error</span>),
         <span class="self">Self</span>: <span class="ident">Sized</span>,
     {
-        <span class="ident">InspectErr</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>)
+        <span class="ident">assert_stream</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">InspectErr</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>))
     }
 
     <span class="doccomment">/// Wraps a [`TryStream`] into a type that implements</span>
@@ -1201,11 +1256,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// take_stream(make_try_stream().into_stream());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">into_stream</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntoStream</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">into_stream</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">IntoStream</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span>,
     {
-        <span class="ident">IntoStream</span>::<span class="ident">new</span>(<span class="self">self</span>)
+        <span class="ident">assert_stream</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">IntoStream</span>::<span class="ident">new</span>(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Creates a future that attempts to resolve the next item in the stream.</span>
@@ -1228,11 +1283,11 @@
     <span class="doccomment">/// assert_eq!(stream.try_next().await, Err(()));</span>
     <span class="doccomment">/// # })</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">try_next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TryNext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="self">Self</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">try_next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">TryNext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Unpin</span>,
     {
-        <span class="ident">TryNext</span>::<span class="ident">new</span>(<span class="self">self</span>)
+        <span class="ident">assert_future</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span><span class="op">&gt;</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">TryNext</span>::<span class="ident">new</span>(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Attempts to run this stream to completion, executing the provided</span>
@@ -1268,13 +1323,13 @@
     <span class="doccomment">/// assert_eq!(x, 3);</span>
     <span class="doccomment">/// # })</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">try_for_each</span><span class="op">&lt;</span><span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TryForEach</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">try_for_each</span><span class="op">&lt;</span><span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">TryForEach</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="self">Self</span>::<span class="prelude-val">Ok</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Fut</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="self">Self</span>::<span class="prelude-val">Ok</span>) <span class="op">-&gt;</span> <span class="ident">Fut</span>,
         <span class="ident">Fut</span>: <span class="ident">TryFuture</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>,
         <span class="self">Self</span>: <span class="ident">Sized</span>,
     {
-        <span class="ident">TryForEach</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>)
+        <span class="ident">assert_future</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">TryForEach</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>))
     }
 
     <span class="doccomment">/// Skip elements on this stream while the provided asynchronous predicate</span>
@@ -1298,13 +1353,43 @@
     <span class="doccomment">/// assert_eq!(output, Ok(vec![3, 2]));</span>
     <span class="doccomment">/// # })</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">try_skip_while</span><span class="op">&lt;</span><span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TrySkipWhile</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">try_skip_while</span><span class="op">&lt;</span><span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">TrySkipWhile</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Fut</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span>) <span class="op">-&gt;</span> <span class="ident">Fut</span>,
         <span class="ident">Fut</span>: <span class="ident">TryFuture</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">bool</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>,
         <span class="self">Self</span>: <span class="ident">Sized</span>,
     {
-        <span class="ident">TrySkipWhile</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>)
+        <span class="ident">assert_stream</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">TrySkipWhile</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>))
+    }
+
+    <span class="doccomment">/// Take elements on this stream while the provided asynchronous predicate</span>
+    <span class="doccomment">/// resolves to `true`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This function is similar to</span>
+    <span class="doccomment">/// [`StreamExt::take_while`](crate::stream::StreamExt::take_while) but exits</span>
+    <span class="doccomment">/// early if an error occurs.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # futures::executor::block_on(async {</span>
+    <span class="doccomment">/// use futures::future;</span>
+    <span class="doccomment">/// use futures::stream::{self, TryStreamExt};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let stream = stream::iter(vec![Ok::&lt;i32, i32&gt;(1), Ok(2), Ok(3), Ok(2)]);</span>
+    <span class="doccomment">/// let stream = stream.try_take_while(|x| future::ready(Ok(*x &lt; 3)));</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let output: Result&lt;Vec&lt;i32&gt;, i32&gt; = stream.try_collect().await;</span>
+    <span class="doccomment">/// assert_eq!(output, Ok(vec![1, 2]));</span>
+    <span class="doccomment">/// # })</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">fn</span> <span class="ident">try_take_while</span><span class="op">&lt;</span><span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">TryTakeWhile</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span>) <span class="op">-&gt;</span> <span class="ident">Fut</span>,
+        <span class="ident">Fut</span>: <span class="ident">TryFuture</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">bool</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>,
+        <span class="self">Self</span>: <span class="ident">Sized</span>,
+    {
+        <span class="ident">TryTakeWhile</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>)
     }
 
     <span class="doccomment">/// Attempts to run this stream to completion, executing the provided asynchronous</span>
@@ -1352,15 +1437,19 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">try_for_each_concurrent</span><span class="op">&lt;</span><span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>(
         <span class="self">self</span>,
-        <span class="ident">limit</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">limit</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;&gt;</span>,
         <span class="ident">f</span>: <span class="ident">F</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TryForEachConcurrent</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>
+    ) <span class="op">-&gt;</span> <span class="ident">TryForEachConcurrent</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="self">Self</span>::<span class="prelude-val">Ok</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Fut</span>,
-        <span class="ident">Fut</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="self">Self</span>::<span class="prelude-val">Ok</span>) <span class="op">-&gt;</span> <span class="ident">Fut</span>,
+        <span class="ident">Fut</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span>,
         <span class="self">Self</span>: <span class="ident">Sized</span>,
     {
-        <span class="ident">TryForEachConcurrent</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">limit</span>.<span class="ident">into</span>(), <span class="ident">f</span>)
+        <span class="ident">assert_future</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">TryForEachConcurrent</span>::<span class="ident">new</span>(
+            <span class="self">self</span>,
+            <span class="ident">limit</span>.<span class="ident">into</span>(),
+            <span class="ident">f</span>,
+        ))
     }
 
     <span class="doccomment">/// Attempt to transform a stream into a collection,</span>
@@ -1393,11 +1482,11 @@
     <span class="doccomment">/// assert_eq!(output, Err(6));</span>
     <span class="doccomment">/// # })</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">try_collect</span><span class="op">&lt;</span><span class="ident">C</span>: <span class="ident">Default</span> <span class="op">+</span> <span class="ident">Extend</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TryCollect</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">C</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">try_collect</span><span class="op">&lt;</span><span class="ident">C</span>: <span class="ident">Default</span> <span class="op">+</span> <span class="ident">Extend</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span><span class="op">&gt;&gt;</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">TryCollect</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">C</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span>,
     {
-        <span class="ident">TryCollect</span>::<span class="ident">new</span>(<span class="self">self</span>)
+        <span class="ident">assert_future</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">TryCollect</span>::<span class="ident">new</span>(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Attempt to filter the values produced by this stream according to the</span>
@@ -1430,13 +1519,13 @@
     <span class="doccomment">/// assert_eq!(evens.next().await, Some(Err(&quot;error&quot;)));</span>
     <span class="doccomment">/// # })</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">try_filter</span><span class="op">&lt;</span><span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TryFilter</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">try_filter</span><span class="op">&lt;</span><span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">TryFilter</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">Fut</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">bool</span><span class="op">&gt;</span>,
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Fut</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span>) <span class="op">-&gt;</span> <span class="ident">Fut</span>,
         <span class="self">Self</span>: <span class="ident">Sized</span>,
     {
-        <span class="ident">TryFilter</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>)
+        <span class="ident">assert_stream</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">TryFilter</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>))
     }
 
     <span class="doccomment">/// Attempt to filter the values produced by this stream while</span>
@@ -1471,13 +1560,13 @@
     <span class="doccomment">/// assert_eq!(halves.next().await, Some(Err(&quot;error&quot;)));</span>
     <span class="doccomment">/// # })</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">try_filter_map</span><span class="op">&lt;</span><span class="ident">Fut</span>, <span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TryFilterMap</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">try_filter_map</span><span class="op">&lt;</span><span class="ident">Fut</span>, <span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">TryFilterMap</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">Fut</span>: <span class="ident">TryFuture</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>,
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="self">Self</span>::<span class="prelude-val">Ok</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Fut</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="self">Self</span>::<span class="prelude-val">Ok</span>) <span class="op">-&gt;</span> <span class="ident">Fut</span>,
         <span class="self">Self</span>: <span class="ident">Sized</span>,
     {
-        <span class="ident">TryFilterMap</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>)
+        <span class="ident">assert_stream</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">TryFilterMap</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>))
     }
 
     <span class="doccomment">/// Flattens a stream of streams into just one continuous stream.</span>
@@ -1518,13 +1607,15 @@
     <span class="doccomment">/// assert_eq!(stream.next().await, Some(Err(3)));</span>
     <span class="doccomment">/// # });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">try_flatten</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TryFlatten</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">try_flatten</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">TryFlatten</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="self">Self</span>::<span class="prelude-val">Ok</span>: <span class="ident">TryStream</span>,
         <span class="op">&lt;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span> <span class="kw">as</span> <span class="ident">TryStream</span><span class="op">&gt;</span>::<span class="ident">Error</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>,
         <span class="self">Self</span>: <span class="ident">Sized</span>,
     {
-        <span class="ident">TryFlatten</span>::<span class="ident">new</span>(<span class="self">self</span>)
+        <span class="ident">assert_stream</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;&lt;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span> <span class="kw">as</span> <span class="ident">TryStream</span><span class="op">&gt;</span>::<span class="prelude-val">Ok</span>, <span class="op">&lt;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span> <span class="kw">as</span> <span class="ident">TryStream</span><span class="op">&gt;</span>::<span class="ident">Error</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(
+            <span class="ident">TryFlatten</span>::<span class="ident">new</span>(<span class="self">self</span>),
+        )
     }
 
     <span class="doccomment">/// Attempt to execute an accumulating asynchronous computation over a</span>
@@ -1555,13 +1646,13 @@
     <span class="doccomment">/// assert_eq!(sum.await, Err(2));</span>
     <span class="doccomment">/// # })</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">try_fold</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">init</span>: <span class="ident">T</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TryFold</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Fut</span>, <span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">try_fold</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Fut</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">init</span>: <span class="ident">T</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">TryFold</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Fut</span>, <span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">T</span>, <span class="self">Self</span>::<span class="prelude-val">Ok</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Fut</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">T</span>, <span class="self">Self</span>::<span class="prelude-val">Ok</span>) <span class="op">-&gt;</span> <span class="ident">Fut</span>,
         <span class="ident">Fut</span>: <span class="ident">TryFuture</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">T</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>,
         <span class="self">Self</span>: <span class="ident">Sized</span>,
     {
-        <span class="ident">TryFold</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>, <span class="ident">init</span>)
+        <span class="ident">assert_future</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">TryFold</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">f</span>, <span class="ident">init</span>))
     }
 
     <span class="doccomment">/// Attempt to concatenate all items of a stream into a single</span>
@@ -1598,12 +1689,12 @@
     <span class="doccomment">/// assert_eq!(result, Ok(vec![7, 8, 9, 4, 5, 6, 1, 2, 3]));</span>
     <span class="doccomment">/// # });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">try_concat</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TryConcat</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">try_concat</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">TryConcat</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span>,
-        <span class="self">Self</span>::<span class="prelude-val">Ok</span>: <span class="ident">Extend</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">TryStream</span><span class="op">&gt;</span>::<span class="prelude-val">Ok</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span>::<span class="ident">Item</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">IntoIterator</span> <span class="op">+</span> <span class="ident">Default</span>,
+        <span class="self">Self</span>::<span class="prelude-val">Ok</span>: <span class="ident">Extend</span><span class="op">&lt;&lt;</span><span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">TryStream</span><span class="op">&gt;</span>::<span class="prelude-val">Ok</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span>::<span class="ident">Item</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">IntoIterator</span> <span class="op">+</span> <span class="ident">Default</span>,
     {
-        <span class="ident">TryConcat</span>::<span class="ident">new</span>(<span class="self">self</span>)
+        <span class="ident">assert_future</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">TryConcat</span>::<span class="ident">new</span>(<span class="self">self</span>))
     }
 
     <span class="doccomment">/// Attempt to execute several futures from a stream concurrently.</span>
@@ -1665,12 +1756,14 @@
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cfg-target-has-atomic&quot;</span>, <span class="ident">cfg</span>(<span class="ident">target_has_atomic</span> <span class="op">=</span> <span class="string">&quot;ptr&quot;</span>))]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">try_buffer_unordered</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TryBufferUnordered</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">try_buffer_unordered</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">TryBufferUnordered</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="self">Self</span>::<span class="prelude-val">Ok</span>: <span class="ident">TryFuture</span><span class="op">&lt;</span><span class="ident">Error</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>,
         <span class="self">Self</span>: <span class="ident">Sized</span>,
     {
-        <span class="ident">TryBufferUnordered</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">n</span>)
+        <span class="ident">assert_stream</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;&lt;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span> <span class="kw">as</span> <span class="ident">TryFuture</span><span class="op">&gt;</span>::<span class="prelude-val">Ok</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(
+            <span class="ident">TryBufferUnordered</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">n</span>),
+        )
     }
 
     <span class="comment">// TODO: false positive warning from rustdoc. Verify once #43466 settles</span>
@@ -1680,7 +1773,7 @@
     <span class="kw">fn</span> <span class="ident">try_poll_next_unpin</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="prelude-val">Ok</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Unpin</span>,
     {
@@ -1707,7 +1800,8 @@
     <span class="doccomment">/// # assert_eq!(42, futures::executor::block_on(rx).unwrap());</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;compat&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">compat</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Compat</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;compat&quot;</span>)))]</span>
+    <span class="kw">fn</span> <span class="ident">compat</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Compat</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Unpin</span>,
     {
@@ -1740,8 +1834,9 @@
     <span class="doccomment">/// # })</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;io&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;io&quot;</span>)))]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">into_async_read</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntoAsyncRead</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">into_async_read</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">IntoAsyncRead</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span> <span class="op">+</span> <span class="ident">TryStreamExt</span><span class="op">&lt;</span><span class="ident">Error</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Unpin</span>,
         <span class="self">Self</span>::<span class="prelude-val">Ok</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
