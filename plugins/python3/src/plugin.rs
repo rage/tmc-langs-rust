@@ -221,9 +221,8 @@ fn run_tmc_command(
         });
     }
 
-    let path = path
-        .canonicalize()
-        .map_err(|e| PythonError::Canonicalize(path.to_path_buf(), e))?;
+    let path =
+        dunce::canonicalize(path).map_err(|e| PythonError::Canonicalize(path.to_path_buf(), e))?;
     log::debug!("running tmc command at {}", path.display());
     let common_args = ["-m", "tmc"];
 
