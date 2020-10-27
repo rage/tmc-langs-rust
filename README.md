@@ -14,11 +14,15 @@ The student file policy of each plugin is explained in a `README.md` file in the
 
 Install Rust according to https://www.rust-lang.org/tools/install
 
+Install [zstd](https://github.com/facebook/zstd). For example, on Ubuntu you need the package `libzstd1`. For Windows, download the appropriate archive from the [releases](https://github.com/facebook/zstd/releases), extract it and add the extracted directory to your PATH.
+
 ```bash
 git clone git@github.com:rage/tmc-langs-rust.git
 cd tmc-langs-rust
 cargo build
 ```
+
+If you have any troubles building the project, please do make an issue!
 
 ## Testing
 
