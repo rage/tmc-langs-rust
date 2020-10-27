@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
     command::{Output, TmcCommand},
-    domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
+    domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult, TmcProjectYml},
     error::CommandError,
     io::file_util,
     nom::{branch, bytes, character, combinator, sequence, IResult},
@@ -197,27 +197,58 @@ fn get_local_python_command() -> Result<TmcCommand, PythonError> {
     Ok(command)
 }
 
+fn get_local_python_ver() -> Result<(usize, usize, usize), PythonError> {
+    let output = get_local_python_command()?
+        .with(|e| e.args(&["-c", "import sys; print(sys.version_info.major); print(sys.version_info.minor); print(sys.version_info.micro);"]))
+        .output_checked()?;
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut lines = stdout.lines();
+    let major: usize = lines
+        .next()
+        .ok_or_else(|| PythonError::VersionPrintError(stdout.clone().into_owned()))?
+        .trim()
+        .parse()
+        .map_err(|e| PythonError::VersionParseError(stdout.clone().into_owned(), e))?;
+    let minor: usize = lines
+        .next()
+        .ok_or_else(|| PythonError::VersionPrintError(stdout.clone().into_owned()))?
+        .trim()
+        .parse()
+        .map_err(|e| PythonError::VersionParseError(stdout.clone().into_owned(), e))?;
+    let patch: usize = lines
+        .next()
+        .ok_or_else(|| PythonError::VersionPrintError(stdout.clone().into_owned()))?
+        .trim()
+        .parse()
+        .map_err(|e| PythonError::VersionParseError(stdout.clone().into_owned(), e))?;
+
+    Ok((major, minor, patch))
+}
+
 fn run_tmc_command(
     path: &Path,
     extra_args: &[&str],
     timeout: Option<Duration>,
 ) -> Result<Output, PythonError> {
-    // validate python version
-    const MINIMUM_PYTHON_MAJOR: usize = 3;
+    let minimum_python_version = TmcProjectYml::from(path)?
+        .minimum_python_version
+        .unwrap_or_default();
+    let minimum_major = minimum_python_version.major.unwrap_or(3);
+    let minimum_minor = minimum_python_version.minor.unwrap_or(6);
+    let minimum_patch = minimum_python_version.patch.unwrap_or(0);
 
-    let output = get_local_python_command()?
-        .with(|e| e.args(&["-c", "import sys; print(sys.version_info.major)"]))
-        .output_checked()?;
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let major: usize = stdout
-        .trim()
-        .parse()
-        .map_err(|e| PythonError::VersionParseError(stdout.into_owned(), e))?;
+    let (major, minor, patch) = get_local_python_ver()?;
 
-    if major < MINIMUM_PYTHON_MAJOR {
+    let found_ver = format!("{}.{}.{}", major, minor, patch);
+    let minimum_ver = format!("{}.{}.{}", minimum_major, minimum_minor, minimum_patch);
+
+    if major < minimum_major
+        || major == minimum_major && minor < minimum_minor
+        || major == minimum_major && minor == minimum_minor && patch < minimum_patch
+    {
         return Err(PythonError::OldPythonVersion {
-            found: major,
-            minimum_required: MINIMUM_PYTHON_MAJOR,
+            found: found_ver,
+            minimum_required: minimum_ver,
         });
     }
 
@@ -549,5 +580,10 @@ mod test {
         assert!(temp.path().join("src/new.py").exists());
         assert!(!temp.path().join("test/new.py").exists());
         assert!(!temp.path().join("tmc/new").exists());
+    }
+
+    #[test]
+    fn parse_python_ver() {
+        let (_major, _minor, _patch) = get_local_python_ver().unwrap();
     }
 }
