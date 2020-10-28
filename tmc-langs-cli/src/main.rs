@@ -37,7 +37,10 @@ use url::Url;
 fn main() {
     env_logger::init();
 
-    if let Err(e) = run() {
+    let matches = app::create_app().get_matches();
+    let pretty = matches.is_present("pretty");
+
+    if let Err(e) = run_app(matches, pretty) {
         // error handling
         let causes: Vec<String> = e.chain().map(|e| format!("Caused by: {}", e)).collect();
         let message = error_message_special_casing(&e);
@@ -52,7 +55,7 @@ fn main() {
             }),
             percent_done: 1.0,
         });
-        if let Err(err) = print_output(&error_output) {
+        if let Err(err) = print_output(&error_output, pretty) {
             // the above function shouldn't fail ever, but in theory some data could
             // have a flawed Serialize implementation, so better safe than sorry
             let output = Output::OutputData::<()>(OutputData {
@@ -62,7 +65,7 @@ fn main() {
                 percent_done: 1.0,
                 data: None,
             });
-            print_output(&output).expect("this should never fail");
+            print_output(&output, pretty).expect("this should never fail");
         }
         quit::with_code(1);
     }
@@ -117,9 +120,7 @@ fn error_message_special_casing(e: &anyhow::Error) -> String {
     e.to_string()
 }
 
-fn run() -> Result<()> {
-    let matches = app::create_app().get_matches();
-
+fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
     // enforces that each branch must return a PrintToken as proof of having printed the output
     let _printed: PrintToken = match matches.subcommand() {
         ("checkstyle", Some(matches)) => {
@@ -141,7 +142,7 @@ fn run() -> Result<()> {
                 percent_done: 1.0,
                 data: check_result,
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("clean", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -158,7 +159,7 @@ fn run() -> Result<()> {
                 percent_done: 1.0,
                 data: None,
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("compress-project", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -193,7 +194,7 @@ fn run() -> Result<()> {
                 percent_done: 1.0,
                 data: None,
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("core", Some(matches)) => {
             let client_name = matches.value_of("client-name").unwrap();
@@ -229,7 +230,7 @@ fn run() -> Result<()> {
                 }
             };
 
-            match run_core(core, client_name, &credentials_path, matches) {
+            match run_core(core, client_name, &credentials_path, matches, pretty) {
                 Ok(token) => token,
                 Err(error) => {
                     for cause in error.chain() {
@@ -289,7 +290,7 @@ fn run() -> Result<()> {
                 percent_done: 1.0,
                 data: None,
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("fast-available-points", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -304,7 +305,7 @@ fn run() -> Result<()> {
                 percent_done: 1.0,
                 data: Some(points),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("find-exercises", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -332,7 +333,7 @@ fn run() -> Result<()> {
                 percent_done: 1.0,
                 data: Some(exercises),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("get-exercise-packaging-configuration", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -363,7 +364,7 @@ fn run() -> Result<()> {
                 percent_done: 1.0,
                 data: Some(config),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("prepare-solutions", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -391,7 +392,7 @@ fn run() -> Result<()> {
                 percent_done: 1.0,
                 data: None,
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("prepare-stubs", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -428,7 +429,7 @@ fn run() -> Result<()> {
                 percent_done: 1.0,
                 data: None,
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("prepare-submission", Some(matches)) => {
             let output_format = match matches.value_of("output-format") {
@@ -505,7 +506,7 @@ fn run() -> Result<()> {
                 percent_done: 1.0,
                 data: None,
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("refresh-course", Some(matches)) => {
             let course_name = matches.value_of("course-name").unwrap();
@@ -579,9 +580,9 @@ fn run() -> Result<()> {
                 None
             };
 
-            let course_refresher = CourseRefresher::new(|update| {
+            let course_refresher = CourseRefresher::new(move |update| {
                 let output = Output::StatusUpdate(update);
-                print_output(&output)?;
+                print_output(&output, pretty)?;
                 Ok(())
             });
             let refresh_result = course_refresher
@@ -602,7 +603,7 @@ fn run() -> Result<()> {
                 percent_done: 1.0,
                 data: Some(refresh_result),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("run-tests", Some(matches)) => {
             let checkstyle_output_path = matches.value_of("checkstyle-output-path");
@@ -641,9 +642,9 @@ fn run() -> Result<()> {
                 percent_done: 1.0,
                 data: Some(test_result),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
-        ("settings", Some(matches)) => run_settings(matches)?,
+        ("settings", Some(matches)) => run_settings(matches, pretty)?,
         ("scan-exercise", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);
@@ -682,7 +683,7 @@ fn run() -> Result<()> {
                 percent_done: 1.0,
                 data: Some(scan_result),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         _ => unreachable!("missing subcommand arm"),
     };
@@ -694,11 +695,12 @@ fn run_core(
     client_name: &str,
     credentials_path: &Path,
     matches: &ArgMatches,
+    pretty: bool,
 ) -> Result<PrintToken> {
     // set progress report to print the updates to stdout as JSON
-    core.set_progress_reporter(ProgressReporter::new(|update| {
+    core.set_progress_reporter(ProgressReporter::new(move |update| {
         let output = Output::StatusUpdate::<CoreUpdateData>(update);
-        print_output(&output)?;
+        print_output(&output, pretty)?;
         Ok(())
     }));
 
@@ -721,7 +723,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: None,
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("download-old-submission", Some(matches)) => {
             let save_old_state = matches.is_present("save-old-state");
@@ -768,7 +770,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: None,
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("download-or-update-exercises", Some(matches)) => {
             let mut exercise_args = matches.values_of("exercise").unwrap();
@@ -792,7 +794,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: None,
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("get-course-data", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
@@ -818,7 +820,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: Some(data),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("get-course-details", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
@@ -835,7 +837,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: Some(details),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("get-course-exercises", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
@@ -852,7 +854,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: Some(exercises),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("get-course-settings", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
@@ -867,7 +869,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: Some(settings),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("get-courses", Some(matches)) => {
             let organization_slug = matches.value_of("organization").unwrap();
@@ -883,7 +885,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: Some(courses),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("get-exercise-details", Some(matches)) => {
             let exercise_id = matches.value_of("exercise-id").unwrap();
@@ -900,7 +902,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: Some(course),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("get-exercise-submissions", Some(matches)) => {
             let exercise_id = matches.value_of("exercise-id").unwrap();
@@ -917,7 +919,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: Some(submissions),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("get-exercise-updates", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
@@ -943,7 +945,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: Some(update_result),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("get-organization", Some(matches)) => {
             let organization_slug = matches.value_of("organization").unwrap();
@@ -959,7 +961,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: Some(org),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("get-organizations", Some(_matches)) => {
             let orgs = core
@@ -973,7 +975,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: Some(orgs),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("get-unread-reviews", Some(matches)) => {
             let reviews_url = matches.value_of("reviews-url").unwrap();
@@ -990,7 +992,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: Some(reviews),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("logged-in", Some(_matches)) => {
             if credentials_path.exists() {
@@ -1013,7 +1015,7 @@ fn run_core(
                     percent_done: 1.0,
                     data: Some(token),
                 });
-                print_output(&output)?
+                print_output(&output, pretty)?
             } else {
                 let output = Output::OutputData::<()>(OutputData {
                     status: Status::Finished,
@@ -1022,7 +1024,7 @@ fn run_core(
                     percent_done: 1.0,
                     data: None,
                 });
-                print_output(&output)?
+                print_output(&output, pretty)?
             }
         }
         ("login", Some(matches)) => {
@@ -1089,7 +1091,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: None,
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("logout", Some(_matches)) => {
             if credentials_path.exists() {
@@ -1108,7 +1110,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: None,
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("mark-review-as-read", Some(matches)) => {
             let review_update_url = matches.value_of("reiew-update-url").unwrap();
@@ -1123,7 +1125,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: None,
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("paste", Some(matches)) => {
             let locale = matches.value_of("locale");
@@ -1157,7 +1159,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: Some(new_submission),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("request-code-review", Some(matches)) => {
             let locale = matches.value_of("locale");
@@ -1191,7 +1193,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: Some(new_submission),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("reset-exercise", Some(matches)) => {
             let save_old_state = matches.is_present("save-old-state");
@@ -1221,7 +1223,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: None,
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("run-checkstyle", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -1241,7 +1243,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: Some(validation_result),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("run-tests", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -1258,7 +1260,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: Some(run_result),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("send-feedback", Some(matches)) => {
             // collect feedback values into a list
@@ -1287,7 +1289,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: Some(response),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         ("submit", Some(matches)) => {
             let dont_block = matches.is_present("dont-block");
@@ -1321,7 +1323,7 @@ fn run_core(
                     data: Some(new_submission),
                 });
 
-                print_output(&output)?
+                print_output(&output, pretty)?
             } else {
                 // same as wait-for-submission
                 let submission_url = new_submission.submission_url;
@@ -1336,7 +1338,7 @@ fn run_core(
                     percent_done: 1.0,
                     data: Some(submission_finished),
                 });
-                print_output(&output)?
+                print_output(&output, pretty)?
             }
         }
         ("wait-for-submission", Some(matches)) => {
@@ -1355,7 +1357,7 @@ fn run_core(
                 percent_done: 1.0,
                 data: Some(submission_finished),
             });
-            print_output(&output)?
+            print_output(&output, pretty)?
         }
         _ => unreachable!(),
     };
@@ -1363,7 +1365,7 @@ fn run_core(
     Ok(printed)
 }
 
-fn run_settings(matches: &ArgMatches) -> Result<PrintToken> {
+fn run_settings(matches: &ArgMatches, pretty: bool) -> Result<PrintToken> {
     let client_name = matches.value_of("client-name").unwrap();
     let mut map = config::load_config(client_name)?;
 
@@ -1377,7 +1379,7 @@ fn run_settings(matches: &ArgMatches) -> Result<PrintToken> {
                 percent_done: 1.0,
                 data: map.get(key),
             });
-            print_output(&output)
+            print_output(&output, pretty)
         }
         ("set", Some(matches)) => {
             let key = matches.value_of("key").unwrap();
@@ -1397,7 +1399,7 @@ fn run_settings(matches: &ArgMatches) -> Result<PrintToken> {
                 percent_done: 1.0,
                 data: None,
             });
-            print_output(&output)
+            print_output(&output, pretty)
         }
         ("list", Some(_)) => {
             let output = Output::OutputData(OutputData {
@@ -1407,7 +1409,7 @@ fn run_settings(matches: &ArgMatches) -> Result<PrintToken> {
                 percent_done: 1.0,
                 data: Some(map),
             });
-            print_output(&output)
+            print_output(&output, pretty)
         }
         ("reset", Some(_)) => {
             config::reset_config(client_name)?;
@@ -1419,7 +1421,7 @@ fn run_settings(matches: &ArgMatches) -> Result<PrintToken> {
                 percent_done: 1.0,
                 data: None,
             });
-            print_output(&output)
+            print_output(&output, pretty)
         }
         ("unset", Some(matches)) => {
             let key = matches.value_of("setting").unwrap();
@@ -1433,15 +1435,19 @@ fn run_settings(matches: &ArgMatches) -> Result<PrintToken> {
                 percent_done: 1.0,
                 data: None,
             });
-            print_output(&output)
+            print_output(&output, pretty)
         }
         _ => unreachable!("validation error"),
     }
 }
 
-fn print_output<T: Serialize + Debug>(output: &Output<T>) -> Result<PrintToken> {
-    let result = serde_json::to_string(&output)
-        .with_context(|| format!("Failed to convert {:?} to JSON", output))?;
+fn print_output<T: Serialize + Debug>(output: &Output<T>, pretty: bool) -> Result<PrintToken> {
+    let result = if pretty {
+        serde_json::to_string_pretty(&output)
+    } else {
+        serde_json::to_string(&output)
+    }
+    .with_context(|| format!("Failed to convert {:?} to JSON", output))?;
     println!("{}", result);
     Ok(PrintToken)
 }

@@ -15,6 +15,9 @@ pub fn create_app() -> App<'static, 'static> {
         .author(env!("CARGO_PKG_AUTHORS"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
         .setting(AppSettings::SubcommandRequiredElseHelp)
+        .arg(Arg::with_name("pretty")
+            .help("Pretty-prints all output")
+            .long("pretty"))
 
         .subcommand(SubCommand::with_name("checkstyle")
             .about("Checks the code style for the given exercise")
