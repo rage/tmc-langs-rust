@@ -462,6 +462,8 @@ mod test {
 
     #[test]
     fn finds_project_dir_in_zip() {
+        init();
+
         let file = File::open("tests/data/AntProject.zip").unwrap();
         let mut zip = ZipArchive::new(file).unwrap();
         let dir = AntPlugin::find_project_dir_in_zip(&mut zip).unwrap();
@@ -470,6 +472,8 @@ mod test {
 
     #[test]
     fn doesnt_find_project_dir_in_zip() {
+        init();
+
         let file = File::open("tests/data/AntWithoutSrc.zip").unwrap();
         let mut zip = ZipArchive::new(file).unwrap();
         let dir = AntPlugin::find_project_dir_in_zip(&mut zip);

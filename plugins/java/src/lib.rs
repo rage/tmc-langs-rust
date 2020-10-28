@@ -114,6 +114,7 @@ fn instantiate_jvm() -> Result<Jvm, JavaError> {
         .classpath_entry(junit_runner)
         .classpath_entry(checkstyle_runner)
         .skip_setting_native_lib()
+        .java_opt(j4rs::JavaOpt::new("-Dfile.encoding=UTF-8"))
         .build()?;
 
     Ok(jvm)
