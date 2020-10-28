@@ -39,7 +39,7 @@ impl MavenPlugin {
     fn get_mvn_command() -> Result<OsString, JavaError> {
         // check if mvn is in PATH
         if let Ok(status) = TmcCommand::new_with_file_io("mvn")?
-            .with(|e| e.arg("--version"))
+            .with(|e| e.arg("--batch-mode").arg("--version"))
             .status()
         {
             if status.success() {
@@ -114,7 +114,7 @@ impl LanguagePlugin for MavenPlugin {
 
         let mvn_command = Self::get_mvn_command()?;
         let _output = TmcCommand::new_with_file_io(mvn_command)?
-            .with(|e| e.cwd(path).arg("clean"))
+            .with(|e| e.cwd(path).arg("--batch-mode").arg("clean"))
             .output_checked()?;
 
         Ok(())
@@ -151,6 +151,7 @@ impl JavaPlugin for MavenPlugin {
         let _output = TmcCommand::new_with_file_io(mvn_path)?
             .with(|e| {
                 e.cwd(path)
+                    .arg("--batch-mode")
                     .arg("dependency:build-classpath")
                     .arg(output_arg)
             })
@@ -179,6 +180,7 @@ impl JavaPlugin for MavenPlugin {
         let output = TmcCommand::new_with_file_io(mvn_path)?
             .with(|e| {
                 e.cwd(project_root_path)
+                    .arg("--batch-mode")
                     .arg("clean")
                     .arg("compile")
                     .arg("test-compile")
@@ -203,6 +205,7 @@ impl JavaPlugin for MavenPlugin {
         let output = TmcCommand::new_with_file_io(mvn_path)?
             .with(|e| {
                 e.cwd(path)
+                    .arg("--batch-mode")
                     .arg("fi.helsinki.cs.tmc:tmc-maven-plugin:1.12:test")
             })
             .output_checked()?;
