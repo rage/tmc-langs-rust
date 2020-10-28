@@ -183,7 +183,7 @@ impl JavaPlugin for MavenPlugin {
                     .arg("compile")
                     .arg("test-compile")
             })
-            .output_checked()?;
+            .output()?;
 
         Ok(CompileResult {
             status_code: output.status,
