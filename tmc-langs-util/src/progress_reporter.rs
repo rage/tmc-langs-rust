@@ -6,6 +6,7 @@ use std::time::Instant;
 
 /// The format for all status updates. May contain some data.
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct StatusUpdate<T> {
     pub finished: bool,
     pub message: String,
