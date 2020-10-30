@@ -233,8 +233,9 @@ fn run_tmc_command(
     let minimum_python_version = TmcProjectYml::from(path)?
         .minimum_python_version
         .unwrap_or_default();
+    // default minimum version is 3.0.0
     let minimum_major = minimum_python_version.major.unwrap_or(3);
-    let minimum_minor = minimum_python_version.minor.unwrap_or(6);
+    let minimum_minor = minimum_python_version.minor.unwrap_or(0);
     let minimum_patch = minimum_python_version.patch.unwrap_or(0);
 
     let (major, minor, patch) = get_local_python_ver()?;
