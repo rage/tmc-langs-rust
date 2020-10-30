@@ -7,7 +7,7 @@ mod output;
 
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
-use error::InvalidTokenError;
+use error::{InvalidTokenError, SandboxTestError};
 use output::{CombinedCourseData, ErrorData, Kind, Output, OutputData, OutputResult, Status};
 use serde::Serialize;
 use serde_json::Value as JsonValue;
@@ -15,6 +15,7 @@ use std::collections::HashMap;
 use std::env;
 use std::fmt::Debug;
 use std::fs::{self, File};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use tempfile::NamedTempFile;
 use tmc_langs_core::oauth2::{
@@ -45,6 +46,7 @@ fn main() {
         let causes: Vec<String> = e.chain().map(|e| format!("Caused by: {}", e)).collect();
         let message = error_message_special_casing(&e);
         let kind = solve_error_kind(&e);
+        let sandbox_path = check_sandbox_err(&e);
         let error_output = Output::OutputData(OutputData {
             status: Status::Finished,
             message: Some(message),
@@ -55,7 +57,7 @@ fn main() {
             }),
             percent_done: 1.0,
         });
-        if let Err(err) = print_output(&error_output, pretty) {
+        if let Err(err) = print_output_with_file(&error_output, pretty, sandbox_path) {
             // the above function shouldn't fail ever, but in theory some data could
             // have a flawed Serialize implementation, so better safe than sorry
             let output = Output::OutputData::<()>(OutputData {
@@ -118,6 +120,20 @@ fn error_message_special_casing(e: &anyhow::Error) -> String {
         }
     }
     e.to_string()
+}
+
+/// Goes through the error chain and returns the error output file path if a sandbox test error is found
+fn check_sandbox_err(e: &anyhow::Error) -> Option<PathBuf> {
+    for cause in e.chain() {
+        // command not found errors are special cased to notify the user that they may need to install additional software
+        if let Some(SandboxTestError {
+            path: Some(path), ..
+        }) = cause.downcast_ref::<SandboxTestError>()
+        {
+            return Some(path.clone());
+        }
+    }
+    None
 }
 
 fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
@@ -622,7 +638,18 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
                     "Failed to run tests for exercise at {}",
                     exercise_path.display()
                 )
-            })?;
+            });
+
+            let test_result = if env::var("TMC_SANDBOX").is_ok() {
+                // in sandbox, wrap error to signal we want to write the output into a file
+                test_result.map_err(|e| SandboxTestError {
+                    path: output_path.map(Path::to_path_buf),
+                    source: e,
+                })?
+            } else {
+                // not in sandbox, just unwrap
+                test_result?
+            };
 
             if let Some(output_path) = output_path {
                 write_result_to_file_as_json(&test_result, output_path)?;
@@ -1442,6 +1469,14 @@ fn run_settings(matches: &ArgMatches, pretty: bool) -> Result<PrintToken> {
 }
 
 fn print_output<T: Serialize + Debug>(output: &Output<T>, pretty: bool) -> Result<PrintToken> {
+    print_output_with_file(output, pretty, None)
+}
+
+fn print_output_with_file<T: Serialize + Debug>(
+    output: &Output<T>,
+    pretty: bool,
+    path: Option<PathBuf>,
+) -> Result<PrintToken> {
     let result = if pretty {
         serde_json::to_string_pretty(&output)
     } else {
@@ -1449,6 +1484,13 @@ fn print_output<T: Serialize + Debug>(output: &Output<T>, pretty: bool) -> Resul
     }
     .with_context(|| format!("Failed to convert {:?} to JSON", output))?;
     println!("{}", result);
+
+    if let Some(path) = path {
+        let mut file = File::create(&path)
+            .with_context(|| format!("Failed to open file at {}", path.display()))?;
+        file.write_all(result.as_bytes())
+            .with_context(|| format!("Failed to write result to {}", path.display()))?;
+    }
     Ok(PrintToken)
 }
 

@@ -7,3 +7,10 @@ pub struct InvalidTokenError {
     pub path: PathBuf,
     pub source: anyhow::Error,
 }
+
+#[derive(Debug, Error)]
+#[error("Error running tests on sandbox")]
+pub struct SandboxTestError {
+    pub path: Option<PathBuf>,
+    pub source: anyhow::Error,
+}
