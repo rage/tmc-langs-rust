@@ -248,8 +248,6 @@ pub fn prepare_submission(
     let tests_dir = stub_project_root.as_deref().unwrap_or(clone_path);
     match plugin {
         Plugin::Maven(_) => {
-            // maven
-
             // copy pom
             file_util::copy(clone_path.join("pom.xml"), &dest)?;
 
@@ -290,6 +288,7 @@ pub fn prepare_submission(
 
             // copy files directly in clone_path to dest
             for entry in WalkDir::new(clone_path)
+                .max_depth(1)
                 .into_iter()
                 .filter_entry(|e| e.path().is_file())
             {
@@ -299,8 +298,6 @@ pub fn prepare_submission(
             }
         }
         Plugin::Make(_) => {
-            // make
-
             // copy src and test
             log::debug!("copying src and test");
             let main_path = clone_path.join("src");
@@ -321,14 +318,11 @@ pub fn prepare_submission(
             }
         }
         _ => {
-            // langs
-
             // copy libs
             log::debug!("copying lib");
             let lib_dir = clone_path.join("lib");
             if lib_dir.exists() {
-                let lib_target = dest.join("lib");
-                file_util::copy(lib_dir, lib_target)?;
+                file_util::copy(lib_dir, &dest)?;
             }
 
             // copy files from config
