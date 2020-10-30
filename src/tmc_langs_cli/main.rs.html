@@ -1548,6 +1548,12 @@
 <span id="1547">1547</span>
 <span id="1548">1548</span>
 <span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! CLI client for TMC</span>
 
@@ -1588,7 +1594,10 @@
 <span class="kw">fn</span> <span class="ident">main</span>() {
     <span class="ident">env_logger</span>::<span class="ident">init</span>();
 
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">run</span>() {
+    <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">app</span>::<span class="ident">create_app</span>().<span class="ident">get_matches</span>();
+    <span class="kw">let</span> <span class="ident">pretty</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">is_present</span>(<span class="string">&quot;pretty&quot;</span>);
+
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">run_app</span>(<span class="ident">matches</span>, <span class="ident">pretty</span>) {
         <span class="comment">// error handling</span>
         <span class="kw">let</span> <span class="ident">causes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">chain</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Caused by: {}&quot;</span>, <span class="ident">e</span>)).<span class="ident">collect</span>();
         <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">error_message_special_casing</span>(<span class="kw-2">&amp;</span><span class="ident">e</span>);
@@ -1603,7 +1612,7 @@
             }),
             <span class="ident">percent_done</span>: <span class="number">1.0</span>,
         });
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">error_output</span>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">error_output</span>, <span class="ident">pretty</span>) {
             <span class="comment">// the above function shouldn&#39;t fail ever, but in theory some data could</span>
             <span class="comment">// have a flawed Serialize implementation, so better safe than sorry</span>
             <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">OutputData</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>(<span class="ident">OutputData</span> {
@@ -1613,7 +1622,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>).<span class="ident">expect</span>(<span class="string">&quot;this should never fail&quot;</span>);
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>).<span class="ident">expect</span>(<span class="string">&quot;this should never fail&quot;</span>);
         }
         <span class="ident">quit</span>::<span class="ident">with_code</span>(<span class="number">1</span>);
     }
@@ -1668,9 +1677,7 @@
     <span class="ident">e</span>.<span class="ident">to_string</span>()
 }
 
-<span class="kw">fn</span> <span class="ident">run</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">app</span>::<span class="ident">create_app</span>().<span class="ident">get_matches</span>();
-
+<span class="kw">fn</span> <span class="ident">run_app</span>(<span class="ident">matches</span>: <span class="ident">ArgMatches</span>, <span class="ident">pretty</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="comment">// enforces that each branch must return a PrintToken as proof of having printed the output</span>
     <span class="kw">let</span> <span class="ident">_printed</span>: <span class="ident">PrintToken</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">matches</span>.<span class="ident">subcommand</span>() {
         (<span class="string">&quot;checkstyle&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
@@ -1692,7 +1699,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="ident">check_result</span>,
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;clean&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
@@ -1709,7 +1716,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;compress-project&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
@@ -1744,7 +1751,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;core&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">client_name</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;client-name&quot;</span>).<span class="ident">unwrap</span>();
@@ -1780,7 +1787,7 @@
                 }
             };
 
-            <span class="kw">match</span> <span class="ident">run_core</span>(<span class="ident">core</span>, <span class="ident">client_name</span>, <span class="kw-2">&amp;</span><span class="ident">credentials_path</span>, <span class="ident">matches</span>) {
+            <span class="kw">match</span> <span class="ident">run_core</span>(<span class="ident">core</span>, <span class="ident">client_name</span>, <span class="kw-2">&amp;</span><span class="ident">credentials_path</span>, <span class="ident">matches</span>, <span class="ident">pretty</span>) {
                 <span class="prelude-val">Ok</span>(<span class="ident">token</span>) <span class="op">=&gt;</span> <span class="ident">token</span>,
                 <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=&gt;</span> {
                     <span class="kw">for</span> <span class="ident">cause</span> <span class="kw">in</span> <span class="ident">error</span>.<span class="ident">chain</span>() {
@@ -1840,7 +1847,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;fast-available-points&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
@@ -1855,7 +1862,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">points</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;find-exercises&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
@@ -1883,7 +1890,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">exercises</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;get-exercise-packaging-configuration&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
@@ -1914,7 +1921,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">config</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;prepare-solutions&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
@@ -1942,7 +1949,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;prepare-stubs&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
@@ -1979,7 +1986,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;prepare-submission&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">output_format</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;output-format&quot;</span>) {
@@ -2056,7 +2063,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;refresh-course&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">course_name</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;course-name&quot;</span>).<span class="ident">unwrap</span>();
@@ -2130,9 +2137,9 @@
                 <span class="prelude-val">None</span>
             };
 
-            <span class="kw">let</span> <span class="ident">course_refresher</span> <span class="op">=</span> <span class="ident">CourseRefresher</span>::<span class="ident">new</span>(<span class="op">|</span><span class="ident">update</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">course_refresher</span> <span class="op">=</span> <span class="ident">CourseRefresher</span>::<span class="ident">new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">update</span><span class="op">|</span> {
                 <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">StatusUpdate</span>(<span class="ident">update</span>);
-                <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>;
+                <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(())
             });
             <span class="kw">let</span> <span class="ident">refresh_result</span> <span class="op">=</span> <span class="ident">course_refresher</span>
@@ -2153,7 +2160,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">refresh_result</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;run-tests&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">checkstyle_output_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;checkstyle-output-path&quot;</span>);
@@ -2192,9 +2199,9 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">test_result</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;settings&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> <span class="ident">run_settings</span>(<span class="ident">matches</span>)<span class="question-mark">?</span>,
+        (<span class="string">&quot;settings&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> <span class="ident">run_settings</span>(<span class="ident">matches</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>,
         (<span class="string">&quot;scan-exercise&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">exercise_path</span>);
@@ -2233,7 +2240,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">scan_result</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;missing subcommand arm&quot;</span>),
     };
@@ -2245,11 +2252,12 @@
     <span class="ident">client_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">credentials_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatches</span>,
+    <span class="ident">pretty</span>: <span class="ident">bool</span>,
 ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrintToken</span><span class="op">&gt;</span> {
     <span class="comment">// set progress report to print the updates to stdout as JSON</span>
-    <span class="ident">core</span>.<span class="ident">set_progress_reporter</span>(<span class="ident">ProgressReporter</span>::<span class="ident">new</span>(<span class="op">|</span><span class="ident">update</span><span class="op">|</span> {
+    <span class="ident">core</span>.<span class="ident">set_progress_reporter</span>(<span class="ident">ProgressReporter</span>::<span class="ident">new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">update</span><span class="op">|</span> {
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">StatusUpdate</span>::<span class="op">&lt;</span><span class="ident">CoreUpdateData</span><span class="op">&gt;</span>(<span class="ident">update</span>);
-        <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>;
+        <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }));
 
@@ -2272,7 +2280,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;download-old-submission&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">save_old_state</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">is_present</span>(<span class="string">&quot;save-old-state&quot;</span>);
@@ -2319,7 +2327,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;download-or-update-exercises&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercise_args</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">values_of</span>(<span class="string">&quot;exercise&quot;</span>).<span class="ident">unwrap</span>();
@@ -2343,7 +2351,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;get-course-data&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;course-id&quot;</span>).<span class="ident">unwrap</span>();
@@ -2369,7 +2377,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">data</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;get-course-details&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;course-id&quot;</span>).<span class="ident">unwrap</span>();
@@ -2386,7 +2394,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">details</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;get-course-exercises&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;course-id&quot;</span>).<span class="ident">unwrap</span>();
@@ -2403,7 +2411,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">exercises</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;get-course-settings&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;course-id&quot;</span>).<span class="ident">unwrap</span>();
@@ -2418,7 +2426,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">settings</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;get-courses&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">organization_slug</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;organization&quot;</span>).<span class="ident">unwrap</span>();
@@ -2434,7 +2442,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">courses</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;get-exercise-details&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-id&quot;</span>).<span class="ident">unwrap</span>();
@@ -2451,7 +2459,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">course</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;get-exercise-submissions&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-id&quot;</span>).<span class="ident">unwrap</span>();
@@ -2468,7 +2476,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">submissions</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;get-exercise-updates&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;course-id&quot;</span>).<span class="ident">unwrap</span>();
@@ -2494,7 +2502,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">update_result</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;get-organization&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">organization_slug</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;organization&quot;</span>).<span class="ident">unwrap</span>();
@@ -2510,7 +2518,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">org</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;get-organizations&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">_matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">orgs</span> <span class="op">=</span> <span class="ident">core</span>
@@ -2524,7 +2532,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">orgs</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;get-unread-reviews&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">reviews_url</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;reviews-url&quot;</span>).<span class="ident">unwrap</span>();
@@ -2541,7 +2549,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">reviews</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;logged-in&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">_matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">if</span> <span class="ident">credentials_path</span>.<span class="ident">exists</span>() {
@@ -2564,7 +2572,7 @@
                     <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                     <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">token</span>),
                 });
-                <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+                <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
             } <span class="kw">else</span> {
                 <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">OutputData</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>(<span class="ident">OutputData</span> {
                     <span class="ident">status</span>: <span class="ident">Status</span>::<span class="ident">Finished</span>,
@@ -2573,7 +2581,7 @@
                     <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                     <span class="ident">data</span>: <span class="prelude-val">None</span>,
                 });
-                <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+                <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
             }
         }
         (<span class="string">&quot;login&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
@@ -2640,7 +2648,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;logout&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">_matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">if</span> <span class="ident">credentials_path</span>.<span class="ident">exists</span>() {
@@ -2659,7 +2667,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;mark-review-as-read&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">review_update_url</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;reiew-update-url&quot;</span>).<span class="ident">unwrap</span>();
@@ -2674,7 +2682,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;paste&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;locale&quot;</span>);
@@ -2708,7 +2716,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">new_submission</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;request-code-review&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;locale&quot;</span>);
@@ -2742,7 +2750,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">new_submission</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;reset-exercise&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">save_old_state</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">is_present</span>(<span class="string">&quot;save-old-state&quot;</span>);
@@ -2772,7 +2780,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;run-checkstyle&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
@@ -2792,7 +2800,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">validation_result</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;run-tests&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
@@ -2809,7 +2817,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">run_result</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;send-feedback&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="comment">// collect feedback values into a list</span>
@@ -2838,7 +2846,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">response</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         (<span class="string">&quot;submit&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">dont_block</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">is_present</span>(<span class="string">&quot;dont-block&quot;</span>);
@@ -2872,7 +2880,7 @@
                     <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">new_submission</span>),
                 });
 
-                <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+                <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
             } <span class="kw">else</span> {
                 <span class="comment">// same as wait-for-submission</span>
                 <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">new_submission</span>.<span class="ident">submission_url</span>;
@@ -2887,7 +2895,7 @@
                     <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                     <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">submission_finished</span>),
                 });
-                <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+                <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
             }
         }
         (<span class="string">&quot;wait-for-submission&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
@@ -2906,7 +2914,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">submission_finished</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)<span class="question-mark">?</span>
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>
         }
         <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
     };
@@ -2914,7 +2922,7 @@
     <span class="prelude-val">Ok</span>(<span class="ident">printed</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">run_settings</span>(<span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatches</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrintToken</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run_settings</span>(<span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatches</span>, <span class="ident">pretty</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrintToken</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">client_name</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;client-name&quot;</span>).<span class="ident">unwrap</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">config</span>::<span class="ident">load_config</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
 
@@ -2928,7 +2936,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="ident">map</span>.<span class="ident">get</span>(<span class="ident">key</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)
         }
         (<span class="string">&quot;set&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;key&quot;</span>).<span class="ident">unwrap</span>();
@@ -2948,7 +2956,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)
         }
         (<span class="string">&quot;list&quot;</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">OutputData</span>(<span class="ident">OutputData</span> {
@@ -2958,7 +2966,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">map</span>),
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)
         }
         (<span class="string">&quot;reset&quot;</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) <span class="op">=&gt;</span> {
             <span class="ident">config</span>::<span class="ident">reset_config</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
@@ -2970,7 +2978,7 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)
         }
         (<span class="string">&quot;unset&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;setting&quot;</span>).<span class="ident">unwrap</span>();
@@ -2984,15 +2992,19 @@
                 <span class="ident">percent_done</span>: <span class="number">1.0</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>)
         }
         <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;validation error&quot;</span>),
     }
 }
 
-<span class="kw">fn</span> <span class="ident">print_output</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Serialize</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span>(<span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">Output</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrintToken</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)
-        .<span class="ident">with_context</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to convert {:?} to JSON&quot;</span>, <span class="ident">output</span>))<span class="question-mark">?</span>;
+<span class="kw">fn</span> <span class="ident">print_output</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Serialize</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span>(<span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">Output</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">pretty</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrintToken</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">pretty</span> {
+        <span class="ident">serde_json</span>::<span class="ident">to_string_pretty</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)
+    } <span class="kw">else</span> {
+        <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)
+    }
+    .<span class="ident">with_context</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to convert {:?} to JSON&quot;</span>, <span class="ident">output</span>))<span class="question-mark">?</span>;
     <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">result</span>);
     <span class="prelude-val">Ok</span>(<span class="ident">PrintToken</span>)
 }
