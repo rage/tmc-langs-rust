@@ -65,15 +65,24 @@ pub trait LanguagePlugin {
     ///
     /// Must return `Err` if the given path is not a valid exercise directory for
     /// this language.
-    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError>;
+    fn scan_exercise(
+        &self,
+        path: &Path,
+        exercise_name: String,
+        warnings: &mut Vec<anyhow::Error>,
+    ) -> Result<ExerciseDesc, TmcError>;
 
     /// Runs the tests for the exercise.
-    fn run_tests(&self, path: &Path) -> Result<RunResult, TmcError> {
+    fn run_tests(
+        &self,
+        path: &Path,
+        warnings: &mut Vec<anyhow::Error>,
+    ) -> Result<RunResult, TmcError> {
         let timeout = Self::get_student_file_policy(path)
             .get_tmc_project_yml()
             .ok()
             .and_then(|t| t.tests_timeout_ms.map(Duration::from_millis));
-        let result = self.run_tests_with_timeout(path, timeout)?;
+        let result = self.run_tests_with_timeout(path, timeout, warnings)?;
 
         // override success on no test cases
         if result.status == RunStatus::Passed && result.test_results.is_empty() {
@@ -99,6 +108,7 @@ pub trait LanguagePlugin {
         &self,
         path: &Path,
         timeout: Option<Duration>,
+        warnings: &mut Vec<anyhow::Error>,
     ) -> Result<RunResult, TmcError>;
 
     /// Prepares a submission for processing in the sandbox.
@@ -542,6 +552,7 @@ mod test {
             &self,
             _path: &Path,
             _exercise_name: String,
+            _warnings: &mut Vec<anyhow::Error>,
         ) -> Result<ExerciseDesc, TmcError> {
             unimplemented!()
         }
@@ -550,6 +561,7 @@ mod test {
             &self,
             _path: &Path,
             _timeout: Option<Duration>,
+            _warnings: &mut Vec<anyhow::Error>,
         ) -> Result<RunResult, TmcError> {
             Ok(RunResult {
                 status: RunStatus::Passed,
@@ -684,7 +696,7 @@ extra_exercise_files:
     fn empty_run_result_is_err() {
         init();
         let plugin = MockPlugin {};
-        let res = plugin.run_tests(Path::new("")).unwrap();
+        let res = plugin.run_tests(Path::new(""), &mut vec![]).unwrap();
         assert_eq!(res.status, RunStatus::TestsFailed);
         assert_eq!(res.test_results[0].name, "Tests found test")
     }

@@ -18,7 +18,9 @@ use std::path::PathBuf;
 use std::thread;
 use std::time::Duration;
 use tempfile::NamedTempFile;
-use tmc_langs_util::{file_util, progress_reporter::ProgressReporter, task_executor, FileIo};
+use tmc_langs_util::{
+    anyhow, file_util, progress_reporter::ProgressReporter, task_executor, FileIo,
+};
 use walkdir::WalkDir;
 
 pub type Token =
@@ -436,8 +438,12 @@ impl TmcCore {
     /// # Errors
     /// Returns an error if no matching language plugin for the project is found,
     /// or if the plugin returns an error while trying to run the tests.
-    pub fn run_tests(&self, path: &Path) -> Result<RunResult, CoreError> {
-        Ok(task_executor::run_tests(path)?)
+    pub fn run_tests(
+        &self,
+        path: &Path,
+        warnings: &mut Vec<anyhow::Error>,
+    ) -> Result<RunResult, CoreError> {
+        Ok(task_executor::run_tests(path, warnings)?)
     }
 
     /// Sends feedback.

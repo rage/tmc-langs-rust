@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 pub use tmc_langs_framework::policy::EverythingIsStudentFilePolicy as NoTestsStudentFilePolicy;
 use tmc_langs_framework::{
+    anyhow,
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     nom::IResult,
     zip::ZipArchive,
@@ -35,7 +36,12 @@ impl LanguagePlugin for NoTestsPlugin {
     const BLOCK_COMMENT: Option<(&'static str, &'static str)> = None;
     type StudentFilePolicy = NoTestsStudentFilePolicy;
 
-    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
+    fn scan_exercise(
+        &self,
+        path: &Path,
+        exercise_name: String,
+        _warnings: &mut Vec<anyhow::Error>,
+    ) -> Result<ExerciseDesc, TmcError> {
         let test_name = format!("{}Test", exercise_name);
         Ok(ExerciseDesc {
             name: exercise_name,
@@ -50,6 +56,7 @@ impl LanguagePlugin for NoTestsPlugin {
         &self,
         path: &Path,
         _timeout: Option<Duration>,
+        _warnings: &mut Vec<anyhow::Error>,
     ) -> Result<RunResult, TmcError> {
         Ok(RunResult {
             status: RunStatus::Passed,
@@ -116,11 +123,11 @@ mod test {
         let path = Path::new("tests/data/notests");
         assert!(NoTestsPlugin::is_exercise_type_correct(path));
         let desc = plugin
-            .scan_exercise(path, "No Tests Exercise".to_string())
+            .scan_exercise(path, "No Tests Exercise".to_string(), &mut vec![])
             .unwrap();
         assert_eq!(desc.tests.len(), 1);
         assert_eq!(desc.tests[0].points.len(), 0);
-        let runres = plugin.run_tests(path).unwrap();
+        let runres = plugin.run_tests(path, &mut vec![]).unwrap();
         assert_eq!(runres.status, RunStatus::Passed);
     }
 
@@ -132,13 +139,13 @@ mod test {
         let path = Path::new("tests/data/notests-points");
         assert!(NoTestsPlugin::is_exercise_type_correct(path));
         let desc = plugin
-            .scan_exercise(path, "No Tests Exercise".to_string())
+            .scan_exercise(path, "No Tests Exercise".to_string(), &mut vec![])
             .unwrap();
         assert_eq!(desc.tests.len(), 1);
         assert_eq!(desc.tests[0].points.len(), 2);
         assert_eq!(desc.tests[0].points[0], "1");
         assert_eq!(desc.tests[0].points[1], "notests");
-        let runres = plugin.run_tests(path).unwrap();
+        let runres = plugin.run_tests(path, &mut vec![]).unwrap();
         assert_eq!(runres.status, RunStatus::Passed);
     }
 }

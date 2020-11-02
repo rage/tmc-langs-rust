@@ -14,6 +14,7 @@ use std::path::{Path, PathBuf};
 pub use submission_packaging::{OutputFormat, TmcParams};
 use tmc_langs_csharp::CSharpPlugin;
 use tmc_langs_framework::{
+    anyhow,
     domain::TmcProjectYml,
     io::{self, submission_processing},
     plugin::{Language, LanguagePlugin},
@@ -81,13 +82,17 @@ pub fn run_check_code_style(
 }
 
 /// See `LanguagePlugin::run_tests`.
-pub fn run_tests(path: &Path) -> Result<RunResult, UtilError> {
-    Ok(get_language_plugin(path)?.run_tests(&path)?)
+pub fn run_tests(path: &Path, warnings: &mut Vec<anyhow::Error>) -> Result<RunResult, UtilError> {
+    Ok(get_language_plugin(path)?.run_tests(path, warnings)?)
 }
 
 /// See `LanguagePlugin::scan_exercise`.
-pub fn scan_exercise(path: &Path, exercise_name: String) -> Result<ExerciseDesc, UtilError> {
-    Ok(get_language_plugin(path)?.scan_exercise(path, exercise_name)?)
+pub fn scan_exercise(
+    path: &Path,
+    exercise_name: String,
+    warnings: &mut Vec<anyhow::Error>,
+) -> Result<ExerciseDesc, UtilError> {
+    Ok(get_language_plugin(path)?.scan_exercise(path, exercise_name, warnings)?)
 }
 
 /// Tries to find a language plugin for the path, returning `true` if one is found.
@@ -218,8 +223,8 @@ pub fn refresh_course(
     fn compress_project(&self, path: &Path) -> Result<Vec<u8>, TmcError> {}
     fn extract_project(&self, compressed_project: &Path, target_location: &Path, clean: bool) -> Result<(), TmcError> {}
     fn extract_student_files(&self, compressed_project: &Path, target_location: &Path) -> Result<(), TmcError> {}
-    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {}
-    fn run_tests(&self, path: &Path) -> Result<RunResult, TmcError> {}
+    fn scan_exercise(&self, path: &Path, exercise_name: String, warnings: &mut Vec<anyhow::Error>) -> Result<ExerciseDesc, TmcError> {}
+    fn run_tests(&self, path: &Path, warnings: &mut Vec<anyhow::Error>) -> Result<RunResult, TmcError> {}
     fn check_code_style(&self, path: &Path, locale: Language) -> Result<Option<ValidationResult>, TmcError> {}
     fn prepare_stub(&self, exercise_path: &Path, repo_path: &Path, dest_path: &Path) -> Result<(), TmcError> {}
     fn get_available_points(&self, exercise_path: &Path) -> Result<Vec<String>, TmcError> {}

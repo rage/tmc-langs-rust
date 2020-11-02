@@ -9,6 +9,7 @@ use std::io::{Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
+    anyhow,
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, TestDesc},
     io::file_util,
@@ -32,7 +33,12 @@ impl LanguagePlugin for RPlugin {
     const BLOCK_COMMENT: Option<(&'static str, &'static str)> = None;
     type StudentFilePolicy = RStudentFilePolicy;
 
-    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
+    fn scan_exercise(
+        &self,
+        path: &Path,
+        exercise_name: String,
+        _warnings: &mut Vec<anyhow::Error>,
+    ) -> Result<ExerciseDesc, TmcError> {
         // run available points command
         let args = if cfg!(windows) {
             &["-e", "\"library('tmcRtestrunner');run_available_points()\""]
@@ -63,6 +69,7 @@ impl LanguagePlugin for RPlugin {
         &self,
         path: &Path,
         _timeout: Option<Duration>,
+        _warnings: &mut Vec<anyhow::Error>,
     ) -> Result<RunResult, TmcError> {
         // delete results json
         let results_path = path.join(".results.json");
@@ -201,7 +208,9 @@ mod test {
         let temp = copy_test("tests/data/simple_all_tests_pass");
 
         assert!(!temp.path().join(".available_points.json").exists());
-        let desc = plugin.scan_exercise(temp.path(), "ex".to_string()).unwrap();
+        let desc = plugin
+            .scan_exercise(temp.path(), "ex".to_string(), &mut vec![])
+            .unwrap();
         assert!(temp.path().join(".available_points.json").exists());
         assert_eq!(desc.name, "ex");
         assert_eq!(desc.tests.len(), 4);
@@ -221,7 +230,7 @@ mod test {
         let plugin = RPlugin {};
         let temp = copy_test("tests/data/simple_all_tests_pass");
 
-        let run = plugin.run_tests(temp.path()).unwrap();
+        let run = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(run.status, RunStatus::Passed);
         assert!(run.logs.is_empty());
         assert_eq!(run.test_results.len(), 4);
@@ -243,7 +252,7 @@ mod test {
         let plugin = RPlugin {};
         let temp = copy_test("tests/data/simple_all_tests_fail");
 
-        let run = plugin.run_tests(temp.path()).unwrap();
+        let run = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(run.status, RunStatus::TestsFailed);
         assert!(run.logs.is_empty());
         assert_eq!(run.test_results.len(), 4);
@@ -265,7 +274,7 @@ mod test {
         let plugin = RPlugin {};
         let temp = copy_test("tests/data/simple_run_fail");
 
-        let mut run = plugin.run_tests(temp.path()).unwrap();
+        let mut run = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(run.status, RunStatus::CompileFailed);
         assert!(run.test_results.is_empty());
         assert!(!run.logs.is_empty());
@@ -279,7 +288,7 @@ mod test {
         let plugin = RPlugin {};
         let temp = copy_test("tests/data/simple_sourcing_fail");
 
-        let mut run = plugin.run_tests(temp.path()).unwrap();
+        let mut run = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(run.status, RunStatus::CompileFailed);
         assert!(run.test_results.is_empty());
         assert!(!run.logs.is_empty());

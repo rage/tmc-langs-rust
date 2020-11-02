@@ -115,7 +115,7 @@ where
     downloader(&submission_path).unwrap();
 
     log::debug!("testing locally {}", submission_path.display());
-    let test_results = core.run_tests(&submission_path).unwrap();
+    let test_results = core.run_tests(&submission_path, &mut vec![]).unwrap();
     let expected = test_results.status;
     log::debug!("expecting {:?}", expected);
 

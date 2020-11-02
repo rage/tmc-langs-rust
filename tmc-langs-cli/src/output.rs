@@ -13,6 +13,7 @@ use tmc_langs_util::progress_reporter::StatusUpdate;
 pub enum Output<T: Serialize> {
     OutputData(OutputData<T>),
     StatusUpdate(StatusUpdate<T>),
+    Warnings(Warnings),
 }
 
 #[derive(Debug, Serialize)]
@@ -82,4 +83,17 @@ pub struct CombinedCourseData {
 pub struct DownloadTarget {
     pub id: usize,
     pub path: PathBuf,
+}
+
+#[derive(Debug, Serialize)]
+pub struct Warnings {
+    warnings: Vec<String>,
+}
+
+impl Warnings {
+    pub fn from_error_list(warnings: &[anyhow::Error]) -> Self {
+        Self {
+            warnings: warnings.iter().map(|w| w.to_string()).collect(),
+        }
+    }
 }

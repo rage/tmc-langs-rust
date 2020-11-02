@@ -12,6 +12,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tar::Archive;
 use tmc_langs_framework::{
+    anyhow,
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, ValidationResult},
     io::file_util,
@@ -83,7 +84,12 @@ impl LanguagePlugin for MavenPlugin {
         Ok(Some(self.run_checkstyle(&locale, path)?))
     }
 
-    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
+    fn scan_exercise(
+        &self,
+        path: &Path,
+        exercise_name: String,
+        _warnings: &mut Vec<anyhow::Error>,
+    ) -> Result<ExerciseDesc, TmcError> {
         if !Self::is_exercise_type_correct(path) {
             return JavaError::InvalidExercise(path.to_path_buf()).into();
         }
@@ -96,6 +102,7 @@ impl LanguagePlugin for MavenPlugin {
         &self,
         project_root_path: &Path,
         _timeout: Option<Duration>,
+        _warnings: &mut Vec<anyhow::Error>,
     ) -> Result<RunResult, TmcError> {
         Ok(self.run_java_tests(project_root_path)?)
     }
@@ -333,7 +340,7 @@ mod test {
         let test_path = temp_dir.path();
         let plugin = MavenPlugin::new().unwrap();
         let exercises = plugin
-            .scan_exercise(&test_path, "test".to_string())
+            .scan_exercise(&test_path, "test".to_string(), &mut vec![])
             .unwrap();
         assert_eq!(exercises.name, "test");
         assert_eq!(exercises.tests.len(), 1);

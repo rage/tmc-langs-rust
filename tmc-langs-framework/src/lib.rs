@@ -7,6 +7,7 @@ pub mod io;
 pub mod plugin;
 pub mod policy;
 
+pub use anyhow;
 use domain::TmcProjectYml;
 pub use error::TmcError;
 pub use nom;

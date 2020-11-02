@@ -11,6 +11,7 @@ use std::io::{BufReader, Cursor, Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
+    anyhow,
     command::TmcCommand,
     domain::{
         ExerciseDesc, RunResult, RunStatus, Strategy, TestDesc, TestResult, ValidationResult,
@@ -154,7 +155,12 @@ impl LanguagePlugin for CSharpPlugin {
     }
 
     /// Runs --generate-points-file and parses the generated .tmc_available_points.json.
-    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
+    fn scan_exercise(
+        &self,
+        path: &Path,
+        exercise_name: String,
+        _warnings: &mut Vec<anyhow::Error>,
+    ) -> Result<ExerciseDesc, TmcError> {
         let exercise_desc_json_path = path.join(".tmc_available_points.json");
         if exercise_desc_json_path.exists() {
             file_util::remove_file(&exercise_desc_json_path)?;
@@ -189,6 +195,7 @@ impl LanguagePlugin for CSharpPlugin {
         &self,
         path: &Path,
         timeout: Option<Duration>,
+        _warnings: &mut Vec<anyhow::Error>,
     ) -> Result<RunResult, TmcError> {
         let test_results_path = path.join(".tmc_test_results.json");
         if test_results_path.exists() {
@@ -384,7 +391,7 @@ mod test {
         let plugin = CSharpPlugin::new();
         let temp = copy_test_dir("tests/data/PassingProject");
         let scan = plugin
-            .scan_exercise(temp.path(), "name".to_string())
+            .scan_exercise(temp.path(), "name".to_string(), &mut vec![])
             .unwrap();
         assert_eq!(scan.name, "name");
         assert_eq!(scan.tests.len(), 6);
@@ -395,7 +402,7 @@ mod test {
         init();
         let plugin = CSharpPlugin::new();
         let temp = copy_test_dir("tests/data/PassingProject");
-        let res = plugin.run_tests(temp.path()).unwrap();
+        let res = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(res.status, RunStatus::Passed);
         assert_eq!(res.test_results.len(), 2);
         for tr in res.test_results {
@@ -409,7 +416,7 @@ mod test {
         init();
         let plugin = CSharpPlugin::new();
         let temp = copy_test_dir("tests/data/FailingProject");
-        let res = plugin.run_tests(temp.path()).unwrap();
+        let res = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(res.status, RunStatus::TestsFailed);
         assert_eq!(res.test_results.len(), 1);
         let test_result = &res.test_results[0];
@@ -425,7 +432,7 @@ mod test {
         init();
         let plugin = CSharpPlugin::new();
         let temp = copy_test_dir("tests/data/NonCompilingProject");
-        let res = plugin.run_tests(temp.path()).unwrap();
+        let res = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(res.status, RunStatus::CompileFailed);
         assert!(!res.logs.is_empty());
         assert!(res
@@ -448,7 +455,7 @@ mod test {
             .join("obj");
         assert!(!bin_path.exists());
         assert!(!obj_path_test.exists());
-        plugin.run_tests(temp.path()).unwrap();
+        plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert!(bin_path.exists());
         assert!(obj_path_test.exists());
         plugin.clean(temp.path()).unwrap();

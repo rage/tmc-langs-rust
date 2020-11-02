@@ -8,6 +8,7 @@ use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
+    anyhow,
     command::{Output, TmcCommand},
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult, TmcProjectYml},
     error::CommandError,
@@ -40,6 +41,7 @@ impl LanguagePlugin for Python3Plugin {
         &self,
         exercise_directory: &Path,
         exercise_name: String,
+        warnings: &mut Vec<anyhow::Error>,
     ) -> Result<ExerciseDesc, TmcError> {
         let available_points_json = exercise_directory.join(".available_points.json");
         // remove any existing points json
@@ -47,7 +49,7 @@ impl LanguagePlugin for Python3Plugin {
             file_util::remove_file(&available_points_json)?;
         }
 
-        let run_result = run_tmc_command(exercise_directory, &["available_points"], None);
+        let run_result = run_tmc_command(exercise_directory, &["available_points"], None, warnings);
         if let Err(error) = run_result {
             log::error!("Failed to scan exercise. {}", error);
         }
@@ -64,6 +66,7 @@ impl LanguagePlugin for Python3Plugin {
         &self,
         exercise_directory: &Path,
         timeout: Option<Duration>,
+        warnings: &mut Vec<anyhow::Error>,
     ) -> Result<RunResult, TmcError> {
         let test_results_json = exercise_directory.join(".tmc_test_results.json");
         // remove any existing results json
@@ -71,7 +74,7 @@ impl LanguagePlugin for Python3Plugin {
             file_util::remove_file(&test_results_json)?;
         }
 
-        let output = run_tmc_command(exercise_directory, &[], timeout);
+        let output = run_tmc_command(exercise_directory, &[], timeout, warnings);
 
         match output {
             Ok(output) => {
@@ -229,6 +232,7 @@ fn run_tmc_command(
     path: &Path,
     extra_args: &[&str],
     timeout: Option<Duration>,
+    warnings: &mut Vec<anyhow::Error>,
 ) -> Result<Output, PythonError> {
     let minimum_python_version = TmcProjectYml::from(path)?
         .minimum_python_version
@@ -238,18 +242,24 @@ fn run_tmc_command(
     let minimum_minor = minimum_python_version.minor.unwrap_or(0);
     let minimum_patch = minimum_python_version.patch.unwrap_or(0);
 
+    // Try to keep up to date with https://devguide.python.org/#branchstatus
+    // As of writing, 3.6 is the oldest maintained release and its EOL 2021-12-23
+    let recommended_major = 3;
+    let recommended_minor = 6;
+
     let (major, minor, patch) = get_local_python_ver()?;
 
-    let found_ver = format!("{}.{}.{}", major, minor, patch);
-    let minimum_ver = format!("{}.{}.{}", minimum_major, minimum_minor, minimum_patch);
+    if major < recommended_major || major == recommended_major && minor < recommended_minor {
+        warnings.push(anyhow::anyhow!(format!("Your Python is out of date. Minimum maintained release is {}.{}, your Python version was detected as {}.{}. Updating to a newer release is recommended.", recommended_major, recommended_minor, major, minor)));
+    }
 
     if major < minimum_major
         || major == minimum_major && minor < minimum_minor
         || major == minimum_major && minor == minimum_minor && patch < minimum_patch
     {
         return Err(PythonError::OldPythonVersion {
-            found: found_ver,
-            minimum_required: minimum_ver,
+            found: format!("{}.{}.{}", major, minor, patch),
+            minimum_required: format!("{}.{}.{}", minimum_major, minimum_minor, minimum_patch),
         });
     }
 
@@ -365,7 +375,9 @@ mod test {
 
         let temp = copy_test("tests/data/project");
         let plugin = Python3Plugin::new();
-        let ex_desc = plugin.scan_exercise(temp.path(), "name".into()).unwrap();
+        let ex_desc = plugin
+            .scan_exercise(temp.path(), "name".into(), &mut vec![])
+            .unwrap();
         assert_eq!(ex_desc.name, "name");
         assert_eq!(
             &ex_desc.tests[0].name,
@@ -383,7 +395,7 @@ mod test {
         let plugin = Python3Plugin::new();
 
         let temp = copy_test("tests/data/project");
-        let run_result = plugin.run_tests(temp.path()).unwrap();
+        let run_result = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(run_result.status, RunStatus::Passed);
         assert_eq!(run_result.test_results[0].name, "TestEverything: test_new");
         assert!(run_result.test_results[0].successful);
@@ -397,7 +409,7 @@ mod test {
         // assert!(run_result.logs.is_empty());
 
         let temp = copy_test("tests/data/failing");
-        let run_result = plugin.run_tests(temp.path()).unwrap();
+        let run_result = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(run_result.status, RunStatus::TestsFailed);
         assert_eq!(run_result.test_results[0].name, "TestFailing: test_new");
         assert!(!run_result.test_results[0].successful);
@@ -410,7 +422,7 @@ mod test {
         // assert!(run_result.logs.is_empty());
 
         let temp = copy_test("tests/data/erroring");
-        let run_result = plugin.run_tests(temp.path()).unwrap();
+        let run_result = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(run_result.status, RunStatus::TestsFailed);
         assert_eq!(
             run_result.test_results[0].name,
@@ -474,7 +486,11 @@ mod test {
 
         let temp = copy_test("tests/data/timeout");
         let timeout = plugin
-            .run_tests_with_timeout(temp.path(), Some(std::time::Duration::from_millis(1)))
+            .run_tests_with_timeout(
+                temp.path(),
+                Some(std::time::Duration::from_millis(1)),
+                &mut vec![],
+            )
             .unwrap();
         assert_eq!(timeout.test_results[0].name, "Timeout test");
     }
