@@ -1523,6 +1523,10 @@ fn print_output_with_file<T: Serialize + Debug>(
 }
 
 fn print_warnings(pretty: bool, warnings: &[anyhow::Error]) -> Result<()> {
+    if warnings.is_empty() {
+        return Ok(());
+    }
+
     let warnings_output = Output::<()>::Warnings(Warnings::from_error_list(warnings));
     let warnings_json = if pretty {
         serde_json::to_string_pretty(&warnings_output)
