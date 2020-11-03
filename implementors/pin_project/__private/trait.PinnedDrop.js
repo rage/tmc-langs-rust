@@ -1,4 +1,3 @@
 (function() {var implementors = {};
-implementors["hyper"] = [{"text":"impl&lt;I, F, E&gt; PinnedDrop for Connecting&lt;I, F, E&gt;","synthetic":false,"types":[]},{"text":"impl&lt;T, S, E&gt; PinnedDrop for Connection&lt;T, S, E&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;S: HttpService&lt;Body&gt;,&nbsp;</span>","synthetic":false,"types":[]},{"text":"impl&lt;I, S, E&gt; PinnedDrop for Server&lt;I, S, E&gt;","synthetic":false,"types":[]}];
 implementors["tracing_futures"] = [{"text":"impl&lt;T&gt; PinnedDrop for Instrumented&lt;T&gt;","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

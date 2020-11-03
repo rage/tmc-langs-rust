@@ -481,6 +481,13 @@
 <span id="480">480</span>
 <span id="481">481</span>
 <span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Java ant plugin</span>
 
@@ -494,6 +501,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
+    <span class="ident">anyhow</span>,
     <span class="ident">command</span>::<span class="ident">TmcCommand</span>,
     <span class="ident">domain</span>::{<span class="ident">ExerciseDesc</span>, <span class="ident">RunResult</span>, <span class="ident">ValidationResult</span>},
     <span class="ident">io</span>::<span class="ident">file_util</span>,
@@ -562,7 +570,12 @@
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">run_checkstyle</span>(<span class="kw-2">&amp;</span><span class="ident">locale</span>, <span class="ident">path</span>)<span class="question-mark">?</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">scan_exercise</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">exercise_name</span>: <span class="ident">String</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">scan_exercise</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+        <span class="ident">exercise_name</span>: <span class="ident">String</span>,
+        <span class="ident">_warnings</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">anyhow</span>::<span class="ident">Error</span><span class="op">&gt;</span>,
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="self">Self</span>::<span class="ident">is_exercise_type_correct</span>(<span class="ident">path</span>) {
             <span class="kw">return</span> <span class="ident">JavaError</span>::<span class="ident">InvalidExercise</span>(<span class="ident">path</span>.<span class="ident">to_path_buf</span>()).<span class="ident">into</span>();
         }
@@ -575,6 +588,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">project_root_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
         <span class="ident">_timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
+        <span class="ident">_warnings</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">anyhow</span>::<span class="ident">Error</span><span class="op">&gt;</span>,
     ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RunResult</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">run_java_tests</span>(<span class="ident">project_root_path</span>)<span class="question-mark">?</span>)
     }
@@ -900,7 +914,7 @@
         <span class="kw">let</span> <span class="ident">test_path</span> <span class="op">=</span> <span class="ident">temp_dir</span>.<span class="ident">path</span>();
         <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">AntPlugin</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">exercises</span> <span class="op">=</span> <span class="ident">plugin</span>
-            .<span class="ident">scan_exercise</span>(<span class="kw-2">&amp;</span><span class="ident">test_path</span>, <span class="string">&quot;test&quot;</span>.<span class="ident">to_string</span>())
+            .<span class="ident">scan_exercise</span>(<span class="kw-2">&amp;</span><span class="ident">test_path</span>, <span class="string">&quot;test&quot;</span>.<span class="ident">to_string</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro">vec</span><span class="macro">!</span>[])
             .<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">exercises</span>.<span class="ident">name</span>, <span class="string">&quot;test&quot;</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">exercises</span>.<span class="ident">tests</span>.<span class="ident">len</span>(), <span class="number">4</span>);

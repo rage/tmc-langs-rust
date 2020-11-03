@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["InvalidTokenError",""]]});
+initSidebarItems({"struct":[["InvalidTokenError",""],["SandboxTestError",""]]});

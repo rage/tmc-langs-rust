@@ -55,7 +55,7 @@ implementors["tempfile"] = [{"text":"impl Display for PathPersistError","synthet
 implementors["termcolor"] = [{"text":"impl Display for ParseColorError","synthetic":false,"types":[]}];
 implementors["time"] = [{"text":"impl&lt;'a&gt; Display for TmFmt&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl Display for Duration","synthetic":false,"types":[]},{"text":"impl Display for OutOfRangeError","synthetic":false,"types":[]},{"text":"impl Display for SteadyTime","synthetic":false,"types":[]},{"text":"impl Display for ParseError","synthetic":false,"types":[]}];
 implementors["tinyvec"] = [{"text":"impl&lt;A:&nbsp;Array&gt; Display for ArrayVec&lt;A&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;A::Item: Display,&nbsp;</span>","synthetic":false,"types":[]},{"text":"impl&lt;A:&nbsp;Array&gt; Display for TinyVec&lt;A&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;A::Item: Display,&nbsp;</span>","synthetic":false,"types":[]}];
-implementors["tmc_langs_cli"] = [{"text":"impl Display for InvalidTokenError","synthetic":false,"types":[]}];
+implementors["tmc_langs_cli"] = [{"text":"impl Display for InvalidTokenError","synthetic":false,"types":[]},{"text":"impl Display for SandboxTestError","synthetic":false,"types":[]}];
 implementors["tmc_langs_core"] = [{"text":"impl Display for CoreError","synthetic":false,"types":[]}];
 implementors["tmc_langs_csharp"] = [{"text":"impl Display for CSharpError","synthetic":false,"types":[]}];
 implementors["tmc_langs_framework"] = [{"text":"impl Display for TmcError","synthetic":false,"types":[]},{"text":"impl Display for CommandError","synthetic":false,"types":[]},{"text":"impl Display for FileIo","synthetic":false,"types":[]}];

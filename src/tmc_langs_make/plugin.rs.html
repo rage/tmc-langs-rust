@@ -492,6 +492,13 @@
 <span id="491">491</span>
 <span id="492">492</span>
 <span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains the main plugin struct.</span>
 
@@ -506,6 +513,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
+    <span class="ident">anyhow</span>,
     <span class="ident">command</span>::{<span class="ident">Output</span>, <span class="ident">TmcCommand</span>},
     <span class="ident">domain</span>::{<span class="ident">ExerciseDesc</span>, <span class="ident">RunResult</span>, <span class="ident">RunStatus</span>, <span class="ident">TestDesc</span>, <span class="ident">TmcProjectYml</span>},
     <span class="ident">error</span>::{<span class="ident">CommandError</span>, <span class="ident">FileIo</span>},
@@ -620,7 +628,12 @@
     <span class="kw">const</span> <span class="ident">BLOCK_COMMENT</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="string">&quot;/*&quot;</span>, <span class="string">&quot;*/&quot;</span>));
     <span class="kw">type</span> <span class="ident">StudentFilePolicy</span> <span class="op">=</span> <span class="ident">MakeStudentFilePolicy</span>;
 
-    <span class="kw">fn</span> <span class="ident">scan_exercise</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">exercise_name</span>: <span class="ident">String</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">scan_exercise</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+        <span class="ident">exercise_name</span>: <span class="ident">String</span>,
+        <span class="ident">_warnings</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">anyhow</span>::<span class="ident">Error</span><span class="op">&gt;</span>,
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="self">Self</span>::<span class="ident">is_exercise_type_correct</span>(<span class="ident">path</span>) {
             <span class="kw">return</span> <span class="ident">MakeError</span>::<span class="ident">NoExerciseFound</span>(<span class="ident">path</span>.<span class="ident">to_path_buf</span>()).<span class="ident">into</span>();
         }
@@ -640,6 +653,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
         <span class="ident">_timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
+        <span class="ident">_warnings</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">anyhow</span>::<span class="ident">Error</span><span class="op">&gt;</span>,
     ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RunResult</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">build</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="op">!</span><span class="ident">output</span>.<span class="ident">status</span>.<span class="ident">success</span>() {
@@ -873,7 +887,7 @@
         <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">copy_test</span>(<span class="string">&quot;tests/data/passing&quot;</span>);
         <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">MakePlugin</span>::<span class="ident">new</span>();
         <span class="kw">let</span> <span class="ident">exercise_desc</span> <span class="op">=</span> <span class="ident">plugin</span>
-            .<span class="ident">scan_exercise</span>(<span class="ident">temp</span>.<span class="ident">path</span>(), <span class="string">&quot;test&quot;</span>.<span class="ident">to_string</span>())
+            .<span class="ident">scan_exercise</span>(<span class="ident">temp</span>.<span class="ident">path</span>(), <span class="string">&quot;test&quot;</span>.<span class="ident">to_string</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro">vec</span><span class="macro">!</span>[])
             .<span class="ident">unwrap</span>();
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">exercise_desc</span>.<span class="ident">name</span>, <span class="string">&quot;test&quot;</span>);
@@ -890,7 +904,7 @@
 
         <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">copy_test</span>(<span class="string">&quot;tests/data/passing&quot;</span>);
         <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">MakePlugin</span>::<span class="ident">new</span>();
-        <span class="kw">let</span> <span class="ident">run_result</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">run_tests</span>(<span class="ident">temp</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">run_result</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">run_tests</span>(<span class="ident">temp</span>.<span class="ident">path</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro">vec</span><span class="macro">!</span>[]).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">run_result</span>.<span class="ident">status</span>, <span class="ident">RunStatus</span>::<span class="ident">Passed</span>);
         <span class="comment">// assert!(run_result.logs.is_empty());</span>
         <span class="kw">let</span> <span class="ident">test_results</span> <span class="op">=</span> <span class="ident">run_result</span>.<span class="ident">test_results</span>;
@@ -912,7 +926,7 @@
 
         <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">copy_test</span>(<span class="string">&quot;tests/data/failing&quot;</span>);
         <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">MakePlugin</span>::<span class="ident">new</span>();
-        <span class="kw">let</span> <span class="ident">run_result</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">run_tests</span>(<span class="ident">temp</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">run_result</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">run_tests</span>(<span class="ident">temp</span>.<span class="ident">path</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro">vec</span><span class="macro">!</span>[]).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">run_result</span>.<span class="ident">status</span>, <span class="ident">RunStatus</span>::<span class="ident">TestsFailed</span>);
         <span class="kw">let</span> <span class="ident">test_results</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">run_result</span>.<span class="ident">test_results</span>;
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">test_results</span>.<span class="ident">len</span>(), <span class="number">1</span>);
@@ -933,7 +947,7 @@
 
         <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">copy_test</span>(<span class="string">&quot;tests/data/valgrind-failing&quot;</span>);
         <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">MakePlugin</span>::<span class="ident">new</span>();
-        <span class="kw">let</span> <span class="ident">run_result</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">run_tests</span>(<span class="ident">temp</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">run_result</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">run_tests</span>(<span class="ident">temp</span>.<span class="ident">path</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro">vec</span><span class="macro">!</span>[]).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">run_result</span>.<span class="ident">status</span>, <span class="ident">RunStatus</span>::<span class="ident">TestsFailed</span>);
         <span class="kw">let</span> <span class="ident">test_results</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">run_result</span>.<span class="ident">test_results</span>;
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">test_results</span>.<span class="ident">len</span>(), <span class="number">2</span>);
