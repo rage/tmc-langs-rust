@@ -40,9 +40,9 @@ cargo run -p tmc-langs-cli help
 
 Format using `cargo fmt`, use `cargo clippy` for linting.
 
-## Deployment
+## CLI binary deployment and downloads
 
-Documentation and binaries for the supported targets are built and the binaries deployed to Google Cloud when creating a GitHub release. Each binary uses the release tag as a version number in the filename, for example `tmc-langs-cli-x86_64-unknown-linux-gnu-0.5.0` for the release `0.5.0`.
+Documentation and binaries for the supported targets are built and the binaries deployed to Google Cloud when creating a GitHub release. The binaries are available at https://download.mooc.fi/tmc-langs-rust/, with each binary following the file name format `tmc-langs-cli-{target}-{version}(.exe)`, with the `.exe` suffix added for the Windows binaries. For a list of targets see below. For example, The 64-bit Linux binary for version 0.5.0 is available at https://download.mooc.fi/tmc-langs-rust/tmc-langs-cli-x86_64-unknown-linux-gnu-0.5.0.
 
 ### Supported targets
 
