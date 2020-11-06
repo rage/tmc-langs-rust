@@ -228,6 +228,9 @@ impl JavaPlugin for MavenPlugin {
 #[cfg(test)]
 #[cfg(not(target_os = "macos"))] // issues with maven dependencies
 mod test {
+    //! Maven doesn't like being run in parallel, at least on Windows.
+    //! For now the tests access the MavenPlugin with a function that locks a mutex.
+
     use super::super::{TestCase, TestCaseStatus};
     use super::*;
     use std::fs::{self, File};
@@ -237,31 +240,16 @@ mod test {
     use tmc_langs_framework::zip::ZipArchive;
     use walkdir::WalkDir;
 
-    #[cfg(windows)]
     lazy_static::lazy_static! {
         static ref MAVEN_LOCK: Mutex<()> = Mutex::new(());
-    }
-
-    #[cfg(not(windows))]
-    thread_local! {
-        static MAVEN_LOCK: Mutex<()> = Mutex::new(());
     }
 
     fn init() {
         let _ = env_logger::builder().is_test(true).try_init();
     }
 
-    #[cfg(windows)]
     fn get_maven() -> (MavenPlugin, MutexGuard<'static, ()>) {
         (MavenPlugin::new().unwrap(), MAVEN_LOCK.lock().unwrap())
-    }
-
-    #[cfg(not(windows))]
-    fn get_maven() -> (MavenPlugin, MutexGuard<'static, ()>) {
-        (
-            MavenPlugin::new().unwrap(),
-            MAVEN_LOCK.with(|_| Mutex::new(())).lock().unwrap(),
-        )
     }
 
     fn copy_test_dir(path: &str) -> TempDir {
