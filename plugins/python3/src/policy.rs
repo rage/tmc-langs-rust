@@ -28,10 +28,15 @@ impl StudentFilePolicy for Python3StudentFilePolicy {
             || path
                 .components()
                 .any(|c| c.as_os_str() == OsStr::new("__pycache__"));
-        // .py files in exercise root are student source files
-        let is_py_in_root = path.extension() == Some(OsStr::new("py")) && path.parent().is_none();
 
-        in_src && !is_cache_file || is_py_in_root
+        // .py files in exercise root are student source files
+        let is_in_project_root = match path.parent() {
+            Some(s) => s.as_os_str().is_empty(),
+            None => true,
+        };
+        let is_py_file = path.extension() == Some(OsStr::new("py"));
+
+        in_src && !is_cache_file || is_in_project_root && is_py_file
     }
 }
 
