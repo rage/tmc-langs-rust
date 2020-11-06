@@ -21,7 +21,7 @@ pub fn zip<P: StudentFilePolicy>(policy: P, root_directory: &Path) -> Result<Vec
         .filter_entry(|e| !contains_tmcnosubmit(e))
         .filter_map(|e| e.ok())
     {
-        log::trace!("processing {:?}", entry.path());
+        log::trace!("processing {}", entry.path().display());
         if policy.is_student_file(entry.path(), &root_directory, &tmc_project_yml)? {
             let path = root_directory
                 .parent()
@@ -29,11 +29,12 @@ pub fn zip<P: StudentFilePolicy>(policy: P, root_directory: &Path) -> Result<Vec
                 .unwrap_or_else(|| entry.path());
             if entry.path().is_dir() {
                 log::trace!("adding directory {}", path.display());
-                writer.add_directory(path.to_string_lossy(), FileOptions::default())?;
+                writer
+                    .add_directory(path_to_zip_compatible_string(path), FileOptions::default())?;
             } else {
                 let bytes = file_util::read_file(entry.path())?;
                 log::trace!("writing file {}", path.display());
-                writer.start_file(path.to_string_lossy(), FileOptions::default())?;
+                writer.start_file(path_to_zip_compatible_string(path), FileOptions::default())?;
                 writer
                     .write_all(&bytes)
                     .map_err(|e| TmcError::ZipWrite(path.to_path_buf(), e))?;
@@ -42,6 +43,18 @@ pub fn zip<P: StudentFilePolicy>(policy: P, root_directory: &Path) -> Result<Vec
     }
     let cursor = writer.finish()?;
     Ok(cursor.into_inner())
+}
+
+// ensures the / separator is used
+fn path_to_zip_compatible_string(path: &Path) -> String {
+    let mut string = String::new();
+    for component in path.components() {
+        if !string.is_empty() {
+            string.push('/');
+        }
+        string.push_str(&*component.as_os_str().to_string_lossy());
+    }
+    string
 }
 
 // todo: remove
@@ -210,10 +223,10 @@ fn contains_tmcnosubmit(entry: &DirEntry) -> bool {
 
 #[cfg(test)]
 mod test {
-    /*
     use super::*;
     use crate::policy::EverythingIsStudentFilePolicy;
     use std::collections::HashSet;
+    use std::fs::{self, *};
     use tempfile::tempdir;
 
     fn init() {
@@ -245,12 +258,9 @@ mod test {
         File::create(missing_file_path).unwrap();
 
         let path = temp.path().join("exercise-name");
-        let zipped = zip(
-            Box::new(EverythingIsStudentFilePolicy::new(path.clone())),
-            &path,
-        )
-        .unwrap();
+        let zipped = zip(EverythingIsStudentFilePolicy::new(path.clone()), &path).unwrap();
         let mut archive = ZipArchive::new(Cursor::new(zipped)).unwrap();
+        assert!(archive.len() > 0);
         for i in 0..archive.len() {
             log::debug!("{:?}", archive.by_index(i).unwrap().name());
         }
@@ -319,5 +329,21 @@ mod test {
         .unwrap();
         assert!(temp.path().join("src").exists());
     }
-    */
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_paths_get_converted() {
+        let win_path = PathBuf::from(r"tests\data\dir");
+        let zipped = zip(
+            EverythingIsStudentFilePolicy::new(win_path.clone()),
+            &win_path,
+        )
+        .unwrap();
+        let mut ziparch = ZipArchive::new(Cursor::new(zipped)).unwrap();
+        assert!(ziparch.len() > 0);
+        for i in 0..ziparch.len() {
+            let file = ziparch.by_index(i).unwrap();
+            assert!(file.name().chars().find(|c| c == &'\\').is_none())
+        }
+    }
 }

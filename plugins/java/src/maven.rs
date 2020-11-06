@@ -228,27 +228,28 @@ impl JavaPlugin for MavenPlugin {
 #[cfg(test)]
 #[cfg(not(target_os = "macos"))] // issues with maven dependencies
 mod test {
+    //! Maven doesn't like being run in parallel, at least on Windows.
+    //! For now the tests access the MavenPlugin with a function that locks a mutex.
+
     use super::super::{TestCase, TestCaseStatus};
     use super::*;
     use std::fs::{self, File};
+    use std::sync::{Mutex, MutexGuard};
     use tempfile::{tempdir, TempDir};
     use tmc_langs_framework::domain::Strategy;
     use tmc_langs_framework::zip::ZipArchive;
     use walkdir::WalkDir;
 
-    #[cfg(windows)]
-    use std::sync::Once;
-    #[cfg(windows)]
-    static INIT_MAVEN: Once = Once::new();
+    lazy_static::lazy_static! {
+        static ref MAVEN_LOCK: Mutex<()> = Mutex::new(());
+    }
 
     fn init() {
         let _ = env_logger::builder().is_test(true).try_init();
+    }
 
-        // initializes maven in a synchronized manner for all tests
-        #[cfg(windows)]
-        INIT_MAVEN.call_once(|| {
-            MavenPlugin::new().expect("failed to instantiate maven");
-        });
+    fn get_maven() -> (MavenPlugin, MutexGuard<'static, ()>) {
+        (MavenPlugin::new().unwrap(), MAVEN_LOCK.lock().unwrap())
     }
 
     fn copy_test_dir(path: &str) -> TempDir {
@@ -273,13 +274,12 @@ mod test {
     }
 
     #[test]
-    #[cfg(not(target_os = "windows"))] // CI problems
     fn gets_project_class_path() {
         init();
 
         let temp_dir = copy_test_dir("tests/data/maven_exercise");
         let test_path = temp_dir.path();
-        let plugin = MavenPlugin::new().unwrap();
+        let (plugin, _lock) = get_maven();
         let class_path = plugin.get_project_class_path(test_path).unwrap();
         log::debug!("{}", class_path);
         let expected = format!("{0}junit{0}", std::path::MAIN_SEPARATOR);
@@ -295,19 +295,18 @@ mod test {
 
         let temp_dir = copy_test_dir("tests/data/maven_exercise");
         let test_path = temp_dir.path();
-        let plugin = MavenPlugin::new().unwrap();
+        let (plugin, _lock) = get_maven();
         let compile_result = plugin.build(test_path).unwrap();
         assert!(compile_result.status_code.success());
     }
 
     #[test]
-    #[cfg(not(target_os = "windows"))] // CI problems
     fn creates_run_result_file() {
         init();
 
         let temp_dir = copy_test_dir("tests/data/maven_exercise");
         let test_path = temp_dir.path();
-        let plugin = MavenPlugin::new().unwrap();
+        let (plugin, _lock) = get_maven();
         let compile_result = plugin.build(test_path).unwrap();
         let test_run = plugin
             .create_run_result_file(test_path, compile_result)
@@ -338,7 +337,7 @@ mod test {
 
         let temp_dir = copy_test_dir("tests/data/maven_exercise");
         let test_path = temp_dir.path();
-        let plugin = MavenPlugin::new().unwrap();
+        let (plugin, _lock) = get_maven();
         let exercises = plugin
             .scan_exercise(&test_path, "test".to_string(), &mut vec![])
             .unwrap();
@@ -357,7 +356,7 @@ mod test {
 
         let temp_dir = copy_test_dir("tests/data/maven_exercise");
         let test_path = temp_dir.path();
-        let plugin = MavenPlugin::new().unwrap();
+        let (plugin, _lock) = get_maven();
         let checkstyle_result = plugin
             .check_code_style(test_path, Language::from_639_3("fin").unwrap())
             .unwrap()

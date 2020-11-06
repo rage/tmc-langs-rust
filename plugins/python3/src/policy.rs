@@ -22,17 +22,21 @@ impl StudentFilePolicy for Python3StudentFilePolicy {
     }
 
     fn is_student_source_file(&self, path: &Path) -> bool {
-        // .py files in exercise root, and all non-pyc or __pycache__ files in src
-        match path.parent() {
-            Some(parent) => {
-                parent == OsStr::new("src")
-                    && path.extension() != Some(OsStr::new("pyc"))
-                    && !path
-                        .components()
-                        .any(|c| c.as_os_str() == OsStr::new("__pycache__"))
-            }
-            None => path.extension() == Some(OsStr::new("py")),
-        }
+        // all non-pyc or __pycache__ files in src are student source files
+        let in_src = path.starts_with("src");
+        let is_cache_file = path.extension() == Some(OsStr::new("pyc"))
+            || path
+                .components()
+                .any(|c| c.as_os_str() == OsStr::new("__pycache__"));
+
+        // .py files in exercise root are student source files
+        let is_in_project_root = match path.parent() {
+            Some(s) => s.as_os_str().is_empty(),
+            None => true,
+        };
+        let is_py_file = path.extension() == Some(OsStr::new("py"));
+
+        in_src && !is_cache_file || is_in_project_root && is_py_file
     }
 }
 

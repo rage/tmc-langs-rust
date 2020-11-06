@@ -41,7 +41,6 @@ pub trait StudentFilePolicy {
         let root_canon = project_root_path
             .canonicalize()
             .map_err(|e| TmcError::Canonicalize(project_root_path.to_path_buf(), e))?;
-        log::debug!("{} {}", path_canon.display(), root_canon.display());
 
         // the project root path should be considered a student file
         if path_canon == root_canon {
