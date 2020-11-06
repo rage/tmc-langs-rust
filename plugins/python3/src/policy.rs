@@ -51,6 +51,18 @@ mod test {
     }
 
     #[test]
+    fn in_root_is_source_file() {
+        let policy = Python3StudentFilePolicy::new(PathBuf::from(""));
+        assert!(policy.is_student_source_file(Path::new("some_file.py")));
+    }
+
+    #[test]
+    fn in_subdir_is_source_file() {
+        let policy = Python3StudentFilePolicy::new(PathBuf::from(""));
+        assert!(policy.is_student_source_file(Path::new("src/some_dir/some_file.py")));
+    }
+
+    #[test]
     fn pycache_is_not_source_file() {
         let policy = Python3StudentFilePolicy::new(PathBuf::from(""));
         assert!(!policy.is_student_source_file(Path::new("__pycache__")));
