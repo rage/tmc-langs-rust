@@ -223,10 +223,10 @@ fn contains_tmcnosubmit(entry: &DirEntry) -> bool {
 
 #[cfg(test)]
 mod test {
-    /*
     use super::*;
     use crate::policy::EverythingIsStudentFilePolicy;
     use std::collections::HashSet;
+    use std::fs::{self, *};
     use tempfile::tempdir;
 
     fn init() {
@@ -258,12 +258,9 @@ mod test {
         File::create(missing_file_path).unwrap();
 
         let path = temp.path().join("exercise-name");
-        let zipped = zip(
-            Box::new(EverythingIsStudentFilePolicy::new(path.clone())),
-            &path,
-        )
-        .unwrap();
+        let zipped = zip(EverythingIsStudentFilePolicy::new(path.clone()), &path).unwrap();
         let mut archive = ZipArchive::new(Cursor::new(zipped)).unwrap();
+        assert!(archive.len() > 0);
         for i in 0..archive.len() {
             log::debug!("{:?}", archive.by_index(i).unwrap().name());
         }
@@ -332,5 +329,21 @@ mod test {
         .unwrap();
         assert!(temp.path().join("src").exists());
     }
-    */
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_paths_get_converted() {
+        let win_path = PathBuf::from(r"tests\data\dir");
+        let zipped = zip(
+            EverythingIsStudentFilePolicy::new(win_path.clone()),
+            &win_path,
+        )
+        .unwrap();
+        let mut ziparch = ZipArchive::new(Cursor::new(zipped)).unwrap();
+        assert!(ziparch.len() > 0);
+        for i in 0..ziparch.len() {
+            let file = ziparch.by_index(i).unwrap();
+            assert!(file.name().chars().find(|c| c == &'\\').is_none())
+        }
+    }
 }
