@@ -35,8 +35,8 @@ pub enum CoreError {
     UrlParse(String, #[source] url::ParseError),
     #[error("Failed to write response to {0}")]
     HttpWriteResponse(PathBuf, #[source] reqwest::Error),
-    #[error("Failed to deserialize response as JSON")]
-    HttpJsonResponse(#[source] reqwest::Error),
+    #[error("Failed to deserialize response from {0} as JSON")]
+    HttpJsonResponse(Url, #[source] reqwest::Error),
 
     #[error("Already authenticated")]
     AlreadyAuthenticated,

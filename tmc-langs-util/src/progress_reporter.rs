@@ -55,7 +55,7 @@ impl<'a, T> ProgressReporter<'a, T> {
     /// Progress the current step to the percent given.
     pub fn progress(
         &self,
-        message: String,
+        message: impl ToString,
         step_percent_done: f64,
         data: Option<T>,
     ) -> Result<(), DynError> {
@@ -67,7 +67,7 @@ impl<'a, T> ProgressReporter<'a, T> {
 
         self.progress_report.as_ref()(StatusUpdate {
             finished: false,
-            message,
+            message: message.to_string(),
             percent_done,
             time: self.start_time.get().map(|t| t.elapsed().as_millis()),
             data,
@@ -75,14 +75,14 @@ impl<'a, T> ProgressReporter<'a, T> {
     }
 
     /// Finish the current step and the whole process if the current step is the last one.
-    pub fn finish_step(&self, message: String, data: Option<T>) -> Result<(), DynError> {
+    pub fn finish_step(&self, message: impl ToString, data: Option<T>) -> Result<(), DynError> {
         self.progress_steps_done
             .set(self.progress_steps_done.get() + 1);
         if self.progress_steps_done.get() == self.progress_steps_total.get() {
             // all done
             let result = self.progress_report.as_ref()(StatusUpdate {
                 finished: true,
-                message,
+                message: message.to_string(),
                 percent_done: 1.0,
                 time: self.start_time.take().map(|t| t.elapsed().as_millis()),
                 data,

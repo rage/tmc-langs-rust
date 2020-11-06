@@ -484,6 +484,7 @@ impl TmcCore {
             0.5,
             None,
         )?;
+        std::thread::sleep(std::time::Duration::from_secs(10));
 
         let result = self.post_submission(submission_url, file.path(), locale)?;
         self.progress(

@@ -30,9 +30,13 @@ impl CoreExt for ReqwestResponse {
         let url = self.url().clone();
         let status = self.status();
         if status.is_success() {
-            Ok(self.json().map_err(CoreError::HttpJsonResponse)?)
+            Ok(self
+                .json()
+                .map_err(|e| CoreError::HttpJsonResponse(url.clone(), e))?)
         } else {
-            let err: ErrorResponse = self.json().map_err(CoreError::HttpJsonResponse)?;
+            let err: ErrorResponse = self
+                .json()
+                .map_err(|e| CoreError::HttpJsonResponse(url.clone(), e))?;
             let error = match (err.error, err.errors) {
                 (Some(err), Some(errs)) => format!("{}, {}", err, errs.join(",")),
                 (Some(err), None) => err,
