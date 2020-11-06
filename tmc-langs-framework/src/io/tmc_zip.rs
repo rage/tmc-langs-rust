@@ -21,7 +21,7 @@ pub fn zip<P: StudentFilePolicy>(policy: P, root_directory: &Path) -> Result<Vec
         .filter_entry(|e| !contains_tmcnosubmit(e))
         .filter_map(|e| e.ok())
     {
-        log::trace!("processing {:?}", entry.path());
+        log::trace!("processing {}", entry.path().display());
         if policy.is_student_file(entry.path(), &root_directory, &tmc_project_yml)? {
             let path = root_directory
                 .parent()
