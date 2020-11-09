@@ -288,6 +288,7 @@ pub fn prepare_submission(
 
             // copy files directly in clone_path to dest
             for entry in WalkDir::new(clone_path)
+                .min_depth(1)
                 .max_depth(1)
                 .into_iter()
                 .filter_entry(|e| e.path().is_file())
