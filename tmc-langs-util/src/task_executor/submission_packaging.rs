@@ -511,7 +511,6 @@ mod test {
 
         // files that should not be included
         assert!(!output.join("__MACOSX").exists());
-        assert!(!output.join("desktop.ini").exists());
         assert!(!output.join("src/test/java/MadeUpTest.java").exists());
     }
 
