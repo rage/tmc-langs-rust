@@ -35,6 +35,7 @@ use tmc_langs_util::{
 };
 use toml::{map::Map as TomlMap, Value as TomlValue};
 use url::Url;
+use walkdir::WalkDir;
 
 #[quit::main]
 fn main() {
@@ -1415,7 +1416,7 @@ fn run_settings(
     warnings: &[anyhow::Error],
 ) -> Result<PrintToken> {
     let client_name = matches.value_of("client-name").unwrap();
-    let mut map = config::load_config(client_name)?;
+    let mut config = config::load_config(client_name)?;
 
     match matches.subcommand() {
         ("get", Some(matches)) => {
@@ -1425,27 +1426,7 @@ fn run_settings(
                 result: OutputResult::RetrievedData,
                 message: Some("Retrieved value".to_string()),
                 percent_done: 1.0,
-                data: map.get(key),
-            });
-            print_output(&output, pretty, warnings)
-        }
-        ("set", Some(matches)) => {
-            let key = matches.value_of("key").unwrap();
-            let value = matches.value_of("json").unwrap();
-
-            let value = serde_json::from_str(value)
-                .with_context(|| format!("Failed to deserialize {} as JSON", value))?;
-            let value = json_to_toml(value)?;
-
-            map.insert(key.to_string(), value);
-            config::save_config(client_name, map)?;
-
-            let output = Output::<()>::OutputData(OutputData {
-                status: Status::Finished,
-                result: OutputResult::ExecutedCommand,
-                message: Some("Set setting".to_string()),
-                percent_done: 1.0,
-                data: None,
+                data: Some(config.get(key)),
             });
             print_output(&output, pretty, warnings)
         }
@@ -1455,7 +1436,146 @@ fn run_settings(
                 result: OutputResult::RetrievedData,
                 message: Some("Retrieved settings".to_string()),
                 percent_done: 1.0,
-                data: Some(map),
+                data: Some(config),
+            });
+            print_output(&output, pretty, warnings)
+        }
+        ("move-projects-dir", Some(matches)) => {
+            let dir = matches.value_of("dir").unwrap();
+            let target = PathBuf::from(dir);
+
+            if target.is_file() {
+                anyhow::bail!("The target path points to a file.")
+            }
+            if !target.exists() {
+                fs::create_dir_all(&target).with_context(|| {
+                    format!("Failed to create directory at {}", target.display())
+                })?;
+            }
+
+            let target_canon = target
+                .canonicalize()
+                .with_context(|| format!("Failed to canonicalize {}", target.display()))?;
+            let prev_dir_canon = config.projects_dir.canonicalize().with_context(|| {
+                format!("Failed to canonicalize {}", config.projects_dir.display())
+            })?;
+            if target_canon == prev_dir_canon {
+                anyhow::bail!(
+                    "Attempted to move the projects-dir to the directory it's already in."
+                )
+            }
+
+            let reporter = ProgressReporter::new(move |update| {
+                let output = Output::StatusUpdate::<()>(update);
+                print_output(&output, pretty, &[])?;
+                Ok(())
+            });
+
+            reporter
+                .progress("Moving projects-dir", 0.0, None)
+                .map_err(|e| anyhow::anyhow!(e))?;
+
+            let old_projects_dir = config.set_projects_dir(target.clone())?;
+            let mut file_count_copied = 0;
+            let mut file_count_total = 0;
+            for entry in WalkDir::new(&old_projects_dir) {
+                let entry = entry.with_context(|| {
+                    format!("Failed to read file inside {}", old_projects_dir.display())
+                })?;
+                if entry.path().is_file() {
+                    file_count_total += 1;
+                }
+            }
+            for entry in WalkDir::new(&old_projects_dir).contents_first(true) {
+                let entry = entry.with_context(|| {
+                    format!("Failed to read file inside {}", old_projects_dir.display())
+                })?;
+                let entry_path = entry.path();
+
+                if entry_path.is_file() {
+                    let relative = entry_path.strip_prefix(&old_projects_dir).unwrap();
+                    let target_path = target.join(relative);
+                    log::debug!(
+                        "Moving {} -> {}",
+                        entry_path.display(),
+                        target_path.display()
+                    );
+
+                    // create parent dir for target and copy it, remove source file after
+                    if let Some(parent) = target_path.parent() {
+                        fs::create_dir_all(parent).with_context(|| {
+                            format!("Failed to create directory at {}", parent.display())
+                        })?;
+                    }
+                    fs::copy(entry_path, &target_path).with_context(|| {
+                        format!(
+                            "Failed to copy file from {} to {}",
+                            entry_path.display(),
+                            target_path.display()
+                        )
+                    })?;
+                    fs::remove_file(entry_path).with_context(|| {
+                        format!(
+                            "Failed to remove file at {} after copying it",
+                            entry_path.display()
+                        )
+                    })?;
+
+                    file_count_copied += 1;
+                    reporter
+                        .progress(
+                            format!("Moved file {} / {}", file_count_copied, file_count_total),
+                            file_count_copied as f64 / file_count_total as f64,
+                            None,
+                        )
+                        .map_err(|e| anyhow::anyhow!(e))?;
+                } else if entry_path.is_dir() {
+                    log::debug!("Deleting {}", entry_path.display());
+                    fs::remove_dir(entry_path).with_context(|| {
+                        format!("Failed to remove directory at {}", entry_path.display())
+                    })?;
+                }
+            }
+
+            config::save_config(client_name, config)?;
+
+            reporter
+                .finish_step("Finished moving project directory", None)
+                .map_err(|e| anyhow::anyhow!(e))?;
+
+            let output = Output::<()>::OutputData(OutputData {
+                status: Status::Finished,
+                result: OutputResult::ExecutedCommand,
+                message: Some("Moved project directory".to_string()),
+                percent_done: 1.0,
+                data: None,
+            });
+            print_output(&output, pretty, warnings)
+        }
+        ("set", Some(matches)) => {
+            let key = matches.value_of("key").unwrap();
+            let value = matches.value_of("json").unwrap();
+
+            let value = match serde_json::from_str(value) {
+                Ok(json) => json,
+                Err(_) => {
+                    // interpret as string
+                    JsonValue::String(value.to_string())
+                }
+            };
+            let value = json_to_toml(value)?;
+
+            config
+                .insert(key.to_string(), value.clone())
+                .with_context(|| format!("Failed to set {} to {}", key, value))?;
+            config::save_config(client_name, config)?;
+
+            let output = Output::<()>::OutputData(OutputData {
+                status: Status::Finished,
+                result: OutputResult::ExecutedCommand,
+                message: Some("Set setting".to_string()),
+                percent_done: 1.0,
+                data: None,
             });
             print_output(&output, pretty, warnings)
         }
@@ -1473,8 +1593,10 @@ fn run_settings(
         }
         ("unset", Some(matches)) => {
             let key = matches.value_of("setting").unwrap();
-            map.remove(key);
-            config::save_config(client_name, map)?;
+            config
+                .remove(key)
+                .with_context(|| format!("Failed to unset {}", key))?;
+            config::save_config(client_name, config)?;
 
             let output = Output::<()>::OutputData(OutputData {
                 status: Status::Finished,

@@ -666,17 +666,39 @@ fn create_settings_app() -> App<'static, 'static> {
                 ),
         )
         .subcommand(
-            SubCommand::with_name("set")
-                .about("Saves a value in the settings")
-                .arg(Arg::with_name("key").help("The key."))
-                .arg(Arg::with_name("json").help("The value in JSON.")),
-        )
-        .subcommand(
             SubCommand::with_name("list")
                 .about("Prints every key=value pair in the settings file."),
         )
         .subcommand(
+            SubCommand::with_name("move-projects-dir")
+                .about(
+                    "Change the projects-dir setting, moving the contents into the new directory",
+                )
+                .arg(
+                    Arg::with_name("dir")
+                        .help("The directory where the projects should be moved.")
+                        .required(true)
+                        .takes_value(true),
+                ),
+        )
+        .subcommand(
             SubCommand::with_name("reset").about("Resets the settings file to the defaults"),
+        )
+        .subcommand(
+            SubCommand::with_name("set")
+                .about("Saves a value in the settings")
+                .arg(
+                    Arg::with_name("key")
+                        .help("The key. Parsed as JSON, assumed to be a string if parsing fails.")
+                        .required(true)
+                        .takes_value(true),
+                )
+                .arg(
+                    Arg::with_name("json")
+                        .help("The value in JSON.")
+                        .required(true)
+                        .takes_value(true),
+                ),
         )
         .subcommand(
             SubCommand::with_name("unset")
