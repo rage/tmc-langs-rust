@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["conv","Method-Directed Type Conversion"],["pipe","Universal Suffix Calls"],["prelude","Reëxports all traits in one place, for easy import."],["tap","Point-Free Inspection"]]});
