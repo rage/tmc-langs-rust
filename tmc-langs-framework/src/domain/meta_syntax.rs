@@ -303,4 +303,57 @@ public class JavaTestCase {
         let actual = filter.map(|l| l.unwrap()).collect::<Vec<MetaString>>();
         assert_eq!(expected, actual);
     }
+
+    #[test]
+    fn stube() {
+        init();
+
+        const PYTHON_FILE_STUB: &str = r#"
+# BEGIN SOLUTION
+print("a")
+# END SOLUTION
+# KOMMENTTI
+#STUB:class Kauppalista:
+    #STUB:def __init__(self):
+        #STUB:self.tuotteet = []
+    #STUB:
+        #STUB:def tuotteita(self):
+            #STUB:return len(self.tuotteet)
+    #STUB:
+        #STUB:def lisaa(self, tuote: str, maara: int):
+            #STUB:self.tuotteet.append((tuote, maara))
+    #STUB:
+        #STUB:def tuote(self, n: int):
+            #STUB:return self.tuotteet[n - 1][0]
+    #STUB:
+        #STUB:def maara(self, n:int):
+            #STUB:return self.uotteet[n - 1][1]
+"#;
+
+        let expected: Vec<MetaString> = vec![
+            MetaString::str("\n"),
+            MetaString::solution("print(\"a\")\n"),
+            MetaString::str("# KOMMENTTI\n"),
+            MetaString::stub("class Kauppalista:\n"),
+            MetaString::stub("    def __init__(self):\n"),
+            MetaString::stub("        self.tuotteet = []\n"),
+            MetaString::stub("\n"),
+            MetaString::stub("        def tuotteita(self):\n"),
+            MetaString::stub("            return len(self.tuotteet)\n"),
+            MetaString::stub("\n"),
+            MetaString::stub("        def lisaa(self, tuote: str, maara: int):\n"),
+            MetaString::stub("            self.tuotteet.append((tuote, maara))\n"),
+            MetaString::stub("\n"),
+            MetaString::stub("        def tuote(self, n: int):\n"),
+            MetaString::stub("            return self.tuotteet[n - 1][0]\n"),
+            MetaString::stub("\n"),
+            MetaString::stub("        def maara(self, n:int):\n"),
+            MetaString::stub("            return self.uotteet[n - 1][1]\n"),
+        ];
+
+        let source = PYTHON_FILE_STUB.as_bytes();
+        let filter = MetaSyntaxParser::new(source, "py");
+        let actual = filter.map(|l| l.unwrap()).collect::<Vec<MetaString>>();
+        assert_eq!(expected, actual);
+    }
 }
