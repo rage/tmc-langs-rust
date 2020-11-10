@@ -464,7 +464,7 @@ pub trait LanguagePlugin {
                             bytes::complete::is_not("\n"),
                         ),
                     );
-                    let block_comment_parser: Box<dyn Fn(_) -> _> =
+                    let block_comment_parser: Box<dyn FnMut(_) -> _> =
                         if let Some(block_comment) = Self::BLOCK_COMMENT {
                             Box::new(combinator::value(
                                 Parse::BlockComment,
@@ -482,7 +482,7 @@ pub trait LanguagePlugin {
                     let points_parser =
                         combinator::map(Self::points_parser, |p| Parse::Points(p.to_string()));
 
-                    let parser = multi::many0(multi::many_till(
+                    let mut parser = multi::many0(multi::many_till(
                         etc_parser,
                         branch::alt((line_comment_parser, block_comment_parser, points_parser)),
                     ));
