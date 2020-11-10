@@ -129,14 +129,20 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                     // check for stub
                     if self.in_stub.is_none() && meta_syntax.stub_begin.is_match(&s) {
                         log::debug!("stub start: '{}'", s);
-                        // save the syntax that started the current stub
-                        self.in_stub = Some(meta_syntax);
                         // remove stub start
                         s = meta_syntax
                             .stub_begin
                             .replace(&s, |caps: &Captures| caps[1].to_string())
                             .to_string();
-                        log::debug!("parsed: '{}'", s);
+
+                        if s.trim().is_empty() && meta_syntax.stub_end.is_match(&s) {
+                            // empty oneliner stubs are replaced by a newline
+                            return Some(Ok(MetaString::Stub("\n".to_string())));
+                        }
+
+                        // save the syntax that started the current stub
+                        self.in_stub = Some(meta_syntax);
+
                         if s.trim().is_empty() {
                             // only metadata, skip
                             return self.next();
@@ -155,7 +161,6 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                             .stub_end
                             .replace(&s, |caps: &Captures| caps[1].to_string())
                             .to_string();
-                        log::debug!("parsed: '{}'", s);
                         if s.trim().is_empty() {
                             // only metadata, skip
                             return self.next();
@@ -338,16 +343,16 @@ print("a")
             MetaString::stub("class Kauppalista:\n"),
             MetaString::stub("    def __init__(self):\n"),
             MetaString::stub("        self.tuotteet = []\n"),
-            MetaString::stub("    \n"),
+            MetaString::stub("\n"),
             MetaString::stub("        def tuotteita(self):\n"),
             MetaString::stub("            return len(self.tuotteet)\n"),
-            MetaString::stub("    \n"),
+            MetaString::stub("\n"),
             MetaString::stub("        def lisaa(self, tuote: str, maara: int):\n"),
             MetaString::stub("            self.tuotteet.append((tuote, maara))\n"),
-            MetaString::stub("    \n"),
+            MetaString::stub("\n"),
             MetaString::stub("        def tuote(self, n: int):\n"),
             MetaString::stub("            return self.tuotteet[n - 1][0]\n"),
-            MetaString::stub("    \n"),
+            MetaString::stub("\n"),
             MetaString::stub("        def maara(self, n:int):\n"),
             MetaString::stub("            return self.uotteet[n - 1][1]\n"),
         ];
