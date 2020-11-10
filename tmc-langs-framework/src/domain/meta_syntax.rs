@@ -10,7 +10,7 @@ use std::io::{BufRead, BufReader, Read};
 lazy_static! {
     static ref META_SYNTAXES_C: [MetaSyntax; 2] = [
         MetaSyntax::new("//", None),
-        MetaSyntax::new("/\\*", Some("\\*/"))
+        MetaSyntax::new(r"/\*", Some(r"\*/"))
     ];
     static ref META_SYNTAXES_HTML: [MetaSyntax; 1] = [MetaSyntax::new("<!--", Some("-->"))];
     static ref META_SYNTAXES_PY: [MetaSyntax; 1] = [MetaSyntax::new("#", None)];
@@ -47,29 +47,29 @@ struct MetaSyntax {
 impl MetaSyntax {
     fn new(comment_start: &'static str, comment_end: Option<&'static str>) -> Self {
         // comment patterns
-        let comment_start_pattern = format!("^(\\s*){}\\s*", comment_start);
+        let comment_start_pattern = format!(r"^(\s*){}\s*", comment_start);
         let comment_end_pattern = match comment_end {
-            Some(s) => format!("(.*){}\\s*", s),
+            Some(s) => format!(r"(.*){}\s*", s),
             None => "(.*)".to_string(),
         };
 
         // annotation patterns
         let solution_file = Regex::new(&format!(
-            "{}SOLUTION\\s+FILE{}",
+            r"{}SOLUTION\s+FILE{}",
             comment_start_pattern, comment_end_pattern
         ))
         .unwrap();
         let solution_begin = Regex::new(&format!(
-            "{}BEGIN\\s+SOLUTION{}",
+            r"{}BEGIN\s+SOLUTION{}",
             comment_start_pattern, comment_end_pattern
         ))
         .unwrap();
         let solution_end = Regex::new(&format!(
-            "{}END\\s+SOLUTION{}",
+            r"{}END\s+SOLUTION{}",
             comment_start_pattern, comment_end_pattern
         ))
         .unwrap();
-        let stub_begin = Regex::new(&format!("{}STUB:\\s*", comment_start_pattern)).unwrap();
+        let stub_begin = Regex::new(&format!(r"{}STUB:\s*", comment_start_pattern)).unwrap();
         let stub_end = Regex::new(&comment_end_pattern).unwrap();
 
         Self {
