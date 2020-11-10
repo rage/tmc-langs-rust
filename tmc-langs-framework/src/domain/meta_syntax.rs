@@ -10,7 +10,7 @@ use std::io::{BufRead, BufReader, Read};
 lazy_static! {
     static ref META_SYNTAXES_C: [MetaSyntax; 2] = [
         MetaSyntax::new("//", None),
-        MetaSyntax::new("/\\*", Some("\\*/"))
+        MetaSyntax::new(r"/\*", Some(r"\*/"))
     ];
     static ref META_SYNTAXES_HTML: [MetaSyntax; 1] = [MetaSyntax::new("<!--", Some("-->"))];
     static ref META_SYNTAXES_PY: [MetaSyntax; 1] = [MetaSyntax::new("#", None)];
@@ -47,29 +47,30 @@ struct MetaSyntax {
 impl MetaSyntax {
     fn new(comment_start: &'static str, comment_end: Option<&'static str>) -> Self {
         // comment patterns
-        let comment_start_pattern = format!("^(\\s*){}\\s*", comment_start);
+        let comment_start_pattern = format!(r"^(\s*){}\s*", comment_start);
         let comment_end_pattern = match comment_end {
-            Some(s) => format!("(.*){}\\s*", s),
+            Some(s) => format!(r"(.*){}\s*", s),
             None => "(.*)".to_string(),
         };
 
         // annotation patterns
         let solution_file = Regex::new(&format!(
-            "{}SOLUTION\\s+FILE{}",
+            r"{}SOLUTION\s+FILE{}",
             comment_start_pattern, comment_end_pattern
         ))
         .unwrap();
         let solution_begin = Regex::new(&format!(
-            "{}BEGIN\\s+SOLUTION{}",
+            r"{}BEGIN\s+SOLUTION{}",
             comment_start_pattern, comment_end_pattern
         ))
         .unwrap();
         let solution_end = Regex::new(&format!(
-            "{}END\\s+SOLUTION{}",
+            r"{}END\s+SOLUTION{}",
             comment_start_pattern, comment_end_pattern
         ))
         .unwrap();
-        let stub_begin = Regex::new(&format!("{}STUB:\\s*", comment_start_pattern)).unwrap();
+        let stub_begin =
+            Regex::new(&format!(r"{}STUB:[\s&&[^\n]]*", comment_start_pattern)).unwrap();
         let stub_end = Regex::new(&comment_end_pattern).unwrap();
 
         Self {
@@ -128,14 +129,20 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                     // check for stub
                     if self.in_stub.is_none() && meta_syntax.stub_begin.is_match(&s) {
                         log::debug!("stub start: '{}'", s);
-                        // save the syntax that started the current stub
-                        self.in_stub = Some(meta_syntax);
                         // remove stub start
                         s = meta_syntax
                             .stub_begin
                             .replace(&s, |caps: &Captures| caps[1].to_string())
                             .to_string();
-                        log::debug!("parsed: '{}'", s);
+
+                        if s.trim().is_empty() && meta_syntax.stub_end.is_match(&s) {
+                            // empty oneliner stubs are replaced by a newline
+                            return Some(Ok(MetaString::Stub("\n".to_string())));
+                        }
+
+                        // save the syntax that started the current stub
+                        self.in_stub = Some(meta_syntax);
+
                         if s.trim().is_empty() {
                             // only metadata, skip
                             return self.next();
@@ -154,7 +161,6 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                             .stub_end
                             .replace(&s, |caps: &Captures| caps[1].to_string())
                             .to_string();
-                        log::debug!("parsed: '{}'", s);
                         if s.trim().is_empty() {
                             // only metadata, skip
                             return self.next();
@@ -300,6 +306,59 @@ public class JavaTestCase {
 
         let source = JAVA_FILE_STUB.as_bytes();
         let filter = MetaSyntaxParser::new(source, "java");
+        let actual = filter.map(|l| l.unwrap()).collect::<Vec<MetaString>>();
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn stube() {
+        init();
+
+        const PYTHON_FILE_STUB: &str = r#"
+# BEGIN SOLUTION
+print("a")
+# END SOLUTION
+# KOMMENTTI
+#STUB:class Kauppalista:
+    #STUB:def __init__(self):
+        #STUB:self.tuotteet = []
+    #STUB:
+        #STUB:def tuotteita(self):
+            #STUB:return len(self.tuotteet)
+    #STUB:
+        #STUB:def lisaa(self, tuote: str, maara: int):
+            #STUB:self.tuotteet.append((tuote, maara))
+    #STUB:
+        #STUB:def tuote(self, n: int):
+            #STUB:return self.tuotteet[n - 1][0]
+    #STUB:
+        #STUB:def maara(self, n:int):
+            #STUB:return self.uotteet[n - 1][1]
+"#;
+
+        let expected: Vec<MetaString> = vec![
+            MetaString::str("\n"),
+            MetaString::solution("print(\"a\")\n"),
+            MetaString::str("# KOMMENTTI\n"),
+            MetaString::stub("class Kauppalista:\n"),
+            MetaString::stub("    def __init__(self):\n"),
+            MetaString::stub("        self.tuotteet = []\n"),
+            MetaString::stub("\n"),
+            MetaString::stub("        def tuotteita(self):\n"),
+            MetaString::stub("            return len(self.tuotteet)\n"),
+            MetaString::stub("\n"),
+            MetaString::stub("        def lisaa(self, tuote: str, maara: int):\n"),
+            MetaString::stub("            self.tuotteet.append((tuote, maara))\n"),
+            MetaString::stub("\n"),
+            MetaString::stub("        def tuote(self, n: int):\n"),
+            MetaString::stub("            return self.tuotteet[n - 1][0]\n"),
+            MetaString::stub("\n"),
+            MetaString::stub("        def maara(self, n:int):\n"),
+            MetaString::stub("            return self.uotteet[n - 1][1]\n"),
+        ];
+
+        let source = PYTHON_FILE_STUB.as_bytes();
+        let filter = MetaSyntaxParser::new(source, "py");
         let actual = filter.map(|l| l.unwrap()).collect::<Vec<MetaString>>();
         assert_eq!(expected, actual);
     }
