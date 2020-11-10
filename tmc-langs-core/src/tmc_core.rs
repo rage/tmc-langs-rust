@@ -474,6 +474,10 @@ impl TmcCore {
         submission_path: &Path,
         locale: Option<Language>,
     ) -> Result<NewSubmission, CoreError> {
+        if self.token.is_none() {
+            return Err(CoreError::NotLoggedIn);
+        }
+
         self.progress("Compressing submission...".to_string(), 0.0, None)?;
         let compressed = task_executor::compress_project(submission_path)?;
         let mut file = NamedTempFile::new().map_err(CoreError::TempFile)?;
