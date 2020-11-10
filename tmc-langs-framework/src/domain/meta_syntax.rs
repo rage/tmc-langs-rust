@@ -69,7 +69,8 @@ impl MetaSyntax {
             comment_start_pattern, comment_end_pattern
         ))
         .unwrap();
-        let stub_begin = Regex::new(&format!(r"{}STUB:\s*", comment_start_pattern)).unwrap();
+        let stub_begin =
+            Regex::new(&format!(r"{}STUB:[\s&&[^\n]]*", comment_start_pattern)).unwrap();
         let stub_end = Regex::new(&comment_end_pattern).unwrap();
 
         Self {
@@ -337,16 +338,16 @@ print("a")
             MetaString::stub("class Kauppalista:\n"),
             MetaString::stub("    def __init__(self):\n"),
             MetaString::stub("        self.tuotteet = []\n"),
-            MetaString::stub("\n"),
+            MetaString::stub("    \n"),
             MetaString::stub("        def tuotteita(self):\n"),
             MetaString::stub("            return len(self.tuotteet)\n"),
-            MetaString::stub("\n"),
+            MetaString::stub("    \n"),
             MetaString::stub("        def lisaa(self, tuote: str, maara: int):\n"),
             MetaString::stub("            self.tuotteet.append((tuote, maara))\n"),
-            MetaString::stub("\n"),
+            MetaString::stub("    \n"),
             MetaString::stub("        def tuote(self, n: int):\n"),
             MetaString::stub("            return self.tuotteet[n - 1][0]\n"),
-            MetaString::stub("\n"),
+            MetaString::stub("    \n"),
             MetaString::stub("        def maara(self, n:int):\n"),
             MetaString::stub("            return self.uotteet[n - 1][1]\n"),
         ];
