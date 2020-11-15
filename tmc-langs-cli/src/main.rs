@@ -7,6 +7,7 @@ mod output;
 
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
+use config::{Credentials, TmcConfig};
 use error::{InvalidTokenError, SandboxTestError};
 use output::{
     CombinedCourseData, ErrorData, Kind, Output, OutputData, OutputResult, Status, Warnings,
@@ -236,29 +237,15 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
             .context("Failed to create TmcCore")?;
 
             // set token from the credentials file if one exists
-            let credentials_path = config::get_credentials_path(client_name)?;
-            if let Ok(file) = File::open(&credentials_path) {
-                match serde_json::from_reader(file) {
-                    Ok(token) => core.set_token(token),
-                    Err(e) => {
-                        log::error!(
-                            "Failed to deserialize credentials.json due to \"{}\", deleting",
-                            e
-                        );
-                        fs::remove_file(&credentials_path).with_context(|| {
-                            format!(
-                                "Failed to remove malformed credentials.json file {}",
-                                credentials_path.display()
-                            )
-                        })?;
-                    }
-                }
-            };
+            let mut credentials = Credentials::load(client_name)?;
+            if let Some(credentials) = &credentials {
+                core.set_token(credentials.token());
+            }
 
             match run_core(
                 core,
                 client_name,
-                &credentials_path,
+                &mut credentials,
                 matches,
                 pretty,
                 warnings,
@@ -271,28 +258,13 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                             cause.downcast_ref::<CoreError>()
                         {
                             if status.as_u16() == 401 {
-                                if credentials_path.exists() {
-                                    // delete token
-                                    log::info!(
-                                        "deleting credentials file at {} due to error {}",
-                                        credentials_path.display(),
-                                        error
-                                    );
-                                    fs::remove_file(&credentials_path).with_context(|| {
-                                    format!(
-                                        "Failed to remove credentials file at {} while handling error {}",
-                                        credentials_path.display(),
-                                        error
-                                    )
-                                })?;
-                                    return Err(InvalidTokenError {
-                                        path: credentials_path,
-                                        source: error,
-                                    }
-                                    .into());
-                                } else {
-                                    log::warn!("401 without credentials");
+                                log::error!("Received HTTP 401 error, deleting credentials");
+                                if let Some(credentials) = credentials {
+                                    credentials.remove()?;
                                 }
+                                return Err(InvalidTokenError { source: error }.into());
+                            } else {
+                                log::warn!("401 without credentials");
                             }
                         }
                     }
@@ -737,7 +709,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 fn run_core(
     mut core: TmcCore,
     client_name: &str,
-    credentials_path: &Path,
+    credentials: &mut Option<Credentials>,
     matches: &ArgMatches,
     pretty: bool,
     warnings: &mut Vec<anyhow::Error>,
@@ -777,7 +749,7 @@ fn run_core(
             let exercise_id = into_usize(exercise_id)?;
 
             let output_path = matches.value_of("output-path").unwrap();
-            let output_path = Path::new(output_path);
+            let output_path = PathBuf::from(output_path);
 
             let submission_id = matches.value_of("submission-id").unwrap();
             let submission_id = into_usize(submission_id)?;
@@ -791,12 +763,12 @@ fn run_core(
                 let submission_url = into_url(submission_url.unwrap())?;
                 // increment steps for submit
                 core.increment_progress_steps();
-                core.submit(submission_url, output_path, None)?;
+                core.submit(submission_url, &output_path, None)?;
                 log::debug!("finished submission");
             }
 
             // reset old exercise
-            core.reset(exercise_id, output_path)?;
+            core.reset(exercise_id, output_path.clone())?;
             log::debug!("reset exercise");
 
             // dl submission
@@ -805,7 +777,7 @@ fn run_core(
             log::debug!("downloaded old submission to {}", temp_zip.path().display());
 
             // extract submission
-            task_executor::extract_student_files(temp_zip.path(), output_path)?;
+            task_executor::extract_student_files(temp_zip.path(), &output_path)?;
             log::debug!("extracted project");
 
             let output = Output::OutputData::<()>(OutputData {
@@ -825,7 +797,7 @@ fn run_core(
             while let Some(exercise_id) = exercise_args.next() {
                 let exercise_id = into_usize(exercise_id)?;
                 let exercise_path = exercise_args.next().unwrap(); // safe unwrap because each --exercise takes 2 arguments
-                let exercise_path = Path::new(exercise_path);
+                let exercise_path = PathBuf::from(exercise_path);
                 exercises.push((exercise_id, exercise_path));
             }
 
@@ -1040,25 +1012,13 @@ fn run_core(
             print_output(&output, pretty, &warnings)?
         }
         ("logged-in", Some(_matches)) => {
-            if credentials_path.exists() {
-                let credentials = File::open(&credentials_path).with_context(|| {
-                    format!(
-                        "Failed to open credentials file at {}",
-                        credentials_path.display()
-                    )
-                })?;
-                let token: Token = serde_json::from_reader(credentials).with_context(|| {
-                    format!(
-                        "Failed to deserialize access token from {}",
-                        credentials_path.display()
-                    )
-                })?;
+            if let Some(credentials) = credentials {
                 let output = Output::OutputData(OutputData {
                     status: Status::Finished,
                     message: None,
                     result: OutputResult::LoggedIn,
                     percent_done: 1.0,
-                    data: Some(token),
+                    data: Some(credentials.token()),
                 });
                 print_output(&output, pretty, &warnings)?
             } else {
@@ -1104,30 +1064,7 @@ fn run_core(
             };
 
             // create token file
-            if let Some(p) = credentials_path.parent() {
-                fs::create_dir_all(p)
-                    .with_context(|| format!("Failed to create directory {}", p.display()))?;
-            }
-            let credentials_file = File::create(&credentials_path).with_context(|| {
-                format!("Failed to create file at {}", credentials_path.display())
-            })?;
-
-            // write token
-            if let Err(e) = serde_json::to_writer(credentials_file, &token) {
-                // failed to write token, removing credentials file
-                fs::remove_file(&credentials_path).with_context(|| {
-                    format!(
-                        "Failed to remove empty credentials file after failing to write {}",
-                        credentials_path.display()
-                    )
-                })?;
-                Err(e).with_context(|| {
-                    format!(
-                        "Failed to write credentials to {}",
-                        credentials_path.display()
-                    )
-                })?;
-            }
+            Credentials::save(client_name, token)?;
 
             let output = Output::OutputData::<()>(OutputData {
                 status: Status::Finished,
@@ -1139,13 +1076,8 @@ fn run_core(
             print_output(&output, pretty, &warnings)?
         }
         ("logout", Some(_matches)) => {
-            if credentials_path.exists() {
-                fs::remove_file(&credentials_path).with_context(|| {
-                    format!(
-                        "Failed to remove credentials at {}",
-                        credentials_path.display()
-                    )
-                })?;
+            if let Some(credentials) = credentials.take() {
+                credentials.remove()?;
             }
 
             let output = Output::OutputData::<()>(OutputData {
@@ -1247,7 +1179,7 @@ fn run_core(
             let exercise_id = into_usize(exercise_id)?;
 
             let exercise_path = matches.value_of("exercise-path").unwrap();
-            let exercise_path = Path::new(exercise_path);
+            let exercise_path = PathBuf::from(exercise_path);
 
             let submission_url = matches.value_of("submission-url");
 
@@ -1255,7 +1187,7 @@ fn run_core(
                 // submit current state
                 let submission_url = into_url(submission_url.unwrap())?;
                 core.increment_progress_steps();
-                core.submit(submission_url, exercise_path, None)?;
+                core.submit(submission_url, &exercise_path, None)?;
             }
 
             // reset exercise
@@ -1416,7 +1348,7 @@ fn run_settings(
     warnings: &[anyhow::Error],
 ) -> Result<PrintToken> {
     let client_name = matches.value_of("client-name").unwrap();
-    let mut config = config::load_config(client_name)?;
+    let mut tmc_config = TmcConfig::load(client_name)?;
 
     match matches.subcommand() {
         ("get", Some(matches)) => {
@@ -1426,7 +1358,7 @@ fn run_settings(
                 result: OutputResult::RetrievedData,
                 message: Some("Retrieved value".to_string()),
                 percent_done: 1.0,
-                data: Some(config.get(key)),
+                data: Some(tmc_config.get(key)),
             });
             print_output(&output, pretty, warnings)
         }
@@ -1436,7 +1368,7 @@ fn run_settings(
                 result: OutputResult::RetrievedData,
                 message: Some("Retrieved settings".to_string()),
                 percent_done: 1.0,
-                data: Some(config),
+                data: Some(tmc_config),
             });
             print_output(&output, pretty, warnings)
         }
@@ -1456,8 +1388,11 @@ fn run_settings(
             let target_canon = target
                 .canonicalize()
                 .with_context(|| format!("Failed to canonicalize {}", target.display()))?;
-            let prev_dir_canon = config.projects_dir.canonicalize().with_context(|| {
-                format!("Failed to canonicalize {}", config.projects_dir.display())
+            let prev_dir_canon = tmc_config.projects_dir.canonicalize().with_context(|| {
+                format!(
+                    "Failed to canonicalize {}",
+                    tmc_config.projects_dir.display()
+                )
             })?;
             if target_canon == prev_dir_canon {
                 anyhow::bail!(
@@ -1475,7 +1410,7 @@ fn run_settings(
                 .progress("Moving projects-dir", 0.0, None)
                 .map_err(|e| anyhow::anyhow!(e))?;
 
-            let old_projects_dir = config.set_projects_dir(target.clone())?;
+            let old_projects_dir = tmc_config.set_projects_dir(target.clone())?;
             let mut file_count_copied = 0;
             let mut file_count_total = 0;
             for entry in WalkDir::new(&old_projects_dir) {
@@ -1537,7 +1472,7 @@ fn run_settings(
                 }
             }
 
-            config::save_config(client_name, config)?;
+            tmc_config.save(client_name)?;
 
             reporter
                 .finish_step("Finished moving project directory", None)
@@ -1565,10 +1500,10 @@ fn run_settings(
             };
             let value = json_to_toml(value)?;
 
-            config
+            tmc_config
                 .insert(key.to_string(), value.clone())
                 .with_context(|| format!("Failed to set {} to {}", key, value))?;
-            config::save_config(client_name, config)?;
+            tmc_config.save(client_name)?;
 
             let output = Output::<()>::OutputData(OutputData {
                 status: Status::Finished,
@@ -1580,7 +1515,7 @@ fn run_settings(
             print_output(&output, pretty, warnings)
         }
         ("reset", Some(_)) => {
-            config::reset_config(client_name)?;
+            TmcConfig::reset(client_name)?;
 
             let output = Output::<()>::OutputData(OutputData {
                 status: Status::Finished,
@@ -1593,10 +1528,10 @@ fn run_settings(
         }
         ("unset", Some(matches)) => {
             let key = matches.value_of("setting").unwrap();
-            config
+            tmc_config
                 .remove(key)
                 .with_context(|| format!("Failed to unset {}", key))?;
-            config::save_config(client_name, config)?;
+            tmc_config.save(client_name)?;
 
             let output = Output::<()>::OutputData(OutputData {
                 status: Status::Finished,
