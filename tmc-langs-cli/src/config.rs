@@ -1,9 +1,11 @@
 //! Handles the CLI's configuration files and credentials.
 
 mod credentials;
+mod projects_config;
 mod tmc_config;
 
 pub use credentials::Credentials;
+pub use projects_config::ProjectsConfig;
 pub use tmc_config::{ConfigValue, TmcConfig};
 
 use anyhow::{Context, Error};
