@@ -80,14 +80,31 @@ impl TmcCore {
             .api_url
             .join(url_tail)
             .map_err(|e| CoreError::UrlParse(url_tail.to_string(), e))?;
-        self.get_json_from_url(url)
+        self.get_json_from_url(url, &[])
     }
     // convenience function
-    pub fn get_json_from_url<T: DeserializeOwned>(&self, url: Url) -> Result<T, CoreError> {
+    fn get_json_with_params<T: DeserializeOwned>(
+        &self,
+        url_tail: &str,
+        params: &[(String, String)],
+    ) -> Result<T, CoreError> {
+        let url = self
+            .api_url
+            .join(url_tail)
+            .map_err(|e| CoreError::UrlParse(url_tail.to_string(), e))?;
+        self.get_json_from_url(url, params)
+    }
+    // convenience function
+    pub fn get_json_from_url<T: DeserializeOwned>(
+        &self,
+        url: Url,
+        params: &[(String, String)],
+    ) -> Result<T, CoreError> {
         log::debug!("get {}", url);
         self.client
             .get(url.clone())
             .core_headers(self)
+            .query(params)
             .send()
             .map_err(|e| CoreError::ConnectionError(Method::GET, url, e))?
             .json_res()
@@ -588,6 +605,25 @@ impl TmcCore {
         }
         let url_tail = format!("core/exercises/{}", exercise_id);
         self.get_json(&url_tail)
+    }
+
+    pub(super) fn core_exercise_details(
+        &self,
+        exercise_ids: Vec<usize>,
+    ) -> Result<Vec<ExerciseDetails>, CoreError> {
+        if self.token.is_none() {
+            return Err(CoreError::NotLoggedIn);
+        }
+        let url_tail = "core/exercises/details";
+        let exercise_ids = (
+            "ids".to_string(),
+            exercise_ids
+                .iter()
+                .map(usize::to_string)
+                .collect::<Vec<_>>()
+                .join(","),
+        );
+        self.get_json_with_params(&url_tail, &[exercise_ids])
     }
 
     pub(super) fn download_solution(

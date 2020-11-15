@@ -186,7 +186,7 @@ impl TmcCore {
             .api_url
             .join(&tail)
             .map_err(|e| CoreError::UrlParse(tail, e))?;
-        let credentials: Credentials = self.get_json_from_url(url)?;
+        let credentials: Credentials = self.get_json_from_url(url, &[])?;
 
         log::debug!("authenticating at {}", self.auth_url);
         let client = BasicClient::new(
@@ -254,7 +254,7 @@ impl TmcCore {
     /// ```
     pub fn download_or_update_exercises(
         &self,
-        exercises: Vec<(usize, &Path)>,
+        exercises: Vec<(usize, PathBuf)>,
     ) -> Result<(), CoreError> {
         let exercises_len = exercises.len();
         let step = 1.0 / (2 * exercises_len) as f64;
@@ -281,7 +281,7 @@ impl TmcCore {
             self.download_exercise(exercise_id, zip_file.path())?;
             progress += step;
 
-            task_executor::extract_project(zip_file.path(), target, true)?;
+            task_executor::extract_project(zip_file.path(), &target, true)?;
             self.progress(
                 format!(
                     "Downloaded exercise {} to '{}'. ({} out of {})",
@@ -324,6 +324,13 @@ impl TmcCore {
 
     pub fn get_exercise_details(&self, exercise_id: usize) -> Result<ExerciseDetails, CoreError> {
         self.core_exercise(exercise_id)
+    }
+
+    pub fn get_exercises_details(
+        &self,
+        exercise_ids: Vec<usize>,
+    ) -> Result<Vec<ExerciseDetails>, CoreError> {
+        self.core_exercise_details(exercise_ids)
     }
 
     pub fn get_course_submissions(&self, course_id: usize) -> Result<Vec<Submission>, CoreError> {
@@ -499,11 +506,11 @@ impl TmcCore {
         Ok(result)
     }
 
-    pub fn reset(&self, exercise_id: usize, exercise_path: &Path) -> Result<(), CoreError> {
+    pub fn reset(&self, exercise_id: usize, exercise_path: PathBuf) -> Result<(), CoreError> {
         // clear out the exercise directory
         if exercise_path.exists() {
             let mut tries = 0;
-            for entry in WalkDir::new(exercise_path).min_depth(1) {
+            for entry in WalkDir::new(&exercise_path).min_depth(1) {
                 let entry = entry?;
                 log::debug!("{:?}", entry);
                 // windows sometimes fails due to files being in use, retry a few times
@@ -679,7 +686,7 @@ impl TmcCore {
     /// # Errors
     /// Returns an error if there's some problem reaching the API, or if the API returns an error.
     pub fn get_unread_reviews(&self, reviews_url: Url) -> Result<Vec<Review>, CoreError> {
-        self.get_json_from_url(reviews_url)
+        self.get_json_from_url(reviews_url, &[])
     }
 
     /// Request code review.
@@ -734,7 +741,7 @@ impl TmcCore {
 
         let url = Url::parse(submission_url)
             .map_err(|e| CoreError::UrlParse(submission_url.to_string(), e))?;
-        let res: SubmissionProcessingStatus = self.get_json_from_url(url)?;
+        let res: SubmissionProcessingStatus = self.get_json_from_url(url, &[])?;
         Ok(res)
     }
 }
@@ -824,7 +831,7 @@ mod test {
         let temp_dir = tempfile::tempdir().unwrap();
         let target = temp_dir.path().join("temp");
         assert!(!target.exists());
-        let exercises = vec![(1234, target.as_path())];
+        let exercises = vec![(1234, target.clone())];
         core.download_or_update_exercises(exercises).unwrap();
         assert!(target.join("src/main/java/Hiekkalaatikko.java").exists());
     }
