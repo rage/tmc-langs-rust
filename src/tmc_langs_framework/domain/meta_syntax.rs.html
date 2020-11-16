@@ -305,6 +305,65 @@
 <span id="304">304</span>
 <span id="305">305</span>
 <span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains utilities for parsing annotated exercise source files, separating lines into</span>
 <span class="doccomment">//! strings, stubs and solutions so that they can be more easily filtered later.</span>
@@ -318,7 +377,7 @@
 <span class="macro">lazy_static</span><span class="macro">!</span> {
     <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">META_SYNTAXES_C</span>: [<span class="ident">MetaSyntax</span>; <span class="number">2</span>] <span class="op">=</span> [
         <span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;//&quot;</span>, <span class="prelude-val">None</span>),
-        <span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;/\\*&quot;</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;\\*/&quot;</span>))
+        <span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">r&quot;/\*&quot;</span>, <span class="prelude-val">Some</span>(<span class="string">r&quot;\*/&quot;</span>))
     ];
     <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">META_SYNTAXES_HTML</span>: [<span class="ident">MetaSyntax</span>; <span class="number">1</span>] <span class="op">=</span> [<span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;&lt;!--&quot;</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;--&gt;&quot;</span>))];
     <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">META_SYNTAXES_PY</span>: [<span class="ident">MetaSyntax</span>; <span class="number">1</span>] <span class="op">=</span> [<span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;#&quot;</span>, <span class="prelude-val">None</span>)];
@@ -355,29 +414,30 @@
 <span class="kw">impl</span> <span class="ident">MetaSyntax</span> {
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">comment_start</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">comment_end</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="comment">// comment patterns</span>
-        <span class="kw">let</span> <span class="ident">comment_start_pattern</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;^(\\s*){}\\s*&quot;</span>, <span class="ident">comment_start</span>);
+        <span class="kw">let</span> <span class="ident">comment_start_pattern</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">r&quot;^(\s*){}\s*&quot;</span>, <span class="ident">comment_start</span>);
         <span class="kw">let</span> <span class="ident">comment_end_pattern</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">comment_end</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;(.*){}\\s*&quot;</span>, <span class="ident">s</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">r&quot;(.*){}\s*&quot;</span>, <span class="ident">s</span>),
             <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="string">&quot;(.*)&quot;</span>.<span class="ident">to_string</span>(),
         };
 
         <span class="comment">// annotation patterns</span>
         <span class="kw">let</span> <span class="ident">solution_file</span> <span class="op">=</span> <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
-            <span class="string">&quot;{}SOLUTION\\s+FILE{}&quot;</span>,
+            <span class="string">r&quot;{}SOLUTION\s+FILE{}&quot;</span>,
             <span class="ident">comment_start_pattern</span>, <span class="ident">comment_end_pattern</span>
         ))
         .<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">solution_begin</span> <span class="op">=</span> <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
-            <span class="string">&quot;{}BEGIN\\s+SOLUTION{}&quot;</span>,
+            <span class="string">r&quot;{}BEGIN\s+SOLUTION{}&quot;</span>,
             <span class="ident">comment_start_pattern</span>, <span class="ident">comment_end_pattern</span>
         ))
         .<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">solution_end</span> <span class="op">=</span> <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
-            <span class="string">&quot;{}END\\s+SOLUTION{}&quot;</span>,
+            <span class="string">r&quot;{}END\s+SOLUTION{}&quot;</span>,
             <span class="ident">comment_start_pattern</span>, <span class="ident">comment_end_pattern</span>
         ))
         .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">stub_begin</span> <span class="op">=</span> <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}STUB:\\s*&quot;</span>, <span class="ident">comment_start_pattern</span>)).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">stub_begin</span> <span class="op">=</span>
+            <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">r&quot;{}STUB:[\s&amp;&amp;[^\n]]*&quot;</span>, <span class="ident">comment_start_pattern</span>)).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">stub_end</span> <span class="op">=</span> <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">comment_end_pattern</span>).<span class="ident">unwrap</span>();
 
         <span class="self">Self</span> {
@@ -436,14 +496,20 @@
                     <span class="comment">// check for stub</span>
                     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">in_stub</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">meta_syntax</span>.<span class="ident">stub_begin</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>) {
                         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stub start: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
-                        <span class="comment">// save the syntax that started the current stub</span>
-                        <span class="self">self</span>.<span class="ident">in_stub</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">meta_syntax</span>);
                         <span class="comment">// remove stub start</span>
                         <span class="ident">s</span> <span class="op">=</span> <span class="ident">meta_syntax</span>
                             .<span class="ident">stub_begin</span>
                             .<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>, <span class="op">|</span><span class="ident">caps</span>: <span class="kw-2">&amp;</span><span class="ident">Captures</span><span class="op">|</span> <span class="ident">caps</span>[<span class="number">1</span>].<span class="ident">to_string</span>())
                             .<span class="ident">to_string</span>();
-                        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;parsed: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
+
+                        <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">trim</span>().<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="ident">meta_syntax</span>.<span class="ident">stub_end</span>.<span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>) {
+                            <span class="comment">// empty oneliner stubs are replaced by a newline</span>
+                            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">MetaString</span>::<span class="ident">Stub</span>(<span class="string">&quot;\n&quot;</span>.<span class="ident">to_string</span>())));
+                        }
+
+                        <span class="comment">// save the syntax that started the current stub</span>
+                        <span class="self">self</span>.<span class="ident">in_stub</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">meta_syntax</span>);
+
                         <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">trim</span>().<span class="ident">is_empty</span>() {
                             <span class="comment">// only metadata, skip</span>
                             <span class="kw">return</span> <span class="self">self</span>.<span class="ident">next</span>();
@@ -462,7 +528,6 @@
                             .<span class="ident">stub_end</span>
                             .<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>, <span class="op">|</span><span class="ident">caps</span>: <span class="kw-2">&amp;</span><span class="ident">Captures</span><span class="op">|</span> <span class="ident">caps</span>[<span class="number">1</span>].<span class="ident">to_string</span>())
                             .<span class="ident">to_string</span>();
-                        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;parsed: &#39;{}&#39;&quot;</span>, <span class="ident">s</span>);
                         <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">trim</span>().<span class="ident">is_empty</span>() {
                             <span class="comment">// only metadata, skip</span>
                             <span class="kw">return</span> <span class="self">self</span>.<span class="ident">next</span>();
@@ -608,6 +673,59 @@ public class JavaTestCase {
 
         <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">JAVA_FILE_STUB</span>.<span class="ident">as_bytes</span>();
         <span class="kw">let</span> <span class="ident">filter</span> <span class="op">=</span> <span class="ident">MetaSyntaxParser</span>::<span class="ident">new</span>(<span class="ident">source</span>, <span class="string">&quot;java&quot;</span>);
+        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">filter</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">unwrap</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MetaString</span><span class="op">&gt;&gt;</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">expected</span>, <span class="ident">actual</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">stube</span>() {
+        <span class="ident">init</span>();
+
+        <span class="kw">const</span> <span class="ident">PYTHON_FILE_STUB</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;
+# BEGIN SOLUTION
+print(&quot;a&quot;)
+# END SOLUTION
+# KOMMENTTI
+#STUB:class Kauppalista:
+    #STUB:def __init__(self):
+        #STUB:self.tuotteet = []
+    #STUB:
+        #STUB:def tuotteita(self):
+            #STUB:return len(self.tuotteet)
+    #STUB:
+        #STUB:def lisaa(self, tuote: str, maara: int):
+            #STUB:self.tuotteet.append((tuote, maara))
+    #STUB:
+        #STUB:def tuote(self, n: int):
+            #STUB:return self.tuotteet[n - 1][0]
+    #STUB:
+        #STUB:def maara(self, n:int):
+            #STUB:return self.uotteet[n - 1][1]
+&quot;#</span>;
+
+        <span class="kw">let</span> <span class="ident">expected</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MetaString</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[
+            <span class="ident">MetaString</span>::<span class="ident">str</span>(<span class="string">&quot;\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">solution</span>(<span class="string">&quot;print(\&quot;a\&quot;)\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">str</span>(<span class="string">&quot;# KOMMENTTI\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">stub</span>(<span class="string">&quot;class Kauppalista:\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">stub</span>(<span class="string">&quot;    def __init__(self):\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">stub</span>(<span class="string">&quot;        self.tuotteet = []\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">stub</span>(<span class="string">&quot;\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">stub</span>(<span class="string">&quot;        def tuotteita(self):\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">stub</span>(<span class="string">&quot;            return len(self.tuotteet)\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">stub</span>(<span class="string">&quot;\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">stub</span>(<span class="string">&quot;        def lisaa(self, tuote: str, maara: int):\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">stub</span>(<span class="string">&quot;            self.tuotteet.append((tuote, maara))\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">stub</span>(<span class="string">&quot;\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">stub</span>(<span class="string">&quot;        def tuote(self, n: int):\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">stub</span>(<span class="string">&quot;            return self.tuotteet[n - 1][0]\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">stub</span>(<span class="string">&quot;\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">stub</span>(<span class="string">&quot;        def maara(self, n:int):\n&quot;</span>),
+            <span class="ident">MetaString</span>::<span class="ident">stub</span>(<span class="string">&quot;            return self.uotteet[n - 1][1]\n&quot;</span>),
+        ];
+
+        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">PYTHON_FILE_STUB</span>.<span class="ident">as_bytes</span>();
+        <span class="kw">let</span> <span class="ident">filter</span> <span class="op">=</span> <span class="ident">MetaSyntaxParser</span>::<span class="ident">new</span>(<span class="ident">source</span>, <span class="string">&quot;py&quot;</span>);
         <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">filter</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">unwrap</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MetaString</span><span class="op">&gt;&gt;</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">expected</span>, <span class="ident">actual</span>);
     }

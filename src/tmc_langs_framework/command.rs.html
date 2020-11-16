@@ -191,6 +191,7 @@
 <span id="190">190</span>
 <span id="191">191</span>
 <span id="192">192</span>
+<span id="193">193</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Custom wrapper for Command that supports timeouts and contains custom error handling.</span>
 
@@ -234,7 +235,7 @@
     <span class="doccomment">/// Creates a new command</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">cmd</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">OsStr</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">exec</span>: <span class="ident">Exec</span>::<span class="ident">cmd</span>(<span class="ident">cmd</span>),
+            <span class="ident">exec</span>: <span class="ident">Exec</span>::<span class="ident">cmd</span>(<span class="ident">cmd</span>).<span class="ident">env</span>(<span class="string">&quot;LANG&quot;</span>, <span class="string">&quot;en_US.UTF-8&quot;</span>),
             <span class="ident">stdout</span>: <span class="prelude-val">None</span>,
             <span class="ident">stderr</span>: <span class="prelude-val">None</span>,
         }
@@ -247,7 +248,8 @@
         <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
             <span class="ident">exec</span>: <span class="ident">Exec</span>::<span class="ident">cmd</span>(<span class="ident">cmd</span>)
                 .<span class="ident">stdout</span>(<span class="ident">stdout</span>.<span class="ident">try_clone</span>().<span class="ident">map_err</span>(<span class="ident">FileIo</span>::<span class="ident">FileHandleClone</span>)<span class="question-mark">?</span>)
-                .<span class="ident">stderr</span>(<span class="ident">stderr</span>.<span class="ident">try_clone</span>().<span class="ident">map_err</span>(<span class="ident">FileIo</span>::<span class="ident">FileHandleClone</span>)<span class="question-mark">?</span>),
+                .<span class="ident">stderr</span>(<span class="ident">stderr</span>.<span class="ident">try_clone</span>().<span class="ident">map_err</span>(<span class="ident">FileIo</span>::<span class="ident">FileHandleClone</span>)<span class="question-mark">?</span>)
+                .<span class="ident">env</span>(<span class="string">&quot;LANG&quot;</span>, <span class="string">&quot;en_US.UTF-8&quot;</span>),
             <span class="ident">stdout</span>: <span class="prelude-val">Some</span>(<span class="ident">stdout</span>),
             <span class="ident">stderr</span>: <span class="prelude-val">Some</span>(<span class="ident">stderr</span>),
         })

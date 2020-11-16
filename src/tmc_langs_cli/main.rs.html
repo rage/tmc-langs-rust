@@ -1762,6 +1762,19 @@
 <span id="1761">1761</span>
 <span id="1762">1762</span>
 <span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
+<span id="1767">1767</span>
+<span id="1768">1768</span>
+<span id="1769">1769</span>
+<span id="1770">1770</span>
+<span id="1771">1771</span>
+<span id="1772">1772</span>
+<span id="1773">1773</span>
+<span id="1774">1774</span>
+<span id="1775">1775</span>
+<span id="1776">1776</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! CLI client for TMC</span>
 
@@ -2120,7 +2133,7 @@
                 })<span class="question-mark">?</span>;
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">output_path</span>) <span class="op">=</span> <span class="ident">output_path</span> {
-                <span class="ident">write_result_to_file_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">exercises</span>, <span class="ident">output_path</span>)<span class="question-mark">?</span>;
+                <span class="ident">write_result_to_file_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">exercises</span>, <span class="ident">output_path</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>;
             }
 
             <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">OutputData</span>(<span class="ident">OutputData</span> {
@@ -2148,7 +2161,7 @@
                 })<span class="question-mark">?</span>;
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">output_path</span>) <span class="op">=</span> <span class="ident">output_path</span> {
-                <span class="ident">write_result_to_file_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="ident">output_path</span>)<span class="question-mark">?</span>;
+                <span class="ident">write_result_to_file_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="ident">output_path</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>;
             }
 
             <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">OutputData</span>(<span class="ident">OutputData</span> {
@@ -2434,7 +2447,7 @@
             };
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">output_path</span>) <span class="op">=</span> <span class="ident">output_path</span> {
-                <span class="ident">write_result_to_file_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">test_result</span>, <span class="ident">output_path</span>)<span class="question-mark">?</span>;
+                <span class="ident">write_result_to_file_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">test_result</span>, <span class="ident">output_path</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>;
             }
 
             <span class="comment">// todo: checkstyle results in stdout?</span>
@@ -2482,7 +2495,7 @@
                     })<span class="question-mark">?</span>;
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">output_path</span>) <span class="op">=</span> <span class="ident">output_path</span> {
-                <span class="ident">write_result_to_file_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">scan_result</span>, <span class="ident">output_path</span>)<span class="question-mark">?</span>;
+                <span class="ident">write_result_to_file_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">scan_result</span>, <span class="ident">output_path</span>, <span class="ident">pretty</span>)<span class="question-mark">?</span>;
             }
 
             <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">OutputData</span>(<span class="ident">OutputData</span> {
@@ -3425,7 +3438,11 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">write_result_to_file_as_json</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Serialize</span><span class="op">&gt;</span>(<span class="ident">result</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">output_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">write_result_to_file_as_json</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Serialize</span><span class="op">&gt;</span>(
+    <span class="ident">result</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>,
+    <span class="ident">output_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+    <span class="ident">pretty</span>: <span class="ident">bool</span>,
+) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">output_file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">create</span>(<span class="ident">output_path</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
         <span class="macro">format</span><span class="macro">!</span>(
             <span class="string">&quot;Failed to create results JSON file at {}&quot;</span>,
@@ -3433,12 +3450,21 @@
         )
     })<span class="question-mark">?</span>;
 
-    <span class="ident">serde_json</span>::<span class="ident">to_writer</span>(<span class="ident">output_file</span>, <span class="ident">result</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
-        <span class="macro">format</span><span class="macro">!</span>(
-            <span class="string">&quot;Failed to write result as JSON to {}&quot;</span>,
-            <span class="ident">output_path</span>.<span class="ident">display</span>()
-        )
-    })<span class="question-mark">?</span>;
+    <span class="kw">if</span> <span class="ident">pretty</span> {
+        <span class="ident">serde_json</span>::<span class="ident">to_writer_pretty</span>(<span class="ident">output_file</span>, <span class="ident">result</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+            <span class="macro">format</span><span class="macro">!</span>(
+                <span class="string">&quot;Failed to write result as JSON to {}&quot;</span>,
+                <span class="ident">output_path</span>.<span class="ident">display</span>()
+            )
+        })<span class="question-mark">?</span>;
+    } <span class="kw">else</span> {
+        <span class="ident">serde_json</span>::<span class="ident">to_writer</span>(<span class="ident">output_file</span>, <span class="ident">result</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+            <span class="macro">format</span><span class="macro">!</span>(
+                <span class="string">&quot;Failed to write result as JSON to {}&quot;</span>,
+                <span class="ident">output_path</span>.<span class="ident">display</span>()
+            )
+        })<span class="question-mark">?</span>;
+    }
 
     <span class="prelude-val">Ok</span>(())
 }

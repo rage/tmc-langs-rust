@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.22/src/time/delay_queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>delay_queue.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.23/src/time/delay_queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>delay_queue.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -886,6 +886,14 @@
 <span id="885">885</span>
 <span id="886">886</span>
 <span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A queue of delayed elements.</span>
 <span class="doccomment">//!</span>
@@ -916,13 +924,13 @@
 <span class="doccomment">/// which it should be yielded back.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Once delays have been configured, the `DelayQueue` is used via its</span>
-<span class="doccomment">/// [`Stream`] implementation. [`poll`] is called. If an entry has reached its</span>
+<span class="doccomment">/// [`Stream`] implementation. [`poll_expired`] is called. If an entry has reached its</span>
 <span class="doccomment">/// deadline, it is returned. If not, `Poll::Pending` indicating that the</span>
 <span class="doccomment">/// current task will be notified once the deadline has been reached.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # `Stream` implementation</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Items are retrieved from the queue via [`Stream::poll`]. If no delays have</span>
+<span class="doccomment">/// Items are retrieved from the queue via [`DelayQueue::poll_expired`]. If no delays have</span>
 <span class="doccomment">/// expired, no items are returned. In this case, `NotReady` is returned and the</span>
 <span class="doccomment">/// current task is registered to be notified once the next item&#39;s delay has</span>
 <span class="doccomment">/// expired.</span>
@@ -1004,8 +1012,8 @@
 <span class="doccomment">/// [`insert_at`]: method@Self::insert_at</span>
 <span class="doccomment">/// [`Key`]: struct@Key</span>
 <span class="doccomment">/// [`Stream`]: https://docs.rs/futures/0.1/futures/stream/trait.Stream.html</span>
-<span class="doccomment">/// [`poll`]: method@Self::poll</span>
-<span class="doccomment">/// [`Stream::poll`]: method@Self::poll</span>
+<span class="doccomment">/// [`poll_expired`]: method@Self::poll_expired</span>
+<span class="doccomment">/// [`Stream::poll_expired`]: method@Self::poll_expired</span>
 <span class="doccomment">/// [`DelayQueue`]: struct@DelayQueue</span>
 <span class="doccomment">/// [`delay_for`]: fn@super::delay_for</span>
 <span class="doccomment">/// [`slab`]: slab</span>
@@ -1035,9 +1043,9 @@
 
 <span class="doccomment">/// An entry in `DelayQueue` that has expired and removed.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Values are returned by [`DelayQueue::poll`].</span>
+<span class="doccomment">/// Values are returned by [`DelayQueue::poll_expired`].</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`DelayQueue::poll`]: method@DelayQueue::poll</span>
+<span class="doccomment">/// [`DelayQueue::poll_expired`]: method@DelayQueue::poll_expired</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Expired</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The data stored in the queue</span>
@@ -1149,12 +1157,12 @@
     <span class="doccomment">/// of a `Duration`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// `value` is stored in the queue until `when` is reached. At which point,</span>
-    <span class="doccomment">/// `value` will be returned from [`poll`]. If `when` has already been</span>
+    <span class="doccomment">/// `value` will be returned from [`poll_expired`]. If `when` has already been</span>
     <span class="doccomment">/// reached, then `value` is immediately made available to poll.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The return value represents the insertion and is used at an argument to</span>
     <span class="doccomment">/// [`remove`] and [`reset`]. Note that [`Key`] is token and is reused once</span>
-    <span class="doccomment">/// `value` is removed from the queue either by calling [`poll`] after</span>
+    <span class="doccomment">/// `value` is removed from the queue either by calling [`poll_expired`] after</span>
     <span class="doccomment">/// `when` is reached or by calling [`remove`]. At this point, the caller</span>
     <span class="doccomment">/// must take care to not use the returned [`Key`] again as it may reference</span>
     <span class="doccomment">/// a different item in the queue.</span>
@@ -1184,7 +1192,7 @@
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`poll`]: method@Self::poll</span>
+    <span class="doccomment">/// [`poll_expired`]: method@Self::poll_expired</span>
     <span class="doccomment">/// [`remove`]: method@Self::remove</span>
     <span class="doccomment">/// [`reset`]: method@Self::reset</span>
     <span class="doccomment">/// [`Key`]: struct@Key</span>
@@ -1256,12 +1264,12 @@
     <span class="doccomment">/// instead of an `Instant`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// `value` is stored in the queue until `when` is reached. At which point,</span>
-    <span class="doccomment">/// `value` will be returned from [`poll`]. If `when` has already been</span>
+    <span class="doccomment">/// `value` will be returned from [`poll_expired`]. If `when` has already been</span>
     <span class="doccomment">/// reached, then `value` is immediately made available to poll.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The return value represents the insertion and is used at an argument to</span>
     <span class="doccomment">/// [`remove`] and [`reset`]. Note that [`Key`] is token and is reused once</span>
-    <span class="doccomment">/// `value` is removed from the queue either by calling [`poll`] after</span>
+    <span class="doccomment">/// `value` is removed from the queue either by calling [`poll_expired`] after</span>
     <span class="doccomment">/// `when` is reached or by calling [`remove`]. At this point, the caller</span>
     <span class="doccomment">/// must take care to not use the returned [`Key`] again as it may reference</span>
     <span class="doccomment">/// a different item in the queue.</span>
@@ -1292,7 +1300,7 @@
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`poll`]: method@Self::poll</span>
+    <span class="doccomment">/// [`poll_expired`]: method@Self::poll_expired</span>
     <span class="doccomment">/// [`remove`]: method@Self::remove</span>
     <span class="doccomment">/// [`reset`]: method@Self::reset</span>
     <span class="doccomment">/// [`Key`]: struct@Key</span>
@@ -1313,6 +1321,22 @@
                 <span class="self">self</span>.<span class="ident">expired</span>.<span class="ident">push</span>(<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">slab</span>);
             }
             <span class="prelude-val">Err</span>((<span class="kw">_</span>, <span class="ident">err</span>)) <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;invalid deadline; err={:?}&quot;</span>, <span class="ident">err</span>),
+        }
+    }
+
+    <span class="doccomment">/// Removes the key fom the expired queue or the timer wheel</span>
+    <span class="doccomment">/// depending on its expiration status</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">/// Panics if the key is not contained in the expired queue or the wheel</span>
+    <span class="kw">fn</span> <span class="ident">remove_key</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">Key</span>) {
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">time</span>::<span class="ident">wheel</span>::<span class="ident">Stack</span>;
+
+        <span class="comment">// Special case the `expired` queue</span>
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">slab</span>[<span class="ident">key</span>.<span class="ident">index</span>].<span class="ident">expired</span> {
+            <span class="self">self</span>.<span class="ident">expired</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">index</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">slab</span>);
+        } <span class="kw">else</span> {
+            <span class="self">self</span>.<span class="ident">wheel</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">index</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">slab</span>);
         }
     }
 
@@ -1345,15 +1369,7 @@
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">Key</span>) <span class="op">-&gt;</span> <span class="ident">Expired</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">time</span>::<span class="ident">wheel</span>::<span class="ident">Stack</span>;
-
-        <span class="comment">// Special case the `expired` queue</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">slab</span>[<span class="ident">key</span>.<span class="ident">index</span>].<span class="ident">expired</span> {
-            <span class="self">self</span>.<span class="ident">expired</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">index</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">slab</span>);
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">wheel</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">index</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">slab</span>);
-        }
-
+        <span class="self">self</span>.<span class="ident">remove_key</span>(<span class="ident">key</span>);
         <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">slab</span>.<span class="ident">remove</span>(<span class="ident">key</span>.<span class="ident">index</span>);
 
         <span class="ident">Expired</span> {
@@ -1397,7 +1413,7 @@
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset_at</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">Key</span>, <span class="ident">when</span>: <span class="ident">Instant</span>) {
-        <span class="self">self</span>.<span class="ident">wheel</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">index</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">slab</span>);
+        <span class="self">self</span>.<span class="ident">remove_key</span>(<span class="ident">key</span>);
 
         <span class="comment">// Normalize the deadline. Values cannot be set to expire in the past.</span>
         <span class="kw">let</span> <span class="ident">when</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">normalize_deadline</span>(<span class="ident">when</span>);
@@ -1459,11 +1475,11 @@
 
     <span class="doccomment">/// Clears the queue, removing all items.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// After calling `clear`, [`poll`] will return `Ok(Ready(None))`.</span>
+    <span class="doccomment">/// After calling `clear`, [`poll_expired`] will return `Ok(Ready(None))`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Note that this method has no effect on the allocated capacity.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`poll`]: method@Self::poll</span>
+    <span class="doccomment">/// [`poll_expired`]: method@Self::poll_expired</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>

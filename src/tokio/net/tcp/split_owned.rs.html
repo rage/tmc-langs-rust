@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.22/src/net/tcp/split_owned.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>split_owned.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.23/src/net/tcp/split_owned.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>split_owned.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -266,6 +266,11 @@
 <span id="265">265</span>
 <span id="266">266</span>
 <span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `TcpStream` owned split support.</span>
 <span class="doccomment">//!</span>
@@ -306,10 +311,9 @@
 
 <span class="doccomment">/// Owned write half of a [`TcpStream`], created by [`into_split`].</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Note that in the [`AsyncWrite`] implemenation of this type, [`poll_shutdown`] will</span>
-<span class="doccomment">/// shut down the TCP stream in the write direction.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Dropping the write half will shutdown the write half of the TCP stream.</span>
+<span class="doccomment">/// Note that in the [`AsyncWrite`] implementation of this type, [`poll_shutdown`] will</span>
+<span class="doccomment">/// shut down the TCP stream in the write direction.  Dropping the write half</span>
+<span class="doccomment">/// will also shut down the write half of the TCP stream.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Writing to an `OwnedWriteHalf` is usually done using the convenience methods found</span>
 <span class="doccomment">/// on the [`AsyncWriteExt`] trait. Examples import this trait through [the prelude].</span>
@@ -346,13 +350,13 @@
         <span class="ident">write</span>.<span class="ident">forget</span>();
         <span class="comment">// This unwrap cannot fail as the api does not allow creating more than two Arcs,</span>
         <span class="comment">// and we just dropped the other half.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">Arc</span>::<span class="ident">try_unwrap</span>(<span class="ident">read</span>.<span class="ident">inner</span>).<span class="ident">expect</span>(<span class="string">&quot;Too many handles to Arc&quot;</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">Arc</span>::<span class="ident">try_unwrap</span>(<span class="ident">read</span>.<span class="ident">inner</span>).<span class="ident">expect</span>(<span class="string">&quot;TcpStream: try_unwrap failed in reunite&quot;</span>))
     } <span class="kw">else</span> {
         <span class="prelude-val">Err</span>(<span class="ident">ReuniteError</span>(<span class="ident">read</span>, <span class="ident">write</span>))
     }
 }
 
-<span class="doccomment">/// Error indicating two halves were not from the same socket, and thus could</span>
+<span class="doccomment">/// Error indicating that two halves were not from the same socket, and thus could</span>
 <span class="doccomment">/// not be reunited.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReuniteError</span>(<span class="kw">pub</span> <span class="ident">OwnedReadHalf</span>, <span class="kw">pub</span> <span class="ident">OwnedWriteHalf</span>);
@@ -479,7 +483,9 @@
         <span class="ident">reunite</span>(<span class="ident">other</span>, <span class="self">self</span>)
     }
 
-    <span class="doccomment">/// Drop the write half, but don&#39;t issue a TCP shutdown.</span>
+    <span class="doccomment">/// Destroy the write half, but don&#39;t close the write half of the stream</span>
+    <span class="doccomment">/// until the read half is dropped. If the read half has already been</span>
+    <span class="doccomment">/// dropped, this closes the stream.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">forget</span>(<span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">shutdown_on_drop</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="ident">drop</span>(<span class="self">self</span>);
@@ -519,7 +525,11 @@
 
     <span class="comment">// `poll_shutdown` on a write half shutdowns the stream in the &quot;write&quot; direction.</span>
     <span class="kw">fn</span> <span class="ident">poll_shutdown</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">shutdown</span>(<span class="ident">Shutdown</span>::<span class="ident">Write</span>).<span class="ident">into</span>()
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">shutdown</span>(<span class="ident">Shutdown</span>::<span class="ident">Write</span>);
+        <span class="kw">if</span> <span class="ident">res</span>.<span class="ident">is_ok</span>() {
+            <span class="ident">Pin</span>::<span class="ident">into_inner</span>(<span class="self">self</span>).<span class="ident">shutdown_on_drop</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        }
+        <span class="ident">res</span>.<span class="ident">into</span>()
     }
 }
 
