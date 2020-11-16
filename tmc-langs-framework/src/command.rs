@@ -40,7 +40,7 @@ impl TmcCommand {
     /// Creates a new command
     pub fn new(cmd: impl AsRef<OsStr>) -> Self {
         Self {
-            exec: Exec::cmd(cmd),
+            exec: Exec::cmd(cmd).env("LANG", "en_US.UTF-8"),
             stdout: None,
             stderr: None,
         }
@@ -53,7 +53,8 @@ impl TmcCommand {
         Ok(Self {
             exec: Exec::cmd(cmd)
                 .stdout(stdout.try_clone().map_err(FileIo::FileHandleClone)?)
-                .stderr(stderr.try_clone().map_err(FileIo::FileHandleClone)?),
+                .stderr(stderr.try_clone().map_err(FileIo::FileHandleClone)?)
+                .env("LANG", "en_US.UTF-8"),
             stdout: Some(stdout),
             stderr: Some(stderr),
         })
