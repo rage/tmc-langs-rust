@@ -40,6 +40,10 @@ cargo run -p tmc-langs-cli help
 
 Format using `cargo fmt`, use `cargo clippy` for linting.
 
+## Versioning
+
+tmc-langs-rust follows Rust-style semantic versioning, but only for the CLI (tmc-langs-cli). The library crates may go through breaking changes in any release as long as they don't cause any visible changes in functionality to a user of the CLI.
+
 ## CLI binary deployment and downloads
 
 Documentation and binaries for the supported targets are built and the binaries deployed to Google Cloud when creating a GitHub release. The binaries are available at https://download.mooc.fi/tmc-langs-rust/, with each binary following the file name format `tmc-langs-cli-{target}-{version}(.exe)`, with the `.exe` suffix added for the Windows binaries. For a list of targets see below. For example, The 64-bit Linux binary for version 0.5.0 is available at https://download.mooc.fi/tmc-langs-rust/tmc-langs-cli-x86_64-unknown-linux-gnu-0.5.0.
