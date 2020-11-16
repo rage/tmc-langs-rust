@@ -355,7 +355,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 })?;
 
             if let Some(output_path) = output_path {
-                write_result_to_file_as_json(&exercises, output_path)?;
+                write_result_to_file_as_json(&exercises, output_path, pretty)?;
             }
 
             let output = Output::OutputData(OutputData {
@@ -383,7 +383,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 })?;
 
             if let Some(output_path) = output_path {
-                write_result_to_file_as_json(&config, output_path)?;
+                write_result_to_file_as_json(&config, output_path, pretty)?;
             }
 
             let output = Output::OutputData(OutputData {
@@ -669,7 +669,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
             };
 
             if let Some(output_path) = output_path {
-                write_result_to_file_as_json(&test_result, output_path)?;
+                write_result_to_file_as_json(&test_result, output_path, pretty)?;
             }
 
             // todo: checkstyle results in stdout?
@@ -717,7 +717,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                     })?;
 
             if let Some(output_path) = output_path {
-                write_result_to_file_as_json(&scan_result, output_path)?;
+                write_result_to_file_as_json(&scan_result, output_path, pretty)?;
             }
 
             let output = Output::OutputData(OutputData {
@@ -1660,7 +1660,11 @@ fn print_warnings(pretty: bool, warnings: &[anyhow::Error]) -> Result<()> {
     Ok(())
 }
 
-fn write_result_to_file_as_json<T: Serialize>(result: &T, output_path: &Path) -> Result<()> {
+fn write_result_to_file_as_json<T: Serialize>(
+    result: &T,
+    output_path: &Path,
+    pretty: bool,
+) -> Result<()> {
     let output_file = File::create(output_path).with_context(|| {
         format!(
             "Failed to create results JSON file at {}",
@@ -1668,12 +1672,21 @@ fn write_result_to_file_as_json<T: Serialize>(result: &T, output_path: &Path) ->
         )
     })?;
 
-    serde_json::to_writer(output_file, result).with_context(|| {
-        format!(
-            "Failed to write result as JSON to {}",
-            output_path.display()
-        )
-    })?;
+    if pretty {
+        serde_json::to_writer_pretty(output_file, result).with_context(|| {
+            format!(
+                "Failed to write result as JSON to {}",
+                output_path.display()
+            )
+        })?;
+    } else {
+        serde_json::to_writer(output_file, result).with_context(|| {
+            format!(
+                "Failed to write result as JSON to {}",
+                output_path.display()
+            )
+        })?;
+    }
 
     Ok(())
 }
