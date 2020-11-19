@@ -60,8 +60,17 @@ pub struct CourseConfig {
 }
 
 impl CourseConfig {
-    pub fn save_to_projects_dir(self, projects_dir: &Path) -> Result<()> {
-        let target = projects_dir.join(&self.course);
+    pub fn save_to_projects_dir(&self, projects_dir: &Path) -> Result<()> {
+        let course_dir = projects_dir.join(&self.course);
+        if !course_dir.exists() {
+            fs::create_dir_all(&course_dir).with_context(|| {
+                format!(
+                    "Failed to create course directory at {}",
+                    course_dir.display()
+                )
+            })?;
+        }
+        let target = course_dir.join("course_config.toml");
         let s = toml::to_string_pretty(&self)?;
         fs::write(&target, s.as_bytes())
             .with_context(|| format!("Failed to write course config to {}", target.display()))?;

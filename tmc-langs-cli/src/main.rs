@@ -7,7 +7,8 @@ mod output;
 
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
-use config::{Credentials, TmcConfig};
+use config::ProjectsConfig;
+use config::{CourseConfig, Credentials, Exercise, TmcConfig};
 use error::{InvalidTokenError, SandboxTestError};
 use output::{
     CombinedCourseData, ErrorData, Kind, Output, OutputData, OutputResult, Status, Warnings,
@@ -779,6 +780,84 @@ fn run_core(
             // extract submission
             task_executor::extract_student_files(temp_zip.path(), &output_path)?;
             log::debug!("extracted project");
+
+            let output = Output::OutputData::<()>(OutputData {
+                status: Status::Finished,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: None,
+            });
+            print_output(&output, pretty, &warnings)?
+        }
+        ("download-or-update-course-exercises", Some(matches)) => {
+            let exercise_ids = matches.values_of("exercise-id").unwrap();
+
+            // collect exercise into (id, path) pairs
+            let exercises = exercise_ids
+                .into_iter()
+                .map(into_usize)
+                .collect::<Result<_>>()?;
+            let exercises_details = core.get_exercises_details(exercises)?;
+
+            let tmc_config = TmcConfig::load(client_name)?;
+
+            let projects_dir = tmc_config.projects_dir;
+            let mut projects_config = ProjectsConfig::load(&projects_dir)?;
+
+            let mut course_data = HashMap::<String, Vec<(String, String)>>::new();
+            let mut exercises_and_paths = vec![];
+            for exercise_detail in exercises_details {
+                // get course and exercise name from server
+                let ex_details = core.get_exercise_details(exercise_detail.id)?;
+                // check if the checksum is different from what's already on disk
+                if let Some(course_config) = projects_config.courses.get(&ex_details.course_name) {
+                    if let Some(exercise) = course_config.exercises.get(&ex_details.exercise_name) {
+                        if exercise_detail.checksum == exercise.checksum {
+                            // skip this exercise
+                            log::info!(
+                                "Skipping exercise {} ({} in {}) due to identical checksum",
+                                exercise_detail.id,
+                                ex_details.course_name,
+                                ex_details.exercise_name
+                            );
+                            continue;
+                        }
+                    }
+                }
+
+                let target = ProjectsConfig::get_exercise_download_target(
+                    &projects_dir,
+                    &ex_details.course_name,
+                    &ex_details.exercise_name,
+                );
+
+                let entry = course_data.entry(ex_details.course_name);
+                let course_exercises = entry.or_default();
+                course_exercises.push((ex_details.exercise_name, exercise_detail.checksum));
+
+                exercises_and_paths.push((exercise_detail.id, target));
+            }
+            core.download_or_update_exercises(exercises_and_paths)
+                .context("Failed to download exercises")?;
+
+            for (course_name, exercise_names) in course_data {
+                let mut exercises = HashMap::new();
+                for (exercise_name, checksum) in exercise_names {
+                    exercises.insert(exercise_name, Exercise { checksum });
+                }
+
+                if let Some(course_config) = projects_config.courses.get_mut(&course_name) {
+                    course_config.exercises.extend(exercises);
+                    course_config.save_to_projects_dir(&projects_dir)?;
+                } else {
+                    let course_config = CourseConfig {
+                        course: course_name,
+                        exercises,
+                    };
+                    course_config.save_to_projects_dir(&projects_dir)?;
+                };
+            }
 
             let output = Output::OutputData::<()>(OutputData {
                 status: Status::Finished,

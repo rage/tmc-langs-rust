@@ -44,6 +44,8 @@ pub enum CoreError {
     NotLoggedIn,
     #[error("Failed to find cache directory")]
     CacheDir,
+    #[error("No values found in exercise details map returned by server")]
+    MissingDetailsValue,
 
     #[error(transparent)]
     SystemTime(#[from] std::time::SystemTimeError),

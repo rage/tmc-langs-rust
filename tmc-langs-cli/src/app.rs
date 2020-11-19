@@ -357,6 +357,16 @@ fn create_core_app() -> App<'static, 'static> {
                 .long("submission-url")
                 .takes_value(true)))
 
+        .subcommand(SubCommand::with_name("download-or-update-course-exercises")
+            .about("Downloads exercises. If downloading an exercise that has been downloaded before, the student file policy will be used to avoid overwriting student files, effectively just updating the exercise files")
+            .long_about(SCHEMA_NULL)
+            .arg(Arg::with_name("exercise-id")
+                .help("Exercise id of an exercise that should be downloaded. Multiple ids can be given.")
+                .long("exercise-id")
+                .required(true)
+                .takes_value(true)
+                .multiple(true)))
+
         .subcommand(SubCommand::with_name("download-or-update-exercises")
             .about("Downloads exercises. If downloading an exercise on top of an existing one, the student file policy will be used to avoid overwriting student files, effectively just updating the exercise files")
             .long_about(SCHEMA_NULL)

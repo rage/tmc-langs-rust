@@ -4,8 +4,8 @@ use crate::error::CoreError;
 use crate::response::ErrorResponse;
 use crate::{
     Course, CourseData, CourseDataExercise, CourseDataExercisePoint, CourseDetails, CourseExercise,
-    ExerciseDetails, FeedbackAnswer, NewSubmission, Organization, Review, Submission,
-    SubmissionFeedbackResponse, TmcCore, User,
+    ExerciseChecksums, ExerciseDetails, FeedbackAnswer, NewSubmission, Organization, Review,
+    Submission, SubmissionFeedbackResponse, TmcCore, User,
 };
 use oauth2::TokenResponse;
 use reqwest::{
@@ -610,7 +610,7 @@ impl TmcCore {
     pub(super) fn core_exercise_details(
         &self,
         exercise_ids: Vec<usize>,
-    ) -> Result<Vec<ExerciseDetails>, CoreError> {
+    ) -> Result<Vec<ExerciseChecksums>, CoreError> {
         if self.token.is_none() {
             return Err(CoreError::NotLoggedIn);
         }
@@ -623,7 +623,15 @@ impl TmcCore {
                 .collect::<Vec<_>>()
                 .join(","),
         );
-        self.get_json_with_params(&url_tail, &[exercise_ids])
+
+        // returns map with result in key "exercises"
+        let res: HashMap<String, Vec<ExerciseChecksums>> =
+            self.get_json_with_params(&url_tail, &[exercise_ids])?;
+        if let Some((_, val)) = res.into_iter().next() {
+            // just return whatever value is found first
+            return Ok(val);
+        }
+        Err(CoreError::MissingDetailsValue)
     }
 
     pub(super) fn download_solution(

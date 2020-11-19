@@ -3,7 +3,7 @@
 
 use dotenv::dotenv;
 use std::env;
-use std::path::Path;
+use std::path::PathBuf;
 use std::thread;
 use std::time::Duration;
 use tmc_langs_core::{CoreError, Exercise, SubmissionProcessingStatus, SubmissionStatus, TmcCore};
@@ -60,7 +60,7 @@ fn dl_test_submit_course_solutions(course_id: usize) {
             .join("solution/download")
             .unwrap();
         dl_test_submit_exercise(&core, exercise, |target| {
-            core.download_model_solution(solution_url, target)
+            core.download_model_solution(solution_url, &target)
         });
     }
 
@@ -106,13 +106,13 @@ where
 // downloader should download the submission target to the path arg
 fn dl_test_submit_exercise<F>(core: &TmcCore, exercise: Exercise, downloader: F)
 where
-    F: FnOnce(&Path) -> Result<(), CoreError>,
+    F: FnOnce(PathBuf) -> Result<(), CoreError>,
 {
     log::debug!("submitting exercise {:#?}", exercise);
     let temp = tempfile::tempdir().unwrap();
     let submission_path = temp.path().join(exercise.id.to_string());
     log::debug!("downloading to {}", submission_path.display());
-    downloader(&submission_path).unwrap();
+    downloader(submission_path.clone()).unwrap();
 
     log::debug!("testing locally {}", submission_path.display());
     let test_results = core.run_tests(&submission_path, &mut vec![]).unwrap();

@@ -19,7 +19,7 @@ pub use oauth2;
 pub use request::FeedbackAnswer;
 pub use response::{
     Course, CourseData, CourseDataExercise, CourseDataExercisePoint, CourseDetails, CourseExercise,
-    Exercise, ExerciseDetails, NewSubmission, Organization, Review, Submission,
+    Exercise, ExerciseChecksums, ExerciseDetails, NewSubmission, Organization, Review, Submission,
     SubmissionFeedbackResponse, SubmissionFinished, SubmissionProcessingStatus, SubmissionStatus,
     UpdateResult, User,
 };

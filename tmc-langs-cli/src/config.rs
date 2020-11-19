@@ -5,7 +5,7 @@ mod projects_config;
 mod tmc_config;
 
 pub use credentials::Credentials;
-pub use projects_config::ProjectsConfig;
+pub use projects_config::{CourseConfig, Exercise, ProjectsConfig};
 pub use tmc_config::{ConfigValue, TmcConfig};
 
 use anyhow::{Context, Error};

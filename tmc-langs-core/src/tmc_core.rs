@@ -287,7 +287,7 @@ impl TmcCore {
                     "Downloaded exercise {} to '{}'. ({} out of {})",
                     exercise_id,
                     target.display(),
-                    n,
+                    n + 1,
                     exercises_len
                 ),
                 progress,
@@ -329,7 +329,7 @@ impl TmcCore {
     pub fn get_exercises_details(
         &self,
         exercise_ids: Vec<usize>,
-    ) -> Result<Vec<ExerciseDetails>, CoreError> {
+    ) -> Result<Vec<ExerciseChecksums>, CoreError> {
         self.core_exercise_details(exercise_ids)
     }
 

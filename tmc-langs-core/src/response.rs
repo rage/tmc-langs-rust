@@ -211,6 +211,12 @@ pub struct ExerciseDetails {
 }
 
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
+pub struct ExerciseChecksums {
+    pub id: usize,
+    pub checksum: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct Submission {
     pub id: usize,
     pub user_id: usize,
