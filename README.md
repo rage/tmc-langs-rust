@@ -40,6 +40,10 @@ cargo run -p tmc-langs-cli help
 
 Format using `cargo fmt`, use `cargo clippy` for linting.
 
+## Updating dependencies
+
+In addition to the dependencies listed in each crate's `Cargo.toml`, the project bundles a few external dependencies such as `tmc-checkstyle-runner`, `tmc-junit-runner` and so on. When updating dependencies, you may want to check whether these projects have been updated.
+
 ## Versioning
 
 tmc-langs-rust follows Rust-style semantic versioning, but only for the CLI (tmc-langs-cli). The library crates may go through breaking changes in any release as long as they don't cause any visible changes in functionality to a user of the CLI.
