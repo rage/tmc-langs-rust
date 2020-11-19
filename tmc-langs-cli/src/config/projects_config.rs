@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
 pub struct ProjectsConfig {
@@ -43,58 +43,105 @@ impl ProjectsConfig {
             courses: course_configs,
         })
     }
+
+    pub fn get_exercise_download_target(
+        projects_dir: &Path,
+        course_name: &str,
+        exercise_name: &str,
+    ) -> PathBuf {
+        projects_dir.join(course_name).join(exercise_name)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CourseConfig {
-    pub organization: String,
     pub course: String,
     pub exercises: HashMap<String, Exercise>,
 }
 
+impl CourseConfig {
+    pub fn save_to_projects_dir(self, projects_dir: &Path) -> Result<()> {
+        let target = projects_dir.join(&self.course);
+        let s = toml::to_string_pretty(&self)?;
+        fs::write(&target, s.as_bytes())
+            .with_context(|| format!("Failed to write course config to {}", target.display()))?;
+        Ok(())
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Exercise {
-    pub checksum: usize,
+    pub checksum: String,
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
 
-    fn init() {
-        if std::env::var("RUST_LOG").is_err() {
-            std::env::set_var("RUST_LOG", "debug");
+    fn init_logging() {
+        use simplelog::*;
+        let _ = TestLogger::init(
+            LevelFilter::Debug,
+            ConfigBuilder::new()
+                .set_location_level(LevelFilter::Debug)
+                .build(),
+        );
+    }
+
+    fn file_to(
+        temp: impl AsRef<std::path::Path>,
+        relative_path: impl AsRef<std::path::Path>,
+        contents: impl AsRef<[u8]>,
+    ) {
+        let target = temp.as_ref().join(relative_path);
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent).unwrap();
         }
-        let _ = env_logger::builder().is_test(true).try_init();
+        std::fs::write(target, contents.as_ref()).unwrap();
+    }
+
+    fn _dir_to(temp: impl AsRef<std::path::Path>, relative_path: impl AsRef<std::path::Path>) {
+        let target = temp.as_ref().join(relative_path);
+        std::fs::create_dir_all(target).unwrap();
     }
 
     #[test]
     fn serializes() {
-        init();
+        init_logging();
 
         let mut exercises = HashMap::new();
-        exercises.insert("ex 1".to_string(), Exercise { checksum: 1234 });
+        exercises.insert(
+            "ex 1".to_string(),
+            Exercise {
+                checksum: "abcd1234".to_string(),
+            },
+        );
         let course_config = CourseConfig {
-            organization: "org 1".to_string(),
             course: "course 1".to_string(),
             exercises,
         };
         let s = toml::to_string(&course_config).unwrap();
-        log::debug!("\n{}", s);
-        panic!();
+        assert_eq!(
+            s,
+            r#"course = "course 1"
+[exercises."ex 1"]
+checksum = "abcd1234"
+"#
+        )
     }
 
     #[test]
     fn deserializes() {
+        init_logging();
+
         let s = r#"
-organization = "mooc org"
 course = "python course"
 
 [exercises.ex1]
-checksum = 1234
+checksum = "abcd1234"
 
 [exercises."ex 2"]
-checksum = 2345
+checksum = "bcde2345"
 "#;
 
         let _course_config: CourseConfig = toml::from_str(s).unwrap();
@@ -102,27 +149,53 @@ checksum = 2345
 
     #[test]
     fn loads() {
-        init();
+        init_logging();
 
-        let mut pc = ProjectsConfig::load(Path::new("tests/data/config/projects_dir")).unwrap();
+        let temp = tempfile::TempDir::new().unwrap();
+        file_to(
+            &temp,
+            "course 1/course_config.toml",
+            r#"
+course = "python"
+
+[exercises.ex1]
+checksum = "abcd1234"
+
+[exercises."ex 2"]
+checksum = "bcde2345"
+"#,
+        );
+        file_to(
+            &temp,
+            "course 2/course_config.toml",
+            r#"
+course = "java"
+
+[exercises.ex3]
+checksum = "cdef3456"
+
+[exercises."ex 4"]
+checksum = "defg4567"
+"#,
+        );
+
+        let mut pc = ProjectsConfig::load(temp.path()).unwrap();
         assert_eq!(pc.courses.len(), 2);
 
         let mut cc = pc.courses.remove("course 1").unwrap();
-        assert_eq!(cc.organization, "mooc");
         assert_eq!(cc.course, "python");
         assert_eq!(cc.exercises.len(), 2);
         let ex = cc.exercises.remove("ex1").unwrap();
-        assert_eq!(ex.checksum, 1234);
+        assert_eq!(ex.checksum, "abcd1234");
         let ex = cc.exercises.remove("ex 2").unwrap();
-        assert_eq!(ex.checksum, 2345);
+        assert_eq!(ex.checksum, "bcde2345");
 
         let mut cc = pc.courses.remove("course 2").unwrap();
-        assert_eq!(cc.organization, "hy");
         assert_eq!(cc.course, "java");
         assert_eq!(cc.exercises.len(), 2);
         let ex = cc.exercises.remove("ex3").unwrap();
-        assert_eq!(ex.checksum, 3456);
+        assert_eq!(ex.checksum, "cdef3456");
         let ex = cc.exercises.remove("ex 4").unwrap();
-        assert_eq!(ex.checksum, 4567);
+        assert_eq!(ex.checksum, "defg4567");
     }
 }
