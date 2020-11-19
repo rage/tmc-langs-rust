@@ -243,13 +243,13 @@ impl TmcCore {
     /// # Examples
     /// ```rust,no_run
     /// use tmc_langs_core::TmcCore;
-    /// use std::path::Path;
+    /// use std::path::PathBuf;
     ///
     /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// // authenticate
     /// core.download_or_update_exercises(vec![
-    ///     (1234, Path::new("./exercises/1234")),
-    ///     (2345, Path::new("./exercises/2345")),
+    ///     (1234, PathBuf::from("./exercises/1234")),
+    ///     (2345, PathBuf::from("./exercises/2345")),
     /// ]);
     /// ```
     pub fn download_or_update_exercises(
