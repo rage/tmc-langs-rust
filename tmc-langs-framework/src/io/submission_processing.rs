@@ -91,11 +91,12 @@ pub fn contains_tmcignore(entry: &DirEntry) -> bool {
 }
 
 // Copies the entry to the destination. Parses and filters text files according to `filter`
-fn copy_file<F: Fn(&MetaString) -> bool>(
+fn copy_file(
     entry: &DirEntry,
     source_root: &Path,
     dest_root: &Path,
-    filter: &mut F,
+    line_filter: &mut impl Fn(&MetaString) -> bool,
+    file_filter: &mut impl Fn(&[MetaString]) -> bool,
 ) -> Result<(), TmcError> {
     let is_dir = entry.metadata().map(|e| e.is_dir()).unwrap_or_default();
     if is_dir {
@@ -124,40 +125,47 @@ fn copy_file<F: Fn(&MetaString) -> bool>(
         file_util::copy(entry.path(), &dest_path)?;
     } else {
         // filter text files
-        debug!(
-            "filtering text file from {:?} to {:?}",
-            entry.path(),
-            dest_path
-        );
-
         let source_file = file_util::open_file(entry.path())?;
 
         let parser = MetaSyntaxParser::new(source_file, extension.unwrap_or_default());
+        let parsed: Vec<MetaString> = parser.collect::<Result<Vec<_>, _>>()?;
+
+        // files that don't pass the filter are skipped
+        if !file_filter(&parsed) {
+            log::debug!("skipping {} due to file filter", entry.path().display());
+            return Ok(());
+        }
 
         // todo: reduce collection?
         // filtered metastrings
-        let filtered: Vec<MetaString> = parser
-            .collect::<Result<Vec<_>, _>>()?
-            .into_iter()
-            .filter(filter)
-            .collect();
+        let filtered: Vec<MetaString> = parsed.into_iter().filter(line_filter).collect();
         // collects the filtered lines into a byte vector
-        let write_lines: Vec<u8> = filtered
-            .iter()
-            .flat_map(|l| l.as_str().as_bytes())
-            .copied()
-            .collect();
+        let mut write_lines = vec![];
+        for line in filtered {
+            match line {
+                MetaString::Solution(s) | MetaString::String(s) | MetaString::Stub(s) => {
+                    write_lines.extend(s.as_bytes())
+                }
+                MetaString::SolutionFileMarker => (), // write nothing for solution file markers
+            }
+        }
         // writes all lines
+        log::debug!(
+            "filtered file {} to {}",
+            entry.path().display(),
+            dest_path.display()
+        );
         file_util::write_to_file(&mut write_lines.as_slice(), &dest_path)?;
     }
     Ok(())
 }
 
 // Processes all files in path, copying files in directories that are not skipped
-fn process_files<F: Fn(&MetaString) -> bool>(
+fn process_files(
     path: &Path,
     dest_root: &Path,
-    mut filter: F,
+    mut line_filter: impl Fn(&MetaString) -> bool,
+    mut file_filter: impl Fn(&[MetaString]) -> bool,
 ) -> Result<(), TmcError> {
     info!("Project: {:?}", path);
 
@@ -167,7 +175,7 @@ fn process_files<F: Fn(&MetaString) -> bool>(
         .filter_entry(|e| !is_hidden_dir(e) && !on_skip_list(e) && !contains_tmcignore(e))
         .filter_map(|e| e.ok())
     {
-        copy_file(&entry, path, dest_root, &mut filter)?;
+        copy_file(&entry, path, dest_root, &mut line_filter, &mut file_filter)?;
     }
     Ok(())
 }
@@ -183,7 +191,9 @@ pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
     dest_root: &Path,
 ) -> Result<(), TmcError> {
     for path in exercise_paths {
-        process_files(path, dest_root, |meta| !matches!(meta, MetaString::Stub(_)))?;
+        let line_filter = |meta: &MetaString| !matches!(meta, MetaString::Stub(_));
+        let file_filter = |_metas: &[_]| true; // include all files in solution
+        process_files(path, dest_root, line_filter, file_filter)?;
     }
     Ok(())
 }
@@ -197,9 +207,13 @@ pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
 ///
 /// Additionally, copies any shared files with the corresponding language plugins.
 pub fn prepare_stub(exercise_path: &Path, dest_root: &Path) -> Result<(), TmcError> {
-    process_files(&exercise_path, dest_root, |meta| {
-        !matches!(meta, MetaString::Solution(_))
-    })?;
+    let line_filter = |meta: &MetaString| !matches!(meta, MetaString::Solution(_));
+    let file_filter = |metas: &[MetaString]| {
+        !metas
+            .iter()
+            .any(|ms| matches!(ms, MetaString::SolutionFileMarker))
+    };
+    process_files(&exercise_path, dest_root, line_filter, file_filter)?;
     Ok(())
 }
 
@@ -371,6 +385,20 @@ mod test {
     }
 
     #[test]
+    fn prepare_solutions_does_not_filter_solution_files() {
+        init();
+
+        let mut exercise_set = HashSet::new();
+        exercise_set.insert(TESTDATA_ROOT.into());
+        let temp = tempdir().unwrap();
+        let temp_path = temp.path();
+
+        prepare_solutions(&exercise_set, temp_path).unwrap();
+
+        assert!(dbg!(temp_path.join("dir/solution_file.java")).exists());
+    }
+
+    #[test]
     fn prepares_stubs() {
         init();
 
@@ -400,6 +428,18 @@ mod test {
         }
 
         assert_eq!(s, expected, "expected:\n{:#}\nfound:\n{:#}", expected, s);
+    }
+
+    #[test]
+    fn prepare_stubs_filters_solution_files() {
+        init();
+
+        let temp = tempdir().unwrap();
+        let temp_path = temp.path();
+
+        prepare_stub(Path::new(TESTDATA_ROOT), temp_path).unwrap();
+
+        assert!(!temp_path.join("dir/solution_file.java").exists());
     }
 
     #[test]

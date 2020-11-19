@@ -22,16 +22,7 @@ pub enum MetaString {
     String(String),
     Stub(String),
     Solution(String),
-}
-
-impl MetaString {
-    pub fn as_str(&self) -> &str {
-        match self {
-            Self::String(s) => &s,
-            Self::Stub(s) => &s,
-            Self::Solution(s) => &s,
-        }
-    }
+    SolutionFileMarker,
 }
 
 /// Contains the needed regexes for a given comment syntax.
@@ -128,7 +119,7 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                 for meta_syntax in self.meta_syntaxes {
                     // check for stub
                     if self.in_stub.is_none() && meta_syntax.stub_begin.is_match(&s) {
-                        log::debug!("stub start: '{}'", s);
+                        log::trace!("stub start: '{}'", s);
                         // remove stub start
                         s = meta_syntax
                             .stub_begin
@@ -154,7 +145,7 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                         && self.in_stub.map(|r| r.stub_begin.as_str())
                             == Some(meta_syntax.stub_begin.as_str())
                     {
-                        log::debug!("stub end: '{}'", s);
+                        log::trace!("stub end: '{}'", s);
                         self.in_stub = None;
                         // remove stub end
                         s = meta_syntax
@@ -169,9 +160,10 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                         return Some(Ok(MetaString::Stub(s)));
                     }
 
-                    // check for solution, skip all markers
+                    // check for solution, skip solution begin/end markers
                     if meta_syntax.solution_file.is_match(&s) {
-                        return self.next();
+                        log::trace!("solution file marker");
+                        return Some(Ok(MetaString::SolutionFileMarker));
                     } else if meta_syntax.solution_begin.is_match(&s) {
                         self.in_solution = true;
                         return self.next();
@@ -183,13 +175,13 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                 // after processing the line with each meta syntax,
                 // parse the current line accordingly
                 if self.in_solution {
-                    log::debug!("solution: '{}'", s);
+                    log::trace!("solution: '{}'", s);
                     Some(Ok(MetaString::Solution(s)))
                 } else if self.in_stub.is_some() {
-                    log::debug!("stub: '{}'", s);
+                    log::trace!("stub: '{}'", s);
                     Some(Ok(MetaString::Stub(s)))
                 } else {
-                    log::debug!("string: '{}'", s);
+                    log::trace!("string: '{}'", s);
                     Some(Ok(MetaString::String(s)))
                 }
             }
@@ -226,17 +218,19 @@ mod test {
 
         const JAVA_FILE: &str = r#"
 public class JavaTestCase {
+    // BEGIN SOLUTION
     public int foo() {
         return 3;
     }
+    // END SOLUTION
 }
 "#;
         let expected: Vec<MetaString> = vec![
             MetaString::str("\n"),
             MetaString::str("public class JavaTestCase {\n"),
-            MetaString::str("    public int foo() {\n"),
-            MetaString::str("        return 3;\n"),
-            MetaString::str("    }\n"),
+            MetaString::solution("    public int foo() {\n"),
+            MetaString::solution("        return 3;\n"),
+            MetaString::solution("    }\n"),
             MetaString::str("}\n"),
         ];
 
@@ -253,19 +247,18 @@ public class JavaTestCase {
         const JAVA_FILE_SOLUTION: &str = r#"
 /*    SOLUTION  FILE    */
 public class JavaTestCase {
-    // BEGIN SOLUTION
     public int foo() {
         return 3;
     }
-    // END SOLUTION
 }
 "#;
         let expected: Vec<MetaString> = vec![
             MetaString::str("\n"),
+            MetaString::SolutionFileMarker,
             MetaString::str("public class JavaTestCase {\n"),
-            MetaString::solution("    public int foo() {\n"),
-            MetaString::solution("        return 3;\n"),
-            MetaString::solution("    }\n"),
+            MetaString::str("    public int foo() {\n"),
+            MetaString::str("        return 3;\n"),
+            MetaString::str("    }\n"),
             MetaString::str("}\n"),
         ];
 
