@@ -36,7 +36,12 @@ impl StudentFilePolicy for Python3StudentFilePolicy {
         };
         let is_py_file = path.extension() == Some(OsStr::new("py"));
 
-        in_src && !is_cache_file || is_in_project_root && is_py_file
+        // all files in non-tmc and non-test subdirectories are considered student files
+        let is_in_exercise_subdir = path.starts_with("test") || path.starts_with("tmc");
+
+        in_src && !is_cache_file
+            || is_in_project_root && is_py_file
+            || !is_in_exercise_subdir && !is_in_project_root && !is_cache_file
     }
 }
 
@@ -75,5 +80,26 @@ mod test {
         let policy = Python3StudentFilePolicy::new(PathBuf::from(""));
         assert!(!policy.is_student_source_file(Path::new("some.pyc")));
         assert!(!policy.is_student_source_file(Path::new("src/other.pyc")));
+    }
+
+    #[test]
+    fn subdirs_are_student_files() {
+        let policy = Python3StudentFilePolicy::new(PathBuf::from(""));
+        assert!(policy.is_student_source_file(Path::new("subdir/something")));
+        assert!(policy.is_student_source_file(Path::new("another/mid/else")));
+    }
+
+    #[test]
+    fn tmc_and_test_are_not_student_files() {
+        let policy = Python3StudentFilePolicy::new(PathBuf::from(""));
+        assert!(policy.is_student_source_file(Path::new("subdir/something")));
+        assert!(policy.is_student_source_file(Path::new("another/mid/else")));
+    }
+
+    #[test]
+    fn non_py_file_in_root_is_not_student_file() {
+        let policy = Python3StudentFilePolicy::new(PathBuf::from(""));
+        assert!(!policy.is_student_source_file(Path::new("test")));
+        assert!(!policy.is_student_source_file(Path::new("root_file")));
     }
 }
