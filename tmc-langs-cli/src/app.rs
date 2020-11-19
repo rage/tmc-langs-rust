@@ -62,6 +62,15 @@ pub fn create_app() -> App<'static, 'static> {
 
         .subcommand(create_core_app()) // "core"
 
+        .subcommand(
+            SubCommand::with_name("disk-space")
+                .about("Returns the amount of free disk space in megabytes left on the partition that contains the given path")
+                .arg(Arg::with_name("path")
+                    .help("A path in the partition that should be inspected.")
+                    .required(true)
+                    .takes_value(true))
+        )
+
         .subcommand(SubCommand::with_name("extract-project")
             .about("Extracts an exercise from a ZIP archive. If the output-path is a project root, the plugin's student file policy will be used to avoid overwriting student files")
             .long_about(SCHEMA_NULL)
@@ -676,8 +685,7 @@ fn create_settings_app() -> App<'static, 'static> {
                 ),
         )
         .subcommand(
-            SubCommand::with_name("list")
-                .about("Prints every key=value pair in the settings file."),
+            SubCommand::with_name("list").about("Prints every key=value pair in the settings file"),
         )
         .subcommand(
             SubCommand::with_name("move-projects-dir")

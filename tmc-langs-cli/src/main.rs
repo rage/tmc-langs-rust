@@ -10,6 +10,7 @@ use clap::{ArgMatches, Error, ErrorKind};
 use config::ProjectsConfig;
 use config::{CourseConfig, Credentials, Exercise, TmcConfig};
 use error::{InvalidTokenError, SandboxTestError};
+use heim::disk;
 use output::{
     CombinedCourseData, ErrorData, Kind, Output, OutputData, OutputResult, Status, Warnings,
 };
@@ -272,6 +273,27 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                     return Err(error);
                 }
             }
+        }
+        ("disk-space", Some(matches)) => {
+            let path = matches.value_of("path").unwrap();
+            let path = Path::new(path);
+
+            let usage = smol::block_on(disk::usage(path)).with_context(|| {
+                format!("Failed to get disk usage from path {}", path.display())
+            })?;
+            let free = usage.free().get::<heim::units::information::megabyte>();
+
+            let output = Output::OutputData(OutputData {
+                status: Status::Finished,
+                message: Some(format!(
+                    "calculated free disk space for partition containing {}",
+                    path.display()
+                )),
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: Some(free),
+            });
+            print_output(&output, pretty, &warnings)?
         }
         ("extract-project", Some(matches)) => {
             let archive_path = matches.value_of("archive-path").unwrap();
