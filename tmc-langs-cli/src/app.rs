@@ -10,6 +10,7 @@ use tmc_langs_framework::domain::*;
 
 /// Constructs the CLI root.
 pub fn create_app() -> App<'static, 'static> {
+    // subcommand definitions are alphabetically ordered
     App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
