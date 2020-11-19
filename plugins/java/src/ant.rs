@@ -57,7 +57,7 @@ impl AntPlugin {
         // TODO: don't traverse symlinks
         if !runner_path.exists() {
             log::debug!("writing tmc-junit-runner to {}", runner_path.display());
-            file_util::write_to_file(&mut JUNIT_RUNNER_ARCHIVE, &runner_path)?;
+            file_util::write_to_file(JUNIT_RUNNER_ARCHIVE, &runner_path)?;
         } else {
             log::debug!("already exists");
         }

@@ -39,11 +39,11 @@ fn get_junit_runner_path() -> Result<PathBuf, JavaError> {
     if let Ok(bytes) = file_util::read_file(&junit_path) {
         if TMC_CHECKSTYLE_RUNNER_BYTES != bytes.as_slice() {
             log::debug!("updating tmc junit runner jar");
-            file_util::write_to_file(&mut TMC_JUNIT_RUNNER_BYTES, &junit_path)?;
+            file_util::write_to_file(TMC_JUNIT_RUNNER_BYTES, &junit_path)?;
         }
     } else {
         log::debug!("failed to read tmc junit runner jar, writing");
-        file_util::write_to_file(&mut TMC_JUNIT_RUNNER_BYTES, &junit_path)?;
+        file_util::write_to_file(TMC_JUNIT_RUNNER_BYTES, &junit_path)?;
     }
     Ok(junit_path)
 }
@@ -56,11 +56,11 @@ fn get_checkstyle_runner_path() -> Result<PathBuf, JavaError> {
     if let Ok(bytes) = file_util::read_file(&checkstyle_path) {
         if TMC_CHECKSTYLE_RUNNER_BYTES != bytes.as_slice() {
             log::debug!("updating checkstyle runner jar");
-            file_util::write_to_file(&mut TMC_CHECKSTYLE_RUNNER_BYTES, &checkstyle_path)?;
+            file_util::write_to_file(TMC_CHECKSTYLE_RUNNER_BYTES, &checkstyle_path)?;
         }
     } else {
         log::debug!("failed to read checkstyle runner jar, writing");
-        file_util::write_to_file(&mut TMC_CHECKSTYLE_RUNNER_BYTES, &checkstyle_path)?;
+        file_util::write_to_file(TMC_CHECKSTYLE_RUNNER_BYTES, &checkstyle_path)?;
     }
     Ok(checkstyle_path)
 }
@@ -75,11 +75,11 @@ fn initialize_jassets() -> Result<PathBuf, JavaError> {
     if let Ok(bytes) = file_util::read_file(&j4rs_path) {
         if J4RS_BYTES != bytes.as_slice() {
             log::debug!("updating j4rs jar");
-            file_util::write_to_file(&mut J4RS_BYTES, &j4rs_path)?;
+            file_util::write_to_file(J4RS_BYTES, &j4rs_path)?;
         }
     } else {
         log::debug!("failed to read j4rs jar, writing");
-        file_util::write_to_file(&mut J4RS_BYTES, &j4rs_path)?;
+        file_util::write_to_file(J4RS_BYTES, &j4rs_path)?;
     }
     Ok(j4rs_path)
 }

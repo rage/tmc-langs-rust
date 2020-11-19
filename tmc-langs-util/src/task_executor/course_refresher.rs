@@ -669,7 +669,7 @@ fn set_permissions(
             let file = file_util::open_file(path)?;
             stat::fchmod(
                 file.as_raw_fd(),
-                stat::Mode::from_bits(chmod).ok_or_else(|| UtilError::NixFlag(chmod))?,
+                stat::Mode::from_bits(chmod).ok_or(UtilError::NixFlag(chmod))?,
             )
             .map_err(|e| UtilError::NixPermissionChange(path.to_path_buf(), e))?;
         }
