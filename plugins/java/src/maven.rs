@@ -2,10 +2,10 @@
 
 pub mod policy;
 
+use self::policy::MavenStudentFilePolicy;
 use crate::{error::JavaError, plugin::JavaPlugin, CompileResult, TestRun, SEPARATOR};
 use flate2::read::GzDecoder;
 use j4rs::Jvm;
-use policy::MavenStudentFilePolicy;
 use std::ffi::OsString;
 use std::io::Cursor;
 use std::path::{Path, PathBuf};

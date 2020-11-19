@@ -1,5 +1,7 @@
 //! Contains LanguagePlugin.
 
+pub use isolang::Language;
+
 use crate::domain::{
     ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, TestResult, TmcProjectYml,
     ValidationResult,
@@ -7,7 +9,6 @@ use crate::domain::{
 use crate::error::TmcError;
 use crate::io::{file_util, submission_processing, tmc_zip};
 use crate::policy::StudentFilePolicy;
-pub use isolang::Language;
 use log::debug;
 use nom::{branch, bytes, combinator, multi, sequence, IResult};
 use std::collections::HashSet;

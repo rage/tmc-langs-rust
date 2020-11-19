@@ -5,15 +5,15 @@ mod config;
 mod error;
 mod output;
 
-use anyhow::{Context, Result};
-use clap::{ArgMatches, Error, ErrorKind};
-use config::ProjectsConfig;
-use config::{CourseConfig, Credentials, Exercise, TmcConfig};
-use error::{InvalidTokenError, SandboxTestError};
-use heim::disk;
-use output::{
+use self::config::ProjectsConfig;
+use self::config::{CourseConfig, Credentials, Exercise, TmcConfig};
+use self::error::{InvalidTokenError, SandboxTestError};
+use self::output::{
     CombinedCourseData, ErrorData, Kind, Output, OutputData, OutputResult, Status, Warnings,
 };
+use anyhow::{Context, Result};
+use clap::{ArgMatches, Error, ErrorKind};
+use heim::disk;
 use serde::Serialize;
 use serde_json::Value as JsonValue;
 use std::collections::HashMap;

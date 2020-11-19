@@ -2,8 +2,9 @@
 
 mod policy;
 
+pub use self::policy::CSharpStudentFilePolicy;
+
 use crate::{CSTestResult, CSharpError};
-pub use policy::CSharpStudentFilePolicy;
 use std::collections::HashMap;
 use std::env;
 use std::ffi::{OsStr, OsString};

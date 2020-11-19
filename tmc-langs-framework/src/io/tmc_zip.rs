@@ -1,5 +1,7 @@
 //! Contains functions for zipping and unzipping projects.
 
+pub use zip::result::ZipError;
+
 use crate::error::TmcError;
 use crate::io::file_util;
 use crate::policy::StudentFilePolicy;
@@ -8,7 +10,6 @@ use std::io::{Cursor, Read, Seek, Write};
 use std::path::Path;
 use std::path::PathBuf;
 use walkdir::{DirEntry, WalkDir};
-pub use zip::result::ZipError;
 use zip::{write::FileOptions, ZipArchive, ZipWriter};
 
 /// Zips the given directory, only including student files according to the given policy.

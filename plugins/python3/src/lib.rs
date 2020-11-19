@@ -4,10 +4,11 @@ mod error;
 mod plugin;
 mod policy;
 
-pub use error::PythonError;
+pub use self::error::PythonError;
+pub use self::plugin::Python3Plugin;
+pub use self::policy::Python3StudentFilePolicy;
+
 use lazy_static::lazy_static;
-pub use plugin::Python3Plugin;
-pub use policy::Python3StudentFilePolicy;
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::path::PathBuf;

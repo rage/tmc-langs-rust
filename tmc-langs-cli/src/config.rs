@@ -4,9 +4,9 @@ mod credentials;
 mod projects_config;
 mod tmc_config;
 
-pub use credentials::Credentials;
-pub use projects_config::{CourseConfig, Exercise, ProjectsConfig};
-pub use tmc_config::{ConfigValue, TmcConfig};
+pub use self::credentials::Credentials;
+pub use self::projects_config::{CourseConfig, Exercise, ProjectsConfig};
+pub use self::tmc_config::{ConfigValue, TmcConfig};
 
 use anyhow::{Context, Error};
 use std::env;

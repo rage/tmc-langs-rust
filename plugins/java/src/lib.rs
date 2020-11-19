@@ -5,9 +5,9 @@ mod error;
 mod maven;
 mod plugin;
 
-pub use ant::{policy::AntStudentFilePolicy, AntPlugin};
-pub use error::JavaError;
-pub use maven::{policy::MavenStudentFilePolicy, MavenPlugin};
+pub use self::ant::{policy::AntStudentFilePolicy, AntPlugin};
+pub use self::error::JavaError;
+pub use self::maven::{policy::MavenStudentFilePolicy, MavenPlugin};
 
 use j4rs::{ClasspathEntry, Jvm, JvmBuilder};
 use serde::Deserialize;

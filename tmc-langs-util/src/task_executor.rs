@@ -4,14 +4,15 @@ mod course_refresher;
 mod submission_packaging;
 mod tar_helper;
 
-use crate::error::UtilError;
-use crate::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, ValidationResult};
-pub use course_refresher::{
+pub use self::course_refresher::{
     Course, CourseRefresher, GroupBits, ModeBits, Options, RefreshData, RefreshExercise,
     SourceBackend,
 };
+pub use self::submission_packaging::{OutputFormat, TmcParams};
+
+use crate::error::UtilError;
+use crate::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, ValidationResult};
 use std::path::{Path, PathBuf};
-pub use submission_packaging::{OutputFormat, TmcParams};
 use tmc_langs_csharp::CSharpPlugin;
 use tmc_langs_framework::{
     anyhow,

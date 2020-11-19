@@ -4,8 +4,9 @@ mod error;
 mod plugin;
 mod policy;
 
-pub use plugin::RPlugin;
-pub use policy::RStudentFilePolicy;
+pub use self::plugin::RPlugin;
+pub use self::policy::RStudentFilePolicy;
+
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tmc_langs_framework::domain::{RunResult, RunStatus, TestResult};

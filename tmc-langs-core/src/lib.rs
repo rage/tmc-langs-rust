@@ -14,14 +14,14 @@ mod request;
 mod response;
 mod tmc_core;
 
-pub use error::CoreError;
-pub use oauth2;
-pub use request::FeedbackAnswer;
-pub use response::{
+pub use self::error::CoreError;
+pub use self::request::FeedbackAnswer;
+pub use self::response::{
     Course, CourseData, CourseDataExercise, CourseDataExercisePoint, CourseDetails, CourseExercise,
     Exercise, ExerciseChecksums, ExerciseDetails, NewSubmission, Organization, Review, Submission,
     SubmissionFeedbackResponse, SubmissionFinished, SubmissionProcessingStatus, SubmissionStatus,
     UpdateResult, User,
 };
-pub use tmc_core::{CoreUpdateData, TmcCore, Token};
+pub use self::tmc_core::{CoreUpdateData, TmcCore, Token};
+pub use oauth2;
 pub use tmc_langs_util::{Language, RunResult, Strategy, ValidationResult};

@@ -2,9 +2,9 @@
 
 pub mod policy;
 
+use self::policy::AntStudentFilePolicy;
 use crate::{error::JavaError, plugin::JavaPlugin, CompileResult, TestRun, SEPARATOR};
 use j4rs::Jvm;
-use policy::AntStudentFilePolicy;
 use std::env;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};

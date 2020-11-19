@@ -1,10 +1,11 @@
 //! Language plugin for no_tests exercises
 
+pub use tmc_langs_framework::policy::EverythingIsStudentFilePolicy as NoTestsStudentFilePolicy;
+
 use std::collections::HashMap;
 use std::io::{Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
-pub use tmc_langs_framework::policy::EverythingIsStudentFilePolicy as NoTestsStudentFilePolicy;
 use tmc_langs_framework::{
     anyhow,
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},

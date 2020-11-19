@@ -3,8 +3,9 @@
 mod error;
 mod plugin;
 
-pub use error::CSharpError;
-pub use plugin::{CSharpPlugin, CSharpStudentFilePolicy};
+pub use self::error::CSharpError;
+pub use self::plugin::{CSharpPlugin, CSharpStudentFilePolicy};
+
 use serde::Deserialize;
 use tmc_langs_framework::domain::TestResult;
 
