@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ConfigValue",""]],"fn":[["get_client_stub",""],["get_config_path",""],["get_credentials_path",""],["get_tmc_dir",""],["init_config_at",""],["load_config",""],["reset_config",""],["save_config",""]],"struct":[["Config",""]]});
+initSidebarItems({"fn":[["get_tmc_dir",""]],"mod":[["credentials",""],["projects_config",""],["tmc_config","Handles the CLI's configuration file."]]});

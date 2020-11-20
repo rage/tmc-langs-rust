@@ -1,0 +1,70 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `async_task` crate."><meta name="keywords" content="rust, rustlang, rust-lang, async_task"><title>async_task - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="shortcut icon" href="../favicon.ico"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../async_task/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><p class='location'>Crate async_task</p><div class='block version'><p>Version 3.0.0</p></div><div class="sidebar-elems"><a id='all-types' href='all.html'><p>See all async_task's items</p></a><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#functions">Functions</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'async_task', ty: 'mod', relpath: '../'};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/async_task/lib.rs.html#1-139' title='goto source code'>[src]</a></span><span class='in-band'>Crate <a class="mod" href=''>async_task</a></span></h1><div class='docblock'><p>Task abstraction for building executors.</p>
+<h1 id="spawning" class="section-header"><a href="#spawning">Spawning</a></h1>
+<p>To spawn a future onto an executor, we first need to allocate it on the heap and keep some
+state alongside it. The state indicates whether the future is ready for polling, waiting to be
+woken up, or completed. Such a future is called a <em>task</em>.</p>
+<p>All executors have some kind of queue that holds runnable tasks:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">let</span> (<span class="ident">sender</span>, <span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">crossbeam</span>::<span class="ident">channel</span>::<span class="ident">unbounded</span>();</pre></div>
+<p>A task is constructed using either <a href="fn.spawn.html"><code>spawn</code></a> or <a href="fn.spawn_local.html"><code>spawn_local</code></a>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="comment">// A future that will be spawned.</span>
+<span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="kw">async</span> { <span class="number">1</span> <span class="op">+</span> <span class="number">2</span> };
+
+<span class="comment">// A function that schedules the task when it gets woken up.</span>
+<span class="kw">let</span> <span class="ident">schedule</span> <span class="op">=</span> <span class="kw">move</span> <span class="op">|</span><span class="ident">task</span><span class="op">|</span> <span class="ident">sender</span>.<span class="ident">send</span>(<span class="ident">task</span>).<span class="ident">unwrap</span>();
+
+<span class="comment">// Construct a task.</span>
+<span class="kw">let</span> (<span class="ident">task</span>, <span class="ident">handle</span>) <span class="op">=</span> <span class="ident">async_task</span>::<span class="ident">spawn</span>(<span class="ident">future</span>, <span class="ident">schedule</span>, ());
+
+<span class="comment">// Push the task into the queue by invoking its schedule function.</span>
+<span class="ident">task</span>.<span class="ident">schedule</span>();</pre></div>
+<p>The last argument to the <a href="fn.spawn.html"><code>spawn</code></a> function is a <em>tag</em>, an arbitrary piece of data associated
+with the task. In most executors, this is typically a task identifier or task-local storage.</p>
+<p>The function returns a runnable <a href="struct.Task.html"><code>Task</code></a> and a <a href="struct.JoinHandle.html"><code>JoinHandle</code></a> that can await the result.</p>
+<h1 id="execution" class="section-header"><a href="#execution">Execution</a></h1>
+<p>Task executors have some kind of main loop that drives tasks to completion. That means taking
+runnable tasks out of the queue and running each one in order:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">for</span> <span class="ident">task</span> <span class="kw">in</span> <span class="ident">receiver</span> {
+    <span class="ident">task</span>.<span class="ident">run</span>();
+}</pre></div>
+<p>When a task is run, its future gets polled. If polling does not complete the task, that means
+it's waiting for another future and needs to go to sleep. When woken up, its schedule function
+will be invoked, pushing it back into the queue so that it can be run again.</p>
+<h1 id="cancelation" class="section-header"><a href="#cancelation">Cancelation</a></h1>
+<p>Both <a href="struct.Task.html"><code>Task</code></a> and <a href="struct.JoinHandle.html"><code>JoinHandle</code></a> have methods that cancel the task. When canceled, the task's
+future will not be polled again and will get dropped instead.</p>
+<p>If canceled by the <a href="struct.Task.html"><code>Task</code></a> instance, the task is destroyed immediately. If canceled by the
+<a href="struct.JoinHandle.html"><code>JoinHandle</code></a> instance, it will be scheduled one more time and the next attempt to run it will
+simply destroy it.</p>
+<p>The <code>JoinHandle</code> future will then evaluate to <code>None</code>, but only after the task's future is
+dropped.</p>
+<h1 id="performance" class="section-header"><a href="#performance">Performance</a></h1>
+<p>Task construction incurs a single allocation that holds its state, the schedule function, and
+the future or the result of the future if completed.</p>
+<p>The layout of a task is equivalent to 4 <code>usize</code>s followed by the schedule function, and then by
+a union of the future and its output.</p>
+<h1 id="waking" class="section-header"><a href="#waking">Waking</a></h1>
+<p>The handy <a href="fn.waker_fn.html"><code>waker_fn</code></a> constructor converts any function into a <a href="https://doc.rust-lang.org/std/task/struct.Waker.html"><code>Waker</code></a>. Every time it is
+woken, the function gets called:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="ident">async_task</span>::<span class="ident">waker_fn</span>(<span class="op">||</span> <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Wake!&quot;</span>));
+
+<span class="comment">// Prints &quot;Wake!&quot; twice.</span>
+<span class="ident">waker</span>.<span class="ident">wake_by_ref</span>();
+<span class="ident">waker</span>.<span class="ident">wake_by_ref</span>();</pre></div>
+<p>This is useful for implementing single-future executors like <a href="https://github.com/async-rs/async-task/blob/master/examples/block.rs"><code>block_on</code></a>.</p>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table><tr class='module-item'><td><a class="struct" href="struct.JoinHandle.html" title='async_task::JoinHandle struct'>JoinHandle</a></td><td class='docblock-short'><p>A handle that awaits the result of a task.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.Task.html" title='async_task::Task struct'>Task</a></td><td class='docblock-short'><p>A task reference that runs its future.</p>
+</td></tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table><tr class='module-item'><td><a class="fn" href="fn.spawn.html" title='async_task::spawn fn'>spawn</a></td><td class='docblock-short'><p>Creates a new task.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.spawn_local.html" title='async_task::spawn_local fn'>spawn_local</a></td><td class='docblock-short'><p>Creates a new local task.</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.waker_fn.html" title='async_task::waker_fn fn'>waker_fn</a></td><td class='docblock-short'><p>Creates a waker from a wake function.</p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "async_task";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

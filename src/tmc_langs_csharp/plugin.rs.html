@@ -476,13 +476,20 @@
 <span id="475">475</span>
 <span id="476">476</span>
 <span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Implementation of LanguagePlugin for C#</span>
 
 <span class="kw">mod</span> <span class="ident">policy</span>;
 
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">policy</span>::<span class="ident">CSharpStudentFilePolicy</span>;
+
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">CSTestResult</span>, <span class="ident">CSharpError</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">policy</span>::<span class="ident">CSharpStudentFilePolicy</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">env</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::{<span class="ident">OsStr</span>, <span class="ident">OsString</span>};
@@ -610,16 +617,21 @@
     }
 
     <span class="doccomment">/// Finds any directory X which contains a X/src/*.csproj file.</span>
+    <span class="doccomment">/// Ignores everything in a __MACOSX directory.</span>
     <span class="kw">fn</span> <span class="ident">find_project_dir_in_zip</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span> <span class="op">+</span> <span class="ident">Seek</span><span class="op">&gt;</span>(
         <span class="ident">zip_archive</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ZipArchive</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
     ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">zip_archive</span>.<span class="ident">len</span>() {
             <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">zip_archive</span>.<span class="ident">by_index</span>(<span class="ident">i</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">file_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">file</span>.<span class="ident">name</span>());
+
             <span class="kw">if</span> <span class="ident">file_path</span>.<span class="ident">extension</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">OsStr</span>::<span class="ident">new</span>(<span class="string">&quot;csproj&quot;</span>)) {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">csproj_parent</span>) <span class="op">=</span> <span class="ident">file_path</span>.<span class="ident">parent</span>().<span class="ident">and_then</span>(<span class="ident">Path</span>::<span class="ident">parent</span>) {
                     <span class="kw">if</span> <span class="ident">csproj_parent</span>.<span class="ident">file_name</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">OsStr</span>::<span class="ident">new</span>(<span class="string">&quot;src&quot;</span>)) {
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">src_parent</span>) <span class="op">=</span> <span class="ident">csproj_parent</span>.<span class="ident">parent</span>() {
+                            <span class="kw">if</span> <span class="ident">src_parent</span>.<span class="ident">components</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">as_os_str</span>() <span class="op">==</span> <span class="string">&quot;__MACOSX&quot;</span>) {
+                                <span class="kw">continue</span>;
+                            }
                             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">src_parent</span>.<span class="ident">to_path_buf</span>());
                         }
                     }

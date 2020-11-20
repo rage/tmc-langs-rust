@@ -1,0 +1,274 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/smol-0.1.18/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../smol/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<span id="2">  2</span>
+<span id="3">  3</span>
+<span id="4">  4</span>
+<span id="5">  5</span>
+<span id="6">  6</span>
+<span id="7">  7</span>
+<span id="8">  8</span>
+<span id="9">  9</span>
+<span id="10"> 10</span>
+<span id="11"> 11</span>
+<span id="12"> 12</span>
+<span id="13"> 13</span>
+<span id="14"> 14</span>
+<span id="15"> 15</span>
+<span id="16"> 16</span>
+<span id="17"> 17</span>
+<span id="18"> 18</span>
+<span id="19"> 19</span>
+<span id="20"> 20</span>
+<span id="21"> 21</span>
+<span id="22"> 22</span>
+<span id="23"> 23</span>
+<span id="24"> 24</span>
+<span id="25"> 25</span>
+<span id="26"> 26</span>
+<span id="27"> 27</span>
+<span id="28"> 28</span>
+<span id="29"> 29</span>
+<span id="30"> 30</span>
+<span id="31"> 31</span>
+<span id="32"> 32</span>
+<span id="33"> 33</span>
+<span id="34"> 34</span>
+<span id="35"> 35</span>
+<span id="36"> 36</span>
+<span id="37"> 37</span>
+<span id="38"> 38</span>
+<span id="39"> 39</span>
+<span id="40"> 40</span>
+<span id="41"> 41</span>
+<span id="42"> 42</span>
+<span id="43"> 43</span>
+<span id="44"> 44</span>
+<span id="45"> 45</span>
+<span id="46"> 46</span>
+<span id="47"> 47</span>
+<span id="48"> 48</span>
+<span id="49"> 49</span>
+<span id="50"> 50</span>
+<span id="51"> 51</span>
+<span id="52"> 52</span>
+<span id="53"> 53</span>
+<span id="54"> 54</span>
+<span id="55"> 55</span>
+<span id="56"> 56</span>
+<span id="57"> 57</span>
+<span id="58"> 58</span>
+<span id="59"> 59</span>
+<span id="60"> 60</span>
+<span id="61"> 61</span>
+<span id="62"> 62</span>
+<span id="63"> 63</span>
+<span id="64"> 64</span>
+<span id="65"> 65</span>
+<span id="66"> 66</span>
+<span id="67"> 67</span>
+<span id="68"> 68</span>
+<span id="69"> 69</span>
+<span id="70"> 70</span>
+<span id="71"> 71</span>
+<span id="72"> 72</span>
+<span id="73"> 73</span>
+<span id="74"> 74</span>
+<span id="75"> 75</span>
+<span id="76"> 76</span>
+<span id="77"> 77</span>
+<span id="78"> 78</span>
+<span id="79"> 79</span>
+<span id="80"> 80</span>
+<span id="81"> 81</span>
+<span id="82"> 82</span>
+<span id="83"> 83</span>
+<span id="84"> 84</span>
+<span id="85"> 85</span>
+<span id="86"> 86</span>
+<span id="87"> 87</span>
+<span id="88"> 88</span>
+<span id="89"> 89</span>
+<span id="90"> 90</span>
+<span id="91"> 91</span>
+<span id="92"> 92</span>
+<span id="93"> 93</span>
+<span id="94"> 94</span>
+<span id="95"> 95</span>
+<span id="96"> 96</span>
+<span id="97"> 97</span>
+<span id="98"> 98</span>
+<span id="99"> 99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+</pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! A small and fast async runtime.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # Executors</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! There are three executors that poll futures:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! 1. Thread-local executor for tasks created by [`Task::local()`].</span>
+<span class="doccomment">//! 2. Work-stealing executor for tasks created by [`Task::spawn()`].</span>
+<span class="doccomment">//! 3. Blocking executor for tasks created by [`Task::blocking()`], [`blocking!`], [`iter()`],</span>
+<span class="doccomment">//!    [`reader()`] and [`writer()`].</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Blocking executor is the only one that spawns threads on its own.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! See [here](fn.run.html#examples) for how to run executors on a single thread or on a thread</span>
+<span class="doccomment">//! pool.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # Reactor</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! To wait for the next I/O event, the reactor calls [epoll] on Linux/Android, [kqueue] on</span>
+<span class="doccomment">//! macOS/iOS/BSD, and [wepoll] on Windows.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The [`Async`] type registers I/O handles in the reactor and is able to convert their blocking</span>
+<span class="doccomment">//! operations into async operations.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The [`Timer`] type registers timers in the reactor that will fire at the chosen points in</span>
+<span class="doccomment">//! time.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # Running</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Function [`run()`] simultaneously runs the thread-local executor, runs the work-stealing</span>
+<span class="doccomment">//! executor, and polls the reactor for I/O events and timers. At least one thread has to be</span>
+<span class="doccomment">//! calling [`run()`] in order for futures waiting on I/O and timers to get notified.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! If you want a multithreaded runtime, just call [`run()`] from multiple threads. See</span>
+<span class="doccomment">//! [here](fn.run.html#examples) for an example.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! There is also [`block_on()`], which blocks the current thread until a future completes, but it</span>
+<span class="doccomment">//! doesn&#39;t poll the reactor or run executors. When using [`block_on()`], make sure at least one</span>
+<span class="doccomment">//! thread is calling [`run()`], or else I/O and timers will not work!</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Blocking tasks run in the background on a dedicated thread pool.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # Examples</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Connect to a HTTP website, make a GET request, and pipe the response to the standard output:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```no_run</span>
+<span class="doccomment">//! use futures::prelude::*;</span>
+<span class="doccomment">//! use smol::Async;</span>
+<span class="doccomment">//! use std::net::TcpStream;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! fn main() -&gt; std::io::Result&lt;()&gt; {</span>
+<span class="doccomment">//!     smol::run(async {</span>
+<span class="doccomment">//!         let mut stream = Async::&lt;TcpStream&gt;::connect(&quot;example.com:80&quot;).await?;</span>
+<span class="doccomment">//!         let req = b&quot;GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n&quot;;</span>
+<span class="doccomment">//!         stream.write_all(req).await?;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//!         let mut stdout = smol::writer(std::io::stdout());</span>
+<span class="doccomment">//!         futures::io::copy(&amp;stream, &amp;mut stdout).await?;</span>
+<span class="doccomment">//!         Ok(())</span>
+<span class="doccomment">//!     })</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Look inside the [examples] directory for more:</span>
+<span class="doccomment">//! a [web crawler][web-crawler],</span>
+<span class="doccomment">//! a [Ctrl-C handler][ctrl-c],</span>
+<span class="doccomment">//! a TCP [client][tcp-client]/[server][tcp-server],</span>
+<span class="doccomment">//! a TCP chat [client][chat-client]/[server][chat-server],</span>
+<span class="doccomment">//! a TLS [client][tls-client]/[server][tls-server],</span>
+<span class="doccomment">//! an HTTP+TLS [client][simple-client]/[server][simple-server],</span>
+<span class="doccomment">//! an [async-h1] [client][async-h1-client]/[server][async-h1-server],</span>
+<span class="doccomment">//! a [hyper] [client][hyper-client]/[server][hyper-server],</span>
+<span class="doccomment">//! and a WebSocket+TLS [client][websocket-client]/[server][websocket-server].</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! It&#39;s also possible to plug non-async libraries into the runtime: see</span>
+<span class="doccomment">//! [inotify], [timerfd], [signal-hook], and [uds_windows].</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Finally, there&#39;s an [example][other-runtimes] showing how to use smol with</span>
+<span class="doccomment">//! [async-std], [tokio], [surf], and [reqwest].</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [epoll]: https://en.wikipedia.org/wiki/Epoll</span>
+<span class="doccomment">//! [kqueue]: https://en.wikipedia.org/wiki/Kqueue</span>
+<span class="doccomment">//! [wepoll]: https://github.com/piscisaureus/wepoll</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [examples]: https://github.com/stjepang/smol/tree/master/examples</span>
+<span class="doccomment">//! [async-h1]: https://docs.rs/async-h1</span>
+<span class="doccomment">//! [hyper]: https://docs.rs/hyper</span>
+<span class="doccomment">//! [async-std]: https://docs.rs/async-std</span>
+<span class="doccomment">//! [tokio]: https://docs.rs/tokio</span>
+<span class="doccomment">//! [surf]: https://docs.rs/surf</span>
+<span class="doccomment">//! [reqwest]: https://docs.rs/reqwest</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [async-h1-client]: https://github.com/stjepang/smol/blob/master/examples/async-h1-client.rs</span>
+<span class="doccomment">//! [async-h1-server]: https://github.com/stjepang/smol/blob/master/examples/async-h1-server.rs</span>
+<span class="doccomment">//! [chat-client]: https://github.com/stjepang/smol/blob/master/examples/chat-client.rs</span>
+<span class="doccomment">//! [chat-server]: https://github.com/stjepang/smol/blob/master/examples/chat-server.rs</span>
+<span class="doccomment">//! [ctrl-c]: https://github.com/stjepang/smol/blob/master/examples/ctrl-c.rs</span>
+<span class="doccomment">//! [hyper-client]: https://github.com/stjepang/smol/blob/master/examples/hyper-client.rs</span>
+<span class="doccomment">//! [hyper-server]: https://github.com/stjepang/smol/blob/master/examples/hyper-server.rs</span>
+<span class="doccomment">//! [inotify]: https://github.com/stjepang/smol/blob/master/examples/linux-inotify.rs</span>
+<span class="doccomment">//! [other-runtimes]: https://github.com/stjepang/smol/blob/master/examples/other-runtimes.rs</span>
+<span class="doccomment">//! [signal-hook]: https://github.com/stjepang/smol/blob/master/examples/unix-signal.rs</span>
+<span class="doccomment">//! [simple-client]: https://github.com/stjepang/smol/blob/master/examples/simple-client.rs</span>
+<span class="doccomment">//! [simple-server]: https://github.com/stjepang/smol/blob/master/examples/simple-server.rs</span>
+<span class="doccomment">//! [tcp-client]: https://github.com/stjepang/smol/blob/master/examples/tcp-client.rs</span>
+<span class="doccomment">//! [tcp-server]: https://github.com/stjepang/smol/blob/master/examples/tcp-server.rs</span>
+<span class="doccomment">//! [timerfd]: https://github.com/stjepang/smol/blob/master/examples/linux-timerfd.rs</span>
+<span class="doccomment">//! [tls-client]: https://github.com/stjepang/smol/blob/master/examples/tls-client.rs</span>
+<span class="doccomment">//! [tls-server]: https://github.com/stjepang/smol/blob/master/examples/tls-server.rs</span>
+<span class="doccomment">//! [uds_windows]: https://github.com/stjepang/smol/blob/master/examples/windows-uds.rs</span>
+<span class="doccomment">//! [web-crawler]: https://github.com/stjepang/smol/blob/master/examples/web-crawler.rs</span>
+<span class="doccomment">//! [websocket-client]: https://github.com/stjepang/smol/blob/master/examples/websocket-client.rs</span>
+<span class="doccomment">//! [websocket-server]: https://github.com/stjepang/smol/blob/master/examples/websocket-server.rs</span>
+
+<span class="attribute">#![<span class="ident">warn</span>(<span class="ident">missing_docs</span>, <span class="ident">missing_debug_implementations</span>, <span class="ident">rust_2018_idioms</span>)]</span>
+
+<span class="kw">mod</span> <span class="ident">async_io</span>;
+<span class="kw">mod</span> <span class="ident">block_on</span>;
+<span class="kw">mod</span> <span class="ident">blocking</span>;
+<span class="kw">mod</span> <span class="ident">context</span>;
+<span class="kw">mod</span> <span class="ident">multitask</span>;
+<span class="kw">mod</span> <span class="ident">parking</span>;
+<span class="kw">mod</span> <span class="ident">reactor</span>;
+<span class="kw">mod</span> <span class="ident">run</span>;
+<span class="kw">mod</span> <span class="ident">sys</span>;
+<span class="kw">mod</span> <span class="ident">task</span>;
+<span class="kw">mod</span> <span class="ident">timer</span>;
+
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">blocking</span>::{<span class="ident">iter</span>, <span class="ident">reader</span>, <span class="ident">writer</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">async_io</span>::<span class="ident">Async</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">block_on</span>::<span class="ident">block_on</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">run</span>::<span class="ident">run</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">task</span>::<span class="ident">Task</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">timer</span>::<span class="ident">Timer</span>;
+</pre></div>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "smol";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

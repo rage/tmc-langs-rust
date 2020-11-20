@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["disk","Disks information."],["units","Measurement units used in API."]],"struct":[["Error","Error type for data fetching operations."]],"type":[["Result","A specialized Result type for data fetching functions."]]});

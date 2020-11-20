@@ -1,0 +1,72 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `run` fn in crate `smol`."><meta name="keywords" content="rust, rustlang, rust-lang, run"><title>smol::run - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="shortcut icon" href="../favicon.ico"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc fn"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../smol/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><div class="sidebar-elems"><p class='location'><a href='index.html'>smol</a></p><script>window.sidebarCurrent = {name: 'run', ty: 'fn', relpath: ''};</script><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/smol/run.rs.html#102-135' title='goto source code'>[src]</a></span><span class='in-band'>Function <a href='index.html'>smol</a>::<wbr><a class="fn" href=''>run</a></span></h1><pre class='rust fn'>pub fn run&lt;T&gt;(future: impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html" title="trait core::future::future::Future">Future</a>&lt;Output = T&gt;) -&gt; T</pre><div class='docblock'><p>Runs executors and polls the reactor.</p>
+<p>This function simultaneously runs the thread-local executor, runs the work-stealing
+executor, and polls the reactor for I/O events and timers. At least one thread has to be
+calling [<code>run()</code>] in order for futures waiting on I/O and timers to get notified.</p>
+<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
+<p>Single-threaded executor:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="comment">// Run the thread-local and work-stealing executor on the current thread.</span>
+<span class="ident">smol</span>::<span class="ident">run</span>(<span class="kw">async</span> {
+    <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Hello from the smol executor!&quot;</span>);
+});</pre></div>
+<p>Multi-threaded executor:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">future</span>;
+<span class="kw">use</span> <span class="ident">smol</span>::<span class="ident">Task</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">thread</span>;
+
+<span class="comment">// Same number of threads as there are CPU cores.</span>
+<span class="kw">let</span> <span class="ident">num_threads</span> <span class="op">=</span> <span class="ident">num_cpus</span>::<span class="ident">get</span>().<span class="ident">max</span>(<span class="number">1</span>);
+
+<span class="comment">// Run the thread-local and work-stealing executor on a thread pool.</span>
+<span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">num_threads</span> {
+    <span class="comment">// A pending future is one that simply yields forever.</span>
+    <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="op">||</span> <span class="ident">smol</span>::<span class="ident">run</span>(<span class="ident">future</span>::<span class="ident">pending</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>()));
+}
+
+<span class="comment">// No need to `run()`, now we can just block on the main future.</span>
+<span class="ident">smol</span>::<span class="ident">block_on</span>(<span class="kw">async</span> {
+    <span class="ident">Task</span>::<span class="ident">spawn</span>(<span class="kw">async</span> {
+        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Hello from an executor thread!&quot;</span>);
+    })
+    .<span class="kw">await</span>;
+});</pre></div>
+<p>Stoppable multi-threaded executor:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">use</span> <span class="ident">smol</span>::<span class="ident">Task</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">thread</span>;
+
+<span class="comment">// Same number of threads as there are CPU cores.</span>
+<span class="kw">let</span> <span class="ident">num_threads</span> <span class="op">=</span> <span class="ident">num_cpus</span>::<span class="ident">get</span>().<span class="ident">max</span>(<span class="number">1</span>);
+
+<span class="comment">// A channel that sends the shutdown signal.</span>
+<span class="kw">let</span> (<span class="ident">s</span>, <span class="ident">r</span>) <span class="op">=</span> <span class="ident">piper</span>::<span class="ident">chan</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>(<span class="number">0</span>);
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">threads</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+
+<span class="comment">// Create an executor thread pool.</span>
+<span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">num_threads</span> {
+    <span class="comment">// Spawn an executor thread that waits for the shutdown signal.</span>
+    <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">clone</span>();
+    <span class="ident">threads</span>.<span class="ident">push</span>(<span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">||</span> <span class="ident">smol</span>::<span class="ident">run</span>(<span class="ident">r</span>.<span class="ident">recv</span>())));
+}
+
+<span class="comment">// No need to `run()`, now we can just block on the main future.</span>
+<span class="ident">smol</span>::<span class="ident">block_on</span>(<span class="kw">async</span> {
+    <span class="ident">Task</span>::<span class="ident">spawn</span>(<span class="kw">async</span> {
+        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Hello from an executor thread!&quot;</span>);
+    })
+    .<span class="kw">await</span>;
+});
+
+<span class="comment">// Send a shutdown signal.</span>
+<span class="ident">drop</span>(<span class="ident">s</span>);
+
+<span class="comment">// Wait for threads to finish.</span>
+<span class="kw">for</span> <span class="ident">t</span> <span class="kw">in</span> <span class="ident">threads</span> {
+    <span class="ident">t</span>.<span class="ident">join</span>().<span class="ident">unwrap</span>();
+}</pre></div>
+</div></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "smol";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

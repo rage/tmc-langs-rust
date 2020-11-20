@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["spawn","Creates a new task."],["spawn_local","Creates a new local task."],["waker_fn","Creates a waker from a wake function."]],"struct":[["JoinHandle","A handle that awaits the result of a task."],["Task","A task reference that runs its future."]]});

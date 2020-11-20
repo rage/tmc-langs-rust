@@ -1,4 +1,5 @@
 (function() {var implementors = {};
+implementors["async_fs"] = [{"text":"impl FromRawFd for File","synthetic":false,"types":[]}];
 implementors["mio"] = [{"text":"impl FromRawFd for TcpStream","synthetic":false,"types":[]},{"text":"impl FromRawFd for TcpListener","synthetic":false,"types":[]},{"text":"impl FromRawFd for UdpSocket","synthetic":false,"types":[]}];
 implementors["net2"] = [{"text":"impl FromRawFd for TcpBuilder","synthetic":false,"types":[]},{"text":"impl FromRawFd for UdpBuilder","synthetic":false,"types":[]}];
 implementors["nix"] = [{"text":"impl FromRawFd for Inotify","synthetic":false,"types":[]},{"text":"impl FromRawFd for TimerFd","synthetic":false,"types":[]}];

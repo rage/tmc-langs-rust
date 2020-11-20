@@ -734,6 +734,25 @@
 <span id="733">733</span>
 <span id="734">734</span>
 <span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Create clap app</span>
 
@@ -747,6 +766,7 @@
 
 <span class="doccomment">/// Constructs the CLI root.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_app</span>() <span class="op">-&gt;</span> <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
+    <span class="comment">// subcommand definitions are alphabetically ordered</span>
     <span class="ident">App</span>::<span class="ident">new</span>(<span class="macro">env</span><span class="macro">!</span>(<span class="string">&quot;CARGO_PKG_NAME&quot;</span>))
         .<span class="ident">version</span>(<span class="macro">env</span><span class="macro">!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>))
         .<span class="ident">author</span>(<span class="macro">env</span><span class="macro">!</span>(<span class="string">&quot;CARGO_PKG_AUTHORS&quot;</span>))
@@ -798,6 +818,15 @@
                 .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)))
 
         .<span class="ident">subcommand</span>(<span class="ident">create_core_app</span>()) <span class="comment">// &quot;core&quot;</span>
+
+        .<span class="ident">subcommand</span>(
+            <span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;disk-space&quot;</span>)
+                .<span class="ident">about</span>(<span class="string">&quot;Returns the amount of free disk space in megabytes left on the partition that contains the given path&quot;</span>)
+                .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;path&quot;</span>)
+                    .<span class="ident">help</span>(<span class="string">&quot;A path in the partition that should be inspected.&quot;</span>)
+                    .<span class="ident">required</span>(<span class="bool-val">true</span>)
+                    .<span class="ident">takes_value</span>(<span class="bool-val">true</span>))
+        )
 
         .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;extract-project&quot;</span>)
             .<span class="ident">about</span>(<span class="string">&quot;Extracts an exercise from a ZIP archive. If the output-path is a project root, the plugin&#39;s student file policy will be used to avoid overwriting student files&quot;</span>)
@@ -1093,6 +1122,16 @@
                 .<span class="ident">help</span>(<span class="string">&quot;Required if save-old-state is set. The URL where the submission should be posted.&quot;</span>)
                 .<span class="ident">long</span>(<span class="string">&quot;submission-url&quot;</span>)
                 .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)))
+
+        .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;download-or-update-course-exercises&quot;</span>)
+            .<span class="ident">about</span>(<span class="string">&quot;Downloads exercises. If downloading an exercise that has been downloaded before, the student file policy will be used to avoid overwriting student files, effectively just updating the exercise files&quot;</span>)
+            .<span class="ident">long_about</span>(<span class="ident">SCHEMA_NULL</span>)
+            .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;exercise-id&quot;</span>)
+                .<span class="ident">help</span>(<span class="string">&quot;Exercise id of an exercise that should be downloaded. Multiple ids can be given.&quot;</span>)
+                .<span class="ident">long</span>(<span class="string">&quot;exercise-id&quot;</span>)
+                .<span class="ident">required</span>(<span class="bool-val">true</span>)
+                .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)
+                .<span class="ident">multiple</span>(<span class="bool-val">true</span>)))
 
         .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;download-or-update-exercises&quot;</span>)
             .<span class="ident">about</span>(<span class="string">&quot;Downloads exercises. If downloading an exercise on top of an existing one, the student file policy will be used to avoid overwriting student files, effectively just updating the exercise files&quot;</span>)
@@ -1403,8 +1442,7 @@
                 ),
         )
         .<span class="ident">subcommand</span>(
-            <span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;list&quot;</span>)
-                .<span class="ident">about</span>(<span class="string">&quot;Prints every key=value pair in the settings file.&quot;</span>),
+            <span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;list&quot;</span>).<span class="ident">about</span>(<span class="string">&quot;Prints every key=value pair in the settings file&quot;</span>),
         )
         .<span class="ident">subcommand</span>(
             <span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;move-projects-dir&quot;</span>)

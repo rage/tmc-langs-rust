@@ -1,9 +1,13 @@
 (function() {var implementors = {};
+implementors["async_fs"] = [{"text":"impl AsRawFd for File","synthetic":false,"types":[]}];
+implementors["async_io"] = [{"text":"impl&lt;T:&nbsp;AsRawFd&gt; AsRawFd for Async&lt;T&gt;","synthetic":false,"types":[]}];
+implementors["async_net"] = [{"text":"impl AsRawFd for UnixListener","synthetic":false,"types":[]},{"text":"impl AsRawFd for UnixStream","synthetic":false,"types":[]},{"text":"impl AsRawFd for UnixDatagram","synthetic":false,"types":[]},{"text":"impl AsRawFd for TcpListener","synthetic":false,"types":[]},{"text":"impl AsRawFd for TcpStream","synthetic":false,"types":[]},{"text":"impl AsRawFd for UdpSocket","synthetic":false,"types":[]}];
 implementors["hyper"] = [{"text":"impl AsRawFd for AddrStream","synthetic":false,"types":[]}];
 implementors["mio"] = [{"text":"impl AsRawFd for Poll","synthetic":false,"types":[]},{"text":"impl AsRawFd for TcpStream","synthetic":false,"types":[]},{"text":"impl AsRawFd for TcpListener","synthetic":false,"types":[]},{"text":"impl AsRawFd for UdpSocket","synthetic":false,"types":[]}];
 implementors["net2"] = [{"text":"impl AsRawFd for TcpBuilder","synthetic":false,"types":[]},{"text":"impl AsRawFd for UdpBuilder","synthetic":false,"types":[]}];
 implementors["nix"] = [{"text":"impl AsRawFd for Dir","synthetic":false,"types":[]},{"text":"impl AsRawFd for PtyMaster","synthetic":false,"types":[]},{"text":"impl AsRawFd for SignalFd","synthetic":false,"types":[]},{"text":"impl AsRawFd for Inotify","synthetic":false,"types":[]},{"text":"impl AsRawFd for TimerFd","synthetic":false,"types":[]}];
 implementors["same_file"] = [{"text":"impl AsRawFd for Handle","synthetic":false,"types":[]}];
+implementors["smol"] = [{"text":"impl&lt;T:&nbsp;AsRawFd&gt; AsRawFd for Async&lt;T&gt;","synthetic":false,"types":[]}];
 implementors["socket2"] = [{"text":"impl AsRawFd for Socket","synthetic":false,"types":[]}];
 implementors["tempfile"] = [{"text":"impl AsRawFd for NamedTempFile","synthetic":false,"types":[]}];
 implementors["tokio"] = [{"text":"impl AsRawFd for TcpListener","synthetic":false,"types":[]},{"text":"impl AsRawFd for TcpStream","synthetic":false,"types":[]}];

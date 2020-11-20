@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["block_on","Blocks the current thread on a future."],["unblock","Moves a blocking closure onto the thread pool."]],"macro":[["block_on","Blocks the current thread on async code."],["unblock","Moves blocking code onto the thread pool."]],"struct":[["BlockOn","Blocking interface for async I/O."],["Unblock","Async interface for blocking I/O."]]});

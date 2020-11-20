@@ -1,0 +1,1 @@
+initSidebarItems({"macro":[["pin","Pins a variable of type `T` on the stack and rebinds it as `Pin<&mut T>`."],["ready","Unwraps `Poll<T>` or returns [`Pending`][`std::task::Poll::Pending`]."]],"mod":[["future","Combinators for the [`Future`] trait."],["io","Tools and combinators for I/O."],["stream","Combinators for the [`Stream`] trait."]]});

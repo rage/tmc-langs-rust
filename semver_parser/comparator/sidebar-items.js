@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Comparator","A single range set combining a number of ranges with an or (`||`)."]]});

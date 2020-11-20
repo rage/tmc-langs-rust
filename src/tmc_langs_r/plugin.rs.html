@@ -329,6 +329,13 @@
 <span id="328">328</span>
 <span id="329">329</span>
 <span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains the RPlugin</span>
 
@@ -440,6 +447,8 @@
         <span class="ident">path</span>.<span class="ident">join</span>(<span class="string">&quot;R&quot;</span>).<span class="ident">exists</span>() <span class="op">||</span> <span class="ident">path</span>.<span class="ident">join</span>(<span class="string">&quot;tests/testthat&quot;</span>).<span class="ident">exists</span>()
     }
 
+    <span class="doccomment">/// Finds an R directory.</span>
+    <span class="doccomment">/// Ignores everything in a __MACOSX directory.</span>
     <span class="kw">fn</span> <span class="ident">find_project_dir_in_zip</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span> <span class="op">+</span> <span class="ident">Seek</span><span class="op">&gt;</span>(
         <span class="ident">zip_archive</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ZipArchive</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
     ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
@@ -448,12 +457,17 @@
             <span class="comment">// so we need to check every path for R</span>
             <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">zip_archive</span>.<span class="ident">by_index</span>(<span class="ident">i</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">file_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">file</span>.<span class="ident">name</span>());
+
             <span class="comment">// todo: do in one pass somehow</span>
             <span class="kw">if</span> <span class="ident">file_path</span>.<span class="ident">components</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">as_os_str</span>() <span class="op">==</span> <span class="string">&quot;R&quot;</span>) {
                 <span class="kw">let</span> <span class="ident">path</span>: <span class="ident">PathBuf</span> <span class="op">=</span> <span class="ident">file_path</span>
                     .<span class="ident">components</span>()
                     .<span class="ident">take_while</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">as_os_str</span>() <span class="op">!=</span> <span class="string">&quot;R&quot;</span>)
                     .<span class="ident">collect</span>();
+
+                <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">components</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">as_os_str</span>() <span class="op">==</span> <span class="string">&quot;__MACOSX&quot;</span>) {
+                    <span class="kw">continue</span>;
+                }
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">path</span>);
             }
         }
