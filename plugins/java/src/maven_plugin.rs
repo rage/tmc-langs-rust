@@ -1,9 +1,9 @@
 //! Java maven plugin
 
-pub mod policy;
-
-use self::policy::MavenStudentFilePolicy;
-use crate::{error::JavaError, plugin::JavaPlugin, CompileResult, TestRun, SEPARATOR};
+use crate::{
+    error::JavaError, java_plugin::JavaPlugin, CompileResult, MavenStudentFilePolicy, TestRun,
+    SEPARATOR,
+};
 use flate2::read::GzDecoder;
 use j4rs::Jvm;
 use std::ffi::OsString;

@@ -261,7 +261,7 @@ mod test {
         let path = temp.path().join("exercise-name");
         let zipped = zip(EverythingIsStudentFilePolicy::new(path.clone()), &path).unwrap();
         let mut archive = ZipArchive::new(Cursor::new(zipped)).unwrap();
-        assert!(archive.len() > 0);
+        assert!(!archive.is_empty());
         for i in 0..archive.len() {
             log::debug!("{:?}", archive.by_index(i).unwrap().name());
         }

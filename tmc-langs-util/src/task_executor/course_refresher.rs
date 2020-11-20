@@ -137,6 +137,8 @@ impl CourseRefresher {
                 &course.git_branch,
                 &old_cache_path,
             )?;
+            println!("nyttt");
+            std::thread::sleep(std::time::Duration::from_secs(10));
             check_directory_names(&course.clone_path)?;
             self.progress_reporter
                 .finish_step("Updated repository".to_string(), None)?;

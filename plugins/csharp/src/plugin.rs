@@ -1,8 +1,6 @@
 //! Implementation of LanguagePlugin for C#
 
-mod policy;
-
-pub use self::policy::CSharpStudentFilePolicy;
+use crate::policy::CSharpStudentFilePolicy;
 
 use crate::{CSTestResult, CSharpError};
 use std::collections::HashMap;

@@ -275,7 +275,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
 #[cfg(test)]
 mod test {
     // TODO: look into not having to use AntPlugin
-    use super::super::ant::AntPlugin;
+    use super::super::ant_plugin::AntPlugin;
     use super::*;
 
     #[test]

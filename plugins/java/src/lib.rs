@@ -1,13 +1,17 @@
 //! Java plugins for ant and maven
 
-mod ant;
+mod ant_plugin;
+mod ant_policy;
 mod error;
-mod maven;
-mod plugin;
+mod java_plugin;
+mod maven_plugin;
+mod maven_policy;
 
-pub use self::ant::{policy::AntStudentFilePolicy, AntPlugin};
+pub use self::ant_plugin::AntPlugin;
+pub use self::ant_policy::AntStudentFilePolicy;
 pub use self::error::JavaError;
-pub use self::maven::{policy::MavenStudentFilePolicy, MavenPlugin};
+pub use self::maven_plugin::MavenPlugin;
+pub use self::maven_policy::MavenStudentFilePolicy;
 
 use j4rs::{ClasspathEntry, Jvm, JvmBuilder};
 use serde::Deserialize;
