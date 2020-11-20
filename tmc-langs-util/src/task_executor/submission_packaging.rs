@@ -165,13 +165,15 @@ pub fn prepare_submission(
 
     fn useless_file_filter(entry: &ZipFile) -> bool {
         let files_to_filter = &[
-            ".DS_Store",
-            "desktop.ini",
-            "Thumbs.db",
-            ".directory",
-            "__MACOSX",
+            std::ffi::OsStr::new(".DS_Store"),
+            std::ffi::OsStr::new("desktop.ini"),
+            std::ffi::OsStr::new("Thumbs.db"),
+            std::ffi::OsStr::new(".directory"),
+            std::ffi::OsStr::new("__MACOSX"),
         ];
-        files_to_filter.contains(&entry.name())
+        Path::new(entry.name())
+            .components()
+            .any(|p| files_to_filter.contains(&p.as_os_str()))
     }
 
     let temp = tempfile::tempdir().map_err(UtilError::TempDir)?;

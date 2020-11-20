@@ -184,6 +184,7 @@ where
     for i in 0..archive.len() {
         let mut file = archive.by_index(i)?;
         if filter(&file) {
+            log::debug!("skipped file {}", file.name());
             continue;
         }
 
