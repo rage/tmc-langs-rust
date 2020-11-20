@@ -830,18 +830,20 @@ fn run_core(
             let mut course_data = HashMap::<String, Vec<(String, String)>>::new();
             let mut exercises_and_paths = vec![];
             for exercise_detail in exercises_details {
-                // get course and exercise name from server
-                let ex_details = core.get_exercise_details(exercise_detail.id)?;
                 // check if the checksum is different from what's already on disk
-                if let Some(course_config) = projects_config.courses.get(&ex_details.course_name) {
-                    if let Some(exercise) = course_config.exercises.get(&ex_details.exercise_name) {
+                if let Some(course_config) =
+                    projects_config.courses.get(&exercise_detail.course_name)
+                {
+                    if let Some(exercise) =
+                        course_config.exercises.get(&exercise_detail.exercise_name)
+                    {
                         if exercise_detail.checksum == exercise.checksum {
                             // skip this exercise
                             log::info!(
                                 "Skipping exercise {} ({} in {}) due to identical checksum",
                                 exercise_detail.id,
-                                ex_details.course_name,
-                                ex_details.exercise_name
+                                exercise_detail.course_name,
+                                exercise_detail.exercise_name
                             );
                             continue;
                         }
@@ -850,13 +852,13 @@ fn run_core(
 
                 let target = ProjectsConfig::get_exercise_download_target(
                     &projects_dir,
-                    &ex_details.course_name,
-                    &ex_details.exercise_name,
+                    &exercise_detail.course_name,
+                    &exercise_detail.exercise_name,
                 );
 
-                let entry = course_data.entry(ex_details.course_name);
+                let entry = course_data.entry(exercise_detail.course_name);
                 let course_exercises = entry.or_default();
-                course_exercises.push((ex_details.exercise_name, exercise_detail.checksum));
+                course_exercises.push((exercise_detail.exercise_name, exercise_detail.checksum));
 
                 exercises_and_paths.push((exercise_detail.id, target));
             }

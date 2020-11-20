@@ -18,7 +18,7 @@ pub use self::error::CoreError;
 pub use self::request::FeedbackAnswer;
 pub use self::response::{
     Course, CourseData, CourseDataExercise, CourseDataExercisePoint, CourseDetails, CourseExercise,
-    Exercise, ExerciseChecksums, ExerciseDetails, NewSubmission, Organization, Review, Submission,
+    Exercise, ExerciseDetails, ExercisesDetails, NewSubmission, Organization, Review, Submission,
     SubmissionFeedbackResponse, SubmissionFinished, SubmissionProcessingStatus, SubmissionStatus,
     UpdateResult, User,
 };

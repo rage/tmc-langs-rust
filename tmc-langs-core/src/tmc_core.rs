@@ -329,7 +329,7 @@ impl TmcCore {
     pub fn get_exercises_details(
         &self,
         exercise_ids: Vec<usize>,
-    ) -> Result<Vec<ExerciseChecksums>, CoreError> {
+    ) -> Result<Vec<ExercisesDetails>, CoreError> {
         self.core_exercise_details(exercise_ids)
     }
 

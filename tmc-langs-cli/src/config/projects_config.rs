@@ -98,11 +98,11 @@ mod test {
     }
 
     fn file_to(
-        temp: impl AsRef<std::path::Path>,
-        relative_path: impl AsRef<std::path::Path>,
+        target_dir: impl AsRef<std::path::Path>,
+        target_relative: impl AsRef<std::path::Path>,
         contents: impl AsRef<[u8]>,
     ) {
-        let target = temp.as_ref().join(relative_path);
+        let target = target_dir.as_ref().join(target_relative);
         if let Some(parent) = target.parent() {
             std::fs::create_dir_all(parent).unwrap();
         }

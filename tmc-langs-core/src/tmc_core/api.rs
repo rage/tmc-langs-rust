@@ -4,7 +4,7 @@ use crate::error::CoreError;
 use crate::response::ErrorResponse;
 use crate::{
     Course, CourseData, CourseDataExercise, CourseDataExercisePoint, CourseDetails, CourseExercise,
-    ExerciseChecksums, ExerciseDetails, FeedbackAnswer, NewSubmission, Organization, Review,
+    ExerciseDetails, ExercisesDetails, FeedbackAnswer, NewSubmission, Organization, Review,
     Submission, SubmissionFeedbackResponse, TmcCore, User,
 };
 use oauth2::TokenResponse;
@@ -610,7 +610,7 @@ impl TmcCore {
     pub(super) fn core_exercise_details(
         &self,
         exercise_ids: Vec<usize>,
-    ) -> Result<Vec<ExerciseChecksums>, CoreError> {
+    ) -> Result<Vec<ExercisesDetails>, CoreError> {
         if self.token.is_none() {
             return Err(CoreError::NotLoggedIn);
         }
@@ -625,7 +625,7 @@ impl TmcCore {
         );
 
         // returns map with result in key "exercises"
-        let res: HashMap<String, Vec<ExerciseChecksums>> =
+        let res: HashMap<String, Vec<ExercisesDetails>> =
             self.get_json_with_params(&url_tail, &[exercise_ids])?;
         if let Some((_, val)) = res.into_iter().next() {
             // just return whatever value is found first

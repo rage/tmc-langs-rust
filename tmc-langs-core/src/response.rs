@@ -211,8 +211,10 @@ pub struct ExerciseDetails {
 }
 
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
-pub struct ExerciseChecksums {
+pub struct ExercisesDetails {
     pub id: usize,
+    pub course_name: String,
+    pub exercise_name: String,
     pub checksum: String,
 }
 
