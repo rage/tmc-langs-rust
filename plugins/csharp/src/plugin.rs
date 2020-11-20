@@ -132,16 +132,21 @@ impl LanguagePlugin for CSharpPlugin {
     }
 
     /// Finds any directory X which contains a X/src/*.csproj file.
+    /// Ignores everything in a __MACOSX directory.
     fn find_project_dir_in_zip<R: Read + Seek>(
         zip_archive: &mut ZipArchive<R>,
     ) -> Result<PathBuf, TmcError> {
         for i in 0..zip_archive.len() {
             let file = zip_archive.by_index(i)?;
             let file_path = Path::new(file.name());
+
             if file_path.extension() == Some(OsStr::new("csproj")) {
                 if let Some(csproj_parent) = file_path.parent().and_then(Path::parent) {
                     if csproj_parent.file_name() == Some(OsStr::new("src")) {
                         if let Some(src_parent) = csproj_parent.parent() {
+                            if src_parent.components().any(|p| p.as_os_str() == "__MACOSX") {
+                                continue;
+                            }
                             return Ok(src_parent.to_path_buf());
                         }
                     }

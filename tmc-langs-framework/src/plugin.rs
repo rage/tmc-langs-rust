@@ -374,6 +374,7 @@ pub trait LanguagePlugin {
     /// Note that the returned path may not actually have an entry in the zip.
     /// The default implementation tries to find a directory that contains a "src" directory,
     /// which may be sufficient for some languages.
+    /// Ignores everything in a __MACOSX directory.
     fn find_project_dir_in_zip<R: Read + Seek>(
         zip_archive: &mut ZipArchive<R>,
     ) -> Result<PathBuf, TmcError> {
@@ -382,12 +383,17 @@ pub trait LanguagePlugin {
             // so we need to check every path for src
             let file = zip_archive.by_index(i)?;
             let file_path = Path::new(file.name());
+
             // todo: do in one pass somehow
             if file_path.components().any(|c| c.as_os_str() == "src") {
                 let path: PathBuf = file_path
                     .components()
                     .take_while(|c| c.as_os_str() != "src")
                     .collect();
+
+                if path.components().any(|p| p.as_os_str() == "__MACOSX") {
+                    continue;
+                }
                 return Ok(path);
             }
         }

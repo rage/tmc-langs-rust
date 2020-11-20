@@ -108,6 +108,8 @@ impl LanguagePlugin for RPlugin {
         path.join("R").exists() || path.join("tests/testthat").exists()
     }
 
+    /// Finds an R directory.
+    /// Ignores everything in a __MACOSX directory.
     fn find_project_dir_in_zip<R: Read + Seek>(
         zip_archive: &mut ZipArchive<R>,
     ) -> Result<PathBuf, TmcError> {
@@ -116,12 +118,17 @@ impl LanguagePlugin for RPlugin {
             // so we need to check every path for R
             let file = zip_archive.by_index(i)?;
             let file_path = Path::new(file.name());
+
             // todo: do in one pass somehow
             if file_path.components().any(|c| c.as_os_str() == "R") {
                 let path: PathBuf = file_path
                     .components()
                     .take_while(|c| c.as_os_str() != "R")
                     .collect();
+
+                if path.components().any(|p| p.as_os_str() == "__MACOSX") {
+                    continue;
+                }
                 return Ok(path);
             }
         }
