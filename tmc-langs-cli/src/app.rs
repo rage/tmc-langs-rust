@@ -68,6 +68,7 @@ pub fn create_app() -> App<'static, 'static> {
                 .about("Returns the amount of free disk space in megabytes left on the partition that contains the given path")
                 .arg(Arg::with_name("path")
                     .help("A path in the partition that should be inspected.")
+                    .long("path")
                     .required(true)
                     .takes_value(true))
         )
