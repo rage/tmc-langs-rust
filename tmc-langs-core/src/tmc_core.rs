@@ -227,12 +227,6 @@ impl TmcCore {
         self.organization(organization_slug)
     }
 
-    /// Unimplemented.
-    #[deprecated = "unimplemented"]
-    pub fn send_diagnostics(&self) {
-        unimplemented!()
-    }
-
     /// Downloads the given exercises. Overwrites existing exercises if they exist.
     ///
     /// # Errors
@@ -463,11 +457,6 @@ impl TmcCore {
         feedback: Vec<FeedbackAnswer>,
     ) -> Result<SubmissionFeedbackResponse, CoreError> {
         self.post_feedback(feedback_url, feedback)
-    }
-
-    #[deprecated = "unimplemented"]
-    pub fn send_snapshot_events(&self) {
-        unimplemented!()
     }
 
     /// Sends the submission to the server.
