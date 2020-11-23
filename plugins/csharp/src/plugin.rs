@@ -1,8 +1,8 @@
-//! Implementation of LanguagePlugin for C#
+//! An implementation of LanguagePlugin for C#.
 
 use crate::policy::CSharpStudentFilePolicy;
 
-use crate::{CSTestResult, CSharpError};
+use crate::{cs_test_result::CSTestResult, CSharpError};
 use std::collections::HashMap;
 use std::env;
 use std::ffi::{OsStr, OsString};
@@ -33,7 +33,7 @@ impl CSharpPlugin {
     }
 
     /// Extracts the bundled tmc-csharp-runner to the given path.
-    fn extract_runner(target: &Path) -> Result<(), CSharpError> {
+    fn extract_runner_to_dir(target: &Path) -> Result<(), CSharpError> {
         log::debug!("extracting C# runner to {}", target.display());
         const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../tmc-csharp-runner-1.0.1.zip");
 
@@ -58,12 +58,14 @@ impl CSharpPlugin {
     }
 
     /// Returns the directory of the TMC C# runner, writing it to the cache dir if it doesn't exist there yet.
-    fn get_runner_dir() -> Result<PathBuf, CSharpError> {
+    ///
+    /// NOTE: May cause issues if called concurrently.
+    fn get_or_init_runner_dir() -> Result<PathBuf, CSharpError> {
         match dirs::cache_dir() {
             Some(cache_dir) => {
                 let runner_dir = cache_dir.join("tmc").join("tmc-csharp-runner");
                 if !runner_dir.exists() {
-                    Self::extract_runner(&runner_dir)?;
+                    Self::extract_runner_to_dir(&runner_dir)?;
                 }
                 Ok(runner_dir)
             }
@@ -77,7 +79,7 @@ impl CSharpPlugin {
             log::debug!("using bootstrap path TMC_CSHARP_BOOTSTRAP_PATH={}", var);
             Ok(PathBuf::from(var))
         } else {
-            let runner_path = Self::get_runner_dir()?;
+            let runner_path = Self::get_or_init_runner_dir()?;
             let bootstrap_path = runner_path.join("TestMyCode.CSharp.Bootstrap.dll");
             if bootstrap_path.exists() {
                 log::debug!("found boostrap dll at {}", bootstrap_path.display());
@@ -139,9 +141,12 @@ impl LanguagePlugin for CSharpPlugin {
             let file_path = Path::new(file.name());
 
             if file_path.extension() == Some(OsStr::new("csproj")) {
+                // check parent of parent of csproj file for src
                 if let Some(csproj_parent) = file_path.parent().and_then(Path::parent) {
                     if csproj_parent.file_name() == Some(OsStr::new("src")) {
+                        // get parent of src
                         if let Some(src_parent) = csproj_parent.parent() {
+                            // skip if any part of the path is __MACOSX
                             if src_parent.components().any(|p| p.as_os_str() == "__MACOSX") {
                                 continue;
                             }
@@ -276,8 +281,9 @@ impl LanguagePlugin for CSharpPlugin {
         }
         for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
             let file_name = entry.path().file_name();
-            if file_name == Some(&OsString::from("bin"))
-                || file_name == Some(&OsString::from("obj"))
+            if entry.path().is_dir()
+                && (file_name == Some(&OsString::from("bin"))
+                    || file_name == Some(&OsString::from("obj")))
             {
                 file_util::remove_dir_all(entry.path())?;
             }
@@ -331,7 +337,7 @@ mod test {
     fn init() {
         let _ = env_logger::builder().is_test(true).try_init();
         INIT_RUNNER.call_once(|| {
-            let _ = CSharpPlugin::get_runner_dir().unwrap();
+            let _ = CSharpPlugin::get_or_init_runner_dir().unwrap();
         });
     }
 

@@ -1,4 +1,4 @@
-//! Error type for C#
+//! Error type for the crate.
 
 use std::path::PathBuf;
 use thiserror::Error;
