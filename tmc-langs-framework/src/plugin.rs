@@ -494,7 +494,7 @@ pub trait LanguagePlugin {
                         branch::alt((line_comment_parser, block_comment_parser, points_parser)),
                     ));
                     let res: IResult<_, _> = parser(&file_contents);
-                    let (_, parsed) = res.unwrap();
+                    let (_, parsed) = res.map_err(|e| TmcError::PointParse(e.to_string()))?;
                     for (_, parse) in parsed {
                         if let Parse::Points(parsed) = parse {
                             points.push(parsed);

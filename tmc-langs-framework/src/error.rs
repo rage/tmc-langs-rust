@@ -38,6 +38,8 @@ pub enum TmcError {
     FileNotInProject(PathBuf, PathBuf),
     #[error("Path {0} is not absolute")]
     PathNotAbsolute(PathBuf),
+    #[error("Error while parsing available points: {0}")]
+    PointParse(String),
 
     #[error("Path {0} contained invalid UTF8")]
     UTF8(PathBuf),
