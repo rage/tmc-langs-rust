@@ -112,7 +112,7 @@ fn copy_file(
     let extension = file.extension().and_then(|e| e.to_str());
     let is_binary = extension
         .map(|e| NON_TEXT_TYPES.is_match(e))
-        .unwrap_or_default();
+        .unwrap_or(true); // paths with no extension are interpreted to be binary files
     if is_binary {
         // copy binary files
         debug!("copying binary file from {:?} to {:?}", file, dest_path);
@@ -122,7 +122,11 @@ fn copy_file(
         let source_file = file_util::open_file(file)?;
 
         let parser = MetaSyntaxParser::new(source_file, extension.unwrap_or_default());
-        let parsed: Vec<MetaString> = parser.collect::<Result<Vec<_>, _>>()?;
+        let parse_result: Result<Vec<_>, _> = parser.collect();
+        let parsed = match parse_result {
+            Ok(parsed) => parsed,
+            Err(err) => return Err(TmcError::SubmissionParse(file.to_path_buf(), Box::new(err))),
+        };
 
         // files that don't pass the filter are skipped
         if !file_filter(&parsed) {

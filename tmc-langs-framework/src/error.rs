@@ -26,6 +26,8 @@ pub enum TmcError {
     TarFinish(#[source] std::io::Error),
     #[error("Failed to read line")]
     ReadLine(#[source] std::io::Error),
+    #[error("Failed to parse file {0}")]
+    SubmissionParse(PathBuf, #[source] Box<Self>),
     #[error("Failed to canonicalize path {0}")]
     Canonicalize(PathBuf, #[source] std::io::Error),
     #[error("Error occurred in a child process")]
