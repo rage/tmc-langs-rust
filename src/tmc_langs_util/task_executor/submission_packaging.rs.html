@@ -733,6 +733,12 @@
 <span id="732">732</span>
 <span id="733">733</span>
 <span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">get_language_plugin</span>, <span class="ident">Plugin</span>, <span class="ident">TmcProjectYml</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::{<span class="ident">ParamError</span>, <span class="ident">UtilError</span>};
@@ -963,12 +969,12 @@
         <span class="comment">// idea</span>
         <span class="string">&quot;.idea&quot;</span>,
     ] {
-        <span class="kw">let</span> <span class="ident">dir_in_received</span> <span class="op">=</span> <span class="ident">project_root</span>.<span class="ident">join</span>(<span class="ident">ide_dir</span>);
-        <span class="kw">let</span> <span class="ident">dir_in_clone</span> <span class="op">=</span> <span class="ident">clone_path</span>.<span class="ident">join</span>(<span class="ident">ide_dir</span>);
-        <span class="kw">if</span> <span class="ident">dir_in_received</span>.<span class="ident">exists</span>() {
-            <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">dir_in_received</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">dir_in_clone</span>.<span class="ident">exists</span>() {
-            <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">dir_in_clone</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">ide_dir_in_received</span> <span class="op">=</span> <span class="ident">project_root</span>.<span class="ident">join</span>(<span class="ident">ide_dir</span>);
+        <span class="kw">let</span> <span class="ident">ide_dir_in_clone</span> <span class="op">=</span> <span class="ident">clone_path</span>.<span class="ident">join</span>(<span class="ident">ide_dir</span>);
+        <span class="kw">if</span> <span class="ident">ide_dir_in_received</span>.<span class="ident">exists</span>() {
+            <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">ide_dir_in_received</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">ide_dir_in_clone</span>.<span class="ident">exists</span>() {
+            <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">ide_dir_in_clone</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
         }
     }
 
@@ -992,7 +998,10 @@
             <span class="comment">// copy src main and test</span>
             <span class="kw">let</span> <span class="ident">main_path</span> <span class="op">=</span> <span class="ident">clone_path</span>.<span class="ident">join</span>(<span class="string">&quot;src/main&quot;</span>);
             <span class="kw">if</span> <span class="ident">main_path</span>.<span class="ident">exists</span>() {
-                <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">main_path</span>, <span class="ident">dest</span>.<span class="ident">join</span>(<span class="string">&quot;src&quot;</span>))<span class="question-mark">?</span>;
+                <span class="ident">tmc_langs_framework</span>::<span class="ident">io</span>::<span class="ident">submission_processing</span>::<span class="ident">prepare_stub</span>(
+                    <span class="kw-2">&amp;</span><span class="ident">main_path</span>,
+                    <span class="kw-2">&amp;</span><span class="ident">dest</span>.<span class="ident">join</span>(<span class="string">&quot;src&quot;</span>),
+                )<span class="question-mark">?</span>;
             }
             <span class="kw">let</span> <span class="ident">test_path</span> <span class="op">=</span> <span class="ident">tests_dir</span>.<span class="ident">join</span>(<span class="string">&quot;src/test&quot;</span>);
             <span class="kw">if</span> <span class="ident">test_path</span>.<span class="ident">exists</span>() {
@@ -1041,7 +1050,10 @@
             <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;copying src and test&quot;</span>);
             <span class="kw">let</span> <span class="ident">main_path</span> <span class="op">=</span> <span class="ident">clone_path</span>.<span class="ident">join</span>(<span class="string">&quot;src&quot;</span>);
             <span class="kw">if</span> <span class="ident">main_path</span>.<span class="ident">exists</span>() {
-                <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">main_path</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
+                <span class="ident">tmc_langs_framework</span>::<span class="ident">io</span>::<span class="ident">submission_processing</span>::<span class="ident">prepare_stub</span>(
+                    <span class="kw-2">&amp;</span><span class="ident">main_path</span>,
+                    <span class="kw-2">&amp;</span><span class="ident">dest</span>.<span class="ident">join</span>(<span class="string">&quot;src&quot;</span>),
+                )<span class="question-mark">?</span>;
             }
             <span class="kw">let</span> <span class="ident">test_path</span> <span class="op">=</span> <span class="ident">clone_path</span>.<span class="ident">join</span>(<span class="string">&quot;test&quot;</span>);
             <span class="kw">if</span> <span class="ident">test_path</span>.<span class="ident">exists</span>() {
