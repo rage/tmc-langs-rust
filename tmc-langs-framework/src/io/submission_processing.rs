@@ -92,47 +92,41 @@ pub fn contains_tmcignore(entry: &DirEntry) -> bool {
 
 // Copies the entry to the destination. Parses and filters text files according to `filter`
 fn copy_file(
-    entry: &DirEntry,
+    file: &Path,
     source_root: &Path,
     dest_root: &Path,
     line_filter: &mut impl Fn(&MetaString) -> bool,
     file_filter: &mut impl Fn(&[MetaString]) -> bool,
 ) -> Result<(), TmcError> {
-    let is_dir = entry.metadata().map(|e| e.is_dir()).unwrap_or_default();
-    if is_dir {
+    if file.is_dir() {
         return Ok(());
     }
     // get relative path
-    let relative_path = entry
-        .path()
+    let relative_path = file
         .strip_prefix(source_root)
         .unwrap_or_else(|_| Path::new(""));
     let dest_path = dest_root.join(&relative_path);
     if let Some(parent) = dest_path.parent() {
         file_util::create_dir_all(parent)?;
     }
-    let extension = entry.path().extension().and_then(|e| e.to_str());
+    let extension = file.extension().and_then(|e| e.to_str());
     let is_binary = extension
         .map(|e| NON_TEXT_TYPES.is_match(e))
         .unwrap_or_default();
     if is_binary {
         // copy binary files
-        debug!(
-            "copying binary file from {:?} to {:?}",
-            entry.path(),
-            dest_path
-        );
-        file_util::copy(entry.path(), &dest_path)?;
+        debug!("copying binary file from {:?} to {:?}", file, dest_path);
+        file_util::copy(file, &dest_path)?;
     } else {
         // filter text files
-        let source_file = file_util::open_file(entry.path())?;
+        let source_file = file_util::open_file(file)?;
 
         let parser = MetaSyntaxParser::new(source_file, extension.unwrap_or_default());
         let parsed: Vec<MetaString> = parser.collect::<Result<Vec<_>, _>>()?;
 
         // files that don't pass the filter are skipped
         if !file_filter(&parsed) {
-            log::debug!("skipping {} due to file filter", entry.path().display());
+            log::debug!("skipping {} due to file filter", file.display());
             return Ok(());
         }
 
@@ -152,7 +146,7 @@ fn copy_file(
         // writes all lines
         log::debug!(
             "filtered file {} to {}",
-            entry.path().display(),
+            file.display(),
             dest_path.display()
         );
         file_util::write_to_file(&mut write_lines.as_slice(), &dest_path)?;
@@ -162,20 +156,26 @@ fn copy_file(
 
 // Processes all files in path, copying files in directories that are not skipped
 fn process_files(
-    path: &Path,
+    source: &Path,
     dest_root: &Path,
     mut line_filter: impl Fn(&MetaString) -> bool,
     mut file_filter: impl Fn(&[MetaString]) -> bool,
 ) -> Result<(), TmcError> {
-    info!("Project: {:?}", path);
+    info!("Project: {:?}", source);
 
-    let walker = WalkDir::new(path).into_iter();
+    let walker = WalkDir::new(source).into_iter();
     // silently skips over errors, for example when there's a directory we don't have permissions for
     for entry in walker
         .filter_entry(|e| !is_hidden_dir(e) && !on_skip_list(e) && !contains_tmcignore(e))
         .filter_map(|e| e.ok())
     {
-        copy_file(&entry, path, dest_root, &mut line_filter, &mut file_filter)?;
+        copy_file(
+            entry.path(),
+            source,
+            dest_root,
+            &mut line_filter,
+            &mut file_filter,
+        )?;
     }
     Ok(())
 }

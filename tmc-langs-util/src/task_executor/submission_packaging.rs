@@ -227,12 +227,12 @@ pub fn prepare_submission(
         // idea
         ".idea",
     ] {
-        let dir_in_received = project_root.join(ide_dir);
-        let dir_in_clone = clone_path.join(ide_dir);
-        if dir_in_received.exists() {
-            file_util::copy(dir_in_received, &dest)?;
-        } else if dir_in_clone.exists() {
-            file_util::copy(dir_in_clone, &dest)?;
+        let ide_dir_in_received = project_root.join(ide_dir);
+        let ide_dir_in_clone = clone_path.join(ide_dir);
+        if ide_dir_in_received.exists() {
+            file_util::copy(ide_dir_in_received, &dest)?;
+        } else if ide_dir_in_clone.exists() {
+            file_util::copy(ide_dir_in_clone, &dest)?;
         }
     }
 
@@ -256,7 +256,10 @@ pub fn prepare_submission(
             // copy src main and test
             let main_path = clone_path.join("src/main");
             if main_path.exists() {
-                file_util::copy(main_path, dest.join("src"))?;
+                tmc_langs_framework::io::submission_processing::prepare_stub(
+                    &main_path,
+                    &dest.join("src"),
+                )?;
             }
             let test_path = tests_dir.join("src/test");
             if test_path.exists() {
@@ -305,7 +308,10 @@ pub fn prepare_submission(
             log::debug!("copying src and test");
             let main_path = clone_path.join("src");
             if main_path.exists() {
-                file_util::copy(main_path, &dest)?;
+                tmc_langs_framework::io::submission_processing::prepare_stub(
+                    &main_path,
+                    &dest.join("src"),
+                )?;
             }
             let test_path = clone_path.join("test");
             if test_path.exists() {
