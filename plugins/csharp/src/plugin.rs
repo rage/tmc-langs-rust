@@ -61,6 +61,7 @@ impl CSharpPlugin {
     ///
     /// NOTE: May cause issues if called concurrently.
     fn get_or_init_runner_dir() -> Result<PathBuf, CSharpError> {
+        log::debug!("initializing C# runner dir");
         match dirs::cache_dir() {
             Some(cache_dir) => {
                 let runner_dir = cache_dir.join("tmc").join("tmc-csharp-runner");
@@ -95,6 +96,7 @@ impl CSharpPlugin {
         test_results_path: &Path,
         logs: HashMap<String, String>,
     ) -> Result<RunResult, CSharpError> {
+        log::debug!("parsing C# test results");
         let test_results = file_util::open_file(test_results_path)?;
         let test_results: Vec<CSTestResult> = serde_json::from_reader(test_results)
             .map_err(|e| CSharpError::ParseTestResults(test_results_path.to_path_buf(), e))?;
@@ -102,6 +104,7 @@ impl CSharpPlugin {
         let mut status = RunStatus::Passed;
         for test_result in &test_results {
             if !test_result.passed {
+                log::info!("C# tests failed");
                 status = RunStatus::TestsFailed;
                 break;
             }
@@ -277,6 +280,7 @@ impl LanguagePlugin for CSharpPlugin {
     fn clean(&self, path: &Path) -> Result<(), TmcError> {
         let test_results_path = path.join(".tmc_test_results.json");
         if test_results_path.exists() {
+            log::info!("removing old test results file");
             file_util::remove_file(&test_results_path)?;
         }
         for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
@@ -285,6 +289,7 @@ impl LanguagePlugin for CSharpPlugin {
                 && (file_name == Some(&OsString::from("bin"))
                     || file_name == Some(&OsString::from("obj")))
             {
+                log::info!("cleaning directory {}", entry.path().display());
                 file_util::remove_dir_all(entry.path())?;
             }
         }
