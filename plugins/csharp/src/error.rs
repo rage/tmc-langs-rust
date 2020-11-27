@@ -9,16 +9,17 @@ use tmc_langs_framework::{
 
 #[derive(Debug, Error)]
 pub enum CSharpError {
+    // Original error types.
     #[error("Failed to parse exercise description at {0}")]
     ParseExerciseDesc(PathBuf, #[source] serde_json::Error),
     #[error("Failed to parse test results at {0}")]
     ParseTestResults(PathBuf, #[source] serde_json::Error),
-
     #[error("Could not locate cache directory")]
     CacheDir,
     #[error("Could not locate boostrap DLL at {0}")]
     MissingBootstrapDll(PathBuf),
 
+    // Wrapping other error types.
     #[error("Command not found")]
     Command(#[from] CommandError),
     #[error("File IO error")]

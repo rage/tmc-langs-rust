@@ -3,7 +3,7 @@
 use serde::Deserialize;
 use tmc_langs_framework::domain::TestResult;
 
-/// Test result from the C# test runner
+/// Test result from the C# test runner.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct CSTestResult {

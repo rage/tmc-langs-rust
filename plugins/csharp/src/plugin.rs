@@ -1,7 +1,6 @@
 //! An implementation of LanguagePlugin for C#.
 
 use crate::policy::CSharpStudentFilePolicy;
-
 use crate::{cs_test_result::CSTestResult, CSharpError};
 use std::collections::HashMap;
 use std::env;
@@ -35,7 +34,7 @@ impl CSharpPlugin {
     /// Extracts the bundled tmc-csharp-runner to the given path.
     fn extract_runner_to_dir(target: &Path) -> Result<(), CSharpError> {
         log::debug!("extracting C# runner to {}", target.display());
-        const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../tmc-csharp-runner-1.0.1.zip");
+        const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../deps/tmc-csharp-runner-1.0.1.zip");
 
         let mut zip = ZipArchive::new(Cursor::new(TMC_CSHARP_RUNNER))?;
         for i in 0..zip.len() {
@@ -61,7 +60,7 @@ impl CSharpPlugin {
     ///
     /// NOTE: May cause issues if called concurrently.
     fn get_or_init_runner_dir() -> Result<PathBuf, CSharpError> {
-        log::debug!("initializing C# runner dir");
+        log::debug!("getting C# runner dir");
         match dirs::cache_dir() {
             Some(cache_dir) => {
                 let runner_dir = cache_dir.join("tmc").join("tmc-csharp-runner");
@@ -134,7 +133,7 @@ impl LanguagePlugin for CSharpPlugin {
             .any(|e| e.path().extension() == Some(&OsString::from("csproj")))
     }
 
-    /// Finds any directory X which contains a X/src/*.csproj file.
+    /// Finds any directory X which contains a X/src/*/*.csproj file.
     /// Ignores everything in a __MACOSX directory.
     fn find_project_dir_in_zip<R: Read + Seek>(
         zip_archive: &mut ZipArchive<R>,
@@ -144,13 +143,13 @@ impl LanguagePlugin for CSharpPlugin {
             let file_path = Path::new(file.name());
 
             if file_path.extension() == Some(OsStr::new("csproj")) {
-                // check parent of parent of csproj file for src
+                // check parent of parent of the csproj file for src
                 if let Some(csproj_parent) = file_path.parent().and_then(Path::parent) {
                     if csproj_parent.file_name() == Some(OsStr::new("src")) {
                         // get parent of src
                         if let Some(src_parent) = csproj_parent.parent() {
                             // skip if any part of the path is __MACOSX
-                            if src_parent.components().any(|p| p.as_os_str() == "__MACOSX") {
+                            if file_path.components().any(|p| p.as_os_str() == "__MACOSX") {
                                 continue;
                             }
                             return Ok(src_parent.to_path_buf());
@@ -173,11 +172,13 @@ impl LanguagePlugin for CSharpPlugin {
         exercise_name: String,
         _warnings: &mut Vec<anyhow::Error>,
     ) -> Result<ExerciseDesc, TmcError> {
+        // clean old points file
         let exercise_desc_json_path = path.join(".tmc_available_points.json");
         if exercise_desc_json_path.exists() {
             file_util::remove_file(&exercise_desc_json_path)?;
         }
 
+        // run command
         let bootstrap_path = Self::get_bootstrap_path()?;
         let _output = TmcCommand::new_with_file_io("dotnet")?
             .with(|e| {
@@ -187,6 +188,8 @@ impl LanguagePlugin for CSharpPlugin {
             })
             .output_checked()?;
 
+        // TODO: the command above can fail silently in some edge cases
+        // parse result file
         let exercise_desc_json = file_util::open_file(&exercise_desc_json_path)?;
         let json: HashMap<String, Vec<String>> =
             serde_json::from_reader(BufReader::new(exercise_desc_json))
@@ -209,11 +212,13 @@ impl LanguagePlugin for CSharpPlugin {
         timeout: Option<Duration>,
         _warnings: &mut Vec<anyhow::Error>,
     ) -> Result<RunResult, TmcError> {
+        // clean old file
         let test_results_path = path.join(".tmc_test_results.json");
         if test_results_path.exists() {
             file_util::remove_file(&test_results_path)?;
         }
 
+        // run command
         let bootstrap_path = Self::get_bootstrap_path()?;
         let command = TmcCommand::new_with_file_io("dotnet")?
             .with(|e| e.cwd(path).arg(bootstrap_path).arg("--run-tests"));
@@ -278,11 +283,14 @@ impl LanguagePlugin for CSharpPlugin {
 
     /// Removes all bin and obj sub-directories.
     fn clean(&self, path: &Path) -> Result<(), TmcError> {
+        // clean old result file
         let test_results_path = path.join(".tmc_test_results.json");
         if test_results_path.exists() {
             log::info!("removing old test results file");
             file_util::remove_file(&test_results_path)?;
         }
+
+        // delete bin and obj directories
         for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
             let file_name = entry.path().file_name();
             if entry.path().is_dir()
@@ -333,69 +341,177 @@ impl LanguagePlugin for CSharpPlugin {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::fs::{self, File};
     use std::sync::Once;
     use tempfile::TempDir;
 
     static INIT_RUNNER: Once = Once::new();
 
     fn init() {
-        let _ = env_logger::builder().is_test(true).try_init();
+        use simplelog::*;
+        let _ = TestLogger::init(
+            LevelFilter::Debug,
+            ConfigBuilder::new()
+                .set_location_level(LevelFilter::Debug)
+                .build(),
+        );
         INIT_RUNNER.call_once(|| {
             let _ = CSharpPlugin::get_or_init_runner_dir().unwrap();
         });
     }
 
-    fn copy_test_dir(path: &str) -> TempDir {
-        init();
-        let path = Path::new(path);
+    fn file_to(
+        target_dir: impl AsRef<std::path::Path>,
+        target_relative: impl AsRef<std::path::Path>,
+        contents: impl AsRef<[u8]>,
+    ) -> PathBuf {
+        let target = target_dir.as_ref().join(target_relative);
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent).unwrap();
+        }
+        std::fs::write(&target, contents.as_ref()).unwrap();
+        target
+    }
 
-        let temp = tempfile::tempdir().unwrap();
-        for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
-            let target = temp.path().join(entry.path().strip_prefix(path).unwrap());
+    fn dir_to_zip(source_dir: impl AsRef<std::path::Path>) -> Vec<u8> {
+        use std::io::Write;
+
+        let mut target = vec![];
+        let mut zip = zip::ZipWriter::new(std::io::Cursor::new(&mut target));
+
+        for entry in walkdir::WalkDir::new(&source_dir)
+            .min_depth(1)
+            .sort_by(|a, b| a.path().cmp(b.path()))
+        {
+            let entry = entry.unwrap();
+            let rela = entry
+                .path()
+                .strip_prefix(&source_dir)
+                .unwrap()
+                .to_str()
+                .unwrap();
             if entry.path().is_dir() {
-                log::trace!("creating dirs {}", entry.path().display());
-                fs::create_dir_all(target).unwrap();
-            } else {
-                log::trace!(
-                    "copy from {} to {}",
-                    entry.path().display(),
-                    target.display()
-                );
-                fs::copy(entry.path(), target).unwrap();
+                zip.add_directory(rela, zip::write::FileOptions::default())
+                    .unwrap();
+            } else if entry.path().is_file() {
+                zip.start_file(rela, zip::write::FileOptions::default())
+                    .unwrap();
+                let bytes = std::fs::read(entry.path()).unwrap();
+                zip.write_all(&bytes).unwrap();
+            }
+        }
+
+        zip.finish().unwrap();
+        drop(zip);
+        target
+    }
+
+    fn dir_to_temp(source_dir: impl AsRef<std::path::Path>) -> tempfile::TempDir {
+        let temp = tempfile::TempDir::new().unwrap();
+        for entry in walkdir::WalkDir::new(&source_dir).min_depth(1) {
+            let entry = entry.unwrap();
+            let rela = entry.path().strip_prefix(&source_dir).unwrap();
+            let target = temp.path().join(rela);
+            if entry.path().is_dir() {
+                std::fs::create_dir(target).unwrap();
+            } else if entry.path().is_file() {
+                std::fs::copy(entry.path(), target).unwrap();
             }
         }
         temp
     }
 
     #[test]
+    fn extracts_runner_to_dir() {
+        init();
+
+        let temp = tempfile::TempDir::new().unwrap();
+        CSharpPlugin::extract_runner_to_dir(temp.path()).unwrap();
+        assert!(temp.path().join("TestMyCode.CSharp.Bootstrap.dll").exists());
+    }
+
+    #[test]
+    fn gets_bootstrap_path() {
+        init();
+
+        let path = CSharpPlugin::get_bootstrap_path().unwrap();
+        assert!(path
+            .to_string_lossy()
+            .contains("TestMyCode.CSharp.Bootstrap.dll"));
+    }
+
+    #[test]
+    fn parses_test_results() {
+        init();
+
+        let temp = tempfile::TempDir::new().unwrap();
+        let json = file_to(
+            &temp,
+            ".tmc_test_results.json",
+            r#"
+[
+    {
+        "Name": "n1",
+        "Passed": true,
+        "Message": "m1",
+        "Points": ["1", "2"],
+        "ErrorStackTrace": []
+    },
+    {
+        "Name": "n2",
+        "Passed": false,
+        "Message": "m2",
+        "Points": [],
+        "ErrorStackTrace": ["err"]
+    }
+]
+"#,
+        );
+        let parse = CSharpPlugin::parse_test_results(&json, HashMap::new()).unwrap();
+        assert_eq!(parse.status, RunStatus::TestsFailed);
+        assert_eq!(parse.test_results.len(), 2);
+    }
+
+    #[test]
     fn exercise_type_is_correct() {
         init();
-        let temp = copy_test_dir("tests/data/PassingProject");
-        let is = CSharpPlugin::is_exercise_type_correct(temp.path());
-        assert!(is);
+
+        let temp = TempDir::new().unwrap();
+        file_to(&temp, "src/dir/sample.csproj", "");
+        assert!(CSharpPlugin::is_exercise_type_correct(temp.path()));
     }
 
     #[test]
     fn exercise_type_is_incorrect() {
         init();
-        let temp = copy_test_dir("tests/data");
-        let is = CSharpPlugin::is_exercise_type_correct(temp.path());
-        assert!(!is);
+
+        let temp = TempDir::new().unwrap();
+        file_to(&temp, "src/dir/dir/dir/sample.csproj", "");
+        file_to(&temp, "sample.csproj", "");
+        assert!(!CSharpPlugin::is_exercise_type_correct(temp.path()));
     }
 
     #[test]
     fn finds_project_dir_in_zip() {
-        let file = File::open("tests/data/Zipped.zip").unwrap();
-        let mut zip = ZipArchive::new(file).unwrap();
+        init();
+
+        let temp = TempDir::new().unwrap();
+        file_to(&temp, "dir1/dir2/dir3/src/dir4/sample.csproj", "");
+        let bytes = dir_to_zip(&temp);
+        let mut zip = ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
         let dir = CSharpPlugin::find_project_dir_in_zip(&mut zip).unwrap();
-        assert_eq!(dir, Path::new("Outer/Inner/PassingProject"))
+        assert_eq!(dir, Path::new("dir1/dir2/dir3"))
     }
 
     #[test]
     fn no_project_dir_in_zip() {
-        let file = File::open("tests/data/test.zip").unwrap();
-        let mut zip = ZipArchive::new(file).unwrap();
+        init();
+
+        let temp = TempDir::new().unwrap();
+        file_to(&temp, "dir1/dir2/dir3/src/directly in src.csproj", "");
+        file_to(&temp, "dir1/dir2/dir3/src/__MACOSX/under macosx.csproj", "");
+        file_to(&temp, "dir1/__MACOSX/dir3/src/dir/under macosx.csproj", "");
+        let bytes = dir_to_zip(&temp);
+        let mut zip = ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
         let dir = CSharpPlugin::find_project_dir_in_zip(&mut zip);
         assert!(dir.is_err())
     }
@@ -403,8 +519,9 @@ mod test {
     #[test]
     fn scans_exercise() {
         init();
+
+        let temp = dir_to_temp("tests/data/PassingProject");
         let plugin = CSharpPlugin::new();
-        let temp = copy_test_dir("tests/data/PassingProject");
         let scan = plugin
             .scan_exercise(temp.path(), "name".to_string(), &mut vec![])
             .unwrap();
@@ -415,22 +532,25 @@ mod test {
     #[test]
     fn runs_tests_passing() {
         init();
+
+        let temp = dir_to_temp("tests/data/PassingProject");
         let plugin = CSharpPlugin::new();
-        let temp = copy_test_dir("tests/data/PassingProject");
         let res = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(res.status, RunStatus::Passed);
         assert_eq!(res.test_results.len(), 2);
         for tr in res.test_results {
             assert!(tr.successful);
         }
-        // assert!(res.logs.is_empty());
+        assert!(res.logs.get("stdout").unwrap().is_empty());
+        assert!(res.logs.get("stderr").unwrap().is_empty());
     }
 
     #[test]
     fn runs_tests_failing() {
         init();
+
+        let temp = dir_to_temp("tests/data/FailingProject");
         let plugin = CSharpPlugin::new();
-        let temp = copy_test_dir("tests/data/FailingProject");
         let res = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(res.status, RunStatus::TestsFailed);
         assert_eq!(res.test_results.len(), 1);
@@ -439,14 +559,16 @@ mod test {
         assert!(test_result.points.is_empty());
         assert!(test_result.message.contains("Expected: False"));
         assert_eq!(test_result.exception.len(), 2);
-        // assert!(res.logs.is_empty());
+        assert!(res.logs.get("stdout").unwrap().is_empty());
+        assert!(res.logs.get("stderr").unwrap().is_empty());
     }
 
     #[test]
     fn runs_tests_compile_err() {
         init();
+
+        let temp = dir_to_temp("tests/data/NonCompilingProject");
         let plugin = CSharpPlugin::new();
-        let temp = copy_test_dir("tests/data/NonCompilingProject");
         let res = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(res.status, RunStatus::CompileFailed);
         assert!(!res.logs.is_empty());
@@ -458,10 +580,27 @@ mod test {
     }
 
     #[test]
+    fn runs_tests_timeout() {
+        init();
+
+        let temp = dir_to_temp("tests/data/PassingProject");
+        let plugin = CSharpPlugin::new();
+        let res = plugin
+            .run_tests_with_timeout(
+                temp.path(),
+                Some(std::time::Duration::from_nanos(1)),
+                &mut vec![],
+            )
+            .unwrap();
+        assert_eq!(res.status, RunStatus::TestsFailed);
+    }
+
+    #[test]
     fn cleans() {
         init();
+
+        let temp = dir_to_temp("tests/data/PassingProject");
         let plugin = CSharpPlugin::new();
-        let temp = copy_test_dir("tests/data/PassingProject");
         let bin_path = temp.path().join("src").join("PassingSample").join("bin");
         let obj_path_test = temp
             .path()
