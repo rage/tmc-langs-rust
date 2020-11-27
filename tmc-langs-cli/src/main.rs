@@ -16,7 +16,7 @@ use clap::{ArgMatches, Error, ErrorKind};
 use heim::disk;
 use serde::Serialize;
 use serde_json::Value as JsonValue;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::env;
 use std::fmt::Debug;
 use std::fs::{self, File};
@@ -866,7 +866,7 @@ fn run_core(
                 .context("Failed to download exercises")?;
 
             for (course_name, exercise_names) in course_data {
-                let mut exercises = HashMap::new();
+                let mut exercises = BTreeMap::new();
                 for (exercise_name, checksum) in exercise_names {
                     exercises.insert(exercise_name, Exercise { checksum });
                 }

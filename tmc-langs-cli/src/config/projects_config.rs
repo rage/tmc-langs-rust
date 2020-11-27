@@ -1,17 +1,18 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
 pub struct ProjectsConfig {
-    pub courses: HashMap<String, CourseConfig>,
+    // BTreeMap used so the exercises in the config file are ordered by key
+    pub courses: BTreeMap<String, CourseConfig>,
 }
 
 impl ProjectsConfig {
     pub fn load(path: &Path) -> Result<ProjectsConfig> {
-        let mut course_configs = HashMap::new();
+        let mut course_configs = BTreeMap::new();
         for file in fs::read_dir(path)
             .with_context(|| format!("Failed to read directory at {}", path.display()))?
         {
@@ -56,7 +57,7 @@ impl ProjectsConfig {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CourseConfig {
     pub course: String,
-    pub exercises: HashMap<String, Exercise>,
+    pub exercises: BTreeMap<String, Exercise>,
 }
 
 impl CourseConfig {
@@ -118,7 +119,7 @@ mod test {
     fn serializes() {
         init_logging();
 
-        let mut exercises = HashMap::new();
+        let mut exercises = BTreeMap::new();
         exercises.insert(
             "ex 1".to_string(),
             Exercise {
