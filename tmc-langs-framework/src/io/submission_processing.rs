@@ -14,7 +14,7 @@ lazy_static! {
     static ref FILES_TO_SKIP_ALWAYS: Regex =
         Regex::new("\\.tmcrc|metadata\\.yml|(.*)Hidden(.*)").unwrap();
     static ref NON_TEXT_TYPES: Regex =
-        Regex::new("class|jar|exe|jpg|jpeg|gif|png|zip|tar|gz|db|bin|csv|tsv|^$").unwrap();
+        Regex::new("class|jar|exe|jpg|jpeg|gif|png|zip|tar|gz|db|bin|csv|tsv|sqlite3|^$").unwrap();
 }
 
 /// Moves some of the contents of source to target based on the given policy.
