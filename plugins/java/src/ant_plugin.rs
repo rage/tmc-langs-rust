@@ -49,7 +49,7 @@ impl AntPlugin {
     /// Copies the bundled tmc-junit-runner to the given path.
     fn copy_tmc_junit_runner(&self, path: &Path) -> Result<(), JavaError> {
         log::debug!("Copying TMC Junit runner");
-        const JUNIT_RUNNER_ARCHIVE: &[u8] = include_bytes!("../jars/tmc-junit-runner-0.2.8.jar");
+        const JUNIT_RUNNER_ARCHIVE: &[u8] = include_bytes!("../deps/tmc-junit-runner-0.2.8.jar");
 
         let runner_dir = path.join("lib").join("testrunner");
         let runner_path = runner_dir.join("tmc-junit-runner.jar");

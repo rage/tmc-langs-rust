@@ -25,10 +25,10 @@ const SEPARATOR: &str = ";";
 const SEPARATOR: &str = ":";
 
 // these jars are required for the plugin to function
-const TMC_JUNIT_RUNNER_BYTES: &[u8] = include_bytes!("../jars/tmc-junit-runner-0.2.8.jar");
+const TMC_JUNIT_RUNNER_BYTES: &[u8] = include_bytes!("../deps/tmc-junit-runner-0.2.8.jar");
 const TMC_CHECKSTYLE_RUNNER_BYTES: &[u8] =
-    include_bytes!("../jars/tmc-checkstyle-runner-3.0.3-20200520.064542-3.jar");
-const J4RS_BYTES: &[u8] = include_bytes!("../jars/j4rs-0.13.0-jar-with-dependencies.jar");
+    include_bytes!("../deps/tmc-checkstyle-runner-3.0.3-20200520.064542-3.jar");
+const J4RS_BYTES: &[u8] = include_bytes!("../deps/j4rs-0.13.0-jar-with-dependencies.jar");
 
 fn tmc_dir() -> Result<PathBuf, JavaError> {
     let home_dir = dirs::cache_dir().ok_or(JavaError::HomeDir)?;

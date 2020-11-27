@@ -21,7 +21,7 @@ use tmc_langs_framework::{
     TmcError,
 };
 
-const MVN_ARCHIVE: &[u8] = include_bytes!("../apache-maven-3.6.3-bin.tar.gz");
+const MVN_ARCHIVE: &[u8] = include_bytes!("../deps/apache-maven-3.6.3-bin.tar.gz");
 
 pub struct MavenPlugin {
     jvm: Jvm,
