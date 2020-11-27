@@ -13,6 +13,10 @@ type TokenError = oauth2::RequestTokenError<
 
 #[derive(Debug, Error)]
 pub enum CoreError {
+    // Arc
+    #[error("Tried to mutate core while it was borrowed")]
+    ArcBorrowed,
+
     // file IO
     #[error("Failed to create temporary file")]
     TempFile(#[source] std::io::Error),

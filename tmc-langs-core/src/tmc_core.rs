@@ -3,17 +3,20 @@ mod api;
 use crate::error::CoreError;
 use crate::request::*;
 use crate::response::*;
-use crate::response::{Course, CourseDetails, Organization};
 use crate::{Language, RunResult, ValidationResult};
-use oauth2::basic::BasicClient;
 use oauth2::{
-    AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword, ResourceOwnerUsername, TokenUrl,
+    basic::BasicClient, AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword,
+    ResourceOwnerUsername, TokenUrl,
 };
 use reqwest::{blocking::Client, Url};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::sync::{
+    atomic::{AtomicUsize, Ordering},
+    Arc, Mutex,
+};
 use std::thread;
 use std::time::Duration;
 use tempfile::NamedTempFile;
@@ -33,7 +36,9 @@ pub enum CoreUpdateData {
 }
 
 /// A struct for interacting with the TestMyCode service, including authentication.
-pub struct TmcCore {
+pub struct TmcCore(Arc<TmcCoreInner>);
+
+struct TmcCoreInner {
     client: Client,
     #[allow(dead_code)]
     config_dir: PathBuf, // not used yet
@@ -77,7 +82,7 @@ impl TmcCore {
             .join("oauth/token")
             .expect("failed to join oauth/token")
             .to_string();
-        Ok(Self {
+        Ok(TmcCore(Arc::new(TmcCoreInner {
             client: Client::new(),
             config_dir,
             api_url,
@@ -86,7 +91,7 @@ impl TmcCore {
             progress_reporter: None,
             client_name,
             client_version,
-        })
+        })))
     }
 
     /// Creates a new TmcCore with the given root URL. The config directory is set according to dirs::cache_dir.
@@ -109,15 +114,21 @@ impl TmcCore {
         Self::new(config_dir, root_url, client_name, client_version)
     }
 
-    pub fn set_token(&mut self, token: Token) {
-        self.token = Some(token);
+    pub fn set_token(&mut self, token: Token) -> Result<(), CoreError> {
+        Arc::get_mut(&mut self.0)
+            .ok_or(CoreError::ArcBorrowed)?
+            .token = Some(token);
+        Ok(())
     }
 
     pub fn set_progress_reporter(
         &mut self,
         progress_reporter: ProgressReporter<'static, CoreUpdateData>,
-    ) {
-        self.progress_reporter = Some(progress_reporter);
+    ) -> Result<(), CoreError> {
+        Arc::get_mut(&mut self.0)
+            .ok_or(CoreError::ArcBorrowed)?
+            .progress_reporter = Some(progress_reporter);
+        Ok(())
     }
 
     fn progress(
@@ -126,7 +137,7 @@ impl TmcCore {
         step_percent_done: f64,
         data: Option<CoreUpdateData>,
     ) -> Result<(), CoreError> {
-        if let Some(reporter) = &self.progress_reporter {
+        if let Some(reporter) = &self.0.progress_reporter {
             reporter
                 .progress(message, step_percent_done, data)
                 .map_err(CoreError::ProgressReport)
@@ -140,7 +151,7 @@ impl TmcCore {
         message: String,
         data: Option<CoreUpdateData>,
     ) -> Result<(), CoreError> {
-        if let Some(reporter) = &self.progress_reporter {
+        if let Some(reporter) = &self.0.progress_reporter {
             reporter
                 .finish_step(message, data)
                 .map_err(CoreError::ProgressReport)
@@ -150,7 +161,7 @@ impl TmcCore {
     }
 
     pub fn increment_progress_steps(&self) {
-        if let Some(reporter) = &self.progress_reporter {
+        if let Some(reporter) = &self.0.progress_reporter {
             reporter.increment_progress_steps(1);
         }
     }
@@ -176,26 +187,27 @@ impl TmcCore {
         email: String,
         password: String,
     ) -> Result<Token, CoreError> {
-        if self.token.is_some() {
+        if self.0.token.is_some() {
             return Err(CoreError::AlreadyAuthenticated);
         }
 
         let tail = format!("application/{}/credentials", client_name);
         let url = self
+            .0
             .api_url
             .join(&tail)
             .map_err(|e| CoreError::UrlParse(tail, e))?;
         let credentials: Credentials = self.get_json_from_url(url, &[])?;
 
-        log::debug!("authenticating at {}", self.auth_url);
+        log::debug!("authenticating at {}", self.0.auth_url);
         let client = BasicClient::new(
             ClientId::new(credentials.application_id),
             Some(ClientSecret::new(credentials.secret)),
-            AuthUrl::new(self.auth_url.clone())
-                .map_err(|e| CoreError::UrlParse(self.auth_url.clone(), e))?, // not used in the Resource Owner Password Credentials Grant
+            AuthUrl::new(self.0.auth_url.clone())
+                .map_err(|e| CoreError::UrlParse(self.0.auth_url.clone(), e))?, // not used in the Resource Owner Password Credentials Grant
             Some(
-                TokenUrl::new(self.auth_url.clone())
-                    .map_err(|e| CoreError::UrlParse(self.auth_url.clone(), e))?,
+                TokenUrl::new(self.0.auth_url.clone())
+                    .map_err(|e| CoreError::UrlParse(self.0.auth_url.clone(), e))?,
             ),
         );
 
@@ -205,7 +217,9 @@ impl TmcCore {
                 &ResourceOwnerPassword::new(password),
             )
             .request(oauth2::reqwest::http_client)?;
-        self.token = Some(token.clone());
+        Arc::get_mut(&mut self.0)
+            .ok_or(CoreError::ArcBorrowed)?
+            .token = Some(token.clone());
         log::debug!("authenticated");
         Ok(token)
     }
@@ -250,47 +264,92 @@ impl TmcCore {
         exercises: Vec<(usize, PathBuf)>,
     ) -> Result<(), CoreError> {
         let exercises_len = exercises.len();
-        let step = 1.0 / (2 * exercises_len) as f64;
+        self.progress(
+            format!("Downloading {} exercises", exercises_len),
+            0.0,
+            None,
+        )?;
 
-        let mut progress = 0.0;
-        for (n, (exercise_id, target)) in exercises.into_iter().enumerate() {
-            // TODO: do in memory without zip_file?
-            let zip_file = NamedTempFile::new().map_err(CoreError::TempFile)?;
+        let thread_count = exercises_len.min(4); // max 4 threads
+        let mut handles = vec![];
+        let exercises = Arc::new(Mutex::new(exercises));
+        let starting_download_counter = Arc::new(AtomicUsize::new(1));
+        let downloaded_counter = Arc::new(AtomicUsize::new(1));
+        let progress_counter = Arc::new(AtomicUsize::new(1));
+        let progress_goal = (exercises_len * 2) as f64; // each download increases progress at 2 points
 
-            self.progress(
-                format!(
-                    "Downloading exercise {} to '{}'. ({} out of {})",
-                    exercise_id,
-                    target.display(),
-                    n,
-                    exercises_len
-                ),
-                progress,
-                Some(CoreUpdateData::ExerciseDownload {
-                    id: exercise_id,
-                    path: target.to_path_buf(),
-                }),
-            )?;
-            self.download_exercise(exercise_id, zip_file.path())?;
-            progress += step;
+        // spawn threads
+        for _thread_id in 0..thread_count {
+            let core = Arc::clone(&self.0);
+            let exercises = Arc::clone(&exercises);
+            let starting_download_counter = Arc::clone(&starting_download_counter);
+            let downloaded_counter = Arc::clone(&downloaded_counter);
+            let progress_counter = Arc::clone(&progress_counter);
+            let handle = std::thread::spawn(move || -> Result<(), CoreError> {
+                let client_clone = TmcCore(core);
 
-            task_executor::extract_project(zip_file.path(), &target, true)?;
-            self.progress(
-                format!(
-                    "Downloaded exercise {} to '{}'. ({} out of {})",
-                    exercise_id,
-                    target.display(),
-                    n + 1,
-                    exercises_len
-                ),
-                progress,
-                Some(CoreUpdateData::ExerciseDownload {
-                    id: exercise_id,
-                    path: target.to_path_buf(),
-                }),
-            )?;
-            progress += step;
+                // repeat until out of exercises
+                loop {
+                    // acquiring mutex
+                    let mut exercises = exercises.lock().unwrap(); // the threads should never panic
+                    let (exercise_id, target) = if let Some((id, path)) = exercises.pop() {
+                        (id, path)
+                    } else {
+                        break;
+                    };
+                    drop(exercises);
+                    // dropped mutex
+
+                    // TODO: do in memory without zip_file?
+                    let starting_download_count =
+                        starting_download_counter.fetch_add(1, Ordering::SeqCst);
+                    let progress_count = progress_counter.fetch_add(1, Ordering::SeqCst);
+                    let progress = progress_count as f64 / progress_goal;
+                    let zip_file = NamedTempFile::new().map_err(CoreError::TempFile)?;
+                    client_clone.progress(
+                        format!(
+                            "Downloading exercise {} to '{}'. ({} out of {})",
+                            exercise_id,
+                            target.display(),
+                            starting_download_count,
+                            exercises_len
+                        ),
+                        progress,
+                        Some(CoreUpdateData::ExerciseDownload {
+                            id: exercise_id,
+                            path: target.clone(),
+                        }),
+                    )?;
+
+                    client_clone.download_exercise(exercise_id, zip_file.path())?;
+                    let downloaded_count = downloaded_counter.fetch_add(1, Ordering::SeqCst);
+                    let progress_count = progress_counter.fetch_add(1, Ordering::SeqCst);
+                    let progress = progress_count as f64 / progress_goal;
+                    task_executor::extract_project(zip_file.path(), &target, true)?;
+                    client_clone.progress(
+                        format!(
+                            "Downloaded exercise {} to '{}'. ({} out of {})",
+                            exercise_id,
+                            target.display(),
+                            downloaded_count,
+                            exercises_len
+                        ),
+                        progress,
+                        Some(CoreUpdateData::ExerciseDownload {
+                            id: exercise_id,
+                            path: target,
+                        }),
+                    )?;
+                }
+
+                Ok(())
+            });
+            handles.push(handle);
         }
+        for handle in handles {
+            handle.join().unwrap()?; // the threads should never panic
+        }
+
         self.step_complete(
             format!("Finished downloading {} exercises.", exercises_len),
             None,
@@ -344,21 +403,21 @@ impl TmcCore {
     /// let courses = core.list_courses("hy").unwrap();
     /// ```
     pub fn list_courses(&self, organization_slug: &str) -> Result<Vec<Course>, CoreError> {
-        if self.token.is_none() {
+        if self.0.token.is_none() {
             return Err(CoreError::NotLoggedIn);
         }
         self.organization_courses(organization_slug)
     }
 
     pub fn get_course(&self, course_id: usize) -> Result<CourseData, CoreError> {
-        if self.token.is_none() {
+        if self.0.token.is_none() {
             return Err(CoreError::NotLoggedIn);
         }
         self.course(course_id)
     }
 
     pub fn get_course_exercises(&self, course_id: usize) -> Result<Vec<CourseExercise>, CoreError> {
-        if self.token.is_none() {
+        if self.0.token.is_none() {
             return Err(CoreError::NotLoggedIn);
         }
         self.exercises(course_id)
@@ -469,7 +528,7 @@ impl TmcCore {
         submission_path: &Path,
         locale: Option<Language>,
     ) -> Result<NewSubmission, CoreError> {
-        if self.token.is_none() {
+        if self.0.token.is_none() {
             return Err(CoreError::NotLoggedIn);
         }
 
@@ -723,7 +782,7 @@ impl TmcCore {
         &self,
         submission_url: &str,
     ) -> Result<SubmissionProcessingStatus, CoreError> {
-        if self.token.is_none() {
+        if self.0.token.is_none() {
             return Err(CoreError::NotLoggedIn);
         }
 
@@ -731,6 +790,12 @@ impl TmcCore {
             .map_err(|e| CoreError::UrlParse(submission_url.to_string(), e))?;
         let res: SubmissionProcessingStatus = self.get_json_from_url(url, &[])?;
         Ok(res)
+    }
+}
+
+impl AsRef<TmcCoreInner> for TmcCore {
+    fn as_ref(&self) -> &TmcCoreInner {
+        &self.0
     }
 }
 

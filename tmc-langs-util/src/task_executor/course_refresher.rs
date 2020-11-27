@@ -89,6 +89,8 @@ pub struct CourseRefresher {
 impl CourseRefresher {
     pub fn new(
         progress_report: impl 'static
+            + Sync
+            + Send
             + Fn(
                 StatusUpdate<RefreshUpdateData>,
             ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>,

@@ -241,7 +241,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
             // set token from the credentials file if one exists
             let mut credentials = Credentials::load(client_name)?;
             if let Some(credentials) = &credentials {
-                core.set_token(credentials.token());
+                core.set_token(credentials.token())?;
             }
 
             match run_core(
@@ -742,7 +742,7 @@ fn run_core(
         let output = Output::StatusUpdate::<CoreUpdateData>(update);
         print_output(&output, pretty, &[])?;
         Ok(())
-    }));
+    }))?;
 
     // proof of having printed the output
     let printed: PrintToken = match matches.subcommand() {
