@@ -104,7 +104,7 @@ impl LanguagePlugin for MavenPlugin {
         _timeout: Option<Duration>,
         _warnings: &mut Vec<anyhow::Error>,
     ) -> Result<RunResult, TmcError> {
-        Ok(self.run_java_tests(project_root_path)?)
+        Ok(self.run_java_tests(project_root_path, None)?)
     }
 
     /// Checks if the directory has a pom.xml file.
@@ -204,18 +204,22 @@ impl JavaPlugin for MavenPlugin {
     fn create_run_result_file(
         &self,
         path: &Path,
+        timeout: Option<Duration>,
         _compile_result: CompileResult,
     ) -> Result<TestRun, JavaError> {
         log::info!("Running tests for maven project at {}", path.display());
 
         let mvn_path = Self::get_mvn_command()?;
-        let output = TmcCommand::new_with_file_io(mvn_path)?
-            .with(|e| {
-                e.cwd(path)
-                    .arg("--batch-mode")
-                    .arg("fi.helsinki.cs.tmc:tmc-maven-plugin:1.12:test")
-            })
-            .output_checked()?;
+        let command = TmcCommand::new_with_file_io(mvn_path)?.with(|e| {
+            e.cwd(path)
+                .arg("--batch-mode")
+                .arg("fi.helsinki.cs.tmc:tmc-maven-plugin:1.12:test")
+        });
+        let output = if let Some(timeout) = timeout {
+            command.output_with_timeout_checked(timeout)?
+        } else {
+            command.output_checked()?
+        };
 
         Ok(TestRun {
             test_results: path.join("target/test_output.txt"),
@@ -245,7 +249,12 @@ mod test {
     }
 
     fn init() {
-        let _ = env_logger::builder().is_test(true).try_init();
+        use log::*;
+        use simple_logger::*;
+        let _ = SimpleLogger::new()
+            .with_level(LevelFilter::Debug)
+            .with_module_level("j4rs", LevelFilter::Warn)
+            .init();
     }
 
     fn get_maven() -> (MavenPlugin, MutexGuard<'static, ()>) {
@@ -309,7 +318,7 @@ mod test {
         let (plugin, _lock) = get_maven();
         let compile_result = plugin.build(test_path).unwrap();
         let test_run = plugin
-            .create_run_result_file(test_path, compile_result)
+            .create_run_result_file(test_path, None, compile_result)
             .unwrap();
         let test_result: Vec<TestCase> =
             serde_json::from_str(&fs::read_to_string(test_run.test_results).unwrap()).unwrap();

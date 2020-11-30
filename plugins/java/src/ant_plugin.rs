@@ -1,4 +1,4 @@
-//! Java ant plugin
+//! Java Ant plugin.
 
 use crate::{
     error::JavaError, java_plugin::JavaPlugin, AntStudentFilePolicy, CompileResult, TestRun,
@@ -47,8 +47,8 @@ impl AntPlugin {
     }
 
     /// Copies the bundled tmc-junit-runner to the given path.
-    fn copy_tmc_junit_runner(&self, path: &Path) -> Result<(), JavaError> {
-        log::debug!("Copying TMC Junit runner");
+    fn copy_tmc_junit_runner(path: &Path) -> Result<(), JavaError> {
+        log::debug!("copying TMC Junit runner");
         const JUNIT_RUNNER_ARCHIVE: &[u8] = include_bytes!("../deps/tmc-junit-runner-0.2.8.jar");
 
         let runner_dir = path.join("lib").join("testrunner");
@@ -79,6 +79,7 @@ impl LanguagePlugin for AntPlugin {
         Ok(Some(self.run_checkstyle(&locale, path)?))
     }
 
+    /// Scans the exercise at the given path. Immediately exits if the target directory is not a valid exercise.
     fn scan_exercise(
         &self,
         path: &Path,
@@ -96,10 +97,10 @@ impl LanguagePlugin for AntPlugin {
     fn run_tests_with_timeout(
         &self,
         project_root_path: &Path,
-        _timeout: Option<Duration>,
+        timeout: Option<Duration>,
         _warnings: &mut Vec<anyhow::Error>,
     ) -> Result<RunResult, TmcError> {
-        Ok(self.run_java_tests(project_root_path)?)
+        Ok(self.run_java_tests(project_root_path, timeout)?)
     }
 
     /// Checks if the directory contains a build.xml file, or a src and a test directory.
@@ -111,20 +112,21 @@ impl LanguagePlugin for AntPlugin {
         AntStudentFilePolicy::new(project_path.to_path_buf())
     }
 
-    fn maybe_copy_shared_stuff(&self, dest_path: &Path) -> Result<(), TmcError> {
-        Ok(self.copy_tmc_junit_runner(dest_path)?)
+    fn copy_tmc_junit_runner(dest_path: &Path) -> Result<(), TmcError> {
+        Ok(Self::copy_tmc_junit_runner(dest_path)?)
     }
 
     fn clean(&self, path: &Path) -> Result<(), TmcError> {
-        log::debug!("Cleaning project at {}", path.display());
+        log::debug!("cleaning project at {}", path.display());
 
+        // TODO: is writing stdout and stderr to file really necessary?
         let stdout_path = path.join("build_log.txt");
         let stdout = file_util::create_file(&stdout_path)?;
         let stderr_path = path.join("build_errors.txt");
         let stderr = file_util::create_file(&stderr_path)?;
 
         let ant_exec = self.get_ant_executable();
-        let _output = TmcCommand::new(ant_exec.to_string())
+        let _output = TmcCommand::new(ant_exec)
             .with(|e| e.arg("clean").stdout(stdout).stderr(stderr).cwd(path))
             .output_checked()?;
         file_util::remove_file(&stdout_path)?;
@@ -158,17 +160,19 @@ impl JavaPlugin for AntPlugin {
 
         // add all .jar files in lib
         let lib_dir = path.join("lib");
-        for entry in WalkDir::new(&lib_dir).into_iter().filter_map(|e| e.ok()) {
+        for entry in WalkDir::new(&lib_dir) {
+            let entry = entry?;
+
             if entry.path().is_file() && entry.path().extension() == Some(OsStr::new("jar")) {
                 paths.push(entry.path().to_path_buf());
             }
         }
         paths.push(lib_dir);
-
         paths.push(path.join("build").join("test").join("classes"));
         paths.push(path.join("build").join("classes"));
 
         let java_home = Self::get_java_home()?;
+        // TODO: what's tools.jar?
         let tools_jar_path = java_home.join("..").join("lib").join("tools.jar");
         if tools_jar_path.exists() {
             paths.push(tools_jar_path);
@@ -176,25 +180,26 @@ impl JavaPlugin for AntPlugin {
             log::warn!("no tools.jar found; skip adding to class path");
         }
 
+        // ignore non-UTF8 paths
         let paths = paths
             .into_iter()
-            .map(|p| p.into_os_string().to_str().map(|s| s.to_string()))
-            .filter_map(|p| p)
+            .filter_map(|p| p.to_str().map(str::to_string))
             .collect::<Vec<_>>();
 
-        self.copy_tmc_junit_runner(path)?; // ?
+        // TODO: is it OK to not include the runner in the classpath?
+        Self::copy_tmc_junit_runner(path)?;
         Ok(paths.join(SEPARATOR))
     }
 
     fn build(&self, project_root_path: &Path) -> Result<CompileResult, JavaError> {
-        log::info!("Building project at {}", project_root_path.display());
+        log::info!("building project at {}", project_root_path.display());
 
-        // TODO: don't require ant in path?
         let ant_exec = self.get_ant_executable();
         let output = TmcCommand::new_with_file_io(ant_exec)?
             .with(|e| e.arg("compile-test").cwd(project_root_path))
             .output()?;
 
+        // TODO: is it really necessary to write the logs in files?
         log::debug!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
         let stdout_path = project_root_path.join("build_log.txt");
@@ -212,21 +217,14 @@ impl JavaPlugin for AntPlugin {
     fn create_run_result_file(
         &self,
         path: &Path,
+        timeout: Option<Duration>,
         compile_result: CompileResult,
     ) -> Result<TestRun, JavaError> {
-        log::info!("Running tests for project at {}", path.display());
+        log::info!("running tests for project at {}", path.display());
 
-        let exercise = self.scan_exercise_with_compile_result(
-            path,
-            format!("{}{}", path.display().to_string(), "/test"), // ?
-            compile_result,
-        )?;
-
-        let test_dir = path.join("test");
-        let result_file = path.join("results.txt");
-        let class_path = self.get_project_class_path(path)?;
-
+        // build java args
         let mut arguments = vec![];
+        // JVM args
         if let Ok(jvm_options) = env::var("JVM_OPTIONS") {
             arguments.extend(
                 jvm_options
@@ -236,8 +234,12 @@ impl JavaPlugin for AntPlugin {
                     .map(|s| s.to_string()),
             )
         }
+        // TMC args
+        let test_dir = path.join("test");
+        let result_file = path.join("results.txt");
         arguments.push(format!("-Dtmc.test_class_dir={}", test_dir.display()));
         arguments.push(format!("-Dtmc.results_file={}", result_file.display()));
+        // TODO: endorsed libs?
         let endorsed_libs_path = path.join("lib/endorsed");
         if endorsed_libs_path.exists() {
             arguments.push(format!(
@@ -245,9 +247,19 @@ impl JavaPlugin for AntPlugin {
                 endorsed_libs_path.display()
             ));
         }
+        // scan needs to be before getting class path
+        let exercise = self.scan_exercise_with_compile_result(
+            path,
+            format!("{}{}", path.display().to_string(), "/test"), // TODO: ?
+            compile_result,
+        )?;
+        // classpath
         arguments.push("-cp".to_string());
+        let class_path = self.get_project_class_path(path)?;
         arguments.push(class_path);
+        // main
         arguments.push("fi.helsinki.cs.tmc.testrunner.Main".to_string());
+        // ?
         for desc in exercise.tests {
             let mut s = String::new();
             s.push_str(&desc.name.replace(' ', "."));
@@ -257,10 +269,13 @@ impl JavaPlugin for AntPlugin {
             arguments.push(s);
         }
 
-        log::debug!("java args {} in {}", arguments.join(" "), path.display());
-        let output = TmcCommand::new_with_file_io("java")?
-            .with(|e| e.cwd(path).args(&arguments))
-            .output()?;
+        log::debug!("java args '{}' in {}", arguments.join(" "), path.display());
+        let command = TmcCommand::new_with_file_io("java")?.with(|e| e.cwd(path).args(&arguments));
+        let output = if let Some(timeout) = timeout {
+            command.output_with_timeout(timeout)?
+        } else {
+            command.output()?
+        };
 
         Ok(TestRun {
             test_results: result_file,
@@ -274,43 +289,79 @@ impl JavaPlugin for AntPlugin {
 mod test {
     use super::*;
     use std::fs::{self, File};
-    use tempfile::{tempdir, TempDir};
+    use tempfile::tempdir;
     use tmc_langs_framework::domain::Strategy;
     use tmc_langs_framework::zip::ZipArchive;
 
     fn init() {
-        let _ = env_logger::builder().is_test(true).try_init();
+        use log::*;
+        use simple_logger::*;
+        let _ = SimpleLogger::new()
+            .with_level(LevelFilter::Debug)
+            .with_module_level("j4rs", LevelFilter::Warn)
+            .init();
     }
 
-    fn copy_test_dir(path: &str) -> TempDir {
-        let path = Path::new(path);
+    fn file_to(
+        target_dir: impl AsRef<std::path::Path>,
+        target_relative: impl AsRef<std::path::Path>,
+        contents: impl AsRef<[u8]>,
+    ) -> PathBuf {
+        let target = target_dir.as_ref().join(target_relative);
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent).unwrap();
+        }
+        std::fs::write(&target, contents.as_ref()).unwrap();
+        target
+    }
 
-        let temp = tempdir().unwrap();
-        for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
-            let target = temp.path().join(entry.path().strip_prefix(path).unwrap());
+    fn dir_to(
+        target_dir: impl AsRef<std::path::Path>,
+        target_relative: impl AsRef<std::path::Path>,
+    ) -> PathBuf {
+        let target = target_dir.as_ref().join(target_relative);
+        std::fs::create_dir_all(&target).unwrap();
+        target
+    }
+
+    fn dir_to_temp(source_dir: impl AsRef<std::path::Path>) -> tempfile::TempDir {
+        let temp = tempfile::TempDir::new().unwrap();
+        for entry in walkdir::WalkDir::new(&source_dir).min_depth(1) {
+            let entry = entry.unwrap();
+            let rela = entry.path().strip_prefix(&source_dir).unwrap();
+            let target = temp.path().join(rela);
             if entry.path().is_dir() {
-                log::debug!("creating dirs {}", entry.path().display());
-                fs::create_dir_all(target).unwrap();
-            } else {
-                log::debug!(
-                    "copy from {} to {}",
-                    entry.path().display(),
-                    target.display()
-                );
-                fs::copy(entry.path(), target).unwrap();
+                std::fs::create_dir(target).unwrap();
+            } else if entry.path().is_file() {
+                std::fs::copy(entry.path(), target).unwrap();
             }
         }
         temp
     }
 
     #[test]
+    fn copies_tmc_junit_runner() {
+        init();
+
+        let temp = tempfile::TempDir::new().unwrap();
+        let jar_dir = temp.path().join("dir");
+        let jar_path = jar_dir.join("lib/testrunner/tmc-junit-runner.jar");
+        assert!(!jar_path.exists());
+        AntPlugin::copy_tmc_junit_runner(&jar_dir).unwrap();
+        assert!(jar_path.exists());
+    }
+
+    #[test]
     fn gets_project_class_path() {
         init();
 
-        let temp_dir = copy_test_dir("tests/data/ant_project");
-        let test_path = temp_dir.path();
+        let temp = tempfile::TempDir::new().unwrap();
+        let test_path = temp.path().join("dir");
+        file_to(&test_path, "lib/junit-4.10.jar", "");
+        file_to(&test_path, "lib/edu-test-utils-0.4.1.jar", "");
+
         let plugin = AntPlugin::new().unwrap();
-        let cp = plugin.get_project_class_path(test_path).unwrap();
+        let cp = plugin.get_project_class_path(&test_path).unwrap();
 
         let sep = std::path::MAIN_SEPARATOR;
         assert!(
@@ -346,6 +397,7 @@ mod test {
             "Classpath {} did not contain build/test/classes",
             cp
         );
+        // tools.jar is in java home, tricky to test
         /*
         assert!(
             cp.ends_with(&format!("{0}..{0}lib{0}tools.jar", sep)),
@@ -359,10 +411,9 @@ mod test {
     fn builds() {
         init();
 
-        let temp_dir = copy_test_dir("tests/data/ant_project");
-        let test_path = temp_dir.path();
+        let temp_dir = dir_to_temp("tests/data/ant_project");
         let plugin = AntPlugin::new().unwrap();
-        let compile_result = plugin.build(test_path).unwrap();
+        let compile_result = plugin.build(temp_dir.path()).unwrap();
         assert!(compile_result.status_code.success());
         // may contain unexpected output depending on machine config
         // assert!(!compile_result.stdout.is_empty());
@@ -373,12 +424,11 @@ mod test {
     fn creates_run_result_file() {
         init();
 
-        let temp_dir = copy_test_dir("tests/data/ant_project");
-        let test_path = temp_dir.path();
+        let temp_dir = dir_to_temp("tests/data/ant_project");
         let plugin = AntPlugin::new().unwrap();
-        let compile_result = plugin.build(test_path).unwrap();
+        let compile_result = plugin.build(temp_dir.path()).unwrap();
         let test_run = plugin
-            .create_run_result_file(test_path, compile_result)
+            .create_run_result_file(temp_dir.path(), None, compile_result)
             .unwrap();
         log::trace!("stdout: {}", String::from_utf8_lossy(&test_run.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&test_run.stderr));
@@ -418,11 +468,10 @@ mod test {
     fn scans_exercise() {
         init();
 
-        let temp_dir = copy_test_dir("tests/data/ant_project");
-        let test_path = temp_dir.path();
+        let temp_dir = dir_to_temp("tests/data/ant_project");
         let plugin = AntPlugin::new().unwrap();
         let exercises = plugin
-            .scan_exercise(&test_path, "test".to_string(), &mut vec![])
+            .scan_exercise(&temp_dir.path(), "test".to_string(), &mut vec![])
             .unwrap();
         assert_eq!(exercises.name, "test");
         assert_eq!(exercises.tests.len(), 4);
@@ -434,11 +483,10 @@ mod test {
     fn runs_checkstyle() {
         init();
 
-        let temp_dir = copy_test_dir("tests/data/ant_project");
-        let test_path = temp_dir.path();
+        let temp_dir = dir_to_temp("tests/data/ant_project");
         let plugin = AntPlugin::new().unwrap();
         let checkstyle_result = plugin
-            .check_code_style(test_path, Language::from_639_3("fin").unwrap())
+            .check_code_style(temp_dir.path(), Language::from_639_3("fin").unwrap())
             .unwrap()
             .unwrap();
 
@@ -457,10 +505,78 @@ mod test {
     }
 
     #[test]
+    fn runs_tests() {
+        init();
+
+        let temp_dir = dir_to_temp("tests/data/ant_project");
+        let plugin = AntPlugin::new().unwrap();
+        let test_result = plugin
+            .run_tests_with_timeout(Path::new(temp_dir.path()), None, &mut vec![])
+            .unwrap();
+        log::debug!("{:?}", test_result);
+        assert_eq!(
+            test_result.status,
+            tmc_langs_framework::domain::RunStatus::TestsFailed
+        );
+    }
+
+    #[test]
+    fn runs_tests_with_timeout() {
+        init();
+
+        use std::error::Error;
+        let temp_dir = dir_to_temp("tests/data/ant_project");
+        let plugin = AntPlugin::new().unwrap();
+        let test_result_err = plugin
+            .run_tests_with_timeout(
+                Path::new(temp_dir.path()),
+                Some(Duration::from_nanos(1)),
+                &mut vec![],
+            )
+            .unwrap_err();
+        log::debug!("{:?}", test_result_err);
+        // verify that there's a timeout error in the source chain
+        let mut source = test_result_err.source();
+        while let Some(inner) = source {
+            source = inner.source();
+            if let Some(cmd_error) =
+                inner.downcast_ref::<tmc_langs_framework::error::CommandError>()
+            {
+                if matches!(cmd_error, tmc_langs_framework::error::CommandError::TimeOut {..}) {
+                    return;
+                }
+            }
+        }
+        panic!("no timeout error found");
+    }
+
+    #[test]
+    fn exercise_type_is_correct() {
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "build.xml", "");
+        assert!(AntPlugin::is_exercise_type_correct(temp.path()));
+
+        let temp = tempfile::tempdir().unwrap();
+        dir_to(&temp, "test");
+        dir_to(&temp, "src");
+        assert!(AntPlugin::is_exercise_type_correct(temp.path()));
+    }
+
+    #[test]
+    fn exercise_type_is_not_correct() {
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "buid.xml", "");
+        file_to(&temp, "dir/build.xml", "");
+        file_to(&temp, "test", "");
+        dir_to(&temp, "src");
+        assert!(!AntPlugin::is_exercise_type_correct(temp.path()));
+    }
+
+    #[test]
     fn cleans() {
         init();
 
-        let temp_dir = copy_test_dir("tests/data/ant_project");
+        let temp_dir = dir_to_temp("tests/data/ant_project");
         let test_path = temp_dir.path();
         let plugin = AntPlugin::new().unwrap();
         plugin.clean(test_path).unwrap();

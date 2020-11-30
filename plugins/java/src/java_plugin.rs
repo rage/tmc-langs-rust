@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult, ValidationResult},
@@ -28,7 +29,11 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
     fn build(&self, project_root_path: &Path) -> Result<CompileResult, JavaError>;
 
     /// Runs the tests for the given project.
-    fn run_java_tests(&self, project_root_path: &Path) -> Result<RunResult, JavaError> {
+    fn run_java_tests(
+        &self,
+        project_root_path: &Path,
+        timeout: Option<Duration>,
+    ) -> Result<RunResult, JavaError> {
         log::info!(
             "Running tests for project at {}",
             project_root_path.display()
@@ -39,7 +44,8 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
             return Ok(self.run_result_from_failed_compilation(compile_result));
         }
 
-        let test_result = self.create_run_result_file(project_root_path, compile_result)?;
+        let test_result =
+            self.create_run_result_file(project_root_path, timeout, compile_result)?;
         let result = self.parse_test_result(&test_result);
         file_util::remove_file(&test_result.test_results)?;
         Ok(result?)
@@ -134,6 +140,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
     fn create_run_result_file(
         &self,
         path: &Path,
+        timeout: Option<Duration>,
         compile_result: CompileResult,
     ) -> Result<TestRun, JavaError>;
 

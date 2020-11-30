@@ -1,3 +1,7 @@
+## Java plugins
+
+This crate differs from the others in that it contains two different plugins with some shared functionality: one for Maven, one for Ant. The common functionality is implemented in a JavaPlugin trait.
+
 ## Maven
 
 ### Student file policy

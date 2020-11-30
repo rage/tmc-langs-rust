@@ -146,7 +146,7 @@ pub trait LanguagePlugin {
         let relative_path = exercise_path
             .strip_prefix(repo_path)
             .unwrap_or(exercise_path);
-        self.maybe_copy_shared_stuff(&dest_path.join(relative_path))?;
+        Self::copy_tmc_junit_runner(&dest_path.join(relative_path))?;
         Ok(())
     }
 
@@ -405,7 +405,7 @@ pub trait LanguagePlugin {
 
     /// Copy shared stuff to stub or solution used for example for copying tmc-junit-runner.
     #[allow(unused_variables)]
-    fn maybe_copy_shared_stuff(&self, dest_path: &Path) -> Result<(), TmcError> {
+    fn copy_tmc_junit_runner(dest_path: &Path) -> Result<(), TmcError> {
         // no op by default
         Ok(())
     }
