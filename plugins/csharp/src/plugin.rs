@@ -347,13 +347,9 @@ mod test {
     static INIT_RUNNER: Once = Once::new();
 
     fn init() {
-        use simplelog::*;
-        let _ = TestLogger::init(
-            LevelFilter::Debug,
-            ConfigBuilder::new()
-                .set_location_level(LevelFilter::Debug)
-                .build(),
-        );
+        use log::*;
+        use simple_logger::*;
+        let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
         INIT_RUNNER.call_once(|| {
             let _ = CSharpPlugin::get_or_init_runner_dir().unwrap();
         });
