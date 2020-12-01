@@ -21,7 +21,11 @@ class TMCTestRunner(TextTestRunner):
     def available_points(self):
         testLoader = TestLoader()
         tests = testLoader.discover('.', 'test*.py', None)
-        tests = list(chain(*chain(*tests._tests)))
+        try:
+            tests = list(chain(*chain(*tests._tests)))
+        except Exception as error:
+            print("Received following Exception:", error)
+            tests.debug()
 
         points = map(_parse_points, tests)
         names = map(_name_test, tests)
