@@ -1,4 +1,4 @@
-//! Java maven plugin
+//! Java Maven plugin.
 
 use crate::{
     error::JavaError, java_plugin::JavaPlugin, CompileResult, MavenStudentFilePolicy, TestRun,
@@ -37,6 +37,7 @@ impl MavenPlugin {
     // if not, check if the bundled maven has been extracted already,
     // if not, extract
     // finally, return the path to the extracted executable
+    // the executable used from within the extracted maven differs per platform
     fn get_mvn_command() -> Result<OsString, JavaError> {
         // check if mvn is in PATH
         if let Ok(status) = TmcCommand::new_with_file_io("mvn")?
@@ -47,7 +48,7 @@ impl MavenPlugin {
                 return Ok(OsString::from("mvn"));
             }
         }
-        log::debug!("could not execute mvn");
+        log::debug!("could not execute mvn, using bundled maven");
         let tmc_path = dirs::cache_dir().ok_or(JavaError::CacheDir)?.join("tmc");
 
         #[cfg(windows)]
@@ -101,10 +102,10 @@ impl LanguagePlugin for MavenPlugin {
     fn run_tests_with_timeout(
         &self,
         project_root_path: &Path,
-        _timeout: Option<Duration>,
+        timeout: Option<Duration>,
         _warnings: &mut Vec<anyhow::Error>,
     ) -> Result<RunResult, TmcError> {
-        Ok(self.run_java_tests(project_root_path, None)?)
+        Ok(self.run_java_tests(project_root_path, timeout)?)
     }
 
     /// Checks if the directory has a pom.xml file.
@@ -116,6 +117,7 @@ impl LanguagePlugin for MavenPlugin {
         MavenStudentFilePolicy::new(project_path.to_path_buf())
     }
 
+    /// Runs the Maven clean plugin.
     fn clean(&self, path: &Path) -> Result<(), TmcError> {
         log::info!("Cleaning maven project at {}", path.display());
 
@@ -201,6 +203,7 @@ impl JavaPlugin for MavenPlugin {
         })
     }
 
+    /// Runs the tmc-maven-plugin.
     fn create_run_result_file(
         &self,
         path: &Path,
@@ -232,17 +235,13 @@ impl JavaPlugin for MavenPlugin {
 #[cfg(test)]
 #[cfg(not(target_os = "macos"))] // issues with maven dependencies
 mod test {
-    //! Maven doesn't like being run in parallel, at least on Windows.
-    //! For now the tests access the MavenPlugin with a function that locks a mutex.
 
     use super::super::{TestCase, TestCaseStatus};
     use super::*;
-    use std::fs::{self, File};
+    use std::fs;
     use std::sync::{Mutex, MutexGuard};
-    use tempfile::{tempdir, TempDir};
     use tmc_langs_framework::domain::Strategy;
     use tmc_langs_framework::zip::ZipArchive;
-    use walkdir::WalkDir;
 
     lazy_static::lazy_static! {
         static ref MAVEN_LOCK: Mutex<()> = Mutex::new(());
@@ -257,39 +256,251 @@ mod test {
             .init();
     }
 
+    /// Maven doesn't like being run in parallel, at least on Windows.
+    /// For now the tests access the MavenPlugin with a function that locks a mutex.
     fn get_maven() -> (MavenPlugin, MutexGuard<'static, ()>) {
         (MavenPlugin::new().unwrap(), MAVEN_LOCK.lock().unwrap())
     }
 
-    fn copy_test_dir(path: &str) -> TempDir {
-        let path = Path::new(path);
+    fn file_to(
+        target_dir: impl AsRef<std::path::Path>,
+        target_relative: impl AsRef<std::path::Path>,
+        contents: impl AsRef<[u8]>,
+    ) -> PathBuf {
+        let target = target_dir.as_ref().join(target_relative);
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent).unwrap();
+        }
+        std::fs::write(&target, contents.as_ref()).unwrap();
+        target
+    }
 
-        let temp = tempdir().unwrap();
-        for entry in WalkDir::new(path).into_iter().filter_map(|e| e.ok()) {
-            let target = temp.path().join(entry.path().strip_prefix(path).unwrap());
+    fn dir_to(
+        target_dir: impl AsRef<std::path::Path>,
+        target_relative: impl AsRef<std::path::Path>,
+    ) -> PathBuf {
+        let target = target_dir.as_ref().join(target_relative);
+        std::fs::create_dir_all(&target).unwrap();
+        target
+    }
+
+    fn dir_to_temp(source_dir: impl AsRef<std::path::Path>) -> tempfile::TempDir {
+        let temp = tempfile::TempDir::new().unwrap();
+        for entry in walkdir::WalkDir::new(&source_dir).min_depth(1) {
+            let entry = entry.unwrap();
+            let rela = entry.path().strip_prefix(&source_dir).unwrap();
+            let target = temp.path().join(rela);
             if entry.path().is_dir() {
-                log::trace!("creating dirs {}", entry.path().display());
-                fs::create_dir_all(target).unwrap();
-            } else {
-                log::trace!(
-                    "copy from {} to {}",
-                    entry.path().display(),
-                    target.display()
-                );
-                fs::copy(entry.path(), target).unwrap();
+                std::fs::create_dir(target).unwrap();
+            } else if entry.path().is_file() {
+                std::fs::copy(entry.path(), target).unwrap();
             }
         }
         temp
+    }
+
+    fn dir_to_zip(source_dir: impl AsRef<std::path::Path>) -> Vec<u8> {
+        use std::io::Write;
+
+        let mut target = vec![];
+        let mut zip = zip::ZipWriter::new(std::io::Cursor::new(&mut target));
+
+        for entry in walkdir::WalkDir::new(&source_dir)
+            .min_depth(1)
+            .sort_by(|a, b| a.path().cmp(b.path()))
+        {
+            let entry = entry.unwrap();
+            let rela = entry
+                .path()
+                .strip_prefix(&source_dir)
+                .unwrap()
+                .to_str()
+                .unwrap();
+            if entry.path().is_dir() {
+                zip.add_directory(rela, zip::write::FileOptions::default())
+                    .unwrap();
+            } else if entry.path().is_file() {
+                zip.start_file(rela, zip::write::FileOptions::default())
+                    .unwrap();
+                let bytes = std::fs::read(entry.path()).unwrap();
+                zip.write_all(&bytes).unwrap();
+            }
+        }
+
+        zip.finish().unwrap();
+        drop(zip);
+        target
+    }
+
+    #[test]
+    #[ignore = "changing PATH breaks other tests, figure out a better way to test this. or don't"]
+    fn unpacks_bundled_mvn() {
+        std::env::set_var("PATH", "");
+        let cmd = MavenPlugin::get_mvn_command().unwrap();
+        let expected = format!(
+            "tmc{0}apache-maven-3.6.3{0}bin{0}mvn",
+            std::path::MAIN_SEPARATOR
+        );
+        assert!(cmd.to_string_lossy().ends_with(&expected))
+    }
+
+    #[test]
+    fn runs_checkstyle() {
+        init();
+
+        let temp_dir = dir_to_temp("tests/data/maven_exercise");
+        let (plugin, _lock) = get_maven();
+        let checkstyle_result = plugin
+            .check_code_style(temp_dir.path(), Language::from_639_3("fin").unwrap())
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(checkstyle_result.strategy, Strategy::Fail);
+        let validation_errors = checkstyle_result.validation_errors.unwrap();
+        let errors = validation_errors
+            .get(Path::new("fi/helsinki/cs/maventest/App.java"))
+            .unwrap();
+        assert_eq!(errors.len(), 1);
+        let error = &errors[0];
+        assert_eq!(error.column, 0);
+        assert_eq!(error.line, 4);
+        assert!(error.message.starts_with("Sisennys väärin"));
+        assert_eq!(
+            error.source_name,
+            "com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"
+        );
+    }
+
+    #[test]
+    fn scans_exercise() {
+        init();
+
+        let temp_dir = dir_to_temp("tests/data/maven_exercise");
+        let (plugin, _lock) = get_maven();
+        let exercises = plugin
+            .scan_exercise(&temp_dir.path(), "test".to_string(), &mut vec![])
+            .unwrap();
+        assert_eq!(exercises.name, "test");
+        assert_eq!(exercises.tests.len(), 1);
+        assert_eq!(
+            exercises.tests[0].name,
+            "fi.helsinki.cs.maventest.AppTest trol"
+        );
+        assert_eq!(exercises.tests[0].points, ["maven-exercise"]);
+    }
+
+    #[test]
+    fn runs_tests() {
+        init();
+
+        let temp_dir = dir_to_temp("tests/data/maven_exercise");
+        let (plugin, _lock) = get_maven();
+        let res = plugin.run_tests(temp_dir.path(), &mut vec![]).unwrap();
+        log::debug!("{:#?}", res);
+        assert_eq!(
+            res.status,
+            tmc_langs_framework::domain::RunStatus::TestsFailed
+        );
+    }
+
+    #[test]
+    fn runs_tests_timeout() {
+        init();
+
+        let temp_dir = dir_to_temp("tests/data/maven_exercise");
+        let (plugin, _lock) = get_maven();
+        let test_result_err = plugin
+            .run_tests_with_timeout(
+                temp_dir.path(),
+                Some(std::time::Duration::from_nanos(1)),
+                &mut vec![],
+            )
+            .unwrap_err();
+        log::debug!("{:#?}", test_result_err);
+
+        // verify that there's a timeout error in the source chain
+        use std::error::Error;
+        let mut source = test_result_err.source();
+        while let Some(inner) = source {
+            source = inner.source();
+            if let Some(cmd_error) =
+                inner.downcast_ref::<tmc_langs_framework::error::CommandError>()
+            {
+                if matches!(cmd_error, tmc_langs_framework::error::CommandError::TimeOut {..}) {
+                    return;
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn exercise_type_is_correct() {
+        init();
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        file_to(temp_dir.path(), "pom.xml", "");
+        assert!(MavenPlugin::is_exercise_type_correct(temp_dir.path()));
+    }
+
+    #[test]
+    fn exercise_type_is_incorrect() {
+        init();
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        file_to(temp_dir.path(), "pom", "");
+        file_to(temp_dir.path(), "po.xml", "");
+        file_to(temp_dir.path(), "dir/pom.xml", "");
+        assert!(!MavenPlugin::is_exercise_type_correct(temp_dir.path()));
+    }
+
+    #[test]
+    fn cleans() {
+        init();
+
+        let temp_dir = dir_to_temp("tests/data/maven_exercise");
+        file_to(&temp_dir, "target/output file", "");
+
+        assert!(temp_dir.path().join("target/output file").exists());
+        assert!(temp_dir.path().join("src").exists());
+        let (plugin, _lock) = get_maven();
+        plugin.clean(temp_dir.path()).unwrap();
+        assert!(!temp_dir.path().join("target/output file").exists());
+        assert!(temp_dir.path().join("src").exists());
+    }
+
+    #[test]
+    fn finds_project_dir_in_zip() {
+        init();
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        dir_to(&temp_dir, "Outer/Inner/maven_project/src");
+
+        let zip_contents = dir_to_zip(&temp_dir);
+        let mut zip = ZipArchive::new(std::io::Cursor::new(zip_contents)).unwrap();
+        let dir = MavenPlugin::find_project_dir_in_zip(&mut zip).unwrap();
+        assert_eq!(dir, Path::new("Outer/Inner/maven_project"));
+    }
+
+    #[test]
+    fn doesnt_find_project_dir_in_zip() {
+        init();
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        dir_to(&temp_dir, "Outer/Inner/maven_project/srcb");
+
+        let zip_contents = dir_to_zip(&temp_dir);
+        let mut zip = ZipArchive::new(std::io::Cursor::new(zip_contents)).unwrap();
+        let dir = MavenPlugin::find_project_dir_in_zip(&mut zip);
+        assert!(dir.is_err());
     }
 
     #[test]
     fn gets_project_class_path() {
         init();
 
-        let temp_dir = copy_test_dir("tests/data/maven_exercise");
-        let test_path = temp_dir.path();
+        let temp_dir = dir_to_temp("tests/data/maven_exercise");
         let (plugin, _lock) = get_maven();
-        let class_path = plugin.get_project_class_path(test_path).unwrap();
+        let class_path = plugin.get_project_class_path(temp_dir.path()).unwrap();
         log::debug!("{}", class_path);
         let expected = format!("{0}junit{0}", std::path::MAIN_SEPARATOR);
         assert!(class_path.contains(&expected));
@@ -302,10 +513,9 @@ mod test {
         use std::path::PathBuf;
         log::debug!("{}", PathBuf::from(".").canonicalize().unwrap().display());
 
-        let temp_dir = copy_test_dir("tests/data/maven_exercise");
-        let test_path = temp_dir.path();
+        let temp_dir = dir_to_temp("tests/data/maven_exercise");
         let (plugin, _lock) = get_maven();
-        let compile_result = plugin.build(test_path).unwrap();
+        let compile_result = plugin.build(temp_dir.path()).unwrap();
         assert!(compile_result.status_code.success());
     }
 
@@ -313,7 +523,7 @@ mod test {
     fn creates_run_result_file() {
         init();
 
-        let temp_dir = copy_test_dir("tests/data/maven_exercise");
+        let temp_dir = dir_to_temp("tests/data/maven_exercise");
         let test_path = temp_dir.path();
         let (plugin, _lock) = get_maven();
         let compile_result = plugin.build(test_path).unwrap();
@@ -338,80 +548,5 @@ mod test {
         assert_eq!(stack_trace.file_name.as_ref().unwrap(), "Assert.java");
         assert_eq!(stack_trace.line_number, 115);
         assert_eq!(stack_trace.method_name, "assertEquals");
-    }
-
-    #[test]
-    fn scans_exercise() {
-        init();
-
-        let temp_dir = copy_test_dir("tests/data/maven_exercise");
-        let test_path = temp_dir.path();
-        let (plugin, _lock) = get_maven();
-        let exercises = plugin
-            .scan_exercise(&test_path, "test".to_string(), &mut vec![])
-            .unwrap();
-        assert_eq!(exercises.name, "test");
-        assert_eq!(exercises.tests.len(), 1);
-        assert_eq!(
-            exercises.tests[0].name,
-            "fi.helsinki.cs.maventest.AppTest trol"
-        );
-        assert_eq!(exercises.tests[0].points, ["maven-exercise"]);
-    }
-
-    #[test]
-    fn runs_checkstyle() {
-        init();
-
-        let temp_dir = copy_test_dir("tests/data/maven_exercise");
-        let test_path = temp_dir.path();
-        let (plugin, _lock) = get_maven();
-        let checkstyle_result = plugin
-            .check_code_style(test_path, Language::from_639_3("fin").unwrap())
-            .unwrap()
-            .unwrap();
-
-        assert_eq!(checkstyle_result.strategy, Strategy::Fail);
-        let validation_errors = checkstyle_result.validation_errors.unwrap();
-        let errors = validation_errors
-            .get(Path::new("fi/helsinki/cs/maventest/App.java"))
-            .unwrap();
-        assert_eq!(errors.len(), 1);
-        let error = &errors[0];
-        assert_eq!(error.column, 0);
-        assert_eq!(error.line, 4);
-        assert!(error.message.starts_with("Sisennys väärin"));
-        assert_eq!(
-            error.source_name,
-            "com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"
-        );
-    }
-
-    // TODO: currently will extract maven to your cache directory
-    // #[test] TODO: changing PATH breaks other tests
-    fn _unpack_bundled_mvn() {
-        std::env::set_var("PATH", "");
-        let cmd = MavenPlugin::get_mvn_command().unwrap();
-        let expected = format!(
-            "tmc{0}apache-maven-3.6.3{0}bin{0}mvn",
-            std::path::MAIN_SEPARATOR
-        );
-        assert!(cmd.to_string_lossy().ends_with(&expected))
-    }
-
-    #[test]
-    fn finds_project_dir_in_zip() {
-        let file = File::open("tests/data/MavenProject.zip").unwrap();
-        let mut zip = ZipArchive::new(file).unwrap();
-        let dir = MavenPlugin::find_project_dir_in_zip(&mut zip).unwrap();
-        assert_eq!(dir, Path::new("Outer/Inner/maven_exercise"));
-    }
-
-    #[test]
-    fn doesnt_find_project_dir_in_zip() {
-        let file = File::open("tests/data/MavenWithoutSrc.zip").unwrap();
-        let mut zip = ZipArchive::new(file).unwrap();
-        let dir = MavenPlugin::find_project_dir_in_zip(&mut zip);
-        assert!(dir.is_err());
     }
 }

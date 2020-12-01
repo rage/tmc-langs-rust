@@ -24,3 +24,23 @@ impl StudentFilePolicy for AntStudentFilePolicy {
         &self.config_file_parent_path
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn is_student_source_file() {
+        let policy = AntStudentFilePolicy::new(PathBuf::from(""));
+        assert!(policy.is_student_source_file(Path::new("src/file")));
+        assert!(policy.is_student_source_file(Path::new("src/dir/file")));
+    }
+
+    #[test]
+    fn is_not_student_source_file() {
+        let policy = AntStudentFilePolicy::new(PathBuf::from(""));
+        assert!(!policy.is_student_source_file(Path::new("file")));
+        assert!(!policy.is_student_source_file(Path::new("dir/src/file")));
+        assert!(!policy.is_student_source_file(Path::new("srca/file")));
+    }
+}

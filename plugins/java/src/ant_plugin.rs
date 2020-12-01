@@ -288,8 +288,7 @@ impl JavaPlugin for AntPlugin {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::fs::{self, File};
-    use tempfile::tempdir;
+    use std::fs;
     use tmc_langs_framework::domain::Strategy;
     use tmc_langs_framework::zip::ZipArchive;
 
@@ -298,6 +297,7 @@ mod test {
         use simple_logger::*;
         let _ = SimpleLogger::new()
             .with_level(LevelFilter::Debug)
+            // j4rs does a lot of logging
             .with_module_level("j4rs", LevelFilter::Warn)
             .init();
     }
@@ -337,6 +337,39 @@ mod test {
             }
         }
         temp
+    }
+
+    fn dir_to_zip(source_dir: impl AsRef<std::path::Path>) -> Vec<u8> {
+        use std::io::Write;
+
+        let mut target = vec![];
+        let mut zip = zip::ZipWriter::new(std::io::Cursor::new(&mut target));
+
+        for entry in walkdir::WalkDir::new(&source_dir)
+            .min_depth(1)
+            .sort_by(|a, b| a.path().cmp(b.path()))
+        {
+            let entry = entry.unwrap();
+            let rela = entry
+                .path()
+                .strip_prefix(&source_dir)
+                .unwrap()
+                .to_str()
+                .unwrap();
+            if entry.path().is_dir() {
+                zip.add_directory(rela, zip::write::FileOptions::default())
+                    .unwrap();
+            } else if entry.path().is_file() {
+                zip.start_file(rela, zip::write::FileOptions::default())
+                    .unwrap();
+                let bytes = std::fs::read(entry.path()).unwrap();
+                zip.write_all(&bytes).unwrap();
+            }
+        }
+
+        zip.finish().unwrap();
+        drop(zip);
+        target
     }
 
     #[test]
@@ -524,7 +557,6 @@ mod test {
     fn runs_tests_with_timeout() {
         init();
 
-        use std::error::Error;
         let temp_dir = dir_to_temp("tests/data/ant_project");
         let plugin = AntPlugin::new().unwrap();
         let test_result_err = plugin
@@ -535,7 +567,9 @@ mod test {
             )
             .unwrap_err();
         log::debug!("{:?}", test_result_err);
+
         // verify that there's a timeout error in the source chain
+        use std::error::Error;
         let mut source = test_result_err.source();
         while let Some(inner) = source {
             source = inner.source();
@@ -586,8 +620,11 @@ mod test {
     fn finds_project_dir_in_zip() {
         init();
 
-        let file = File::open("tests/data/AntProject.zip").unwrap();
-        let mut zip = ZipArchive::new(file).unwrap();
+        let temp_dir = tempfile::tempdir().unwrap();
+        dir_to(&temp_dir, "Outer/Inner/ant_project/src");
+
+        let zip_contents = dir_to_zip(&temp_dir);
+        let mut zip = ZipArchive::new(std::io::Cursor::new(zip_contents)).unwrap();
         let dir = AntPlugin::find_project_dir_in_zip(&mut zip).unwrap();
         assert_eq!(dir, Path::new("Outer/Inner/ant_project"));
     }
@@ -596,8 +633,11 @@ mod test {
     fn doesnt_find_project_dir_in_zip() {
         init();
 
-        let file = File::open("tests/data/AntWithoutSrc.zip").unwrap();
-        let mut zip = ZipArchive::new(file).unwrap();
+        let temp_dir = tempfile::tempdir().unwrap();
+        dir_to(&temp_dir, "Outer/Inner/ant_project/srcb");
+
+        let zip_contents = dir_to_zip(&temp_dir);
+        let mut zip = ZipArchive::new(std::io::Cursor::new(zip_contents)).unwrap();
         let dir = AntPlugin::find_project_dir_in_zip(&mut zip);
         assert!(dir.is_err());
     }

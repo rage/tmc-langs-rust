@@ -35,7 +35,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         timeout: Option<Duration>,
     ) -> Result<RunResult, JavaError> {
         log::info!(
-            "Running tests for project at {}",
+            "running tests for project at {}",
             project_root_path.display()
         );
 
@@ -170,8 +170,8 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         }
         let class_path = self.get_project_class_path(path)?;
 
-        log::info!("Class path: {}", class_path);
-        log::info!("Source files: {:?}", source_files);
+        log::info!("class path: {}", class_path);
+        log::info!("source files: {:?}", source_files);
 
         let test_scanner = self
             .jvm()
@@ -253,6 +253,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         Ok(result)
     }
 
+    /// Parses @Points("1.1") point annotations.
     fn java_points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str> {
         combinator::map(
             sequence::delimited(
@@ -281,12 +282,220 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
 
 #[cfg(test)]
 mod test {
-    // TODO: look into not having to use AntPlugin
-    use super::super::ant_plugin::AntPlugin;
+    use crate::SEPARATOR;
+
     use super::*;
+    use tmc_langs_framework::{anyhow, TmcError};
+
+    fn init() {
+        use log::*;
+        use simple_logger::*;
+        let _ = SimpleLogger::new()
+            .with_level(LevelFilter::Debug)
+            .with_module_level("j4rs", LevelFilter::Warn)
+            .init();
+    }
+
+    fn dir_to_temp(source_dir: impl AsRef<std::path::Path>) -> tempfile::TempDir {
+        let temp = tempfile::TempDir::new().unwrap();
+        for entry in walkdir::WalkDir::new(&source_dir).min_depth(1) {
+            let entry = entry.unwrap();
+            let rela = entry.path().strip_prefix(&source_dir).unwrap();
+            let target = temp.path().join(rela);
+            if entry.path().is_dir() {
+                std::fs::create_dir(target).unwrap();
+            } else if entry.path().is_file() {
+                std::fs::copy(entry.path(), target).unwrap();
+            }
+        }
+        temp
+    }
+
+    struct Stub {
+        jvm: Jvm,
+    }
+
+    impl Stub {
+        fn new() -> Self {
+            Self {
+                jvm: crate::instantiate_jvm().unwrap(),
+            }
+        }
+    }
+
+    impl LanguagePlugin for Stub {
+        const PLUGIN_NAME: &'static str = "stub";
+        const LINE_COMMENT: &'static str = "//";
+        const BLOCK_COMMENT: Option<(&'static str, &'static str)> = Some(("/*", "*/"));
+        type StudentFilePolicy = tmc_langs_framework::policy::EverythingIsStudentFilePolicy;
+
+        fn scan_exercise(
+            &self,
+            _path: &Path,
+            _exercise_name: String,
+            _warnings: &mut Vec<anyhow::Error>,
+        ) -> Result<ExerciseDesc, TmcError> {
+            unimplemented!()
+        }
+
+        fn run_tests_with_timeout(
+            &self,
+            _path: &Path,
+            _timeout: Option<Duration>,
+            _warnings: &mut Vec<anyhow::Error>,
+        ) -> Result<RunResult, TmcError> {
+            unimplemented!()
+        }
+
+        fn get_student_file_policy(_project_path: &Path) -> Self::StudentFilePolicy {
+            unimplemented!()
+        }
+
+        fn is_exercise_type_correct(_path: &Path) -> bool {
+            true
+        }
+
+        fn clean(&self, _path: &Path) -> Result<(), TmcError> {
+            unimplemented!()
+        }
+
+        fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
+            unimplemented!()
+        }
+
+        fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
+            unimplemented!()
+        }
+
+        fn points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str> {
+            Self::java_points_parser(i)
+        }
+    }
+
+    impl JavaPlugin for Stub {
+        const TEST_DIR: &'static str = "test";
+
+        fn jvm(&self) -> &Jvm {
+            &self.jvm
+        }
+        fn get_project_class_path(&self, path: &Path) -> Result<String, JavaError> {
+            let path = path.to_str().unwrap();
+            let cp = format!(
+                "{1}/lib/edu-test-utils-0.4.1.jar{0}{1}/lib/junit-4.10.jar",
+                SEPARATOR, path
+            );
+            Ok(cp)
+        }
+
+        fn build(&self, _project_root_path: &Path) -> Result<CompileResult, JavaError> {
+            Ok(CompileResult {
+                status_code: tmc_langs_framework::subprocess::ExitStatus::Exited(0),
+                stdout: vec![],
+                stderr: vec![],
+            })
+        }
+
+        fn create_run_result_file(
+            &self,
+            path: &Path,
+            _timeout: Option<Duration>,
+            _compile_result: CompileResult,
+        ) -> Result<TestRun, JavaError> {
+            let path = path.join("runresult");
+            std::fs::write(
+                &path,
+                r#"[{
+                "className": "cls1",
+                "methodName": "mtd1",
+                "pointNames": [],
+                "status": "PASSED",
+                "message": null,
+                "exception": null
+            },{
+                "className": "cls2",
+                "methodName": "mtd2",
+                "pointNames": [],
+                "status": "FAILED",
+                "message": null,
+                "exception": null
+            }]"#,
+            )
+            .unwrap();
+            Ok(TestRun {
+                test_results: path,
+                stdout: vec![],
+                stderr: vec![],
+            })
+        }
+    }
+
+    #[test]
+    fn runs_java_tests() {
+        init();
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        let plugin = Stub::new();
+        let result = plugin.run_java_tests(temp_dir.path(), None).unwrap();
+        assert_eq!(result.status, RunStatus::TestsFailed);
+    }
+
+    #[test]
+    fn parses_test_results() {
+        init();
+
+        use std::io::Write;
+        let mut temp_file = tempfile::NamedTempFile::new().unwrap();
+        temp_file
+            .write_all(
+                br#"[{
+                "className": "cls1",
+                "methodName": "mtd1",
+                "pointNames": [],
+                "status": "PASSED",
+                "message": null,
+                "exception": null
+            },{
+                "className": "cls2",
+                "methodName": "mtd2",
+                "pointNames": [],
+                "status": "FAILED",
+                "message": null,
+                "exception": null
+            }]"#,
+            )
+            .unwrap();
+
+        let plugin = Stub::new();
+        let test_run = TestRun {
+            test_results: temp_file.path().to_path_buf(),
+            stdout: vec![],
+            stderr: vec![],
+        };
+        let run_result = plugin.parse_test_result(&test_run).unwrap();
+        assert_eq!(run_result.status, RunStatus::TestsFailed);
+    }
+
+    #[test]
+    fn converts_test_case_result() {
+        init();
+
+        let plugin = Stub::new();
+        let test_case = TestCase {
+            class_name: "cls".to_string(),
+            exception: None,
+            message: None,
+            method_name: "mtd".to_string(),
+            point_names: vec!["1".to_string(), "2".to_string()],
+            status: TestCaseStatus::Failed,
+        };
+        let test_result = plugin.convert_test_case_result(test_case);
+        assert_eq!(test_result.points, &["1", "2"]);
+    }
 
     #[test]
     fn parses_java_home() {
+        init();
+
         let properties = r#"Property settings:
     awt.toolkit = sun.awt.X11.XToolkit
     java.ext.dirs = /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext
@@ -294,13 +503,86 @@ mod test {
     java.home = /usr/lib/jvm/java-8-openjdk-amd64/jre
     user.timezone = 
 
-openjdk version "1.8.0_252"
+openjdk version "1.8.0_252"S
 "#;
 
-        let parsed = AntPlugin::parse_java_home(properties);
+        let parsed = Stub::parse_java_home(properties);
         assert_eq!(
             Some(PathBuf::from("/usr/lib/jvm/java-8-openjdk-amd64/jre")),
             parsed,
+        );
+    }
+
+    #[test]
+    fn gets_java_home() {
+        init();
+
+        let _java_home = Stub::get_java_home().unwrap();
+    }
+
+    #[test]
+    fn scans_exercise_with_compile_result() {
+        init();
+
+        let temp_dir = dir_to_temp("tests/data/ant_project");
+
+        let plugin = Stub::new();
+        let compile_result = CompileResult {
+            stdout: vec![],
+            stderr: vec![],
+            status_code: tmc_langs_framework::subprocess::ExitStatus::Exited(0),
+        };
+        let desc = plugin
+            .scan_exercise_with_compile_result(temp_dir.path(), "ex".to_string(), compile_result)
+            .unwrap();
+        assert_eq!(desc.tests[0].points[0], "arith-funcs");
+    }
+
+    #[test]
+    fn creates_run_result_from_failed_compilation() {
+        init();
+
+        let plugin = Stub::new();
+        let compile_result = CompileResult {
+            status_code: tmc_langs_framework::subprocess::ExitStatus::Exited(0),
+            stdout: "hello, 世界".as_bytes().to_vec(),
+            stderr: "エラー".as_bytes().to_vec(),
+        };
+        let run_result = plugin.run_result_from_failed_compilation(compile_result);
+        assert_eq!(run_result.logs.get("stdout").unwrap(), "hello, 世界");
+        assert_eq!(run_result.logs.get("stderr").unwrap(), "エラー");
+    }
+
+    #[test]
+    fn runs_checkstyle() {
+        init();
+
+        let temp_dir = dir_to_temp("tests/data/ant_project");
+
+        let plugin = Stub::new();
+        let validation_result = plugin
+            .run_checkstyle(&Language::from_639_3("fin").unwrap(), temp_dir.path())
+            .unwrap();
+        log::debug!("{:#?}", validation_result);
+        let validation_errors = validation_result.validation_errors.unwrap();
+        let validation_error = validation_errors.values().next().unwrap().get(0).unwrap();
+        assert!(validation_error.message.contains("Sisennys väärin"));
+    }
+
+    #[test]
+    fn parses_points() {
+        assert!(Stub::java_points_parser("asd").is_err());
+        assert!(Stub::java_points_parser(r#"@points("help""#).is_err());
+
+        assert_eq!(
+            Stub::java_points_parser(r#"@points("point")"#).unwrap().1,
+            "point"
+        );
+        assert_eq!(
+            Stub::java_points_parser(r#"@  PoInTs  (  "  another point  "  )  "#)
+                .unwrap()
+                .1,
+            "another point"
         );
     }
 }

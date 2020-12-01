@@ -24,3 +24,24 @@ impl StudentFilePolicy for MavenStudentFilePolicy {
         &self.config_file_parent_path
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn is_student_source_file() {
+        let policy = MavenStudentFilePolicy::new(PathBuf::from(""));
+        assert!(policy.is_student_source_file(Path::new("src/main/file")));
+        assert!(policy.is_student_source_file(Path::new("src/main/dir/file")));
+    }
+
+    #[test]
+    fn is_not_student_source_file() {
+        let policy = MavenStudentFilePolicy::new(PathBuf::from(""));
+        assert!(!policy.is_student_source_file(Path::new("file")));
+        assert!(!policy.is_student_source_file(Path::new("dir/src/main/file")));
+        assert!(!policy.is_student_source_file(Path::new("srca/main/file")));
+        assert!(!policy.is_student_source_file(Path::new("src/mainc/file")));
+    }
+}
