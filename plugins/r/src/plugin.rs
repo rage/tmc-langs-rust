@@ -1,7 +1,7 @@
-//! Contains the RPlugin
+//! Contains the LanguagePlugin implementation for R.
 
 use crate::error::RError;
-use crate::RRunResult;
+use crate::r_run_result::RRunResult;
 use crate::RStudentFilePolicy;
 use std::collections::HashMap;
 use std::fs;
@@ -68,7 +68,7 @@ impl LanguagePlugin for RPlugin {
     fn run_tests_with_timeout(
         &self,
         path: &Path,
-        _timeout: Option<Duration>,
+        timeout: Option<Duration>,
         _warnings: &mut Vec<anyhow::Error>,
     ) -> Result<RunResult, TmcError> {
         // delete results json
@@ -83,9 +83,16 @@ impl LanguagePlugin for RPlugin {
         } else {
             &["-e", "library(tmcRtestrunner);run_tests()"]
         };
-        let _command = TmcCommand::new_with_file_io("Rscript")?
-            .with(|e| e.cwd(path).args(args))
-            .output_checked()?;
+
+        if let Some(timeout) = timeout {
+            let _command = TmcCommand::new_with_file_io("Rscript")?
+                .with(|e| e.cwd(path).args(args))
+                .output_with_timeout_checked(timeout)?;
+        } else {
+            let _command = TmcCommand::new_with_file_io("Rscript")?
+                .with(|e| e.cwd(path).args(args))
+                .output_checked()?;
+        }
 
         // parse test result
         let json_file = file_util::open_file(&results_path)?;
@@ -177,150 +184,278 @@ impl LanguagePlugin for RPlugin {
 #[cfg(target_os = "linux")] // tmc-r-testrunner not installed on other CI platforms
 mod test {
     use super::*;
-    use std::fs::File;
     use std::path::PathBuf;
     use tmc_langs_framework::domain::RunStatus;
 
     fn init() {
-        let _ = env_logger::builder().is_test(true).try_init();
+        use log::*;
+        use simple_logger::*;
+        let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
     }
 
-    // copies the target exercise and tmc to a temp directory
-    fn copy_test(dir: &str) -> tempfile::TempDir {
-        let path = Path::new(dir);
-        let temp = tempfile::tempdir().unwrap();
-        for entry in walkdir::WalkDir::new(path) {
+    fn file_to(
+        target_dir: impl AsRef<std::path::Path>,
+        target_relative: impl AsRef<std::path::Path>,
+        contents: impl AsRef<[u8]>,
+    ) -> PathBuf {
+        let target = target_dir.as_ref().join(target_relative);
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent).unwrap();
+        }
+        std::fs::write(&target, contents.as_ref()).unwrap();
+        target
+    }
+
+    fn dir_to_zip(source_dir: impl AsRef<std::path::Path>) -> Vec<u8> {
+        use std::io::Write;
+
+        let mut target = vec![];
+        let mut zip = zip::ZipWriter::new(std::io::Cursor::new(&mut target));
+
+        for entry in walkdir::WalkDir::new(&source_dir)
+            .min_depth(1)
+            .sort_by(|a, b| a.path().cmp(b.path()))
+        {
             let entry = entry.unwrap();
-            if entry.path().is_file() {
-                let entry_path: PathBuf = entry
-                    .path()
-                    .components()
-                    .skip(path.components().count())
-                    .collect();
-                let temp_path = temp.path().join(entry_path);
-                if let Some(parent) = temp_path.parent() {
-                    std::fs::create_dir_all(&parent).unwrap();
-                }
-                log::trace!("copying {:?} -> {:?}", entry.path(), temp_path);
-                std::fs::copy(entry.path(), temp_path).unwrap();
+            let rela = entry
+                .path()
+                .strip_prefix(&source_dir)
+                .unwrap()
+                .to_str()
+                .unwrap();
+            if entry.path().is_dir() {
+                zip.add_directory(rela, zip::write::FileOptions::default())
+                    .unwrap();
+            } else if entry.path().is_file() {
+                zip.start_file(rela, zip::write::FileOptions::default())
+                    .unwrap();
+                let bytes = std::fs::read(entry.path()).unwrap();
+                zip.write_all(&bytes).unwrap();
             }
         }
-        temp
+
+        zip.finish().unwrap();
+        drop(zip);
+        target
     }
 
     #[test]
     fn scan_exercise() {
         init();
-        let plugin = RPlugin {};
-        let temp = copy_test("tests/data/simple_all_tests_pass");
 
-        assert!(!temp.path().join(".available_points.json").exists());
+        let temp_dir = tempfile::tempdir().unwrap();
+        file_to(
+            &temp_dir,
+            "tests/testthat/test1.R",
+            r#"
+library("testthat")
+points_for_all_tests(c("r1"))
+test("sample1", c("r1.1"), {
+    expect_true(TRUE)
+})
+test("sample2", c("r1.2", "r1.3"), {
+    expect_true(TRUE)
+})
+"#,
+        );
+        file_to(
+            &temp_dir,
+            "tests/testthat/test2.R",
+            r#"
+library("testthat")
+points_for_all_tests(c("r2"))
+test("sample3", c("r2.1"), {
+    expect_true(TRUE)
+})
+"#,
+        );
+
+        let plugin = RPlugin::new();
         let desc = plugin
-            .scan_exercise(temp.path(), "ex".to_string(), &mut vec![])
+            .scan_exercise(temp_dir.path(), "ex".to_string(), &mut vec![])
             .unwrap();
-        assert!(temp.path().join(".available_points.json").exists());
         assert_eq!(desc.name, "ex");
-        assert_eq!(desc.tests.len(), 4);
+        assert_eq!(desc.tests.len(), 3);
         for test in desc.tests {
-            if test.name == "ret_true works." {
-                assert_eq!(test.points.len(), 2);
-                assert_eq!(test.points[0], "r1");
-                return;
+            match test.name.as_str() {
+                "sample1" => assert_eq!(test.points, &["r1", "r1.1"]),
+                "sample2" => assert_eq!(test.points, &["r1", "r1.2", "r1.3"]),
+                "sample3" => assert_eq!(test.points, &["r2", "r2.1"]),
+                _ => panic!(),
             }
         }
-        panic!("not found");
     }
 
     #[test]
     fn run_tests_success() {
         init();
-        let plugin = RPlugin {};
-        let temp = copy_test("tests/data/simple_all_tests_pass");
 
-        let run = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
+        let temp_dir = tempfile::tempdir().unwrap();
+        file_to(
+            &temp_dir,
+            "tests/testthat/test.R",
+            r#"
+library("testthat")
+points_for_all_tests(c("r1"))
+test("sample", c("r1.1"), {
+    expect_true(TRUE)
+})
+"#,
+        );
+
+        let plugin = RPlugin::new();
+        let run = plugin.run_tests(temp_dir.path(), &mut vec![]).unwrap();
         assert_eq!(run.status, RunStatus::Passed);
         assert!(run.logs.is_empty());
-        assert_eq!(run.test_results.len(), 4);
-        for res in run.test_results {
-            if res.name == "ret_true works." {
-                assert!(res.successful);
-                assert_eq!(res.points, &["r1", "r1.1"]);
-                assert!(res.message.is_empty());
-                assert!(res.exception.is_empty());
-                return;
-            }
-        }
-        panic!("not found");
+        assert_eq!(run.test_results.len(), 1);
+        let res = &run.test_results[0];
+        assert!(res.successful);
+        assert_eq!(res.points, &["r1", "r1.1"]);
+        assert!(res.message.is_empty());
+        assert!(res.exception.is_empty());
     }
 
     #[test]
     fn run_tests_failed() {
         init();
-        let plugin = RPlugin {};
-        let temp = copy_test("tests/data/simple_all_tests_fail");
 
-        let run = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
+        let temp_dir = tempfile::tempdir().unwrap();
+        file_to(
+            &temp_dir,
+            "tests/testthat/test.R",
+            r#"
+library("testthat")
+points_for_all_tests(c("r1"))
+test("sample", c("r1.1"), {
+    expect_true(FALSE)
+})
+"#,
+        );
+
+        let plugin = RPlugin::new();
+        let run = plugin.run_tests(temp_dir.path(), &mut vec![]).unwrap();
         assert_eq!(run.status, RunStatus::TestsFailed);
         assert!(run.logs.is_empty());
-        assert_eq!(run.test_results.len(), 4);
-        for res in run.test_results {
-            if res.name == "ret_true works." {
-                assert!(!res.successful);
-                assert_eq!(res.points, &["r1", "r1.1"]);
-                assert!(!res.message.is_empty());
-                assert!(res.exception.is_empty());
-                return;
-            }
-        }
-        panic!("not found");
+        assert_eq!(run.test_results.len(), 1);
+        let res = &run.test_results[0];
+        log::debug!("{:#?}", res);
+        assert!(!res.successful);
+        assert_eq!(res.points, &["r1", "r1.1"]);
+        assert_eq!(res.message, "FALSE isn't true.");
+        assert!(res.exception.is_empty());
     }
 
     #[test]
     fn run_tests_run_failed() {
         init();
-        let plugin = RPlugin {};
-        let temp = copy_test("tests/data/simple_run_fail");
 
-        let mut run = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
-        assert_eq!(run.status, RunStatus::CompileFailed);
-        assert!(run.test_results.is_empty());
-        assert!(!run.logs.is_empty());
-        let logs = run.logs.remove("compiler_output").unwrap();
-        assert!(logs.contains("unexpected 'in'"))
+        let temp_dir = tempfile::tempdir().unwrap();
+        file_to(
+            &temp_dir,
+            "tests/testthat/test.R",
+            r#"
+library("testthat")
+points_for_all_tests(c("r1"))
+test("sample", c("r1.1"), {
+    expect_true(unexpected)
+})
+"#,
+        );
+
+        let plugin = RPlugin::new();
+        let run = plugin.run_tests(temp_dir.path(), &mut vec![]).unwrap();
+        assert_eq!(run.status, RunStatus::TestsFailed);
+        assert!(run.logs.is_empty());
+        assert_eq!(run.test_results.len(), 1);
+        let res = &run.test_results[0];
+        log::debug!("{:#?}", res);
+        assert!(!res.successful);
+        assert_eq!(res.points, &["r1", "r1.1"]);
+        assert_eq!(res.message, "object 'unexpected' not found");
+        assert!(res.exception.is_empty());
     }
 
     #[test]
     fn run_tests_sourcing() {
         init();
-        let plugin = RPlugin {};
-        let temp = copy_test("tests/data/simple_sourcing_fail");
 
-        let mut run = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
+        let temp_dir = tempfile::tempdir().unwrap();
+        file_to(&temp_dir, "R/main.R", r#"invalid R file"#);
+        file_to(&temp_dir, "tests/testthat/test.R", "");
+
+        let plugin = RPlugin::new();
+        let run = plugin.run_tests(temp_dir.path(), &mut vec![]).unwrap();
+        log::debug!("{:#?}", run);
         assert_eq!(run.status, RunStatus::CompileFailed);
+        assert!(run
+            .logs
+            .get("compiler_output")
+            .unwrap()
+            .contains("unexpected symbol"));
         assert!(run.test_results.is_empty());
-        assert!(!run.logs.is_empty());
-        let logs = run.logs.remove("compiler_output").unwrap();
-        assert!(logs.contains("unexpected 'in'"));
+    }
+
+    #[test]
+    fn run_tests_timeout() {
+        init();
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        file_to(&temp_dir, "R/main.R", r#"invalid R file"#);
+        file_to(&temp_dir, "tests/testthat/test.R", "");
+
+        let plugin = RPlugin::new();
+        let run = plugin
+            .run_tests_with_timeout(
+                temp_dir.path(),
+                Some(std::time::Duration::from_nanos(1)),
+                &mut vec![],
+            )
+            .unwrap_err();
+        use std::error::Error;
+        let mut source = run.source();
+        while let Some(inner) = source {
+            source = inner.source();
+            if let Some(cmd_error) =
+                inner.downcast_ref::<tmc_langs_framework::error::CommandError>()
+            {
+                if matches!(cmd_error, tmc_langs_framework::error::CommandError::TimeOut {..}) {
+                    return;
+                }
+            }
+        }
+        panic!()
     }
 
     #[test]
     fn finds_project_dir_in_zip() {
-        let file = File::open("tests/data/RProject.zip").unwrap();
-        let mut zip = ZipArchive::new(file).unwrap();
+        init();
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        file_to(&temp_dir, "Outer/Inner/r_project/R/main.R", "");
+
+        let bytes = dir_to_zip(&temp_dir);
+        let mut zip = ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
         let dir = RPlugin::find_project_dir_in_zip(&mut zip).unwrap();
-        assert_eq!(dir, Path::new("Outer/Inner/simple_all_tests_pass"));
+        assert_eq!(dir, Path::new("Outer/Inner/r_project"));
     }
 
     #[test]
     fn doesnt_find_project_dir_in_zip() {
-        let file = File::open("tests/data/RWithoutR.zip").unwrap();
-        let mut zip = ZipArchive::new(file).unwrap();
-        let dir = RPlugin::find_project_dir_in_zip(&mut zip);
-        assert!(dir.is_err());
+        init();
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        file_to(&temp_dir, "Outer/Inner/r_project/RR/main.R", "");
+
+        let bytes = dir_to_zip(&temp_dir);
+        let mut zip = ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
+        let res = RPlugin::find_project_dir_in_zip(&mut zip);
+        assert!(res.is_err());
     }
 
     #[test]
     fn parses_points() {
+        init();
+
         let target = "asd";
         assert!(RPlugin::points_parser(target).is_err());
 
@@ -328,6 +463,13 @@ mod test {
         assert!(RPlugin::points_parser(target).is_err());
 
         let target = r#"test("1d and 1e are solved correctly", c("W1A.1.2"), {
+  expect_equivalent(z, z_correct, tolerance=1e-5)
+  expect_true(areEqual(res, res_correct))
+})
+"#;
+        assert_eq!(RPlugin::points_parser(target).unwrap().1, "W1A.1.2");
+
+        let target = r#"test  (  "1d and 1e are solved correctly", c  (  "  W1A.1.2  "  )  , {
   expect_equivalent(z, z_correct, tolerance=1e-5)
   expect_true(areEqual(res, res_correct))
 })
