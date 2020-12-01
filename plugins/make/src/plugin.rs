@@ -39,6 +39,7 @@ impl MakePlugin {
     ) -> Result<ExerciseDesc, MakeError> {
         lazy_static! {
             // "[test] [test_one] 1.1 1.2 1.3" = "[type] [name] points"
+            // TODO: use parser lib
             static ref RE: Regex =
                 Regex::new(r#"\[(?P<type>.*)\] \[(?P<name>.*)\] (?P<points>.*)"#).unwrap();
         }
@@ -56,7 +57,7 @@ impl MakePlugin {
                     let name = captures["name"].to_string();
                     let points = captures["points"]
                         .split_whitespace()
-                        .map(|s| s.to_string())
+                        .map(str::to_string)
                         .collect();
                     tests.push(TestDesc { name, points });
                 }
@@ -346,43 +347,118 @@ impl LanguagePlugin for MakePlugin {
 #[cfg(target_os = "linux")] // check not installed on other CI platforms
 mod test {
     use super::*;
-    use std::fs::File;
-    use std::path::PathBuf;
-    use tempfile::{tempdir, TempDir};
     use tmc_langs_framework::zip::ZipArchive;
 
     fn init() {
-        let _ = env_logger::builder().is_test(true).try_init();
+        use log::*;
+        use simple_logger::*;
+        let _ = SimpleLogger::new()
+            .with_level(LevelFilter::Debug)
+            // serde_xml_rs logs a lot
+            .with_module_level("serde_xml_rs", LevelFilter::Warn)
+            .init();
     }
 
-    // copies the target exercise and tmc to a temp directory
-    fn copy_test(dir: &str) -> TempDir {
-        let path = Path::new(dir);
-        let temp = tempdir().unwrap();
-        for entry in walkdir::WalkDir::new(path) {
+    fn file_to(
+        target_dir: impl AsRef<std::path::Path>,
+        target_relative: impl AsRef<std::path::Path>,
+        contents: impl AsRef<[u8]>,
+    ) -> PathBuf {
+        let target = target_dir.as_ref().join(target_relative);
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent).unwrap();
+        }
+        std::fs::write(&target, contents.as_ref()).unwrap();
+        target
+    }
+
+    fn dir_to(
+        target_dir: impl AsRef<std::path::Path>,
+        target_relative: impl AsRef<std::path::Path>,
+    ) -> PathBuf {
+        let target = target_dir.as_ref().join(target_relative);
+        std::fs::create_dir_all(&target).unwrap();
+        target
+    }
+
+    fn dir_to_temp(source_dir: impl AsRef<std::path::Path>) -> tempfile::TempDir {
+        let temp = tempfile::TempDir::new().unwrap();
+        for entry in walkdir::WalkDir::new(&source_dir).min_depth(1) {
             let entry = entry.unwrap();
-            if entry.path().is_file() {
-                let entry_path: PathBuf = entry
-                    .path()
-                    .components()
-                    .skip(path.components().count())
-                    .collect();
-                let temp_path = temp.path().join(entry_path);
-                if let Some(parent) = temp_path.parent() {
-                    std::fs::create_dir_all(parent).unwrap();
-                }
-                log::trace!("copying {:?} -> {:?}", entry.path(), temp_path);
-                std::fs::copy(entry.path(), temp_path).unwrap();
+            let rela = entry.path().strip_prefix(&source_dir).unwrap();
+            let target = temp.path().join(rela);
+            if entry.path().is_dir() {
+                std::fs::create_dir(target).unwrap();
+            } else if entry.path().is_file() {
+                std::fs::copy(entry.path(), target).unwrap();
             }
         }
         temp
+    }
+
+    fn dir_to_zip(source_dir: impl AsRef<std::path::Path>) -> Vec<u8> {
+        use std::io::Write;
+
+        let mut target = vec![];
+        let mut zip = zip::ZipWriter::new(std::io::Cursor::new(&mut target));
+
+        for entry in walkdir::WalkDir::new(&source_dir)
+            .min_depth(1)
+            .sort_by(|a, b| a.path().cmp(b.path()))
+        {
+            let entry = entry.unwrap();
+            let rela = entry
+                .path()
+                .strip_prefix(&source_dir)
+                .unwrap()
+                .to_str()
+                .unwrap();
+            if entry.path().is_dir() {
+                zip.add_directory(rela, zip::write::FileOptions::default())
+                    .unwrap();
+            } else if entry.path().is_file() {
+                zip.start_file(rela, zip::write::FileOptions::default())
+                    .unwrap();
+                let bytes = std::fs::read(entry.path()).unwrap();
+                zip.write_all(&bytes).unwrap();
+            }
+        }
+
+        zip.finish().unwrap();
+        drop(zip);
+        target
+    }
+
+    #[test]
+    fn parses_exercise_desc() {
+        init();
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        let available_points = file_to(
+            &temp_dir,
+            "available_points.txt",
+            r#"
+[test] [test1] point1 point2 point3 point4
+[test] [test2] point5
+[nontest] [nontest1] nonpoint
+test [invalid] point6
+[test] invalid point6
+"#,
+        );
+
+        let plugin = MakePlugin::new();
+        let exercise_desc = plugin
+            .parse_exercise_desc(&available_points, "ex".to_string())
+            .unwrap();
+        assert_eq!(exercise_desc.tests.len(), 2);
+        assert_eq!(exercise_desc.tests[0].points.len(), 4);
     }
 
     #[test]
     fn scans_exercise() {
         init();
 
-        let temp = copy_test("tests/data/passing");
+        let temp = dir_to_temp("tests/data/passing");
         let plugin = MakePlugin::new();
         let exercise_desc = plugin
             .scan_exercise(temp.path(), "test".to_string(), &mut vec![])
@@ -400,11 +476,10 @@ mod test {
     fn runs_tests() {
         init();
 
-        let temp = copy_test("tests/data/passing");
+        let temp = dir_to_temp("tests/data/passing");
         let plugin = MakePlugin::new();
         let run_result = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(run_result.status, RunStatus::Passed);
-        // assert!(run_result.logs.is_empty());
         let test_results = run_result.test_results;
         assert_eq!(test_results.len(), 1);
         let test_result = &test_results[0];
@@ -422,7 +497,7 @@ mod test {
     fn runs_tests_failing() {
         init();
 
-        let temp = copy_test("tests/data/failing");
+        let temp = dir_to_temp("tests/data/failing");
         let plugin = MakePlugin::new();
         let run_result = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(run_result.status, RunStatus::TestsFailed);
@@ -435,15 +510,14 @@ mod test {
         let points = &test_result.points;
         assert_eq!(points.len(), 1);
         assert_eq!(points[0], "1.1");
-        // let logs = &run_result.logs;
-        // assert!(logs.is_empty());
     }
 
-    //#[test]
-    fn _runs_tests_failing_valgrind() {
+    // if this test causes problems just disable it, valgrind might be writing the results in a random order
+    #[test]
+    fn runs_tests_failing_valgrind() {
         init();
 
-        let temp = copy_test("tests/data/valgrind-failing");
+        let temp = dir_to_temp("tests/data/valgrind-failing");
         let plugin = MakePlugin::new();
         let run_result = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(run_result.status, RunStatus::TestsFailed);
@@ -461,22 +535,29 @@ mod test {
         assert!(test_two.successful);
         assert_eq!(test_two.points.len(), 1);
         assert_eq!(test_two.points[0], "1.2");
-
-        todo!("valgrind results in random order?")
     }
 
     #[test]
     fn finds_project_dir_in_zip() {
-        let file = File::open("tests/data/MakeProject.zip").unwrap();
-        let mut zip = ZipArchive::new(file).unwrap();
+        init();
+        let temp_dir = tempfile::tempdir().unwrap();
+        dir_to(&temp_dir, "Outer/Inner/make_project/src");
+
+        let zip_contents = dir_to_zip(&temp_dir);
+        let mut zip = ZipArchive::new(std::io::Cursor::new(zip_contents)).unwrap();
         let dir = MakePlugin::find_project_dir_in_zip(&mut zip).unwrap();
-        assert_eq!(dir, Path::new("Outer/Inner/passing"));
+        assert_eq!(dir, Path::new("Outer/Inner/make_project"));
     }
 
     #[test]
     fn doesnt_find_project_dir_in_zip() {
-        let file = File::open("tests/data/MakeWithoutSrc.zip").unwrap();
-        let mut zip = ZipArchive::new(file).unwrap();
+        init();
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        dir_to(&temp_dir, "Outer/Inner/make_project/srcb");
+
+        let zip_contents = dir_to_zip(&temp_dir);
+        let mut zip = ZipArchive::new(std::io::Cursor::new(zip_contents)).unwrap();
         let dir = MakePlugin::find_project_dir_in_zip(&mut zip);
         assert!(dir.is_err());
     }

@@ -24,3 +24,23 @@ impl StudentFilePolicy for MakeStudentFilePolicy {
         path.starts_with("src")
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn is_student_source_file() {
+        let policy = MakeStudentFilePolicy::new(PathBuf::from(""));
+        assert!(policy.is_student_source_file(Path::new("src")));
+        assert!(policy.is_student_source_file(Path::new("src/file")));
+        assert!(policy.is_student_source_file(Path::new("src/dir/file")));
+    }
+
+    #[test]
+    fn is_not_student_source_file() {
+        let policy = MakeStudentFilePolicy::new(PathBuf::from(""));
+        assert!(!policy.is_student_source_file(Path::new("srcc")));
+        assert!(!policy.is_student_source_file(Path::new("dir/src/file")));
+    }
+}

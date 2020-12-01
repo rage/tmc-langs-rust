@@ -18,6 +18,7 @@ pub struct ValgrindLog {
 impl ValgrindLog {
     /// Attempts to read and parse the log file at the given path.
     pub fn from(valgrind_log_path: &Path) -> Result<Self, MakeError> {
+        // TODO: use parsing lib?
         log::debug!("parsing {}", valgrind_log_path.display());
 
         lazy_static! {
@@ -78,4 +79,79 @@ pub struct ValgrindResult {
     pub pid: String,
     pub errors: bool,
     pub log: Vec<String>,
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    fn init() {
+        use log::*;
+        use simple_logger::*;
+        let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
+    }
+
+    fn file_to(
+        target_dir: impl AsRef<std::path::Path>,
+        target_relative: impl AsRef<std::path::Path>,
+        contents: impl AsRef<[u8]>,
+    ) -> std::path::PathBuf {
+        let target = target_dir.as_ref().join(target_relative);
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent).unwrap();
+        }
+        std::fs::write(&target, contents.as_ref()).unwrap();
+        target
+    }
+
+    #[test]
+    fn parses_errors() {
+        init();
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        let file = file_to(
+            &temp_dir,
+            "file",
+            r#"
+==1234== 
+==1234== stuff
+==1234== 
+==1234== ERROR SUMMARY: 11
+
+==2345==
+==2345== stuff
+==2345==
+==2345== ERROR SUMMARY: 22
+"#,
+        );
+
+        let valgrind_log = ValgrindLog::from(&file).unwrap();
+        log::debug!("{:#?}", valgrind_log);
+        assert!(valgrind_log.errors);
+    }
+
+    #[test]
+    fn parses_no_errors() {
+        init();
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        let file = file_to(
+            &temp_dir,
+            "file",
+            r#"
+==1234== 
+==1234== stuff
+==1234== 
+==1234== ERROR SUMMARY: 0
+
+==2345==
+==2345== stuff
+==2345==
+"#,
+        );
+
+        let valgrind_log = ValgrindLog::from(&file).unwrap();
+        log::debug!("{:#?}", valgrind_log);
+        assert!(!valgrind_log.errors);
+    }
 }
