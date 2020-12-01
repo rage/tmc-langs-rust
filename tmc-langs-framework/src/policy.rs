@@ -52,7 +52,7 @@ pub trait StudentFilePolicy {
             .strip_prefix(&root_canon)
             .map_err(|_| TmcError::FileNotInProject(path_canon.clone(), root_canon.clone()))?;
         Ok(self.is_extra_student_file(&relative, tmc_project_yml)?
-            || self.is_student_source_file(relative))
+            || Self::is_student_source_file(relative))
     }
 
     fn get_config_file_parent_path(&self) -> &Path;
@@ -80,7 +80,7 @@ pub trait StudentFilePolicy {
     }
 
     /// Checks whether the file is a student source file. The file_path can be assumed to be a relative path starting from the project root directory.
-    fn is_student_source_file(&self, file_path: &Path) -> bool;
+    fn is_student_source_file(file_path: &Path) -> bool;
 
     /// Used to check for files which should always be overwritten.
     ///
@@ -123,7 +123,7 @@ impl StudentFilePolicy for NothingIsStudentFilePolicy {
         unimplemented!()
     }
 
-    fn is_student_source_file(&self, _path: &Path) -> bool {
+    fn is_student_source_file(_path: &Path) -> bool {
         unimplemented!()
     }
 
@@ -170,7 +170,7 @@ impl StudentFilePolicy for EverythingIsStudentFilePolicy {
         unimplemented!()
     }
 
-    fn is_student_source_file(&self, _path: &Path) -> bool {
+    fn is_student_source_file(_path: &Path) -> bool {
         unimplemented!()
     }
 

@@ -20,7 +20,7 @@ impl StudentFilePolicy for MakeStudentFilePolicy {
         &self.config_file_parent_path
     }
 
-    fn is_student_source_file(&self, path: &Path) -> bool {
+    fn is_student_source_file(path: &Path) -> bool {
         path.starts_with("src")
     }
 }
@@ -31,16 +31,24 @@ mod test {
 
     #[test]
     fn is_student_source_file() {
-        let policy = MakeStudentFilePolicy::new(PathBuf::from(""));
-        assert!(policy.is_student_source_file(Path::new("src")));
-        assert!(policy.is_student_source_file(Path::new("src/file")));
-        assert!(policy.is_student_source_file(Path::new("src/dir/file")));
+        assert!(MakeStudentFilePolicy::is_student_source_file(Path::new(
+            "src"
+        )));
+        assert!(MakeStudentFilePolicy::is_student_source_file(Path::new(
+            "src/file"
+        )));
+        assert!(MakeStudentFilePolicy::is_student_source_file(Path::new(
+            "src/dir/file"
+        )));
     }
 
     #[test]
     fn is_not_student_source_file() {
-        let policy = MakeStudentFilePolicy::new(PathBuf::from(""));
-        assert!(!policy.is_student_source_file(Path::new("srcc")));
-        assert!(!policy.is_student_source_file(Path::new("dir/src/file")));
+        assert!(!MakeStudentFilePolicy::is_student_source_file(Path::new(
+            "srcc"
+        )));
+        assert!(!MakeStudentFilePolicy::is_student_source_file(Path::new(
+            "dir/src/file"
+        )));
     }
 }

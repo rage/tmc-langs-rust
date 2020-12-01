@@ -534,7 +534,7 @@ mod test {
         fn get_config_file_parent_path(&self) -> &Path {
             Path::new("")
         }
-        fn is_student_source_file(&self, _path: &Path) -> bool {
+        fn is_student_source_file(_path: &Path) -> bool {
             unimplemented!()
         }
     }
