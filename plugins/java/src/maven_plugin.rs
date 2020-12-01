@@ -431,6 +431,7 @@ mod test {
                 }
             }
         }
+        panic!()
     }
 
     #[test]
