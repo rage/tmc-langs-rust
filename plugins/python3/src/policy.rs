@@ -53,18 +53,13 @@ mod test {
     fn in_src_is_source_file() {
         let policy = Python3StudentFilePolicy::new(PathBuf::from(""));
         assert!(policy.is_student_source_file(Path::new("src/some_file.py")));
+        assert!(policy.is_student_source_file(Path::new("src/some_dir/some_file.py")));
     }
 
     #[test]
     fn in_root_is_source_file() {
         let policy = Python3StudentFilePolicy::new(PathBuf::from(""));
         assert!(policy.is_student_source_file(Path::new("some_file.py")));
-    }
-
-    #[test]
-    fn in_subdir_is_source_file() {
-        let policy = Python3StudentFilePolicy::new(PathBuf::from(""));
-        assert!(policy.is_student_source_file(Path::new("src/some_dir/some_file.py")));
     }
 
     #[test]
@@ -92,8 +87,8 @@ mod test {
     #[test]
     fn tmc_and_test_are_not_student_files() {
         let policy = Python3StudentFilePolicy::new(PathBuf::from(""));
-        assert!(policy.is_student_source_file(Path::new("subdir/something")));
-        assert!(policy.is_student_source_file(Path::new("another/mid/else")));
+        assert!(!policy.is_student_source_file(Path::new("test/something.py")));
+        assert!(!policy.is_student_source_file(Path::new("tmc/mid/else.py")));
     }
 
     #[test]
