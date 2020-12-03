@@ -23,6 +23,8 @@ use tmc_langs_framework::{
 };
 use walkdir::WalkDir;
 
+const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../deps/tmc-csharp-runner-1.1.zip");
+
 #[derive(Default)]
 pub struct CSharpPlugin {}
 
@@ -31,10 +33,38 @@ impl CSharpPlugin {
         Self {}
     }
 
+    /// Verifies that the runner directory matches the contents of the zip.
+    /// Note: does not check for extra files not in the zip.
+    fn runner_needs_to_be_extracted(target: &Path) -> Result<bool, CSharpError> {
+        log::debug!("verifying C# runner integrity at {}", target.display());
+
+        let mut zip = ZipArchive::new(Cursor::new(TMC_CSHARP_RUNNER))?;
+        for i in 0..zip.len() {
+            let file = zip.by_index(i)?;
+            if file.is_file() {
+                let target_file_path = target.join(Path::new(file.name()));
+                if !target_file_path.exists() {
+                    return Ok(true); // new file in zip, need to extract
+                }
+
+                let target_bytes = file_util::read_file(target_file_path)?;
+                let zip_file_path = PathBuf::from(file.name());
+                let zip_bytes: Vec<u8> = file
+                    .bytes()
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| FileIo::FileRead(zip_file_path, e))?;
+
+                if target_bytes != zip_bytes {
+                    return Ok(true); // bytes changed, need to extract
+                }
+            }
+        }
+        Ok(false)
+    }
+
     /// Extracts the bundled tmc-csharp-runner to the given path.
     fn extract_runner_to_dir(target: &Path) -> Result<(), CSharpError> {
         log::debug!("extracting C# runner to {}", target.display());
-        const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../deps/tmc-csharp-runner-1.0.1.zip");
 
         let mut zip = ZipArchive::new(Cursor::new(TMC_CSHARP_RUNNER))?;
         for i in 0..zip.len() {
@@ -64,7 +94,7 @@ impl CSharpPlugin {
         match dirs::cache_dir() {
             Some(cache_dir) => {
                 let runner_dir = cache_dir.join("tmc").join("tmc-csharp-runner");
-                if !runner_dir.exists() {
+                if Self::runner_needs_to_be_extracted(&runner_dir)? {
                     Self::extract_runner_to_dir(&runner_dir)?;
                 }
                 Ok(runner_dir)
@@ -417,6 +447,41 @@ mod test {
     }
 
     #[test]
+    fn runner_needs_to_be_extracted() {
+        init();
+
+        // replace a file's content with garbage
+        let temp = tempfile::TempDir::new().unwrap();
+        CSharpPlugin::extract_runner_to_dir(temp.path()).unwrap();
+        std::fs::write(
+            temp.path().join("TestMyCode.CSharp.Bootstrap.exe"),
+            b"garbage",
+        )
+        .unwrap();
+        assert!(CSharpPlugin::runner_needs_to_be_extracted(&temp.path()).unwrap());
+
+        // remove a file
+        let temp = tempfile::TempDir::new().unwrap();
+        CSharpPlugin::extract_runner_to_dir(temp.path()).unwrap();
+        std::fs::remove_file(temp.path().join("TestMyCode.CSharp.Bootstrap.exe")).unwrap();
+        assert!(CSharpPlugin::runner_needs_to_be_extracted(&temp.path()).unwrap());
+    }
+
+    #[test]
+    fn runner_does_not_need_to_be_extracted() {
+        init();
+
+        // no changes
+        let temp = tempfile::TempDir::new().unwrap();
+        CSharpPlugin::extract_runner_to_dir(temp.path()).unwrap();
+        assert!(!CSharpPlugin::runner_needs_to_be_extracted(&temp.path()).unwrap());
+
+        // new file added
+        file_to(&temp, "new_file", "stuff");
+        assert!(!CSharpPlugin::runner_needs_to_be_extracted(&temp.path()).unwrap());
+    }
+
+    #[test]
     fn extracts_runner_to_dir() {
         init();
 
@@ -522,7 +587,7 @@ mod test {
             .scan_exercise(temp.path(), "name".to_string(), &mut vec![])
             .unwrap();
         assert_eq!(scan.name, "name");
-        assert_eq!(scan.tests.len(), 6);
+        assert_eq!(scan.tests.len(), 2);
     }
 
     #[test]
@@ -568,6 +633,7 @@ mod test {
         let res = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(res.status, RunStatus::CompileFailed);
         assert!(!res.logs.is_empty());
+        log::debug!("{:?}", res.logs.get("stdout"));
         assert!(res
             .logs
             .get("stdout")
