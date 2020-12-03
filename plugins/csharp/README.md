@@ -1,3 +1,7 @@
+## Updating tmc-csharp-runner
+
+The plugin bundles a [tmc-csharp-runner](https://github.com/TMC-CSharp/tmc-csharp-runner) in the `deps` directory, which should be kept up to date. The included zip is simply the one included in the releases of the project.
+
 ## Student file policy
 
 All files inside `./src` are considered student files, except for any files within `bin` or `obj` directories.
