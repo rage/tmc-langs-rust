@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/concurrent-queue-1.2.2/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../concurrent_queue/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/concurrent-queue-1.2.2/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../concurrent_queue/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -539,8 +541,8 @@
 
 <span class="kw">enum</span> <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="ident">Single</span>(<span class="ident">Single</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),
-    <span class="ident">Bounded</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Bounded</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>),
-    <span class="ident">Unbounded</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Unbounded</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>),
+    <span class="ident">Bounded</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Bounded</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+    <span class="ident">Unbounded</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Unbounded</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>),
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ConcurrentQueue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
@@ -559,8 +561,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let q = ConcurrentQueue::&lt;i32&gt;::bounded(100);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bounded</span>(<span class="ident">cap</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">ConcurrentQueue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">cap</span> <span class="op">==</span> <span class="number">1</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bounded</span>(<span class="ident">cap</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ConcurrentQueue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">cap</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
             <span class="ident">ConcurrentQueue</span>(<span class="ident">Inner</span>::<span class="ident">Single</span>(<span class="ident">Single</span>::<span class="ident">new</span>()))
         } <span class="kw">else</span> {
             <span class="ident">ConcurrentQueue</span>(<span class="ident">Inner</span>::<span class="ident">Bounded</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Bounded</span>::<span class="ident">new</span>(<span class="ident">cap</span>))))
@@ -576,7 +578,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let q = ConcurrentQueue::&lt;i32&gt;::unbounded();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unbounded</span>() <span class="op">-&gt;</span> <span class="ident">ConcurrentQueue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unbounded</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ConcurrentQueue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident">ConcurrentQueue</span>(<span class="ident">Inner</span>::<span class="ident">Unbounded</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Unbounded</span>::<span class="ident">new</span>())))
     }
 
@@ -609,11 +611,11 @@
     <span class="doccomment">/// // Even though there is space, no more items can be pushed.</span>
     <span class="doccomment">/// assert_eq!(q.push(20), Err(PushError::Closed(20)));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">PushError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">PushError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-            <span class="ident">Inner</span>::<span class="ident">Single</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">push</span>(<span class="ident">value</span>),
-            <span class="ident">Inner</span>::<span class="ident">Bounded</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">push</span>(<span class="ident">value</span>),
-            <span class="ident">Inner</span>::<span class="ident">Unbounded</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">push</span>(<span class="ident">value</span>),
+            <span class="ident">Inner</span>::<span class="ident">Single</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">push</span>(<span class="ident">value</span>),
+            <span class="ident">Inner</span>::<span class="ident">Bounded</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">push</span>(<span class="ident">value</span>),
+            <span class="ident">Inner</span>::<span class="ident">Unbounded</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">push</span>(<span class="ident">value</span>),
         }
     }
 
@@ -642,11 +644,11 @@
     <span class="doccomment">/// // but now also indicates that the queue is closed.</span>
     <span class="doccomment">/// assert_eq!(q.pop(), Err(PopError::Closed));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">PopError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">PopError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-            <span class="ident">Inner</span>::<span class="ident">Single</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">pop</span>(),
-            <span class="ident">Inner</span>::<span class="ident">Bounded</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">pop</span>(),
-            <span class="ident">Inner</span>::<span class="ident">Unbounded</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">pop</span>(),
+            <span class="ident">Inner</span>::<span class="ident">Single</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">pop</span>(),
+            <span class="ident">Inner</span>::<span class="ident">Bounded</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">pop</span>(),
+            <span class="ident">Inner</span>::<span class="ident">Unbounded</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">pop</span>(),
         }
     }
 
@@ -663,11 +665,11 @@
     <span class="doccomment">/// q.push(1).unwrap();</span>
     <span class="doccomment">/// assert!(!q.is_empty());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-            <span class="ident">Inner</span>::<span class="ident">Single</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">is_empty</span>(),
-            <span class="ident">Inner</span>::<span class="ident">Bounded</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">is_empty</span>(),
-            <span class="ident">Inner</span>::<span class="ident">Unbounded</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">is_empty</span>(),
+            <span class="ident">Inner</span>::<span class="ident">Single</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">is_empty</span>(),
+            <span class="ident">Inner</span>::<span class="ident">Bounded</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">is_empty</span>(),
+            <span class="ident">Inner</span>::<span class="ident">Unbounded</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">is_empty</span>(),
         }
     }
 
@@ -686,11 +688,11 @@
     <span class="doccomment">/// q.push(1).unwrap();</span>
     <span class="doccomment">/// assert!(q.is_full());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-            <span class="ident">Inner</span>::<span class="ident">Single</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">is_full</span>(),
-            <span class="ident">Inner</span>::<span class="ident">Bounded</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">is_full</span>(),
-            <span class="ident">Inner</span>::<span class="ident">Unbounded</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">is_full</span>(),
+            <span class="ident">Inner</span>::<span class="ident">Single</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">is_full</span>(),
+            <span class="ident">Inner</span>::<span class="ident">Bounded</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">is_full</span>(),
+            <span class="ident">Inner</span>::<span class="ident">Unbounded</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">is_full</span>(),
         }
     }
 
@@ -710,11 +712,11 @@
     <span class="doccomment">/// assert_eq!(q.push(20), Ok(()));</span>
     <span class="doccomment">/// assert_eq!(q.len(), 2);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-            <span class="ident">Inner</span>::<span class="ident">Single</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">len</span>(),
-            <span class="ident">Inner</span>::<span class="ident">Bounded</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">len</span>(),
-            <span class="ident">Inner</span>::<span class="ident">Unbounded</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">len</span>(),
+            <span class="ident">Inner</span>::<span class="ident">Single</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">len</span>(),
+            <span class="ident">Inner</span>::<span class="ident">Bounded</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">len</span>(),
+            <span class="ident">Inner</span>::<span class="ident">Unbounded</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">len</span>(),
         }
     }
 
@@ -733,11 +735,11 @@
     <span class="doccomment">/// let q = ConcurrentQueue::&lt;i32&gt;::unbounded();</span>
     <span class="doccomment">/// assert_eq!(q.capacity(), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capacity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capacity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-            <span class="ident">Inner</span>::<span class="ident">Single</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="number">1</span>),
-            <span class="ident">Inner</span>::<span class="ident">Bounded</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">q</span>.<span class="ident">capacity</span>()),
-            <span class="ident">Inner</span>::<span class="ident">Unbounded</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Inner</span>::<span class="ident">Single</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="number">1</span>),
+            <span class="ident">Inner</span>::<span class="ident">Bounded</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">q</span>.<span class="ident">capacity</span>()),
+            <span class="ident">Inner</span>::<span class="ident">Unbounded</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 
@@ -768,11 +770,11 @@
     <span class="doccomment">/// // When no more items are present, the error is `Closed`.</span>
     <span class="doccomment">/// assert_eq!(q.pop(), Err(PopError::Closed));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-            <span class="ident">Inner</span>::<span class="ident">Single</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">close</span>(),
-            <span class="ident">Inner</span>::<span class="ident">Bounded</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">close</span>(),
-            <span class="ident">Inner</span>::<span class="ident">Unbounded</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">close</span>(),
+            <span class="ident">Inner</span>::<span class="ident">Single</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">close</span>(),
+            <span class="ident">Inner</span>::<span class="ident">Bounded</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">close</span>(),
+            <span class="ident">Inner</span>::<span class="ident">Unbounded</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">close</span>(),
         }
     }
 
@@ -789,17 +791,17 @@
     <span class="doccomment">/// q.close();</span>
     <span class="doccomment">/// assert!(q.is_closed());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-            <span class="ident">Inner</span>::<span class="ident">Single</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">is_closed</span>(),
-            <span class="ident">Inner</span>::<span class="ident">Bounded</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">is_closed</span>(),
-            <span class="ident">Inner</span>::<span class="ident">Unbounded</span>(<span class="ident">q</span>) <span class="op">=&gt;</span> <span class="ident">q</span>.<span class="ident">is_closed</span>(),
+            <span class="ident">Inner</span>::<span class="ident">Single</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">is_closed</span>(),
+            <span class="ident">Inner</span>::<span class="ident">Bounded</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">is_closed</span>(),
+            <span class="ident">Inner</span>::<span class="ident">Unbounded</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">is_closed</span>(),
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">ConcurrentQueue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;ConcurrentQueue&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;len&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">len</span>())
             .<span class="ident">field</span>(<span class="string">&quot;capacity&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">capacity</span>())
@@ -820,18 +822,18 @@
 
 <span class="kw">impl</span> <span class="ident">PopError</span> {
     <span class="doccomment">/// Returns `true` if the queue is empty but not closed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">PopError</span>::<span class="ident">Empty</span> <span class="op">=&gt;</span> <span class="bool-val">true</span>,
-            <span class="ident">PopError</span>::<span class="ident">Closed</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">PopError</span>::<span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident">PopError</span>::<span class="ident">Closed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns `true` if the queue is empty and closed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">PopError</span>::<span class="ident">Empty</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
-            <span class="ident">PopError</span>::<span class="ident">Closed</span> <span class="op">=&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident">PopError</span>::<span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">PopError</span>::<span class="ident">Closed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
         }
     }
 }
@@ -839,19 +841,19 @@
 <span class="kw">impl</span> <span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">for</span> <span class="ident">PopError</span> {}
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">PopError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">PopError</span>::<span class="ident">Empty</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Empty&quot;</span>),
-            <span class="ident">PopError</span>::<span class="ident">Closed</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Closed&quot;</span>),
+            <span class="ident">PopError</span>::<span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Empty&quot;</span>),
+            <span class="ident">PopError</span>::<span class="ident">Closed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Closed&quot;</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">PopError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">PopError</span>::<span class="ident">Empty</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Empty&quot;</span>),
-            <span class="ident">PopError</span>::<span class="ident">Closed</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Closed&quot;</span>),
+            <span class="ident">PopError</span>::<span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Empty&quot;</span>),
+            <span class="ident">PopError</span>::<span class="ident">Closed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Closed&quot;</span>),
         }
     }
 }
@@ -868,26 +870,26 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PushError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Unwraps the item that couldn&#39;t be pushed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">T</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">PushError</span>::<span class="ident">Full</span>(<span class="ident">t</span>) <span class="op">=&gt;</span> <span class="ident">t</span>,
-            <span class="ident">PushError</span>::<span class="ident">Closed</span>(<span class="ident">t</span>) <span class="op">=&gt;</span> <span class="ident">t</span>,
+            <span class="ident">PushError</span>::<span class="ident">Full</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>,
+            <span class="ident">PushError</span>::<span class="ident">Closed</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>,
         }
     }
 
     <span class="doccomment">/// Returns `true` if the queue is full but not closed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">PushError</span>::<span class="ident">Full</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="bool-val">true</span>,
-            <span class="ident">PushError</span>::<span class="ident">Closed</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">PushError</span>::<span class="ident">Full</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident">PushError</span>::<span class="ident">Closed</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns `true` if the queue is closed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">PushError</span>::<span class="ident">Full</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="bool-val">false</span>,
-            <span class="ident">PushError</span>::<span class="ident">Closed</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident">PushError</span>::<span class="ident">Full</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">PushError</span>::<span class="ident">Closed</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
         }
     }
 }
@@ -895,19 +897,19 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">for</span> <span class="ident">PushError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">PushError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">PushError</span>::<span class="ident">Full</span>(<span class="ident">t</span>) <span class="op">=&gt;</span> <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Full&quot;</span>).<span class="ident">field</span>(<span class="ident">t</span>).<span class="ident">finish</span>(),
-            <span class="ident">PushError</span>::<span class="ident">Closed</span>(<span class="ident">t</span>) <span class="op">=&gt;</span> <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Closed&quot;</span>).<span class="ident">field</span>(<span class="ident">t</span>).<span class="ident">finish</span>(),
+            <span class="ident">PushError</span>::<span class="ident">Full</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Full&quot;</span>).<span class="ident">field</span>(<span class="ident">t</span>).<span class="ident">finish</span>(),
+            <span class="ident">PushError</span>::<span class="ident">Closed</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Closed&quot;</span>).<span class="ident">field</span>(<span class="ident">t</span>).<span class="ident">finish</span>(),
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">PushError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">PushError</span>::<span class="ident">Full</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Full&quot;</span>),
-            <span class="ident">PushError</span>::<span class="ident">Closed</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Closed&quot;</span>),
+            <span class="ident">PushError</span>::<span class="ident">Full</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Full&quot;</span>),
+            <span class="ident">PushError</span>::<span class="ident">Closed</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Closed&quot;</span>),
         }
     }
 }

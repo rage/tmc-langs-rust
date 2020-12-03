@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/spin-0.5.2/src/once.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>once.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../spin/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/spin-0.5.2/src/once.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>once.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../spin/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -312,16 +314,16 @@
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Once</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="ident">state</span>: <span class="ident">AtomicUsize</span>,
-    <span class="ident">data</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>, <span class="comment">// TODO remove option and use mem::uninitialized</span>
+    <span class="ident">data</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="comment">// TODO remove option and use mem::uninitialized</span>
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Once</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">try</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Once {{ data: &quot;</span>)
+            <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Once {{ data: &quot;</span>)
 				.<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">s</span>.<span class="ident">fmt</span>(<span class="ident">f</span>))
 				.<span class="ident">and_then</span>(<span class="op">|</span>()<span class="op">|</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;}}&quot;</span>)),
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Once {{ &lt;uninitialized&gt; }}&quot;</span>)
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Once {{ &lt;uninitialized&gt; }}&quot;</span>)
         }
     }
 }
@@ -348,14 +350,14 @@
     };
 
     <span class="doccomment">/// Creates a new `Once` value.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">Once</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Once</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="self">Self</span>::<span class="ident">INIT</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">force_get</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span> {
+    <span class="kw">fn</span> <span class="ident">force_get</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span> {
         <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">data</span>.<span class="ident">get</span>() }.<span class="ident">as_ref</span>() {
-            <span class="prelude-val">None</span>    <span class="op">=&gt;</span> <span class="kw">unsafe</span> { <span class="ident">unreachable</span>() },
-            <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=&gt;</span> <span class="ident">p</span>,
+            <span class="prelude-val">None</span>    <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="ident">unreachable</span>() },
+            <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">p</span>,
         }
     }
 
@@ -387,16 +389,16 @@
     <span class="doccomment">/// # 2</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_once</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">builder</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>
-        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-&gt;</span> <span class="ident">T</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_once</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">builder</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>
+        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">status</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">SeqCst</span>);
 
-        <span class="kw">if</span> <span class="ident">status</span> <span class="op">==</span> <span class="ident">INCOMPLETE</span> {
+        <span class="kw">if</span> <span class="ident">status</span> <span class="op">=</span><span class="op">=</span> <span class="ident">INCOMPLETE</span> {
             <span class="ident">status</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">compare_and_swap</span>(<span class="ident">INCOMPLETE</span>,
                                                  <span class="ident">RUNNING</span>,
                                                  <span class="ident">Ordering</span>::<span class="ident">SeqCst</span>);
-            <span class="kw">if</span> <span class="ident">status</span> <span class="op">==</span> <span class="ident">INCOMPLETE</span> { <span class="comment">// We init</span>
+            <span class="kw">if</span> <span class="ident">status</span> <span class="op">=</span><span class="op">=</span> <span class="ident">INCOMPLETE</span> { <span class="comment">// We init</span>
                 <span class="comment">// We use a guard (Finish) to catch panics caused by builder</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">finish</span> <span class="op">=</span> <span class="ident">Finish</span> { <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>, <span class="ident">panicked</span>: <span class="bool-val">true</span> };
                 <span class="kw">unsafe</span> { <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">data</span>.<span class="ident">get</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">builder</span>()) };
@@ -412,36 +414,36 @@
 
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="ident">status</span> {
-                <span class="ident">INCOMPLETE</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
-                <span class="ident">RUNNING</span> <span class="op">=&gt;</span> { <span class="comment">// We spin</span>
+                <span class="ident">INCOMPLETE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+                <span class="ident">RUNNING</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="comment">// We spin</span>
                     <span class="ident">cpu_relax</span>();
                     <span class="ident">status</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">SeqCst</span>)
                 },
-                <span class="ident">PANICKED</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Once has panicked&quot;</span>),
-                <span class="ident">COMPLETE</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="self">self</span>.<span class="ident">force_get</span>(),
-                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">unsafe</span> { <span class="ident">unreachable</span>() },
+                <span class="ident">PANICKED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Once has panicked&quot;</span>),
+                <span class="ident">COMPLETE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="self">self</span>.<span class="ident">force_get</span>(),
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="ident">unreachable</span>() },
             }
         }
     }
 
     <span class="doccomment">/// Returns a pointer iff the `Once` was previously initialized</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">SeqCst</span>) {
-            <span class="ident">COMPLETE</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">force_get</span>()),
-            <span class="kw">_</span>        <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">COMPLETE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">force_get</span>()),
+            <span class="kw">_</span>        <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 
     <span class="doccomment">/// Like try, but will spin if the `Once` is in the process of being</span>
     <span class="doccomment">/// initialized</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wait</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wait</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">SeqCst</span>) {
-                <span class="ident">INCOMPLETE</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-                <span class="ident">RUNNING</span>    <span class="op">=&gt;</span> <span class="ident">cpu_relax</span>(), <span class="comment">// We spin</span>
-                <span class="ident">COMPLETE</span>   <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">force_get</span>()),
-                <span class="ident">PANICKED</span>   <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Once has panicked&quot;</span>),
-                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">unsafe</span> { <span class="ident">unreachable</span>() },
+                <span class="ident">INCOMPLETE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
+                <span class="ident">RUNNING</span>    <span class="op">=</span><span class="op">&gt;</span> <span class="ident">cpu_relax</span>(), <span class="comment">// We spin</span>
+                <span class="ident">COMPLETE</span>   <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">force_get</span>()),
+                <span class="ident">PANICKED</span>   <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Once has panicked&quot;</span>),
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="ident">unreachable</span>() },
             }
         }
     }
@@ -472,18 +474,18 @@
     <span class="kw">fn</span> <span class="ident">smoke_once</span>() {
         <span class="kw">static</span> <span class="ident">O</span>: <span class="ident">Once</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Once</span>::<span class="ident">new</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="ident">O</span>.<span class="ident">call_once</span>(<span class="op">||</span> <span class="ident">a</span> <span class="op">+=</span> <span class="number">1</span>);
+        <span class="ident">O</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">a</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="number">1</span>);
-        <span class="ident">O</span>.<span class="ident">call_once</span>(<span class="op">||</span> <span class="ident">a</span> <span class="op">+=</span> <span class="number">1</span>);
+        <span class="ident">O</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">a</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="number">1</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">smoke_once_value</span>() {
         <span class="kw">static</span> <span class="ident">O</span>: <span class="ident">Once</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Once</span>::<span class="ident">new</span>();
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">O</span>.<span class="ident">call_once</span>(<span class="op">||</span> <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">O</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> <span class="number">1</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw-2">*</span><span class="ident">a</span>, <span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">O</span>.<span class="ident">call_once</span>(<span class="op">||</span> <span class="number">2</span>);
+        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">O</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> <span class="number">2</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw-2">*</span><span class="ident">b</span>, <span class="number">1</span>);
     }
 
@@ -495,10 +497,10 @@
         <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">channel</span>();
         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">10</span> {
             <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">clone</span>();
-            <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span><span class="op">||</span> {
+            <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span><span class="op">|</span><span class="op">|</span> {
                 <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">4</span> { <span class="ident">thread</span>::<span class="ident">yield_now</span>() }
                 <span class="kw">unsafe</span> {
-                    <span class="ident">O</span>.<span class="ident">call_once</span>(<span class="op">||</span> {
+                    <span class="ident">O</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> {
                         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">RUN</span>);
                         <span class="ident">RUN</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     });
@@ -509,7 +511,7 @@
         }
 
         <span class="kw">unsafe</span> {
-            <span class="ident">O</span>.<span class="ident">call_once</span>(<span class="op">||</span> {
+            <span class="ident">O</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">RUN</span>);
                 <span class="ident">RUN</span> <span class="op">=</span> <span class="bool-val">true</span>;
             });
@@ -526,7 +528,7 @@
         <span class="kw">static</span> <span class="ident">INIT</span>: <span class="ident">Once</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Once</span>::<span class="ident">new</span>();
 
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">INIT</span>.<span class="ident">try</span>().<span class="ident">is_none</span>());
-        <span class="ident">INIT</span>.<span class="ident">call_once</span>(<span class="op">||</span> <span class="number">2</span>);
+        <span class="ident">INIT</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> <span class="number">2</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">INIT</span>.<span class="ident">try</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">r</span>), <span class="prelude-val">Some</span>(<span class="number">2</span>));
     }
 
@@ -535,8 +537,8 @@
         <span class="kw">static</span> <span class="ident">INIT</span>: <span class="ident">Once</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Once</span>::<span class="ident">new</span>();
 
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">INIT</span>.<span class="ident">try</span>().<span class="ident">is_none</span>());
-        <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span><span class="op">||</span> {
-            <span class="ident">INIT</span>.<span class="ident">call_once</span>(<span class="op">||</span> <span class="kw">loop</span> { });
+        <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span><span class="op">|</span><span class="op">|</span> {
+            <span class="ident">INIT</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">loop</span> { });
         });
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">INIT</span>.<span class="ident">try</span>().<span class="ident">is_none</span>());
     }
@@ -547,7 +549,7 @@
         <span class="kw">static</span> <span class="ident">INIT</span>: <span class="ident">Once</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Once</span>::<span class="ident">new</span>();
 
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">INIT</span>.<span class="ident">wait</span>().<span class="ident">is_none</span>());
-        <span class="ident">INIT</span>.<span class="ident">call_once</span>(<span class="op">||</span> <span class="number">3</span>);
+        <span class="ident">INIT</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> <span class="number">3</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">INIT</span>.<span class="ident">wait</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">r</span>), <span class="prelude-val">Some</span>(<span class="number">3</span>));
     }
 
@@ -558,14 +560,14 @@
         <span class="kw">static</span> <span class="ident">INIT</span>: <span class="ident">Once</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Once</span>::<span class="ident">new</span>();
 
         <span class="comment">// poison the once</span>
-        <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">panic</span>::<span class="ident">catch_unwind</span>(<span class="op">||</span> {
-            <span class="ident">INIT</span>.<span class="ident">call_once</span>(<span class="op">||</span> <span class="macro">panic</span><span class="macro">!</span>());
+        <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">panic</span>::<span class="ident">catch_unwind</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">INIT</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">panic</span><span class="macro">!</span>());
         });
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">t</span>.<span class="ident">is_err</span>());
 
         <span class="comment">// poisoning propagates</span>
-        <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">panic</span>::<span class="ident">catch_unwind</span>(<span class="op">||</span> {
-            <span class="ident">INIT</span>.<span class="ident">call_once</span>(<span class="op">||</span> {});
+        <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">panic</span>::<span class="ident">catch_unwind</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">INIT</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> {});
         });
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">t</span>.<span class="ident">is_err</span>());
     }
@@ -574,9 +576,9 @@
     <span class="kw">fn</span> <span class="ident">init_constant</span>() {
         <span class="kw">static</span> <span class="ident">O</span>: <span class="ident">Once</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Once</span>::<span class="ident">INIT</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="ident">O</span>.<span class="ident">call_once</span>(<span class="op">||</span> <span class="ident">a</span> <span class="op">+=</span> <span class="number">1</span>);
+        <span class="ident">O</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">a</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="number">1</span>);
-        <span class="ident">O</span>.<span class="ident">call_once</span>(<span class="op">||</span> <span class="ident">a</span> <span class="op">+=</span> <span class="number">1</span>);
+        <span class="ident">O</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">a</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="number">1</span>);
     }
 }

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/dunce-1.0.1/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../dunce/index.html'><div class='logo-container'><img src='https://assets.gitlab-static.net/uploads/-/system/project/avatar/4717715/dyc.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/dunce-1.0.1/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../dunce/index.html'><div class='logo-container'><img src='https://assets.gitlab-static.net/uploads/-/system/project/avatar/4717715/dyc.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -362,7 +364,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Currently paths with unpaired surrogates aren&#39;t converted even if they</span>
 <span class="doccomment">/// can be due to limitations of Rust&#39;s `OsStr` API.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">simplified</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Path</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">simplified</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Path</span> {
     <span class="kw">if</span> <span class="ident">is_safe_to_strip_unc</span>(<span class="ident">path</span>) {
         <span class="comment">// unfortunately we can&#39;t safely strip prefix from a non-Unicode path</span>
         <span class="ident">path</span>.<span class="ident">to_str</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">get</span>(<span class="number">4</span>..)).<span class="ident">map</span>(<span class="ident">Path</span>::<span class="ident">new</span>).<span class="ident">unwrap_or</span>(<span class="ident">path</span>)
@@ -374,7 +376,7 @@
 <span class="doccomment">/// Like `std::fs::canonicalize()`, but on Windows it outputs the most</span>
 <span class="doccomment">/// compatible form of a path instead of UNC.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canonicalize</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canonicalize</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">real_path</span> <span class="op">=</span> <span class="ident">fs</span>::<span class="ident">canonicalize</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="ident">is_safe_to_strip_unc</span>(<span class="kw-2">&amp;</span><span class="ident">real_path</span>) {
         <span class="ident">real_path</span>.<span class="ident">to_str</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">get</span>(<span class="number">4</span>..)).<span class="ident">map</span>(<span class="ident">PathBuf</span>::<span class="ident">from</span>).<span class="ident">unwrap_or</span>(<span class="ident">real_path</span>)
@@ -387,23 +389,23 @@
 <span class="doccomment">/// compatible form of a path instead of UNC.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">windows</span>))]</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canonicalize</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canonicalize</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
     <span class="ident">fs</span>::<span class="ident">canonicalize</span>(<span class="ident">path</span>)
 }
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">canonicalize</span> <span class="kw">as</span> <span class="ident">realpath</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">windows</span>,<span class="ident">test</span>))]</span>
-<span class="kw">fn</span> <span class="ident">windows_char_len</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">OsStr</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+<span class="kw">fn</span> <span class="ident">windows_char_len</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">OsStr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">to_string_lossy</span>().<span class="ident">chars</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw">if</span> <span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">&lt;=</span> <span class="number">0xFFFF</span> {<span class="number">1</span>} <span class="kw">else</span> {<span class="number">2</span>}).<span class="ident">sum</span>();
+    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">to_string_lossy</span>().<span class="ident">chars</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw">if</span> <span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0xFFFF</span> {<span class="number">1</span>} <span class="kw">else</span> {<span class="number">2</span>}).<span class="ident">sum</span>();
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
     <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">encode_wide</span>().<span class="ident">count</span>();
     <span class="ident">len</span>
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">windows</span>,<span class="ident">test</span>))]</span>
-<span class="kw">fn</span> <span class="ident">is_valid_filename</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">OsStr</span><span class="op">&gt;&gt;</span>(<span class="ident">file_name</span>: <span class="ident">P</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">is_valid_filename</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">OsStr</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">file_name</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="kw">let</span> <span class="ident">file_name</span> <span class="op">=</span> <span class="ident">file_name</span>.<span class="ident">as_ref</span>();
     <span class="kw">if</span> <span class="ident">windows_char_len</span>(<span class="ident">file_name</span>) <span class="op">&gt;</span> <span class="number">255</span> {
         <span class="kw">return</span> <span class="bool-val">false</span>;
@@ -424,14 +426,14 @@
         <span class="kw">match</span> <span class="ident">c</span> {
             <span class="number">0</span>..<span class="op">=</span><span class="number">31</span> <span class="op">|</span>
             <span class="string">b&#39;&lt;&#39;</span> <span class="op">|</span> <span class="string">b&#39;&gt;&#39;</span> <span class="op">|</span> <span class="string">b&#39;:&#39;</span> <span class="op">|</span> <span class="string">b&#39;&quot;&#39;</span> <span class="op">|</span>
-            <span class="string">b&#39;/&#39;</span> <span class="op">|</span> <span class="string">b&#39;\\&#39;</span> <span class="op">|</span> <span class="string">b&#39;|&#39;</span> <span class="op">|</span> <span class="string">b&#39;?&#39;</span> <span class="op">|</span> <span class="string">b&#39;*&#39;</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> {},
+            <span class="string">b&#39;/&#39;</span> <span class="op">|</span> <span class="string">b&#39;\\&#39;</span> <span class="op">|</span> <span class="string">b&#39;|&#39;</span> <span class="op">|</span> <span class="string">b&#39;?&#39;</span> <span class="op">|</span> <span class="string">b&#39;*&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {},
         }
     }
 
     <span class="comment">// Filename can&#39;t end with . or space (except before extension, but this checks the whole name)</span>
     <span class="kw">let</span> <span class="ident">last_char</span> <span class="op">=</span> <span class="ident">byte_str</span>[<span class="ident">byte_str</span>.<span class="ident">len</span>()<span class="op">-</span><span class="number">1</span>];
-    <span class="kw">if</span> <span class="ident">last_char</span> <span class="op">==</span> <span class="string">b&#39; &#39;</span> <span class="op">||</span> <span class="ident">last_char</span> <span class="op">==</span> <span class="string">b&#39;.&#39;</span> {
+    <span class="kw">if</span> <span class="ident">last_char</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39; &#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">last_char</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;.&#39;</span> {
         <span class="kw">return</span> <span class="bool-val">false</span>;
     }
     <span class="bool-val">true</span>
@@ -444,14 +446,14 @@
 ];
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">windows</span>, <span class="ident">test</span>))]</span>
-<span class="kw">fn</span> <span class="ident">is_reserved</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">OsStr</span><span class="op">&gt;&gt;</span>(<span class="ident">file_name</span>: <span class="ident">P</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">is_reserved</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">OsStr</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">file_name</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="comment">// con.txt is reserved too</span>
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stem</span>) <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">file_name</span>).<span class="ident">file_stem</span>() {
         <span class="comment">// all reserved DOS names have ASCII-compatible stem</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">stem</span>.<span class="ident">to_str</span>() {
             <span class="comment">// &quot;con.. .txt&quot; is &quot;CON&quot; for DOS</span>
             <span class="kw">let</span> <span class="ident">trimmed</span> <span class="op">=</span> <span class="ident">right_trim</span>(<span class="ident">name</span>);
-            <span class="kw">if</span> <span class="ident">trimmed</span>.<span class="ident">len</span>() <span class="op">&lt;=</span> <span class="number">4</span> {
+            <span class="kw">if</span> <span class="ident">trimmed</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="number">4</span> {
                 <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">RESERVED_NAMES</span> {
                     <span class="kw">if</span> <span class="ident">name</span>.<span class="ident">eq_ignore_ascii_case</span>(<span class="ident">trimmed</span>) {
                         <span class="kw">return</span> <span class="bool-val">true</span>;
@@ -464,32 +466,32 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">windows</span>))]</span>
-<span class="kw">fn</span> <span class="ident">is_safe_to_strip_unc</span>(<span class="ident">_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">is_safe_to_strip_unc</span>(<span class="ident">_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="bool-val">false</span>
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">fn</span> <span class="ident">is_safe_to_strip_unc</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">is_safe_to_strip_unc</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">components</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">components</span>();
     <span class="kw">match</span> <span class="ident">components</span>.<span class="ident">next</span>() {
-        <span class="prelude-val">Some</span>(<span class="ident">Component</span>::<span class="ident">Prefix</span>(<span class="ident">p</span>)) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">p</span>.<span class="ident">kind</span>() {
-            <span class="ident">Prefix</span>::<span class="ident">VerbatimDisk</span>(..) <span class="op">=&gt;</span> {},
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>, <span class="comment">// Other kinds of UNC paths</span>
+        <span class="prelude-val">Some</span>(<span class="ident">Component</span>::<span class="ident">Prefix</span>(<span class="ident">p</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">p</span>.<span class="ident">kind</span>() {
+            <span class="ident">Prefix</span>::<span class="ident">VerbatimDisk</span>(..) <span class="op">=</span><span class="op">&gt;</span> {},
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>, <span class="comment">// Other kinds of UNC paths</span>
         },
-        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>, <span class="comment">// relative or empty</span>
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>, <span class="comment">// relative or empty</span>
     }
 
     <span class="kw">for</span> <span class="ident">component</span> <span class="kw">in</span> <span class="ident">components</span> {
         <span class="kw">match</span> <span class="ident">component</span> {
-            <span class="ident">Component</span>::<span class="ident">RootDir</span> <span class="op">=&gt;</span> {},
-            <span class="ident">Component</span>::<span class="ident">Normal</span>(<span class="ident">file_name</span>) <span class="op">=&gt;</span> {
+            <span class="ident">Component</span>::<span class="ident">RootDir</span> <span class="op">=</span><span class="op">&gt;</span> {},
+            <span class="ident">Component</span>::<span class="ident">Normal</span>(<span class="ident">file_name</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// it doesn&#39;t allocate in most cases,</span>
                 <span class="comment">// and checks are interested only in the ASCII subset, so lossy is fine</span>
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">is_valid_filename</span>(<span class="ident">file_name</span>) <span class="op">||</span> <span class="ident">is_reserved</span>(<span class="ident">file_name</span>) {
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">is_valid_filename</span>(<span class="ident">file_name</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">is_reserved</span>(<span class="ident">file_name</span>) {
                     <span class="kw">return</span> <span class="bool-val">false</span>;
                 }
             }
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>, <span class="comment">// UNC paths take things like &quot;..&quot; literally</span>
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>, <span class="comment">// UNC paths take things like &quot;..&quot; literally</span>
         };
     }
 
@@ -501,11 +503,11 @@
 
 <span class="doccomment">/// Trim &#39;.&#39; and &#39; &#39;</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">windows</span>, <span class="ident">test</span>))]</span>
-<span class="kw">fn</span> <span class="ident">right_trim</span>(<span class="kw-2">mut</span> <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+<span class="kw">fn</span> <span class="ident">right_trim</span>(<span class="kw-2">mut</span> <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
     <span class="kw">while</span> <span class="ident">s</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span> {
         <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">len</span>()<span class="op">-</span><span class="number">1</span>;
         <span class="kw">unsafe</span> {
-            <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">as_bytes</span>()[<span class="ident">last</span>] <span class="op">==</span> <span class="string">b&#39;.&#39;</span> <span class="op">||</span> <span class="ident">s</span>.<span class="ident">as_bytes</span>()[<span class="ident">last</span>] <span class="op">==</span> <span class="string">b&#39; &#39;</span> {
+            <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">as_bytes</span>()[<span class="ident">last</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;.&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">as_bytes</span>()[<span class="ident">last</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&#39; &#39;</span> {
                 <span class="ident">s</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">get_unchecked</span>(<span class="number">0</span>..<span class="ident">last</span>) <span class="comment">// trim of ASCII byte can&#39;t break UTF-8</span>
             } <span class="kw">else</span> {
                 <span class="kw">break</span>;

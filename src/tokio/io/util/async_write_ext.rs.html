@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.23/src/io/util/async_write_ext.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_write_ext.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.23/src/io/util/async_write_ext.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_write_ext.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1029,12 +1031,12 @@
         (
             $(
                 $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span>
-                <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>) <span class="op">-&gt;</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fut</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>;
+                <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>) <span class="op">-</span><span class="op">&gt;</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fut</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>;
             )<span class="op">*</span>
-        ) <span class="op">=&gt;</span> {
+        ) <span class="op">=</span><span class="op">&gt;</span> {
             $(
                 $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span>]</span>)<span class="op">*</span>
-                <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-&gt;</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fut</span>)<span class="kw-2">*</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="self">Self</span>: <span class="ident">Unpin</span> {
+                <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-</span><span class="op">&gt;</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fut</span>)<span class="kw-2">*</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="self">Self</span>: <span class="ident">Unpin</span> {
                     $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fut</span>)<span class="kw-2">*</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">n</span>)
                 }
             )<span class="op">*</span>
@@ -1120,7 +1122,7 @@
         <span class="doccomment">///     Ok(())</span>
         <span class="doccomment">/// }</span>
         <span class="doccomment">/// ```</span>
-        <span class="kw">fn</span> <span class="ident">write</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">Write</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">write</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Write</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="self">Self</span>: <span class="ident">Unpin</span>,
         {
@@ -1192,7 +1194,7 @@
         <span class="doccomment">///     Ok(())</span>
         <span class="doccomment">/// }</span>
         <span class="doccomment">/// ```</span>
-        <span class="kw">fn</span> <span class="ident">write_buf</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">B</span>) <span class="op">-&gt;</span> <span class="ident">WriteBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span>, <span class="ident">B</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">write_buf</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">B</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span>, <span class="ident">B</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="self">Self</span>: <span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Unpin</span>,
             <span class="ident">B</span>: <span class="ident">Buf</span>,
@@ -1233,7 +1235,7 @@
         <span class="doccomment">/// ```</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// [`write`]: AsyncWriteExt::write</span>
-        <span class="kw">fn</span> <span class="ident">write_all</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">WriteAll</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">write_all</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteAll</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="self">Self</span>: <span class="ident">Unpin</span>,
         {
@@ -1276,7 +1278,7 @@
             <span class="doccomment">///     Ok(())</span>
             <span class="doccomment">/// }</span>
             <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_u8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="ident">WriteU8</span>;
+            <span class="kw">fn</span> <span class="ident">write_u8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteU8</span>;
 
             <span class="doccomment">/// Writes an unsigned 8-bit integer to the underlying writer.</span>
             <span class="doccomment">///</span>
@@ -1313,7 +1315,7 @@
             <span class="doccomment">///     Ok(())</span>
             <span class="doccomment">/// }</span>
             <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_i8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i8</span>) <span class="op">-&gt;</span> <span class="ident">WriteI8</span>;
+            <span class="kw">fn</span> <span class="ident">write_i8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteI8</span>;
 
             <span class="doccomment">/// Writes an unsigned 16-bit integer in big-endian order to the</span>
             <span class="doccomment">/// underlying writer.</span>
@@ -1351,7 +1353,7 @@
             <span class="doccomment">///     Ok(())</span>
             <span class="doccomment">/// }</span>
             <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_u16</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u16</span>) <span class="op">-&gt;</span> <span class="ident">WriteU16</span>;
+            <span class="kw">fn</span> <span class="ident">write_u16</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteU16</span>;
 
             <span class="doccomment">/// Writes a signed 16-bit integer in big-endian order to the</span>
             <span class="doccomment">/// underlying writer.</span>
@@ -1389,7 +1391,7 @@
             <span class="doccomment">///     Ok(())</span>
             <span class="doccomment">/// }</span>
             <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_i16</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i16</span>) <span class="op">-&gt;</span> <span class="ident">WriteI16</span>;
+            <span class="kw">fn</span> <span class="ident">write_i16</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteI16</span>;
 
             <span class="doccomment">/// Writes an unsigned 32-bit integer in big-endian order to the</span>
             <span class="doccomment">/// underlying writer.</span>
@@ -1427,7 +1429,7 @@
             <span class="doccomment">///     Ok(())</span>
             <span class="doccomment">/// }</span>
             <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">WriteU32</span>;
+            <span class="kw">fn</span> <span class="ident">write_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteU32</span>;
 
             <span class="doccomment">/// Writes a signed 32-bit integer in big-endian order to the</span>
             <span class="doccomment">/// underlying writer.</span>
@@ -1465,7 +1467,7 @@
             <span class="doccomment">///     Ok(())</span>
             <span class="doccomment">/// }</span>
             <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_i32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i32</span>) <span class="op">-&gt;</span> <span class="ident">WriteI32</span>;
+            <span class="kw">fn</span> <span class="ident">write_i32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteI32</span>;
 
             <span class="doccomment">/// Writes an unsigned 64-bit integer in big-endian order to the</span>
             <span class="doccomment">/// underlying writer.</span>
@@ -1503,7 +1505,7 @@
             <span class="doccomment">///     Ok(())</span>
             <span class="doccomment">/// }</span>
             <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">WriteU64</span>;
+            <span class="kw">fn</span> <span class="ident">write_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteU64</span>;
 
             <span class="doccomment">/// Writes an signed 64-bit integer in big-endian order to the</span>
             <span class="doccomment">/// underlying writer.</span>
@@ -1541,7 +1543,7 @@
             <span class="doccomment">///     Ok(())</span>
             <span class="doccomment">/// }</span>
             <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_i64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i64</span>) <span class="op">-&gt;</span> <span class="ident">WriteI64</span>;
+            <span class="kw">fn</span> <span class="ident">write_i64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteI64</span>;
 
             <span class="doccomment">/// Writes an unsigned 128-bit integer in big-endian order to the</span>
             <span class="doccomment">/// underlying writer.</span>
@@ -1581,7 +1583,7 @@
             <span class="doccomment">///     Ok(())</span>
             <span class="doccomment">/// }</span>
             <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_u128</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u128</span>) <span class="op">-&gt;</span> <span class="ident">WriteU128</span>;
+            <span class="kw">fn</span> <span class="ident">write_u128</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteU128</span>;
 
             <span class="doccomment">/// Writes an signed 128-bit integer in big-endian order to the</span>
             <span class="doccomment">/// underlying writer.</span>
@@ -1621,7 +1623,7 @@
             <span class="doccomment">///     Ok(())</span>
             <span class="doccomment">/// }</span>
             <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_i128</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i128</span>) <span class="op">-&gt;</span> <span class="ident">WriteI128</span>;
+            <span class="kw">fn</span> <span class="ident">write_i128</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteI128</span>;
 
 
             <span class="doccomment">/// Writes an unsigned 16-bit integer in little-endian order to the</span>
@@ -1660,7 +1662,7 @@
             <span class="doccomment">///     Ok(())</span>
             <span class="doccomment">/// }</span>
             <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_u16_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u16</span>) <span class="op">-&gt;</span> <span class="ident">WriteU16Le</span>;
+            <span class="kw">fn</span> <span class="ident">write_u16_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteU16Le</span>;
 
             <span class="doccomment">/// Writes a signed 16-bit integer in little-endian order to the</span>
             <span class="doccomment">/// underlying writer.</span>
@@ -1698,7 +1700,7 @@
             <span class="doccomment">///     Ok(())</span>
             <span class="doccomment">/// }</span>
             <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_i16_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i16</span>) <span class="op">-&gt;</span> <span class="ident">WriteI16Le</span>;
+            <span class="kw">fn</span> <span class="ident">write_i16_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteI16Le</span>;
 
             <span class="doccomment">/// Writes an unsigned 32-bit integer in little-endian order to the</span>
             <span class="doccomment">/// underlying writer.</span>
@@ -1736,7 +1738,7 @@
             <span class="doccomment">///     Ok(())</span>
             <span class="doccomment">/// }</span>
             <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_u32_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">WriteU32Le</span>;
+            <span class="kw">fn</span> <span class="ident">write_u32_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteU32Le</span>;
 
             <span class="doccomment">/// Writes a signed 32-bit integer in little-endian order to the</span>
             <span class="doccomment">/// underlying writer.</span>
@@ -1774,7 +1776,7 @@
             <span class="doccomment">///     Ok(())</span>
             <span class="doccomment">/// }</span>
             <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_i32_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i32</span>) <span class="op">-&gt;</span> <span class="ident">WriteI32Le</span>;
+            <span class="kw">fn</span> <span class="ident">write_i32_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteI32Le</span>;
 
             <span class="doccomment">/// Writes an unsigned 64-bit integer in little-endian order to the</span>
             <span class="doccomment">/// underlying writer.</span>
@@ -1812,7 +1814,7 @@
             <span class="doccomment">///     Ok(())</span>
             <span class="doccomment">/// }</span>
             <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_u64_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">WriteU64Le</span>;
+            <span class="kw">fn</span> <span class="ident">write_u64_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteU64Le</span>;
 
             <span class="doccomment">/// Writes an signed 64-bit integer in little-endian order to the</span>
             <span class="doccomment">/// underlying writer.</span>
@@ -1850,7 +1852,7 @@
             <span class="doccomment">///     Ok(())</span>
             <span class="doccomment">/// }</span>
             <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_i64_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i64</span>) <span class="op">-&gt;</span> <span class="ident">WriteI64Le</span>;
+            <span class="kw">fn</span> <span class="ident">write_i64_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteI64Le</span>;
 
             <span class="doccomment">/// Writes an unsigned 128-bit integer in little-endian order to the</span>
             <span class="doccomment">/// underlying writer.</span>
@@ -1890,7 +1892,7 @@
             <span class="doccomment">///     Ok(())</span>
             <span class="doccomment">/// }</span>
             <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_u128_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u128</span>) <span class="op">-&gt;</span> <span class="ident">WriteU128Le</span>;
+            <span class="kw">fn</span> <span class="ident">write_u128_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteU128Le</span>;
 
             <span class="doccomment">/// Writes an signed 128-bit integer in little-endian order to the</span>
             <span class="doccomment">/// underlying writer.</span>
@@ -1930,7 +1932,7 @@
             <span class="doccomment">///     Ok(())</span>
             <span class="doccomment">/// }</span>
             <span class="doccomment">/// ```</span>
-            <span class="kw">fn</span> <span class="ident">write_i128_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i128</span>) <span class="op">-&gt;</span> <span class="ident">WriteI128Le</span>;
+            <span class="kw">fn</span> <span class="ident">write_i128_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">WriteI128Le</span>;
         }
 
         <span class="doccomment">/// Flushes this output stream, ensuring that all intermediately buffered</span>
@@ -1963,7 +1965,7 @@
         <span class="doccomment">///     Ok(())</span>
         <span class="doccomment">/// }</span>
         <span class="doccomment">/// ```</span>
-        <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Flush</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="self">Self</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Flush</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="self">Self</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="self">Self</span>: <span class="ident">Unpin</span>,
         {
@@ -2002,7 +2004,7 @@
         <span class="doccomment">///     Ok(())</span>
         <span class="doccomment">/// }</span>
         <span class="doccomment">/// ```</span>
-        <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Shutdown</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="self">Self</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Shutdown</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="self">Self</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="self">Self</span>: <span class="ident">Unpin</span>,
         {

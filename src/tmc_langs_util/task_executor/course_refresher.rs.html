@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `tmc-langs-util/src/task_executor/course_refresher.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>course_refresher.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../tmc_langs_util/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `tmc-langs-util/src/task_executor/course_refresher.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>course_refresher.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../tmc_langs_util/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1072,6 +1074,8 @@
 <span id="1071">1071</span>
 <span id="1072">1072</span>
 <span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::<span class="ident">UtilError</span>,
@@ -1135,7 +1139,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RefreshData</span> {
     <span class="kw">pub</span> <span class="ident">new_exercises</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">removed_exercises</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">review_points</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">review_points</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">metadata</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Mapping</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">checksum_stubs</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">course_options</span>: <span class="ident">Mapping</span>,
@@ -1144,7 +1148,7 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">ExerciseOptions</span> {
-    <span class="ident">review_points</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">review_points</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">metadata_map</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Mapping</span><span class="op">&gt;</span>,
 }
 
@@ -1164,10 +1168,12 @@
 <span class="kw">impl</span> <span class="ident">CourseRefresher</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">progress_report</span>: <span class="kw">impl</span> <span class="lifetime">&#39;static</span>
+            <span class="op">+</span> <span class="ident">Sync</span>
+            <span class="op">+</span> <span class="ident">Send</span>
             <span class="op">+</span> <span class="ident">Fn</span>(
                 <span class="ident">StatusUpdate</span><span class="op">&lt;</span><span class="ident">RefreshUpdateData</span><span class="op">&gt;</span>,
-            ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
-    ) <span class="op">-&gt;</span> <span class="self">Self</span> {
+            ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">progress_reporter</span>: <span class="ident">ProgressReporter</span>::<span class="ident">new</span>(<span class="ident">progress_report</span>),
         }
@@ -1181,7 +1187,7 @@
         <span class="ident">git_repos_chgrp</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GroupBits</span><span class="op">&gt;</span>,
         <span class="ident">cache_root</span>: <span class="ident">PathBuf</span>,
         <span class="ident">rails_root</span>: <span class="ident">PathBuf</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RefreshData</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RefreshData</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
         <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;refreshing course {}&quot;</span>, <span class="ident">course</span>.<span class="ident">name</span>);
         <span class="self">self</span>.<span class="ident">progress_reporter</span>.<span class="ident">start_timer</span>();
 
@@ -1323,7 +1329,7 @@
     <span class="ident">git_repos_chgrp</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GroupBits</span><span class="op">&gt;</span>,
     <span class="ident">cache_root</span>: <span class="ident">PathBuf</span>,
     <span class="ident">rails_root</span>: <span class="ident">PathBuf</span>,
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RefreshData</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RefreshData</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">course_refresher</span> <span class="op">=</span> <span class="ident">CourseRefresher</span> {
         <span class="ident">progress_reporter</span>: <span class="ident">ProgressReporter</span>::<span class="ident">new</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(())),
     };
@@ -1343,14 +1349,14 @@
     <span class="ident">course_source_url</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">course_git_branch</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">old_cache_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="ident">course_source_backend</span> <span class="op">!=</span> <span class="kw-2">&amp;</span><span class="ident">SourceBackend</span>::<span class="ident">Git</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
+    <span class="kw">if</span> <span class="ident">course_source_backend</span> <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">SourceBackend</span>::<span class="ident">Git</span> {
         <span class="ident">log</span>::<span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Source types other than git not yet implemented&quot;</span>);
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">UtilError</span>::<span class="ident">UnsupportedSourceBackend</span>);
     }
     <span class="kw">if</span> <span class="ident">old_cache_path</span>.<span class="ident">join</span>(<span class="string">&quot;clone&quot;</span>).<span class="ident">join</span>(<span class="string">&quot;.git&quot;</span>).<span class="ident">exists</span>() {
         <span class="comment">// Try a fast path: copy old clone and git fetch new stuff</span>
-        <span class="kw">let</span> <span class="ident">copy_and_update_repository</span> <span class="op">=</span> <span class="op">||</span> <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">copy_and_update_repository</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">old_clone_path</span> <span class="op">=</span> <span class="ident">old_cache_path</span>.<span class="ident">join</span>(<span class="string">&quot;clone&quot;</span>);
             <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">old_clone_path</span>, <span class="ident">course_clone_path</span>)<span class="question-mark">?</span>;
 
@@ -1404,7 +1410,7 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">check_directory_names</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">check_directory_names</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
     <span class="comment">// exercise directories in canonicalized form</span>
     <span class="kw">let</span> <span class="ident">exercise_dirs</span> <span class="op">=</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">canon_dirs</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
@@ -1438,7 +1444,7 @@
 <span class="kw">fn</span> <span class="ident">update_course_options</span>(
     <span class="ident">course_clone_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">course_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Mapping</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Mapping</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">options_file</span> <span class="op">=</span> <span class="ident">course_clone_path</span>.<span class="ident">join</span>(<span class="string">&quot;course_options.yml&quot;</span>);
     <span class="kw">let</span> <span class="ident">opts</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">options_file</span>.<span class="ident">exists</span>() {
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">open_file</span>(<span class="ident">options_file</span>)<span class="question-mark">?</span>;
@@ -1471,7 +1477,7 @@
 <span class="kw">fn</span> <span class="ident">update_exercises</span>(
     <span class="ident">course_clone_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">course_exercises</span>: <span class="kw-2">&amp;</span>[<span class="ident">RefreshExercise</span>],
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>), <span class="ident">UtilError</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>), <span class="ident">UtilError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">exercise_dirs</span> <span class="op">=</span> <span class="ident">task_executor</span>::<span class="ident">find_exercise_directories</span>(<span class="ident">course_clone_path</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">exercise_names</span> <span class="op">=</span> <span class="ident">exercise_dirs</span>
         .<span class="ident">into_iter</span>()
@@ -1481,11 +1487,11 @@
                 .<span class="ident">to_string_lossy</span>()
                 .<span class="ident">replace</span>(<span class="string">&quot;/&quot;</span>, <span class="string">&quot;-&quot;</span>)
         })
-        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>();
+        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_exercises</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
     <span class="kw">for</span> <span class="ident">exercise_name</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">exercise_names</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">course_exercises</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">e</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">exercise_name</span>) {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">course_exercises</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">e</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">exercise_name</span>) {
             <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Added new exercise {}&quot;</span>, <span class="ident">exercise_name</span>);
             <span class="ident">new_exercises</span>.<span class="ident">push</span>(<span class="ident">exercise_name</span>.<span class="ident">clone</span>());
         }
@@ -1505,7 +1511,7 @@
     <span class="ident">course_exercises</span>: <span class="kw-2">&amp;</span>[<span class="ident">RefreshExercise</span>],
     <span class="ident">course_clone_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">course_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseOptions</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseOptions</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">exercise_default_metadata</span> <span class="op">=</span> {
         <span class="kw">use</span> <span class="ident">Value</span>::{<span class="ident">Bool</span>, <span class="ident">Null</span>, <span class="ident">String</span>};
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">defaults</span> <span class="op">=</span> <span class="ident">Mapping</span>::<span class="ident">new</span>();
@@ -1537,7 +1543,7 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">metadata_map</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
     <span class="kw">for</span> <span class="ident">exercise</span> <span class="kw">in</span> <span class="ident">course_exercises</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">metadata</span> <span class="op">=</span> <span class="ident">exercise_default_metadata</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">try_merge_metadata_in_dir</span> <span class="op">=</span> <span class="op">|</span><span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span><span class="op">|</span> <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">try_merge_metadata_in_dir</span> <span class="op">=</span> <span class="op">|</span><span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">metadata_path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">join</span>(<span class="string">&quot;metadata.yml&quot;</span>);
             <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;checking for metadata file {}&quot;</span>, <span class="ident">metadata_path</span>.<span class="ident">display</span>());
             <span class="kw">if</span> <span class="ident">metadata_path</span>.<span class="ident">exists</span>() {
@@ -1560,15 +1566,15 @@
 
         <span class="kw">let</span> <span class="ident">exercise_review_points</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">metadata</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">String</span>(<span class="string">&quot;review_points&quot;</span>.<span class="ident">to_string</span>()))
         {
-            <span class="prelude-val">Some</span>(<span class="ident">Value</span>::<span class="ident">String</span>(<span class="ident">string</span>)) <span class="op">=&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">Value</span>::<span class="ident">String</span>(<span class="ident">string</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">string</span>.<span class="ident">split_whitespace</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">to_string</span>()).<span class="ident">collect</span>()
             }
-            <span class="prelude-val">Some</span>(<span class="ident">Value</span>::<span class="ident">Sequence</span>(<span class="ident">seq</span>)) <span class="op">=&gt;</span> <span class="ident">seq</span>
+            <span class="prelude-val">Some</span>(<span class="ident">Value</span>::<span class="ident">Sequence</span>(<span class="ident">seq</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">seq</span>
                 .<span class="ident">iter</span>()
                 .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_str</span>())
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">to_string</span>())
                 .<span class="ident">collect</span>(),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">vec</span><span class="macro">!</span>[], <span class="comment">// todo: empty vec is correct for null, but what to do with other values?</span>
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vec</span><span class="macro">!</span>[], <span class="comment">// todo: empty vec is correct for null, but what to do with other values?</span>
         };
         <span class="ident">review_points</span>.<span class="ident">insert</span>(<span class="ident">exercise</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">exercise_review_points</span>);
         <span class="ident">metadata_map</span>.<span class="ident">insert</span>(<span class="ident">exercise</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">metadata</span>);
@@ -1583,8 +1589,8 @@
 <span class="kw">fn</span> <span class="ident">update_available_points</span>(
     <span class="ident">course_exercises</span>: <span class="kw-2">&amp;</span>[<span class="ident">RefreshExercise</span>],
     <span class="ident">course_clone_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-    <span class="ident">review_points</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;&gt;</span>,
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">UpdatePoints</span><span class="op">&gt;</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
+    <span class="ident">review_points</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">UpdatePoints</span><span class="op">&gt;</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
     <span class="comment">// scans the exercise directory and compares the points found (and review points) with what was given in the arguments</span>
     <span class="comment">// to find new and removed points</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">update_points</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
@@ -1639,7 +1645,7 @@
 <span class="kw">fn</span> <span class="ident">checksum_stubs</span>(
     <span class="ident">course_exercises</span>: <span class="kw-2">&amp;</span>[<span class="ident">RefreshExercise</span>],
     <span class="ident">course_stub_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">checksum_stubs</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
     <span class="kw">for</span> <span class="ident">e</span> <span class="kw">in</span> <span class="ident">course_exercises</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">digest</span> <span class="op">=</span> <span class="ident">Context</span>::<span class="ident">new</span>();
@@ -1675,7 +1681,7 @@
     <span class="ident">course_exercises</span>: <span class="kw-2">&amp;</span>[<span class="ident">RefreshExercise</span>],
     <span class="ident">root_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">zip_dir</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
     <span class="ident">file_util</span>::<span class="ident">create_dir_all</span>(<span class="ident">zip_dir</span>)<span class="question-mark">?</span>;
     <span class="kw">for</span> <span class="ident">e</span> <span class="kw">in</span> <span class="ident">course_exercises</span> {
         <span class="kw">let</span> <span class="ident">exercise_root</span> <span class="op">=</span> <span class="ident">root_path</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">e</span>.<span class="ident">relative_path</span>);
@@ -1714,7 +1720,7 @@
     <span class="ident">_chgrp</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ModeBits</span><span class="op">&gt;</span>,
     <span class="ident">_cache_root</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">_rails_root</span>: <span class="ident">PathBuf</span>,
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
     <span class="comment">// NOP on non-Unix platforms</span>
     <span class="prelude-val">Ok</span>(())
 }
@@ -1726,7 +1732,7 @@
     <span class="ident">chgrp</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GroupBits</span><span class="op">&gt;</span>,
     <span class="ident">cache_root</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">rails_root</span>: <span class="ident">PathBuf</span>,
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
     <span class="kw">use</span> <span class="ident">nix</span>::<span class="ident">sys</span>::<span class="ident">stat</span>;
     <span class="kw">use</span> <span class="ident">nix</span>::<span class="ident">unistd</span>::{<span class="self">self</span>, <span class="ident">Uid</span>};
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">unix</span>::<span class="ident">io</span>::<span class="ident">AsRawFd</span>;
@@ -1739,7 +1745,7 @@
         ));
     };
 
-    <span class="kw">let</span> <span class="ident">run_chmod</span> <span class="op">=</span> <span class="op">|</span><span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span><span class="op">|</span> <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">run_chmod</span> <span class="op">=</span> <span class="op">|</span><span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">chmod</span>) <span class="op">=</span> <span class="ident">chmod</span> {
             <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">open_file</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
             <span class="ident">stat</span>::<span class="ident">fchmod</span>(
@@ -1750,7 +1756,7 @@
         }
         <span class="prelude-val">Ok</span>(())
     };
-    <span class="kw">let</span> <span class="ident">run_chgrp</span> <span class="op">=</span> <span class="op">|</span><span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span><span class="op">|</span> <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">run_chgrp</span> <span class="op">=</span> <span class="op">|</span><span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">chgrp</span>) <span class="op">=</span> <span class="ident">chgrp</span> {
             <span class="ident">unistd</span>::<span class="ident">chown</span>(<span class="ident">path</span>, <span class="prelude-val">Some</span>(<span class="ident">Uid</span>::<span class="ident">from_raw</span>(<span class="ident">chgrp</span>)), <span class="prelude-val">None</span>)
                 .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">UtilError</span>::<span class="ident">NixPermissionChange</span>(<span class="ident">path</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
@@ -1764,7 +1770,7 @@
     <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent</span>) <span class="op">=</span> <span class="ident">next</span>.<span class="ident">parent</span>() {
         <span class="ident">run_chmod</span>(<span class="ident">parent</span>)<span class="question-mark">?</span>;
         <span class="ident">run_chgrp</span>(<span class="ident">parent</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">parent</span> <span class="op">==</span> <span class="ident">rails_root</span> {
+        <span class="kw">if</span> <span class="ident">parent</span> <span class="op">=</span><span class="op">=</span> <span class="ident">rails_root</span> {
             <span class="kw">break</span>;
         }
         <span class="ident">next</span> <span class="op">=</span> <span class="ident">parent</span>;

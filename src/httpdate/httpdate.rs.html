@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/httpdate-0.3.2/src/httpdate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>httpdate.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../httpdate/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/httpdate-0.3.2/src/httpdate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>httpdate.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../httpdate/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -417,20 +419,20 @@
 }
 
 <span class="kw">impl</span> <span class="ident">HttpDate</span> {
-    <span class="kw">fn</span> <span class="ident">is_valid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_valid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">sec</span> <span class="op">&lt;</span> <span class="number">60</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">min</span> <span class="op">&lt;</span> <span class="number">60</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">hour</span> <span class="op">&lt;</span> <span class="number">24</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">day</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span>
-        <span class="self">self</span>.<span class="ident">day</span> <span class="op">&lt;</span> <span class="number">32</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mon</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mon</span> <span class="op">&lt;=</span> <span class="number">12</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">year</span> <span class="op">&gt;=</span> <span class="number">1970</span> <span class="op">&amp;&amp;</span>
-        <span class="self">self</span>.<span class="ident">year</span> <span class="op">&lt;=</span> <span class="number">9999</span>
+        <span class="self">self</span>.<span class="ident">day</span> <span class="op">&lt;</span> <span class="number">32</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mon</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">mon</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">12</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">year</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">1970</span> <span class="op">&amp;&amp;</span>
+        <span class="self">self</span>.<span class="ident">year</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">9999</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SystemTime</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">HttpDate</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">SystemTime</span>) <span class="op">-&gt;</span> <span class="ident">HttpDate</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">SystemTime</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">HttpDate</span> {
         <span class="kw">let</span> <span class="ident">dur</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">duration_since</span>(<span class="ident">UNIX_EPOCH</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;all times should be after the epoch&quot;</span>);
         <span class="kw">let</span> <span class="ident">secs_since_epoch</span> <span class="op">=</span> <span class="ident">dur</span>.<span class="ident">as_secs</span>();
 
-        <span class="kw">if</span> <span class="ident">secs_since_epoch</span> <span class="op">&gt;=</span> <span class="number">253402300800</span> { <span class="comment">// year 9999</span>
+        <span class="kw">if</span> <span class="ident">secs_since_epoch</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">253402300800</span> { <span class="comment">// year 9999</span>
             <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;date must be before year 9999&quot;</span>);
         }
 
@@ -447,21 +449,21 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">remdays</span> <span class="op">=</span> <span class="ident">days</span> <span class="op">%</span> <span class="ident">DAYS_PER_400Y</span>;
 
         <span class="kw">if</span> <span class="ident">remdays</span> <span class="op">&lt;</span> <span class="number">0</span> {
-            <span class="ident">remdays</span> <span class="op">+=</span> <span class="ident">DAYS_PER_400Y</span>;
-            <span class="ident">qc_cycles</span> <span class="op">-=</span> <span class="number">1</span>;
+            <span class="ident">remdays</span> <span class="op">+</span><span class="op">=</span> <span class="ident">DAYS_PER_400Y</span>;
+            <span class="ident">qc_cycles</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c_cycles</span> <span class="op">=</span> <span class="ident">remdays</span> <span class="op">/</span> <span class="ident">DAYS_PER_100Y</span>;
-        <span class="kw">if</span> <span class="ident">c_cycles</span> <span class="op">==</span> <span class="number">4</span> { <span class="ident">c_cycles</span> <span class="op">-=</span> <span class="number">1</span>; }
-        <span class="ident">remdays</span> <span class="op">-=</span> <span class="ident">c_cycles</span> <span class="op">*</span> <span class="ident">DAYS_PER_100Y</span>;
+        <span class="kw">if</span> <span class="ident">c_cycles</span> <span class="op">=</span><span class="op">=</span> <span class="number">4</span> { <span class="ident">c_cycles</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>; }
+        <span class="ident">remdays</span> <span class="op">-</span><span class="op">=</span> <span class="ident">c_cycles</span> <span class="op">*</span> <span class="ident">DAYS_PER_100Y</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">q_cycles</span> <span class="op">=</span> <span class="ident">remdays</span> <span class="op">/</span> <span class="ident">DAYS_PER_4Y</span>;
-        <span class="kw">if</span> <span class="ident">q_cycles</span> <span class="op">==</span> <span class="number">25</span> { <span class="ident">q_cycles</span> <span class="op">-=</span> <span class="number">1</span>; }
-        <span class="ident">remdays</span> <span class="op">-=</span> <span class="ident">q_cycles</span> <span class="op">*</span> <span class="ident">DAYS_PER_4Y</span>;
+        <span class="kw">if</span> <span class="ident">q_cycles</span> <span class="op">=</span><span class="op">=</span> <span class="number">25</span> { <span class="ident">q_cycles</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>; }
+        <span class="ident">remdays</span> <span class="op">-</span><span class="op">=</span> <span class="ident">q_cycles</span> <span class="op">*</span> <span class="ident">DAYS_PER_4Y</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">remyears</span> <span class="op">=</span> <span class="ident">remdays</span> <span class="op">/</span> <span class="number">365</span>;
-        <span class="kw">if</span> <span class="ident">remyears</span> <span class="op">==</span> <span class="number">4</span> { <span class="ident">remyears</span> <span class="op">-=</span> <span class="number">1</span>; }
-        <span class="ident">remdays</span> <span class="op">-=</span> <span class="ident">remyears</span> <span class="op">*</span> <span class="number">365</span>;
+        <span class="kw">if</span> <span class="ident">remyears</span> <span class="op">=</span><span class="op">=</span> <span class="number">4</span> { <span class="ident">remyears</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>; }
+        <span class="ident">remdays</span> <span class="op">-</span><span class="op">=</span> <span class="ident">remyears</span> <span class="op">*</span> <span class="number">365</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">year</span> <span class="op">=</span> <span class="number">2000</span> <span class="op">+</span>
             <span class="ident">remyears</span> <span class="op">+</span> <span class="number">4</span><span class="kw-2">*</span><span class="ident">q_cycles</span> <span class="op">+</span> <span class="number">100</span><span class="kw-2">*</span><span class="ident">c_cycles</span> <span class="op">+</span> <span class="number">400</span><span class="kw-2">*</span><span class="ident">qc_cycles</span>;
@@ -469,23 +471,23 @@
         <span class="kw">let</span> <span class="ident">months</span> <span class="op">=</span> [<span class="number">31</span>,<span class="number">30</span>,<span class="number">31</span>,<span class="number">30</span>,<span class="number">31</span>,<span class="number">31</span>,<span class="number">30</span>,<span class="number">31</span>,<span class="number">30</span>,<span class="number">31</span>,<span class="number">31</span>,<span class="number">29</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mon</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">for</span> <span class="ident">mon_len</span> <span class="kw">in</span> <span class="ident">months</span>.<span class="ident">iter</span>() {
-            <span class="ident">mon</span> <span class="op">+=</span> <span class="number">1</span>;
+            <span class="ident">mon</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             <span class="kw">if</span> <span class="ident">remdays</span> <span class="op">&lt;</span> <span class="kw-2">*</span><span class="ident">mon_len</span> {
                 <span class="kw">break</span>;
             }
-            <span class="ident">remdays</span> <span class="op">-=</span> <span class="kw-2">*</span><span class="ident">mon_len</span>;
+            <span class="ident">remdays</span> <span class="op">-</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">mon_len</span>;
         }
         <span class="kw">let</span> <span class="ident">mday</span> <span class="op">=</span> <span class="ident">remdays</span><span class="op">+</span><span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">mon</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">mon</span> <span class="op">+</span> <span class="number">2</span> <span class="op">&gt;</span> <span class="number">12</span> {
-            <span class="ident">year</span> <span class="op">+=</span> <span class="number">1</span>;
+            <span class="ident">year</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             <span class="ident">mon</span> <span class="op">-</span> <span class="number">10</span>
         } <span class="kw">else</span> {
             <span class="ident">mon</span> <span class="op">+</span> <span class="number">2</span>
         };
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wday</span> <span class="op">=</span> (<span class="number">3</span><span class="op">+</span><span class="ident">days</span>)<span class="op">%</span><span class="number">7</span>;
-        <span class="kw">if</span> <span class="ident">wday</span> <span class="op">&lt;=</span> <span class="number">0</span> {
-            <span class="ident">wday</span> <span class="op">+=</span> <span class="number">7</span>
+        <span class="kw">if</span> <span class="ident">wday</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="ident">wday</span> <span class="op">+</span><span class="op">=</span> <span class="number">7</span>
         };
 
         <span class="ident">HttpDate</span> {
@@ -501,26 +503,26 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">HttpDate</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SystemTime</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">HttpDate</span>) <span class="op">-&gt;</span> <span class="ident">SystemTime</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">HttpDate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SystemTime</span> {
         <span class="kw">let</span> <span class="ident">leap_years</span> <span class="op">=</span> ((<span class="ident">v</span>.<span class="ident">year</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">-</span> <span class="number">1968</span>) <span class="op">/</span> <span class="number">4</span> <span class="op">-</span> ((<span class="ident">v</span>.<span class="ident">year</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">-</span> <span class="number">1900</span>) <span class="op">/</span> <span class="number">100</span> <span class="op">+</span>
                          ((<span class="ident">v</span>.<span class="ident">year</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">-</span> <span class="number">1600</span>) <span class="op">/</span> <span class="number">400</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ydays</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">v</span>.<span class="ident">mon</span> {
-            <span class="number">1</span> <span class="op">=&gt;</span> <span class="number">0</span>,
-            <span class="number">2</span> <span class="op">=&gt;</span> <span class="number">31</span>,
-            <span class="number">3</span> <span class="op">=&gt;</span> <span class="number">59</span>,
-            <span class="number">4</span> <span class="op">=&gt;</span> <span class="number">90</span>,
-            <span class="number">5</span> <span class="op">=&gt;</span> <span class="number">120</span>,
-            <span class="number">6</span> <span class="op">=&gt;</span> <span class="number">151</span>,
-            <span class="number">7</span> <span class="op">=&gt;</span> <span class="number">181</span>,
-            <span class="number">8</span> <span class="op">=&gt;</span> <span class="number">212</span>,
-            <span class="number">9</span> <span class="op">=&gt;</span> <span class="number">243</span>,
-            <span class="number">10</span> <span class="op">=&gt;</span> <span class="number">273</span>,
-            <span class="number">11</span> <span class="op">=&gt;</span> <span class="number">304</span>,
-            <span class="number">12</span> <span class="op">=&gt;</span> <span class="number">334</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">31</span>,
+            <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">59</span>,
+            <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">90</span>,
+            <span class="number">5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">120</span>,
+            <span class="number">6</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">151</span>,
+            <span class="number">7</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">181</span>,
+            <span class="number">8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">212</span>,
+            <span class="number">9</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">243</span>,
+            <span class="number">10</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">273</span>,
+            <span class="number">11</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">304</span>,
+            <span class="number">12</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">334</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
         } <span class="op">+</span> <span class="ident">v</span>.<span class="ident">day</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">-</span> <span class="number">1</span>;
         <span class="kw">if</span> <span class="ident">is_leap_year</span>(<span class="ident">v</span>.<span class="ident">year</span>) <span class="op">&amp;&amp;</span> <span class="ident">v</span>.<span class="ident">mon</span> <span class="op">&gt;</span> <span class="number">2</span> {
-            <span class="ident">ydays</span> <span class="op">+=</span> <span class="number">1</span>;
+            <span class="ident">ydays</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
         <span class="kw">let</span> <span class="ident">days</span> <span class="op">=</span> (<span class="ident">v</span>.<span class="ident">year</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">-</span> <span class="number">1970</span>) <span class="op">*</span> <span class="number">365</span> <span class="op">+</span> <span class="ident">leap_years</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">+</span> <span class="ident">ydays</span>;
         <span class="ident">UNIX_EPOCH</span> <span class="op">+</span>
@@ -531,7 +533,7 @@
 <span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">HttpDate</span> {
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">Error</span>;
 
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HttpDate</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HttpDate</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">is_ascii</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>(()));
         }
@@ -547,31 +549,31 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">HttpDate</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="ident">wday</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">wday</span> {
-            <span class="number">1</span> <span class="op">=&gt;</span> <span class="string">b&quot;Mon&quot;</span>,
-            <span class="number">2</span> <span class="op">=&gt;</span> <span class="string">b&quot;Tue&quot;</span>,
-            <span class="number">3</span> <span class="op">=&gt;</span> <span class="string">b&quot;Wed&quot;</span>,
-            <span class="number">4</span> <span class="op">=&gt;</span> <span class="string">b&quot;Thu&quot;</span>,
-            <span class="number">5</span> <span class="op">=&gt;</span> <span class="string">b&quot;Fri&quot;</span>,
-            <span class="number">6</span> <span class="op">=&gt;</span> <span class="string">b&quot;Sat&quot;</span>,
-            <span class="number">7</span> <span class="op">=&gt;</span> <span class="string">b&quot;Sun&quot;</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">b&quot;Mon&quot;</span>,
+            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">b&quot;Tue&quot;</span>,
+            <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">b&quot;Wed&quot;</span>,
+            <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">b&quot;Thu&quot;</span>,
+            <span class="number">5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">b&quot;Fri&quot;</span>,
+            <span class="number">6</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">b&quot;Sat&quot;</span>,
+            <span class="number">7</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">b&quot;Sun&quot;</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
         };
         <span class="kw">let</span> <span class="ident">mon</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">mon</span> {
-            <span class="number">1</span> <span class="op">=&gt;</span> <span class="string">b&quot;Jan&quot;</span>,
-            <span class="number">2</span> <span class="op">=&gt;</span> <span class="string">b&quot;Feb&quot;</span>,
-            <span class="number">3</span> <span class="op">=&gt;</span> <span class="string">b&quot;Mar&quot;</span>,
-            <span class="number">4</span> <span class="op">=&gt;</span> <span class="string">b&quot;Apr&quot;</span>,
-            <span class="number">5</span> <span class="op">=&gt;</span> <span class="string">b&quot;May&quot;</span>,
-            <span class="number">6</span> <span class="op">=&gt;</span> <span class="string">b&quot;Jun&quot;</span>,
-            <span class="number">7</span> <span class="op">=&gt;</span> <span class="string">b&quot;Jul&quot;</span>,
-            <span class="number">8</span> <span class="op">=&gt;</span> <span class="string">b&quot;Aug&quot;</span>,
-            <span class="number">9</span> <span class="op">=&gt;</span> <span class="string">b&quot;Sep&quot;</span>,
-            <span class="number">10</span> <span class="op">=&gt;</span> <span class="string">b&quot;Oct&quot;</span>,
-            <span class="number">11</span> <span class="op">=&gt;</span> <span class="string">b&quot;Nov&quot;</span>,
-            <span class="number">12</span> <span class="op">=&gt;</span> <span class="string">b&quot;Dec&quot;</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">b&quot;Jan&quot;</span>,
+            <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">b&quot;Feb&quot;</span>,
+            <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">b&quot;Mar&quot;</span>,
+            <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">b&quot;Apr&quot;</span>,
+            <span class="number">5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">b&quot;May&quot;</span>,
+            <span class="number">6</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">b&quot;Jun&quot;</span>,
+            <span class="number">7</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">b&quot;Jul&quot;</span>,
+            <span class="number">8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">b&quot;Aug&quot;</span>,
+            <span class="number">9</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">b&quot;Sep&quot;</span>,
+            <span class="number">10</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">b&quot;Oct&quot;</span>,
+            <span class="number">11</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">b&quot;Nov&quot;</span>,
+            <span class="number">12</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">b&quot;Dec&quot;</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
         };
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span>: [<span class="ident">u8</span>; <span class="number">29</span>] <span class="op">=</span> [
             <span class="comment">// Too long to write as: b&quot;Thu, 01 Jan 1970 00:00:00 GMT&quot;</span>
@@ -604,13 +606,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">HttpDate</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">HttpDate</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="ident">SystemTime</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="self">self</span>) <span class="op">==</span> <span class="ident">SystemTime</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">other</span>)
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">HttpDate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="ident">SystemTime</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="self">self</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">SystemTime</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">other</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">PartialOrd</span> <span class="kw">for</span> <span class="ident">HttpDate</span> {
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">HttpDate</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">cmp</span>::<span class="ident">Ordering</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">HttpDate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">cmp</span>::<span class="ident">Ordering</span><span class="op">&gt;</span> {
         <span class="ident">SystemTime</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="self">self</span>).<span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="ident">SystemTime</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">other</span>))
     }
 }
@@ -619,13 +621,13 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// For internal use only.</span>
 <span class="doccomment">/// Intended to be used with ASCII-only strings.</span>
-<span class="kw">fn</span> <span class="ident">conv</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+<span class="kw">fn</span> <span class="ident">conv</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
     <span class="kw">unsafe</span> { <span class="ident">from_utf8_unchecked</span>(<span class="ident">s</span>) }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_imf_fixdate</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HttpDate</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_imf_fixdate</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HttpDate</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
     <span class="comment">// Example: `Sun, 06 Nov 1994 08:49:37 GMT`</span>
-    <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">len</span>() <span class="op">!=</span> <span class="number">29</span> <span class="op">||</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">25</span>..] <span class="op">!=</span> <span class="string">b&quot; GMT&quot;</span> <span class="op">||</span> <span class="ident">s</span>[<span class="number">16</span>] <span class="op">!=</span> <span class="string">b&#39; &#39;</span> <span class="op">||</span> <span class="ident">s</span>[<span class="number">19</span>] <span class="op">!=</span> <span class="string">b&#39;:&#39;</span> <span class="op">||</span> <span class="ident">s</span>[<span class="number">22</span>] <span class="op">!=</span> <span class="string">b&#39;:&#39;</span> {
+    <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">29</span> <span class="op">|</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">25</span>..] <span class="op">!</span><span class="op">=</span> <span class="string">b&quot; GMT&quot;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">s</span>[<span class="number">16</span>] <span class="op">!</span><span class="op">=</span> <span class="string">b&#39; &#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">s</span>[<span class="number">19</span>] <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;:&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">s</span>[<span class="number">22</span>] <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;:&#39;</span> {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>(()));
     }
     <span class="prelude-val">Ok</span>(<span class="ident">HttpDate</span> {
@@ -634,62 +636,62 @@
         <span class="ident">hour</span>: <span class="ident">conv</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">17</span>..<span class="number">19</span>]).<span class="ident">parse</span>()<span class="question-mark">?</span>,
         <span class="ident">day</span>: <span class="ident">conv</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">5</span>..<span class="number">7</span>]).<span class="ident">parse</span>()<span class="question-mark">?</span>,
         <span class="ident">mon</span>: <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">7</span>..<span class="number">12</span>] {
-            <span class="string">b&quot; Jan &quot;</span> <span class="op">=&gt;</span> <span class="number">1</span>,
-            <span class="string">b&quot; Feb &quot;</span> <span class="op">=&gt;</span> <span class="number">2</span>,
-            <span class="string">b&quot; Mar &quot;</span> <span class="op">=&gt;</span> <span class="number">3</span>,
-            <span class="string">b&quot; Apr &quot;</span> <span class="op">=&gt;</span> <span class="number">4</span>,
-            <span class="string">b&quot; May &quot;</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="string">b&quot; Jun &quot;</span> <span class="op">=&gt;</span> <span class="number">6</span>,
-            <span class="string">b&quot; Jul &quot;</span> <span class="op">=&gt;</span> <span class="number">7</span>,
-            <span class="string">b&quot; Aug &quot;</span> <span class="op">=&gt;</span> <span class="number">8</span>,
-            <span class="string">b&quot; Sep &quot;</span> <span class="op">=&gt;</span> <span class="number">9</span>,
-            <span class="string">b&quot; Oct &quot;</span> <span class="op">=&gt;</span> <span class="number">10</span>,
-            <span class="string">b&quot; Nov &quot;</span> <span class="op">=&gt;</span> <span class="number">11</span>,
-            <span class="string">b&quot; Dec &quot;</span> <span class="op">=&gt;</span> <span class="number">12</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>(())),
+            <span class="string">b&quot; Jan &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
+            <span class="string">b&quot; Feb &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
+            <span class="string">b&quot; Mar &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">3</span>,
+            <span class="string">b&quot; Apr &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
+            <span class="string">b&quot; May &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="string">b&quot; Jun &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">6</span>,
+            <span class="string">b&quot; Jul &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">7</span>,
+            <span class="string">b&quot; Aug &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">8</span>,
+            <span class="string">b&quot; Sep &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">9</span>,
+            <span class="string">b&quot; Oct &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">10</span>,
+            <span class="string">b&quot; Nov &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">11</span>,
+            <span class="string">b&quot; Dec &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">12</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>(())),
         },
         <span class="ident">year</span>: <span class="ident">conv</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">12</span>..<span class="number">16</span>]).<span class="ident">parse</span>()<span class="question-mark">?</span>,
         <span class="ident">wday</span>: <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[..<span class="number">5</span>] {
-            <span class="string">b&quot;Mon, &quot;</span> <span class="op">=&gt;</span> <span class="number">1</span>,
-            <span class="string">b&quot;Tue, &quot;</span> <span class="op">=&gt;</span> <span class="number">2</span>,
-            <span class="string">b&quot;Wed, &quot;</span> <span class="op">=&gt;</span> <span class="number">3</span>,
-            <span class="string">b&quot;Thu, &quot;</span> <span class="op">=&gt;</span> <span class="number">4</span>,
-            <span class="string">b&quot;Fri, &quot;</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="string">b&quot;Sat, &quot;</span> <span class="op">=&gt;</span> <span class="number">6</span>,
-            <span class="string">b&quot;Sun, &quot;</span> <span class="op">=&gt;</span> <span class="number">7</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>(())),
+            <span class="string">b&quot;Mon, &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
+            <span class="string">b&quot;Tue, &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
+            <span class="string">b&quot;Wed, &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">3</span>,
+            <span class="string">b&quot;Thu, &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
+            <span class="string">b&quot;Fri, &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="string">b&quot;Sat, &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">6</span>,
+            <span class="string">b&quot;Sun, &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">7</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>(())),
         },
     })
 }
 
-<span class="kw">fn</span> <span class="ident">parse_rfc850_date</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HttpDate</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_rfc850_date</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HttpDate</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
     <span class="comment">// Example: `Sunday, 06-Nov-94 08:49:37 GMT`</span>
     <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">23</span> {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>(()));
     }
 
-    <span class="kw">fn</span> <span class="ident">wday</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="ident">wday</span>: <span class="ident">u8</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">u8</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>])<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">0</span>..<span class="ident">name</span>.<span class="ident">len</span>()] <span class="op">==</span> <span class="ident">name</span> {
+    <span class="kw">fn</span> <span class="ident">wday</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="ident">wday</span>: <span class="ident">u8</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">u8</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>])<span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">0</span>..<span class="ident">name</span>.<span class="ident">len</span>()] <span class="op">=</span><span class="op">=</span> <span class="ident">name</span> {
             <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">wday</span>, <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="ident">name</span>.<span class="ident">len</span>()..]));
         }
         <span class="prelude-val">None</span>
     }
     <span class="kw">let</span> (<span class="ident">wday</span>, <span class="ident">s</span>) <span class="op">=</span> <span class="ident">wday</span>(<span class="ident">s</span>, <span class="number">1</span>, <span class="string">b&quot;Monday, &quot;</span>)
-        .<span class="ident">or_else</span>(<span class="op">||</span> <span class="ident">wday</span>(<span class="ident">s</span>, <span class="number">2</span>, <span class="string">b&quot;Tuesday, &quot;</span>))
-        .<span class="ident">or_else</span>(<span class="op">||</span> <span class="ident">wday</span>(<span class="ident">s</span>, <span class="number">3</span>, <span class="string">b&quot;Wednesday, &quot;</span>))
-        .<span class="ident">or_else</span>(<span class="op">||</span> <span class="ident">wday</span>(<span class="ident">s</span>, <span class="number">4</span>, <span class="string">b&quot;Thursday, &quot;</span>))
-        .<span class="ident">or_else</span>(<span class="op">||</span> <span class="ident">wday</span>(<span class="ident">s</span>, <span class="number">5</span>, <span class="string">b&quot;Friday, &quot;</span>))
-        .<span class="ident">or_else</span>(<span class="op">||</span> <span class="ident">wday</span>(<span class="ident">s</span>, <span class="number">6</span>, <span class="string">b&quot;Saturday, &quot;</span>))
-        .<span class="ident">or_else</span>(<span class="op">||</span> <span class="ident">wday</span>(<span class="ident">s</span>, <span class="number">7</span>, <span class="string">b&quot;Sunday, &quot;</span>))
+        .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">wday</span>(<span class="ident">s</span>, <span class="number">2</span>, <span class="string">b&quot;Tuesday, &quot;</span>))
+        .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">wday</span>(<span class="ident">s</span>, <span class="number">3</span>, <span class="string">b&quot;Wednesday, &quot;</span>))
+        .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">wday</span>(<span class="ident">s</span>, <span class="number">4</span>, <span class="string">b&quot;Thursday, &quot;</span>))
+        .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">wday</span>(<span class="ident">s</span>, <span class="number">5</span>, <span class="string">b&quot;Friday, &quot;</span>))
+        .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">wday</span>(<span class="ident">s</span>, <span class="number">6</span>, <span class="string">b&quot;Saturday, &quot;</span>))
+        .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">wday</span>(<span class="ident">s</span>, <span class="number">7</span>, <span class="string">b&quot;Sunday, &quot;</span>))
         .<span class="ident">ok_or</span>(<span class="ident">Error</span>(()))<span class="question-mark">?</span>;
-    <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">len</span>() <span class="op">!=</span> <span class="number">22</span> <span class="op">||</span> <span class="ident">s</span>[<span class="number">12</span>] <span class="op">!=</span> <span class="string">b&#39;:&#39;</span> <span class="op">||</span> <span class="ident">s</span>[<span class="number">15</span>] <span class="op">!=</span> <span class="string">b&#39;:&#39;</span> <span class="op">||</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">18</span>..<span class="number">22</span>] <span class="op">!=</span> <span class="string">b&quot; GMT&quot;</span> {
+    <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">22</span> <span class="op">|</span><span class="op">|</span> <span class="ident">s</span>[<span class="number">12</span>] <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;:&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">s</span>[<span class="number">15</span>] <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;:&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">18</span>..<span class="number">22</span>] <span class="op">!</span><span class="op">=</span> <span class="string">b&quot; GMT&quot;</span> {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>(()));
     }
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">year</span> <span class="op">=</span> <span class="ident">conv</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">7</span>..<span class="number">9</span>]).<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">year</span> <span class="op">&lt;</span> <span class="number">70</span> {
-        <span class="ident">year</span> <span class="op">+=</span> <span class="number">2000</span>;
+        <span class="ident">year</span> <span class="op">+</span><span class="op">=</span> <span class="number">2000</span>;
     } <span class="kw">else</span> {
-        <span class="ident">year</span> <span class="op">+=</span> <span class="number">1900</span>;
+        <span class="ident">year</span> <span class="op">+</span><span class="op">=</span> <span class="number">1900</span>;
     }
     <span class="prelude-val">Ok</span>(<span class="ident">HttpDate</span> {
         <span class="ident">sec</span>: <span class="ident">conv</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">16</span>..<span class="number">18</span>]).<span class="ident">parse</span>()<span class="question-mark">?</span>,
@@ -697,28 +699,28 @@
         <span class="ident">hour</span>: <span class="ident">conv</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">10</span>..<span class="number">12</span>]).<span class="ident">parse</span>()<span class="question-mark">?</span>,
         <span class="ident">day</span>: <span class="ident">conv</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">0</span>..<span class="number">2</span>]).<span class="ident">parse</span>()<span class="question-mark">?</span>,
         <span class="ident">mon</span>: <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">2</span>..<span class="number">7</span>] {
-            <span class="string">b&quot;-Jan-&quot;</span> <span class="op">=&gt;</span> <span class="number">1</span>,
-            <span class="string">b&quot;-Feb-&quot;</span> <span class="op">=&gt;</span> <span class="number">2</span>,
-            <span class="string">b&quot;-Mar-&quot;</span> <span class="op">=&gt;</span> <span class="number">3</span>,
-            <span class="string">b&quot;-Apr-&quot;</span> <span class="op">=&gt;</span> <span class="number">4</span>,
-            <span class="string">b&quot;-May-&quot;</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="string">b&quot;-Jun-&quot;</span> <span class="op">=&gt;</span> <span class="number">6</span>,
-            <span class="string">b&quot;-Jul-&quot;</span> <span class="op">=&gt;</span> <span class="number">7</span>,
-            <span class="string">b&quot;-Aug-&quot;</span> <span class="op">=&gt;</span> <span class="number">8</span>,
-            <span class="string">b&quot;-Sep-&quot;</span> <span class="op">=&gt;</span> <span class="number">9</span>,
-            <span class="string">b&quot;-Oct-&quot;</span> <span class="op">=&gt;</span> <span class="number">10</span>,
-            <span class="string">b&quot;-Nov-&quot;</span> <span class="op">=&gt;</span> <span class="number">11</span>,
-            <span class="string">b&quot;-Dec-&quot;</span> <span class="op">=&gt;</span> <span class="number">12</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>(())),
+            <span class="string">b&quot;-Jan-&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
+            <span class="string">b&quot;-Feb-&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
+            <span class="string">b&quot;-Mar-&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">3</span>,
+            <span class="string">b&quot;-Apr-&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
+            <span class="string">b&quot;-May-&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="string">b&quot;-Jun-&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">6</span>,
+            <span class="string">b&quot;-Jul-&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">7</span>,
+            <span class="string">b&quot;-Aug-&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">8</span>,
+            <span class="string">b&quot;-Sep-&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">9</span>,
+            <span class="string">b&quot;-Oct-&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">10</span>,
+            <span class="string">b&quot;-Nov-&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">11</span>,
+            <span class="string">b&quot;-Dec-&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">12</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>(())),
         },
         <span class="ident">year</span>: <span class="ident">year</span>,
         <span class="ident">wday</span>: <span class="ident">wday</span>,
     })
 }
 
-<span class="kw">fn</span> <span class="ident">parse_asctime</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HttpDate</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_asctime</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HttpDate</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
     <span class="comment">// Example: `Sun Nov  6 08:49:37 1994`</span>
-    <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">len</span>() <span class="op">!=</span> <span class="number">24</span> <span class="op">||</span> <span class="ident">s</span>[<span class="number">10</span>] <span class="op">!=</span> <span class="string">b&#39; &#39;</span> <span class="op">||</span> <span class="ident">s</span>[<span class="number">13</span>] <span class="op">!=</span> <span class="string">b&#39;:&#39;</span> <span class="op">||</span> <span class="ident">s</span>[<span class="number">16</span>] <span class="op">!=</span> <span class="string">b&#39;:&#39;</span> <span class="op">||</span> <span class="ident">s</span>[<span class="number">19</span>] <span class="op">!=</span> <span class="string">b&#39; &#39;</span> {
+    <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">24</span> <span class="op">|</span><span class="op">|</span> <span class="ident">s</span>[<span class="number">10</span>] <span class="op">!</span><span class="op">=</span> <span class="string">b&#39; &#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">s</span>[<span class="number">13</span>] <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;:&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">s</span>[<span class="number">16</span>] <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;:&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">s</span>[<span class="number">19</span>] <span class="op">!</span><span class="op">=</span> <span class="string">b&#39; &#39;</span> {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>(()));
     }
     <span class="prelude-val">Ok</span>(<span class="ident">HttpDate</span> {
@@ -727,7 +729,7 @@
         <span class="ident">hour</span>: <span class="ident">conv</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">11</span>..<span class="number">13</span>]).<span class="ident">parse</span>()<span class="question-mark">?</span>,
         <span class="ident">day</span>: {
             <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">8</span>..<span class="number">10</span>];
-            <span class="ident">conv</span>(<span class="kw">if</span> <span class="ident">x</span>[<span class="number">0</span>] <span class="op">==</span> <span class="string">b&#39; &#39;</span> {
+            <span class="ident">conv</span>(<span class="kw">if</span> <span class="ident">x</span>[<span class="number">0</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&#39; &#39;</span> {
                     <span class="kw-2">&amp;</span><span class="ident">x</span>[<span class="number">1</span>..<span class="number">2</span>]
                 } <span class="kw">else</span> {
                     <span class="ident">x</span>
@@ -735,36 +737,36 @@
                 .<span class="ident">parse</span>()<span class="question-mark">?</span>
         },
         <span class="ident">mon</span>: <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">4</span>..<span class="number">8</span>] {
-            <span class="string">b&quot;Jan &quot;</span> <span class="op">=&gt;</span> <span class="number">1</span>,
-            <span class="string">b&quot;Feb &quot;</span> <span class="op">=&gt;</span> <span class="number">2</span>,
-            <span class="string">b&quot;Mar &quot;</span> <span class="op">=&gt;</span> <span class="number">3</span>,
-            <span class="string">b&quot;Apr &quot;</span> <span class="op">=&gt;</span> <span class="number">4</span>,
-            <span class="string">b&quot;May &quot;</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="string">b&quot;Jun &quot;</span> <span class="op">=&gt;</span> <span class="number">6</span>,
-            <span class="string">b&quot;Jul &quot;</span> <span class="op">=&gt;</span> <span class="number">7</span>,
-            <span class="string">b&quot;Aug &quot;</span> <span class="op">=&gt;</span> <span class="number">8</span>,
-            <span class="string">b&quot;Sep &quot;</span> <span class="op">=&gt;</span> <span class="number">9</span>,
-            <span class="string">b&quot;Oct &quot;</span> <span class="op">=&gt;</span> <span class="number">10</span>,
-            <span class="string">b&quot;Nov &quot;</span> <span class="op">=&gt;</span> <span class="number">11</span>,
-            <span class="string">b&quot;Dec &quot;</span> <span class="op">=&gt;</span> <span class="number">12</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>(())),
+            <span class="string">b&quot;Jan &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
+            <span class="string">b&quot;Feb &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
+            <span class="string">b&quot;Mar &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">3</span>,
+            <span class="string">b&quot;Apr &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
+            <span class="string">b&quot;May &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="string">b&quot;Jun &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">6</span>,
+            <span class="string">b&quot;Jul &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">7</span>,
+            <span class="string">b&quot;Aug &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">8</span>,
+            <span class="string">b&quot;Sep &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">9</span>,
+            <span class="string">b&quot;Oct &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">10</span>,
+            <span class="string">b&quot;Nov &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">11</span>,
+            <span class="string">b&quot;Dec &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">12</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>(())),
         },
         <span class="ident">year</span>: <span class="ident">conv</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">20</span>..<span class="number">24</span>]).<span class="ident">parse</span>()<span class="question-mark">?</span>,
         <span class="ident">wday</span>: <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">0</span>..<span class="number">4</span>] {
-            <span class="string">b&quot;Mon &quot;</span> <span class="op">=&gt;</span> <span class="number">1</span>,
-            <span class="string">b&quot;Tue &quot;</span> <span class="op">=&gt;</span> <span class="number">2</span>,
-            <span class="string">b&quot;Wed &quot;</span> <span class="op">=&gt;</span> <span class="number">3</span>,
-            <span class="string">b&quot;Thu &quot;</span> <span class="op">=&gt;</span> <span class="number">4</span>,
-            <span class="string">b&quot;Fri &quot;</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="string">b&quot;Sat &quot;</span> <span class="op">=&gt;</span> <span class="number">6</span>,
-            <span class="string">b&quot;Sun &quot;</span> <span class="op">=&gt;</span> <span class="number">7</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>(())),
+            <span class="string">b&quot;Mon &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
+            <span class="string">b&quot;Tue &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
+            <span class="string">b&quot;Wed &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">3</span>,
+            <span class="string">b&quot;Thu &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
+            <span class="string">b&quot;Fri &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="string">b&quot;Sat &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">6</span>,
+            <span class="string">b&quot;Sun &quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">7</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>(())),
         },
     })
 }
 
-<span class="kw">fn</span> <span class="ident">is_leap_year</span>(<span class="ident">y</span>: <span class="ident">u16</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-    <span class="ident">y</span> <span class="op">%</span> <span class="number">4</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> (<span class="op">!</span>(<span class="ident">y</span> <span class="op">%</span> <span class="number">100</span> <span class="op">==</span> <span class="number">0</span>) <span class="op">||</span> <span class="ident">y</span> <span class="op">%</span> <span class="number">400</span> <span class="op">==</span> <span class="number">0</span>)
+<span class="kw">fn</span> <span class="ident">is_leap_year</span>(<span class="ident">y</span>: <span class="ident">u16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="ident">y</span> <span class="op">%</span> <span class="number">4</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> (<span class="op">!</span>(<span class="ident">y</span> <span class="op">%</span> <span class="number">100</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">y</span> <span class="op">%</span> <span class="number">400</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>)
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "httpdate";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

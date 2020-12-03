@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `tmc-langs-cli/src/main.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>main.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../tmc_langs_cli/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `tmc-langs-cli/src/main.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>main.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../tmc_langs_cli/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1832,7 +1834,7 @@
 <span class="kw">use</span> <span class="ident">heim</span>::<span class="ident">disk</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Serialize</span>;
 <span class="kw">use</span> <span class="ident">serde_json</span>::<span class="ident">Value</span> <span class="kw">as</span> <span class="ident">JsonValue</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::{<span class="ident">BTreeMap</span>, <span class="ident">HashMap</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">env</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::{<span class="self">self</span>, <span class="ident">File</span>};
@@ -1902,7 +1904,7 @@
 }
 
 <span class="doccomment">/// Goes through the error chain and checks for special error types that should be indicated by the Kind.</span>
-<span class="kw">fn</span> <span class="ident">solve_error_kind</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">anyhow</span>::<span class="ident">Error</span>) <span class="op">-&gt;</span> <span class="ident">Kind</span> {
+<span class="kw">fn</span> <span class="ident">solve_error_kind</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">anyhow</span>::<span class="ident">Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Kind</span> {
     <span class="kw">for</span> <span class="ident">cause</span> <span class="kw">in</span> <span class="ident">e</span>.<span class="ident">chain</span>() {
         <span class="comment">// check for invalid token</span>
         <span class="kw">if</span> <span class="ident">cause</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">InvalidTokenError</span><span class="op">&gt;</span>().<span class="ident">is_some</span>() {
@@ -1920,10 +1922,10 @@
             <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">obsolete_client</span> {
                 <span class="kw">return</span> <span class="ident">Kind</span>::<span class="ident">ObsoleteClient</span>;
             }
-            <span class="kw">if</span> <span class="ident">status</span>.<span class="ident">as_u16</span>() <span class="op">==</span> <span class="number">403</span> {
+            <span class="kw">if</span> <span class="ident">status</span>.<span class="ident">as_u16</span>() <span class="op">=</span><span class="op">=</span> <span class="number">403</span> {
                 <span class="kw">return</span> <span class="ident">Kind</span>::<span class="ident">Forbidden</span>;
             }
-            <span class="kw">if</span> <span class="ident">status</span>.<span class="ident">as_u16</span>() <span class="op">==</span> <span class="number">401</span> {
+            <span class="kw">if</span> <span class="ident">status</span>.<span class="ident">as_u16</span>() <span class="op">=</span><span class="op">=</span> <span class="number">401</span> {
                 <span class="kw">return</span> <span class="ident">Kind</span>::<span class="ident">NotLoggedIn</span>;
             }
         }
@@ -1940,7 +1942,7 @@
 }
 
 <span class="doccomment">/// Goes through the error chain and returns the specialized error message, if any.</span>
-<span class="kw">fn</span> <span class="ident">error_message_special_casing</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">anyhow</span>::<span class="ident">Error</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
+<span class="kw">fn</span> <span class="ident">error_message_special_casing</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">anyhow</span>::<span class="ident">Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
     <span class="kw">for</span> <span class="ident">cause</span> <span class="kw">in</span> <span class="ident">e</span>.<span class="ident">chain</span>() {
         <span class="comment">// command not found errors are special cased to notify the user that they may need to install additional software</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cnf</span>) <span class="op">=</span> <span class="ident">cause</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">CommandError</span><span class="op">&gt;</span>() {
@@ -1951,7 +1953,7 @@
 }
 
 <span class="doccomment">/// Goes through the error chain and returns the error output file path if a sandbox test error is found</span>
-<span class="kw">fn</span> <span class="ident">check_sandbox_err</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">anyhow</span>::<span class="ident">Error</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">check_sandbox_err</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">anyhow</span>::<span class="ident">Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
     <span class="kw">for</span> <span class="ident">cause</span> <span class="kw">in</span> <span class="ident">e</span>.<span class="ident">chain</span>() {
         <span class="comment">// command not found errors are special cased to notify the user that they may need to install additional software</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">SandboxTestError</span> {
@@ -1964,10 +1966,10 @@
     <span class="prelude-val">None</span>
 }
 
-<span class="kw">fn</span> <span class="ident">run_app</span>(<span class="ident">matches</span>: <span class="ident">ArgMatches</span>, <span class="ident">pretty</span>: <span class="ident">bool</span>, <span class="ident">warnings</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">anyhow</span>::<span class="ident">Error</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run_app</span>(<span class="ident">matches</span>: <span class="ident">ArgMatches</span>, <span class="ident">pretty</span>: <span class="ident">bool</span>, <span class="ident">warnings</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">anyhow</span>::<span class="ident">Error</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="comment">// enforces that each branch must return a PrintToken as proof of having printed the output</span>
     <span class="kw">let</span> <span class="ident">_printed</span>: <span class="ident">PrintToken</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">matches</span>.<span class="ident">subcommand</span>() {
-        (<span class="string">&quot;checkstyle&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;checkstyle&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">exercise_path</span>);
 
@@ -1988,11 +1990,11 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;clean&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;clean&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">exercise_path</span>);
 
-            <span class="ident">task_executor</span>::<span class="ident">clean</span>(<span class="ident">exercise_path</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+            <span class="ident">task_executor</span>::<span class="ident">clean</span>(<span class="ident">exercise_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to clean exercise at {}&quot;</span>, <span class="ident">exercise_path</span>.<span class="ident">display</span>(),)
             })<span class="question-mark">?</span>;
 
@@ -2005,22 +2007,22 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;compress-project&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;compress-project&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">exercise_path</span>);
 
             <span class="kw">let</span> <span class="ident">output_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;output-path&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">output_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">output_path</span>);
 
-            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">task_executor</span>::<span class="ident">compress_project</span>(<span class="ident">exercise_path</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">task_executor</span>::<span class="ident">compress_project</span>(<span class="ident">exercise_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to compress project at {}&quot;</span>, <span class="ident">exercise_path</span>.<span class="ident">display</span>())
             })<span class="question-mark">?</span>;
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent</span>) <span class="op">=</span> <span class="ident">output_path</span>.<span class="ident">parent</span>() {
                 <span class="ident">fs</span>::<span class="ident">create_dir_all</span>(<span class="ident">parent</span>)
-                    .<span class="ident">with_context</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to create directory {}&quot;</span>, <span class="ident">parent</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
+                    .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to create directory {}&quot;</span>, <span class="ident">parent</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
             }
-            <span class="ident">fs</span>::<span class="ident">write</span>(<span class="ident">output_path</span>, <span class="kw-2">&amp;</span><span class="ident">data</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+            <span class="ident">fs</span>::<span class="ident">write</span>(<span class="ident">output_path</span>, <span class="kw-2">&amp;</span><span class="ident">data</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="macro">format</span><span class="macro">!</span>(
                     <span class="string">&quot;Failed to write compressed project to {}&quot;</span>,
                     <span class="ident">output_path</span>.<span class="ident">display</span>()
@@ -2040,7 +2042,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;core&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;core&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">client_name</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;client-name&quot;</span>).<span class="ident">unwrap</span>();
 
             <span class="kw">let</span> <span class="ident">client_version</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;client-version&quot;</span>).<span class="ident">unwrap</span>();
@@ -2057,7 +2059,7 @@
             <span class="comment">// set token from the credentials file if one exists</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">credentials</span> <span class="op">=</span> <span class="ident">Credentials</span>::<span class="ident">load</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">credentials</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">credentials</span> {
-                <span class="ident">core</span>.<span class="ident">set_token</span>(<span class="ident">credentials</span>.<span class="ident">token</span>());
+                <span class="ident">core</span>.<span class="ident">set_token</span>(<span class="ident">credentials</span>.<span class="ident">token</span>())<span class="question-mark">?</span>;
             }
 
             <span class="kw">match</span> <span class="ident">run_core</span>(
@@ -2068,14 +2070,14 @@
                 <span class="ident">pretty</span>,
                 <span class="ident">warnings</span>,
             ) {
-                <span class="prelude-val">Ok</span>(<span class="ident">token</span>) <span class="op">=&gt;</span> <span class="ident">token</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">token</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">token</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">for</span> <span class="ident">cause</span> <span class="kw">in</span> <span class="ident">error</span>.<span class="ident">chain</span>() {
                         <span class="comment">// check if the token was rejected and delete it if so</span>
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">CoreError</span>::<span class="ident">HttpError</span> { <span class="ident">status</span>, .. }) <span class="op">=</span>
                             <span class="ident">cause</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">CoreError</span><span class="op">&gt;</span>()
                         {
-                            <span class="kw">if</span> <span class="ident">status</span>.<span class="ident">as_u16</span>() <span class="op">==</span> <span class="number">401</span> {
+                            <span class="kw">if</span> <span class="ident">status</span>.<span class="ident">as_u16</span>() <span class="op">=</span><span class="op">=</span> <span class="number">401</span> {
                                 <span class="ident">log</span>::<span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Received HTTP 401 error, deleting credentials&quot;</span>);
                                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">credentials</span>) <span class="op">=</span> <span class="ident">credentials</span> {
                                     <span class="ident">credentials</span>.<span class="ident">remove</span>()<span class="question-mark">?</span>;
@@ -2090,11 +2092,11 @@
                 }
             }
         }
-        (<span class="string">&quot;disk-space&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;disk-space&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;path&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">path</span>);
 
-            <span class="kw">let</span> <span class="ident">usage</span> <span class="op">=</span> <span class="ident">smol</span>::<span class="ident">block_on</span>(<span class="ident">disk</span>::<span class="ident">usage</span>(<span class="ident">path</span>)).<span class="ident">with_context</span>(<span class="op">||</span> {
+            <span class="kw">let</span> <span class="ident">usage</span> <span class="op">=</span> <span class="ident">smol</span>::<span class="ident">block_on</span>(<span class="ident">disk</span>::<span class="ident">usage</span>(<span class="ident">path</span>)).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to get disk usage from path {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>())
             })<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">free</span> <span class="op">=</span> <span class="ident">usage</span>.<span class="ident">free</span>().<span class="ident">get</span>::<span class="op">&lt;</span><span class="ident">heim</span>::<span class="ident">units</span>::<span class="ident">information</span>::<span class="ident">megabyte</span><span class="op">&gt;</span>();
@@ -2111,14 +2113,14 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;extract-project&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;extract-project&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">archive_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;archive-path&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">archive_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">archive_path</span>);
 
             <span class="kw">let</span> <span class="ident">output_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;output-path&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">output_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">output_path</span>);
 
-            <span class="ident">task_executor</span>::<span class="ident">extract_project</span>(<span class="ident">archive_path</span>, <span class="ident">output_path</span>, <span class="bool-val">true</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+            <span class="ident">task_executor</span>::<span class="ident">extract_project</span>(<span class="ident">archive_path</span>, <span class="ident">output_path</span>, <span class="bool-val">true</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to extract project at {}&quot;</span>, <span class="ident">output_path</span>.<span class="ident">display</span>())
             })<span class="question-mark">?</span>;
 
@@ -2135,7 +2137,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;fast-available-points&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;fast-available-points&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">exercise_path</span>);
 
@@ -2150,7 +2152,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;find-exercises&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;find-exercises&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">exercise_path</span>);
 
@@ -2158,7 +2160,7 @@
             <span class="kw">let</span> <span class="ident">output_path</span> <span class="op">=</span> <span class="ident">output_path</span>.<span class="ident">map</span>(<span class="ident">Path</span>::<span class="ident">new</span>);
 
             <span class="kw">let</span> <span class="ident">exercises</span> <span class="op">=</span>
-                <span class="ident">task_executor</span>::<span class="ident">find_exercise_directories</span>(<span class="ident">exercise_path</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+                <span class="ident">task_executor</span>::<span class="ident">find_exercise_directories</span>(<span class="ident">exercise_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                     <span class="macro">format</span><span class="macro">!</span>(
                         <span class="string">&quot;Failed to find exercise directories in {}&quot;</span>,
                         <span class="ident">exercise_path</span>.<span class="ident">display</span>(),
@@ -2178,7 +2180,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;get-exercise-packaging-configuration&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;get-exercise-packaging-configuration&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">exercise_path</span>);
 
@@ -2186,7 +2188,7 @@
             <span class="kw">let</span> <span class="ident">output_path</span> <span class="op">=</span> <span class="ident">output_path</span>.<span class="ident">map</span>(<span class="ident">Path</span>::<span class="ident">new</span>);
 
             <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">task_executor</span>::<span class="ident">get_exercise_packaging_configuration</span>(<span class="ident">exercise_path</span>)
-                .<span class="ident">with_context</span>(<span class="op">||</span> {
+                .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                     <span class="macro">format</span><span class="macro">!</span>(
                         <span class="string">&quot;Failed to get exercise packaging configuration for exercise at {}&quot;</span>,
                         <span class="ident">exercise_path</span>.<span class="ident">display</span>(),
@@ -2209,7 +2211,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;prepare-solutions&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;prepare-solutions&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">exercise_path</span>);
 
@@ -2217,7 +2219,7 @@
             <span class="kw">let</span> <span class="ident">output_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">output_path</span>);
 
             <span class="ident">task_executor</span>::<span class="ident">prepare_solutions</span>(<span class="kw-2">&amp;</span>[<span class="ident">exercise_path</span>.<span class="ident">to_path_buf</span>()], <span class="ident">output_path</span>)
-                .<span class="ident">with_context</span>(<span class="op">||</span> {
+                .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                     <span class="macro">format</span><span class="macro">!</span>(
                         <span class="string">&quot;Failed to prepare solutions for exercise at {}&quot;</span>,
                         <span class="ident">exercise_path</span>.<span class="ident">display</span>(),
@@ -2237,7 +2239,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;prepare-stubs&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;prepare-stubs&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">exercise_path</span>);
 
@@ -2245,7 +2247,7 @@
             <span class="kw">let</span> <span class="ident">output_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">output_path</span>);
 
             <span class="kw">let</span> <span class="ident">exercises</span> <span class="op">=</span>
-                <span class="ident">task_executor</span>::<span class="ident">find_exercise_directories</span>(<span class="ident">exercise_path</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+                <span class="ident">task_executor</span>::<span class="ident">find_exercise_directories</span>(<span class="ident">exercise_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                     <span class="macro">format</span><span class="macro">!</span>(
                         <span class="string">&quot;Failed to find exercise directories in {}&quot;</span>,
                         <span class="ident">exercise_path</span>.<span class="ident">display</span>(),
@@ -2253,7 +2255,7 @@
                 })<span class="question-mark">?</span>;
 
             <span class="ident">task_executor</span>::<span class="ident">prepare_stubs</span>(<span class="ident">exercises</span>, <span class="ident">exercise_path</span>, <span class="ident">output_path</span>).<span class="ident">with_context</span>(
-                <span class="op">||</span> {
+                <span class="op">|</span><span class="op">|</span> {
                     <span class="macro">format</span><span class="macro">!</span>(
                         <span class="string">&quot;Failed to prepare stubs for exercise at {}&quot;</span>,
                         <span class="ident">exercise_path</span>.<span class="ident">display</span>(),
@@ -2274,12 +2276,12 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;prepare-submission&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;prepare-submission&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">output_format</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;output-format&quot;</span>) {
-                <span class="prelude-val">Some</span>(<span class="string">&quot;tar&quot;</span>) <span class="op">=&gt;</span> <span class="ident">OutputFormat</span>::<span class="ident">Tar</span>,
-                <span class="prelude-val">Some</span>(<span class="string">&quot;zip&quot;</span>) <span class="op">=&gt;</span> <span class="ident">OutputFormat</span>::<span class="ident">Zip</span>,
-                <span class="prelude-val">Some</span>(<span class="string">&quot;zstd&quot;</span>) <span class="op">=&gt;</span> <span class="ident">OutputFormat</span>::<span class="ident">TarZstd</span>,
-                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;validation error&quot;</span>),
+                <span class="prelude-val">Some</span>(<span class="string">&quot;tar&quot;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OutputFormat</span>::<span class="ident">Tar</span>,
+                <span class="prelude-val">Some</span>(<span class="string">&quot;zip&quot;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OutputFormat</span>::<span class="ident">Zip</span>,
+                <span class="prelude-val">Some</span>(<span class="string">&quot;zstd&quot;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OutputFormat</span>::<span class="ident">TarZstd</span>,
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;validation error&quot;</span>),
             };
 
             <span class="kw">let</span> <span class="ident">clone_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;clone-path&quot;</span>).<span class="ident">unwrap</span>();
@@ -2299,7 +2301,7 @@
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmc_params_grouped</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
             <span class="kw">for</span> <span class="ident">value</span> <span class="kw">in</span> <span class="ident">tmc_params_values</span> {
                 <span class="kw">let</span> <span class="ident">params</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">split</span>(<span class="string">&#39;=&#39;</span>).<span class="ident">collect</span>();
-                <span class="kw">if</span> <span class="ident">params</span>.<span class="ident">len</span>() <span class="op">!=</span> <span class="number">2</span> {
+                <span class="kw">if</span> <span class="ident">params</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">2</span> {
                     <span class="ident">Error</span>::<span class="ident">with_description</span>(
                         <span class="string">&quot;tmc-param values should contain a single &#39;=&#39; as a delimiter.&quot;</span>,
                         <span class="ident">ErrorKind</span>::<span class="ident">ValueValidation</span>,
@@ -2313,7 +2315,7 @@
             }
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmc_params</span> <span class="op">=</span> <span class="ident">TmcParams</span>::<span class="ident">new</span>();
             <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">values</span>) <span class="kw">in</span> <span class="ident">tmc_params_grouped</span> {
-                <span class="kw">if</span> <span class="ident">values</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
+                <span class="kw">if</span> <span class="ident">values</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
                     <span class="comment">// 1-length lists are inserted as a string</span>
                     <span class="ident">tmc_params</span>
                         .<span class="ident">insert_string</span>(<span class="ident">key</span>, <span class="ident">values</span>[<span class="number">0</span>])
@@ -2351,7 +2353,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;refresh-course&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;refresh-course&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">course_name</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;course-name&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">cache_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;cache-path&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">clone_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;clone-path&quot;</span>).<span class="ident">unwrap</span>();
@@ -2388,8 +2390,8 @@
                 }
             }
             <span class="kw">let</span> <span class="ident">source_backend</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">source_backend</span> {
-                <span class="string">&quot;git&quot;</span> <span class="op">=&gt;</span> <span class="ident">SourceBackend</span>::<span class="ident">Git</span>,
-                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;validation error&quot;</span>),
+                <span class="string">&quot;git&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SourceBackend</span>::<span class="ident">Git</span>,
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;validation error&quot;</span>),
             };
             <span class="kw">let</span> <span class="ident">course</span> <span class="op">=</span> <span class="ident">Course</span> {
                 <span class="ident">name</span>: <span class="ident">course_name</span>.<span class="ident">to_string</span>(),
@@ -2409,14 +2411,14 @@
                 <span class="ident">no_directory_changes</span>,
             };
             <span class="kw">let</span> <span class="ident">chmod_bits</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">chmod_bits</span>) <span class="op">=</span> <span class="ident">chmod_bits</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">ModeBits</span>::<span class="ident">from_str_radix</span>(<span class="ident">chmod_bits</span>, <span class="number">8</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">ModeBits</span>::<span class="ident">from_str_radix</span>(<span class="ident">chmod_bits</span>, <span class="number">8</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                     <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to convert chmod bits to an integer: {}&quot;</span>, <span class="ident">chmod_bits</span>,)
                 })<span class="question-mark">?</span>)
             } <span class="kw">else</span> {
                 <span class="prelude-val">None</span>
             };
             <span class="kw">let</span> <span class="ident">chgrp_uid</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">chgrp_uid</span>) <span class="op">=</span> <span class="ident">chgrp_uid</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">GroupBits</span>::<span class="ident">from_str_radix</span>(<span class="ident">chgrp_uid</span>, <span class="number">10</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">GroupBits</span>::<span class="ident">from_str_radix</span>(<span class="ident">chgrp_uid</span>, <span class="number">10</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                     <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to convert chgrp UID to an integer: {}&quot;</span>, <span class="ident">chgrp_uid</span>,)
                 })<span class="question-mark">?</span>)
             } <span class="kw">else</span> {
@@ -2437,7 +2439,7 @@
                     <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="ident">cache_root</span>),
                     <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="ident">rails_root</span>),
                 )
-                .<span class="ident">with_context</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to refresh course {}&quot;</span>, <span class="ident">course_name</span>))<span class="question-mark">?</span>;
+                .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to refresh course {}&quot;</span>, <span class="ident">course_name</span>))<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">OutputData</span>(<span class="ident">OutputData</span> {
                 <span class="ident">status</span>: <span class="ident">Status</span>::<span class="ident">Finished</span>,
@@ -2448,7 +2450,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;run-tests&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;run-tests&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">checkstyle_output_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;checkstyle-output-path&quot;</span>);
             <span class="kw">let</span> <span class="ident">checkstyle_output_path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Path</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">checkstyle_output_path</span>.<span class="ident">map</span>(<span class="ident">Path</span>::<span class="ident">new</span>);
 
@@ -2461,7 +2463,7 @@
             <span class="kw">let</span> <span class="ident">output_path</span> <span class="op">=</span> <span class="ident">output_path</span>.<span class="ident">map</span>(<span class="ident">Path</span>::<span class="ident">new</span>);
 
             <span class="kw">let</span> <span class="ident">test_result</span> <span class="op">=</span>
-                <span class="ident">task_executor</span>::<span class="ident">run_tests</span>(<span class="ident">exercise_path</span>, <span class="ident">warnings</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+                <span class="ident">task_executor</span>::<span class="ident">run_tests</span>(<span class="ident">exercise_path</span>, <span class="ident">warnings</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                     <span class="macro">format</span><span class="macro">!</span>(
                         <span class="string">&quot;Failed to run tests for exercise at {}&quot;</span>,
                         <span class="ident">exercise_path</span>.<span class="ident">display</span>()
@@ -2499,22 +2501,22 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;settings&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> <span class="ident">run_settings</span>(<span class="ident">matches</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>,
-        (<span class="string">&quot;scan-exercise&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;settings&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">run_settings</span>(<span class="ident">matches</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>,
+        (<span class="string">&quot;scan-exercise&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">exercise_path</span>);
 
             <span class="kw">let</span> <span class="ident">output_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;output-path&quot;</span>);
             <span class="kw">let</span> <span class="ident">output_path</span> <span class="op">=</span> <span class="ident">output_path</span>.<span class="ident">map</span>(<span class="ident">Path</span>::<span class="ident">new</span>);
 
-            <span class="kw">let</span> <span class="ident">exercise_name</span> <span class="op">=</span> <span class="ident">exercise_path</span>.<span class="ident">file_name</span>().<span class="ident">with_context</span>(<span class="op">||</span> {
+            <span class="kw">let</span> <span class="ident">exercise_name</span> <span class="op">=</span> <span class="ident">exercise_path</span>.<span class="ident">file_name</span>().<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="macro">format</span><span class="macro">!</span>(
                     <span class="string">&quot;No file name found in exercise path {}&quot;</span>,
                     <span class="ident">exercise_path</span>.<span class="ident">display</span>()
                 )
             })<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">exercise_name</span> <span class="op">=</span> <span class="ident">exercise_name</span>.<span class="ident">to_str</span>().<span class="ident">with_context</span>(<span class="op">||</span> {
+            <span class="kw">let</span> <span class="ident">exercise_name</span> <span class="op">=</span> <span class="ident">exercise_name</span>.<span class="ident">to_str</span>().<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="macro">format</span><span class="macro">!</span>(
                     <span class="string">&quot;Exercise path&#39;s file name &#39;{:?}&#39; was not valid UTF8&quot;</span>,
                     <span class="ident">exercise_name</span>
@@ -2523,7 +2525,7 @@
 
             <span class="kw">let</span> <span class="ident">scan_result</span> <span class="op">=</span>
                 <span class="ident">task_executor</span>::<span class="ident">scan_exercise</span>(<span class="ident">exercise_path</span>, <span class="ident">exercise_name</span>.<span class="ident">to_string</span>(), <span class="ident">warnings</span>)
-                    .<span class="ident">with_context</span>(<span class="op">||</span> {
+                    .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                         <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to scan exercise at {}&quot;</span>, <span class="ident">exercise_path</span>.<span class="ident">display</span>())
                     })<span class="question-mark">?</span>;
 
@@ -2540,7 +2542,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;missing subcommand arm&quot;</span>),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;missing subcommand arm&quot;</span>),
     };
     <span class="prelude-val">Ok</span>(())
 }
@@ -2552,17 +2554,17 @@
     <span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatches</span>,
     <span class="ident">pretty</span>: <span class="ident">bool</span>,
     <span class="ident">warnings</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">anyhow</span>::<span class="ident">Error</span><span class="op">&gt;</span>,
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrintToken</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrintToken</span><span class="op">&gt;</span> {
     <span class="comment">// set progress report to print the updates to stdout as JSON</span>
     <span class="ident">core</span>.<span class="ident">set_progress_reporter</span>(<span class="ident">ProgressReporter</span>::<span class="ident">new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">update</span><span class="op">|</span> {
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">StatusUpdate</span>::<span class="op">&lt;</span><span class="ident">CoreUpdateData</span><span class="op">&gt;</span>(<span class="ident">update</span>);
         <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
-    }));
+    }))<span class="question-mark">?</span>;
 
     <span class="comment">// proof of having printed the output</span>
     <span class="kw">let</span> <span class="ident">printed</span>: <span class="ident">PrintToken</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">matches</span>.<span class="ident">subcommand</span>() {
-        (<span class="string">&quot;download-model-solution&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;download-model-solution&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">solution_download_url</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;solution-download-url&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">solution_download_url</span> <span class="op">=</span> <span class="ident">into_url</span>(<span class="ident">solution_download_url</span>)<span class="question-mark">?</span>;
 
@@ -2581,7 +2583,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;download-old-submission&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;download-old-submission&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">save_old_state</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">is_present</span>(<span class="string">&quot;save-old-state&quot;</span>);
 
             <span class="kw">let</span> <span class="ident">exercise_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-id&quot;</span>).<span class="ident">unwrap</span>();
@@ -2628,14 +2630,14 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;download-or-update-course-exercises&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;download-or-update-course-exercises&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_ids</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">values_of</span>(<span class="string">&quot;exercise-id&quot;</span>).<span class="ident">unwrap</span>();
 
             <span class="comment">// collect exercise into (id, path) pairs</span>
             <span class="kw">let</span> <span class="ident">exercises</span> <span class="op">=</span> <span class="ident">exercise_ids</span>
                 .<span class="ident">into_iter</span>()
                 .<span class="ident">map</span>(<span class="ident">into_usize</span>)
-                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>()<span class="question-mark">?</span>;
+                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">exercises_details</span> <span class="op">=</span> <span class="ident">core</span>.<span class="ident">get_exercises_details</span>(<span class="ident">exercises</span>)<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">tmc_config</span> <span class="op">=</span> <span class="ident">TmcConfig</span>::<span class="ident">load</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
@@ -2643,7 +2645,7 @@
             <span class="kw">let</span> <span class="ident">projects_dir</span> <span class="op">=</span> <span class="ident">tmc_config</span>.<span class="ident">projects_dir</span>;
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">projects_config</span> <span class="op">=</span> <span class="ident">ProjectsConfig</span>::<span class="ident">load</span>(<span class="kw-2">&amp;</span><span class="ident">projects_dir</span>)<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">course_data</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">String</span>)<span class="op">&gt;&gt;</span>::<span class="ident">new</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">course_data</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">String</span>)<span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">new</span>();
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercises_and_paths</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
             <span class="kw">for</span> <span class="ident">exercise_detail</span> <span class="kw">in</span> <span class="ident">exercises_details</span> {
                 <span class="comment">// check if the checksum is different from what&#39;s already on disk</span>
@@ -2653,7 +2655,7 @@
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">exercise</span>) <span class="op">=</span>
                         <span class="ident">course_config</span>.<span class="ident">exercises</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_detail</span>.<span class="ident">exercise_name</span>)
                     {
-                        <span class="kw">if</span> <span class="ident">exercise_detail</span>.<span class="ident">checksum</span> <span class="op">==</span> <span class="ident">exercise</span>.<span class="ident">checksum</span> {
+                        <span class="kw">if</span> <span class="ident">exercise_detail</span>.<span class="ident">checksum</span> <span class="op">=</span><span class="op">=</span> <span class="ident">exercise</span>.<span class="ident">checksum</span> {
                             <span class="comment">// skip this exercise</span>
                             <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(
                                 <span class="string">&quot;Skipping exercise {} ({} in {}) due to identical checksum&quot;</span>,
@@ -2682,7 +2684,7 @@
                 .<span class="ident">context</span>(<span class="string">&quot;Failed to download exercises&quot;</span>)<span class="question-mark">?</span>;
 
             <span class="kw">for</span> (<span class="ident">course_name</span>, <span class="ident">exercise_names</span>) <span class="kw">in</span> <span class="ident">course_data</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercises</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercises</span> <span class="op">=</span> <span class="ident">BTreeMap</span>::<span class="ident">new</span>();
                 <span class="kw">for</span> (<span class="ident">exercise_name</span>, <span class="ident">checksum</span>) <span class="kw">in</span> <span class="ident">exercise_names</span> {
                     <span class="ident">exercises</span>.<span class="ident">insert</span>(<span class="ident">exercise_name</span>, <span class="ident">Exercise</span> { <span class="ident">checksum</span> });
                 }
@@ -2708,7 +2710,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;download-or-update-exercises&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;download-or-update-exercises&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercise_args</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">values_of</span>(<span class="string">&quot;exercise&quot;</span>).<span class="ident">unwrap</span>();
 
             <span class="comment">// collect exercise into (id, path) pairs</span>
@@ -2732,7 +2734,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;get-course-data&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;get-course-data&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;course-id&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">into_usize</span>(<span class="ident">course_id</span>)<span class="question-mark">?</span>;
 
@@ -2758,7 +2760,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;get-course-details&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;get-course-details&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;course-id&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">into_usize</span>(<span class="ident">course_id</span>)<span class="question-mark">?</span>;
 
@@ -2775,7 +2777,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;get-course-exercises&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;get-course-exercises&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;course-id&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">into_usize</span>(<span class="ident">course_id</span>)<span class="question-mark">?</span>;
 
@@ -2792,7 +2794,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;get-course-settings&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;get-course-settings&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;course-id&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">into_usize</span>(<span class="ident">course_id</span>)<span class="question-mark">?</span>;
 
@@ -2807,7 +2809,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;get-courses&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;get-courses&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">organization_slug</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;organization&quot;</span>).<span class="ident">unwrap</span>();
 
             <span class="kw">let</span> <span class="ident">courses</span> <span class="op">=</span> <span class="ident">core</span>
@@ -2823,7 +2825,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;get-exercise-details&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;get-exercise-details&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-id&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">exercise_id</span> <span class="op">=</span> <span class="ident">into_usize</span>(<span class="ident">exercise_id</span>)<span class="question-mark">?</span>;
 
@@ -2840,7 +2842,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;get-exercise-submissions&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;get-exercise-submissions&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-id&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">exercise_id</span> <span class="op">=</span> <span class="ident">into_usize</span>(<span class="ident">exercise_id</span>)<span class="question-mark">?</span>;
 
@@ -2857,7 +2859,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;get-exercise-updates&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;get-exercise-updates&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;course-id&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">course_id</span> <span class="op">=</span> <span class="ident">into_usize</span>(<span class="ident">course_id</span>)<span class="question-mark">?</span>;
 
@@ -2883,7 +2885,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;get-organization&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;get-organization&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">organization_slug</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;organization&quot;</span>).<span class="ident">unwrap</span>();
 
             <span class="kw">let</span> <span class="ident">org</span> <span class="op">=</span> <span class="ident">core</span>
@@ -2899,7 +2901,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;get-organizations&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">_matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;get-organizations&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">_matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">orgs</span> <span class="op">=</span> <span class="ident">core</span>
                 .<span class="ident">get_organizations</span>()
                 .<span class="ident">context</span>(<span class="string">&quot;Failed to get organizations&quot;</span>)<span class="question-mark">?</span>;
@@ -2913,7 +2915,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;get-unread-reviews&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;get-unread-reviews&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">reviews_url</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;reviews-url&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">reviews_url</span> <span class="op">=</span> <span class="ident">into_url</span>(<span class="ident">reviews_url</span>)<span class="question-mark">?</span>;
 
@@ -2930,7 +2932,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;logged-in&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">_matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;logged-in&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">_matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">credentials</span>) <span class="op">=</span> <span class="ident">credentials</span> {
                 <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">OutputData</span>(<span class="ident">OutputData</span> {
                     <span class="ident">status</span>: <span class="ident">Status</span>::<span class="ident">Finished</span>,
@@ -2951,7 +2953,7 @@
                 <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
             }
         }
-        (<span class="string">&quot;login&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;login&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">base64</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">is_present</span>(<span class="string">&quot;base64&quot;</span>);
 
             <span class="kw">let</span> <span class="ident">email</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;email&quot;</span>);
@@ -2994,7 +2996,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;logout&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">_matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;logout&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">_matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">credentials</span>) <span class="op">=</span> <span class="ident">credentials</span>.<span class="ident">take</span>() {
                 <span class="ident">credentials</span>.<span class="ident">remove</span>()<span class="question-mark">?</span>;
             }
@@ -3008,7 +3010,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;mark-review-as-read&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;mark-review-as-read&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">review_update_url</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;reiew-update-url&quot;</span>).<span class="ident">unwrap</span>();
 
             <span class="ident">core</span>.<span class="ident">mark_review_as_read</span>(<span class="ident">review_update_url</span>.<span class="ident">to_string</span>())
@@ -3023,7 +3025,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;paste&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;paste&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;locale&quot;</span>);
             <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">locale</span>) <span class="op">=</span> <span class="ident">locale</span> {
                 <span class="prelude-val">Some</span>(<span class="ident">into_locale</span>(<span class="ident">locale</span>)<span class="question-mark">?</span>)
@@ -3057,7 +3059,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;request-code-review&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;request-code-review&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;locale&quot;</span>);
             <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">locale</span>) <span class="op">=</span> <span class="ident">locale</span> {
                 <span class="prelude-val">Some</span>(<span class="ident">into_locale</span>(<span class="ident">locale</span>)<span class="question-mark">?</span>)
@@ -3091,7 +3093,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;reset-exercise&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;reset-exercise&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">save_old_state</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">is_present</span>(<span class="string">&quot;save-old-state&quot;</span>);
 
             <span class="kw">let</span> <span class="ident">exercise_id</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-id&quot;</span>).<span class="ident">unwrap</span>();
@@ -3121,7 +3123,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;run-checkstyle&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;run-checkstyle&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">exercise_path</span>);
 
@@ -3141,7 +3143,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;run-tests&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;run-tests&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;exercise-path&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">exercise_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">exercise_path</span>);
 
@@ -3158,7 +3160,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;send-feedback&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;send-feedback&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// collect feedback values into a list</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">feedback_answers</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">values_of</span>(<span class="string">&quot;feedback&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">feedback</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
@@ -3187,7 +3189,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        (<span class="string">&quot;submit&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;submit&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">dont_block</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">is_present</span>(<span class="string">&quot;dont-block&quot;</span>);
 
             <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;locale&quot;</span>);
@@ -3237,7 +3239,7 @@
                 <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
             }
         }
-        (<span class="string">&quot;wait-for-submission&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;wait-for-submission&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;submission-url&quot;</span>).<span class="ident">unwrap</span>();
 
             <span class="kw">let</span> <span class="ident">submission_finished</span> <span class="op">=</span> <span class="ident">core</span>
@@ -3255,7 +3257,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="kw-2">&amp;</span><span class="ident">warnings</span>)<span class="question-mark">?</span>
         }
-        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
     };
 
     <span class="prelude-val">Ok</span>(<span class="ident">printed</span>)
@@ -3265,12 +3267,12 @@
     <span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatches</span>,
     <span class="ident">pretty</span>: <span class="ident">bool</span>,
     <span class="ident">warnings</span>: <span class="kw-2">&amp;</span>[<span class="ident">anyhow</span>::<span class="ident">Error</span>],
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrintToken</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrintToken</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">client_name</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;client-name&quot;</span>).<span class="ident">unwrap</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmc_config</span> <span class="op">=</span> <span class="ident">TmcConfig</span>::<span class="ident">load</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
 
     <span class="kw">match</span> <span class="ident">matches</span>.<span class="ident">subcommand</span>() {
-        (<span class="string">&quot;get&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;get&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;setting&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">OutputData</span>(<span class="ident">OutputData</span> {
                 <span class="ident">status</span>: <span class="ident">Status</span>::<span class="ident">Finished</span>,
@@ -3281,7 +3283,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="ident">warnings</span>)
         }
-        (<span class="string">&quot;list&quot;</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;list&quot;</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">OutputData</span>(<span class="ident">OutputData</span> {
                 <span class="ident">status</span>: <span class="ident">Status</span>::<span class="ident">Finished</span>,
                 <span class="ident">result</span>: <span class="ident">OutputResult</span>::<span class="ident">RetrievedData</span>,
@@ -3291,7 +3293,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="ident">warnings</span>)
         }
-        (<span class="string">&quot;move-projects-dir&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;move-projects-dir&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;dir&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="ident">dir</span>);
 
@@ -3299,21 +3301,21 @@
                 <span class="ident">anyhow</span>::<span class="macro">bail</span><span class="macro">!</span>(<span class="string">&quot;The target path points to a file.&quot;</span>)
             }
             <span class="kw">if</span> <span class="op">!</span><span class="ident">target</span>.<span class="ident">exists</span>() {
-                <span class="ident">fs</span>::<span class="ident">create_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">target</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+                <span class="ident">fs</span>::<span class="ident">create_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">target</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                     <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to create directory at {}&quot;</span>, <span class="ident">target</span>.<span class="ident">display</span>())
                 })<span class="question-mark">?</span>;
             }
 
             <span class="kw">let</span> <span class="ident">target_canon</span> <span class="op">=</span> <span class="ident">target</span>
                 .<span class="ident">canonicalize</span>()
-                .<span class="ident">with_context</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to canonicalize {}&quot;</span>, <span class="ident">target</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">prev_dir_canon</span> <span class="op">=</span> <span class="ident">tmc_config</span>.<span class="ident">projects_dir</span>.<span class="ident">canonicalize</span>().<span class="ident">with_context</span>(<span class="op">||</span> {
+                .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to canonicalize {}&quot;</span>, <span class="ident">target</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">prev_dir_canon</span> <span class="op">=</span> <span class="ident">tmc_config</span>.<span class="ident">projects_dir</span>.<span class="ident">canonicalize</span>().<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="macro">format</span><span class="macro">!</span>(
                     <span class="string">&quot;Failed to canonicalize {}&quot;</span>,
                     <span class="ident">tmc_config</span>.<span class="ident">projects_dir</span>.<span class="ident">display</span>()
                 )
             })<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">target_canon</span> <span class="op">==</span> <span class="ident">prev_dir_canon</span> {
+            <span class="kw">if</span> <span class="ident">target_canon</span> <span class="op">=</span><span class="op">=</span> <span class="ident">prev_dir_canon</span> {
                 <span class="ident">anyhow</span>::<span class="macro">bail</span><span class="macro">!</span>(
                     <span class="string">&quot;Attempted to move the projects-dir to the directory it&#39;s already in.&quot;</span>
                 )
@@ -3333,15 +3335,15 @@
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file_count_copied</span> <span class="op">=</span> <span class="number">0</span>;
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file_count_total</span> <span class="op">=</span> <span class="number">0</span>;
             <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">old_projects_dir</span>) {
-                <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">with_context</span>(<span class="op">||</span> {
+                <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                     <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to read file inside {}&quot;</span>, <span class="ident">old_projects_dir</span>.<span class="ident">display</span>())
                 })<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="ident">entry</span>.<span class="ident">path</span>().<span class="ident">is_file</span>() {
-                    <span class="ident">file_count_total</span> <span class="op">+=</span> <span class="number">1</span>;
+                    <span class="ident">file_count_total</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 }
             }
             <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">old_projects_dir</span>).<span class="ident">contents_first</span>(<span class="bool-val">true</span>) {
-                <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">with_context</span>(<span class="op">||</span> {
+                <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                     <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to read file inside {}&quot;</span>, <span class="ident">old_projects_dir</span>.<span class="ident">display</span>())
                 })<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">entry_path</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">path</span>();
@@ -3357,25 +3359,25 @@
 
                     <span class="comment">// create parent dir for target and copy it, remove source file after</span>
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent</span>) <span class="op">=</span> <span class="ident">target_path</span>.<span class="ident">parent</span>() {
-                        <span class="ident">fs</span>::<span class="ident">create_dir_all</span>(<span class="ident">parent</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+                        <span class="ident">fs</span>::<span class="ident">create_dir_all</span>(<span class="ident">parent</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                             <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to create directory at {}&quot;</span>, <span class="ident">parent</span>.<span class="ident">display</span>())
                         })<span class="question-mark">?</span>;
                     }
-                    <span class="ident">fs</span>::<span class="ident">copy</span>(<span class="ident">entry_path</span>, <span class="kw-2">&amp;</span><span class="ident">target_path</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+                    <span class="ident">fs</span>::<span class="ident">copy</span>(<span class="ident">entry_path</span>, <span class="kw-2">&amp;</span><span class="ident">target_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                         <span class="macro">format</span><span class="macro">!</span>(
                             <span class="string">&quot;Failed to copy file from {} to {}&quot;</span>,
                             <span class="ident">entry_path</span>.<span class="ident">display</span>(),
                             <span class="ident">target_path</span>.<span class="ident">display</span>()
                         )
                     })<span class="question-mark">?</span>;
-                    <span class="ident">fs</span>::<span class="ident">remove_file</span>(<span class="ident">entry_path</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+                    <span class="ident">fs</span>::<span class="ident">remove_file</span>(<span class="ident">entry_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                         <span class="macro">format</span><span class="macro">!</span>(
                             <span class="string">&quot;Failed to remove file at {} after copying it&quot;</span>,
                             <span class="ident">entry_path</span>.<span class="ident">display</span>()
                         )
                     })<span class="question-mark">?</span>;
 
-                    <span class="ident">file_count_copied</span> <span class="op">+=</span> <span class="number">1</span>;
+                    <span class="ident">file_count_copied</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                     <span class="ident">reporter</span>
                         .<span class="ident">progress</span>(
                             <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Moved file {} / {}&quot;</span>, <span class="ident">file_count_copied</span>, <span class="ident">file_count_total</span>),
@@ -3385,7 +3387,7 @@
                         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">anyhow</span>::<span class="macro">anyhow</span><span class="macro">!</span>(<span class="ident">e</span>))<span class="question-mark">?</span>;
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">entry_path</span>.<span class="ident">is_dir</span>() {
                     <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Deleting {}&quot;</span>, <span class="ident">entry_path</span>.<span class="ident">display</span>());
-                    <span class="ident">fs</span>::<span class="ident">remove_dir</span>(<span class="ident">entry_path</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+                    <span class="ident">fs</span>::<span class="ident">remove_dir</span>(<span class="ident">entry_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                         <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to remove directory at {}&quot;</span>, <span class="ident">entry_path</span>.<span class="ident">display</span>())
                     })<span class="question-mark">?</span>;
                 }
@@ -3406,13 +3408,13 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="ident">warnings</span>)
         }
-        (<span class="string">&quot;set&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;set&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;key&quot;</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;json&quot;</span>).<span class="ident">unwrap</span>();
 
             <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">serde_json</span>::<span class="ident">from_str</span>(<span class="ident">value</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">json</span>) <span class="op">=&gt;</span> <span class="ident">json</span>,
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">json</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">json</span>,
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// interpret as string</span>
                     <span class="ident">JsonValue</span>::<span class="ident">String</span>(<span class="ident">value</span>.<span class="ident">to_string</span>())
                 }
@@ -3421,7 +3423,7 @@
 
             <span class="ident">tmc_config</span>
                 .<span class="ident">insert</span>(<span class="ident">key</span>.<span class="ident">to_string</span>(), <span class="ident">value</span>.<span class="ident">clone</span>())
-                .<span class="ident">with_context</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to set {} to {}&quot;</span>, <span class="ident">key</span>, <span class="ident">value</span>))<span class="question-mark">?</span>;
+                .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to set {} to {}&quot;</span>, <span class="ident">key</span>, <span class="ident">value</span>))<span class="question-mark">?</span>;
             <span class="ident">tmc_config</span>.<span class="ident">save</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>::<span class="ident">OutputData</span>(<span class="ident">OutputData</span> {
@@ -3433,7 +3435,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="ident">warnings</span>)
         }
-        (<span class="string">&quot;reset&quot;</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;reset&quot;</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="ident">TmcConfig</span>::<span class="ident">reset</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>::<span class="ident">OutputData</span>(<span class="ident">OutputData</span> {
@@ -3445,11 +3447,11 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="ident">warnings</span>)
         }
-        (<span class="string">&quot;unset&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=&gt;</span> {
+        (<span class="string">&quot;unset&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">matches</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;setting&quot;</span>).<span class="ident">unwrap</span>();
             <span class="ident">tmc_config</span>
                 .<span class="ident">remove</span>(<span class="ident">key</span>)
-                .<span class="ident">with_context</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to unset {}&quot;</span>, <span class="ident">key</span>))<span class="question-mark">?</span>;
+                .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to unset {}&quot;</span>, <span class="ident">key</span>))<span class="question-mark">?</span>;
             <span class="ident">tmc_config</span>.<span class="ident">save</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>::<span class="ident">OutputData</span>(<span class="ident">OutputData</span> {
@@ -3461,7 +3463,7 @@
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>, <span class="ident">warnings</span>)
         }
-        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;validation error&quot;</span>),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;validation error&quot;</span>),
     }
 }
 
@@ -3469,7 +3471,7 @@
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">Output</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">pretty</span>: <span class="ident">bool</span>,
     <span class="ident">warnings</span>: <span class="kw-2">&amp;</span>[<span class="ident">anyhow</span>::<span class="ident">Error</span>],
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrintToken</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrintToken</span><span class="op">&gt;</span> {
     <span class="ident">print_output_with_file</span>(<span class="ident">output</span>, <span class="ident">pretty</span>, <span class="prelude-val">None</span>, <span class="ident">warnings</span>)
 }
 
@@ -3478,7 +3480,7 @@
     <span class="ident">pretty</span>: <span class="ident">bool</span>,
     <span class="ident">path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
     <span class="ident">warnings</span>: <span class="kw-2">&amp;</span>[<span class="ident">anyhow</span>::<span class="ident">Error</span>],
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrintToken</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrintToken</span><span class="op">&gt;</span> {
     <span class="ident">print_warnings</span>(<span class="ident">pretty</span>, <span class="ident">warnings</span>)<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">pretty</span> {
@@ -3486,19 +3488,19 @@
     } <span class="kw">else</span> {
         <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)
     }
-    .<span class="ident">with_context</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to convert {:?} to JSON&quot;</span>, <span class="ident">output</span>))<span class="question-mark">?</span>;
+    .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to convert {:?} to JSON&quot;</span>, <span class="ident">output</span>))<span class="question-mark">?</span>;
     <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">result</span>);
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">path</span>) <span class="op">=</span> <span class="ident">path</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">create</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)
-            .<span class="ident">with_context</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to open file at {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
+            .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to open file at {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
         <span class="ident">file</span>.<span class="ident">write_all</span>(<span class="ident">result</span>.<span class="ident">as_bytes</span>())
-            .<span class="ident">with_context</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to write result to {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
+            .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to write result to {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(<span class="ident">PrintToken</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">print_warnings</span>(<span class="ident">pretty</span>: <span class="ident">bool</span>, <span class="ident">warnings</span>: <span class="kw-2">&amp;</span>[<span class="ident">anyhow</span>::<span class="ident">Error</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">print_warnings</span>(<span class="ident">pretty</span>: <span class="ident">bool</span>, <span class="ident">warnings</span>: <span class="kw-2">&amp;</span>[<span class="ident">anyhow</span>::<span class="ident">Error</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">warnings</span>.<span class="ident">is_empty</span>() {
         <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
     }
@@ -3509,7 +3511,7 @@
     } <span class="kw">else</span> {
         <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">warnings_output</span>)
     }
-    .<span class="ident">with_context</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to convert {:?} to JSON&quot;</span>, <span class="ident">warnings_output</span>))<span class="question-mark">?</span>;
+    .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to convert {:?} to JSON&quot;</span>, <span class="ident">warnings_output</span>))<span class="question-mark">?</span>;
     <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">warnings_json</span>);
     <span class="prelude-val">Ok</span>(())
 }
@@ -3518,8 +3520,8 @@
     <span class="ident">result</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>,
     <span class="ident">output_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">pretty</span>: <span class="ident">bool</span>,
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">output_file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">create</span>(<span class="ident">output_path</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">output_file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">create</span>(<span class="ident">output_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
         <span class="macro">format</span><span class="macro">!</span>(
             <span class="string">&quot;Failed to create results JSON file at {}&quot;</span>,
             <span class="ident">output_path</span>.<span class="ident">display</span>()
@@ -3527,14 +3529,14 @@
     })<span class="question-mark">?</span>;
 
     <span class="kw">if</span> <span class="ident">pretty</span> {
-        <span class="ident">serde_json</span>::<span class="ident">to_writer_pretty</span>(<span class="ident">output_file</span>, <span class="ident">result</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+        <span class="ident">serde_json</span>::<span class="ident">to_writer_pretty</span>(<span class="ident">output_file</span>, <span class="ident">result</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="macro">format</span><span class="macro">!</span>(
                 <span class="string">&quot;Failed to write result as JSON to {}&quot;</span>,
                 <span class="ident">output_path</span>.<span class="ident">display</span>()
             )
         })<span class="question-mark">?</span>;
     } <span class="kw">else</span> {
-        <span class="ident">serde_json</span>::<span class="ident">to_writer</span>(<span class="ident">output_file</span>, <span class="ident">result</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+        <span class="ident">serde_json</span>::<span class="ident">to_writer</span>(<span class="ident">output_file</span>, <span class="ident">result</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="macro">format</span><span class="macro">!</span>(
                 <span class="string">&quot;Failed to write result as JSON to {}&quot;</span>,
                 <span class="ident">output_path</span>.<span class="ident">display</span>()
@@ -3545,8 +3547,8 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">into_usize</span>(<span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-    <span class="ident">usize</span>::<span class="ident">from_str_radix</span>(<span class="ident">arg</span>, <span class="number">10</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+<span class="kw">fn</span> <span class="ident">into_usize</span>(<span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="ident">usize</span>::<span class="ident">from_str_radix</span>(<span class="ident">arg</span>, <span class="number">10</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
         <span class="macro">format</span><span class="macro">!</span>(
             <span class="string">&quot;Failed to convert argument to a non-negative integer: {}&quot;</span>,
             <span class="ident">arg</span>,
@@ -3554,15 +3556,15 @@
     })
 }
 
-<span class="kw">fn</span> <span class="ident">into_locale</span>(<span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Language</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">into_locale</span>(<span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Language</span><span class="op">&gt;</span> {
     <span class="ident">Language</span>::<span class="ident">from_locale</span>(<span class="ident">arg</span>)
-        .<span class="ident">or_else</span>(<span class="op">||</span> <span class="ident">Language</span>::<span class="ident">from_639_1</span>(<span class="ident">arg</span>))
-        .<span class="ident">or_else</span>(<span class="op">||</span> <span class="ident">Language</span>::<span class="ident">from_639_3</span>(<span class="ident">arg</span>))
-        .<span class="ident">with_context</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Invalid locale: {}&quot;</span>, <span class="ident">arg</span>))
+        .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Language</span>::<span class="ident">from_639_1</span>(<span class="ident">arg</span>))
+        .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Language</span>::<span class="ident">from_639_3</span>(<span class="ident">arg</span>))
+        .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Invalid locale: {}&quot;</span>, <span class="ident">arg</span>))
 }
 
-<span class="kw">fn</span> <span class="ident">into_url</span>(<span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Url</span><span class="op">&gt;</span> {
-    <span class="ident">Url</span>::<span class="ident">parse</span>(<span class="ident">arg</span>).<span class="ident">with_context</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to parse url {}&quot;</span>, <span class="ident">arg</span>))
+<span class="kw">fn</span> <span class="ident">into_url</span>(<span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Url</span><span class="op">&gt;</span> {
+    <span class="ident">Url</span>::<span class="ident">parse</span>(<span class="ident">arg</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to parse url {}&quot;</span>, <span class="ident">arg</span>))
 }
 
 <span class="comment">// if output_path is Some, the checkstyle results are written to that path</span>
@@ -3570,22 +3572,22 @@
     <span class="ident">exercise_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">output_path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Path</span><span class="op">&gt;</span>,
     <span class="ident">locale</span>: <span class="ident">Language</span>,
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationResult</span><span class="op">&gt;&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationResult</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">check_result</span> <span class="op">=</span>
-        <span class="ident">task_executor</span>::<span class="ident">run_check_code_style</span>(<span class="ident">exercise_path</span>, <span class="ident">locale</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+        <span class="ident">task_executor</span>::<span class="ident">run_check_code_style</span>(<span class="ident">exercise_path</span>, <span class="ident">locale</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="macro">format</span><span class="macro">!</span>(
                 <span class="string">&quot;Failed to check code style for project at {}&quot;</span>,
                 <span class="ident">exercise_path</span>.<span class="ident">display</span>()
             )
         })<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">output_path</span>) <span class="op">=</span> <span class="ident">output_path</span> {
-        <span class="kw">let</span> <span class="ident">output_file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">create</span>(<span class="ident">output_path</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+        <span class="kw">let</span> <span class="ident">output_file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">create</span>(<span class="ident">output_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="macro">format</span><span class="macro">!</span>(
                 <span class="string">&quot;Failed to create code style check results file at {}&quot;</span>,
                 <span class="ident">output_path</span>.<span class="ident">display</span>()
             )
         })<span class="question-mark">?</span>;
-        <span class="ident">serde_json</span>::<span class="ident">to_writer</span>(<span class="ident">output_file</span>, <span class="kw-2">&amp;</span><span class="ident">check_result</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+        <span class="ident">serde_json</span>::<span class="ident">to_writer</span>(<span class="ident">output_file</span>, <span class="kw-2">&amp;</span><span class="ident">check_result</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="macro">format</span><span class="macro">!</span>(
                 <span class="string">&quot;Failed to write code style check results as JSON to {}&quot;</span>,
                 <span class="ident">output_path</span>.<span class="ident">display</span>()
@@ -3595,18 +3597,18 @@
     <span class="prelude-val">Ok</span>(<span class="ident">check_result</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">json_to_toml</span>(<span class="ident">json</span>: <span class="ident">JsonValue</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TomlValue</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">json_to_toml</span>(<span class="ident">json</span>: <span class="ident">JsonValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TomlValue</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">json</span> {
-        <span class="ident">JsonValue</span>::<span class="ident">Array</span>(<span class="ident">arr</span>) <span class="op">=&gt;</span> {
+        <span class="ident">JsonValue</span>::<span class="ident">Array</span>(<span class="ident">arr</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
             <span class="kw">for</span> <span class="ident">value</span> <span class="kw">in</span> <span class="ident">arr</span> {
                 <span class="ident">v</span>.<span class="ident">push</span>(<span class="ident">json_to_toml</span>(<span class="ident">value</span>)<span class="question-mark">?</span>);
             }
             <span class="prelude-val">Ok</span>(<span class="ident">TomlValue</span>::<span class="ident">Array</span>(<span class="ident">v</span>))
         }
-        <span class="ident">JsonValue</span>::<span class="ident">Bool</span>(<span class="ident">b</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">TomlValue</span>::<span class="ident">Boolean</span>(<span class="ident">b</span>)),
-        <span class="ident">JsonValue</span>::<span class="ident">Null</span> <span class="op">=&gt;</span> <span class="ident">anyhow</span>::<span class="macro">bail</span><span class="macro">!</span>(<span class="string">&quot;The settings file cannot contain null values&quot;</span>),
-        <span class="ident">JsonValue</span>::<span class="ident">Number</span>(<span class="ident">num</span>) <span class="op">=&gt;</span> {
+        <span class="ident">JsonValue</span>::<span class="ident">Bool</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">TomlValue</span>::<span class="ident">Boolean</span>(<span class="ident">b</span>)),
+        <span class="ident">JsonValue</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">anyhow</span>::<span class="macro">bail</span><span class="macro">!</span>(<span class="string">&quot;The settings file cannot contain null values&quot;</span>),
+        <span class="ident">JsonValue</span>::<span class="ident">Number</span>(<span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">int</span>) <span class="op">=</span> <span class="ident">num</span>.<span class="ident">as_i64</span>() {
                 <span class="prelude-val">Ok</span>(<span class="ident">TomlValue</span>::<span class="ident">Integer</span>(<span class="ident">int</span>))
             } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">float</span>) <span class="op">=</span> <span class="ident">num</span>.<span class="ident">as_f64</span>() {
@@ -3616,14 +3618,14 @@
                 <span class="ident">anyhow</span>::<span class="macro">bail</span><span class="macro">!</span>(<span class="string">&quot;The given number was too high: {}&quot;</span>, <span class="ident">num</span>)
             }
         }
-        <span class="ident">JsonValue</span>::<span class="ident">Object</span>(<span class="ident">obj</span>) <span class="op">=&gt;</span> {
+        <span class="ident">JsonValue</span>::<span class="ident">Object</span>(<span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">TomlMap</span>::<span class="ident">new</span>();
             <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">obj</span> {
                 <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">json_to_toml</span>(<span class="ident">value</span>)<span class="question-mark">?</span>);
             }
             <span class="prelude-val">Ok</span>(<span class="ident">TomlValue</span>::<span class="ident">Table</span>(<span class="ident">map</span>))
         }
-        <span class="ident">JsonValue</span>::<span class="ident">String</span>(<span class="ident">s</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">TomlValue</span>::<span class="ident">String</span>(<span class="ident">s</span>)),
+        <span class="ident">JsonValue</span>::<span class="ident">String</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">TomlValue</span>::<span class="ident">String</span>(<span class="ident">s</span>)),
     }
 }
 

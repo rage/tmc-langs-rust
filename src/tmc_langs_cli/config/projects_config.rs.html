@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `tmc-langs-cli/src/config/projects_config.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>projects_config.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../tmc_langs_cli/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `tmc-langs-cli/src/config/projects_config.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>projects_config.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../tmc_langs_cli/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -209,30 +211,32 @@
 <span id="208">208</span>
 <span id="209">209</span>
 <span id="210">210</span>
+<span id="211">211</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">Context</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ProjectsConfig</span> {
-    <span class="kw">pub</span> <span class="ident">courses</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">CourseConfig</span><span class="op">&gt;</span>,
+    <span class="comment">// BTreeMap used so the exercises in the config file are ordered by key</span>
+    <span class="kw">pub</span> <span class="ident">courses</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">CourseConfig</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ProjectsConfig</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ProjectsConfig</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">course_configs</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ProjectsConfig</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">course_configs</span> <span class="op">=</span> <span class="ident">BTreeMap</span>::<span class="ident">new</span>();
         <span class="kw">for</span> <span class="ident">file</span> <span class="kw">in</span> <span class="ident">fs</span>::<span class="ident">read_dir</span>(<span class="ident">path</span>)
-            .<span class="ident">with_context</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to read directory at {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>
+            .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to read directory at {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>
         {
             <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span>
-                <span class="ident">file</span>.<span class="ident">with_context</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to read file in {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
+                <span class="ident">file</span>.<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to read file in {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">course_config_path</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;course_config.toml&quot;</span>);
             <span class="kw">if</span> <span class="ident">course_config_path</span>.<span class="ident">exists</span>() {
                 <span class="kw">let</span> <span class="ident">file_name</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">file_name</span>();
-                <span class="kw">let</span> <span class="ident">course_dir_name</span> <span class="op">=</span> <span class="ident">file_name</span>.<span class="ident">to_str</span>().<span class="ident">with_context</span>(<span class="op">||</span> {
+                <span class="kw">let</span> <span class="ident">course_dir_name</span> <span class="op">=</span> <span class="ident">file_name</span>.<span class="ident">to_str</span>().<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                     <span class="macro">format</span><span class="macro">!</span>(
                         <span class="string">&quot;Course directory name was not valid utf-8: {}&quot;</span>,
                         <span class="ident">file</span>.<span class="ident">file_name</span>().<span class="ident">to_string_lossy</span>()
@@ -260,7 +264,7 @@
         <span class="ident">projects_dir</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
         <span class="ident">course_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">exercise_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    ) <span class="op">-&gt;</span> <span class="ident">PathBuf</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PathBuf</span> {
         <span class="ident">projects_dir</span>.<span class="ident">join</span>(<span class="ident">course_name</span>).<span class="ident">join</span>(<span class="ident">exercise_name</span>)
     }
 }
@@ -268,14 +272,14 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CourseConfig</span> {
     <span class="kw">pub</span> <span class="ident">course</span>: <span class="ident">String</span>,
-    <span class="kw">pub</span> <span class="ident">exercises</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Exercise</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">exercises</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Exercise</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">CourseConfig</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">save_to_projects_dir</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">projects_dir</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">save_to_projects_dir</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">projects_dir</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">course_dir</span> <span class="op">=</span> <span class="ident">projects_dir</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">course</span>);
         <span class="kw">if</span> <span class="op">!</span><span class="ident">course_dir</span>.<span class="ident">exists</span>() {
-            <span class="ident">fs</span>::<span class="ident">create_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">course_dir</span>).<span class="ident">with_context</span>(<span class="op">||</span> {
+            <span class="ident">fs</span>::<span class="ident">create_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">course_dir</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="macro">format</span><span class="macro">!</span>(
                     <span class="string">&quot;Failed to create course directory at {}&quot;</span>,
                     <span class="ident">course_dir</span>.<span class="ident">display</span>()
@@ -285,7 +289,7 @@
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">course_dir</span>.<span class="ident">join</span>(<span class="string">&quot;course_config.toml&quot;</span>);
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">toml</span>::<span class="ident">to_string_pretty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>)<span class="question-mark">?</span>;
         <span class="ident">fs</span>::<span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="ident">target</span>, <span class="ident">s</span>.<span class="ident">as_bytes</span>())
-            .<span class="ident">with_context</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to write course config to {}&quot;</span>, <span class="ident">target</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
+            .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to write course config to {}&quot;</span>, <span class="ident">target</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -330,7 +334,7 @@
     <span class="kw">fn</span> <span class="ident">serializes</span>() {
         <span class="ident">init_logging</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercises</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercises</span> <span class="op">=</span> <span class="ident">BTreeMap</span>::<span class="ident">new</span>();
         <span class="ident">exercises</span>.<span class="ident">insert</span>(
             <span class="string">&quot;ex 1&quot;</span>.<span class="ident">to_string</span>(),
             <span class="ident">Exercise</span> {

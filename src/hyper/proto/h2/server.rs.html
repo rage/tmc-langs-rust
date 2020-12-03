@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.13.9/src/proto/h2/server.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>server.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../hyper/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.13.9/src/proto/h2/server.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>server.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../hyper/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -487,7 +489,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Config</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="ident">Config</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Config</span> {
         <span class="ident">Config</span> {
             <span class="ident">adaptive_window</span>: <span class="bool-val">false</span>,
             <span class="ident">initial_conn_window_size</span>: <span class="ident">DEFAULT_CONN_WINDOW</span>,
@@ -519,7 +521,7 @@
 {
     <span class="ident">Handshaking</span> {
         <span class="ident">ping_config</span>: <span class="ident">ping</span>::<span class="ident">Config</span>,
-        <span class="ident">hs</span>: <span class="ident">Handshake</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">SendBuf</span><span class="op">&lt;</span><span class="ident">B</span>::<span class="ident">Data</span><span class="op">&gt;&gt;</span>,
+        <span class="ident">hs</span>: <span class="ident">Handshake</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">SendBuf</span><span class="op">&lt;</span><span class="ident">B</span>::<span class="ident">Data</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     },
     <span class="ident">Serving</span>(<span class="ident">Serving</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span>),
     <span class="ident">Closed</span>,
@@ -530,7 +532,7 @@
     <span class="ident">B</span>: <span class="ident">HttpBody</span>,
 {
     <span class="ident">ping</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">ping</span>::<span class="ident">Recorder</span>, <span class="ident">ping</span>::<span class="ident">Ponger</span>)<span class="op">&gt;</span>,
-    <span class="ident">conn</span>: <span class="ident">Connection</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">SendBuf</span><span class="op">&lt;</span><span class="ident">B</span>::<span class="ident">Data</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">conn</span>: <span class="ident">Connection</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">SendBuf</span><span class="op">&lt;</span><span class="ident">B</span>::<span class="ident">Data</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">closing</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="ident">Error</span><span class="op">&gt;</span>,
 }
 
@@ -538,11 +540,11 @@
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Unpin</span>,
     <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span>, <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">B</span><span class="op">&gt;</span>,
-    <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">B</span>: <span class="ident">HttpBody</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">E</span>: <span class="ident">H2Exec</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="ident">Future</span>, <span class="ident">B</span><span class="op">&gt;</span>,
 {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">io</span>: <span class="ident">T</span>, <span class="ident">service</span>: <span class="ident">S</span>, <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Config</span>, <span class="ident">exec</span>: <span class="ident">E</span>) <span class="op">-&gt;</span> <span class="ident">Server</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">B</span>, <span class="ident">E</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">io</span>: <span class="ident">T</span>, <span class="ident">service</span>: <span class="ident">S</span>, <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Config</span>, <span class="ident">exec</span>: <span class="ident">E</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Server</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">B</span>, <span class="ident">E</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">h2</span>::<span class="ident">server</span>::<span class="ident">Builder</span>::<span class="ident">default</span>();
         <span class="ident">builder</span>
             .<span class="ident">initial_window_size</span>(<span class="ident">config</span>.<span class="ident">initial_stream_window_size</span>)
@@ -584,16 +586,16 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">graceful_shutdown</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;graceful_shutdown&quot;</span>);
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span> {
-            <span class="ident">State</span>::<span class="ident">Handshaking</span> { .. } <span class="op">=&gt;</span> {
+            <span class="ident">State</span>::<span class="ident">Handshaking</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// fall-through, to replace state with Closed</span>
             }
-            <span class="ident">State</span>::<span class="ident">Serving</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">srv</span>) <span class="op">=&gt;</span> {
+            <span class="ident">State</span>::<span class="ident">Serving</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">srv</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">srv</span>.<span class="ident">closing</span>.<span class="ident">is_none</span>() {
                     <span class="ident">srv</span>.<span class="ident">conn</span>.<span class="ident">graceful_shutdown</span>();
                 }
                 <span class="kw">return</span>;
             }
-            <span class="ident">State</span>::<span class="ident">Closed</span> <span class="op">=&gt;</span> {
+            <span class="ident">State</span>::<span class="ident">Closed</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">return</span>;
             }
         }
@@ -605,20 +607,20 @@
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Unpin</span>,
     <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span>, <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">B</span><span class="op">&gt;</span>,
-    <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">B</span>: <span class="ident">HttpBody</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">E</span>: <span class="ident">H2Exec</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="ident">Future</span>, <span class="ident">B</span><span class="op">&gt;</span>,
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dispatched</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>;
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">me</span>.<span class="ident">state</span> {
                 <span class="ident">State</span>::<span class="ident">Handshaking</span> {
                     <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">hs</span>,
                     <span class="kw-2">ref</span> <span class="ident">ping_config</span>,
-                } <span class="op">=&gt;</span> {
+                } <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">conn</span> <span class="op">=</span> <span class="macro">ready</span><span class="macro">!</span>(<span class="ident">Pin</span>::<span class="ident">new</span>(<span class="ident">hs</span>).<span class="ident">poll</span>(<span class="ident">cx</span>).<span class="ident">map_err</span>(<span class="kw">crate</span>::<span class="ident">Error</span>::<span class="ident">new_h2</span>))<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">ping</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">ping_config</span>.<span class="ident">is_enabled</span>() {
                         <span class="kw">let</span> <span class="ident">pp</span> <span class="op">=</span> <span class="ident">conn</span>.<span class="ident">ping_pong</span>().<span class="ident">expect</span>(<span class="string">&quot;conn.ping_pong&quot;</span>);
@@ -632,11 +634,11 @@
                         <span class="ident">closing</span>: <span class="prelude-val">None</span>,
                     })
                 }
-                <span class="ident">State</span>::<span class="ident">Serving</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">srv</span>) <span class="op">=&gt;</span> {
+                <span class="ident">State</span>::<span class="ident">Serving</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">srv</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="macro">ready</span><span class="macro">!</span>(<span class="ident">srv</span>.<span class="ident">poll_server</span>(<span class="ident">cx</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">me</span>.<span class="ident">service</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">me</span>.<span class="ident">exec</span>))<span class="question-mark">?</span>;
                     <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">Dispatched</span>::<span class="ident">Shutdown</span>));
                 }
-                <span class="ident">State</span>::<span class="ident">Closed</span> <span class="op">=&gt;</span> {
+                <span class="ident">State</span>::<span class="ident">Closed</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// graceful_shutdown was called before handshaking finished,</span>
                     <span class="comment">// nothing to do here...</span>
                     <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">Dispatched</span>::<span class="ident">Shutdown</span>));
@@ -657,10 +659,10 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">service</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">S</span>,
         <span class="ident">exec</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">E</span>,
-    ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;&gt;</span>
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">HttpService</span><span class="op">&lt;</span><span class="ident">Body</span>, <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">B</span><span class="op">&gt;</span>,
-        <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
+        <span class="ident">S</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">E</span>: <span class="ident">H2Exec</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="ident">Future</span>, <span class="ident">B</span><span class="op">&gt;</span>,
     {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">closing</span>.<span class="ident">is_none</span>() {
@@ -672,20 +674,20 @@
                 <span class="comment">// - If not, just drive the connection some.</span>
                 <span class="comment">// - If ready, try to accept a new request from the connection.</span>
                 <span class="kw">match</span> <span class="ident">service</span>.<span class="ident">poll_ready</span>(<span class="ident">cx</span>) {
-                    <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(())) <span class="op">=&gt;</span> (),
-                    <span class="ident">Poll</span>::<span class="ident">Pending</span> <span class="op">=&gt;</span> {
+                    <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(())) <span class="op">=</span><span class="op">&gt;</span> (),
+                    <span class="ident">Poll</span>::<span class="ident">Pending</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="comment">// use `poll_closed` instead of `poll_accept`,</span>
                         <span class="comment">// in order to avoid accepting a request.</span>
                         <span class="macro">ready</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">poll_closed</span>(<span class="ident">cx</span>).<span class="ident">map_err</span>(<span class="kw">crate</span>::<span class="ident">Error</span>::<span class="ident">new_h2</span>))<span class="question-mark">?</span>;
                         <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;incoming connection complete&quot;</span>);
                         <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()));
                     }
-                    <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)) <span class="op">=&gt;</span> {
+                    <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">Error</span>::<span class="ident">new_user_service</span>(<span class="ident">err</span>);
                         <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;service closed: {}&quot;</span>, <span class="ident">err</span>);
 
                         <span class="kw">let</span> <span class="ident">reason</span> <span class="op">=</span> <span class="ident">err</span>.<span class="ident">h2_reason</span>();
-                        <span class="kw">if</span> <span class="ident">reason</span> <span class="op">==</span> <span class="ident">Reason</span>::<span class="ident">NO_ERROR</span> {
+                        <span class="kw">if</span> <span class="ident">reason</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Reason</span>::<span class="ident">NO_ERROR</span> {
                             <span class="comment">// NO_ERROR is only used for graceful shutdowns...</span>
                             <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;interpretting NO_ERROR user error as graceful_shutdown&quot;</span>);
                             <span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">graceful_shutdown</span>();
@@ -700,7 +702,7 @@
 
                 <span class="comment">// When the service is ready, accepts an incoming request.</span>
                 <span class="kw">match</span> <span class="macro">ready</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">poll_accept</span>(<span class="ident">cx</span>)) {
-                    <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((<span class="ident">req</span>, <span class="ident">respond</span>))) <span class="op">=&gt;</span> {
+                    <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>((<span class="ident">req</span>, <span class="ident">respond</span>))) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;incoming request&quot;</span>);
                         <span class="kw">let</span> <span class="ident">content_length</span> <span class="op">=</span> <span class="ident">decode_content_length</span>(<span class="ident">req</span>.<span class="ident">headers</span>());
                         <span class="kw">let</span> <span class="ident">ping</span> <span class="op">=</span> <span class="self">self</span>
@@ -716,10 +718,10 @@
                         <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="ident">H2Stream</span>::<span class="ident">new</span>(<span class="ident">service</span>.<span class="ident">call</span>(<span class="ident">req</span>), <span class="ident">respond</span>);
                         <span class="ident">exec</span>.<span class="ident">execute_h2stream</span>(<span class="ident">fut</span>);
                     }
-                    <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) <span class="op">=&gt;</span> {
+                    <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::<span class="ident">Error</span>::<span class="ident">new_h2</span>(<span class="ident">e</span>)));
                     }
-                    <span class="prelude-val">None</span> <span class="op">=&gt;</span> {
+                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="comment">// no more incoming streams...</span>
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw-2">ref</span> <span class="ident">ping</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">ping</span> {
                             <span class="ident">ping</span>.<span class="ident">ensure_not_timed_out</span>()<span class="question-mark">?</span>;
@@ -745,16 +747,16 @@
     <span class="kw">fn</span> <span class="ident">poll_ping</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">estimator</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">ping</span> {
             <span class="kw">match</span> <span class="ident">estimator</span>.<span class="ident">poll</span>(<span class="ident">cx</span>) {
-                <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">ping</span>::<span class="ident">Ponged</span>::<span class="ident">SizeUpdate</span>(<span class="ident">wnd</span>)) <span class="op">=&gt;</span> {
+                <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">ping</span>::<span class="ident">Ponged</span>::<span class="ident">SizeUpdate</span>(<span class="ident">wnd</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">set_target_window_size</span>(<span class="ident">wnd</span>);
                     <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">set_initial_window_size</span>(<span class="ident">wnd</span>);
                 }
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span>
-                <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">ping</span>::<span class="ident">Ponged</span>::<span class="ident">KeepAliveTimedOut</span>) <span class="op">=&gt;</span> {
+                <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">ping</span>::<span class="ident">Ponged</span>::<span class="ident">KeepAliveTimedOut</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;keep-alive timed out, closing connection&quot;</span>);
                     <span class="self">self</span>.<span class="ident">conn</span>.<span class="ident">abrupt_shutdown</span>(<span class="ident">h2</span>::<span class="ident">Reason</span>::<span class="ident">NO_ERROR</span>);
                 }
-                <span class="ident">Poll</span>::<span class="ident">Pending</span> <span class="op">=&gt;</span> {}
+                <span class="ident">Poll</span>::<span class="ident">Pending</span> <span class="op">=</span><span class="op">&gt;</span> {}
             }
         }
     }
@@ -766,7 +768,7 @@
 <span class="kw">where</span>
     <span class="ident">B</span>: <span class="ident">HttpBody</span>,
 {
-    <span class="ident">reply</span>: <span class="ident">SendResponse</span><span class="op">&lt;</span><span class="ident">SendBuf</span><span class="op">&lt;</span><span class="ident">B</span>::<span class="ident">Data</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">reply</span>: <span class="ident">SendResponse</span><span class="op">&lt;</span><span class="ident">SendBuf</span><span class="op">&lt;</span><span class="ident">B</span>::<span class="ident">Data</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="attribute">#[<span class="ident">pin</span>]</span>
     <span class="ident">state</span>: <span class="ident">H2StreamState</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span>,
 }
@@ -784,7 +786,7 @@
 <span class="kw">where</span>
     <span class="ident">B</span>: <span class="ident">HttpBody</span>,
 {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">fut</span>: <span class="ident">F</span>, <span class="ident">respond</span>: <span class="ident">SendResponse</span><span class="op">&lt;</span><span class="ident">SendBuf</span><span class="op">&lt;</span><span class="ident">B</span>::<span class="ident">Data</span><span class="op">&gt;&gt;</span>) <span class="op">-&gt;</span> <span class="ident">H2Stream</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">fut</span>: <span class="ident">F</span>, <span class="ident">respond</span>: <span class="ident">SendResponse</span><span class="op">&lt;</span><span class="ident">SendBuf</span><span class="op">&lt;</span><span class="ident">B</span>::<span class="ident">Data</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">H2Stream</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span> {
         <span class="ident">H2Stream</span> {
             <span class="ident">reply</span>: <span class="ident">respond</span>,
             <span class="ident">state</span>: <span class="ident">H2StreamState</span>::<span class="ident">Service</span>(<span class="ident">fut</span>),
@@ -793,10 +795,10 @@
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">reply</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">me</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">eos</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {{
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">me</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">eos</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
         <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">me</span>.<span class="ident">reply</span>.<span class="ident">send_response</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">res</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">eos</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">tx</span>) <span class="op">=&gt;</span> <span class="ident">tx</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">tx</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tx</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;send response error: {}&quot;</span>, <span class="ident">e</span>);
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">me</span>.<span class="ident">reply</span>.<span class="ident">send_reset</span>(<span class="ident">Reason</span>::<span class="ident">INTERNAL_ERROR</span>);
                 <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="kw">crate</span>::<span class="ident">Error</span>::<span class="ident">new_h2</span>(<span class="ident">e</span>)));
@@ -807,19 +809,19 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">H2Stream</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>, <span class="ident">E</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">B</span>: <span class="ident">HttpBody</span>,
-    <span class="ident">B</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">B</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">poll2</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll2</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">me</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">project</span>();
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">me</span>.<span class="ident">state</span>.<span class="ident">as_mut</span>().<span class="ident">project</span>() {
-                <span class="ident">H2StreamStateProj</span>::<span class="ident">Service</span>(<span class="ident">h</span>) <span class="op">=&gt;</span> {
+                <span class="ident">H2StreamStateProj</span>::<span class="ident">Service</span>(<span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">h</span>.<span class="ident">poll</span>(<span class="ident">cx</span>) {
-                        <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">r</span>)) <span class="op">=&gt;</span> <span class="ident">r</span>,
-                        <span class="ident">Poll</span>::<span class="ident">Pending</span> <span class="op">=&gt;</span> {
+                        <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">r</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>,
+                        <span class="ident">Poll</span>::<span class="ident">Pending</span> <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="comment">// Response is not yet ready, so we want to check if the client has sent a</span>
                             <span class="comment">// RST_STREAM frame which would cancel the current request.</span>
                             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">reason</span>) <span class="op">=</span>
@@ -830,7 +832,7 @@
                             }
                             <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Pending</span>;
                         }
-                        <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) <span class="op">=&gt;</span> {
+                        <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">Error</span>::<span class="ident">new_user_service</span>(<span class="ident">e</span>);
                             <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;http2 service errored: {}&quot;</span>, <span class="ident">err</span>);
                             <span class="ident">me</span>.<span class="ident">reply</span>.<span class="ident">send_reset</span>(<span class="ident">err</span>.<span class="ident">h2_reason</span>());
@@ -860,7 +862,7 @@
                         <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()));
                     }
                 }
-                <span class="ident">H2StreamStateProj</span>::<span class="ident">Body</span>(<span class="ident">pipe</span>) <span class="op">=&gt;</span> {
+                <span class="ident">H2StreamStateProj</span>::<span class="ident">Body</span>(<span class="ident">pipe</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">return</span> <span class="ident">pipe</span>.<span class="ident">poll</span>(<span class="ident">cx</span>);
                 }
             };
@@ -871,14 +873,14 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">H2Stream</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">B</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>, <span class="ident">E</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">B</span>: <span class="ident">HttpBody</span>,
-    <span class="ident">B</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
-    <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">B</span>::<span class="ident">Error</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">StdError</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> ();
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">task</span>::<span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">poll2</span>(<span class="ident">cx</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">res</span> {
                 <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;stream error: {}&quot;</span>, <span class="ident">e</span>);

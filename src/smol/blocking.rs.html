@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/smol-0.1.18/src/blocking.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>blocking.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../smol/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/smol-0.1.18/src/blocking.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>blocking.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../smol/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -377,8 +379,8 @@
 
 <span class="kw">impl</span> <span class="ident">BlockingExecutor</span> {
     <span class="doccomment">/// Returns a reference to the blocking executor.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">BlockingExecutor</span> {
-        <span class="kw">static</span> <span class="ident">EXECUTOR</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">BlockingExecutor</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy</span>::<span class="ident">new</span>(<span class="op">||</span> <span class="ident">BlockingExecutor</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">BlockingExecutor</span> {
+        <span class="kw">static</span> <span class="ident">EXECUTOR</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">BlockingExecutor</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy</span>::<span class="ident">new</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">BlockingExecutor</span> {
             <span class="ident">state</span>: <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">State</span> {
                 <span class="ident">idle_count</span>: <span class="number">0</span>,
                 <span class="ident">thread_count</span>: <span class="number">0</span>,
@@ -395,7 +397,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="self">self</span>,
         <span class="ident">future</span>: <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    ) <span class="op">-&gt;</span> <span class="ident">Task</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Task</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="comment">// Create a task, schedule it, and return its `Task` handle.</span>
         <span class="kw">let</span> (<span class="ident">runnable</span>, <span class="ident">handle</span>) <span class="op">=</span> <span class="ident">async_task</span>::<span class="ident">spawn</span>(<span class="ident">future</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">schedule</span>(<span class="ident">r</span>), ());
         <span class="ident">runnable</span>.<span class="ident">schedule</span>();
@@ -409,7 +411,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
         <span class="kw">loop</span> {
             <span class="comment">// This thread is not idle anymore because it&#39;s going to run tasks.</span>
-            <span class="ident">state</span>.<span class="ident">idle_count</span> <span class="op">-=</span> <span class="number">1</span>;
+            <span class="ident">state</span>.<span class="ident">idle_count</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
 
             <span class="comment">// Run tasks in the queue.</span>
             <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">runnable</span>) <span class="op">=</span> <span class="ident">state</span>.<span class="ident">queue</span>.<span class="ident">pop_front</span>() {
@@ -417,14 +419,14 @@
                 <span class="self">self</span>.<span class="ident">grow_pool</span>(<span class="ident">state</span>);
 
                 <span class="comment">// Run the task.</span>
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">panic</span>::<span class="ident">catch_unwind</span>(<span class="op">||</span> <span class="ident">runnable</span>.<span class="ident">run</span>());
+                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">panic</span>::<span class="ident">catch_unwind</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">runnable</span>.<span class="ident">run</span>());
 
                 <span class="comment">// Re-lock the state and continue.</span>
                 <span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
             }
 
             <span class="comment">// This thread is now becoming idle.</span>
-            <span class="ident">state</span>.<span class="ident">idle_count</span> <span class="op">+=</span> <span class="number">1</span>;
+            <span class="ident">state</span>.<span class="ident">idle_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 
             <span class="comment">// Put the thread to sleep until another task is scheduled.</span>
             <span class="kw">let</span> <span class="ident">timeout</span> <span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">from_millis</span>(<span class="number">500</span>);
@@ -433,8 +435,8 @@
 
             <span class="comment">// If there are no tasks after a while, stop this thread.</span>
             <span class="kw">if</span> <span class="ident">res</span>.<span class="ident">timed_out</span>() <span class="op">&amp;&amp;</span> <span class="ident">state</span>.<span class="ident">queue</span>.<span class="ident">is_empty</span>() {
-                <span class="ident">state</span>.<span class="ident">idle_count</span> <span class="op">-=</span> <span class="number">1</span>;
-                <span class="ident">state</span>.<span class="ident">thread_count</span> <span class="op">-=</span> <span class="number">1</span>;
+                <span class="ident">state</span>.<span class="ident">idle_count</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+                <span class="ident">state</span>.<span class="ident">thread_count</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="kw">break</span>;
             }
         }
@@ -456,16 +458,16 @@
         <span class="comment">// already, then be aggressive: wake all idle threads and spawn one more thread.</span>
         <span class="kw">while</span> <span class="ident">state</span>.<span class="ident">queue</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">state</span>.<span class="ident">idle_count</span> <span class="op">*</span> <span class="number">5</span> <span class="op">&amp;&amp;</span> <span class="ident">state</span>.<span class="ident">thread_count</span> <span class="op">&lt;</span> <span class="number">500</span> {
             <span class="comment">// The new thread starts in idle state.</span>
-            <span class="ident">state</span>.<span class="ident">idle_count</span> <span class="op">+=</span> <span class="number">1</span>;
-            <span class="ident">state</span>.<span class="ident">thread_count</span> <span class="op">+=</span> <span class="number">1</span>;
+            <span class="ident">state</span>.<span class="ident">idle_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="ident">state</span>.<span class="ident">thread_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 
             <span class="comment">// Notify all existing idle threads because we need to hurry up.</span>
             <span class="self">self</span>.<span class="ident">cvar</span>.<span class="ident">notify_all</span>();
 
             <span class="comment">// Spawn the new thread.</span>
-            <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">||</span> {
+            <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
                 <span class="comment">// If enabled, set up tokio before the main loop begins.</span>
-                <span class="ident">context</span>::<span class="ident">enter</span>(<span class="op">||</span> <span class="self">self</span>.<span class="ident">main_loop</span>())
+                <span class="ident">context</span>::<span class="ident">enter</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">main_loop</span>())
             });
         }
     }
@@ -501,8 +503,8 @@
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">blocking</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> {
-        <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">Task</span>::<span class="ident">blocking</span>(<span class="kw">async</span> <span class="kw">move</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>)<span class="op">*</span> }).<span class="kw">await</span>
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">Task</span>::<span class="ident">blocking</span>(<span class="ident">async</span> <span class="kw">move</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>)<span class="op">*</span> }).<span class="ident">await</span>
     };
 }
 
@@ -533,7 +535,7 @@
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(
     <span class="ident">iter</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-) <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Unpin</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Unpin</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
     <span class="ident">blocking</span>::<span class="ident">Unblock</span>::<span class="ident">new</span>(<span class="ident">iter</span>)
 }
 
@@ -579,7 +581,7 @@
 <span class="doccomment">/// child_stdout.read_to_string(&amp;mut output).await?;</span>
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reader</span>(<span class="ident">reader</span>: <span class="kw">impl</span> <span class="ident">Read</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Unpin</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reader</span>(<span class="ident">reader</span>: <span class="kw">impl</span> <span class="ident">Read</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Unpin</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
     <span class="ident">blocking</span>::<span class="ident">Unblock</span>::<span class="ident">new</span>(<span class="ident">reader</span>)
 }
 
@@ -625,7 +627,7 @@
 <span class="doccomment">/// stdout.flush().await?;</span>
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">writer</span>(<span class="ident">writer</span>: <span class="kw">impl</span> <span class="ident">Write</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Unpin</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">writer</span>(<span class="ident">writer</span>: <span class="kw">impl</span> <span class="ident">Write</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Unpin</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
     <span class="ident">blocking</span>::<span class="ident">Unblock</span>::<span class="ident">new</span>(<span class="ident">writer</span>)
 }
 </pre></div>

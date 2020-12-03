@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/smol-0.1.18/src/multitask.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>multitask.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../smol/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/smol-0.1.18/src/multitask.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>multitask.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../smol/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -530,7 +532,7 @@
     <span class="ident">queue</span>: <span class="ident">ConcurrentQueue</span><span class="op">&lt;</span><span class="ident">Runnable</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Shards of the global queue created by workers.</span>
-    <span class="ident">shards</span>: <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">Slab</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">ConcurrentQueue</span><span class="op">&lt;</span><span class="ident">Runnable</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">shards</span>: <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">Slab</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">ConcurrentQueue</span><span class="op">&lt;</span><span class="ident">Runnable</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Set to `true` when a sleeping worker is notified or no workers are sleeping.</span>
     <span class="ident">notified</span>: <span class="ident">AtomicBool</span>,
@@ -568,15 +570,15 @@
 <span class="kw">impl</span> <span class="ident">Sleepers</span> {
     <span class="doccomment">/// Inserts a new sleeping worker.</span>
     <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">callback</span>: <span class="kw-2">&amp;</span><span class="ident">Callback</span>) {
-        <span class="self">self</span>.<span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
+        <span class="self">self</span>.<span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         <span class="self">self</span>.<span class="ident">callbacks</span>.<span class="ident">push</span>(<span class="ident">callback</span>.<span class="ident">clone</span>());
     }
 
     <span class="doccomment">/// Re-inserts a sleeping worker&#39;s callback if it was notified.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `true` if the worker was notified.</span>
-    <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">callback</span>: <span class="kw-2">&amp;</span><span class="ident">Callback</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">callbacks</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">cb</span><span class="op">|</span> <span class="ident">cb</span> <span class="op">!=</span> <span class="ident">callback</span>) {
+    <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">callback</span>: <span class="kw-2">&amp;</span><span class="ident">Callback</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">callbacks</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">cb</span><span class="op">|</span> <span class="ident">cb</span> <span class="op">!</span><span class="op">=</span> <span class="ident">callback</span>) {
             <span class="self">self</span>.<span class="ident">callbacks</span>.<span class="ident">push</span>(<span class="ident">callback</span>.<span class="ident">clone</span>());
             <span class="bool-val">true</span>
         } <span class="kw">else</span> {
@@ -586,9 +588,9 @@
 
     <span class="doccomment">/// Removes a previously inserted sleeping worker.</span>
     <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">callback</span>: <span class="kw-2">&amp;</span><span class="ident">Callback</span>) {
-        <span class="self">self</span>.<span class="ident">count</span> <span class="op">-=</span> <span class="number">1</span>;
+        <span class="self">self</span>.<span class="ident">count</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> (<span class="number">0</span>..<span class="self">self</span>.<span class="ident">callbacks</span>.<span class="ident">len</span>()).<span class="ident">rev</span>() {
-            <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">callbacks</span>[<span class="ident">i</span>] <span class="op">==</span> <span class="ident">callback</span> {
+            <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">callbacks</span>[<span class="ident">i</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">callback</span> {
                 <span class="self">self</span>.<span class="ident">callbacks</span>.<span class="ident">remove</span>(<span class="ident">i</span>);
                 <span class="kw">return</span>;
             }
@@ -596,15 +598,15 @@
     }
 
     <span class="doccomment">/// Returns `true` if a sleeping worker is notified or no workers are sleeping.</span>
-    <span class="kw">fn</span> <span class="ident">is_notified</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">count</span> <span class="op">==</span> <span class="number">0</span> <span class="op">||</span> <span class="self">self</span>.<span class="ident">count</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">callbacks</span>.<span class="ident">len</span>()
+    <span class="kw">fn</span> <span class="ident">is_notified</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">count</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">count</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">callbacks</span>.<span class="ident">len</span>()
     }
 
     <span class="doccomment">/// Returns notification callback for a sleeping worker.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If a worker was notified already or there are no workers, `None` will be returned.</span>
-    <span class="kw">fn</span> <span class="ident">notify</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Callback</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">callbacks</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="self">self</span>.<span class="ident">count</span> {
+    <span class="kw">fn</span> <span class="ident">notify</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Callback</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">callbacks</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">count</span> {
             <span class="self">self</span>.<span class="ident">callbacks</span>.<span class="ident">pop</span>()
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
@@ -619,7 +621,7 @@
 
 <span class="kw">impl</span> <span class="ident">Queue</span> {
     <span class="doccomment">/// Creates a new queue for spawning tasks.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">Queue</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Queue</span> {
         <span class="ident">Queue</span> {
             <span class="ident">global</span>: <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Global</span> {
                 <span class="ident">queue</span>: <span class="ident">ConcurrentQueue</span>::<span class="ident">unbounded</span>(),
@@ -639,7 +641,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">future</span>: <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    ) <span class="op">-&gt;</span> <span class="ident">Task</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Task</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">global</span>.<span class="ident">clone</span>();
 
         <span class="comment">// The function that schedules a runnable task when it gets woken up.</span>
@@ -670,7 +672,7 @@
     <span class="doccomment">/// Registers a new worker.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The worker will automatically deregister itself when dropped.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">worker</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">notify</span>: <span class="kw">impl</span> <span class="ident">Fn</span>() <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) <span class="op">-&gt;</span> <span class="ident">Worker</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">worker</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">notify</span>: <span class="kw">impl</span> <span class="ident">Fn</span>() <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Worker</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shards</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">global</span>.<span class="ident">shards</span>.<span class="ident">write</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">vacant</span> <span class="op">=</span> <span class="ident">shards</span>.<span class="ident">vacant_entry</span>();
 
@@ -697,7 +699,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Queue</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="ident">Queue</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Queue</span> {
         <span class="ident">Queue</span>::<span class="ident">new</span>()
     }
 }
@@ -710,7 +712,7 @@
     <span class="ident">key</span>: <span class="ident">usize</span>,
 
     <span class="doccomment">/// The global queue.</span>
-    <span class="ident">global</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Global</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">global</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Global</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// A shard of the global queue.</span>
     <span class="ident">shard</span>: <span class="ident">SlotQueue</span><span class="op">&lt;</span><span class="ident">Runnable</span><span class="op">&gt;</span>,
@@ -737,14 +739,14 @@
     <span class="doccomment">/// Spawns a local future onto this executor.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns a [`Task`] handle for the spawned task.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn_local</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) <span class="op">-&gt;</span> <span class="ident">Task</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn_local</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Task</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">queue</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">local</span>.<span class="ident">queue</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">callback</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">thread_id</span>();
 
         <span class="comment">// The function that schedules a runnable task when it gets woken up.</span>
         <span class="kw">let</span> <span class="ident">schedule</span> <span class="op">=</span> <span class="kw">move</span> <span class="op">|</span><span class="ident">runnable</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="ident">thread_id</span>() <span class="op">==</span> <span class="ident">id</span> <span class="op">&amp;&amp;</span> <span class="ident">WORKER</span>.<span class="ident">is_set</span>() {
+            <span class="kw">if</span> <span class="ident">thread_id</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">id</span> <span class="op">&amp;&amp;</span> <span class="ident">WORKER</span>.<span class="ident">is_set</span>() {
                 <span class="ident">WORKER</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> {
                     <span class="kw">if</span> <span class="ident">Arc</span>::<span class="ident">ptr_eq</span>(<span class="kw-2">&amp;</span><span class="ident">queue</span>, <span class="kw-2">&amp;</span><span class="ident">w</span>.<span class="ident">local</span>.<span class="ident">queue</span>) {
                         <span class="ident">w</span>.<span class="ident">local</span>.<span class="ident">push</span>(<span class="ident">runnable</span>).<span class="ident">unwrap</span>();
@@ -768,7 +770,7 @@
     <span class="doccomment">/// Moves the worker into sleeping and unnotified state.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `true` if the worker was already sleeping and unnotified.</span>
-    <span class="kw">fn</span> <span class="ident">sleep</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">sleep</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sleepers</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">global</span>.<span class="ident">sleepers</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">sleeping</span>.<span class="ident">get</span>() {
@@ -790,7 +792,7 @@
     }
 
     <span class="doccomment">/// Moves the worker into woken state.</span>
-    <span class="kw">fn</span> <span class="ident">wake</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">wake</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">sleeping</span>.<span class="ident">get</span>() {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sleepers</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">global</span>.<span class="ident">sleepers</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
             <span class="ident">sleepers</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">callback</span>);
@@ -804,17 +806,17 @@
     }
 
     <span class="doccomment">/// Runs a single task and returns `true` if one was found.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tick</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tick</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">search</span>() {
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> {
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Move to sleeping and unnotified state.</span>
                     <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">sleep</span>() {
                         <span class="comment">// If already sleeping and unnotified, return.</span>
                         <span class="kw">return</span> <span class="bool-val">false</span>;
                     }
                 }
-                <span class="prelude-val">Some</span>(<span class="ident">r</span>) <span class="op">=&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Wake up.</span>
                     <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">wake</span>() {
                         <span class="comment">// If already woken, notify another worker.</span>
@@ -826,7 +828,7 @@
                     <span class="self">self</span>.<span class="ident">ticker</span>.<span class="ident">set</span>(<span class="ident">ticker</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>));
 
                     <span class="comment">// Flush slots to ensure fair task scheduling.</span>
-                    <span class="kw">if</span> <span class="ident">ticker</span> <span class="op">%</span> <span class="number">16</span> <span class="op">==</span> <span class="number">0</span> {
+                    <span class="kw">if</span> <span class="ident">ticker</span> <span class="op">%</span> <span class="number">16</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">shard</span>.<span class="ident">flush</span>() {
                             <span class="self">self</span>.<span class="ident">global</span>.<span class="ident">queue</span>.<span class="ident">push</span>(<span class="ident">err</span>.<span class="ident">into_inner</span>()).<span class="ident">unwrap</span>();
                             <span class="self">self</span>.<span class="ident">global</span>.<span class="ident">notify</span>();
@@ -835,12 +837,12 @@
                     }
 
                     <span class="comment">// Steal tasks from the global queue to ensure fair task scheduling.</span>
-                    <span class="kw">if</span> <span class="ident">ticker</span> <span class="op">%</span> <span class="number">64</span> <span class="op">==</span> <span class="number">0</span> {
+                    <span class="kw">if</span> <span class="ident">ticker</span> <span class="op">%</span> <span class="number">64</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
                         <span class="self">self</span>.<span class="ident">shard</span>.<span class="ident">steal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">global</span>.<span class="ident">queue</span>);
                     }
 
                     <span class="comment">// Run the task.</span>
-                    <span class="kw">if</span> <span class="ident">WORKER</span>.<span class="ident">set</span>(<span class="self">self</span>, <span class="op">||</span> <span class="ident">r</span>.<span class="ident">run</span>()) {
+                    <span class="kw">if</span> <span class="ident">WORKER</span>.<span class="ident">set</span>(<span class="self">self</span>, <span class="op">|</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">run</span>()) {
                         <span class="comment">// The task was woken while it was running, which means it got</span>
                         <span class="comment">// scheduled the moment running completed. Therefore, it is now inside</span>
                         <span class="comment">// the slot and would be the next task to run.</span>
@@ -866,8 +868,8 @@
     }
 
     <span class="doccomment">/// Finds the next task to run.</span>
-    <span class="kw">fn</span> <span class="ident">search</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runnable</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ticker</span>.<span class="ident">get</span>() <span class="op">%</span> <span class="number">2</span> <span class="op">==</span> <span class="number">0</span> {
+    <span class="kw">fn</span> <span class="ident">search</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runnable</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ticker</span>.<span class="ident">get</span>() <span class="op">%</span> <span class="number">2</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="comment">// On even ticks, look into the local queue and then into the shard.</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">r</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">local</span>.<span class="ident">pop</span>().<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">shard</span>.<span class="ident">pop</span>()) {
                 <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">r</span>);
@@ -894,7 +896,7 @@
         <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">shards</span>.<span class="ident">iter</span>().<span class="ident">chain</span>(<span class="ident">shards</span>.<span class="ident">iter</span>()).<span class="ident">skip</span>(<span class="ident">start</span>).<span class="ident">take</span>(<span class="ident">n</span>);
 
         <span class="comment">// Remove this worker&#39;s shard.</span>
-        <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">filter</span>(<span class="op">|</span>(<span class="ident">key</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="kw-2">*</span><span class="ident">key</span> <span class="op">!=</span> <span class="self">self</span>.<span class="ident">key</span>);
+        <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">filter</span>(<span class="op">|</span>(<span class="ident">key</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="kw-2">*</span><span class="ident">key</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">key</span>);
         <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">shard</span>)<span class="op">|</span> <span class="ident">shard</span>);
 
         <span class="comment">// Try stealing from each shard in the list.</span>
@@ -928,32 +930,32 @@
 
 <span class="doccomment">/// A queue with a single-item slot in front of it.</span>
 <span class="kw">struct</span> <span class="ident">SlotQueue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">slot</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>,
-    <span class="ident">queue</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">ConcurrentQueue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">slot</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">queue</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">ConcurrentQueue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">SlotQueue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Pushes an item into the slot, overflowing the old item into the queue.</span>
-    <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">t</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">PushError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">t</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">PushError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">slot</span>.<span class="ident">replace</span>(<span class="prelude-val">Some</span>(<span class="ident">t</span>)) {
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(()),
-            <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">push</span>(<span class="ident">t</span>),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
+            <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">push</span>(<span class="ident">t</span>),
         }
     }
 
     <span class="doccomment">/// Pops an item from the slot, or queue if the slot is empty.</span>
-    <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">PopError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">PopError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">slot</span>.<span class="ident">take</span>() {
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">pop</span>(),
-            <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">t</span>),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">pop</span>(),
+            <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">t</span>),
         }
     }
 
     <span class="doccomment">/// Flushes the slot into the queue.</span>
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">PushError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">PushError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">slot</span>.<span class="ident">take</span>() {
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(()),
-            <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">push</span>(<span class="ident">t</span>),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
+            <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">push</span>(<span class="ident">t</span>),
         }
     }
 
@@ -987,7 +989,7 @@
 }
 
 <span class="doccomment">/// Same as `std::thread::current().id()`, but more efficient.</span>
-<span class="kw">fn</span> <span class="ident">thread_id</span>() <span class="op">-&gt;</span> <span class="ident">ThreadId</span> {
+<span class="kw">fn</span> <span class="ident">thread_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ThreadId</span> {
     <span class="macro">thread_local</span><span class="macro">!</span> {
         <span class="kw">static</span> <span class="ident">ID</span>: <span class="ident">ThreadId</span> <span class="op">=</span> <span class="ident">thread</span>::<span class="ident">current</span>().<span class="ident">id</span>();
     }
@@ -997,10 +999,10 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Callback</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>() <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>);
+<span class="kw">struct</span> <span class="ident">Callback</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">Fn</span>() <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span> <span class="ident">Callback</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">Fn</span>() <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) <span class="op">-&gt;</span> <span class="ident">Callback</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">Fn</span>() <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Callback</span> {
         <span class="ident">Callback</span>(<span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">f</span>)))
     }
 
@@ -1010,7 +1012,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Callback</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Callback</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Callback</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="ident">Arc</span>::<span class="ident">ptr_eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="number">0</span>)
     }
 }

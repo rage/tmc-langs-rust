@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-task-3.0.0/src/header.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>header.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../async_task/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-task-3.0.0/src/header.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>header.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../async_task/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -208,7 +210,7 @@
     <span class="doccomment">/// The task that is blocked on the `JoinHandle`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This waker needs to be woken up once the task completes or is closed.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">awaiter</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Waker</span><span class="op">&gt;&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">awaiter</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Waker</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// The virtual table.</span>
     <span class="doccomment">///</span>
@@ -227,7 +229,7 @@
 
         <span class="kw">loop</span> {
             <span class="comment">// If the task has been completed or closed, it can&#39;t be canceled.</span>
-            <span class="kw">if</span> <span class="ident">state</span> <span class="op">&amp;</span> (<span class="ident">COMPLETED</span> <span class="op">|</span> <span class="ident">CLOSED</span>) <span class="op">!=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="ident">state</span> <span class="op">&amp;</span> (<span class="ident">COMPLETED</span> <span class="op">|</span> <span class="ident">CLOSED</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                 <span class="kw">break</span>;
             }
 
@@ -238,8 +240,8 @@
                 <span class="ident">Ordering</span>::<span class="ident">AcqRel</span>,
                 <span class="ident">Ordering</span>::<span class="ident">Acquire</span>,
             ) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw">break</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">s</span>) <span class="op">=&gt;</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">s</span>,
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">s</span>,
             }
         }
     }
@@ -253,7 +255,7 @@
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<span class="ident">NOTIFYING</span>, <span class="ident">Ordering</span>::<span class="ident">AcqRel</span>);
 
         <span class="comment">// If the awaiter was not being notified nor registered...</span>
-        <span class="kw">if</span> <span class="ident">state</span> <span class="op">&amp;</span> (<span class="ident">NOTIFYING</span> <span class="op">|</span> <span class="ident">REGISTERING</span>) <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">state</span> <span class="op">&amp;</span> (<span class="ident">NOTIFYING</span> <span class="op">|</span> <span class="ident">REGISTERING</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="comment">// Take the waker out.</span>
             <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">awaiter</span>.<span class="ident">get</span>()).<span class="ident">take</span>() };
 
@@ -263,10 +265,10 @@
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">w</span>) <span class="op">=</span> <span class="ident">waker</span> {
                 <span class="comment">// We need a safeguard against panics because waking can panic.</span>
-                <span class="ident">abort_on_panic</span>(<span class="op">||</span> <span class="kw">match</span> <span class="ident">current</span> {
-                    <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="ident">w</span>.<span class="ident">wake</span>(),
-                    <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">w</span>.<span class="ident">will_wake</span>(<span class="ident">c</span>) <span class="op">=&gt;</span> <span class="ident">w</span>.<span class="ident">wake</span>(),
-                    <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {}
+                <span class="ident">abort_on_panic</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">current</span> {
+                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">w</span>.<span class="ident">wake</span>(),
+                    <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">w</span>.<span class="ident">will_wake</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">w</span>.<span class="ident">wake</span>(),
+                    <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
                 });
             }
         }
@@ -283,12 +285,12 @@
         <span class="kw">loop</span> {
             <span class="comment">// There can&#39;t be two concurrent registrations because `JoinHandle` can only be polled</span>
             <span class="comment">// by a unique pinned reference.</span>
-            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">REGISTERING</span> <span class="op">==</span> <span class="number">0</span>);
+            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">REGISTERING</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
 
             <span class="comment">// If we&#39;re in the notifying state at this moment, just wake and return without</span>
             <span class="comment">// registering.</span>
-            <span class="kw">if</span> <span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">NOTIFYING</span> <span class="op">!=</span> <span class="number">0</span> {
-                <span class="ident">abort_on_panic</span>(<span class="op">||</span> <span class="ident">waker</span>.<span class="ident">wake_by_ref</span>());
+            <span class="kw">if</span> <span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">NOTIFYING</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="ident">abort_on_panic</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">waker</span>.<span class="ident">wake_by_ref</span>());
                 <span class="kw">return</span>;
             }
 
@@ -299,17 +301,17 @@
                 <span class="ident">Ordering</span>::<span class="ident">AcqRel</span>,
                 <span class="ident">Ordering</span>::<span class="ident">Acquire</span>,
             ) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
-                    <span class="ident">state</span> <span class="op">|=</span> <span class="ident">REGISTERING</span>;
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">state</span> <span class="op">|</span><span class="op">=</span> <span class="ident">REGISTERING</span>;
                     <span class="kw">break</span>;
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">s</span>) <span class="op">=&gt;</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">s</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">s</span>,
             }
         }
 
         <span class="comment">// Put the waker into the awaiter field.</span>
         <span class="kw">unsafe</span> {
-            <span class="ident">abort_on_panic</span>(<span class="op">||</span> (<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">awaiter</span>.<span class="ident">get</span>()) <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>.<span class="ident">clone</span>()));
+            <span class="ident">abort_on_panic</span>(<span class="op">|</span><span class="op">|</span> (<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">awaiter</span>.<span class="ident">get</span>()) <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>.<span class="ident">clone</span>()));
         }
 
         <span class="comment">// This variable will contain the newly registered waker if a notification comes in before</span>
@@ -318,9 +320,9 @@
 
         <span class="kw">loop</span> {
             <span class="comment">// If there was a notification, take the waker out of the awaiter field.</span>
-            <span class="kw">if</span> <span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">NOTIFYING</span> <span class="op">!=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">NOTIFYING</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">w</span>) <span class="op">=</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">awaiter</span>.<span class="ident">get</span>()).<span class="ident">take</span>() } {
-                    <span class="ident">abort_on_panic</span>(<span class="op">||</span> <span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">w</span>));
+                    <span class="ident">abort_on_panic</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">w</span>));
                 }
             }
 
@@ -336,20 +338,20 @@
                 .<span class="ident">state</span>
                 .<span class="ident">compare_exchange_weak</span>(<span class="ident">state</span>, <span class="ident">new</span>, <span class="ident">Ordering</span>::<span class="ident">AcqRel</span>, <span class="ident">Ordering</span>::<span class="ident">Acquire</span>)
             {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw">break</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">s</span>) <span class="op">=&gt;</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">s</span>,
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">s</span>,
             }
         }
 
         <span class="comment">// If there was a notification during registration, wake the awaiter now.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">w</span>) <span class="op">=</span> <span class="ident">waker</span> {
-            <span class="ident">abort_on_panic</span>(<span class="op">||</span> <span class="ident">w</span>.<span class="ident">wake</span>());
+            <span class="ident">abort_on_panic</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">wake</span>());
         }
     }
 
     <span class="doccomment">/// Returns the offset at which the tag of type `T` is stored.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">offset_tag</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">offset_tag</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">layout_header</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">new</span>::<span class="op">&lt;</span><span class="ident">Header</span><span class="op">&gt;</span>();
         <span class="kw">let</span> <span class="ident">layout_t</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">new</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
         <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">offset_t</span>) <span class="op">=</span> <span class="ident">extend</span>(<span class="ident">layout_header</span>, <span class="ident">layout_t</span>);
@@ -358,16 +360,16 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Header</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">SeqCst</span>);
 
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Header&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;scheduled&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">SCHEDULED</span> <span class="op">!=</span> <span class="number">0</span>))
-            .<span class="ident">field</span>(<span class="string">&quot;running&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">RUNNING</span> <span class="op">!=</span> <span class="number">0</span>))
-            .<span class="ident">field</span>(<span class="string">&quot;completed&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">COMPLETED</span> <span class="op">!=</span> <span class="number">0</span>))
-            .<span class="ident">field</span>(<span class="string">&quot;closed&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">CLOSED</span> <span class="op">!=</span> <span class="number">0</span>))
-            .<span class="ident">field</span>(<span class="string">&quot;awaiter&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">AWAITER</span> <span class="op">!=</span> <span class="number">0</span>))
-            .<span class="ident">field</span>(<span class="string">&quot;handle&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">HANDLE</span> <span class="op">!=</span> <span class="number">0</span>))
+            .<span class="ident">field</span>(<span class="string">&quot;scheduled&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">SCHEDULED</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>))
+            .<span class="ident">field</span>(<span class="string">&quot;running&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">RUNNING</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>))
+            .<span class="ident">field</span>(<span class="string">&quot;completed&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">COMPLETED</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>))
+            .<span class="ident">field</span>(<span class="string">&quot;closed&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">CLOSED</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>))
+            .<span class="ident">field</span>(<span class="string">&quot;awaiter&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">AWAITER</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>))
+            .<span class="ident">field</span>(<span class="string">&quot;handle&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">HANDLE</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>))
             .<span class="ident">field</span>(<span class="string">&quot;ref_count&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">state</span> <span class="op">/</span> <span class="ident">REFERENCE</span>))
             .<span class="ident">finish</span>()
     }

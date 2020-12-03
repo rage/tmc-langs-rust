@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/ring-0.16.17/src/aead/gcm/gcm_nohw.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>gcm_nohw.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../ring/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/ring-0.16.19/src/aead/gcm/gcm_nohw.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>gcm_nohw.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../ring/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -271,19 +273,19 @@
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">convert</span>::<span class="ident">TryInto</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)]</span>
-<span class="kw">fn</span> <span class="ident">gcm_mul64_nohw</span>(<span class="ident">a</span>: <span class="ident">u64</span>, <span class="ident">b</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> (<span class="ident">u64</span>, <span class="ident">u64</span>) {
+<span class="kw">fn</span> <span class="ident">gcm_mul64_nohw</span>(<span class="ident">a</span>: <span class="ident">u64</span>, <span class="ident">b</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">u64</span>, <span class="ident">u64</span>) {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">lo</span>(<span class="ident">a</span>: <span class="ident">u128</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">fn</span> <span class="ident">lo</span>(<span class="ident">a</span>: <span class="ident">u128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
         <span class="ident">a</span> <span class="kw">as</span> <span class="ident">u64</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">hi</span>(<span class="ident">a</span>: <span class="ident">u128</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
-        <span class="ident">lo</span>(<span class="ident">a</span> <span class="op">&gt;&gt;</span> <span class="number">64</span>)
+    <span class="kw">fn</span> <span class="ident">hi</span>(<span class="ident">a</span>: <span class="ident">u128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+        <span class="ident">lo</span>(<span class="ident">a</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">64</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">mul</span>(<span class="ident">a</span>: <span class="ident">u64</span>, <span class="ident">b</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">u128</span> {
+    <span class="kw">fn</span> <span class="ident">mul</span>(<span class="ident">a</span>: <span class="ident">u64</span>, <span class="ident">b</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u128</span> {
         <span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">a</span>) <span class="op">*</span> <span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">b</span>)
     }
 
@@ -309,13 +311,13 @@
 
     <span class="comment">// Multiply the bottom four bits of |a| with |b|.</span>
     <span class="kw">let</span> <span class="ident">a0_mask</span> <span class="op">=</span> <span class="number">0u64</span>.<span class="ident">wrapping_sub</span>(<span class="ident">a</span> <span class="op">&amp;</span> <span class="number">1</span>);
-    <span class="kw">let</span> <span class="ident">a1_mask</span> <span class="op">=</span> <span class="number">0u64</span>.<span class="ident">wrapping_sub</span>((<span class="ident">a</span> <span class="op">&gt;&gt;</span> <span class="number">1</span>) <span class="op">&amp;</span> <span class="number">1</span>);
-    <span class="kw">let</span> <span class="ident">a2_mask</span> <span class="op">=</span> <span class="number">0u64</span>.<span class="ident">wrapping_sub</span>((<span class="ident">a</span> <span class="op">&gt;&gt;</span> <span class="number">2</span>) <span class="op">&amp;</span> <span class="number">1</span>);
-    <span class="kw">let</span> <span class="ident">a3_mask</span> <span class="op">=</span> <span class="number">0u64</span>.<span class="ident">wrapping_sub</span>((<span class="ident">a</span> <span class="op">&gt;&gt;</span> <span class="number">3</span>) <span class="op">&amp;</span> <span class="number">1</span>);
+    <span class="kw">let</span> <span class="ident">a1_mask</span> <span class="op">=</span> <span class="number">0u64</span>.<span class="ident">wrapping_sub</span>((<span class="ident">a</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>) <span class="op">&amp;</span> <span class="number">1</span>);
+    <span class="kw">let</span> <span class="ident">a2_mask</span> <span class="op">=</span> <span class="number">0u64</span>.<span class="ident">wrapping_sub</span>((<span class="ident">a</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">2</span>) <span class="op">&amp;</span> <span class="number">1</span>);
+    <span class="kw">let</span> <span class="ident">a3_mask</span> <span class="op">=</span> <span class="number">0u64</span>.<span class="ident">wrapping_sub</span>((<span class="ident">a</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">3</span>) <span class="op">&amp;</span> <span class="number">1</span>);
     <span class="kw">let</span> <span class="ident">extra</span> <span class="op">=</span> <span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">a0_mask</span> <span class="op">&amp;</span> <span class="ident">b</span>)
-        <span class="op">^</span> (<span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">a1_mask</span> <span class="op">&amp;</span> <span class="ident">b</span>) <span class="op">&lt;&lt;</span> <span class="number">1</span>)
-        <span class="op">^</span> (<span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">a2_mask</span> <span class="op">&amp;</span> <span class="ident">b</span>) <span class="op">&lt;&lt;</span> <span class="number">2</span>)
-        <span class="op">^</span> (<span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">a3_mask</span> <span class="op">&amp;</span> <span class="ident">b</span>) <span class="op">&lt;&lt;</span> <span class="number">3</span>);
+        <span class="op">^</span> (<span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">a1_mask</span> <span class="op">&amp;</span> <span class="ident">b</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>)
+        <span class="op">^</span> (<span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">a2_mask</span> <span class="op">&amp;</span> <span class="ident">b</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">2</span>)
+        <span class="op">^</span> (<span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">a3_mask</span> <span class="op">&amp;</span> <span class="ident">b</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">3</span>);
 
     <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> (<span class="ident">lo</span>(<span class="ident">c0</span>) <span class="op">&amp;</span> <span class="number">0x1111111111111111</span>)
         <span class="op">^</span> (<span class="ident">lo</span>(<span class="ident">c1</span>) <span class="op">&amp;</span> <span class="number">0x2222222222222222</span>)
@@ -331,9 +333,9 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>))]</span>
-<span class="kw">fn</span> <span class="ident">gcm_mul32_nohw</span>(<span class="ident">a</span>: <span class="ident">u32</span>, <span class="ident">b</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
+<span class="kw">fn</span> <span class="ident">gcm_mul32_nohw</span>(<span class="ident">a</span>: <span class="ident">u32</span>, <span class="ident">b</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">mul</span>(<span class="ident">a</span>: <span class="ident">u32</span>, <span class="ident">b</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">fn</span> <span class="ident">mul</span>(<span class="ident">a</span>: <span class="ident">u32</span>, <span class="ident">b</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
         <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">a</span>) <span class="op">*</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">b</span>)
     }
 
@@ -361,14 +363,14 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>))]</span>
-<span class="kw">fn</span> <span class="ident">gcm_mul64_nohw</span>(<span class="ident">a</span>: <span class="ident">u64</span>, <span class="ident">b</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> (<span class="ident">u64</span>, <span class="ident">u64</span>) {
+<span class="kw">fn</span> <span class="ident">gcm_mul64_nohw</span>(<span class="ident">a</span>: <span class="ident">u64</span>, <span class="ident">b</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">u64</span>, <span class="ident">u64</span>) {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">lo</span>(<span class="ident">a</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">lo</span>(<span class="ident">a</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="ident">a</span> <span class="kw">as</span> <span class="ident">u32</span>
     }
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">hi</span>(<span class="ident">a</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
-        <span class="ident">lo</span>(<span class="ident">a</span> <span class="op">&gt;&gt;</span> <span class="number">32</span>)
+    <span class="kw">fn</span> <span class="ident">hi</span>(<span class="ident">a</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+        <span class="ident">lo</span>(<span class="ident">a</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>)
     }
 
     <span class="kw">let</span> <span class="ident">a0</span> <span class="op">=</span> <span class="ident">lo</span>(<span class="ident">a</span>);
@@ -379,10 +381,10 @@
     <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> <span class="ident">gcm_mul32_nohw</span>(<span class="ident">a0</span>, <span class="ident">b0</span>);
     <span class="kw">let</span> <span class="ident">hi</span> <span class="op">=</span> <span class="ident">gcm_mul32_nohw</span>(<span class="ident">a1</span>, <span class="ident">b1</span>);
     <span class="kw">let</span> <span class="ident">mid</span> <span class="op">=</span> <span class="ident">gcm_mul32_nohw</span>(<span class="ident">a0</span> <span class="op">^</span> <span class="ident">a1</span>, <span class="ident">b0</span> <span class="op">^</span> <span class="ident">b1</span>) <span class="op">^</span> <span class="ident">lo</span> <span class="op">^</span> <span class="ident">hi</span>;
-    (<span class="ident">lo</span> <span class="op">^</span> (<span class="ident">mid</span> <span class="op">&lt;&lt;</span> <span class="number">32</span>), <span class="ident">hi</span> <span class="op">^</span> (<span class="ident">mid</span> <span class="op">&gt;&gt;</span> <span class="number">32</span>))
+    (<span class="ident">lo</span> <span class="op">^</span> (<span class="ident">mid</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>), <span class="ident">hi</span> <span class="op">^</span> (<span class="ident">mid</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>))
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">xi</span>: [<span class="ident">u64</span>; <span class="number">2</span>]) <span class="op">-&gt;</span> <span class="kw">super</span>::<span class="ident">u128</span> {
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">xi</span>: [<span class="ident">u64</span>; <span class="number">2</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">super</span>::<span class="ident">u128</span> {
     <span class="comment">// We implement GHASH in terms of POLYVAL, as described in RFC8452. This</span>
     <span class="comment">// avoids a shift by 1 in the multiplication, needed to account for bit</span>
     <span class="comment">// reversal losing a bit after multiplication, that is,</span>
@@ -396,17 +398,17 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lo</span> <span class="op">=</span> <span class="ident">xi</span>[<span class="number">1</span>];
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hi</span> <span class="op">=</span> <span class="ident">xi</span>[<span class="number">0</span>];
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">carry</span> <span class="op">=</span> <span class="ident">hi</span> <span class="op">&gt;&gt;</span> <span class="number">63</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">carry</span> <span class="op">=</span> <span class="ident">hi</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">63</span>;
     <span class="ident">carry</span> <span class="op">=</span> <span class="number">0u64</span>.<span class="ident">wrapping_sub</span>(<span class="ident">carry</span>);
 
-    <span class="ident">hi</span> <span class="op">&lt;&lt;</span><span class="op">=</span> <span class="number">1</span>;
-    <span class="ident">hi</span> <span class="op">|=</span> <span class="ident">lo</span> <span class="op">&gt;&gt;</span> <span class="number">63</span>;
-    <span class="ident">lo</span> <span class="op">&lt;&lt;</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="ident">hi</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="ident">hi</span> <span class="op">|</span><span class="op">=</span> <span class="ident">lo</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">63</span>;
+    <span class="ident">lo</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span>;
 
     <span class="comment">// The irreducible polynomial is 1 + x^121 + x^126 + x^127 + x^128, so we</span>
     <span class="comment">// conditionally add 0xc200...0001.</span>
-    <span class="ident">lo</span> <span class="op">^=</span> <span class="ident">carry</span> <span class="op">&amp;</span> <span class="number">1</span>;
-    <span class="ident">hi</span> <span class="op">^=</span> <span class="ident">carry</span> <span class="op">&amp;</span> <span class="number">0xc200000000000000</span>;
+    <span class="ident">lo</span> <span class="op">^</span><span class="op">=</span> <span class="ident">carry</span> <span class="op">&amp;</span> <span class="number">1</span>;
+    <span class="ident">hi</span> <span class="op">^</span><span class="op">=</span> <span class="ident">carry</span> <span class="op">&amp;</span> <span class="number">0xc200000000000000</span>;
 
     <span class="comment">// This implementation does not use the rest of |Htable|.</span>
     <span class="kw">super</span>::<span class="ident">u128</span> { <span class="ident">lo</span>, <span class="ident">hi</span> }
@@ -419,10 +421,10 @@
     <span class="kw">let</span> (<span class="ident">r0</span>, <span class="kw-2">mut</span> <span class="ident">r1</span>) <span class="op">=</span> <span class="ident">gcm_mul64_nohw</span>(<span class="ident">xi</span>[<span class="number">0</span>], <span class="ident">h</span>.<span class="ident">lo</span>);
     <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">r2</span>, <span class="kw-2">mut</span> <span class="ident">r3</span>) <span class="op">=</span> <span class="ident">gcm_mul64_nohw</span>(<span class="ident">xi</span>[<span class="number">1</span>], <span class="ident">h</span>.<span class="ident">hi</span>);
     <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">mid0</span>, <span class="kw-2">mut</span> <span class="ident">mid1</span>) <span class="op">=</span> <span class="ident">gcm_mul64_nohw</span>(<span class="ident">xi</span>[<span class="number">0</span>] <span class="op">^</span> <span class="ident">xi</span>[<span class="number">1</span>], <span class="ident">h</span>.<span class="ident">hi</span> <span class="op">^</span> <span class="ident">h</span>.<span class="ident">lo</span>);
-    <span class="ident">mid0</span> <span class="op">^=</span> <span class="ident">r0</span> <span class="op">^</span> <span class="ident">r2</span>;
-    <span class="ident">mid1</span> <span class="op">^=</span> <span class="ident">r1</span> <span class="op">^</span> <span class="ident">r3</span>;
-    <span class="ident">r2</span> <span class="op">^=</span> <span class="ident">mid1</span>;
-    <span class="ident">r1</span> <span class="op">^=</span> <span class="ident">mid0</span>;
+    <span class="ident">mid0</span> <span class="op">^</span><span class="op">=</span> <span class="ident">r0</span> <span class="op">^</span> <span class="ident">r2</span>;
+    <span class="ident">mid1</span> <span class="op">^</span><span class="op">=</span> <span class="ident">r1</span> <span class="op">^</span> <span class="ident">r3</span>;
+    <span class="ident">r2</span> <span class="op">^</span><span class="op">=</span> <span class="ident">mid1</span>;
+    <span class="ident">r1</span> <span class="op">^</span><span class="op">=</span> <span class="ident">mid0</span>;
 
     <span class="comment">// Now we multiply our 256-bit result by x^-128 and reduce. |r2| and</span>
     <span class="comment">// |r3| shifts into position and we must multiply |r0| and |r1| by x^-128. We</span>
@@ -437,26 +439,26 @@
     <span class="comment">// another reduction steps. Instead, we gather the excess bits, incorporate</span>
     <span class="comment">// them into |r0| and |r1| and reduce once. See slides 17-19</span>
     <span class="comment">// of https://crypto.stanford.edu/RealWorldCrypto/slides/gueron.pdf.</span>
-    <span class="ident">r1</span> <span class="op">^=</span> (<span class="ident">r0</span> <span class="op">&lt;&lt;</span> <span class="number">63</span>) <span class="op">^</span> (<span class="ident">r0</span> <span class="op">&lt;&lt;</span> <span class="number">62</span>) <span class="op">^</span> (<span class="ident">r0</span> <span class="op">&lt;&lt;</span> <span class="number">57</span>);
+    <span class="ident">r1</span> <span class="op">^</span><span class="op">=</span> (<span class="ident">r0</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">63</span>) <span class="op">^</span> (<span class="ident">r0</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">62</span>) <span class="op">^</span> (<span class="ident">r0</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">57</span>);
 
     <span class="comment">// 1</span>
-    <span class="ident">r2</span> <span class="op">^=</span> <span class="ident">r0</span>;
-    <span class="ident">r3</span> <span class="op">^=</span> <span class="ident">r1</span>;
+    <span class="ident">r2</span> <span class="op">^</span><span class="op">=</span> <span class="ident">r0</span>;
+    <span class="ident">r3</span> <span class="op">^</span><span class="op">=</span> <span class="ident">r1</span>;
 
     <span class="comment">// x^-1</span>
-    <span class="ident">r2</span> <span class="op">^=</span> <span class="ident">r0</span> <span class="op">&gt;&gt;</span> <span class="number">1</span>;
-    <span class="ident">r2</span> <span class="op">^=</span> <span class="ident">r1</span> <span class="op">&lt;&lt;</span> <span class="number">63</span>;
-    <span class="ident">r3</span> <span class="op">^=</span> <span class="ident">r1</span> <span class="op">&gt;&gt;</span> <span class="number">1</span>;
+    <span class="ident">r2</span> <span class="op">^</span><span class="op">=</span> <span class="ident">r0</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>;
+    <span class="ident">r2</span> <span class="op">^</span><span class="op">=</span> <span class="ident">r1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">63</span>;
+    <span class="ident">r3</span> <span class="op">^</span><span class="op">=</span> <span class="ident">r1</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>;
 
     <span class="comment">// x^-2</span>
-    <span class="ident">r2</span> <span class="op">^=</span> <span class="ident">r0</span> <span class="op">&gt;&gt;</span> <span class="number">2</span>;
-    <span class="ident">r2</span> <span class="op">^=</span> <span class="ident">r1</span> <span class="op">&lt;&lt;</span> <span class="number">62</span>;
-    <span class="ident">r3</span> <span class="op">^=</span> <span class="ident">r1</span> <span class="op">&gt;&gt;</span> <span class="number">2</span>;
+    <span class="ident">r2</span> <span class="op">^</span><span class="op">=</span> <span class="ident">r0</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">2</span>;
+    <span class="ident">r2</span> <span class="op">^</span><span class="op">=</span> <span class="ident">r1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">62</span>;
+    <span class="ident">r3</span> <span class="op">^</span><span class="op">=</span> <span class="ident">r1</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">2</span>;
 
     <span class="comment">// x^-7</span>
-    <span class="ident">r2</span> <span class="op">^=</span> <span class="ident">r0</span> <span class="op">&gt;&gt;</span> <span class="number">7</span>;
-    <span class="ident">r2</span> <span class="op">^=</span> <span class="ident">r1</span> <span class="op">&lt;&lt;</span> <span class="number">57</span>;
-    <span class="ident">r3</span> <span class="op">^=</span> <span class="ident">r1</span> <span class="op">&gt;&gt;</span> <span class="number">7</span>;
+    <span class="ident">r2</span> <span class="op">^</span><span class="op">=</span> <span class="ident">r0</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">7</span>;
+    <span class="ident">r2</span> <span class="op">^</span><span class="op">=</span> <span class="ident">r1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">57</span>;
+    <span class="ident">r3</span> <span class="op">^</span><span class="op">=</span> <span class="ident">r1</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">7</span>;
 
     <span class="kw-2">*</span><span class="ident">xi</span> <span class="op">=</span> [<span class="ident">r2</span>, <span class="ident">r3</span>];
 }
@@ -470,8 +472,8 @@
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">ghash</span>(<span class="ident">xi</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Xi</span>, <span class="ident">h</span>: <span class="kw">super</span>::<span class="ident">u128</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) {
     <span class="ident">with_swapped_xi</span>(<span class="ident">xi</span>, <span class="op">|</span><span class="ident">swapped</span><span class="op">|</span> {
         <span class="ident">input</span>.<span class="ident">chunks_exact</span>(<span class="number">16</span>).<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">inp</span><span class="op">|</span> {
-            <span class="ident">swapped</span>[<span class="number">0</span>] <span class="op">^=</span> <span class="ident">u64</span>::<span class="ident">from_be_bytes</span>(<span class="ident">inp</span>[<span class="number">8</span>..].<span class="ident">try_into</span>().<span class="ident">unwrap</span>());
-            <span class="ident">swapped</span>[<span class="number">1</span>] <span class="op">^=</span> <span class="ident">u64</span>::<span class="ident">from_be_bytes</span>(<span class="ident">inp</span>[..<span class="number">8</span>].<span class="ident">try_into</span>().<span class="ident">unwrap</span>());
+            <span class="ident">swapped</span>[<span class="number">0</span>] <span class="op">^</span><span class="op">=</span> <span class="ident">u64</span>::<span class="ident">from_be_bytes</span>(<span class="ident">inp</span>[<span class="number">8</span>..].<span class="ident">try_into</span>().<span class="ident">unwrap</span>());
+            <span class="ident">swapped</span>[<span class="number">1</span>] <span class="op">^</span><span class="op">=</span> <span class="ident">u64</span>::<span class="ident">from_be_bytes</span>(<span class="ident">inp</span>[..<span class="number">8</span>].<span class="ident">try_into</span>().<span class="ident">unwrap</span>());
             <span class="ident">gcm_polyval_nohw</span>(<span class="ident">swapped</span>, <span class="ident">h</span>);
         });
     });

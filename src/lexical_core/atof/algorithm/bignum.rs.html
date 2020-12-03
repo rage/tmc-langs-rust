@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/lexical-core-0.7.4/src/atof/algorithm/bignum.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bignum.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../lexical_core/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/lexical-core-0.7.4/src/atof/algorithm/bignum.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bignum.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../lexical_core/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -248,7 +250,7 @@
 <span class="doccomment">/// Calculate the integral ceiling of the binary factor from a basen number.</span>
 <span class="macro">perftools_inline</span><span class="macro">!</span>{
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">integral_binary_factor</span>(<span class="ident">radix</span>: <span class="ident">u32</span>)
-    <span class="op">-&gt;</span> <span class="ident">u32</span>
+    <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>
 {
     <span class="macro">debug_assert_radix</span><span class="macro">!</span>(<span class="ident">radix</span>);
 
@@ -258,43 +260,43 @@
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;radix&quot;</span>)]</span> {
         <span class="kw">match</span> <span class="ident">radix</span>.<span class="ident">as_i32</span>() {
-            <span class="number">2</span>  <span class="op">=&gt;</span> <span class="number">1</span>,
-            <span class="number">3</span>  <span class="op">=&gt;</span> <span class="number">2</span>,
-            <span class="number">4</span>  <span class="op">=&gt;</span> <span class="number">2</span>,
-            <span class="number">5</span>  <span class="op">=&gt;</span> <span class="number">3</span>,
-            <span class="number">6</span>  <span class="op">=&gt;</span> <span class="number">3</span>,
-            <span class="number">7</span>  <span class="op">=&gt;</span> <span class="number">3</span>,
-            <span class="number">8</span>  <span class="op">=&gt;</span> <span class="number">3</span>,
-            <span class="number">9</span>  <span class="op">=&gt;</span> <span class="number">4</span>,
-            <span class="number">10</span> <span class="op">=&gt;</span> <span class="number">4</span>,
-            <span class="number">11</span> <span class="op">=&gt;</span> <span class="number">4</span>,
-            <span class="number">12</span> <span class="op">=&gt;</span> <span class="number">4</span>,
-            <span class="number">13</span> <span class="op">=&gt;</span> <span class="number">4</span>,
-            <span class="number">14</span> <span class="op">=&gt;</span> <span class="number">4</span>,
-            <span class="number">15</span> <span class="op">=&gt;</span> <span class="number">4</span>,
-            <span class="number">16</span> <span class="op">=&gt;</span> <span class="number">4</span>,
-            <span class="number">17</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="number">18</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="number">19</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="number">20</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="number">21</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="number">22</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="number">23</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="number">24</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="number">25</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="number">26</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="number">27</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="number">28</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="number">29</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="number">30</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="number">31</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="number">32</span> <span class="op">=&gt;</span> <span class="number">5</span>,
-            <span class="number">33</span> <span class="op">=&gt;</span> <span class="number">6</span>,
-            <span class="number">34</span> <span class="op">=&gt;</span> <span class="number">6</span>,
-            <span class="number">35</span> <span class="op">=&gt;</span> <span class="number">6</span>,
-            <span class="number">36</span> <span class="op">=&gt;</span> <span class="number">6</span>,
+            <span class="number">2</span>  <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
+            <span class="number">3</span>  <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
+            <span class="number">4</span>  <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
+            <span class="number">5</span>  <span class="op">=</span><span class="op">&gt;</span> <span class="number">3</span>,
+            <span class="number">6</span>  <span class="op">=</span><span class="op">&gt;</span> <span class="number">3</span>,
+            <span class="number">7</span>  <span class="op">=</span><span class="op">&gt;</span> <span class="number">3</span>,
+            <span class="number">8</span>  <span class="op">=</span><span class="op">&gt;</span> <span class="number">3</span>,
+            <span class="number">9</span>  <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
+            <span class="number">10</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
+            <span class="number">11</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
+            <span class="number">12</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
+            <span class="number">13</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
+            <span class="number">14</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
+            <span class="number">15</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
+            <span class="number">16</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>,
+            <span class="number">17</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="number">18</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="number">19</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="number">20</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="number">21</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="number">22</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="number">23</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="number">24</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="number">25</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="number">26</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="number">27</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="number">28</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="number">29</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="number">30</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="number">31</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="number">32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span>,
+            <span class="number">33</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">6</span>,
+            <span class="number">34</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">6</span>,
+            <span class="number">35</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">6</span>,
+            <span class="number">36</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">6</span>,
             <span class="comment">// Invalid radix</span>
-            <span class="kw">_</span>  <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+            <span class="kw">_</span>  <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
         }
     }
 }}
@@ -310,7 +312,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Bigint</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="comment">// We want to avoid lower-order</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bigint</span> <span class="op">=</span> <span class="ident">Bigint</span> { <span class="ident">data</span>: <span class="ident">IntStorageType</span>::<span class="ident">default</span>() };
         <span class="ident">bigint</span>.<span class="ident">data</span>.<span class="ident">reserve</span>(<span class="number">20</span>);
@@ -322,12 +324,12 @@
     <span class="kw">type</span> <span class="ident">StorageType</span> <span class="op">=</span> <span class="ident">IntStorageType</span>;
 
     <span class="macro">perftools_inline_always</span><span class="macro">!</span>{
-    <span class="kw">fn</span> <span class="ident">data</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">Self</span>::<span class="ident">StorageType</span> {
+    <span class="kw">fn</span> <span class="ident">data</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">Self</span>::<span class="ident">StorageType</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>
     }}
 
     <span class="macro">perftools_inline_always</span><span class="macro">!</span>{
-    <span class="kw">fn</span> <span class="ident">data_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">StorageType</span> {
+    <span class="kw">fn</span> <span class="ident">data_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">StorageType</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">data</span>
     }}
 }
@@ -364,7 +366,7 @@
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Bigfloat</span> {
     <span class="macro">perftools_inline</span><span class="macro">!</span>{
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="comment">// We want to avoid lower-order</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bigfloat</span> <span class="op">=</span> <span class="ident">Bigfloat</span> { <span class="ident">data</span>: <span class="ident">FloatStorageType</span>::<span class="ident">default</span>(), <span class="ident">exp</span>: <span class="number">0</span> };
         <span class="ident">bigfloat</span>.<span class="ident">data</span>.<span class="ident">reserve</span>(<span class="number">10</span>);
@@ -376,12 +378,12 @@
     <span class="kw">type</span> <span class="ident">StorageType</span> <span class="op">=</span> <span class="ident">FloatStorageType</span>;
 
     <span class="macro">perftools_inline_always</span><span class="macro">!</span>{
-    <span class="kw">fn</span> <span class="ident">data</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">Self</span>::<span class="ident">StorageType</span> {
+    <span class="kw">fn</span> <span class="ident">data</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">Self</span>::<span class="ident">StorageType</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>
     }}
 
     <span class="macro">perftools_inline_always</span><span class="macro">!</span>{
-    <span class="kw">fn</span> <span class="ident">data_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">StorageType</span> {
+    <span class="kw">fn</span> <span class="ident">data_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">StorageType</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">data</span>
     }}
 }
@@ -390,7 +392,7 @@
     <span class="macro">perftools_inline</span><span class="macro">!</span>{
     <span class="kw">fn</span> <span class="ident">imul_pow2</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u32</span>) {
         <span class="comment">// Increment exponent to simulate actual multiplication.</span>
-        <span class="self">self</span>.<span class="ident">exp</span> <span class="op">+=</span> <span class="ident">n</span>.<span class="ident">as_i32</span>();
+        <span class="self">self</span>.<span class="ident">exp</span> <span class="op">+</span><span class="op">=</span> <span class="ident">n</span>.<span class="ident">as_i32</span>();
     }}
 }
 
@@ -401,12 +403,12 @@
 
 <span class="doccomment">/// Simple overloads to allow conversions of extended floats to big integers.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ToBigfloat</span><span class="op">&lt;</span><span class="ident">M</span>: <span class="ident">Mantissa</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">to_bigfloat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Bigfloat</span>;
+    <span class="kw">fn</span> <span class="ident">to_bigfloat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Bigfloat</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">ToBigfloat</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ExtendedFloat</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
     <span class="macro">perftools_inline</span><span class="macro">!</span>{
-    <span class="kw">fn</span> <span class="ident">to_bigfloat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Bigfloat</span> {
+    <span class="kw">fn</span> <span class="ident">to_bigfloat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Bigfloat</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bigfloat</span> <span class="op">=</span> <span class="ident">Bigfloat</span>::<span class="ident">from_u32</span>(<span class="self">self</span>.<span class="ident">mant</span>);
         <span class="ident">bigfloat</span>.<span class="ident">exp</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">exp</span>;
         <span class="ident">bigfloat</span>
@@ -415,7 +417,7 @@
 
 <span class="kw">impl</span> <span class="ident">ToBigfloat</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ExtendedFloat</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
     <span class="macro">perftools_inline</span><span class="macro">!</span>{
-    <span class="kw">fn</span> <span class="ident">to_bigfloat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Bigfloat</span> {
+    <span class="kw">fn</span> <span class="ident">to_bigfloat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Bigfloat</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bigfloat</span> <span class="op">=</span> <span class="ident">Bigfloat</span>::<span class="ident">from_u64</span>(<span class="self">self</span>.<span class="ident">mant</span>);
         <span class="ident">bigfloat</span>.<span class="ident">exp</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">exp</span>;
         <span class="ident">bigfloat</span>
@@ -424,7 +426,7 @@
 
 <span class="kw">impl</span> <span class="ident">ToBigfloat</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ExtendedFloat</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> {
     <span class="macro">perftools_inline</span><span class="macro">!</span>{
-    <span class="kw">fn</span> <span class="ident">to_bigfloat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Bigfloat</span> {
+    <span class="kw">fn</span> <span class="ident">to_bigfloat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Bigfloat</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bigfloat</span> <span class="op">=</span> <span class="ident">Bigfloat</span>::<span class="ident">from_u128</span>(<span class="self">self</span>.<span class="ident">mant</span>);
         <span class="ident">bigfloat</span>.<span class="ident">exp</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">exp</span>;
         <span class="ident">bigfloat</span>

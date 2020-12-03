@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.23/src/sync/semaphore_ll.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>semaphore_ll.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.23/src/sync/semaphore_ll.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>semaphore_ll.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1253,7 +1255,7 @@
     <span class="ident">state</span>: <span class="ident">AtomicUsize</span>,
 
     <span class="doccomment">/// waiter queue head pointer.</span>
-    <span class="ident">head</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">head</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Coordinates access to the queue head.</span>
     <span class="ident">rx_lock</span>: <span class="ident">AtomicUsize</span>,
@@ -1275,7 +1277,7 @@
 <span class="doccomment">/// before dropping the permit.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Permit</span> {
-    <span class="ident">waiter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">waiter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">state</span>: <span class="ident">PermitState</span>,
 }
 
@@ -1363,7 +1365,7 @@
 <span class="kw">const</span> <span class="ident">CLOSED_FLAG</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0b10</span>;
 
 <span class="doccomment">/// Maximum number of permits a semaphore can manage</span>
-<span class="kw">const</span> <span class="ident">MAX_PERMITS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">usize</span>::<span class="ident">MAX</span> <span class="op">&gt;&gt;</span> <span class="ident">NUM_SHIFT</span>;
+<span class="kw">const</span> <span class="ident">MAX_PERMITS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">usize</span>::<span class="ident">MAX</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">NUM_SHIFT</span>;
 
 <span class="doccomment">/// When representing &quot;numbers&quot;, the state has to be shifted this much (to get</span>
 <span class="doccomment">/// rid of the flag bit).</span>
@@ -1377,12 +1379,12 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if `permits` is zero.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">permits</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">Semaphore</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">permits</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Semaphore</span> {
         <span class="kw">let</span> <span class="ident">stub</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Waiter</span>::<span class="ident">new</span>());
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">NonNull</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">stub</span>);
 
         <span class="comment">// Allocations are aligned</span>
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&amp;</span> <span class="ident">NUM_FLAG</span> <span class="op">==</span> <span class="number">0</span>);
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&amp;</span> <span class="ident">NUM_FLAG</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
 
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">SemState</span>::<span class="ident">new</span>(<span class="ident">permits</span>, <span class="kw-2">&amp;</span><span class="ident">stub</span>);
 
@@ -1395,7 +1397,7 @@
     }
 
     <span class="doccomment">/// Returns the current number of available permits</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">available_permits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">available_permits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">SemState</span>(<span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>));
         <span class="ident">curr</span>.<span class="ident">available_permits</span>()
     }
@@ -1407,9 +1409,9 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">num_permits</span>: <span class="ident">u16</span>,
         <span class="ident">permit</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Permit</span>,
-    ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AcquireError</span><span class="op">&gt;&gt;</span> {
-        <span class="self">self</span>.<span class="ident">poll_acquire2</span>(<span class="ident">num_permits</span>, <span class="op">||</span> {
-            <span class="kw">let</span> <span class="ident">waiter</span> <span class="op">=</span> <span class="ident">permit</span>.<span class="ident">waiter</span>.<span class="ident">get_or_insert_with</span>(<span class="op">||</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Waiter</span>::<span class="ident">new</span>()));
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AcquireError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">poll_acquire2</span>(<span class="ident">num_permits</span>, <span class="op">|</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">waiter</span> <span class="op">=</span> <span class="ident">permit</span>.<span class="ident">waiter</span>.<span class="ident">get_or_insert_with</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Waiter</span>::<span class="ident">new</span>()));
 
             <span class="ident">waiter</span>.<span class="ident">waker</span>.<span class="ident">register_by_ref</span>(<span class="ident">cx</span>.<span class="ident">waker</span>());
 
@@ -1417,10 +1419,10 @@
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">try_acquire</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">num_permits</span>: <span class="ident">u16</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TryAcquireError</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">poll_acquire2</span>(<span class="ident">num_permits</span>, <span class="op">||</span> <span class="prelude-val">None</span>) {
-            <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>) <span class="op">=&gt;</span> <span class="ident">res</span>.<span class="ident">map_err</span>(<span class="ident">to_try_acquire</span>),
-            <span class="ident">Poll</span>::<span class="ident">Pending</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">TryAcquireError</span>::<span class="ident">NoPermits</span>),
+    <span class="kw">fn</span> <span class="ident">try_acquire</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">num_permits</span>: <span class="ident">u16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TryAcquireError</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">poll_acquire2</span>(<span class="ident">num_permits</span>, <span class="op">|</span><span class="op">|</span> <span class="prelude-val">None</span>) {
+            <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">res</span>.<span class="ident">map_err</span>(<span class="ident">to_try_acquire</span>),
+            <span class="ident">Poll</span>::<span class="ident">Pending</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">TryAcquireError</span>::<span class="ident">NoPermits</span>),
         }
     }
 
@@ -1433,9 +1435,9 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">num_permits</span>: <span class="ident">u16</span>,
         <span class="kw-2">mut</span> <span class="ident">get_waiter</span>: <span class="ident">F</span>,
-    ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AcquireError</span><span class="op">&gt;&gt;</span>
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AcquireError</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;&gt;</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">num_permits</span> <span class="op">=</span> <span class="ident">num_permits</span> <span class="kw">as</span> <span class="ident">usize</span>;
 
@@ -1443,14 +1445,14 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">SemState</span>(<span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>));
 
         <span class="comment">// Saves a ref to the waiter node</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">maybe_waiter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">maybe_waiter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 
         <span class="doccomment">/// Used in branches where we attempt to push the waiter into the wait</span>
         <span class="doccomment">/// queue but fail due to permits becoming available or the wait queue</span>
         <span class="doccomment">/// transitioning to &quot;closed&quot;. In this case, the waiter must be</span>
         <span class="doccomment">/// transitioned back to the &quot;idle&quot; state.</span>
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">revert_to_idle</span> {
-            () <span class="op">=&gt;</span> {
+            () <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waiter</span>) <span class="op">=</span> <span class="ident">maybe_waiter</span> {
                     <span class="kw">unsafe</span> { <span class="ident">waiter</span>.<span class="ident">as_ref</span>() }.<span class="ident">revert_to_idle</span>();
                 }
@@ -1470,7 +1472,7 @@
             <span class="kw">if</span> <span class="op">!</span><span class="ident">acquired</span> {
                 <span class="comment">// There are not enough available permits to satisfy the</span>
                 <span class="comment">// request. The permit transitions to a waiting state.</span>
-                <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">curr</span>.<span class="ident">waiter</span>().<span class="ident">is_some</span>() <span class="op">||</span> <span class="ident">curr</span>.<span class="ident">available_permits</span>() <span class="op">&lt;</span> <span class="ident">num_permits</span>);
+                <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">curr</span>.<span class="ident">waiter</span>().<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">curr</span>.<span class="ident">available_permits</span>() <span class="op">&lt;</span> <span class="ident">num_permits</span>);
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waiter</span>) <span class="op">=</span> <span class="ident">maybe_waiter</span>.<span class="ident">as_ref</span>() {
                     <span class="comment">// Safety: the caller owns the waiter.</span>
@@ -1506,7 +1508,7 @@
             <span class="macro">debug_assert_ne</span><span class="macro">!</span>(<span class="ident">next</span>.<span class="number">0</span>, <span class="number">0</span>);
 
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(<span class="ident">curr</span>.<span class="number">0</span>, <span class="ident">next</span>.<span class="number">0</span>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="ident">acquired</span> {
                         <span class="comment">// Successfully acquire permits **without** queuing the</span>
                         <span class="comment">// waiter node. The waiter node is not currently in the</span>
@@ -1519,7 +1521,7 @@
                         <span class="comment">// queue into a consistent state.</span>
 
                         <span class="kw">let</span> <span class="ident">prev_waiter</span> <span class="op">=</span>
-                            <span class="ident">curr</span>.<span class="ident">waiter</span>().<span class="ident">unwrap_or_else</span>(<span class="op">||</span> <span class="ident">NonNull</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">stub</span>));
+                            <span class="ident">curr</span>.<span class="ident">waiter</span>().<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">NonNull</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">stub</span>));
 
                         <span class="kw">let</span> <span class="ident">waiter</span> <span class="op">=</span> <span class="ident">maybe_waiter</span>.<span class="ident">unwrap</span>();
 
@@ -1535,7 +1537,7 @@
                         <span class="kw">return</span> <span class="ident">Pending</span>;
                     }
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=&gt;</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">curr</span> <span class="op">=</span> <span class="ident">SemState</span>(<span class="ident">actual</span>);
                 }
             }
@@ -1548,7 +1550,7 @@
         <span class="comment">// Acquire the `rx_lock`, setting the &quot;closed&quot; flag on the lock.</span>
         <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rx_lock</span>.<span class="ident">fetch_or</span>(<span class="number">1</span>, <span class="ident">AcqRel</span>);
 
-        <span class="kw">if</span> <span class="ident">prev</span> <span class="op">!=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">prev</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="comment">// Another thread has the lock and will be responsible for notifying</span>
             <span class="comment">// pending waiters.</span>
             <span class="kw">return</span>;
@@ -1560,15 +1562,15 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The maximum number of permits is `usize::MAX &gt;&gt; 3`, and this function will panic if the limit is exceeded.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_permits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) {
-        <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">n</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">return</span>;
         }
 
         <span class="comment">// TODO: Handle overflow. A panic is not sufficient, the process must</span>
         <span class="comment">// abort.</span>
-        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rx_lock</span>.<span class="ident">fetch_add</span>(<span class="ident">n</span> <span class="op">&lt;&lt;</span> <span class="number">1</span>, <span class="ident">AcqRel</span>);
+        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rx_lock</span>.<span class="ident">fetch_add</span>(<span class="ident">n</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>, <span class="ident">AcqRel</span>);
 
-        <span class="kw">if</span> <span class="ident">prev</span> <span class="op">!=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">prev</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="comment">// Another thread has the lock and will be responsible for notifying</span>
             <span class="comment">// pending waiters.</span>
             <span class="kw">return</span>;
@@ -1578,7 +1580,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">add_permits_locked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">rem</span>: <span class="ident">usize</span>, <span class="kw-2">mut</span> <span class="ident">closed</span>: <span class="ident">bool</span>) {
-        <span class="kw">while</span> <span class="ident">rem</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">||</span> <span class="ident">closed</span> {
+        <span class="kw">while</span> <span class="ident">rem</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">closed</span> {
             <span class="kw">if</span> <span class="ident">closed</span> {
                 <span class="ident">SemState</span>::<span class="ident">fetch_set_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>, <span class="ident">AcqRel</span>);
             }
@@ -1586,7 +1588,7 @@
             <span class="comment">// Release the permits and notify</span>
             <span class="self">self</span>.<span class="ident">add_permits_locked2</span>(<span class="ident">rem</span>, <span class="ident">closed</span>);
 
-            <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">rem</span> <span class="op">&lt;&lt;</span> <span class="number">1</span>;
+            <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">rem</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>;
 
             <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">closed</span> {
                 <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rx_lock</span>.<span class="ident">fetch_sub</span>(<span class="ident">n</span> <span class="op">|</span> <span class="number">1</span>, <span class="ident">AcqRel</span>);
@@ -1594,11 +1596,11 @@
                 <span class="ident">actual</span>
             } <span class="kw">else</span> {
                 <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rx_lock</span>.<span class="ident">fetch_sub</span>(<span class="ident">n</span>, <span class="ident">AcqRel</span>);
-                <span class="ident">closed</span> <span class="op">=</span> <span class="ident">actual</span> <span class="op">&amp;</span> <span class="number">1</span> <span class="op">==</span> <span class="number">1</span>;
+                <span class="ident">closed</span> <span class="op">=</span> <span class="ident">actual</span> <span class="op">&amp;</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="ident">actual</span>
             };
 
-            <span class="ident">rem</span> <span class="op">=</span> (<span class="ident">actual</span> <span class="op">&gt;&gt;</span> <span class="number">1</span>) <span class="op">-</span> <span class="ident">rem</span>;
+            <span class="ident">rem</span> <span class="op">=</span> (<span class="ident">actual</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>) <span class="op">-</span> <span class="ident">rem</span>;
         }
     }
 
@@ -1620,12 +1622,12 @@
 
                 <span class="kw">let</span> <span class="ident">stub</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">stub</span>();
 
-                <span class="kw">if</span> <span class="ident">head</span> <span class="op">==</span> <span class="ident">stub</span> {
+                <span class="kw">if</span> <span class="ident">head</span> <span class="op">=</span><span class="op">=</span> <span class="ident">stub</span> {
                     <span class="comment">// The stub node indicates an empty queue. Any remaining</span>
                     <span class="comment">// permits get assigned back to the semaphore.</span>
                     <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">NonNull</span>::<span class="ident">new</span>(<span class="ident">next_ptr</span>) {
-                        <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=&gt;</span> <span class="ident">next</span>,
-                        <span class="prelude-val">None</span> <span class="op">=&gt;</span> {
+                        <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">next</span>,
+                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="comment">// This loop is not part of the standard intrusive mpsc</span>
                             <span class="comment">// channel algorithm. This is where we atomically pop</span>
                             <span class="comment">// the last task and add `n` to the remaining capacity.</span>
@@ -1664,8 +1666,8 @@
                                 <span class="ident">next</span>.<span class="ident">release_permits</span>(<span class="ident">n</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">stub</span>);
 
                                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(<span class="ident">curr</span>.<span class="number">0</span>, <span class="ident">next</span>.<span class="number">0</span>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>) {
-                                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw">return</span>,
-                                    <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=&gt;</span> {
+                                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
+                                    <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=</span><span class="op">&gt;</span> {
                                         <span class="ident">curr</span> <span class="op">=</span> <span class="ident">SemState</span>(<span class="ident">actual</span>);
                                     }
                                 }
@@ -1698,7 +1700,7 @@
                 <span class="comment">// This must always be a pointer as the wait list is not empty.</span>
                 <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">waiter</span>().<span class="ident">unwrap</span>();
 
-                <span class="kw">if</span> <span class="ident">tail</span> <span class="op">!=</span> <span class="ident">head</span> {
+                <span class="kw">if</span> <span class="ident">tail</span> <span class="op">!</span><span class="op">=</span> <span class="ident">head</span> {
                     <span class="comment">// Inconsistent</span>
                     <span class="ident">thread</span>::<span class="ident">yield_now</span>();
                     <span class="kw">continue</span> <span class="lifetime">&#39;outer</span>;
@@ -1756,8 +1758,8 @@
             <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">waiter</span>.<span class="ident">as_ref</span>() };
 
             <span class="kw">match</span> <span class="ident">w</span>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(<span class="ident">curr</span>.<span class="number">0</span>, <span class="ident">next</span>.<span class="number">0</span>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw">return</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">curr</span> <span class="op">=</span> <span class="ident">WaiterState</span>(<span class="ident">actual</span>);
                 }
             }
@@ -1793,7 +1795,7 @@
         <span class="ident">prev</span>.<span class="ident">as_ref</span>().<span class="ident">next</span>.<span class="ident">store</span>(<span class="ident">waiter</span>.<span class="ident">as_ptr</span>(), <span class="ident">Release</span>);
     }
 
-    <span class="kw">fn</span> <span class="ident">stub</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">stub</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> { <span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">stub</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>) }
     }
 }
@@ -1805,7 +1807,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Semaphore</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="ident">fmt</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Semaphore&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">SemState</span>::<span class="ident">load</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>, <span class="ident">Relaxed</span>))
             .<span class="ident">field</span>(<span class="string">&quot;head&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">head</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="ident">ptr</span>))
@@ -1824,7 +1826,7 @@
     <span class="doccomment">/// Creates a new `Permit`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The permit begins in the &quot;unacquired&quot; state.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">Permit</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Permit</span> {
         <span class="kw">use</span> <span class="ident">PermitState</span>::<span class="ident">Acquired</span>;
 
         <span class="ident">Permit</span> {
@@ -1835,10 +1837,10 @@
 
     <span class="doccomment">/// Returns `true` if the permit has been acquired</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span> <span class="comment">// may be used later</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_acquired</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_acquired</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span> {
-            <span class="ident">PermitState</span>::<span class="ident">Acquired</span>(<span class="ident">num</span>) <span class="kw">if</span> <span class="ident">num</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">PermitState</span>::<span class="ident">Acquired</span>(<span class="ident">num</span>) <span class="kw">if</span> <span class="ident">num</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }
     }
 
@@ -1849,17 +1851,17 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">num_permits</span>: <span class="ident">u16</span>,
         <span class="ident">semaphore</span>: <span class="kw-2">&amp;</span><span class="ident">Semaphore</span>,
-    ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AcquireError</span><span class="op">&gt;&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AcquireError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">Ordering</span>::<span class="kw-2">*</span>;
         <span class="kw">use</span> <span class="ident">PermitState</span>::<span class="kw-2">*</span>;
 
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span> {
-            <span class="ident">Waiting</span>(<span class="ident">requested</span>) <span class="op">=&gt;</span> {
+            <span class="ident">Waiting</span>(<span class="ident">requested</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// There must be a waiter</span>
                 <span class="kw">let</span> <span class="ident">waiter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">waiter</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
 
                 <span class="kw">match</span> <span class="ident">requested</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">num_permits</span>) {
-                    <span class="ident">Less</span> <span class="op">=&gt;</span> {
+                    <span class="ident">Less</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">let</span> <span class="ident">delta</span> <span class="op">=</span> <span class="ident">num_permits</span> <span class="op">-</span> <span class="ident">requested</span>;
 
                         <span class="comment">// Request additional permits. If the waiter has been</span>
@@ -1870,45 +1872,45 @@
                             <span class="comment">// Ignore the result. The check for</span>
                             <span class="comment">// `permits_to_acquire()` will converge the state as</span>
                             <span class="comment">// needed</span>
-                            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">semaphore</span>.<span class="ident">poll_acquire2</span>(<span class="ident">delta</span>, <span class="op">||</span> <span class="prelude-val">Some</span>(<span class="ident">waiter</span>))<span class="question-mark">?</span>;
+                            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">semaphore</span>.<span class="ident">poll_acquire2</span>(<span class="ident">delta</span>, <span class="op">|</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">waiter</span>))<span class="question-mark">?</span>;
                         }
 
                         <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">Waiting</span>(<span class="ident">num_permits</span>);
                     }
-                    <span class="ident">Greater</span> <span class="op">=&gt;</span> {
+                    <span class="ident">Greater</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">let</span> <span class="ident">delta</span> <span class="op">=</span> <span class="ident">requested</span> <span class="op">-</span> <span class="ident">num_permits</span>;
                         <span class="kw">let</span> <span class="ident">to_release</span> <span class="op">=</span> <span class="ident">waiter</span>.<span class="ident">try_dec_permits_to_acquire</span>(<span class="ident">delta</span> <span class="kw">as</span> <span class="ident">usize</span>);
 
                         <span class="ident">semaphore</span>.<span class="ident">add_permits</span>(<span class="ident">to_release</span>);
                         <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">Waiting</span>(<span class="ident">num_permits</span>);
                     }
-                    <span class="ident">Equal</span> <span class="op">=&gt;</span> {}
+                    <span class="ident">Equal</span> <span class="op">=</span><span class="op">&gt;</span> {}
                 }
 
-                <span class="kw">if</span> <span class="ident">waiter</span>.<span class="ident">permits_to_acquire</span>()<span class="question-mark">?</span> <span class="op">==</span> <span class="number">0</span> {
+                <span class="kw">if</span> <span class="ident">waiter</span>.<span class="ident">permits_to_acquire</span>()<span class="question-mark">?</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
                     <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">Acquired</span>(<span class="ident">requested</span>);
                     <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()));
                 }
 
                 <span class="ident">waiter</span>.<span class="ident">waker</span>.<span class="ident">register_by_ref</span>(<span class="ident">cx</span>.<span class="ident">waker</span>());
 
-                <span class="kw">if</span> <span class="ident">waiter</span>.<span class="ident">permits_to_acquire</span>()<span class="question-mark">?</span> <span class="op">==</span> <span class="number">0</span> {
+                <span class="kw">if</span> <span class="ident">waiter</span>.<span class="ident">permits_to_acquire</span>()<span class="question-mark">?</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
                     <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">Acquired</span>(<span class="ident">requested</span>);
                     <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()));
                 }
 
                 <span class="ident">Pending</span>
             }
-            <span class="ident">Acquired</span>(<span class="ident">acquired</span>) <span class="op">=&gt;</span> {
-                <span class="kw">if</span> <span class="ident">acquired</span> <span class="op">&gt;=</span> <span class="ident">num_permits</span> {
+            <span class="ident">Acquired</span>(<span class="ident">acquired</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="ident">acquired</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">num_permits</span> {
                     <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()))
                 } <span class="kw">else</span> {
                     <span class="kw">match</span> <span class="ident">semaphore</span>.<span class="ident">poll_acquire</span>(<span class="ident">cx</span>, <span class="ident">num_permits</span> <span class="op">-</span> <span class="ident">acquired</span>, <span class="self">self</span>)<span class="question-mark">?</span> {
-                        <span class="ident">Ready</span>(()) <span class="op">=&gt;</span> {
+                        <span class="ident">Ready</span>(()) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">Acquired</span>(<span class="ident">num_permits</span>);
                             <span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()))
                         }
-                        <span class="ident">Pending</span> <span class="op">=&gt;</span> {
+                        <span class="ident">Pending</span> <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">Waiting</span>(<span class="ident">num_permits</span>);
                             <span class="ident">Pending</span>
                         }
@@ -1923,11 +1925,11 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">num_permits</span>: <span class="ident">u16</span>,
         <span class="ident">semaphore</span>: <span class="kw-2">&amp;</span><span class="ident">Semaphore</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TryAcquireError</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TryAcquireError</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">PermitState</span>::<span class="kw-2">*</span>;
 
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span> {
-            <span class="ident">Waiting</span>(<span class="ident">requested</span>) <span class="op">=&gt;</span> {
+            <span class="ident">Waiting</span>(<span class="ident">requested</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// There must be a waiter</span>
                 <span class="kw">let</span> <span class="ident">waiter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">waiter</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
 
@@ -1941,7 +1943,7 @@
 
                 <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">waiter</span>.<span class="ident">permits_to_acquire</span>().<span class="ident">map_err</span>(<span class="ident">to_try_acquire</span>)<span class="question-mark">?</span>;
 
-                <span class="kw">if</span> <span class="ident">res</span> <span class="op">==</span> <span class="number">0</span> {
+                <span class="kw">if</span> <span class="ident">res</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
                     <span class="kw">if</span> <span class="ident">requested</span> <span class="op">&lt;</span> <span class="ident">num_permits</span> {
                         <span class="comment">// Try to acquire the additional permits</span>
                         <span class="ident">semaphore</span>.<span class="ident">try_acquire</span>(<span class="ident">num_permits</span> <span class="op">-</span> <span class="ident">requested</span>)<span class="question-mark">?</span>;
@@ -1953,7 +1955,7 @@
                     <span class="prelude-val">Err</span>(<span class="ident">TryAcquireError</span>::<span class="ident">NoPermits</span>)
                 }
             }
-            <span class="ident">Acquired</span>(<span class="ident">acquired</span>) <span class="op">=&gt;</span> {
+            <span class="ident">Acquired</span>(<span class="ident">acquired</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">acquired</span> <span class="op">&lt;</span> <span class="ident">num_permits</span> {
                     <span class="ident">semaphore</span>.<span class="ident">try_acquire</span>(<span class="ident">num_permits</span> <span class="op">-</span> <span class="ident">acquired</span>)<span class="question-mark">?</span>;
                     <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">Acquired</span>(<span class="ident">num_permits</span>);
@@ -1980,11 +1982,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Will forget **at most** the number of acquired permits. This number is</span>
     <span class="doccomment">/// returned.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">forget</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u16</span>) <span class="op">-&gt;</span> <span class="ident">u16</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">forget</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u16</span> {
         <span class="kw">use</span> <span class="ident">PermitState</span>::<span class="kw-2">*</span>;
 
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span> {
-            <span class="ident">Waiting</span>(<span class="ident">requested</span>) <span class="op">=&gt;</span> {
+            <span class="ident">Waiting</span>(<span class="ident">requested</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">n</span>, <span class="ident">requested</span>);
 
                 <span class="comment">// Decrement</span>
@@ -1994,9 +1996,9 @@
                     .<span class="ident">unwrap</span>()
                     .<span class="ident">try_dec_permits_to_acquire</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="kw">as</span> <span class="ident">u16</span>;
 
-                <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="ident">requested</span> {
+                <span class="kw">if</span> <span class="ident">n</span> <span class="op">=</span><span class="op">=</span> <span class="ident">requested</span> {
                     <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">Acquired</span>(<span class="number">0</span>);
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">acquired</span> <span class="op">==</span> <span class="ident">requested</span> <span class="op">-</span> <span class="ident">n</span> {
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">acquired</span> <span class="op">=</span><span class="op">=</span> <span class="ident">requested</span> <span class="op">-</span> <span class="ident">n</span> {
                     <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">Waiting</span>(<span class="ident">acquired</span>);
                 } <span class="kw">else</span> {
                     <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">Waiting</span>(<span class="ident">requested</span> <span class="op">-</span> <span class="ident">n</span>);
@@ -2004,7 +2006,7 @@
 
                 <span class="ident">acquired</span>
             }
-            <span class="ident">Acquired</span>(<span class="ident">acquired</span>) <span class="op">=&gt;</span> {
+            <span class="ident">Acquired</span>(<span class="ident">acquired</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">n</span>, <span class="ident">acquired</span>);
                 <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">Acquired</span>(<span class="ident">acquired</span> <span class="op">-</span> <span class="ident">n</span>);
                 <span class="ident">n</span>
@@ -2014,7 +2016,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Permit</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">new</span>()
     }
 }
@@ -2036,17 +2038,17 @@
 <span class="comment">// ===== impl AcquireError ====</span>
 
 <span class="kw">impl</span> <span class="ident">AcquireError</span> {
-    <span class="kw">fn</span> <span class="ident">closed</span>() <span class="op">-&gt;</span> <span class="ident">AcquireError</span> {
+    <span class="kw">fn</span> <span class="ident">closed</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AcquireError</span> {
         <span class="ident">AcquireError</span>(())
     }
 }
 
-<span class="kw">fn</span> <span class="ident">to_try_acquire</span>(<span class="kw">_</span>: <span class="ident">AcquireError</span>) <span class="op">-&gt;</span> <span class="ident">TryAcquireError</span> {
+<span class="kw">fn</span> <span class="ident">to_try_acquire</span>(<span class="kw">_</span>: <span class="ident">AcquireError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TryAcquireError</span> {
     <span class="ident">TryAcquireError</span>::<span class="ident">Closed</span>
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">AcquireError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="macro">write</span><span class="macro">!</span>(<span class="ident">fmt</span>, <span class="string">&quot;semaphore closed&quot;</span>)
     }
 }
@@ -2057,28 +2059,28 @@
 
 <span class="kw">impl</span> <span class="ident">TryAcquireError</span> {
     <span class="doccomment">/// Returns `true` if the error was caused by a closed semaphore.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TryAcquireError</span>::<span class="ident">Closed</span> <span class="op">=&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">TryAcquireError</span>::<span class="ident">Closed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }
     }
 
     <span class="doccomment">/// Returns `true` if the error was caused by calling `try_acquire` on a</span>
     <span class="doccomment">/// semaphore with no available permits.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_no_permits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_no_permits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TryAcquireError</span>::<span class="ident">NoPermits</span> <span class="op">=&gt;</span> <span class="bool-val">true</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">TryAcquireError</span>::<span class="ident">NoPermits</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">TryAcquireError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TryAcquireError</span>::<span class="ident">Closed</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">fmt</span>, <span class="string">&quot;semaphore closed&quot;</span>),
-            <span class="ident">TryAcquireError</span>::<span class="ident">NoPermits</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">fmt</span>, <span class="string">&quot;no permits available&quot;</span>),
+            <span class="ident">TryAcquireError</span>::<span class="ident">Closed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">fmt</span>, <span class="string">&quot;semaphore closed&quot;</span>),
+            <span class="ident">TryAcquireError</span>::<span class="ident">NoPermits</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">fmt</span>, <span class="string">&quot;no permits available&quot;</span>),
         }
     }
 }
@@ -2088,7 +2090,7 @@
 <span class="comment">// ===== impl Waiter =====</span>
 
 <span class="kw">impl</span> <span class="ident">Waiter</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">Waiter</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Waiter</span> {
         <span class="ident">Waiter</span> {
             <span class="ident">state</span>: <span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="number">0</span>),
             <span class="ident">waker</span>: <span class="ident">AtomicWaker</span>::<span class="ident">new</span>(),
@@ -2096,7 +2098,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">permits_to_acquire</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">AcquireError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">permits_to_acquire</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">AcquireError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">WaiterState</span>(<span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>));
 
         <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_closed</span>() {
@@ -2113,7 +2115,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// `true` if the number of permits to acquire has been incremented. `false`</span>
     <span class="doccomment">/// otherwise. On `false`, the caller should use `Semaphore::poll_acquire`.</span>
-    <span class="kw">fn</span> <span class="ident">try_inc_permits_to_acquire</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">try_inc_permits_to_acquire</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">WaiterState</span>(<span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>));
 
         <span class="kw">loop</span> {
@@ -2126,8 +2128,8 @@
             <span class="ident">next</span>.<span class="ident">set_permits_to_acquire</span>(<span class="ident">n</span> <span class="op">+</span> <span class="ident">curr</span>.<span class="ident">permits_to_acquire</span>());
 
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(<span class="ident">curr</span>.<span class="number">0</span>, <span class="ident">next</span>.<span class="number">0</span>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="bool-val">true</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=&gt;</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">WaiterState</span>(<span class="ident">actual</span>),
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">true</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">WaiterState</span>(<span class="ident">actual</span>),
             }
         }
     }
@@ -2136,7 +2138,7 @@
     <span class="doccomment">/// actual number of permits that were decremented. The delta between `n`</span>
     <span class="doccomment">/// and the return has been assigned to the permit and the caller must</span>
     <span class="doccomment">/// assign these back to the semaphore.</span>
-    <span class="kw">fn</span> <span class="ident">try_dec_permits_to_acquire</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">try_dec_permits_to_acquire</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">WaiterState</span>(<span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>));
 
         <span class="kw">loop</span> {
@@ -2151,8 +2153,8 @@
             <span class="ident">next</span>.<span class="ident">set_permits_to_acquire</span>(<span class="ident">rem</span>);
 
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(<span class="ident">curr</span>.<span class="number">0</span>, <span class="ident">next</span>.<span class="number">0</span>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">n</span> <span class="op">-</span> <span class="ident">delta</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=&gt;</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">WaiterState</span>(<span class="ident">actual</span>),
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">n</span> <span class="op">-</span> <span class="ident">delta</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">WaiterState</span>(<span class="ident">actual</span>),
             }
         }
     }
@@ -2163,7 +2165,7 @@
     <span class="doccomment">/// # Returns</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// `true` if the `QUEUED` bit was set as part of the transition.</span>
-    <span class="kw">fn</span> <span class="ident">to_queued</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">num_permits</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">to_queued</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">num_permits</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">WaiterState</span>(<span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>));
 
         <span class="comment">// The waiter should **not** be waiting for any permits.</span>
@@ -2175,7 +2177,7 @@
             <span class="ident">next</span>.<span class="ident">set_queued</span>();
 
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(<span class="ident">curr</span>.<span class="number">0</span>, <span class="ident">next</span>.<span class="number">0</span>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="ident">curr</span>.<span class="ident">is_queued</span>() {
                         <span class="kw">return</span> <span class="bool-val">false</span>;
                     } <span class="kw">else</span> {
@@ -2184,7 +2186,7 @@
                         <span class="kw">return</span> <span class="bool-val">true</span>;
                     }
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=&gt;</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">WaiterState</span>(<span class="ident">actual</span>),
+                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">WaiterState</span>(<span class="ident">actual</span>),
             }
         }
     }
@@ -2206,7 +2208,7 @@
     <span class="doccomment">/// Assign permits to the waiter.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `true` if the waiter should be removed from the queue</span>
-    <span class="kw">fn</span> <span class="ident">assign_permits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">usize</span>, <span class="ident">closed</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">assign_permits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">usize</span>, <span class="ident">closed</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">WaiterState</span>(<span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>));
 
         <span class="kw">loop</span> {
@@ -2223,11 +2225,11 @@
             }
 
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(<span class="ident">curr</span>.<span class="number">0</span>, <span class="ident">next</span>.<span class="number">0</span>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Update `n`</span>
-                    <span class="kw-2">*</span><span class="ident">n</span> <span class="op">-=</span> <span class="ident">assign</span>;
+                    <span class="kw-2">*</span><span class="ident">n</span> <span class="op">-</span><span class="op">=</span> <span class="ident">assign</span>;
 
-                    <span class="kw">if</span> <span class="ident">next</span>.<span class="ident">permits_to_acquire</span>() <span class="op">==</span> <span class="number">0</span> {
+                    <span class="kw">if</span> <span class="ident">next</span>.<span class="ident">permits_to_acquire</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
                         <span class="kw">if</span> <span class="ident">curr</span>.<span class="ident">permits_to_acquire</span>() <span class="op">&gt;</span> <span class="number">0</span> {
                             <span class="self">self</span>.<span class="ident">waker</span>.<span class="ident">wake</span>();
                         }
@@ -2237,7 +2239,7 @@
                         <span class="kw">return</span> <span class="bool-val">false</span>;
                     }
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=&gt;</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">WaiterState</span>(<span class="ident">actual</span>),
+                <span class="prelude-val">Err</span>(<span class="ident">actual</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">curr</span> <span class="op">=</span> <span class="ident">WaiterState</span>(<span class="ident">actual</span>),
             }
         }
     }
@@ -2256,42 +2258,42 @@
 
 <span class="kw">impl</span> <span class="ident">SemState</span> {
     <span class="doccomment">/// Returns a new default `State` value.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">permits</span>: <span class="ident">usize</span>, <span class="ident">stub</span>: <span class="kw-2">&amp;</span><span class="ident">Waiter</span>) <span class="op">-&gt;</span> <span class="ident">SemState</span> {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">permits</span> <span class="op">&lt;=</span> <span class="ident">MAX_PERMITS</span>);
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">permits</span>: <span class="ident">usize</span>, <span class="ident">stub</span>: <span class="kw-2">&amp;</span><span class="ident">Waiter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SemState</span> {
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">permits</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_PERMITS</span>);
 
         <span class="kw">if</span> <span class="ident">permits</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="ident">SemState</span>((<span class="ident">permits</span> <span class="op">&lt;&lt;</span> <span class="ident">NUM_SHIFT</span>) <span class="op">|</span> <span class="ident">NUM_FLAG</span>)
+            <span class="ident">SemState</span>((<span class="ident">permits</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">NUM_SHIFT</span>) <span class="op">|</span> <span class="ident">NUM_FLAG</span>)
         } <span class="kw">else</span> {
             <span class="ident">SemState</span>(<span class="ident">stub</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>)
         }
     }
 
     <span class="doccomment">/// Returns a `State` tracking `ptr` as the tail of the queue.</span>
-    <span class="kw">fn</span> <span class="ident">new_ptr</span>(<span class="ident">tail</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>, <span class="ident">closed</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">SemState</span> {
+    <span class="kw">fn</span> <span class="ident">new_ptr</span>(<span class="ident">tail</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>, <span class="ident">closed</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SemState</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">tail</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>;
 
         <span class="kw">if</span> <span class="ident">closed</span> {
-            <span class="ident">val</span> <span class="op">|=</span> <span class="ident">CLOSED_FLAG</span>;
+            <span class="ident">val</span> <span class="op">|</span><span class="op">=</span> <span class="ident">CLOSED_FLAG</span>;
         }
 
         <span class="ident">SemState</span>(<span class="ident">val</span>)
     }
 
     <span class="doccomment">/// Returns the amount of remaining capacity</span>
-    <span class="kw">fn</span> <span class="ident">available_permits</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">available_permits</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">has_available_permits</span>() {
             <span class="kw">return</span> <span class="number">0</span>;
         }
 
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">&gt;&gt;</span> <span class="ident">NUM_SHIFT</span>
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">NUM_SHIFT</span>
     }
 
     <span class="doccomment">/// Returns `true` if the state has permits that can be claimed by a waiter.</span>
-    <span class="kw">fn</span> <span class="ident">has_available_permits</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="ident">NUM_FLAG</span> <span class="op">==</span> <span class="ident">NUM_FLAG</span>
+    <span class="kw">fn</span> <span class="ident">has_available_permits</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="ident">NUM_FLAG</span> <span class="op">=</span><span class="op">=</span> <span class="ident">NUM_FLAG</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">has_waiter</span>(<span class="self">self</span>, <span class="ident">stub</span>: <span class="kw-2">&amp;</span><span class="ident">Waiter</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">has_waiter</span>(<span class="self">self</span>, <span class="ident">stub</span>: <span class="kw-2">&amp;</span><span class="ident">Waiter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="op">!</span><span class="self">self</span>.<span class="ident">has_available_permits</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_stub</span>(<span class="ident">stub</span>)
     }
 
@@ -2302,7 +2304,7 @@
     <span class="doccomment">/// Returns `true` if the specified number of permits were acquired, `false`</span>
     <span class="doccomment">/// otherwise. Returning false does not mean that there are no more</span>
     <span class="doccomment">/// available permits.</span>
-    <span class="kw">fn</span> <span class="ident">acquire_permits</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">num</span>: <span class="ident">usize</span>, <span class="ident">stub</span>: <span class="kw-2">&amp;</span><span class="ident">Waiter</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">acquire_permits</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">num</span>: <span class="ident">usize</span>, <span class="ident">stub</span>: <span class="kw-2">&amp;</span><span class="ident">Waiter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">num</span> <span class="op">&gt;</span> <span class="number">0</span>);
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">available_permits</span>() <span class="op">&lt;</span> <span class="ident">num</span> {
@@ -2311,9 +2313,9 @@
 
         <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">waiter</span>().<span class="ident">is_none</span>());
 
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">-=</span> <span class="ident">num</span> <span class="op">&lt;&lt;</span> <span class="ident">NUM_SHIFT</span>;
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">-</span><span class="op">=</span> <span class="ident">num</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">NUM_SHIFT</span>;
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">==</span> <span class="ident">NUM_FLAG</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span><span class="op">=</span> <span class="ident">NUM_FLAG</span> {
             <span class="comment">// Set the state to the stub pointer.</span>
             <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">stub</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>;
         }
@@ -2328,21 +2330,21 @@
         <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">permits</span> <span class="op">&gt;</span> <span class="number">0</span>);
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_stub</span>(<span class="ident">stub</span>) {
-            <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> (<span class="ident">permits</span> <span class="op">&lt;&lt;</span> <span class="ident">NUM_SHIFT</span>) <span class="op">|</span> <span class="ident">NUM_FLAG</span> <span class="op">|</span> (<span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="ident">CLOSED_FLAG</span>);
+            <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> (<span class="ident">permits</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">NUM_SHIFT</span>) <span class="op">|</span> <span class="ident">NUM_FLAG</span> <span class="op">|</span> (<span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="ident">CLOSED_FLAG</span>);
             <span class="kw">return</span>;
         }
 
         <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">has_available_permits</span>());
 
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">+=</span> <span class="ident">permits</span> <span class="op">&lt;&lt;</span> <span class="ident">NUM_SHIFT</span>;
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <span class="ident">permits</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">NUM_SHIFT</span>;
     }
 
-    <span class="kw">fn</span> <span class="ident">is_waiter</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="ident">NUM_FLAG</span> <span class="op">==</span> <span class="number">0</span>
+    <span class="kw">fn</span> <span class="ident">is_waiter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="ident">NUM_FLAG</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
     }
 
     <span class="doccomment">/// Returns the waiter, if one is set.</span>
-    <span class="kw">fn</span> <span class="ident">waiter</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">waiter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_waiter</span>() {
             <span class="kw">let</span> <span class="ident">waiter</span> <span class="op">=</span> <span class="ident">NonNull</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>()).<span class="ident">expect</span>(<span class="string">&quot;null pointer stored&quot;</span>);
 
@@ -2353,7 +2355,7 @@
     }
 
     <span class="doccomment">/// Assumes `self` represents a pointer</span>
-    <span class="kw">fn</span> <span class="ident">as_ptr</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Waiter</span> {
+    <span class="kw">fn</span> <span class="ident">as_ptr</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Waiter</span> {
         (<span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">CLOSED_FLAG</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Waiter</span>
     }
 
@@ -2367,33 +2369,33 @@
         <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">waiter</span>;
     }
 
-    <span class="kw">fn</span> <span class="ident">is_stub</span>(<span class="self">self</span>, <span class="ident">stub</span>: <span class="kw-2">&amp;</span><span class="ident">Waiter</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">==</span> <span class="ident">stub</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>
+    <span class="kw">fn</span> <span class="ident">is_stub</span>(<span class="self">self</span>, <span class="ident">stub</span>: <span class="kw-2">&amp;</span><span class="ident">Waiter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">=</span><span class="op">=</span> <span class="ident">stub</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 
     <span class="doccomment">/// Loads the state from an AtomicUsize.</span>
-    <span class="kw">fn</span> <span class="ident">load</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="ident">AtomicUsize</span>, <span class="ident">ordering</span>: <span class="ident">Ordering</span>) <span class="op">-&gt;</span> <span class="ident">SemState</span> {
+    <span class="kw">fn</span> <span class="ident">load</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="ident">AtomicUsize</span>, <span class="ident">ordering</span>: <span class="ident">Ordering</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SemState</span> {
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">cell</span>.<span class="ident">load</span>(<span class="ident">ordering</span>);
         <span class="ident">SemState</span>(<span class="ident">value</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">fetch_set_closed</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="ident">AtomicUsize</span>, <span class="ident">ordering</span>: <span class="ident">Ordering</span>) <span class="op">-&gt;</span> <span class="ident">SemState</span> {
+    <span class="kw">fn</span> <span class="ident">fetch_set_closed</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="ident">AtomicUsize</span>, <span class="ident">ordering</span>: <span class="ident">Ordering</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SemState</span> {
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">cell</span>.<span class="ident">fetch_or</span>(<span class="ident">CLOSED_FLAG</span>, <span class="ident">ordering</span>);
         <span class="ident">SemState</span>(<span class="ident">value</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="ident">CLOSED_FLAG</span> <span class="op">==</span> <span class="ident">CLOSED_FLAG</span>
+    <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="ident">CLOSED_FLAG</span> <span class="op">=</span><span class="op">=</span> <span class="ident">CLOSED_FLAG</span>
     }
 
     <span class="doccomment">/// Converts the state into a `usize` representation.</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="number">0</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">SemState</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fmt</span> <span class="op">=</span> <span class="ident">fmt</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;SemState&quot;</span>);
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_waiter</span>() {
@@ -2409,37 +2411,37 @@
 <span class="comment">// ===== impl WaiterState =====</span>
 
 <span class="kw">impl</span> <span class="ident">WaiterState</span> {
-    <span class="kw">fn</span> <span class="ident">permits_to_acquire</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">&gt;&gt;</span> <span class="ident">PERMIT_SHIFT</span>
+    <span class="kw">fn</span> <span class="ident">permits_to_acquire</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">PERMIT_SHIFT</span>
     }
 
     <span class="kw">fn</span> <span class="ident">set_permits_to_acquire</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">usize</span>) {
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> (<span class="ident">val</span> <span class="op">&lt;&lt;</span> <span class="ident">PERMIT_SHIFT</span>) <span class="op">|</span> (<span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">PERMIT_MASK</span>)
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> (<span class="ident">val</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">PERMIT_SHIFT</span>) <span class="op">|</span> (<span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">PERMIT_MASK</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_queued</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="ident">QUEUED</span> <span class="op">==</span> <span class="ident">QUEUED</span>
+    <span class="kw">fn</span> <span class="ident">is_queued</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="ident">QUEUED</span> <span class="op">=</span><span class="op">=</span> <span class="ident">QUEUED</span>
     }
 
     <span class="kw">fn</span> <span class="ident">set_queued</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">|=</span> <span class="ident">QUEUED</span>;
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">|</span><span class="op">=</span> <span class="ident">QUEUED</span>;
     }
 
-    <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="ident">CLOSED</span> <span class="op">==</span> <span class="ident">CLOSED</span>
+    <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="ident">CLOSED</span> <span class="op">=</span><span class="op">=</span> <span class="ident">CLOSED</span>
     }
 
     <span class="kw">fn</span> <span class="ident">set_closed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">|=</span> <span class="ident">CLOSED</span>;
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">|</span><span class="op">=</span> <span class="ident">CLOSED</span>;
     }
 
     <span class="kw">fn</span> <span class="ident">unset_queued</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">is_queued</span>());
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">-=</span> <span class="ident">QUEUED</span>;
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">-</span><span class="op">=</span> <span class="ident">QUEUED</span>;
     }
 
-    <span class="kw">fn</span> <span class="ident">is_dropped</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="ident">DROPPED</span> <span class="op">==</span> <span class="ident">DROPPED</span>
+    <span class="kw">fn</span> <span class="ident">is_dropped</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="ident">DROPPED</span> <span class="op">=</span><span class="op">=</span> <span class="ident">DROPPED</span>
     }
 }
 </pre></div>
