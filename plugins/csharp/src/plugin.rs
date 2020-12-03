@@ -38,6 +38,11 @@ impl CSharpPlugin {
     fn runner_needs_to_be_extracted(target: &Path) -> Result<bool, CSharpError> {
         log::debug!("verifying C# runner integrity at {}", target.display());
 
+        // no need to check the zip contents if the directory doesn't even exist
+        if !target.exists() {
+            return Ok(true);
+        }
+
         let mut zip = ZipArchive::new(Cursor::new(TMC_CSHARP_RUNNER))?;
         for i in 0..zip.len() {
             let file = zip.by_index(i)?;
@@ -95,7 +100,10 @@ impl CSharpPlugin {
             Some(cache_dir) => {
                 let runner_dir = cache_dir.join("tmc").join("tmc-csharp-runner");
                 if Self::runner_needs_to_be_extracted(&runner_dir)? {
-                    file_util::remove_dir_all(&runner_dir)?;
+                    if runner_dir.exists() {
+                        // clear the directory if it exists
+                        file_util::remove_dir_all(&runner_dir)?;
+                    }
                     Self::extract_runner_to_dir(&runner_dir)?;
                 }
                 Ok(runner_dir)
