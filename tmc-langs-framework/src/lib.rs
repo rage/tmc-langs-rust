@@ -4,6 +4,7 @@ pub mod command;
 pub mod domain;
 pub mod error;
 pub mod io;
+pub mod meta_syntax;
 pub mod plugin;
 pub mod policy;
 

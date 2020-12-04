@@ -1,7 +1,7 @@
 //! Functions for processing submissions.
 
-use crate::domain::meta_syntax::{MetaString, MetaSyntaxParser};
 use crate::io::file_util;
+use crate::meta_syntax::{MetaString, MetaSyntaxParser};
 use crate::policy::StudentFilePolicy;
 use crate::TmcError;
 use lazy_static::lazy_static;
@@ -12,29 +12,24 @@ use walkdir::{DirEntry, WalkDir};
 
 lazy_static! {
     static ref FILES_TO_SKIP_ALWAYS: Regex =
-        Regex::new("\\.tmcrc|metadata\\.yml|(.*)Hidden(.*)").unwrap();
+        Regex::new(r"\.tmcrc|metadata\.yml|(.*)Hidden(.*)").unwrap();
     static ref NON_TEXT_TYPES: Regex =
         Regex::new("class|jar|exe|jpg|jpeg|gif|png|zip|tar|gz|db|bin|csv|tsv|sqlite3|^$").unwrap();
 }
 
-/// Moves some of the contents of source to target based on the given policy.
+/// Moves the student files of source to target based on the given policy.
 /// For example, a file source/foo.java would be moved to target/foo.java.
 pub fn move_files<P: StudentFilePolicy>(
     student_file_policy: P,
     source: &Path,
     target: &Path,
 ) -> Result<(), TmcError> {
-    let tmc_project_yml = student_file_policy.get_tmc_project_yml()?;
-    // silently skips over errors
-    for entry in WalkDir::new(source)
-        .into_iter()
-        .filter_map(|e| e.ok())
-        .filter(|e| {
-            student_file_policy
-                .is_student_file(e.path(), source, &tmc_project_yml)
-                .unwrap_or(false)
-        })
-    {
+    for entry in WalkDir::new(source).into_iter().filter_entry(|e| {
+        student_file_policy
+            .is_student_file(e.path(), source)
+            .unwrap_or(false)
+    }) {
+        let entry = entry?;
         if entry.path().is_file() {
             let relative = entry.path().strip_prefix(source).unwrap();
             let target_path = target.join(&relative);
@@ -90,7 +85,7 @@ pub fn contains_tmcignore(entry: &DirEntry) -> bool {
     false
 }
 
-// Copies the entry to the destination. Parses and filters text files according to `filter`
+// Copies the entry to the destination. Filters files according to `file_filter`, and filters the contents of each file according to `line_filter`.
 fn copy_file(
     file: &Path,
     source_root: &Path,
@@ -158,7 +153,7 @@ fn copy_file(
     Ok(())
 }
 
-// Processes all files in path, copying files in directories that are not skipped
+// Processes all files in path, copying files in directories that are not skipped.
 fn process_files(
     source: &Path,
     dest_root: &Path,
@@ -248,7 +243,7 @@ mod test {
         std::fs::create_dir_all(file_path.parent().unwrap()).unwrap();
         let _file = std::fs::File::create(&file_path).unwrap();
         move_files(
-            EverythingIsStudentFilePolicy::new(source.path().to_path_buf()),
+            EverythingIsStudentFilePolicy::new(source.path()).unwrap(),
             source.path(),
             target.path(),
         )
@@ -277,7 +272,12 @@ mod test {
         let file_path = source.path().join(mock_file);
         std::fs::create_dir_all(file_path.parent().unwrap()).unwrap();
         let _file = std::fs::File::create(&file_path).unwrap();
-        move_files(NothingIsStudentFilePolicy {}, source.path(), target.path()).unwrap();
+        move_files(
+            NothingIsStudentFilePolicy::new(source.path()).unwrap(),
+            source.path(),
+            target.path(),
+        )
+        .unwrap();
 
         let mut paths = HashSet::new();
         for entry in WalkDir::new(target.path()) {

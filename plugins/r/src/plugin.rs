@@ -106,10 +106,6 @@ impl LanguagePlugin for RPlugin {
         Ok(run_result.into())
     }
 
-    fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
-        RStudentFilePolicy::new(project_path.to_path_buf())
-    }
-
     /// Checks if the directory contains R or tests/testthat
     fn is_exercise_type_correct(path: &Path) -> bool {
         path.join("R").exists() || path.join("tests/testthat").exists()
@@ -147,11 +143,11 @@ impl LanguagePlugin for RPlugin {
         Ok(())
     }
 
-    fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
+    fn get_default_student_file_paths() -> Vec<PathBuf> {
         vec![PathBuf::from("R")]
     }
 
-    fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
+    fn get_default_exercise_file_paths() -> Vec<PathBuf> {
         vec![PathBuf::from("tests")]
     }
 

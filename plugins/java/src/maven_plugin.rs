@@ -113,10 +113,6 @@ impl LanguagePlugin for MavenPlugin {
         path.join("pom.xml").exists()
     }
 
-    fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
-        MavenStudentFilePolicy::new(project_path.to_path_buf())
-    }
-
     /// Runs the Maven clean plugin.
     fn clean(&self, path: &Path) -> Result<(), TmcError> {
         log::info!("Cleaning maven project at {}", path.display());
@@ -129,11 +125,11 @@ impl LanguagePlugin for MavenPlugin {
         Ok(())
     }
 
-    fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
+    fn get_default_student_file_paths() -> Vec<PathBuf> {
         vec![PathBuf::from("src/main")]
     }
 
-    fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
+    fn get_default_exercise_file_paths() -> Vec<PathBuf> {
         vec![PathBuf::from("src/test")]
     }
 

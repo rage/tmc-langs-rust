@@ -1,19 +1,13 @@
 //! Student file policy for the C# plugin.
 
-use std::path::{Path, PathBuf};
-use tmc_langs_framework::StudentFilePolicy;
+use std::path::Path;
+use tmc_langs_framework::{domain::TmcProjectYml, StudentFilePolicy};
 
 pub struct CSharpStudentFilePolicy {
-    config_file_parent_path: PathBuf,
+    project_config: TmcProjectYml,
 }
 
 impl CSharpStudentFilePolicy {
-    pub fn new(config_file_parent_path: PathBuf) -> Self {
-        Self {
-            config_file_parent_path,
-        }
-    }
-
     /// Goes up directories until a bin or obj directory is found, either indicating that the path is in a binary directory.
     fn is_child_of_binary_dir(path: &Path) -> bool {
         // checks each parent directory for bin or obj
@@ -29,13 +23,20 @@ impl CSharpStudentFilePolicy {
 }
 
 impl StudentFilePolicy for CSharpStudentFilePolicy {
+    fn new_with_project_config(project_config: TmcProjectYml) -> Self
+    where
+        Self: Sized,
+    {
+        Self { project_config }
+    }
+
+    fn get_project_config(&self) -> &TmcProjectYml {
+        &self.project_config
+    }
+
     // false for files in bin or obj directories, true for other files in src.
     fn is_student_source_file(path: &Path) -> bool {
         path.starts_with("src") && !Self::is_child_of_binary_dir(path)
-    }
-
-    fn get_config_file_parent_path(&self) -> &Path {
-        &self.config_file_parent_path
     }
 }
 

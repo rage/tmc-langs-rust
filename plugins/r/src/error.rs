@@ -16,6 +16,8 @@ pub enum RError {
     Command(#[from] CommandError),
     #[error("File IO error")]
     FileIo(#[from] FileIo),
+    #[error("Error")]
+    Tmc(#[from] TmcError),
 }
 
 impl From<RError> for TmcError {

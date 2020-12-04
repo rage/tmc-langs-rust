@@ -1,7 +1,5 @@
 //! Contains structs that model data related to exercises.
 
-pub mod meta_syntax;
-
 use crate::io::file_util;
 use crate::TmcError;
 use log::debug;

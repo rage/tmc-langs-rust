@@ -15,7 +15,6 @@ use zip::{write::FileOptions, ZipArchive, ZipWriter};
 /// Zips the given directory, only including student files according to the given policy.
 pub fn zip<P: StudentFilePolicy>(policy: P, root_directory: &Path) -> Result<Vec<u8>, TmcError> {
     let mut writer = ZipWriter::new(Cursor::new(vec![]));
-    let tmc_project_yml = policy.get_tmc_project_yml()?;
 
     for entry in WalkDir::new(root_directory)
         .into_iter()
@@ -23,7 +22,7 @@ pub fn zip<P: StudentFilePolicy>(policy: P, root_directory: &Path) -> Result<Vec
         .filter_map(|e| e.ok())
     {
         log::trace!("processing {}", entry.path().display());
-        if policy.is_student_file(entry.path(), &root_directory, &tmc_project_yml)? {
+        if policy.is_student_file(entry.path(), &root_directory)? {
             let path = root_directory
                 .parent()
                 .map(|p| entry.path().strip_prefix(p).unwrap())
@@ -75,8 +74,6 @@ where
     let project_dir = find_project_dir(&mut zip_archive)?;
     log::debug!("Project dir in zip: {}", project_dir.display());
 
-    let tmc_project_yml = policy.get_tmc_project_yml()?;
-
     // for each file in the zip, contains its path if unzipped
     // used to clean non-student files not in the zip later
     let mut unzip_paths = HashSet::new();
@@ -116,8 +113,8 @@ where
             {
                 let target_file_contents = file_util::read_file(&path_in_target)?;
                 if file_contents == target_file_contents
-                    || (policy.is_student_file(&path_in_target, &target, &tmc_project_yml)?
-                        && !policy.is_updating_forced(&relative, &tmc_project_yml)?)
+                    || (policy.is_student_file(&path_in_target, &target)?
+                        && !policy.is_updating_forced(&relative)?)
                 {
                     write = false;
                 }
@@ -149,8 +146,8 @@ where
                 .path()
                 .canonicalize()
                 .map_err(|e| TmcError::Canonicalize(entry.path().to_path_buf(), e))?,
-        ) && (policy.is_updating_forced(entry.path(), &tmc_project_yml)?
-            || !policy.is_student_file(entry.path(), &target, &tmc_project_yml)?)
+        ) && (policy.is_updating_forced(entry.path())?
+            || !policy.is_student_file(entry.path(), &target)?)
         {
             log::debug!("rm {} {}", entry.path().display(), target.display());
             if entry.path().is_dir() {
@@ -259,7 +256,7 @@ mod test {
         File::create(missing_file_path).unwrap();
 
         let path = temp.path().join("exercise-name");
-        let zipped = zip(EverythingIsStudentFilePolicy::new(path.clone()), &path).unwrap();
+        let zipped = zip(EverythingIsStudentFilePolicy::new(&path).unwrap(), &path).unwrap();
         let mut archive = ZipArchive::new(Cursor::new(zipped)).unwrap();
         assert!(!archive.is_empty());
         for i in 0..archive.len() {
@@ -276,7 +273,7 @@ mod test {
         init();
 
         assert!(unzip(
-            EverythingIsStudentFilePolicy::new(PathBuf::new()),
+            EverythingIsStudentFilePolicy::new(Path::new("nonexistent project")).unwrap(),
             Path::new("nonexistent"),
             Path::new(""),
         )
@@ -289,7 +286,7 @@ mod test {
 
         let temp = tempdir().unwrap();
         unzip(
-            EverythingIsStudentFilePolicy::new(temp.path().to_path_buf()),
+            EverythingIsStudentFilePolicy::new(temp.path()).unwrap(),
             Path::new("tests/data/zip/module-trivial.zip"),
             temp.path(),
         )
@@ -306,7 +303,7 @@ mod test {
 
         let temp = tempdir().unwrap();
         unzip(
-            EverythingIsStudentFilePolicy::new(temp.path().to_path_buf()),
+            EverythingIsStudentFilePolicy::new(temp.path()).unwrap(),
             Path::new("tests/data/zip/course-module-trivial.zip"),
             temp.path(),
         )
@@ -323,7 +320,7 @@ mod test {
 
         let temp = tempdir().unwrap();
         unzip(
-            EverythingIsStudentFilePolicy::new(temp.path().to_path_buf()),
+            EverythingIsStudentFilePolicy::new(temp.path()).unwrap(),
             Path::new("tests/data/zip/no-src-entry.zip"),
             temp.path(),
         )

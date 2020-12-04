@@ -20,7 +20,7 @@ use tmc_langs_framework::{
     io::{self, submission_processing},
     plugin::{Language, LanguagePlugin},
     policy::NothingIsStudentFilePolicy,
-    TmcError,
+    StudentFilePolicy, TmcError,
 };
 use tmc_langs_java::AntPlugin;
 use tmc_langs_java::MavenPlugin;
@@ -127,7 +127,7 @@ pub fn extract_project_overwrite(
     target_location: &Path,
 ) -> Result<(), UtilError> {
     io::tmc_zip::unzip(
-        NothingIsStudentFilePolicy {},
+        NothingIsStudentFilePolicy::new(target_location)?,
         compressed_project,
         target_location,
     )?;
@@ -153,7 +153,8 @@ pub fn extract_student_files(
 
 /// See `LanguagePlugin::compress_project`.
 pub fn compress_project(path: &Path) -> Result<Vec<u8>, UtilError> {
-    Ok(get_language_plugin(path)?.compress_project(path)?)
+    let plugin = get_language_plugin(path)?;
+    Ok(plugin.compress_project(path)?)
 }
 
 /// See `LanguagePlugin::get_exercise_packaging_configuration`.
@@ -220,15 +221,15 @@ pub fn refresh_course(
 // enum containing all the plugins
 #[impl_enum::with_methods(
     fn clean(&self, path: &Path) -> Result<(), TmcError> {}
-    fn get_exercise_packaging_configuration(&self, path: &Path) -> Result<ExercisePackagingConfiguration, TmcError> {}
-    fn compress_project(&self, path: &Path) -> Result<Vec<u8>, TmcError> {}
-    fn extract_project(&self, compressed_project: &Path, target_location: &Path, clean: bool) -> Result<(), TmcError> {}
-    fn extract_student_files(&self, compressed_project: &Path, target_location: &Path) -> Result<(), TmcError> {}
+    fn get_exercise_packaging_configuration(path: &Path) -> Result<ExercisePackagingConfiguration, TmcError> {}
+    fn compress_project(path: &Path) -> Result<Vec<u8>, TmcError> {}
+    fn extract_project(compressed_project: &Path, target_location: &Path, clean: bool) -> Result<(), TmcError> {}
+    fn extract_student_files(compressed_project: &Path, target_location: &Path) -> Result<(), TmcError> {}
     fn scan_exercise(&self, path: &Path, exercise_name: String, warnings: &mut Vec<anyhow::Error>) -> Result<ExerciseDesc, TmcError> {}
     fn run_tests(&self, path: &Path, warnings: &mut Vec<anyhow::Error>) -> Result<RunResult, TmcError> {}
     fn check_code_style(&self, path: &Path, locale: Language) -> Result<Option<ValidationResult>, TmcError> {}
-    fn prepare_stub(&self, exercise_path: &Path, repo_path: &Path, dest_path: &Path) -> Result<(), TmcError> {}
-    fn get_available_points(&self, exercise_path: &Path) -> Result<Vec<String>, TmcError> {}
+    fn prepare_stub(exercise_path: &Path, repo_path: &Path, dest_path: &Path) -> Result<(), TmcError> {}
+    fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, TmcError> {}
 )]
 enum Plugin {
     CSharp(CSharpPlugin),

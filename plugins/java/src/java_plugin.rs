@@ -347,10 +347,6 @@ mod test {
             unimplemented!()
         }
 
-        fn get_student_file_policy(_project_path: &Path) -> Self::StudentFilePolicy {
-            unimplemented!()
-        }
-
         fn is_exercise_type_correct(_path: &Path) -> bool {
             true
         }
@@ -359,11 +355,11 @@ mod test {
             unimplemented!()
         }
 
-        fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
+        fn get_default_student_file_paths() -> Vec<PathBuf> {
             unimplemented!()
         }
 
-        fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
+        fn get_default_exercise_file_paths() -> Vec<PathBuf> {
             unimplemented!()
         }
 

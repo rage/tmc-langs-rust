@@ -197,10 +197,6 @@ impl LanguagePlugin for Python3Plugin {
     const BLOCK_COMMENT: Option<(&'static str, &'static str)> = Some(("\"\"\"", "\"\"\""));
     type StudentFilePolicy = Python3StudentFilePolicy;
 
-    fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
-        Python3StudentFilePolicy::new(project_path.to_owned())
-    }
-
     fn scan_exercise(
         &self,
         exercise_directory: &Path,
@@ -314,11 +310,11 @@ impl LanguagePlugin for Python3Plugin {
         Ok(())
     }
 
-    fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
+    fn get_default_student_file_paths() -> Vec<PathBuf> {
         vec![PathBuf::from("src")]
     }
 
-    fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
+    fn get_default_exercise_file_paths() -> Vec<PathBuf> {
         vec![PathBuf::from("test"), PathBuf::from("tmc")]
     }
 

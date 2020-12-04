@@ -46,12 +46,11 @@ impl AntPlugin {
         }
     }
 
-    /// Copies the bundled tmc-junit-runner to the given path.
-    fn copy_tmc_junit_runner(path: &Path) -> Result<(), JavaError> {
+    fn copy_tmc_junit_runner(dest_path: &Path) -> Result<(), JavaError> {
         log::debug!("copying TMC Junit runner");
         const JUNIT_RUNNER_ARCHIVE: &[u8] = include_bytes!("../deps/tmc-junit-runner-0.2.8.jar");
 
-        let runner_dir = path.join("lib").join("testrunner");
+        let runner_dir = dest_path.join("lib").join("testrunner");
         let runner_path = runner_dir.join("tmc-junit-runner.jar");
 
         // TODO: don't traverse symlinks
@@ -108,12 +107,19 @@ impl LanguagePlugin for AntPlugin {
         path.join("build.xml").is_file() || path.join("test").is_dir() && path.join("src").is_dir()
     }
 
-    fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
-        AntStudentFilePolicy::new(project_path.to_path_buf())
-    }
+    /// Overrides the default implementation in order to copy TMC Junit runner.
+    fn prepare_stub(
+        exercise_path: &Path,
+        repo_path: &Path,
+        dest_path: &Path,
+    ) -> Result<(), TmcError> {
+        tmc_langs_framework::io::submission_processing::prepare_stub(exercise_path, dest_path)?;
 
-    fn copy_tmc_junit_runner(dest_path: &Path) -> Result<(), TmcError> {
-        Ok(Self::copy_tmc_junit_runner(dest_path)?)
+        let relative_path = exercise_path
+            .strip_prefix(repo_path)
+            .unwrap_or(exercise_path);
+        Self::copy_tmc_junit_runner(&dest_path.join(relative_path))?;
+        Ok(())
     }
 
     fn clean(&self, path: &Path) -> Result<(), TmcError> {
@@ -138,11 +144,11 @@ impl LanguagePlugin for AntPlugin {
         Self::java_points_parser(i)
     }
 
-    fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
+    fn get_default_student_file_paths() -> Vec<PathBuf> {
         vec![PathBuf::from("src")]
     }
 
-    fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
+    fn get_default_exercise_file_paths() -> Vec<PathBuf> {
         vec![PathBuf::from("test")]
     }
 }

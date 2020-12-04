@@ -3,15 +3,34 @@
 use crate::TmcError;
 use crate::TmcProjectYml;
 use std::ffi::OsStr;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-/// Specifies which files are student files.
+/// Specifies which files are student files. A single StudentFilePolicy is only valid for a single project as it uses a config file to determine its output.
 ///
 /// Student files are any files that are expected to be modified and/or created by the student.
 /// That is, any files that should not be overwritten when when updating an already downloaded
 /// exercise and any files that should be submitted to the server.
-/// TODO: currently the .tmcproject.yml is read whenever necessary, it might be cleaner to store it inside the student file policy instead
 pub trait StudentFilePolicy {
+    /// This constructor should store the project config in the implementing struct.
+    fn new_with_project_config(project_config: TmcProjectYml) -> Self
+    where
+        Self: Sized;
+
+    /// Parses a project config and calls the helper constructor. Implementing types should only be constructed using this function.
+    fn new(project_dir: &Path) -> Result<Self, TmcError>
+    where
+        Self: Sized,
+    {
+        let project_config = TmcProjectYml::from(project_dir)?;
+        Ok(Self::new_with_project_config(project_config))
+    }
+
+    /// The policy should contain a TmcProjectYml parsed from the project this policy was created for.
+    fn get_project_config(&self) -> &TmcProjectYml;
+
+    /// Checks whether the path is considered a student source file. The file_path can be assumed to be a relative path starting from the project root directory.
+    fn is_student_source_file(file_path: &Path) -> bool;
+
     /// Determines whether a file is a student source file.
     ///
     /// A file should be considered a student source file if it resides in a location the student
@@ -28,11 +47,20 @@ pub trait StudentFilePolicy {
         &self,
         file_path: &Path,
         project_root_path: &Path,
-        tmc_project_yml: &TmcProjectYml,
     ) -> Result<bool, TmcError> {
         // non-existent files and .tmcproject.yml should never be considered student files
         if !file_path.exists() || file_path.file_name() == Some(OsStr::new(".tmcproject.yml")) {
             return Ok(false);
+        }
+
+        // check extra student files
+        let is_extra_student_file = self
+            .get_project_config()
+            .extra_student_files
+            .iter()
+            .any(|f| file_path.starts_with(f));
+        if is_extra_student_file {
+            return Ok(true);
         }
 
         // make paths absolute
@@ -52,46 +80,15 @@ pub trait StudentFilePolicy {
         let relative = path_canon
             .strip_prefix(&root_canon)
             .map_err(|_| TmcError::FileNotInProject(path_canon.clone(), root_canon.clone()))?;
-        Ok(self.is_extra_student_file(&relative, tmc_project_yml)?
-            || Self::is_student_source_file(relative))
+
+        Ok(Self::is_student_source_file(relative))
     }
-
-    fn get_config_file_parent_path(&self) -> &Path;
-
-    fn get_tmc_project_yml(&self) -> Result<TmcProjectYml, TmcError> {
-        let tmc_project_yml = TmcProjectYml::from(self.get_config_file_parent_path())?;
-        log::trace!("read {:#?}", tmc_project_yml);
-        Ok(tmc_project_yml)
-    }
-
-    /// Determines whether a file is an extra student file.
-    ///
-    /// The file_path should be relative, starting from the project root.
-    fn is_extra_student_file(
-        &self,
-        file_path: &Path,
-        tmc_project_yml: &TmcProjectYml,
-    ) -> Result<bool, TmcError> {
-        for extra_student_file in &tmc_project_yml.extra_student_files {
-            if file_path.starts_with(extra_student_file) {
-                return Ok(true);
-            }
-        }
-        Ok(false)
-    }
-
-    /// Checks whether the file is a student source file. The file_path can be assumed to be a relative path starting from the project root directory.
-    fn is_student_source_file(file_path: &Path) -> bool;
 
     /// Used to check for files which should always be overwritten.
     ///
     /// The file_path should be relative, starting from the project root.
-    fn is_updating_forced(
-        &self,
-        path: &Path,
-        tmc_project_yml: &TmcProjectYml,
-    ) -> Result<bool, TmcError> {
-        for force_update_path in &tmc_project_yml.force_update {
+    fn is_updating_forced(&self, path: &Path) -> Result<bool, TmcError> {
+        for force_update_path in &self.get_project_config().force_update {
             if path.starts_with(force_update_path) {
                 return Ok(true);
             }
@@ -100,86 +97,53 @@ pub trait StudentFilePolicy {
     }
 }
 
-pub struct NothingIsStudentFilePolicy {}
+pub struct NothingIsStudentFilePolicy {
+    project_config: TmcProjectYml,
+}
 
 impl StudentFilePolicy for NothingIsStudentFilePolicy {
-    fn is_student_file(
-        &self,
-        _path: &Path,
-        _project_root_path: &Path,
-        _tmc_project_yml: &TmcProjectYml,
-    ) -> Result<bool, TmcError> {
+    fn new_with_project_config(project_config: TmcProjectYml) -> Self
+    where
+        Self: Sized,
+    {
+        Self { project_config }
+    }
+
+    fn get_project_config(&self) -> &TmcProjectYml {
+        &self.project_config
+    }
+
+    fn is_student_file(&self, _path: &Path, _project_root_path: &Path) -> Result<bool, TmcError> {
         Ok(false)
-    }
-
-    fn get_config_file_parent_path(&self) -> &Path {
-        Path::new("")
-    }
-
-    fn is_extra_student_file(
-        &self,
-        _path: &Path,
-        _tmc_project_yml: &TmcProjectYml,
-    ) -> Result<bool, TmcError> {
-        unimplemented!()
     }
 
     fn is_student_source_file(_path: &Path) -> bool {
-        unimplemented!()
-    }
-
-    fn is_updating_forced(
-        &self,
-        _path: &Path,
-        _tmc_project_yml: &TmcProjectYml,
-    ) -> Result<bool, TmcError> {
-        Ok(false)
+        false
     }
 }
 
+#[derive(Default)]
 pub struct EverythingIsStudentFilePolicy {
-    config_file_parent_path: PathBuf,
-}
-
-impl EverythingIsStudentFilePolicy {
-    pub fn new(config_file_parent_path: PathBuf) -> Self {
-        Self {
-            config_file_parent_path,
-        }
-    }
+    project_config: TmcProjectYml,
 }
 
 impl StudentFilePolicy for EverythingIsStudentFilePolicy {
-    fn is_student_file(
-        &self,
-        _path: &Path,
-        _project_root_path: &Path,
-        _tmc_project_yml: &TmcProjectYml,
-    ) -> Result<bool, TmcError> {
+    fn new_with_project_config(project_config: TmcProjectYml) -> Self
+    where
+        Self: Sized,
+    {
+        Self { project_config }
+    }
+
+    fn get_project_config(&self) -> &TmcProjectYml {
+        &self.project_config
+    }
+
+    fn is_student_file(&self, _path: &Path, _project_root_path: &Path) -> Result<bool, TmcError> {
         Ok(true)
     }
 
-    fn get_config_file_parent_path(&self) -> &Path {
-        &self.config_file_parent_path
-    }
-
-    fn is_extra_student_file(
-        &self,
-        _path: &Path,
-        _tmc_project_yml: &TmcProjectYml,
-    ) -> Result<bool, TmcError> {
-        unimplemented!()
-    }
-
     fn is_student_source_file(_path: &Path) -> bool {
-        unimplemented!()
-    }
-
-    fn is_updating_forced(
-        &self,
-        _path: &Path,
-        _tmc_project_yml: &TmcProjectYml,
-    ) -> Result<bool, TmcError> {
-        Ok(false)
+        true
     }
 }

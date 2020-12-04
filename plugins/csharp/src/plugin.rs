@@ -201,10 +201,6 @@ impl LanguagePlugin for CSharpPlugin {
         Err(TmcError::NoProjectDirInZip)
     }
 
-    fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
-        Self::StudentFilePolicy::new(project_path.to_path_buf())
-    }
-
     /// Runs --generate-points-file and parses the generated .tmc_available_points.json.
     fn scan_exercise(
         &self,
@@ -344,11 +340,11 @@ impl LanguagePlugin for CSharpPlugin {
         Ok(())
     }
 
-    fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
+    fn get_default_student_file_paths() -> Vec<PathBuf> {
         vec![PathBuf::from("src")]
     }
 
-    fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
+    fn get_default_exercise_file_paths() -> Vec<PathBuf> {
         vec![PathBuf::from("test")]
     }
 

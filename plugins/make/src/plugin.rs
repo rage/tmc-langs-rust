@@ -72,6 +72,7 @@ impl MakePlugin {
 
     /// Runs tests with or without valgrind according to the argument.
     /// Returns an error if the command finishes unsuccessfully.
+    /// TODO: no option for timeout
     fn run_tests_with_valgrind(
         &self,
         path: &Path,
@@ -287,10 +288,6 @@ impl LanguagePlugin for MakePlugin {
         Ok(run_result)
     }
 
-    fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
-        MakeStudentFilePolicy::new(project_path.to_path_buf())
-    }
-
     /// Checks if the directory has a Makefile in it.
     fn is_exercise_type_correct(path: &Path) -> bool {
         path.join("Makefile").is_file()
@@ -311,11 +308,11 @@ impl LanguagePlugin for MakePlugin {
         Ok(())
     }
 
-    fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
+    fn get_default_student_file_paths() -> Vec<PathBuf> {
         vec![PathBuf::from("src")]
     }
 
-    fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
+    fn get_default_exercise_file_paths() -> Vec<PathBuf> {
         vec![PathBuf::from("test")]
     }
 

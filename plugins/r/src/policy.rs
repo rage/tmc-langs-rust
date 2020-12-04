@@ -1,23 +1,22 @@
 //! Contains the R student file policy
 
-use std::path::{Path, PathBuf};
-use tmc_langs_framework::StudentFilePolicy;
+use std::path::Path;
+use tmc_langs_framework::{domain::TmcProjectYml, StudentFilePolicy};
 
 pub struct RStudentFilePolicy {
-    config_file_parent_path: PathBuf,
-}
-
-impl RStudentFilePolicy {
-    pub fn new(config_file_parent_path: PathBuf) -> Self {
-        Self {
-            config_file_parent_path,
-        }
-    }
+    project_config: TmcProjectYml,
 }
 
 impl StudentFilePolicy for RStudentFilePolicy {
-    fn get_config_file_parent_path(&self) -> &Path {
-        &self.config_file_parent_path
+    fn new_with_project_config(project_config: TmcProjectYml) -> Self
+    where
+        Self: Sized,
+    {
+        Self { project_config }
+    }
+
+    fn get_project_config(&self) -> &TmcProjectYml {
+        &self.project_config
     }
 
     fn is_student_source_file(path: &Path) -> bool {

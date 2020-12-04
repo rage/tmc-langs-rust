@@ -24,10 +24,11 @@ impl NoTestsPlugin {
 
     /// Convenience function to get a list of the points for the project at path.
     fn get_points(path: &Path) -> Vec<String> {
-        Self::get_student_file_policy(path)
-            .get_tmc_project_yml()
+        <Self as LanguagePlugin>::StudentFilePolicy::new(path)
             .ok()
-            .and_then(|c| c.no_tests.map(|n| n.points))
+            .as_ref()
+            .map(|p| p.get_project_config())
+            .and_then(|c| c.no_tests.as_ref().map(|n| n.points.clone()))
             .unwrap_or_default()
     }
 }
@@ -73,16 +74,13 @@ impl LanguagePlugin for NoTestsPlugin {
         })
     }
 
-    fn get_student_file_policy(project_path: &Path) -> Self::StudentFilePolicy {
-        NoTestsStudentFilePolicy::new(project_path.to_path_buf())
-    }
-
     /// Checks the no-tests field of in path/.tmcproject.yml, if any.
     fn is_exercise_type_correct(path: &Path) -> bool {
-        Self::get_student_file_policy(path)
-            .get_tmc_project_yml()
+        Self::StudentFilePolicy::new(path)
             .ok()
-            .and_then(|c| c.no_tests)
+            .as_ref()
+            .map(|p| p.get_project_config())
+            .and_then(|c| c.no_tests.as_ref())
             .map(|nt| nt.flag)
             .unwrap_or(false)
     }
@@ -97,11 +95,11 @@ impl LanguagePlugin for NoTestsPlugin {
         Ok(())
     }
 
-    fn get_default_student_file_paths(&self) -> Vec<PathBuf> {
+    fn get_default_student_file_paths() -> Vec<PathBuf> {
         vec![PathBuf::from("src")]
     }
 
-    fn get_default_exercise_file_paths(&self) -> Vec<PathBuf> {
+    fn get_default_exercise_file_paths() -> Vec<PathBuf> {
         vec![PathBuf::from("test")]
     }
 

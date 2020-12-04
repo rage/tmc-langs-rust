@@ -1,24 +1,23 @@
 //! Contains the Python3 student file policy
 
 use std::ffi::OsStr;
-use std::path::{Path, PathBuf};
-use tmc_langs_framework::policy::StudentFilePolicy;
+use std::path::Path;
+use tmc_langs_framework::{domain::TmcProjectYml, policy::StudentFilePolicy};
 
 pub struct Python3StudentFilePolicy {
-    config_file_parent_path: PathBuf,
-}
-
-impl Python3StudentFilePolicy {
-    pub fn new(config_file_parent_path: PathBuf) -> Self {
-        Self {
-            config_file_parent_path,
-        }
-    }
+    project_config: TmcProjectYml,
 }
 
 impl StudentFilePolicy for Python3StudentFilePolicy {
-    fn get_config_file_parent_path(&self) -> &Path {
-        &self.config_file_parent_path
+    fn new_with_project_config(project_config: TmcProjectYml) -> Self
+    where
+        Self: Sized,
+    {
+        Self { project_config }
+    }
+
+    fn get_project_config(&self) -> &TmcProjectYml {
+        &self.project_config
     }
 
     fn is_student_source_file(path: &Path) -> bool {
