@@ -1,7 +1,7 @@
 //! Ant student file policy
 
 use std::path::Path;
-use tmc_langs_framework::{domain::TmcProjectYml, policy::StudentFilePolicy};
+use tmc_langs_framework::{policy::StudentFilePolicy, TmcProjectYml};
 
 pub struct AntStudentFilePolicy {
     project_config: TmcProjectYml,

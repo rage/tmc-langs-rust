@@ -7,6 +7,7 @@ pub mod io;
 pub mod meta_syntax;
 pub mod plugin;
 pub mod policy;
+pub mod tmc_project_yml;
 
 pub use self::error::TmcError;
 pub use self::policy::StudentFilePolicy;
@@ -16,4 +17,4 @@ pub use plugin::LanguagePlugin;
 pub use subprocess;
 pub use zip;
 
-use self::domain::TmcProjectYml;
+pub use tmc_project_yml::TmcProjectYml;

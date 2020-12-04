@@ -1,7 +1,7 @@
 //! Contains the R student file policy
 
 use std::path::Path;
-use tmc_langs_framework::{domain::TmcProjectYml, StudentFilePolicy};
+use tmc_langs_framework::{StudentFilePolicy, TmcProjectYml};
 
 pub struct RStudentFilePolicy {
     project_config: TmcProjectYml,

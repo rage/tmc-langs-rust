@@ -16,11 +16,10 @@ use std::path::{Path, PathBuf};
 use tmc_langs_csharp::CSharpPlugin;
 use tmc_langs_framework::{
     anyhow,
-    domain::TmcProjectYml,
     io::{self, submission_processing},
     plugin::{Language, LanguagePlugin},
     policy::NothingIsStudentFilePolicy,
-    StudentFilePolicy, TmcError,
+    StudentFilePolicy, TmcError, TmcProjectYml,
 };
 use tmc_langs_java::AntPlugin;
 use tmc_langs_java::MavenPlugin;

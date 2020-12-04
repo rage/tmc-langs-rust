@@ -1,7 +1,7 @@
 //! Student file policy for the C# plugin.
 
 use std::path::Path;
-use tmc_langs_framework::{domain::TmcProjectYml, StudentFilePolicy};
+use tmc_langs_framework::{StudentFilePolicy, TmcProjectYml};
 
 pub struct CSharpStudentFilePolicy {
     project_config: TmcProjectYml,

@@ -13,13 +13,13 @@ use std::time::Duration;
 use tmc_langs_framework::{
     anyhow,
     command::{Output, TmcCommand},
-    domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TmcProjectYml},
+    domain::{ExerciseDesc, RunResult, RunStatus, TestDesc},
     error::{CommandError, FileIo},
     io::file_util,
     nom::{bytes, character, combinator, sequence, IResult},
     plugin::LanguagePlugin,
     subprocess::PopenError,
-    TmcError,
+    TmcError, TmcProjectYml,
 };
 
 #[derive(Default)]
