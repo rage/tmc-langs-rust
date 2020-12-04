@@ -22,8 +22,7 @@ pub struct StatusUpdate<T> {
 type DynError = Box<dyn Error + Send + Sync + 'static>;
 type UpdateClosure<'a, T> = Box<dyn 'a + Sync + Send + Fn(StatusUpdate<T>) -> Result<(), DynError>>;
 
-/// The reporter contains a RefCell for the timer, meaning care should be taken when using in a multithreaded context.
-/// The first call to progress and each step completion should be called from one thread. Other progress calls can be done from separate threads.
+/// The struct that keeps track of progress and contains a closure for reporting whenever progress is made.
 pub struct ProgressReporter<'a, T> {
     progress_report: UpdateClosure<'a, T>,
     progress_steps_total: AtomicUsize,
