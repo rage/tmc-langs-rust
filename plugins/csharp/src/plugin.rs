@@ -94,6 +94,7 @@ impl CSharpPlugin {
     /// Returns the directory of the TMC C# runner, writing it to the cache dir if it doesn't exist there yet.
     ///
     /// NOTE: May cause issues if called concurrently.
+    /// TODO: Currently this is checked every time when necessary. It could also be done in the constructor, but then it would be done in cases where unnecessary (when checking code style, for example)
     fn get_or_init_runner_dir() -> Result<PathBuf, CSharpError> {
         log::debug!("getting C# runner dir");
         match dirs::cache_dir() {

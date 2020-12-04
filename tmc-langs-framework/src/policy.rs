@@ -10,6 +10,7 @@ use std::path::{Path, PathBuf};
 /// Student files are any files that are expected to be modified and/or created by the student.
 /// That is, any files that should not be overwritten when when updating an already downloaded
 /// exercise and any files that should be submitted to the server.
+/// TODO: currently the .tmcproject.yml is read whenever necessary, it might be cleaner to store it inside the student file policy instead
 pub trait StudentFilePolicy {
     /// Determines whether a file is a student source file.
     ///
