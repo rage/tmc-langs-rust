@@ -40,6 +40,8 @@ cargo run -p tmc-langs-cli help
 
 Format using `cargo fmt`, use `cargo clippy` for linting.
 
+If using vscode and rust-analyzer, be sure to turn on the setting `loadOutDirsFromCheck` to avoid a spurious unresolved import error from `isolang`.
+
 ## Updating dependencies
 
 In addition to the dependencies listed in each crate's `Cargo.toml`, the project bundles a few external dependencies such as `tmc-checkstyle-runner`, `tmc-junit-runner` and so on. When updating dependencies, you may want to check whether these projects have been updated.
