@@ -219,8 +219,8 @@ pub fn prepare_stub(exercise_path: &Path, dest_root: &Path) -> Result<(), TmcErr
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::domain::TmcProjectYml;
     use crate::policy::{EverythingIsStudentFilePolicy, NothingIsStudentFilePolicy};
+    use crate::TmcProjectYml;
     use std::collections::HashSet;
     use std::fs::File;
     use std::io::{Read, Write};
