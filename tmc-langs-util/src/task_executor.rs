@@ -45,8 +45,16 @@ pub fn prepare_stubs<I: IntoIterator<Item = PathBuf>>(
     dest_path: &Path,
 ) -> Result<(), UtilError> {
     for exercise_path in exercise_paths {
-        let plugin = get_language_plugin(&exercise_path)?;
-        plugin.prepare_stub(&exercise_path, repo_path, dest_path)?;
+        submission_processing::prepare_stub(&exercise_path, dest_path)?;
+
+        // The Ant plugin needs some additional files to be copied over.
+        if AntPlugin::is_exercise_type_correct(&exercise_path) {
+            let relative_path = exercise_path
+                .strip_prefix(repo_path)
+                .unwrap_or(&exercise_path);
+            AntPlugin::copy_tmc_junit_runner(&dest_path.join(relative_path))
+                .map_err(|e| TmcError::Plugin(Box::new(e)))?;
+        }
     }
     Ok(())
 }
@@ -227,7 +235,6 @@ pub fn refresh_course(
     fn scan_exercise(&self, path: &Path, exercise_name: String, warnings: &mut Vec<anyhow::Error>) -> Result<ExerciseDesc, TmcError> {}
     fn run_tests(&self, path: &Path, warnings: &mut Vec<anyhow::Error>) -> Result<RunResult, TmcError> {}
     fn check_code_style(&self, path: &Path, locale: Language) -> Result<Option<ValidationResult>, TmcError> {}
-    fn prepare_stub(exercise_path: &Path, repo_path: &Path, dest_path: &Path) -> Result<(), TmcError> {}
     fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, TmcError> {}
 )]
 enum Plugin {

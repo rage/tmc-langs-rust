@@ -7,7 +7,7 @@ use crate::domain::{
     ValidationResult,
 };
 use crate::error::TmcError;
-use crate::io::{file_util, submission_processing, tmc_zip};
+use crate::io::{file_util, tmc_zip};
 use crate::policy::StudentFilePolicy;
 use crate::TmcProjectYml;
 use log::debug;
@@ -113,20 +113,6 @@ pub trait LanguagePlugin {
         timeout: Option<Duration>,
         warnings: &mut Vec<anyhow::Error>,
     ) -> Result<RunResult, TmcError>;
-
-    /// Prepares a stub exercise from the original.
-    ///
-    /// The stub is a copy of the original where the model solution and special
-    /// comments have been stripped and stubs like ('return 0') have been added.
-    fn prepare_stub(
-        exercise_path: &Path,
-        // TODO: this is only used by the Ant plugin, see if it can be removed
-        _repo_path: &Path,
-        dest_path: &Path,
-    ) -> Result<(), TmcError> {
-        submission_processing::prepare_stub(exercise_path, dest_path)?;
-        Ok(())
-    }
 
     /// Run checkstyle or similar plugin to project if applicable, no-op by default
     fn check_code_style(

@@ -46,7 +46,7 @@ impl AntPlugin {
         }
     }
 
-    fn copy_tmc_junit_runner(dest_path: &Path) -> Result<(), JavaError> {
+    pub fn copy_tmc_junit_runner(dest_path: &Path) -> Result<(), JavaError> {
         log::debug!("copying TMC Junit runner");
         const JUNIT_RUNNER_ARCHIVE: &[u8] = include_bytes!("../deps/tmc-junit-runner-0.2.8.jar");
 
@@ -105,21 +105,6 @@ impl LanguagePlugin for AntPlugin {
     /// Checks if the directory contains a build.xml file, or a src and a test directory.
     fn is_exercise_type_correct(path: &Path) -> bool {
         path.join("build.xml").is_file() || path.join("test").is_dir() && path.join("src").is_dir()
-    }
-
-    /// Overrides the default implementation in order to copy TMC Junit runner.
-    fn prepare_stub(
-        exercise_path: &Path,
-        repo_path: &Path,
-        dest_path: &Path,
-    ) -> Result<(), TmcError> {
-        tmc_langs_framework::io::submission_processing::prepare_stub(exercise_path, dest_path)?;
-
-        let relative_path = exercise_path
-            .strip_prefix(repo_path)
-            .unwrap_or(exercise_path);
-        Self::copy_tmc_junit_runner(&dest_path.join(relative_path))?;
-        Ok(())
     }
 
     fn clean(&self, path: &Path) -> Result<(), TmcError> {
