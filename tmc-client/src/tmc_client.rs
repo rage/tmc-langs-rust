@@ -1,6 +1,6 @@
 mod api;
 
-use crate::error::CoreError;
+use crate::error::ClientError;
 use crate::request::*;
 use crate::response::*;
 use crate::{Language, RunResult, ValidationResult};
@@ -31,59 +31,59 @@ pub type Token =
 /// The update data type for the progress reporter.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub enum CoreUpdateData {
+pub enum ClientUpdateData {
     ExerciseDownload { id: usize, path: PathBuf },
     PostedSubmission(NewSubmission),
 }
 
 /// A struct for interacting with the TestMyCode service, including authentication.
-pub struct TmcCore(Arc<TmcCoreInner>);
+pub struct TmcClient(Arc<TmcCore>);
 
-struct TmcCoreInner {
+struct TmcCore {
     client: Client,
     #[allow(dead_code)]
     config_dir: PathBuf, // not used yet
     api_url: Url,
     auth_url: String,
     token: Option<Token>,
-    progress_reporter: Option<ProgressReporter<'static, CoreUpdateData>>,
+    progress_reporter: Option<ProgressReporter<'static, ClientUpdateData>>,
     client_name: String,
     client_version: String,
 }
 
 // TODO: cache API results?
-impl TmcCore {
-    /// Creates a new TmcCore with the given config directory and root URL.
+impl TmcClient {
+    /// Creates a new TmcClient with the given config directory and root URL.
     ///
     /// # Errors
     /// This function will return an error if parsing the root_url fails.
     ///
     /// # Examples
     /// ```rust,no_run
-    /// use tmc_langs_core::TmcCore;
+    /// use tmc_client::TmcClient;
     /// use std::path::PathBuf;
     ///
-    /// let core = TmcCore::new(PathBuf::from("./config"), "https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
+    /// let client = TmcClient::new(PathBuf::from("./config"), "https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// ```
     pub fn new(
         config_dir: PathBuf,
         root_url: String,
         client_name: String,
         client_version: String,
-    ) -> Result<Self, CoreError> {
+    ) -> Result<Self, ClientError> {
         // guarantee a trailing slash, otherwise join will drop the last component
         let root_url = if root_url.ends_with('/') {
             root_url
         } else {
             format!("{}/", root_url)
         };
-        let tmc_url = Url::parse(&root_url).map_err(|e| CoreError::UrlParse(root_url, e))?;
+        let tmc_url = Url::parse(&root_url).map_err(|e| ClientError::UrlParse(root_url, e))?;
         let api_url = tmc_url.join("api/v8/").expect("failed to join api/v8/");
         let auth_url = tmc_url
             .join("oauth/token")
             .expect("failed to join oauth/token")
             .to_string();
-        Ok(TmcCore(Arc::new(TmcCoreInner {
+        Ok(TmcClient(Arc::new(TmcCore {
             client: Client::new(),
             config_dir,
             api_url,
@@ -95,39 +95,39 @@ impl TmcCore {
         })))
     }
 
-    /// Creates a new TmcCore with the given root URL. The config directory is set according to dirs::cache_dir.
+    /// Creates a new TmcClient with the given root URL. The config directory is set according to dirs::cache_dir.
     ///
     /// # Errors
     /// This function will return an error if parsing the root_url fails, or if fetching the cache directory fails (see dirs::cache_dir()).
     ///
     /// # Examples
     /// ```rust,no_run
-    /// use tmc_langs_core::TmcCore;
+    /// use tmc_client::TmcClient;
     ///
-    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_ver".to_string()).unwrap();
+    /// let client = TmcClient::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_ver".to_string()).unwrap();
     /// ```
     pub fn new_in_config(
         root_url: String,
         client_name: String,
         client_version: String,
-    ) -> Result<Self, CoreError> {
-        let config_dir = dirs::cache_dir().ok_or(CoreError::CacheDir)?;
+    ) -> Result<Self, ClientError> {
+        let config_dir = dirs::cache_dir().ok_or(ClientError::CacheDir)?;
         Self::new(config_dir, root_url, client_name, client_version)
     }
 
-    pub fn set_token(&mut self, token: Token) -> Result<(), CoreError> {
+    pub fn set_token(&mut self, token: Token) -> Result<(), ClientError> {
         Arc::get_mut(&mut self.0)
-            .ok_or(CoreError::ArcBorrowed)?
+            .ok_or(ClientError::ArcBorrowed)?
             .token = Some(token);
         Ok(())
     }
 
     pub fn set_progress_reporter(
         &mut self,
-        progress_reporter: ProgressReporter<'static, CoreUpdateData>,
-    ) -> Result<(), CoreError> {
+        progress_reporter: ProgressReporter<'static, ClientUpdateData>,
+    ) -> Result<(), ClientError> {
         Arc::get_mut(&mut self.0)
-            .ok_or(CoreError::ArcBorrowed)?
+            .ok_or(ClientError::ArcBorrowed)?
             .progress_reporter = Some(progress_reporter);
         Ok(())
     }
@@ -136,12 +136,12 @@ impl TmcCore {
         &self,
         message: String,
         step_percent_done: f64,
-        data: Option<CoreUpdateData>,
-    ) -> Result<(), CoreError> {
+        data: Option<ClientUpdateData>,
+    ) -> Result<(), ClientError> {
         if let Some(reporter) = &self.0.progress_reporter {
             reporter
                 .progress(message, step_percent_done, data)
-                .map_err(CoreError::ProgressReport)
+                .map_err(ClientError::ProgressReport)
         } else {
             Ok(())
         }
@@ -150,12 +150,12 @@ impl TmcCore {
     fn step_complete(
         &self,
         message: String,
-        data: Option<CoreUpdateData>,
-    ) -> Result<(), CoreError> {
+        data: Option<ClientUpdateData>,
+    ) -> Result<(), ClientError> {
         if let Some(reporter) = &self.0.progress_reporter {
             reporter
                 .finish_step(message, data)
-                .map_err(CoreError::ProgressReport)
+                .map_err(ClientError::ProgressReport)
         } else {
             Ok(())
         }
@@ -171,25 +171,25 @@ impl TmcCore {
     /// Username can be the user's username or email.
     ///
     /// # Errors
-    /// This function will return an error if the core has already been authenticated,
+    /// This function will return an error if the client has already been authenticated,
     /// if the client_name is malformed and leads to a malformed URL,
     /// or if there is some error during the token exchange (see oauth2::Client::excange_password).
     ///
     /// # Examples
     /// ```rust,no_run
-    /// use tmc_langs_core::TmcCore;
+    /// use tmc_client::TmcClient;
     ///
-    /// let mut core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
-    /// core.authenticate("client", "user".to_string(), "pass".to_string()).unwrap();
+    /// let mut client = TmcClient::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
+    /// client.authenticate("client", "user".to_string(), "pass".to_string()).unwrap();
     /// ```
     pub fn authenticate(
         &mut self,
         client_name: &str,
         email: String,
         password: String,
-    ) -> Result<Token, CoreError> {
+    ) -> Result<Token, ClientError> {
         if self.0.token.is_some() {
-            return Err(CoreError::AlreadyAuthenticated);
+            return Err(ClientError::AlreadyAuthenticated);
         }
 
         let tail = format!("application/{}/credentials", client_name);
@@ -197,7 +197,7 @@ impl TmcCore {
             .0
             .api_url
             .join(&tail)
-            .map_err(|e| CoreError::UrlParse(tail, e))?;
+            .map_err(|e| ClientError::UrlParse(tail, e))?;
         let credentials: Credentials = self.get_json_from_url(url, &[])?;
 
         log::debug!("authenticating at {}", self.0.auth_url);
@@ -205,10 +205,10 @@ impl TmcCore {
             ClientId::new(credentials.application_id),
             Some(ClientSecret::new(credentials.secret)),
             AuthUrl::new(self.0.auth_url.clone())
-                .map_err(|e| CoreError::UrlParse(self.0.auth_url.clone(), e))?, // not used in the Resource Owner Password Credentials Grant
+                .map_err(|e| ClientError::UrlParse(self.0.auth_url.clone(), e))?, // not used in the Resource Owner Password Credentials Grant
             Some(
                 TokenUrl::new(self.0.auth_url.clone())
-                    .map_err(|e| CoreError::UrlParse(self.0.auth_url.clone(), e))?,
+                    .map_err(|e| ClientError::UrlParse(self.0.auth_url.clone(), e))?,
             ),
         );
 
@@ -219,7 +219,7 @@ impl TmcCore {
             )
             .request(oauth2::reqwest::http_client)?;
         Arc::get_mut(&mut self.0)
-            .ok_or(CoreError::ArcBorrowed)?
+            .ok_or(ClientError::ArcBorrowed)?
             .token = Some(token.clone());
         log::debug!("authenticated");
         Ok(token)
@@ -229,7 +229,7 @@ impl TmcCore {
     ///
     /// # Errors
     /// Returns an error if there's some problem reaching the API, or if the API returns an error.
-    pub fn get_organizations(&self) -> Result<Vec<Organization>, CoreError> {
+    pub fn get_organizations(&self) -> Result<Vec<Organization>, ClientError> {
         self.organizations()
     }
 
@@ -237,7 +237,7 @@ impl TmcCore {
     ///
     /// # Errors
     /// Returns an error if there's some problem reaching the API, or if the API returns an error.
-    pub fn get_organization(&self, organization_slug: &str) -> Result<Organization, CoreError> {
+    pub fn get_organization(&self, organization_slug: &str) -> Result<Organization, ClientError> {
         self.organization(organization_slug)
     }
 
@@ -250,12 +250,12 @@ impl TmcCore {
     ///
     /// # Examples
     /// ```rust,no_run
-    /// use tmc_langs_core::TmcCore;
+    /// use tmc_client::TmcClient;
     /// use std::path::PathBuf;
     ///
-    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
+    /// let client = TmcClient::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// // authenticate
-    /// core.download_or_update_exercises(vec![
+    /// client.download_or_update_exercises(vec![
     ///     (1234, PathBuf::from("./exercises/1234")),
     ///     (2345, PathBuf::from("./exercises/2345")),
     /// ]);
@@ -263,7 +263,7 @@ impl TmcCore {
     pub fn download_or_update_exercises(
         &self,
         exercises: Vec<(usize, PathBuf)>,
-    ) -> Result<(), CoreError> {
+    ) -> Result<(), ClientError> {
         let exercises_len = exercises.len();
         self.progress(
             format!("Downloading {} exercises", exercises_len),
@@ -281,13 +281,13 @@ impl TmcCore {
 
         // spawn threads
         for _thread_id in 0..thread_count {
-            let core = Arc::clone(&self.0);
+            let client = Arc::clone(&self.0);
             let exercises = Arc::clone(&exercises);
             let starting_download_counter = Arc::clone(&starting_download_counter);
             let downloaded_counter = Arc::clone(&downloaded_counter);
             let progress_counter = Arc::clone(&progress_counter);
-            let handle = std::thread::spawn(move || -> Result<(), CoreError> {
-                let client_clone = TmcCore(core);
+            let handle = std::thread::spawn(move || -> Result<(), ClientError> {
+                let client_clone = TmcClient(client);
 
                 // repeat until out of exercises
                 loop {
@@ -306,7 +306,7 @@ impl TmcCore {
                         starting_download_counter.fetch_add(1, Ordering::SeqCst);
                     let progress_count = progress_counter.fetch_add(1, Ordering::SeqCst);
                     let progress = progress_count as f64 / progress_goal;
-                    let zip_file = NamedTempFile::new().map_err(CoreError::TempFile)?;
+                    let zip_file = NamedTempFile::new().map_err(ClientError::TempFile)?;
                     client_clone.progress(
                         format!(
                             "Downloading exercise {} to '{}'. ({} out of {})",
@@ -316,7 +316,7 @@ impl TmcCore {
                             exercises_len
                         ),
                         progress,
-                        Some(CoreUpdateData::ExerciseDownload {
+                        Some(ClientUpdateData::ExerciseDownload {
                             id: exercise_id,
                             path: target.clone(),
                         }),
@@ -336,7 +336,7 @@ impl TmcCore {
                             exercises_len
                         ),
                         progress,
-                        Some(CoreUpdateData::ExerciseDownload {
+                        Some(ClientUpdateData::ExerciseDownload {
                             id: exercise_id,
                             path: target,
                         }),
@@ -365,28 +365,28 @@ impl TmcCore {
     ///
     /// # Examples
     /// ```rust,no_run
-    /// use tmc_langs_core::TmcCore;
+    /// use tmc_client::TmcClient;
     ///
-    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
+    /// let client = TmcClient::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// // authenticate
-    /// let course_details = core.get_course_details(600).unwrap();
+    /// let course_details = client.get_course_details(600).unwrap();
     /// ```
-    pub fn get_course_details(&self, course_id: usize) -> Result<CourseDetails, CoreError> {
+    pub fn get_course_details(&self, course_id: usize) -> Result<CourseDetails, ClientError> {
         self.core_course(course_id)
     }
 
-    pub fn get_exercise_details(&self, exercise_id: usize) -> Result<ExerciseDetails, CoreError> {
+    pub fn get_exercise_details(&self, exercise_id: usize) -> Result<ExerciseDetails, ClientError> {
         self.core_exercise(exercise_id)
     }
 
     pub fn get_exercises_details(
         &self,
         exercise_ids: Vec<usize>,
-    ) -> Result<Vec<ExercisesDetails>, CoreError> {
+    ) -> Result<Vec<ExercisesDetails>, ClientError> {
         self.core_exercise_details(exercise_ids)
     }
 
-    pub fn get_course_submissions(&self, course_id: usize) -> Result<Vec<Submission>, CoreError> {
+    pub fn get_course_submissions(&self, course_id: usize) -> Result<Vec<Submission>, ClientError> {
         self.course_submissions(course_id)
     }
 
@@ -397,29 +397,32 @@ impl TmcCore {
     ///
     /// # Examples
     /// ```rust,no_run
-    /// use tmc_langs_core::TmcCore;
+    /// use tmc_client::TmcClient;
     ///
-    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
+    /// let client = TmcClient::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// // authenticate
-    /// let courses = core.list_courses("hy").unwrap();
+    /// let courses = client.list_courses("hy").unwrap();
     /// ```
-    pub fn list_courses(&self, organization_slug: &str) -> Result<Vec<Course>, CoreError> {
+    pub fn list_courses(&self, organization_slug: &str) -> Result<Vec<Course>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         self.organization_courses(organization_slug)
     }
 
-    pub fn get_course(&self, course_id: usize) -> Result<CourseData, CoreError> {
+    pub fn get_course(&self, course_id: usize) -> Result<CourseData, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         self.course(course_id)
     }
 
-    pub fn get_course_exercises(&self, course_id: usize) -> Result<Vec<CourseExercise>, CoreError> {
+    pub fn get_course_exercises(
+        &self,
+        course_id: usize,
+    ) -> Result<Vec<CourseExercise>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         self.exercises(course_id)
     }
@@ -431,16 +434,16 @@ impl TmcCore {
     ///
     /// # Examples
     /// ```rust,no_run
-    /// use tmc_langs_core::{TmcCore, Language};
+    /// use tmc_client::{TmcClient, Language};
     /// use url::Url;
     /// use std::path::Path;
     ///
-    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
+    /// let client = TmcClient::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// // authenticate
-    /// let course_details = core.get_course_details(600).unwrap();
+    /// let course_details = client.get_course_details(600).unwrap();
     /// let submission_url = &course_details.exercises[0].return_url;
     /// let submission_url = Url::parse(&submission_url).unwrap();
-    /// let new_submission = core.paste(
+    /// let new_submission = client.paste(
     ///     submission_url,
     ///     Path::new("./exercises/python/123"),
     ///     Some("my python solution".to_string()),
@@ -452,12 +455,13 @@ impl TmcCore {
         submission_path: &Path,
         paste_message: Option<String>,
         locale: Option<Language>,
-    ) -> Result<NewSubmission, CoreError> {
+    ) -> Result<NewSubmission, ClientError> {
         // compress
         let compressed = task_executor::compress_project(submission_path)?;
-        let mut file = NamedTempFile::new().map_err(CoreError::TempFile)?;
-        file.write_all(&compressed)
-            .map_err(|e| CoreError::Tmc(FileIo::FileWrite(file.path().to_path_buf(), e).into()))?;
+        let mut file = NamedTempFile::new().map_err(ClientError::TempFile)?;
+        file.write_all(&compressed).map_err(|e| {
+            ClientError::Tmc(FileIo::FileWrite(file.path().to_path_buf(), e).into())
+        })?;
 
         self.post_submission_to_paste(submission_url, file.path(), paste_message, locale)
     }
@@ -470,12 +474,12 @@ impl TmcCore {
     ///
     /// # Examples
     /// ```rust,no_run
-    /// use tmc_langs_core::{TmcCore, Language};
+    /// use tmc_client::{TmcClient, Language};
     /// use std::path::Path;
     ///
-    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
+    /// let client = TmcClient::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// // authenticate
-    /// let validation_result = core.run_checkstyle(Path::new("./exercises/python/123"), Language::Eng).unwrap();
+    /// let validation_result = client.run_checkstyle(Path::new("./exercises/python/123"), Language::Eng).unwrap();
     /// match validation_result {
     ///     Some(validation_result) => if let Some(validation_errors) = validation_result.validation_errors {
     ///         println!("found validation errors: {:?}", validation_errors);
@@ -489,7 +493,7 @@ impl TmcCore {
         &self,
         path: &Path,
         locale: Language,
-    ) -> Result<Option<ValidationResult>, CoreError> {
+    ) -> Result<Option<ValidationResult>, ClientError> {
         Ok(task_executor::run_check_code_style(path, locale)?)
     }
 
@@ -502,7 +506,7 @@ impl TmcCore {
         &self,
         path: &Path,
         warnings: &mut Vec<anyhow::Error>,
-    ) -> Result<RunResult, CoreError> {
+    ) -> Result<RunResult, ClientError> {
         Ok(task_executor::run_tests(path, warnings)?)
     }
 
@@ -514,7 +518,7 @@ impl TmcCore {
         &self,
         feedback_url: Url,
         feedback: Vec<FeedbackAnswer>,
-    ) -> Result<SubmissionFeedbackResponse, CoreError> {
+    ) -> Result<SubmissionFeedbackResponse, ClientError> {
         self.post_feedback(feedback_url, feedback)
     }
 
@@ -528,16 +532,17 @@ impl TmcCore {
         submission_url: Url,
         submission_path: &Path,
         locale: Option<Language>,
-    ) -> Result<NewSubmission, CoreError> {
+    ) -> Result<NewSubmission, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
 
         self.progress("Compressing submission...".to_string(), 0.0, None)?;
         let compressed = task_executor::compress_project(submission_path)?;
-        let mut file = NamedTempFile::new().map_err(CoreError::TempFile)?;
-        file.write_all(&compressed)
-            .map_err(|e| CoreError::Tmc(FileIo::FileWrite(file.path().to_path_buf(), e).into()))?;
+        let mut file = NamedTempFile::new().map_err(ClientError::TempFile)?;
+        file.write_all(&compressed).map_err(|e| {
+            ClientError::Tmc(FileIo::FileWrite(file.path().to_path_buf(), e).into())
+        })?;
         self.progress(
             "Compressed submission. Posting submission...".to_string(),
             0.5,
@@ -548,13 +553,13 @@ impl TmcCore {
         self.progress(
             format!("Submission running at {0}", result.show_submission_url),
             1.0,
-            Some(CoreUpdateData::PostedSubmission(result.clone())),
+            Some(ClientUpdateData::PostedSubmission(result.clone())),
         )?;
         self.step_complete("Submission finished!".to_string(), None)?;
         Ok(result)
     }
 
-    pub fn reset(&self, exercise_id: usize, exercise_path: PathBuf) -> Result<(), CoreError> {
+    pub fn reset(&self, exercise_id: usize, exercise_path: PathBuf) -> Result<(), ClientError> {
         // clear out the exercise directory
         if exercise_path.exists() {
             let mut tries = 0;
@@ -567,7 +572,7 @@ impl TmcCore {
                     while let Err(err) = file_util::remove_dir_all(entry.path()) {
                         tries += 1;
                         if tries > 8 {
-                            return Err(CoreError::FileIo(err));
+                            return Err(ClientError::FileIo(err));
                         }
                         thread::sleep(Duration::from_secs(1));
                     }
@@ -575,7 +580,7 @@ impl TmcCore {
                     while let Err(err) = file_util::remove_file(entry.path()) {
                         tries += 1;
                         if tries > 8 {
-                            return Err(CoreError::FileIo(err));
+                            return Err(ClientError::FileIo(err));
                         }
                         thread::sleep(Duration::from_secs(1));
                     }
@@ -589,21 +594,21 @@ impl TmcCore {
         &self,
         submission_id: usize,
         target: &Path,
-    ) -> Result<(), CoreError> {
+    ) -> Result<(), ClientError> {
         self.download_submission(submission_id, target)
     }
 
     pub fn get_exercise_submissions_for_current_user(
         &self,
         exercise_id: usize,
-    ) -> Result<Vec<Submission>, CoreError> {
+    ) -> Result<Vec<Submission>, ClientError> {
         self.exercise_submissions_for_current_user(exercise_id)
     }
 
     pub fn wait_for_submission(
         &self,
         submission_url: &str,
-    ) -> Result<SubmissionFinished, CoreError> {
+    ) -> Result<SubmissionFinished, ClientError> {
         let mut previous_status = None;
         loop {
             match self.check_submission(submission_url)? {
@@ -687,19 +692,19 @@ impl TmcCore {
     ///
     /// # Examples
     /// ```rust,no_run
-    /// use tmc_langs_core::TmcCore;
+    /// use tmc_client::TmcClient;
     ///
-    /// let core = TmcCore::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
+    /// let client = TmcClient::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// // authenticate
     /// let mut checksums = std::collections::HashMap::new();
     /// checksums.insert(1234, "exercisechecksum".to_string());
-    /// let update_result = core.get_exercise_updates(600, checksums).unwrap();
+    /// let update_result = client.get_exercise_updates(600, checksums).unwrap();
     /// ```
     pub fn get_exercise_updates(
         &self,
         course_id: usize,
         checksums: HashMap<usize, String>,
-    ) -> Result<UpdateResult, CoreError> {
+    ) -> Result<UpdateResult, ClientError> {
         let mut new_exercises = vec![];
         let mut updated_exercises = vec![];
 
@@ -725,7 +730,7 @@ impl TmcCore {
     ///
     /// # Errors
     /// Returns an error if there's some problem reaching the API, or if the API returns an error.
-    pub fn mark_review_as_read(&self, review_update_url: String) -> Result<(), CoreError> {
+    pub fn mark_review_as_read(&self, review_update_url: String) -> Result<(), ClientError> {
         self.mark_review(review_update_url, true)
     }
 
@@ -733,7 +738,7 @@ impl TmcCore {
     ///
     /// # Errors
     /// Returns an error if there's some problem reaching the API, or if the API returns an error.
-    pub fn get_unread_reviews(&self, reviews_url: Url) -> Result<Vec<Review>, CoreError> {
+    pub fn get_unread_reviews(&self, reviews_url: Url) -> Result<Vec<Review>, ClientError> {
         self.get_json_from_url(reviews_url, &[])
     }
 
@@ -748,12 +753,13 @@ impl TmcCore {
         submission_path: &Path,
         message_for_reviewer: String,
         locale: Option<Language>,
-    ) -> Result<NewSubmission, CoreError> {
+    ) -> Result<NewSubmission, ClientError> {
         // compress
         let compressed = task_executor::compress_project(submission_path)?;
-        let mut file = NamedTempFile::new().map_err(CoreError::TempFile)?;
-        file.write_all(&compressed)
-            .map_err(|e| CoreError::Tmc(FileIo::FileWrite(file.path().to_path_buf(), e).into()))?;
+        let mut file = NamedTempFile::new().map_err(ClientError::TempFile)?;
+        file.write_all(&compressed).map_err(|e| {
+            ClientError::Tmc(FileIo::FileWrite(file.path().to_path_buf(), e).into())
+        })?;
 
         self.post_submission_for_review(submission_url, file.path(), message_for_reviewer, locale)
     }
@@ -767,8 +773,8 @@ impl TmcCore {
         &self,
         solution_download_url: Url,
         target: &Path,
-    ) -> Result<(), CoreError> {
-        let zip_file = NamedTempFile::new().map_err(CoreError::TempFile)?;
+    ) -> Result<(), ClientError> {
+        let zip_file = NamedTempFile::new().map_err(ClientError::TempFile)?;
         self.download_from(solution_download_url, zip_file.path())?;
         task_executor::extract_project(zip_file.path(), target, false)?;
         Ok(())
@@ -777,25 +783,25 @@ impl TmcCore {
     /// Checks the status of a submission on the server.
     ///
     /// # Errors
-    /// Returns an error if the core has not been authenticated,
+    /// Returns an error if the client has not been authenticated,
     /// or if there's some problem reaching the API, or if the API returns an error.
     pub fn check_submission(
         &self,
         submission_url: &str,
-    ) -> Result<SubmissionProcessingStatus, CoreError> {
+    ) -> Result<SubmissionProcessingStatus, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
 
         let url = Url::parse(submission_url)
-            .map_err(|e| CoreError::UrlParse(submission_url.to_string(), e))?;
+            .map_err(|e| ClientError::UrlParse(submission_url.to_string(), e))?;
         let res: SubmissionProcessingStatus = self.get_json_from_url(url, &[])?;
         Ok(res)
     }
 }
 
-impl AsRef<TmcCoreInner> for TmcCore {
-    fn as_ref(&self) -> &TmcCoreInner {
+impl AsRef<TmcCore> for TmcClient {
+    fn as_ref(&self) -> &TmcCore {
         &self.0
     }
 }
@@ -806,8 +812,8 @@ mod test {
     use mockito::{mock, Matcher};
     use std::env;
 
-    // sets up mock-authenticated TmcCore and logging
-    fn init() -> (TmcCore, String) {
+    // sets up mock-authenticated TmcClient and logging
+    fn init() -> (TmcClient, String) {
         if env::var("RUST_LOG").is_err() {
             env::set_var("RUST_LOG", "debug,hyper=warn,tokio_reactor=warn");
         }
@@ -835,20 +841,21 @@ mod test {
             .create();
         let local_server = mockito::server_url();
         log::debug!("local {}", local_server);
-        let mut core = TmcCore::new_in_config(
+        let mut client = TmcClient::new_in_config(
             local_server.to_string(),
             "some_client".to_string(),
             "some_ver".to_string(),
         )
         .unwrap();
-        core.authenticate("client_name", "email".to_string(), "password".to_string())
+        client
+            .authenticate("client_name", "email".to_string(), "password".to_string())
             .unwrap();
-        (core, local_server)
+        (client, local_server)
     }
 
     #[test]
     fn gets_organizations() {
-        let (core, _addr) = init();
+        let (client, _addr) = init();
         let _m = mock("GET", "/api/v8/org.json")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("client".into(), "some_client".into()),
@@ -867,13 +874,13 @@ mod test {
             )
             .create();
 
-        let orgs = core.get_organizations().unwrap();
+        let orgs = client.get_organizations().unwrap();
         assert_eq!(orgs[0].name, "MOOC");
     }
 
     #[test]
     fn downloads_or_update_exercises() {
-        let (core, _addr) = init();
+        let (client, _addr) = init();
         let _m = mock("GET", "/api/v8/core/exercises/1234/download")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("client".into(), "some_client".into()),
@@ -886,13 +893,13 @@ mod test {
         let target = temp_dir.path().join("temp");
         assert!(!target.exists());
         let exercises = vec![(1234, target.clone())];
-        core.download_or_update_exercises(exercises).unwrap();
+        client.download_or_update_exercises(exercises).unwrap();
         assert!(target.join("src/main/java/Hiekkalaatikko.java").exists());
     }
 
     #[test]
     fn gets_course_details() {
-        let (core, _addr) = init();
+        let (client, _addr) = init();
         let _m = mock("GET", "/api/v8/core/courses/1234")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("client".into(), "some_client".into()),
@@ -940,13 +947,13 @@ mod test {
             }).to_string())
             .create();
 
-        let course_details = core.get_course_details(1234).unwrap();
+        let course_details = client.get_course_details(1234).unwrap();
         assert_eq!(course_details.course.name, "mooc-2020-ohjelmointi");
     }
 
     #[test]
     fn lists_courses() {
-        let (core, _addr) = init();
+        let (client, _addr) = init();
         let _m = mock("GET", "/api/v8/core/org/slug/courses")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("client".into(), "some_client".into()),
@@ -969,14 +976,14 @@ mod test {
                 ]).to_string())
             .create();
 
-        let courses = core.list_courses("slug").unwrap();
+        let courses = client.list_courses("slug").unwrap();
         assert_eq!(courses.len(), 1);
         assert_eq!(courses[0].name, "mooc-2013-OOProgrammingWithJava-PART1");
     }
 
     #[test]
     fn pastes_with_comment() {
-        let (core, url) = init();
+        let (client, url) = init();
         let submission_url = Url::parse(&format!("{}/submission", url)).unwrap();
         let _m = mock("POST", "/submission")
             .match_query(Matcher::AllOf(vec![
@@ -996,7 +1003,7 @@ mod test {
             )
             .create();
 
-        let new_submission = core
+        let new_submission = client
             .paste(
                 submission_url,
                 Path::new("tests/data/exercise"),
@@ -1022,7 +1029,7 @@ mod test {
 
     #[test]
     fn sends_feedback() {
-        let (core, url) = init();
+        let (client, url) = init();
         let feedback_url = Url::parse(&format!("{}/feedback", url)).unwrap();
         let _m = mock("POST", "/feedback")
             .match_query(Matcher::AllOf(vec![
@@ -1048,7 +1055,7 @@ mod test {
             )
             .create();
 
-        let submission_feedback_response = core
+        let submission_feedback_response = client
             .send_feedback(
                 feedback_url,
                 vec![
@@ -1068,7 +1075,7 @@ mod test {
 
     #[test]
     fn submits() {
-        let (core, url) = init();
+        let (client, url) = init();
         let submission_url = Url::parse(&format!("{}/submission", url)).unwrap();
         let _m = mock("POST", "/submission")
             .match_query(Matcher::AllOf(vec![
@@ -1086,7 +1093,7 @@ mod test {
             )
             .create();
 
-        let new_submission = core
+        let new_submission = client
             .submit(
                 submission_url,
                 Path::new("tests/data/exercise"),
@@ -1101,7 +1108,7 @@ mod test {
 
     #[test]
     fn gets_exercise_updates() {
-        let (core, _addr) = init();
+        let (client, _addr) = init();
         let _m = mock("GET", "/api/v8/core/courses/1234")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("client".into(), "some_client".into()),
@@ -1198,7 +1205,7 @@ mod test {
         let mut checksums = HashMap::new();
         checksums.insert(12, "ab".to_string());
         checksums.insert(23, "bc".to_string());
-        let update_result = core.get_exercise_updates(1234, checksums).unwrap();
+        let update_result = client.get_exercise_updates(1234, checksums).unwrap();
 
         assert_eq!(update_result.created.len(), 1);
         assert_eq!(update_result.created[0].id, 34);
@@ -1210,17 +1217,17 @@ mod test {
     //#[test]
     fn _marks_review_as_read() {
         // todo
-        let (core, addr) = init();
+        let (client, addr) = init();
         let update_url = Url::parse(&addr).unwrap().join("update-url").unwrap();
 
         let _m = mock("POST", "/update-url.json").create();
 
-        core.mark_review_as_read(update_url.to_string()).unwrap();
+        client.mark_review_as_read(update_url.to_string()).unwrap();
     }
 
     #[test]
     fn gets_unread_reviews() {
-        let (core, addr) = init();
+        let (client, addr) = init();
         let reviews_url = Url::parse(&format!("{}/reviews", addr)).unwrap();
         let _m = mock("GET", "/reviews")
             .match_query(Matcher::AllOf(vec![
@@ -1248,14 +1255,14 @@ mod test {
             )
             .create();
 
-        let reviews = core.get_unread_reviews(reviews_url).unwrap();
+        let reviews = client.get_unread_reviews(reviews_url).unwrap();
         assert_eq!(reviews.len(), 1);
         assert_eq!(reviews[0].submission_id, "5678");
     }
 
     #[test]
     fn requests_code_review() {
-        let (core, url) = init();
+        let (client, url) = init();
         let submission_url = Url::parse(&format!("{}/submission", url)).unwrap();
         let _m = mock("POST", "/submission")
             .match_query(Matcher::AllOf(vec![
@@ -1275,7 +1282,7 @@ mod test {
             )
             .create();
 
-        let new_submission = core
+        let new_submission = client
             .request_code_review(
                 submission_url,
                 Path::new("tests/data/exercise"),
@@ -1291,7 +1298,7 @@ mod test {
 
     #[test]
     fn downloads_model_solution() {
-        let (core, addr) = init();
+        let (client, addr) = init();
         let solution_url = Url::parse(&format!("{}/solution", addr)).unwrap();
         let _m = mock("GET", "/solution")
             .match_query(Matcher::AllOf(vec![
@@ -1304,13 +1311,15 @@ mod test {
         let temp = tempfile::tempdir().unwrap();
         let target = temp.path().join("temp");
         assert!(!target.exists());
-        core.download_model_solution(solution_url, &target).unwrap();
+        client
+            .download_model_solution(solution_url, &target)
+            .unwrap();
         assert!(target.join("src/main/java/Hiekkalaatikko.java").exists());
     }
 
     #[test]
     fn checks_submission_processing() {
-        let (core, addr) = init();
+        let (client, addr) = init();
         let _m = mock("GET", "/submission-url")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("client".into(), "some_client".into()),
@@ -1326,7 +1335,7 @@ mod test {
             .create();
 
         let sub_url = format!("{}/submission-url", addr);
-        let submission_processing_status = core.check_submission(&sub_url).unwrap();
+        let submission_processing_status = client.check_submission(&sub_url).unwrap();
         match submission_processing_status {
             SubmissionProcessingStatus::Finished(_) => panic!("wrong status"),
             SubmissionProcessingStatus::Processing(p) => {
@@ -1337,7 +1346,7 @@ mod test {
 
     #[test]
     fn checks_submission_finished() {
-        let (core, addr) = init();
+        let (client, addr) = init();
         let _m = mock("GET", "/submission-url")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("client".into(), "some_client".into()),
@@ -1393,7 +1402,7 @@ mod test {
         }).to_string()).create();
 
         let sub_url = format!("{}/submission-url", addr);
-        let submission_processing_status = core.check_submission(&sub_url).unwrap();
+        let submission_processing_status = client.check_submission(&sub_url).unwrap();
         match submission_processing_status {
             SubmissionProcessingStatus::Finished(f) => {
                 assert_eq!(f.all_tests_passed, Some(true));

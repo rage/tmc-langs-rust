@@ -23,10 +23,10 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use tempfile::NamedTempFile;
-use tmc_langs_core::oauth2::{
+use tmc_client::oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
-use tmc_langs_core::{CoreError, CoreUpdateData, FeedbackAnswer, TmcCore, Token};
+use tmc_client::{ClientError, ClientUpdateData, FeedbackAnswer, TmcClient, Token};
 use tmc_langs_framework::{domain::ValidationResult, error::CommandError};
 use tmc_langs_util::{
     progress_reporter::ProgressReporter,
@@ -94,12 +94,12 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
         }
 
         // check for http errors
-        if let Some(CoreError::HttpError {
+        if let Some(ClientError::HttpError {
             url: _,
             status,
             error: _,
             obsolete_client,
-        }) = cause.downcast_ref::<CoreError>()
+        }) = cause.downcast_ref::<ClientError>()
         {
             if *obsolete_client {
                 return Kind::ObsoleteClient;
@@ -111,11 +111,11 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
                 return Kind::NotLoggedIn;
             }
         }
-        if let Some(CoreError::NotLoggedIn) = cause.downcast_ref::<CoreError>() {
+        if let Some(ClientError::NotLoggedIn) = cause.downcast_ref::<ClientError>() {
             return Kind::NotLoggedIn;
         }
         // check for connection error
-        if let Some(CoreError::ConnectionError(..)) = cause.downcast_ref::<CoreError>() {
+        if let Some(ClientError::ConnectionError(..)) = cause.downcast_ref::<ClientError>() {
             return Kind::ConnectionError;
         }
     }
@@ -231,21 +231,21 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let root_url = env::var("TMC_LANGS_ROOT_URL")
                 .unwrap_or_else(|_| "https://tmc.mooc.fi".to_string());
-            let mut core = TmcCore::new_in_config(
+            let mut client = TmcClient::new_in_config(
                 root_url,
                 client_name.to_string(),
                 client_version.to_string(),
             )
-            .context("Failed to create TmcCore")?;
+            .context("Failed to create TmcClient")?;
 
             // set token from the credentials file if one exists
             let mut credentials = Credentials::load(client_name)?;
             if let Some(credentials) = &credentials {
-                core.set_token(credentials.token())?;
+                client.set_token(credentials.token())?;
             }
 
             match run_core(
-                core,
+                client,
                 client_name,
                 &mut credentials,
                 matches,
@@ -256,8 +256,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 Err(error) => {
                     for cause in error.chain() {
                         // check if the token was rejected and delete it if so
-                        if let Some(CoreError::HttpError { status, .. }) =
-                            cause.downcast_ref::<CoreError>()
+                        if let Some(ClientError::HttpError { status, .. }) =
+                            cause.downcast_ref::<ClientError>()
                         {
                             if status.as_u16() == 401 {
                                 log::error!("Received HTTP 401 error, deleting credentials");
@@ -730,7 +730,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 }
 
 fn run_core(
-    mut core: TmcCore,
+    mut client: TmcClient,
     client_name: &str,
     credentials: &mut Option<Credentials>,
     matches: &ArgMatches,
@@ -738,8 +738,8 @@ fn run_core(
     warnings: &mut Vec<anyhow::Error>,
 ) -> Result<PrintToken> {
     // set progress report to print the updates to stdout as JSON
-    core.set_progress_reporter(ProgressReporter::new(move |update| {
-        let output = Output::StatusUpdate::<CoreUpdateData>(update);
+    client.set_progress_reporter(ProgressReporter::new(move |update| {
+        let output = Output::StatusUpdate::<ClientUpdateData>(update);
         print_output(&output, pretty, &[])?;
         Ok(())
     }))?;
@@ -753,7 +753,8 @@ fn run_core(
             let target = matches.value_of("target").unwrap();
             let target = Path::new(target);
 
-            core.download_model_solution(solution_download_url, target)
+            client
+                .download_model_solution(solution_download_url, target)
                 .context("Failed to download model solution")?;
 
             let output = Output::OutputData::<()>(OutputData {
@@ -780,23 +781,23 @@ fn run_core(
             let submission_url = matches.value_of("submission-url");
 
             // increment steps for reset
-            core.increment_progress_steps();
+            client.increment_progress_steps();
             if save_old_state {
                 // submit old exercise
                 let submission_url = into_url(submission_url.unwrap())?;
                 // increment steps for submit
-                core.increment_progress_steps();
-                core.submit(submission_url, &output_path, None)?;
+                client.increment_progress_steps();
+                client.submit(submission_url, &output_path, None)?;
                 log::debug!("finished submission");
             }
 
             // reset old exercise
-            core.reset(exercise_id, output_path.clone())?;
+            client.reset(exercise_id, output_path.clone())?;
             log::debug!("reset exercise");
 
             // dl submission
             let temp_zip = NamedTempFile::new().context("Failed to create a temporary archive")?;
-            core.download_old_submission(submission_id, temp_zip.path())?;
+            client.download_old_submission(submission_id, temp_zip.path())?;
             log::debug!("downloaded old submission to {}", temp_zip.path().display());
 
             // extract submission
@@ -820,7 +821,7 @@ fn run_core(
                 .into_iter()
                 .map(into_usize)
                 .collect::<Result<_>>()?;
-            let exercises_details = core.get_exercises_details(exercises)?;
+            let exercises_details = client.get_exercises_details(exercises)?;
 
             let tmc_config = TmcConfig::load(client_name)?;
 
@@ -862,7 +863,8 @@ fn run_core(
 
                 exercises_and_paths.push((exercise_detail.id, target));
             }
-            core.download_or_update_exercises(exercises_and_paths)
+            client
+                .download_or_update_exercises(exercises_and_paths)
                 .context("Failed to download exercises")?;
 
             for (course_name, exercise_names) in course_data {
@@ -904,7 +906,8 @@ fn run_core(
                 exercises.push((exercise_id, exercise_path));
             }
 
-            core.download_or_update_exercises(exercises)
+            client
+                .download_or_update_exercises(exercises)
                 .context("Failed to download exercises")?;
 
             let output = Output::OutputData::<()>(OutputData {
@@ -920,13 +923,15 @@ fn run_core(
             let course_id = matches.value_of("course-id").unwrap();
             let course_id = into_usize(course_id)?;
 
-            let details = core
+            let details = client
                 .get_course_details(course_id)
                 .context("Failed to get course details")?;
-            let exercises = core
+            let exercises = client
                 .get_course_exercises(course_id)
                 .context("Failed to get course")?;
-            let settings = core.get_course(course_id).context("Failed to get course")?;
+            let settings = client
+                .get_course(course_id)
+                .context("Failed to get course")?;
             let data = CombinedCourseData {
                 details,
                 exercises,
@@ -946,7 +951,7 @@ fn run_core(
             let course_id = matches.value_of("course-id").unwrap();
             let course_id = into_usize(course_id)?;
 
-            let details = core
+            let details = client
                 .get_course_details(course_id)
                 .context("Failed to get course details")?;
 
@@ -963,7 +968,7 @@ fn run_core(
             let course_id = matches.value_of("course-id").unwrap();
             let course_id = into_usize(course_id)?;
 
-            let exercises = core
+            let exercises = client
                 .get_course_exercises(course_id)
                 .context("Failed to get course")?;
 
@@ -980,7 +985,9 @@ fn run_core(
             let course_id = matches.value_of("course-id").unwrap();
             let course_id = into_usize(course_id)?;
 
-            let settings = core.get_course(course_id).context("Failed to get course")?;
+            let settings = client
+                .get_course(course_id)
+                .context("Failed to get course")?;
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
@@ -994,7 +1001,7 @@ fn run_core(
         ("get-courses", Some(matches)) => {
             let organization_slug = matches.value_of("organization").unwrap();
 
-            let courses = core
+            let courses = client
                 .list_courses(organization_slug)
                 .context("Failed to get courses")?;
 
@@ -1011,7 +1018,7 @@ fn run_core(
             let exercise_id = matches.value_of("exercise-id").unwrap();
             let exercise_id = into_usize(exercise_id)?;
 
-            let course = core
+            let course = client
                 .get_exercise_details(exercise_id)
                 .context("Failed to get course")?;
 
@@ -1028,7 +1035,7 @@ fn run_core(
             let exercise_id = matches.value_of("exercise-id").unwrap();
             let exercise_id = into_usize(exercise_id)?;
 
-            let submissions = core
+            let submissions = client
                 .get_exercise_submissions_for_current_user(exercise_id)
                 .context("Failed to get submissions")?;
 
@@ -1054,7 +1061,7 @@ fn run_core(
                 checksums.insert(exercise_id, checksum.to_string());
             }
 
-            let update_result = core
+            let update_result = client
                 .get_exercise_updates(course_id, checksums)
                 .context("Failed to get exercise updates")?;
 
@@ -1070,7 +1077,7 @@ fn run_core(
         ("get-organization", Some(matches)) => {
             let organization_slug = matches.value_of("organization").unwrap();
 
-            let org = core
+            let org = client
                 .get_organization(organization_slug)
                 .context("Failed to get organization")?;
 
@@ -1084,7 +1091,7 @@ fn run_core(
             print_output(&output, pretty, &warnings)?
         }
         ("get-organizations", Some(_matches)) => {
-            let orgs = core
+            let orgs = client
                 .get_organizations()
                 .context("Failed to get organizations")?;
 
@@ -1101,7 +1108,7 @@ fn run_core(
             let reviews_url = matches.value_of("reviews-url").unwrap();
             let reviews_url = into_url(reviews_url)?;
 
-            let reviews = core
+            let reviews = client
                 .get_unread_reviews(reviews_url)
                 .context("Failed to get unread reviews")?;
 
@@ -1160,7 +1167,8 @@ fn run_core(
                 } else {
                     password
                 };
-                core.authenticate(client_name, email.to_string(), decoded)
+                client
+                    .authenticate(client_name, email.to_string(), decoded)
                     .context("Failed to authenticate with TMC")?
             } else {
                 unreachable!("validation error");
@@ -1195,7 +1203,8 @@ fn run_core(
         ("mark-review-as-read", Some(matches)) => {
             let review_update_url = matches.value_of("reiew-update-url").unwrap();
 
-            core.mark_review_as_read(review_update_url.to_string())
+            client
+                .mark_review_as_read(review_update_url.to_string())
                 .context("Failed to mark review as read")?;
 
             let output = Output::OutputData::<()>(OutputData {
@@ -1223,7 +1232,7 @@ fn run_core(
             let submission_url = matches.value_of("submission-url").unwrap();
             let submission_url = into_url(submission_url)?;
 
-            let new_submission = core
+            let new_submission = client
                 .paste(
                     submission_url,
                     submission_path,
@@ -1257,7 +1266,7 @@ fn run_core(
             let submission_url = matches.value_of("submission-url").unwrap();
             let submission_url = into_url(submission_url)?;
 
-            let new_submission = core
+            let new_submission = client
                 .request_code_review(
                     submission_url,
                     submission_path,
@@ -1289,12 +1298,12 @@ fn run_core(
             if save_old_state {
                 // submit current state
                 let submission_url = into_url(submission_url.unwrap())?;
-                core.increment_progress_steps();
-                core.submit(submission_url, &exercise_path, None)?;
+                client.increment_progress_steps();
+                client.submit(submission_url, &exercise_path, None)?;
             }
 
             // reset exercise
-            core.reset(exercise_id, exercise_path)?;
+            client.reset(exercise_id, exercise_path)?;
 
             let output = Output::OutputData::<()>(OutputData {
                 status: Status::Finished,
@@ -1312,7 +1321,7 @@ fn run_core(
             let locale = matches.value_of("locale").unwrap();
             let locale = into_locale(locale)?;
 
-            let validation_result = core
+            let validation_result = client
                 .run_checkstyle(exercise_path, locale)
                 .context("Failed to run checkstyle")?;
 
@@ -1329,7 +1338,7 @@ fn run_core(
             let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);
 
-            let run_result = core
+            let run_result = client
                 .run_tests(exercise_path, warnings)
                 .context("Failed to run tests")?;
 
@@ -1358,7 +1367,7 @@ fn run_core(
             let feedback_url = matches.value_of("feedback-url").unwrap();
             let feedback_url = into_url(feedback_url)?;
 
-            let response = core
+            let response = client
                 .send_feedback(feedback_url, feedback)
                 .context("Failed to send feedback")?;
 
@@ -1388,9 +1397,9 @@ fn run_core(
             let submission_url = into_url(submission_url)?;
 
             if !dont_block {
-                core.increment_progress_steps();
+                client.increment_progress_steps();
             }
-            let new_submission = core
+            let new_submission = client
                 .submit(submission_url, submission_path, locale)
                 .context("Failed to submit")?;
 
@@ -1407,7 +1416,7 @@ fn run_core(
             } else {
                 // same as wait-for-submission
                 let submission_url = new_submission.submission_url;
-                let submission_finished = core
+                let submission_finished = client
                     .wait_for_submission(&submission_url)
                     .context("Failed while waiting for submissions")?;
 
@@ -1424,7 +1433,7 @@ fn run_core(
         ("wait-for-submission", Some(matches)) => {
             let submission_url = matches.value_of("submission-url").unwrap();
 
-            let submission_finished = core
+            let submission_finished = client
                 .wait_for_submission(submission_url)
                 .context("Failed while waiting for submissions")?;
             let submission_finished = serde_json::to_string(&submission_finished)

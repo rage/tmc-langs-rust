@@ -1,11 +1,11 @@
-//! Contains and additional impl for TmcCore for calling the TMC Server API.
+//! Contains and additional impl for TmcClient for calling the TMC Server API.
 
-use crate::error::CoreError;
+use crate::error::ClientError;
 use crate::response::ErrorResponse;
 use crate::{
     Course, CourseData, CourseDataExercise, CourseDataExercisePoint, CourseDetails, CourseExercise,
     ExerciseDetails, ExercisesDetails, FeedbackAnswer, NewSubmission, Organization, Review,
-    Submission, SubmissionFeedbackResponse, TmcCore, User,
+    Submission, SubmissionFeedbackResponse, TmcClient, User,
 };
 use oauth2::TokenResponse;
 use reqwest::{
@@ -21,29 +21,29 @@ use tmc_langs_util::{file_util, FileIo, Language};
 use url::Url;
 
 /// Provides a wrapper for reqwest Response's json that deserializes into Response<T> and converts it into a result
-trait CoreExt {
-    fn json_res<T: DeserializeOwned>(self) -> Result<T, CoreError>;
+trait ClientExt {
+    fn json_res<T: DeserializeOwned>(self) -> Result<T, ClientError>;
 }
 
-impl CoreExt for ReqwestResponse {
-    fn json_res<T: DeserializeOwned>(self) -> Result<T, CoreError> {
+impl ClientExt for ReqwestResponse {
+    fn json_res<T: DeserializeOwned>(self) -> Result<T, ClientError> {
         let url = self.url().clone();
         let status = self.status();
         if status.is_success() {
             Ok(self
                 .json()
-                .map_err(|e| CoreError::HttpJsonResponse(url.clone(), e))?)
+                .map_err(|e| ClientError::HttpJsonResponse(url.clone(), e))?)
         } else {
             let err: ErrorResponse = self
                 .json()
-                .map_err(|e| CoreError::HttpJsonResponse(url.clone(), e))?;
+                .map_err(|e| ClientError::HttpJsonResponse(url.clone(), e))?;
             let error = match (err.error, err.errors) {
                 (Some(err), Some(errs)) => format!("{}, {}", err, errs.join(",")),
                 (Some(err), None) => err,
                 (None, Some(errs)) => errs.join(","),
                 _ => "".to_string(),
             };
-            Err(CoreError::HttpError {
+            Err(ClientError::HttpError {
                 url,
                 status,
                 error,
@@ -55,16 +55,16 @@ impl CoreExt for ReqwestResponse {
 
 /// Provides a convenience function for adding a token and client headers
 trait GetExt {
-    fn core_headers(self, core: &TmcCore) -> RequestBuilder;
+    fn tmc_headers(self, client: &TmcClient) -> RequestBuilder;
 }
 
 impl GetExt for RequestBuilder {
-    fn core_headers(self, core: &TmcCore) -> RequestBuilder {
+    fn tmc_headers(self, client: &TmcClient) -> RequestBuilder {
         let request = self.query(&[
-            ("client", &core.0.client_name),
-            ("client_version", &core.0.client_version),
+            ("client", &client.0.client_name),
+            ("client_version", &client.0.client_version),
         ]);
-        if let Some(token) = core.0.token.as_ref() {
+        if let Some(token) = client.0.token.as_ref() {
             request.bearer_auth(token.access_token().secret())
         } else {
             request
@@ -73,14 +73,14 @@ impl GetExt for RequestBuilder {
 }
 
 #[allow(dead_code)]
-impl TmcCore {
+impl TmcClient {
     // convenience function
-    fn get_json<T: DeserializeOwned>(&self, url_tail: &str) -> Result<T, CoreError> {
+    fn get_json<T: DeserializeOwned>(&self, url_tail: &str) -> Result<T, ClientError> {
         let url = self
             .0
             .api_url
             .join(url_tail)
-            .map_err(|e| CoreError::UrlParse(url_tail.to_string(), e))?;
+            .map_err(|e| ClientError::UrlParse(url_tail.to_string(), e))?;
         self.get_json_from_url(url, &[])
     }
     // convenience function
@@ -88,12 +88,12 @@ impl TmcCore {
         &self,
         url_tail: &str,
         params: &[(String, String)],
-    ) -> Result<T, CoreError> {
+    ) -> Result<T, ClientError> {
         let url = self
             .0
             .api_url
             .join(url_tail)
-            .map_err(|e| CoreError::UrlParse(url_tail.to_string(), e))?;
+            .map_err(|e| ClientError::UrlParse(url_tail.to_string(), e))?;
         self.get_json_from_url(url, params)
     }
     // convenience function
@@ -101,24 +101,24 @@ impl TmcCore {
         &self,
         url: Url,
         params: &[(String, String)],
-    ) -> Result<T, CoreError> {
+    ) -> Result<T, ClientError> {
         log::debug!("get {}", url);
         self.0
             .client
             .get(url.clone())
-            .core_headers(self)
+            .tmc_headers(self)
             .query(params)
             .send()
-            .map_err(|e| CoreError::ConnectionError(Method::GET, url, e))?
+            .map_err(|e| ClientError::ConnectionError(Method::GET, url, e))?
             .json_res()
     }
 
-    fn download(&self, url_tail: &str, target: &Path) -> Result<(), CoreError> {
+    fn download(&self, url_tail: &str, target: &Path) -> Result<(), ClientError> {
         let url = self
             .0
             .api_url
             .join(url_tail)
-            .map_err(|e| CoreError::UrlParse(url_tail.to_string(), e))?;
+            .map_err(|e| ClientError::UrlParse(url_tail.to_string(), e))?;
 
         // download zip
         let mut target_file = file_util::create_file(target)?;
@@ -126,56 +126,56 @@ impl TmcCore {
         self.0
             .client
             .get(url.clone())
-            .core_headers(self)
+            .tmc_headers(self)
             .send()
-            .map_err(|e| CoreError::ConnectionError(Method::GET, url, e))?
+            .map_err(|e| ClientError::ConnectionError(Method::GET, url, e))?
             .copy_to(&mut target_file)
-            .map_err(|e| CoreError::HttpWriteResponse(target.to_path_buf(), e))?;
+            .map_err(|e| ClientError::HttpWriteResponse(target.to_path_buf(), e))?;
         Ok(())
     }
 
-    pub(crate) fn download_from(&self, url: Url, target: &Path) -> Result<(), CoreError> {
+    pub(crate) fn download_from(&self, url: Url, target: &Path) -> Result<(), ClientError> {
         // download zip
         let mut target_file = file_util::create_file(target)?;
         log::debug!("downloading {}", url);
         self.0
             .client
             .get(url.clone())
-            .core_headers(self)
+            .tmc_headers(self)
             .send()
-            .map_err(|e| CoreError::ConnectionError(Method::GET, url, e))?
+            .map_err(|e| ClientError::ConnectionError(Method::GET, url, e))?
             .copy_to(&mut target_file)
-            .map_err(|e| CoreError::HttpWriteResponse(target.to_path_buf(), e))?;
+            .map_err(|e| ClientError::HttpWriteResponse(target.to_path_buf(), e))?;
         Ok(())
     }
 
-    pub(super) fn user(&self, user_id: usize) -> Result<User, CoreError> {
+    pub(super) fn user(&self, user_id: usize) -> Result<User, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!("users/{}", user_id);
         self.get_json(&url_tail)
     }
 
-    pub(super) fn user_current(&self) -> Result<User, CoreError> {
+    pub(super) fn user_current(&self) -> Result<User, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = "users/current";
         self.get_json(url_tail)
     }
 
-    pub(super) fn basic_info_by_usernames(&self) -> Result<Vec<User>, CoreError> {
+    pub(super) fn basic_info_by_usernames(&self) -> Result<Vec<User>, ClientError> {
         todo!("needs admin")
     }
 
-    pub(super) fn basic_info_by_emails(&self) -> Result<Vec<User>, CoreError> {
+    pub(super) fn basic_info_by_emails(&self) -> Result<Vec<User>, ClientError> {
         todo!("needs admin")
     }
 
-    pub(super) fn course(&self, course_id: usize) -> Result<CourseData, CoreError> {
+    pub(super) fn course(&self, course_id: usize) -> Result<CourseData, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!("courses/{}", course_id);
         self.get_json(&url_tail)
@@ -185,9 +185,9 @@ impl TmcCore {
         &self,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<CourseData, CoreError> {
+    ) -> Result<CourseData, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}",
@@ -200,7 +200,7 @@ impl TmcCore {
     pub(super) fn course_points(
         &self,
         course_id: usize,
-    ) -> Result<CourseDataExercisePoint, CoreError> {
+    ) -> Result<CourseDataExercisePoint, ClientError> {
         let url_tail = format!("courses/{}/points", course_id);
         self.get_json(&url_tail)
     }
@@ -209,9 +209,9 @@ impl TmcCore {
         &self,
         course_id: usize,
         exercise_name: &str,
-    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!(
             "courses/{}/exercises/{}/points",
@@ -226,9 +226,9 @@ impl TmcCore {
         course_id: usize,
         exercise_name: &str,
         user_id: usize,
-    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!(
             "courses/{}/exercises/{}/users/{}/points",
@@ -243,9 +243,9 @@ impl TmcCore {
         &self,
         course_id: usize,
         exercise_name: &str,
-    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!(
             "courses/{}/exercises/{}/users/current/points",
@@ -259,7 +259,7 @@ impl TmcCore {
         &self,
         course_id: usize,
         user_id: usize,
-    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
         let url_tail = format!("courses/{}/users/{}/points", course_id, user_id);
         self.get_json(&url_tail)
     }
@@ -267,7 +267,7 @@ impl TmcCore {
     pub(super) fn course_points_for_current_user(
         &self,
         course_id: usize,
-    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
         let url_tail = format!("courses/{}/users/current/points", course_id);
         self.get_json(&url_tail)
     }
@@ -276,9 +276,9 @@ impl TmcCore {
         &self,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/points",
@@ -292,9 +292,9 @@ impl TmcCore {
         &self,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<(), CoreError> {
+    ) -> Result<(), ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let _url_tail = format!(
             "org/{}/courses/{}/eligible_students",
@@ -309,9 +309,9 @@ impl TmcCore {
         organization_slug: &str,
         course_name: &str,
         exercise_name: &str,
-    ) -> Result<(), CoreError> {
+    ) -> Result<(), ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/exercises/{}/points",
@@ -327,9 +327,9 @@ impl TmcCore {
         organization_slug: &str,
         course_name: &str,
         exercise_name: &str,
-    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/exercises/{}/users/current/points",
@@ -346,9 +346,9 @@ impl TmcCore {
         course_name: &str,
         exercise_name: &str,
         user_id: usize,
-    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/exercises/{}/users/{}/points",
@@ -365,9 +365,9 @@ impl TmcCore {
         organization_slug: &str,
         course_name: &str,
         user_id: usize,
-    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/users/{}/points",
@@ -382,9 +382,9 @@ impl TmcCore {
         &self,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<Vec<CourseDataExercisePoint>, CoreError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/users/current/points",
@@ -397,9 +397,9 @@ impl TmcCore {
     pub(super) fn course_submissions(
         &self,
         course_id: usize,
-    ) -> Result<Vec<Submission>, CoreError> {
+    ) -> Result<Vec<Submission>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!("courses/{}/submissions", course_id);
         self.get_json(&url_tail)
@@ -408,9 +408,9 @@ impl TmcCore {
     pub(super) fn course_submissions_in_last_hour(
         &self,
         course_id: usize,
-    ) -> Result<Vec<Submission>, CoreError> {
+    ) -> Result<Vec<Submission>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!("courses/{}/submissions/last_hour", course_id);
         self.get_json(&url_tail)
@@ -420,9 +420,9 @@ impl TmcCore {
         &self,
         course_id: usize,
         user_id: usize,
-    ) -> Result<Vec<Submission>, CoreError> {
+    ) -> Result<Vec<Submission>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!("courses/{}/users/{}/submissions", course_id, user_id);
         self.get_json(&url_tail)
@@ -431,9 +431,9 @@ impl TmcCore {
     pub(super) fn course_submissions_for_current_user(
         &self,
         course_id: usize,
-    ) -> Result<Vec<Submission>, CoreError> {
+    ) -> Result<Vec<Submission>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!("courses/{}/users/current/submissions", course_id);
         self.get_json(&url_tail)
@@ -443,9 +443,9 @@ impl TmcCore {
         &self,
         exercise_id: usize,
         user_id: usize,
-    ) -> Result<Vec<Submission>, CoreError> {
+    ) -> Result<Vec<Submission>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!("exercises/{}/users/{}/submissions", exercise_id, user_id);
         self.get_json(&url_tail)
@@ -454,9 +454,9 @@ impl TmcCore {
     pub(super) fn exercise_submissions_for_current_user(
         &self,
         exercise_id: usize,
-    ) -> Result<Vec<Submission>, CoreError> {
+    ) -> Result<Vec<Submission>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!("exercises/{}/users/current/submissions", exercise_id);
         self.get_json(&url_tail)
@@ -466,9 +466,9 @@ impl TmcCore {
         &self,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<Vec<Submission>, CoreError> {
+    ) -> Result<Vec<Submission>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/submissions",
@@ -483,9 +483,9 @@ impl TmcCore {
         organization_slug: &str,
         course_name: &str,
         user_id: usize,
-    ) -> Result<Vec<Submission>, CoreError> {
+    ) -> Result<Vec<Submission>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/users/{}/submissions",
@@ -500,9 +500,9 @@ impl TmcCore {
         &self,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<Vec<Submission>, CoreError> {
+    ) -> Result<Vec<Submission>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/users/current/submissions",
@@ -512,7 +512,7 @@ impl TmcCore {
         self.get_json(&url_tail)
     }
 
-    pub(super) fn exercises(&self, course_id: usize) -> Result<Vec<CourseExercise>, CoreError> {
+    pub(super) fn exercises(&self, course_id: usize) -> Result<Vec<CourseExercise>, ClientError> {
         let url_tail = format!("courses/{}/exercises", course_id);
         self.get_json(&url_tail)
     }
@@ -521,9 +521,9 @@ impl TmcCore {
         &self,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<Vec<CourseDataExercise>, CoreError> {
+    ) -> Result<Vec<CourseDataExercise>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/exercises",
@@ -539,9 +539,9 @@ impl TmcCore {
         course_name: &str,
         exercise_name: &str,
         target: &Path,
-    ) -> Result<(), CoreError> {
+    ) -> Result<(), ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!(
             "org/{}/courses/{}/exercises/{}/download",
@@ -552,27 +552,30 @@ impl TmcCore {
         self.download(&url_tail, target)
     }
 
-    pub(super) fn organizations(&self) -> Result<Vec<Organization>, CoreError> {
+    pub(super) fn organizations(&self) -> Result<Vec<Organization>, ClientError> {
         let url_tail = "org.json";
         self.get_json(url_tail)
     }
 
-    pub(super) fn organization(&self, organization_slug: &str) -> Result<Organization, CoreError> {
+    pub(super) fn organization(
+        &self,
+        organization_slug: &str,
+    ) -> Result<Organization, ClientError> {
         let url_tail = format!("org/{}.json", organization_slug);
         self.get_json(&url_tail)
     }
 
-    pub(super) fn core_course(&self, course_id: usize) -> Result<CourseDetails, CoreError> {
+    pub(super) fn core_course(&self, course_id: usize) -> Result<CourseDetails, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!("core/courses/{}", course_id);
         self.get_json(&url_tail)
     }
 
-    pub(super) fn reviews(&self, course_id: usize) -> Result<Vec<Review>, CoreError> {
+    pub(super) fn reviews(&self, course_id: usize) -> Result<Vec<Review>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!("core/courses/{}/reviews", course_id);
         self.get_json(&url_tail)
@@ -582,16 +585,16 @@ impl TmcCore {
         &self,
         course_id: usize,
         review_id: usize,
-    ) -> Result<Vec<Review>, CoreError> {
+    ) -> Result<Vec<Review>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let _url_tail = format!("core/courses/{}/reviews/{}", course_id, review_id);
         // self.get_json(&url_tail)
         todo!("does not appear to function")
     }
 
-    pub(super) fn unlock(&self, course_id: usize) -> Result<(), CoreError> {
+    pub(super) fn unlock(&self, course_id: usize) -> Result<(), ClientError> {
         let _url_tail = format!("core/courses/{}", course_id);
         todo!("needs admin?");
     }
@@ -600,14 +603,14 @@ impl TmcCore {
         &self,
         exercise_id: usize,
         target: &Path,
-    ) -> Result<(), CoreError> {
+    ) -> Result<(), ClientError> {
         let url_tail = format!("core/exercises/{}/download", exercise_id);
         self.download(&url_tail, target)
     }
 
-    pub(super) fn core_exercise(&self, exercise_id: usize) -> Result<ExerciseDetails, CoreError> {
+    pub(super) fn core_exercise(&self, exercise_id: usize) -> Result<ExerciseDetails, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!("core/exercises/{}", exercise_id);
         self.get_json(&url_tail)
@@ -616,9 +619,9 @@ impl TmcCore {
     pub(super) fn core_exercise_details(
         &self,
         exercise_ids: Vec<usize>,
-    ) -> Result<Vec<ExercisesDetails>, CoreError> {
+    ) -> Result<Vec<ExercisesDetails>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = "core/exercises/details";
         let exercise_ids = (
@@ -637,16 +640,16 @@ impl TmcCore {
             // just return whatever value is found first
             return Ok(val);
         }
-        Err(CoreError::MissingDetailsValue)
+        Err(ClientError::MissingDetailsValue)
     }
 
     pub(super) fn download_solution(
         &self,
         exercise_id: usize,
         target: &Path,
-    ) -> Result<(), CoreError> {
+    ) -> Result<(), ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!("core/exercises/{}/solution/download", exercise_id);
         self.download(&url_tail, target)
@@ -657,7 +660,7 @@ impl TmcCore {
         submission_url: Url,
         submission: &Path,
         locale: Option<Language>,
-    ) -> Result<NewSubmission, CoreError> {
+    ) -> Result<NewSubmission, ClientError> {
         self.post_submission_with_params(submission_url, submission, None, locale)
     }
 
@@ -667,7 +670,7 @@ impl TmcCore {
         submission: &Path,
         paste_message: Option<String>,
         locale: Option<Language>,
-    ) -> Result<NewSubmission, CoreError> {
+    ) -> Result<NewSubmission, ClientError> {
         let mut params = HashMap::new();
         params.insert("paste".to_string(), "1".to_string());
         params.insert(
@@ -683,7 +686,7 @@ impl TmcCore {
         submission: &Path,
         message_for_reviewer: String,
         locale: Option<Language>,
-    ) -> Result<NewSubmission, CoreError> {
+    ) -> Result<NewSubmission, ClientError> {
         let mut params = HashMap::new();
         params.insert("request_review".to_string(), "1".to_string());
         params.insert("message_for_reviewer".to_string(), message_for_reviewer);
@@ -696,7 +699,7 @@ impl TmcCore {
         submission: &Path,
         params: Option<HashMap<String, String>>,
         locale: Option<Language>,
-    ) -> Result<NewSubmission, CoreError> {
+    ) -> Result<NewSubmission, ClientError> {
         /*
         let url = self
             .api_url
@@ -719,7 +722,7 @@ impl TmcCore {
                 SystemTime::UNIX_EPOCH.elapsed()?.as_nanos().to_string(),
             )
             .file("submission[file]", submission)
-            .map_err(|e| CoreError::FileIo(FileIo::FileOpen(submission.to_path_buf(), e)))?;
+            .map_err(|e| ClientError::FileIo(FileIo::FileOpen(submission.to_path_buf(), e)))?;
 
         if let Some(params) = params {
             for (key, val) in params {
@@ -733,9 +736,9 @@ impl TmcCore {
             .client
             .post(submission_url.clone())
             .multipart(form)
-            .core_headers(self)
+            .tmc_headers(self)
             .send()
-            .map_err(|e| CoreError::ConnectionError(Method::POST, submission_url, e))?
+            .map_err(|e| ClientError::ConnectionError(Method::POST, submission_url, e))?
             .json_res()?;
         log::debug!("received {:?}", res);
         Ok(res)
@@ -744,9 +747,9 @@ impl TmcCore {
     pub(super) fn organization_courses(
         &self,
         organization_slug: &str,
-    ) -> Result<Vec<Course>, CoreError> {
+    ) -> Result<Vec<Course>, ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!("core/org/{}/courses", organization_slug);
         self.get_json(&url_tail)
@@ -756,9 +759,9 @@ impl TmcCore {
         &self,
         submission_id: usize,
         target: &Path,
-    ) -> Result<(), CoreError> {
+    ) -> Result<(), ClientError> {
         if self.0.token.is_none() {
-            return Err(CoreError::NotLoggedIn);
+            return Err(ClientError::NotLoggedIn);
         }
         let url_tail = format!("core/submissions/{}/download", submission_id);
         self.download(&url_tail, target)
@@ -768,7 +771,7 @@ impl TmcCore {
         &self,
         feedback_url: Url,
         feedback: Vec<FeedbackAnswer>,
-    ) -> Result<SubmissionFeedbackResponse, CoreError> {
+    ) -> Result<SubmissionFeedbackResponse, ClientError> {
         // let url_tail = format!("core/submissions/{}/feedback", submission_id);
         // let url = self.api_url.join(&url_tail)?;
 
@@ -786,9 +789,9 @@ impl TmcCore {
             .client
             .post(feedback_url.clone())
             .multipart(form)
-            .core_headers(self)
+            .tmc_headers(self)
             .send()
-            .map_err(|e| CoreError::ConnectionError(Method::POST, feedback_url, e))?
+            .map_err(|e| ClientError::ConnectionError(Method::POST, feedback_url, e))?
             .json_res()
     }
 
@@ -797,14 +800,14 @@ impl TmcCore {
         submission_id: usize,
         review_body: &str,
         review_points: &str,
-    ) -> Result<(), CoreError> {
+    ) -> Result<(), ClientError> {
         // needs auth?
         let url_tail = format!("core/submissions/{}/reviews", submission_id);
         let url = self
             .0
             .api_url
             .join(&url_tail)
-            .map_err(|e| CoreError::UrlParse(url_tail, e))?;
+            .map_err(|e| ClientError::UrlParse(url_tail, e))?;
 
         log::debug!("posting {}", url);
         let res: Value = self
@@ -813,9 +816,9 @@ impl TmcCore {
             .post(url.clone())
             .query(&[("review[review_body]", review_body)])
             .query(&[("review[points]", review_points)])
-            .core_headers(self)
+            .tmc_headers(self)
             .send()
-            .map_err(|e| CoreError::ConnectionError(Method::POST, url, e))?
+            .map_err(|e| ClientError::ConnectionError(Method::POST, url, e))?
             .json_res()?;
         log::trace!("received {:?}", res);
         Ok(())
@@ -825,10 +828,10 @@ impl TmcCore {
         &self,
         review_update_url: String,
         read: bool,
-    ) -> Result<(), CoreError> {
+    ) -> Result<(), ClientError> {
         // needs auth?
         let url = format!("{}.json", review_update_url);
-        let url = Url::parse(&url).map_err(|e| CoreError::UrlParse(url, e))?;
+        let url = Url::parse(&url).map_err(|e| ClientError::UrlParse(url, e))?;
 
         let mut form = Form::new().text("_method", "put");
         if read {
@@ -842,7 +845,7 @@ impl TmcCore {
             .post(url.clone())
             .multipart(form)
             .send()
-            .map_err(|e| CoreError::ConnectionError(Method::POST, url, e))?
+            .map_err(|e| ClientError::ConnectionError(Method::POST, url, e))?
             .json_res()
     }
 }

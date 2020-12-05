@@ -4,7 +4,7 @@ use dotenv::dotenv;
 use std::env;
 use std::io::Write;
 use std::process::{Command, Output, Stdio};
-use tmc_langs_core::*;
+use tmc_client::*;
 
 fn init() {
     dotenv().ok();

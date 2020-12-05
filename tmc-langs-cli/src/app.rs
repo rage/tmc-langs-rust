@@ -4,7 +4,7 @@ use crate::output::CombinedCourseData;
 use clap::{App, AppSettings, Arg, SubCommand};
 use schemars::JsonSchema;
 use std::path::PathBuf;
-use tmc_langs_core::*;
+use tmc_client::*;
 use tmc_langs_framework::domain::*;
 // use tmc_langs_util::task_executor::RefreshData;
 

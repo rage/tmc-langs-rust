@@ -1,4 +1,4 @@
-//! The core error type.
+//! The client error type.
 
 use reqwest::{Method, StatusCode};
 use std::path::PathBuf;
@@ -12,9 +12,9 @@ type TokenError = oauth2::RequestTokenError<
 >;
 
 #[derive(Debug, Error)]
-pub enum CoreError {
+pub enum ClientError {
     // Arc
-    #[error("Tried to mutate core while it was borrowed")]
+    #[error("Tried to mutate client while it was borrowed")]
     ArcBorrowed,
 
     // file IO
@@ -63,7 +63,7 @@ pub enum CoreError {
     ProgressReport(#[source] Box<dyn 'static + std::error::Error + Send + Sync>),
 }
 
-impl From<TokenError> for CoreError {
+impl From<TokenError> for ClientError {
     fn from(err: TokenError) -> Self {
         Self::Token(Box::new(err))
     }

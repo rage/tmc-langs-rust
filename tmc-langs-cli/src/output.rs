@@ -3,7 +3,7 @@
 use schemars::JsonSchema;
 use serde::Serialize;
 use std::path::PathBuf;
-use tmc_langs_core::{CourseData, CourseDetails, CourseExercise};
+use tmc_client::{CourseData, CourseDetails, CourseExercise};
 use tmc_langs_util::progress_reporter::StatusUpdate;
 
 /// The format for all messages written to stdout by the CLI

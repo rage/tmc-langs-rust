@@ -71,7 +71,7 @@ Documentation and binaries for the supported targets are built and the binaries 
 
 A binary CLI interface for TMC-langs for IDEs.
 
-### tmc-langs-core
+### tmc-client
 
 A library for communicating with the TMC server.
 

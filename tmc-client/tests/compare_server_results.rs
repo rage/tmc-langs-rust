@@ -1,12 +1,12 @@
 //! Integration tests using the courses from TMC's test organization
-//! Requires EMAIL and PASSWORD to be defined in tmc-langs-core/.env
+//! Requires EMAIL and PASSWORD to be defined in tmc-client/.env
 
 use dotenv::dotenv;
 use std::env;
 use std::path::PathBuf;
 use std::thread;
 use std::time::Duration;
-use tmc_langs_core::{CoreError, Exercise, SubmissionProcessingStatus, SubmissionStatus, TmcCore};
+use tmc_client::{ClientError, Exercise, SubmissionProcessingStatus, SubmissionStatus, TmcClient};
 use tmc_langs_util::{Language, RunStatus};
 use url::Url;
 
@@ -23,27 +23,29 @@ fn init() {
     dotenv().ok();
 }
 
-fn authenticated_core() -> TmcCore {
+fn authenticated_client() -> TmcClient {
     let email = env::var("EMAIL").unwrap();
     let password = env::var("PASSWORD").unwrap();
-    let mut core = TmcCore::new_in_config(
+    let mut client = TmcClient::new_in_config(
         TMC_ROOT.to_string(),
         "vscode_plugin".to_string(),
         "test".to_string(),
     )
     .unwrap();
-    core.authenticate("vscode_plugin", email, password).unwrap();
-    core
+    client
+        .authenticate("vscode_plugin", email, password)
+        .unwrap();
+    client
 }
 
 // downloads and submits all exercises for course, asserts that the tests are run but fail
 fn dl_test_submit_course_templates(course_id: usize) {
     init();
 
-    fn submitter(core: &TmcCore, exercise: Exercise) {
+    fn submitter(client: &TmcClient, exercise: Exercise) {
         let id = exercise.id;
-        dl_test_submit_exercise(&core, exercise, |target| {
-            core.download_or_update_exercises(vec![(id, target)])
+        dl_test_submit_exercise(&client, exercise, |target| {
+            client.download_or_update_exercises(vec![(id, target)])
         });
     }
 
@@ -54,13 +56,13 @@ fn dl_test_submit_course_templates(course_id: usize) {
 fn dl_test_submit_course_solutions(course_id: usize) {
     init();
 
-    fn submitter(core: &TmcCore, exercise: Exercise) {
+    fn submitter(client: &TmcClient, exercise: Exercise) {
         let solution_url = Url::parse(&exercise.return_url)
             .unwrap()
             .join("solution/download")
             .unwrap();
-        dl_test_submit_exercise(&core, exercise, |target| {
-            core.download_model_solution(solution_url, &target)
+        dl_test_submit_exercise(&client, exercise, |target| {
+            client.download_model_solution(solution_url, &target)
         });
     }
 
@@ -71,11 +73,11 @@ fn dl_test_submit_course_solutions(course_id: usize) {
 // tester_submitter should test and submit the exercise
 fn dl_test_submit_course_exercises<F>(course_id: usize, tester_submitter: F)
 where
-    F: Fn(&TmcCore, Exercise),
+    F: Fn(&TmcClient, Exercise),
 {
     log::debug!("fetching course {}", course_id);
-    let core = authenticated_core();
-    let course_details = core.get_course_details(course_id).unwrap();
+    let client = authenticated_client();
+    let course_details = client.get_course_details(course_id).unwrap();
     log::debug!(
         "testing and submitting course templates for {:#?}",
         course_details
@@ -98,15 +100,15 @@ where
             continue;
         }
 
-        tester_submitter(&core, exercise);
+        tester_submitter(&client, exercise);
     }
 }
 
 // submits the exercise
 // downloader should download the submission target to the path arg
-fn dl_test_submit_exercise<F>(core: &TmcCore, exercise: Exercise, downloader: F)
+fn dl_test_submit_exercise<F>(client: &TmcClient, exercise: Exercise, downloader: F)
 where
-    F: FnOnce(PathBuf) -> Result<(), CoreError>,
+    F: FnOnce(PathBuf) -> Result<(), ClientError>,
 {
     log::debug!("submitting exercise {:#?}", exercise);
     let temp = tempfile::tempdir().unwrap();
@@ -115,20 +117,20 @@ where
     downloader(submission_path.clone()).unwrap();
 
     log::debug!("testing locally {}", submission_path.display());
-    let test_results = core.run_tests(&submission_path, &mut vec![]).unwrap();
+    let test_results = client.run_tests(&submission_path, &mut vec![]).unwrap();
     let expected = test_results.status;
     log::debug!("expecting {:?}", expected);
 
     let submission_url = Url::parse(&exercise.return_url).unwrap();
     log::debug!("submitting to {}", submission_url);
-    let submission = core
+    let submission = client
         .submit(submission_url, &submission_path, Some(Language::Eng))
         .unwrap();
     log::debug!("got {:#?}", submission);
 
     log::debug!("waiting for submission to finish");
     let finished = loop {
-        let status = core.check_submission(&submission.submission_url).unwrap();
+        let status = client.check_submission(&submission.submission_url).unwrap();
         match status {
             SubmissionProcessingStatus::Finished(finished) => break *finished,
             SubmissionProcessingStatus::Processing(_) => thread::sleep(Duration::from_secs(2)),
