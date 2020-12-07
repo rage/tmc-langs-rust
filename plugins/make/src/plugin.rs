@@ -455,7 +455,7 @@ test [invalid] point6
     fn scans_exercise() {
         init();
 
-        let temp = dir_to_temp("tests/data/passing");
+        let temp = dir_to_temp("tests/data/passing-exercise");
         let plugin = MakePlugin::new();
         let exercise_desc = plugin
             .scan_exercise(temp.path(), "test".to_string(), &mut vec![])
@@ -473,7 +473,7 @@ test [invalid] point6
     fn runs_tests() {
         init();
 
-        let temp = dir_to_temp("tests/data/passing");
+        let temp = dir_to_temp("tests/data/passing-exercise");
         let plugin = MakePlugin::new();
         let run_result = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(run_result.status, RunStatus::Passed);
@@ -494,7 +494,7 @@ test [invalid] point6
     fn runs_tests_failing() {
         init();
 
-        let temp = dir_to_temp("tests/data/failing");
+        let temp = dir_to_temp("tests/data/failing-exercise");
         let plugin = MakePlugin::new();
         let run_result = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(run_result.status, RunStatus::TestsFailed);
@@ -514,7 +514,7 @@ test [invalid] point6
     fn runs_tests_failing_valgrind() {
         init();
 
-        let temp = dir_to_temp("tests/data/valgrind-failing");
+        let temp = dir_to_temp("tests/data/valgrind-failing-exercise");
         let plugin = MakePlugin::new();
         let run_result = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(run_result.status, RunStatus::TestsFailed);
