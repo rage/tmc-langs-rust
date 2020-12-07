@@ -1,7 +1,6 @@
 //! Functions for processing submissions.
 
 use lazy_static::lazy_static;
-use log::{debug, info};
 use regex::Regex;
 use std::path::Path;
 use tmc_langs_framework::file_util;
@@ -25,7 +24,7 @@ pub fn is_hidden_dir(entry: &DirEntry) -> bool {
             .map(|s| s.starts_with('.'))
             .unwrap_or_default();
     if skip {
-        debug!("is hidden dir: {:?}", entry.path());
+        log::debug!("is hidden dir: {:?}", entry.path());
     }
     skip
 }
@@ -38,7 +37,7 @@ fn on_skip_list(entry: &DirEntry) -> bool {
         .map(|s| FILES_TO_SKIP_ALWAYS.is_match(s) || s == "private")
         .unwrap_or_default();
     if skip {
-        debug!("on skip list: {:?}", entry.path());
+        log::debug!("on skip list: {:?}", entry.path());
     }
     skip
 }
@@ -52,7 +51,7 @@ pub fn contains_tmcignore(entry: &DirEntry) -> bool {
     {
         let is_file = entry.metadata().map(|e| e.is_file()).unwrap_or_default();
         if is_file && entry.file_name() == ".tmcignore" {
-            debug!("contains .tmcignore: {:?}", entry.path());
+            log::debug!("contains .tmcignore: {:?}", entry.path());
             return true;
         }
     }
@@ -84,7 +83,7 @@ fn copy_file(
         .unwrap_or(true); // paths with no extension are interpreted to be binary files
     if is_binary {
         // copy binary files
-        debug!("copying binary file from {:?} to {:?}", file, dest_path);
+        log::debug!("copying binary file from {:?} to {:?}", file, dest_path);
         file_util::copy(file, &dest_path)?;
     } else {
         // filter text files
@@ -134,7 +133,7 @@ fn process_files(
     mut line_filter: impl Fn(&MetaString) -> bool,
     mut file_filter: impl Fn(&[MetaString]) -> bool,
 ) -> Result<(), TmcError> {
-    info!("Project: {:?}", source);
+    log::info!("Project: {:?}", source);
 
     let walker = WalkDir::new(source).into_iter();
     // silently skips over errors, for example when there's a directory we don't have permissions for
@@ -197,7 +196,6 @@ mod test {
 
     const TESTDATA_ROOT: &str = "tests/data";
     const BINARY_REL: &str = "dir/inner/binary.bin";
-    const TEXT_REL: &str = "dir/nonbinary.java";
 
     fn init() {
         let _ = env_logger::builder().is_test(true).try_init();

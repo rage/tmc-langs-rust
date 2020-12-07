@@ -50,6 +50,8 @@ impl TmcProjectYml {
     }
 }
 
+/// Minimum Python version requirement.
+/// TODO: if patch is Some minor is also guaranteed to be Some etc. encode this in the type system
 #[derive(Debug, Default)]
 pub struct PythonVer {
     pub major: Option<usize>,
@@ -57,6 +59,7 @@ pub struct PythonVer {
     pub patch: Option<usize>,
 }
 
+/// Deserializes a major.minor?.patch? version into a PythonVer.
 impl<'de> Deserialize<'de> for PythonVer {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -105,6 +108,8 @@ impl<'de> Deserialize<'de> for PythonVer {
         deserializer.deserialize_str(PythonVerVisitor)
     }
 }
+
+/// Contents of the no-tests field.
 #[derive(Debug, Deserialize)]
 #[serde(from = "NoTestsWrapper")]
 pub struct NoTests {
@@ -112,6 +117,7 @@ pub struct NoTests {
     pub points: Vec<String>,
 }
 
+/// Converts the wrapper type into the more convenient one.
 impl From<NoTestsWrapper> for NoTests {
     fn from(wrapper: NoTestsWrapper) -> Self {
         match wrapper {
@@ -134,6 +140,7 @@ impl From<NoTestsWrapper> for NoTests {
     }
 }
 
+/// no-tests can either be a bool or a list of points.
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 pub enum NoTestsWrapper {
@@ -141,6 +148,7 @@ pub enum NoTestsWrapper {
     Points(NoTestsPoints),
 }
 
+/// The list of points can contain numbers or strings.
 #[derive(Debug, Deserialize)]
 pub struct NoTestsPoints {
     pub points: Vec<IntOrString>,
@@ -168,7 +176,7 @@ mod test {
         let cfg: TmcProjectYml = serde_yaml::from_str(no_tests_yml).unwrap();
         let no_tests = cfg.no_tests.unwrap();
         assert!(no_tests.flag);
-        assert!(!no_tests.points.is_empty());
+        assert_eq!(no_tests.points, &["1", "notests"]);
     }
 
     #[test]

@@ -10,7 +10,6 @@ use crate::error::TmcError;
 use crate::file_util;
 use crate::policy::StudentFilePolicy;
 use crate::TmcProjectYml;
-use log::debug;
 use nom::{branch, bytes, combinator, multi, sequence, IResult};
 use std::collections::HashSet;
 use std::io::{Read, Seek, Write};
@@ -52,7 +51,7 @@ pub trait LanguagePlugin {
                 .filter_map(|e| e.ok())
             {
                 if Self::is_exercise_type_correct(entry.path()) {
-                    debug!("found exercise {}", entry.path().display());
+                    log::debug!("found exercise {}", entry.path().display());
                     exercises.push(entry.into_path());
                 }
             }
