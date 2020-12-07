@@ -12,7 +12,7 @@ use tmc_langs_framework::{
     anyhow,
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, TestDesc},
-    io::file_util,
+    file_util,
     nom::{bytes, character, combinator, sequence, IResult},
     zip::ZipArchive,
     LanguagePlugin, TmcError,

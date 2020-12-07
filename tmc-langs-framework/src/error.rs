@@ -1,4 +1,3 @@
-use crate::io::tmc_zip;
 use std::path::PathBuf;
 use std::time::Duration;
 use subprocess::ExitStatus;
@@ -62,7 +61,7 @@ pub enum TmcError {
     #[error(transparent)]
     YamlDeserialization(#[from] serde_yaml::Error),
     #[error(transparent)]
-    ZipError(#[from] tmc_zip::ZipError),
+    ZipError(#[from] zip::result::ZipError),
     #[error(transparent)]
     WalkDir(#[from] walkdir::Error),
 }

@@ -1,3 +1,5 @@
+//! Course refresher.
+
 use crate::{
     error::UtilError,
     progress_reporter::{ProgressReporter, StatusUpdate},
@@ -10,7 +12,7 @@ use serde_yaml::{Mapping, Value};
 use std::collections::{HashMap, HashSet};
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use tmc_langs_framework::{command::TmcCommand, io::file_util, subprocess::Redirection};
+use tmc_langs_framework::{command::TmcCommand, file_util, subprocess::Redirection};
 use walkdir::WalkDir;
 
 #[cfg(unix)]
@@ -178,15 +180,17 @@ impl CourseRefresher {
 
         if !options.no_directory_changes {
             // make_solutions
-            log::info!("preparing solutions");
-            task_executor::prepare_solutions(&[course.clone_path.clone()], &course.solution_path)?;
+            log::info!("preparing solution");
+            task_executor::prepare_solution(&course.clone_path, &course.solution_path)?;
             self.progress_reporter
                 .finish_step("Prepared solutions".to_string(), None)?;
 
             // make_stubs
             log::info!("preparing stubs");
             let exercise_dirs = task_executor::find_exercise_directories(&course.clone_path)?;
-            task_executor::prepare_stubs(exercise_dirs, &course.clone_path, &course.stub_path)?;
+            for exercise_dir in exercise_dirs {
+                task_executor::prepare_stub(&exercise_dir, &course.stub_path)?;
+            }
             self.progress_reporter
                 .finish_step("Prepared stubs".to_string(), None)?;
         }

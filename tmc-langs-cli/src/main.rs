@@ -400,13 +400,12 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
             let output_path = matches.value_of("output-path").unwrap();
             let output_path = Path::new(output_path);
 
-            task_executor::prepare_solutions(&[exercise_path.to_path_buf()], output_path)
-                .with_context(|| {
-                    format!(
-                        "Failed to prepare solutions for exercise at {}",
-                        exercise_path.display(),
-                    )
-                })?;
+            task_executor::prepare_solution(exercise_path, output_path).with_context(|| {
+                format!(
+                    "Failed to prepare solutions for exercise at {}",
+                    exercise_path.display(),
+                )
+            })?;
 
             let output = Output::OutputData::<()>(OutputData {
                 status: Status::Finished,
@@ -428,22 +427,12 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
             let output_path = matches.value_of("output-path").unwrap();
             let output_path = Path::new(output_path);
 
-            let exercises =
-                task_executor::find_exercise_directories(exercise_path).with_context(|| {
-                    format!(
-                        "Failed to find exercise directories in {}",
-                        exercise_path.display(),
-                    )
-                })?;
-
-            task_executor::prepare_stubs(exercises, exercise_path, output_path).with_context(
-                || {
-                    format!(
-                        "Failed to prepare stubs for exercise at {}",
-                        exercise_path.display(),
-                    )
-                },
-            )?;
+            task_executor::prepare_stub(exercise_path, output_path).with_context(|| {
+                format!(
+                    "Failed to prepare stubs for exercise at {}",
+                    exercise_path.display(),
+                )
+            })?;
 
             let output = Output::OutputData::<()>(OutputData {
                 status: Status::Finished,

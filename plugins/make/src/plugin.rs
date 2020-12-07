@@ -15,7 +15,7 @@ use tmc_langs_framework::{
     command::{Output, TmcCommand},
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc},
     error::{CommandError, FileIo},
-    io::file_util,
+    file_util,
     nom::{bytes, character, combinator, sequence, IResult},
     plugin::LanguagePlugin,
     subprocess::PopenError,

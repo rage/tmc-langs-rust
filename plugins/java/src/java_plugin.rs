@@ -10,7 +10,7 @@ use std::time::Duration;
 use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult, ValidationResult},
-    io::file_util,
+    file_util,
     nom::{bytes, character, combinator, sequence, IResult},
     plugin::{Language, LanguagePlugin},
 };

@@ -13,6 +13,6 @@ pub use tmc_langs_framework::{
         ValidationResult,
     },
     error::*,
-    io::file_util,
+    file_util,
     plugin::Language,
 };

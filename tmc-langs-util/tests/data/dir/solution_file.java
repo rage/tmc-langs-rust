@@ -1,0 +1,2 @@
+// SOLUTION FILE
+class SomeClass {}

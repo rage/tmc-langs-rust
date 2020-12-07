@@ -2,7 +2,9 @@
 
 mod course_refresher;
 mod submission_packaging;
+mod submission_processing;
 mod tar_helper;
+mod tmc_zip;
 
 pub use self::course_refresher::{
     Course, CourseRefresher, GroupBits, ModeBits, Options, RefreshData, RefreshExercise,
@@ -16,7 +18,6 @@ use std::path::{Path, PathBuf};
 use tmc_langs_csharp::CSharpPlugin;
 use tmc_langs_framework::{
     anyhow,
-    io::{self, submission_processing},
     plugin::{Language, LanguagePlugin},
     policy::NothingIsStudentFilePolicy,
     StudentFilePolicy, TmcError, TmcProjectYml,
@@ -29,32 +30,19 @@ use tmc_langs_python3::Python3Plugin;
 use tmc_langs_r::RPlugin;
 use walkdir::WalkDir;
 
-/// See `submission_processing::prepare_solutions`.
-pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
-    exercise_paths: I,
-    dest_root: &Path,
-) -> Result<(), UtilError> {
-    io::submission_processing::prepare_solutions(exercise_paths, dest_root)?;
+/// See `submission_processing::prepare_solution`.
+pub fn prepare_solution(exercise_path: &Path, dest_root: &Path) -> Result<(), UtilError> {
+    submission_processing::prepare_solution(exercise_path, dest_root)?;
     Ok(())
 }
 
-/// See `LanguagePlugin::prepare_stubs`.
-pub fn prepare_stubs<I: IntoIterator<Item = PathBuf>>(
-    exercise_paths: I,
-    repo_path: &Path,
-    dest_path: &Path,
-) -> Result<(), UtilError> {
-    for exercise_path in exercise_paths {
-        submission_processing::prepare_stub(&exercise_path, dest_path)?;
+/// See `submission_processing::prepare_stub`.
+pub fn prepare_stub(exercise_path: &Path, dest_path: &Path) -> Result<(), UtilError> {
+    submission_processing::prepare_stub(&exercise_path, dest_path)?;
 
-        // The Ant plugin needs some additional files to be copied over.
-        if AntPlugin::is_exercise_type_correct(&exercise_path) {
-            let relative_path = exercise_path
-                .strip_prefix(repo_path)
-                .unwrap_or(&exercise_path);
-            AntPlugin::copy_tmc_junit_runner(&dest_path.join(relative_path))
-                .map_err(|e| TmcError::Plugin(Box::new(e)))?;
-        }
+    // The Ant plugin needs some additional files to be copied over.
+    if AntPlugin::is_exercise_type_correct(&exercise_path) {
+        AntPlugin::copy_tmc_junit_runner(dest_path).map_err(|e| TmcError::Plugin(Box::new(e)))?;
     }
     Ok(())
 }
@@ -133,7 +121,7 @@ pub fn extract_project_overwrite(
     compressed_project: &Path,
     target_location: &Path,
 ) -> Result<(), UtilError> {
-    io::tmc_zip::unzip(
+    tmc_zip::unzip(
         NothingIsStudentFilePolicy::new(target_location)?,
         compressed_project,
         target_location,
@@ -159,9 +147,39 @@ pub fn extract_student_files(
 }
 
 /// See `LanguagePlugin::compress_project`.
+// TODO: clean up
 pub fn compress_project(path: &Path) -> Result<Vec<u8>, UtilError> {
     let plugin = get_language_plugin(path)?;
-    Ok(plugin.compress_project(path)?)
+    match plugin {
+        Plugin::CSharp(_) => Ok(tmc_zip::zip(
+            <CSharpPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
+            path,
+        )?),
+        Plugin::Make(_) => Ok(tmc_zip::zip(
+            <MakePlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
+            path,
+        )?),
+        Plugin::Maven(_) => Ok(tmc_zip::zip(
+            <MavenPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
+            path,
+        )?),
+        Plugin::NoTests(_) => Ok(tmc_zip::zip(
+            <NoTestsPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
+            path,
+        )?),
+        Plugin::Python3(_) => Ok(tmc_zip::zip(
+            <Python3Plugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
+            path,
+        )?),
+        Plugin::R(_) => Ok(tmc_zip::zip(
+            <RPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
+            path,
+        )?),
+        Plugin::Ant(_) => Ok(tmc_zip::zip(
+            <AntPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
+            path,
+        )?),
+    }
 }
 
 /// See `LanguagePlugin::get_exercise_packaging_configuration`.
@@ -229,7 +247,6 @@ pub fn refresh_course(
 #[impl_enum::with_methods(
     fn clean(&self, path: &Path) -> Result<(), TmcError> {}
     fn get_exercise_packaging_configuration(path: &Path) -> Result<ExercisePackagingConfiguration, TmcError> {}
-    fn compress_project(path: &Path) -> Result<Vec<u8>, TmcError> {}
     fn extract_project(compressed_project: &Path, target_location: &Path, clean: bool) -> Result<(), TmcError> {}
     fn extract_student_files(compressed_project: &Path, target_location: &Path) -> Result<(), TmcError> {}
     fn scan_exercise(&self, path: &Path, exercise_name: String, warnings: &mut Vec<anyhow::Error>) -> Result<ExerciseDesc, TmcError> {}

@@ -4,7 +4,7 @@ use crate::error::UtilError;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use tar::Builder;
-use tmc_langs_framework::{io::file_util, TmcError};
+use tmc_langs_framework::{file_util, TmcError};
 use walkdir::WalkDir;
 
 /// Creates a tarball from the project dir, also adding in tmc_langs and tmcrun.

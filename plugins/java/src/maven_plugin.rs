@@ -15,7 +15,7 @@ use tmc_langs_framework::{
     anyhow,
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, ValidationResult},
-    io::file_util,
+    file_util,
     nom::IResult,
     plugin::{Language, LanguagePlugin},
     TmcError,

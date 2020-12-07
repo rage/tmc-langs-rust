@@ -17,7 +17,7 @@ use j4rs::{ClasspathEntry, Jvm, JvmBuilder};
 use serde::Deserialize;
 use std::fmt::Display;
 use std::path::PathBuf;
-use tmc_langs_framework::{io::file_util, subprocess::ExitStatus};
+use tmc_langs_framework::{file_util, subprocess::ExitStatus};
 
 #[cfg(windows)]
 const SEPARATOR: &str = ";";

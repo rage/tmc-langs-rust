@@ -2,8 +2,7 @@
 
 use crate::{
     error::{CommandError, FileIo},
-    io::file_util,
-    TmcError,
+    file_util, TmcError,
 };
 use std::ffi::OsStr;
 use std::fs::File;

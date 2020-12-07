@@ -2,13 +2,13 @@
 
 pub use zip::result::ZipError;
 
-use crate::error::TmcError;
-use crate::io::file_util;
-use crate::policy::StudentFilePolicy;
 use std::collections::HashSet;
 use std::io::{Cursor, Read, Seek, Write};
 use std::path::Path;
 use std::path::PathBuf;
+use tmc_langs_framework::error::TmcError;
+use tmc_langs_framework::file_util;
+use tmc_langs_framework::policy::StudentFilePolicy;
 use walkdir::{DirEntry, WalkDir};
 use zip::{write::FileOptions, ZipArchive, ZipWriter};
 
@@ -222,10 +222,10 @@ fn contains_tmcnosubmit(entry: &DirEntry) -> bool {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::policy::EverythingIsStudentFilePolicy;
     use std::collections::HashSet;
     use std::fs::{self, *};
     use tempfile::tempdir;
+    use tmc_langs_framework::policy::EverythingIsStudentFilePolicy;
 
     fn init() {
         let _ = env_logger::builder().is_test(true).try_init();

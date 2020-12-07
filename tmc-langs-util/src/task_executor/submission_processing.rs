@@ -1,13 +1,12 @@
 //! Functions for processing submissions.
 
-use crate::io::file_util;
-use crate::meta_syntax::{MetaString, MetaSyntaxParser};
-use crate::policy::StudentFilePolicy;
-use crate::TmcError;
 use lazy_static::lazy_static;
 use log::{debug, info};
 use regex::Regex;
-use std::path::{Path, PathBuf};
+use std::path::Path;
+use tmc_langs_framework::file_util;
+use tmc_langs_framework::meta_syntax::{MetaString, MetaSyntaxParser};
+use tmc_langs_framework::TmcError;
 use walkdir::{DirEntry, WalkDir};
 
 lazy_static! {
@@ -15,31 +14,6 @@ lazy_static! {
         Regex::new(r"\.tmcrc|metadata\.yml|(.*)Hidden(.*)").unwrap();
     static ref NON_TEXT_TYPES: Regex =
         Regex::new("class|jar|exe|jpg|jpeg|gif|png|zip|tar|gz|db|bin|csv|tsv|sqlite3|^$").unwrap();
-}
-
-/// Moves the student files of source to target based on the given policy.
-/// For example, a file source/foo.java would be moved to target/foo.java.
-pub fn move_files<P: StudentFilePolicy>(
-    student_file_policy: P,
-    source: &Path,
-    target: &Path,
-) -> Result<(), TmcError> {
-    for entry in WalkDir::new(source).into_iter().filter_entry(|e| {
-        student_file_policy
-            .is_student_file(e.path(), source)
-            .unwrap_or(false)
-    }) {
-        let entry = entry?;
-        if entry.path().is_file() {
-            let relative = entry.path().strip_prefix(source).unwrap();
-            let target_path = target.join(&relative);
-            if let Some(parent) = target_path.parent() {
-                file_util::create_dir_all(parent)?;
-            }
-            file_util::rename(entry.path(), &target_path)?;
-        }
-    }
-    Ok(())
 }
 
 // Filter for hidden directories (directories with names starting with '.')
@@ -185,15 +159,10 @@ fn process_files(
 /// files matching patterns defined in ```FILES_TO_SKIP_ALWAYS``` and directories and files named ```private```.
 ///
 /// Binary files are copied without extra processing, while text files are parsed to remove solution tags and stubs.
-pub fn prepare_solutions<'a, I: IntoIterator<Item = &'a PathBuf>>(
-    exercise_paths: I,
-    dest_root: &Path,
-) -> Result<(), TmcError> {
-    for path in exercise_paths {
-        let line_filter = |meta: &MetaString| !matches!(meta, MetaString::Stub(_));
-        let file_filter = |_metas: &[_]| true; // include all files in solution
-        process_files(path, dest_root, line_filter, file_filter)?;
-    }
+pub fn prepare_solution(exercise_path: &Path, dest_root: &Path) -> Result<(), TmcError> {
+    let line_filter = |meta: &MetaString| !matches!(meta, MetaString::Stub(_));
+    let file_filter = |_metas: &[_]| true; // include all files in solution
+    process_files(exercise_path, dest_root, line_filter, file_filter)?;
     Ok(())
 }
 
@@ -219,12 +188,12 @@ pub fn prepare_stub(exercise_path: &Path, dest_root: &Path) -> Result<(), TmcErr
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::policy::{EverythingIsStudentFilePolicy, NothingIsStudentFilePolicy};
-    use crate::TmcProjectYml;
     use std::collections::HashSet;
     use std::fs::File;
     use std::io::{Read, Write};
+    use std::path::PathBuf;
     use tempfile::tempdir;
+    use tmc_langs_framework::TmcProjectYml;
 
     const TESTDATA_ROOT: &str = "tests/data";
     const BINARY_REL: &str = "dir/inner/binary.bin";
@@ -235,70 +204,13 @@ mod test {
     }
 
     #[test]
-    fn moves_files() {
-        let source = tempdir().unwrap();
-        let target = tempdir().unwrap();
-        let mock_file = "a/b/c/d/e/f/g";
-        let file_path = source.path().join(mock_file);
-        std::fs::create_dir_all(file_path.parent().unwrap()).unwrap();
-        let _file = std::fs::File::create(&file_path).unwrap();
-        move_files(
-            EverythingIsStudentFilePolicy::new(source.path()).unwrap(),
-            source.path(),
-            target.path(),
-        )
-        .unwrap();
-
-        let mut paths = HashSet::new();
-        for entry in WalkDir::new(target.path()) {
-            let entry = entry.unwrap();
-            if entry.path().is_file() {
-                paths.insert(entry.path().to_owned());
-            }
-        }
-        assert!(
-            paths.contains(&target.path().join(mock_file)),
-            "{:?} did not contain {:?}",
-            paths,
-            file_path
-        );
-    }
-
-    #[test]
-    fn skips_student_files() {
-        let source = tempdir().unwrap();
-        let target = tempdir().unwrap();
-        let mock_file = "a/b/c/d/e/f/g";
-        let file_path = source.path().join(mock_file);
-        std::fs::create_dir_all(file_path.parent().unwrap()).unwrap();
-        let _file = std::fs::File::create(&file_path).unwrap();
-        move_files(
-            NothingIsStudentFilePolicy::new(source.path()).unwrap(),
-            source.path(),
-            target.path(),
-        )
-        .unwrap();
-
-        let mut paths = HashSet::new();
-        for entry in WalkDir::new(target.path()) {
-            let entry = entry.unwrap();
-            if entry.path().is_file() {
-                paths.insert(entry.path().to_owned());
-            }
-        }
-        assert!(paths.is_empty());
-    }
-
-    #[test]
     fn prepare_solutions_preserves_structure() {
         init();
 
-        let mut exercise_set = HashSet::new();
-        exercise_set.insert(TESTDATA_ROOT.into());
         let temp = tempdir().unwrap();
         let temp_path = temp.path();
 
-        prepare_solutions(&exercise_set, temp_path).unwrap();
+        prepare_solution(Path::new("tests/data/dir"), temp_path).unwrap();
 
         let mut dest_files = HashSet::new();
         for entry in walkdir::WalkDir::new(temp_path) {
@@ -306,14 +218,14 @@ mod test {
             dest_files.insert(entry.into_path());
         }
 
-        let exp = &temp_path.join(BINARY_REL);
+        let exp = &temp_path.join("inner/binary.bin");
         assert!(
             dest_files.contains(exp),
             "{:?} did not contain {:?}",
             dest_files,
             exp
         );
-        let exp = &temp_path.join(TEXT_REL);
+        let exp = &temp_path.join("nonbinary.java");
         assert!(
             dest_files.contains(exp),
             "{:?} did not contain {:?}",
@@ -326,14 +238,12 @@ mod test {
     fn prepare_solutions_filters_text_files() {
         init();
 
-        let mut exercise_set = HashSet::new();
-        exercise_set.insert(TESTDATA_ROOT.into());
         let temp = tempdir().unwrap();
         let temp_path = temp.path();
 
-        prepare_solutions(&exercise_set, temp_path).unwrap();
+        prepare_solution(Path::new("tests/data/dir"), temp_path).unwrap();
 
-        let exp = &temp_path.join(TEXT_REL);
+        let exp = &temp_path.join("nonbinary.java");
         let mut file = File::open(exp).unwrap();
         let mut s = String::new();
         file.read_to_string(&mut s).unwrap();
@@ -364,19 +274,17 @@ mod test {
     fn prepare_solutions_does_not_filter_binary_files() {
         init();
 
-        let mut exercise_set = HashSet::new();
-        exercise_set.insert(TESTDATA_ROOT.into());
         let temp = tempdir().unwrap();
         let temp_path = temp.path();
 
-        prepare_solutions(&exercise_set, temp_path).unwrap();
+        prepare_solution(Path::new("tests/data/dir"), temp_path).unwrap();
 
         let original: PathBuf = [TESTDATA_ROOT, BINARY_REL].iter().collect();
         let mut original = File::open(original).unwrap();
         let mut original_s = String::new();
         original.read_to_string(&mut original_s).unwrap();
 
-        let copied = &temp_path.join(BINARY_REL);
+        let copied = &temp_path.join("inner/binary.bin");
         let mut copied = File::open(copied).unwrap();
         let mut copied_s = String::new();
         copied.read_to_string(&mut copied_s).unwrap();
@@ -392,14 +300,12 @@ mod test {
     fn prepare_solutions_does_not_filter_solution_files() {
         init();
 
-        let mut exercise_set = HashSet::new();
-        exercise_set.insert(TESTDATA_ROOT.into());
         let temp = tempdir().unwrap();
         let temp_path = temp.path();
 
-        prepare_solutions(&exercise_set, temp_path).unwrap();
+        prepare_solution(Path::new("tests/data/dir"), temp_path).unwrap();
 
-        assert!(dbg!(temp_path.join("dir/solution_file.java")).exists());
+        assert!(dbg!(temp_path.join("solution_file.java")).exists());
     }
 
     #[test]
@@ -409,9 +315,9 @@ mod test {
         let temp = tempdir().unwrap();
         let temp_path = temp.path();
 
-        prepare_stub(Path::new(TESTDATA_ROOT), &temp_path).unwrap();
+        prepare_stub(Path::new("tests/data/dir"), &temp_path).unwrap();
 
-        let exp = &temp_path.join(TEXT_REL);
+        let exp = &temp_path.join("nonbinary.java");
         let mut file = File::open(exp).unwrap();
         let mut s = String::new();
         file.read_to_string(&mut s).unwrap();
@@ -441,9 +347,9 @@ mod test {
         let temp = tempdir().unwrap();
         let temp_path = temp.path();
 
-        prepare_stub(Path::new(TESTDATA_ROOT), temp_path).unwrap();
+        prepare_stub(Path::new("tests/data/dir"), temp_path).unwrap();
 
-        assert!(!temp_path.join("dir/solution_file.java").exists());
+        assert!(!temp_path.join("solution_file.java").exists());
     }
 
     #[test]

@@ -1,3 +1,5 @@
+//! Submission packaging.
+
 use super::{get_language_plugin, Plugin, TmcProjectYml};
 use crate::error::{ParamError, UtilError};
 use std::collections::HashMap;
@@ -5,7 +7,7 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::io::Write;
 use std::path::Path;
 use tmc_langs_framework::error::FileIo;
-use tmc_langs_framework::io::file_util;
+use tmc_langs_framework::file_util;
 use walkdir::WalkDir;
 use zip::{read::ZipFile, write::FileOptions, ZipWriter};
 
@@ -256,10 +258,7 @@ pub fn prepare_submission(
             // copy src main and test
             let main_path = clone_path.join("src/main");
             if main_path.exists() {
-                tmc_langs_framework::io::submission_processing::prepare_stub(
-                    &main_path,
-                    &dest.join("src"),
-                )?;
+                super::submission_processing::prepare_stub(&main_path, &dest.join("src"))?;
             }
             let test_path = tests_dir.join("src/test");
             if test_path.exists() {
@@ -308,10 +307,7 @@ pub fn prepare_submission(
             log::debug!("copying src and test");
             let main_path = clone_path.join("src");
             if main_path.exists() {
-                tmc_langs_framework::io::submission_processing::prepare_stub(
-                    &main_path,
-                    &dest.join("src"),
-                )?;
+                super::submission_processing::prepare_stub(&main_path, &dest.join("src"))?;
             }
             let test_path = clone_path.join("test");
             if test_path.exists() {

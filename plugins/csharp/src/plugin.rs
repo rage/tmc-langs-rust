@@ -15,7 +15,7 @@ use tmc_langs_framework::{
         ExerciseDesc, RunResult, RunStatus, Strategy, TestDesc, TestResult, ValidationResult,
     },
     error::{CommandError, FileIo},
-    io::file_util,
+    file_util,
     nom::{bytes, character, combinator, sequence, IResult},
     plugin::Language,
     zip::ZipArchive,

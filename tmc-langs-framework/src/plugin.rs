@@ -7,7 +7,7 @@ use crate::domain::{
     ValidationResult,
 };
 use crate::error::TmcError;
-use crate::io::{file_util, tmc_zip};
+use crate::file_util;
 use crate::policy::StudentFilePolicy;
 use crate::TmcProjectYml;
 use log::debug;
@@ -121,12 +121,6 @@ pub trait LanguagePlugin {
         _locale: Language,
     ) -> Result<Option<ValidationResult>, TmcError> {
         Ok(None)
-    }
-
-    /// Compress a given project so that it can be sent to the TestMyCode server.
-    fn compress_project(path: &Path) -> Result<Vec<u8>, TmcError> {
-        let policy = Self::StudentFilePolicy::new(path)?;
-        Ok(tmc_zip::zip(policy, path)?)
     }
 
     /// Extract a given archive file containing a compressed project to a target location.
@@ -563,22 +557,22 @@ mod test {
         let exercises = MockPlugin::find_exercises(&PathBuf::from("tests/data"));
         assert!(
             exercises.contains(&PathBuf::from("tests/data/dir")),
-            "{:?} did not contain testdata/dir",
+            "{:?} did not contain tests/data/dir",
             exercises
         );
         assert!(
             exercises.contains(&PathBuf::from("tests/data/dir/inner")),
-            "{:?} did not contain testdata/dir/inner",
+            "{:?} did not contain tests/data/dir/inner",
             exercises
         );
         assert!(
             !exercises.contains(&PathBuf::from("tests/data/ignored")),
-            "{:?} contained testdata/ignored",
+            "{:?} contained tests/data/ignored",
             exercises
         );
         assert!(
             !exercises.contains(&PathBuf::from("tests/data/dir/nonbinary.java")),
-            "{:?} contained testdata/dir/nonbinary.java",
+            "{:?} contained tests/data/dir/nonbinary.java",
             exercises
         );
     }

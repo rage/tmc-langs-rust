@@ -13,7 +13,7 @@ use tmc_langs_framework::{
     anyhow,
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, ValidationResult},
-    io::file_util,
+    file_util,
     nom::IResult,
     plugin::{Language, LanguagePlugin},
     TmcError,
@@ -46,6 +46,8 @@ impl AntPlugin {
         }
     }
 
+    /// Writes the bundled tmc-junit-runner into dest_path/lib/testrunner/tmc-junit-runner.jar
+    // TODO: check for updates
     pub fn copy_tmc_junit_runner(dest_path: &Path) -> Result<(), JavaError> {
         log::debug!("copying TMC Junit runner");
         const JUNIT_RUNNER_ARCHIVE: &[u8] = include_bytes!("../deps/tmc-junit-runner-0.2.8.jar");

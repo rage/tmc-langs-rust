@@ -1,6 +1,6 @@
 //! Contains a struct that models the .tmcproject.yml file.
 
-use crate::io::file_util;
+use crate::file_util;
 use crate::TmcError;
 use serde::{
     de::{Error, Visitor},

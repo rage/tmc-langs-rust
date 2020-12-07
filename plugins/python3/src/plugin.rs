@@ -14,7 +14,7 @@ use tmc_langs_framework::{
     command::{Output, TmcCommand},
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     error::CommandError,
-    io::file_util,
+    file_util,
     nom::{branch, bytes, character, combinator, sequence, IResult},
     plugin::LanguagePlugin,
     TmcError, TmcProjectYml,
