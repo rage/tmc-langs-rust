@@ -344,7 +344,7 @@ mod test {
     fn runs_checkstyle() {
         init();
 
-        let temp_dir = dir_to_temp("tests/data/maven_exercise");
+        let temp_dir = dir_to_temp("tests/data/maven-exercise");
         let (plugin, _lock) = get_maven();
         let checkstyle_result = plugin
             .check_code_style(temp_dir.path(), Language::from_639_3("fin").unwrap())
@@ -371,7 +371,7 @@ mod test {
     fn scans_exercise() {
         init();
 
-        let temp_dir = dir_to_temp("tests/data/maven_exercise");
+        let temp_dir = dir_to_temp("tests/data/maven-exercise");
         let (plugin, _lock) = get_maven();
         let exercises = plugin
             .scan_exercise(&temp_dir.path(), "test".to_string(), &mut vec![])
@@ -389,7 +389,7 @@ mod test {
     fn runs_tests() {
         init();
 
-        let temp_dir = dir_to_temp("tests/data/maven_exercise");
+        let temp_dir = dir_to_temp("tests/data/maven-exercise");
         let (plugin, _lock) = get_maven();
         let res = plugin.run_tests(temp_dir.path(), &mut vec![]).unwrap();
         log::debug!("{:#?}", res);
@@ -403,7 +403,7 @@ mod test {
     fn runs_tests_timeout() {
         init();
 
-        let temp_dir = dir_to_temp("tests/data/maven_exercise");
+        let temp_dir = dir_to_temp("tests/data/maven-exercise");
         let (plugin, _lock) = get_maven();
         let test_result_err = plugin
             .run_tests_with_timeout(
@@ -454,7 +454,7 @@ mod test {
     fn cleans() {
         init();
 
-        let temp_dir = dir_to_temp("tests/data/maven_exercise");
+        let temp_dir = dir_to_temp("tests/data/maven-exercise");
         file_to(&temp_dir, "target/output file", "");
 
         assert!(temp_dir.path().join("target/output file").exists());
@@ -470,12 +470,12 @@ mod test {
         init();
 
         let temp_dir = tempfile::tempdir().unwrap();
-        dir_to(&temp_dir, "Outer/Inner/maven_project/src");
+        dir_to(&temp_dir, "Outer/Inner/maven-exercise/src");
 
         let zip_contents = dir_to_zip(&temp_dir);
         let mut zip = ZipArchive::new(std::io::Cursor::new(zip_contents)).unwrap();
         let dir = MavenPlugin::find_project_dir_in_zip(&mut zip).unwrap();
-        assert_eq!(dir, Path::new("Outer/Inner/maven_project"));
+        assert_eq!(dir, Path::new("Outer/Inner/maven-exercise"));
     }
 
     #[test]
@@ -483,7 +483,7 @@ mod test {
         init();
 
         let temp_dir = tempfile::tempdir().unwrap();
-        dir_to(&temp_dir, "Outer/Inner/maven_project/srcb");
+        dir_to(&temp_dir, "Outer/Inner/maven-exercise/srcb");
 
         let zip_contents = dir_to_zip(&temp_dir);
         let mut zip = ZipArchive::new(std::io::Cursor::new(zip_contents)).unwrap();
@@ -495,7 +495,7 @@ mod test {
     fn gets_project_class_path() {
         init();
 
-        let temp_dir = dir_to_temp("tests/data/maven_exercise");
+        let temp_dir = dir_to_temp("tests/data/maven-exercise");
         let (plugin, _lock) = get_maven();
         let class_path = plugin.get_project_class_path(temp_dir.path()).unwrap();
         log::debug!("{}", class_path);
@@ -510,7 +510,7 @@ mod test {
         use std::path::PathBuf;
         log::debug!("{}", PathBuf::from(".").canonicalize().unwrap().display());
 
-        let temp_dir = dir_to_temp("tests/data/maven_exercise");
+        let temp_dir = dir_to_temp("tests/data/maven-exercise");
         let (plugin, _lock) = get_maven();
         let compile_result = plugin.build(temp_dir.path()).unwrap();
         assert!(compile_result.status_code.success());
@@ -520,7 +520,7 @@ mod test {
     fn creates_run_result_file() {
         init();
 
-        let temp_dir = dir_to_temp("tests/data/maven_exercise");
+        let temp_dir = dir_to_temp("tests/data/maven-exercise");
         let test_path = temp_dir.path();
         let (plugin, _lock) = get_maven();
         let compile_result = plugin.build(test_path).unwrap();

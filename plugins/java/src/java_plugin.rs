@@ -520,7 +520,7 @@ openjdk version "1.8.0_252"S
     fn scans_exercise_with_compile_result() {
         init();
 
-        let temp_dir = dir_to_temp("tests/data/ant_project");
+        let temp_dir = dir_to_temp("tests/data/ant-exercise");
 
         let plugin = Stub::new();
         let compile_result = CompileResult {
@@ -553,7 +553,7 @@ openjdk version "1.8.0_252"S
     fn runs_checkstyle() {
         init();
 
-        let temp_dir = dir_to_temp("tests/data/ant_project");
+        let temp_dir = dir_to_temp("tests/data/ant-exercise");
 
         let plugin = Stub::new();
         let validation_result = plugin

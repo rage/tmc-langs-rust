@@ -437,7 +437,7 @@ mod test {
     fn builds() {
         init();
 
-        let temp_dir = dir_to_temp("tests/data/ant_project");
+        let temp_dir = dir_to_temp("tests/data/ant-exercise");
         let plugin = AntPlugin::new().unwrap();
         let compile_result = plugin.build(temp_dir.path()).unwrap();
         assert!(compile_result.status_code.success());
@@ -450,7 +450,7 @@ mod test {
     fn creates_run_result_file() {
         init();
 
-        let temp_dir = dir_to_temp("tests/data/ant_project");
+        let temp_dir = dir_to_temp("tests/data/ant-exercise");
         let plugin = AntPlugin::new().unwrap();
         let compile_result = plugin.build(temp_dir.path()).unwrap();
         let test_run = plugin
@@ -494,7 +494,7 @@ mod test {
     fn scans_exercise() {
         init();
 
-        let temp_dir = dir_to_temp("tests/data/ant_project");
+        let temp_dir = dir_to_temp("tests/data/ant-exercise");
         let plugin = AntPlugin::new().unwrap();
         let exercises = plugin
             .scan_exercise(&temp_dir.path(), "test".to_string(), &mut vec![])
@@ -509,7 +509,7 @@ mod test {
     fn runs_checkstyle() {
         init();
 
-        let temp_dir = dir_to_temp("tests/data/ant_project");
+        let temp_dir = dir_to_temp("tests/data/ant-exercise");
         let plugin = AntPlugin::new().unwrap();
         let checkstyle_result = plugin
             .check_code_style(temp_dir.path(), Language::from_639_3("fin").unwrap())
@@ -534,7 +534,7 @@ mod test {
     fn runs_tests() {
         init();
 
-        let temp_dir = dir_to_temp("tests/data/ant_project");
+        let temp_dir = dir_to_temp("tests/data/ant-exercise");
         let plugin = AntPlugin::new().unwrap();
         let test_result = plugin
             .run_tests_with_timeout(Path::new(temp_dir.path()), None, &mut vec![])
@@ -550,7 +550,7 @@ mod test {
     fn runs_tests_with_timeout() {
         init();
 
-        let temp_dir = dir_to_temp("tests/data/ant_project");
+        let temp_dir = dir_to_temp("tests/data/ant-exercise");
         let plugin = AntPlugin::new().unwrap();
         let test_result_err = plugin
             .run_tests_with_timeout(
@@ -603,7 +603,7 @@ mod test {
     fn cleans() {
         init();
 
-        let temp_dir = dir_to_temp("tests/data/ant_project");
+        let temp_dir = dir_to_temp("tests/data/ant-exercise");
         let test_path = temp_dir.path();
         let plugin = AntPlugin::new().unwrap();
         plugin.clean(test_path).unwrap();
@@ -614,12 +614,12 @@ mod test {
         init();
 
         let temp_dir = tempfile::tempdir().unwrap();
-        dir_to(&temp_dir, "Outer/Inner/ant_project/src");
+        dir_to(&temp_dir, "Outer/Inner/ant-exercise/src");
 
         let zip_contents = dir_to_zip(&temp_dir);
         let mut zip = ZipArchive::new(std::io::Cursor::new(zip_contents)).unwrap();
         let dir = AntPlugin::find_project_dir_in_zip(&mut zip).unwrap();
-        assert_eq!(dir, Path::new("Outer/Inner/ant_project"));
+        assert_eq!(dir, Path::new("Outer/Inner/ant-exercise"));
     }
 
     #[test]
@@ -627,7 +627,7 @@ mod test {
         init();
 
         let temp_dir = tempfile::tempdir().unwrap();
-        dir_to(&temp_dir, "Outer/Inner/ant_project/srcb");
+        dir_to(&temp_dir, "Outer/Inner/ant-exercise/srcb");
 
         let zip_contents = dir_to_zip(&temp_dir);
         let mut zip = ZipArchive::new(std::io::Cursor::new(zip_contents)).unwrap();
