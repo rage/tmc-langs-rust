@@ -10,7 +10,7 @@ use serde::{
 use std::fmt;
 use std::str::FromStr;
 use thiserror::Error;
-use tmc_langs_util::ValidationResult;
+use tmc_langs_util::StyleValidationResult;
 
 /// Represents an error response from tmc-server
 #[derive(Debug, Error, Deserialize)]
@@ -314,7 +314,7 @@ pub struct SubmissionFinished {
     pub feedback_questions: Option<Vec<SubmissionFeedbackQuestion>>,
     pub feedback_answer_url: Option<String>,
     pub error: Option<String>,
-    pub validations: Option<ValidationResult>,
+    pub validations: Option<StyleValidationResult>,
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]

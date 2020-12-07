@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
     command::TmcCommand,
-    domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult, ValidationResult},
+    domain::{ExerciseDesc, RunResult, RunStatus, StyleValidationResult, TestDesc, TestResult},
     file_util,
     nom::{bytes, character, combinator, sequence, IResult},
     plugin::{Language, LanguagePlugin},
@@ -233,7 +233,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         &self,
         locale: &Language,
         path: &Path,
-    ) -> Result<ValidationResult, JavaError> {
+    ) -> Result<StyleValidationResult, JavaError> {
         let path = path.to_string_lossy();
         let file = self
             .jvm()
@@ -247,7 +247,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
             &[InvocationArg::from(file), InvocationArg::from(locale)],
         )?;
         let result = self.jvm().invoke(&checkstyle_runner, "run", &[])?;
-        let result: ValidationResult = self.jvm().to_rust(result)?;
+        let result: StyleValidationResult = self.jvm().to_rust(result)?;
 
         log::debug!("Validation result: {:?}", result);
         Ok(result)

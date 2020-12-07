@@ -24,4 +24,4 @@ pub use self::response::{
 };
 pub use self::tmc_client::{ClientUpdateData, TmcClient, Token};
 pub use oauth2;
-pub use tmc_langs_util::{Language, RunResult, Strategy, ValidationResult};
+pub use tmc_langs_util::{Language, RunResult, StyleValidationResult, StyleValidationStrategy};

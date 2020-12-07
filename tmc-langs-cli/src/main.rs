@@ -27,7 +27,7 @@ use tmc_client::oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
 use tmc_client::{ClientError, ClientUpdateData, FeedbackAnswer, TmcClient, Token};
-use tmc_langs_framework::{domain::ValidationResult, error::CommandError};
+use tmc_langs_framework::{domain::StyleValidationResult, error::CommandError};
 use tmc_langs_util::{
     progress_reporter::ProgressReporter,
     task_executor::{
@@ -1752,7 +1752,7 @@ fn run_checkstyle_write_results(
     exercise_path: &Path,
     output_path: Option<&Path>,
     locale: Language,
-) -> Result<Option<ValidationResult>> {
+) -> Result<Option<StyleValidationResult>> {
     let check_result =
         task_executor::run_check_code_style(exercise_path, locale).with_context(|| {
             format!(

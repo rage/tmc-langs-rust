@@ -14,7 +14,7 @@ use tar::Archive;
 use tmc_langs_framework::{
     anyhow,
     command::TmcCommand,
-    domain::{ExerciseDesc, RunResult, ValidationResult},
+    domain::{ExerciseDesc, RunResult, StyleValidationResult},
     file_util,
     nom::IResult,
     plugin::{Language, LanguagePlugin},
@@ -81,7 +81,7 @@ impl LanguagePlugin for MavenPlugin {
         &self,
         path: &Path,
         locale: Language,
-    ) -> Result<Option<ValidationResult>, TmcError> {
+    ) -> Result<Option<StyleValidationResult>, TmcError> {
         Ok(Some(self.run_checkstyle(&locale, path)?))
     }
 
@@ -236,7 +236,7 @@ mod test {
     use super::*;
     use std::fs;
     use std::sync::{Mutex, MutexGuard};
-    use tmc_langs_framework::domain::Strategy;
+    use tmc_langs_framework::domain::StyleValidationStrategy;
     use tmc_langs_framework::zip::ZipArchive;
 
     lazy_static::lazy_static! {
@@ -351,7 +351,7 @@ mod test {
             .unwrap()
             .unwrap();
 
-        assert_eq!(checkstyle_result.strategy, Strategy::Fail);
+        assert_eq!(checkstyle_result.strategy, StyleValidationStrategy::Fail);
         let validation_errors = checkstyle_result.validation_errors.unwrap();
         let errors = validation_errors
             .get(Path::new("fi/helsinki/cs/maventest/App.java"))

@@ -30,6 +30,7 @@ impl TestDesc {
 pub struct TestResult {
     pub name: String,
     pub successful: bool,
+    /// List of points that were received from the exercise from passed tests.
     pub points: Vec<String>,
     pub message: String,
     #[serde(default)]
@@ -119,26 +120,29 @@ impl ExercisePackagingConfiguration {
     }
 }
 
+/// Determines how style errors are handled.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "UPPERCASE")]
-pub enum Strategy {
+pub enum StyleValidationStrategy {
     Fail,
     Warn,
     Disabled,
 }
 
+/// A style validation error.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct ValidationError {
+pub struct StyleValidationError {
     pub column: usize,
     pub line: usize,
     pub message: String,
     pub source_name: String,
 }
 
+/// The result of a style check.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct ValidationResult {
-    pub strategy: Strategy,
-    pub validation_errors: Option<HashMap<PathBuf, Vec<ValidationError>>>,
+pub struct StyleValidationResult {
+    pub strategy: StyleValidationStrategy,
+    pub validation_errors: Option<HashMap<PathBuf, Vec<StyleValidationError>>>,
 }

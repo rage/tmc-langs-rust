@@ -9,8 +9,8 @@ pub use self::task_executor::OutputFormat;
 pub use tmc_langs_framework::{
     anyhow,
     domain::{
-        ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, Strategy,
-        ValidationResult,
+        ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, StyleValidationResult,
+        StyleValidationStrategy,
     },
     error::*,
     file_util,

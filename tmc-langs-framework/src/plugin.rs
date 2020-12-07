@@ -3,8 +3,8 @@
 pub use isolang::Language;
 
 use crate::domain::{
-    ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, TestResult,
-    ValidationResult,
+    ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, StyleValidationResult,
+    TestResult,
 };
 use crate::error::TmcError;
 use crate::file_util;
@@ -119,7 +119,7 @@ pub trait LanguagePlugin {
         &self,
         _path: &Path,
         _locale: Language,
-    ) -> Result<Option<ValidationResult>, TmcError> {
+    ) -> Result<Option<StyleValidationResult>, TmcError> {
         Ok(None)
     }
 

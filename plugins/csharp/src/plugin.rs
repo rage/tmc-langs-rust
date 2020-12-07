@@ -12,7 +12,8 @@ use tmc_langs_framework::{
     anyhow,
     command::TmcCommand,
     domain::{
-        ExerciseDesc, RunResult, RunStatus, Strategy, TestDesc, TestResult, ValidationResult,
+        ExerciseDesc, RunResult, RunStatus, StyleValidationResult, StyleValidationStrategy,
+        TestDesc, TestResult,
     },
     error::{CommandError, FileIo},
     file_util,
@@ -310,9 +311,9 @@ impl LanguagePlugin for CSharpPlugin {
         &self,
         _path: &Path,
         _locale: Language,
-    ) -> Result<Option<ValidationResult>, TmcError> {
-        Ok(Some(ValidationResult {
-            strategy: Strategy::Disabled,
+    ) -> Result<Option<StyleValidationResult>, TmcError> {
+        Ok(Some(StyleValidationResult {
+            strategy: StyleValidationStrategy::Disabled,
             validation_errors: None,
         }))
     }

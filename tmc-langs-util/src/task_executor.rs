@@ -13,7 +13,7 @@ pub use self::course_refresher::{
 pub use self::submission_packaging::{OutputFormat, TmcParams};
 
 use crate::error::UtilError;
-use crate::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, ValidationResult};
+use crate::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, StyleValidationResult};
 use std::path::{Path, PathBuf};
 use tmc_langs_csharp::CSharpPlugin;
 use tmc_langs_framework::{
@@ -73,7 +73,7 @@ pub fn prepare_submission(
 pub fn run_check_code_style(
     path: &Path,
     locale: Language,
-) -> Result<Option<ValidationResult>, UtilError> {
+) -> Result<Option<StyleValidationResult>, UtilError> {
     Ok(get_language_plugin(path)?.check_code_style(path, locale)?)
 }
 
@@ -251,7 +251,7 @@ pub fn refresh_course(
     fn extract_student_files(compressed_project: &Path, target_location: &Path) -> Result<(), TmcError> {}
     fn scan_exercise(&self, path: &Path, exercise_name: String, warnings: &mut Vec<anyhow::Error>) -> Result<ExerciseDesc, TmcError> {}
     fn run_tests(&self, path: &Path, warnings: &mut Vec<anyhow::Error>) -> Result<RunResult, TmcError> {}
-    fn check_code_style(&self, path: &Path, locale: Language) -> Result<Option<ValidationResult>, TmcError> {}
+    fn check_code_style(&self, path: &Path, locale: Language) -> Result<Option<StyleValidationResult>, TmcError> {}
     fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, TmcError> {}
 )]
 enum Plugin {

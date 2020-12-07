@@ -22,7 +22,7 @@ pub fn create_app() -> App<'static, 'static> {
 
         .subcommand(SubCommand::with_name("checkstyle")
             .about("Checks the code style for the given exercise")
-            .long_about(schema_leaked::<Option<ValidationResult>>())
+            .long_about(schema_leaked::<Option<StyleValidationResult>>())
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the project resides.")
                 .long("exercise-path")
@@ -596,7 +596,7 @@ fn create_core_app() -> App<'static, 'static> {
 
         .subcommand(SubCommand::with_name("run-checkstyle")
             .about("Checks the code style for the given exercise")
-            .long_about(schema_leaked::<Option<ValidationResult>>())
+            .long_about(schema_leaked::<Option<StyleValidationResult>>())
             .arg(Arg::with_name("exercise-path")
                 .help("Path to the directory where the exercise resides.")
                 .long("exercise-path")

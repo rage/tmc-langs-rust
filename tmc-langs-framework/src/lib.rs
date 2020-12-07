@@ -10,11 +10,10 @@ pub mod policy;
 pub mod tmc_project_yml;
 
 pub use self::error::TmcError;
+pub use self::plugin::LanguagePlugin;
 pub use self::policy::StudentFilePolicy;
+pub use self::tmc_project_yml::TmcProjectYml;
 pub use anyhow;
 pub use nom;
-pub use plugin::LanguagePlugin;
 pub use subprocess;
 pub use zip;
-
-pub use tmc_project_yml::TmcProjectYml;

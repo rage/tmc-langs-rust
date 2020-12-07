@@ -3,7 +3,7 @@ mod api;
 use crate::error::ClientError;
 use crate::request::*;
 use crate::response::*;
-use crate::{Language, RunResult, ValidationResult};
+use crate::{Language, RunResult, StyleValidationResult};
 use oauth2::{
     basic::BasicClient, AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword,
     ResourceOwnerUsername, TokenUrl,
@@ -493,7 +493,7 @@ impl TmcClient {
         &self,
         path: &Path,
         locale: Language,
-    ) -> Result<Option<ValidationResult>, ClientError> {
+    ) -> Result<Option<StyleValidationResult>, ClientError> {
         Ok(task_executor::run_check_code_style(path, locale)?)
     }
 

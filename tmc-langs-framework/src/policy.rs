@@ -97,15 +97,29 @@ pub trait StudentFilePolicy {
     }
 }
 
+/// Mock policy that ignores the config file and returns false for all files.
 pub struct NothingIsStudentFilePolicy {
     project_config: TmcProjectYml,
 }
 
 impl StudentFilePolicy for NothingIsStudentFilePolicy {
-    fn new_with_project_config(project_config: TmcProjectYml) -> Self
+    fn new(_project_dir: &Path) -> Result<Self, TmcError>
     where
         Self: Sized,
     {
+        let project_config = TmcProjectYml {
+            ..Default::default()
+        };
+        Ok(Self { project_config })
+    }
+
+    fn new_with_project_config(_project_config: TmcProjectYml) -> Self
+    where
+        Self: Sized,
+    {
+        let project_config = TmcProjectYml {
+            ..Default::default()
+        };
         Self { project_config }
     }
 
@@ -122,16 +136,30 @@ impl StudentFilePolicy for NothingIsStudentFilePolicy {
     }
 }
 
+/// Mock policy that ignores the config file and returns true for all files.
 #[derive(Default)]
 pub struct EverythingIsStudentFilePolicy {
     project_config: TmcProjectYml,
 }
 
 impl StudentFilePolicy for EverythingIsStudentFilePolicy {
-    fn new_with_project_config(project_config: TmcProjectYml) -> Self
+    fn new(_project_dir: &Path) -> Result<Self, TmcError>
     where
         Self: Sized,
     {
+        let project_config = TmcProjectYml {
+            ..Default::default()
+        };
+        Ok(Self { project_config })
+    }
+
+    fn new_with_project_config(_project_config: TmcProjectYml) -> Self
+    where
+        Self: Sized,
+    {
+        let project_config = TmcProjectYml {
+            ..Default::default()
+        };
         Self { project_config }
     }
 
