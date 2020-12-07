@@ -183,10 +183,18 @@ mod test {
         let cmd = TmcCommand::new_with_file_io("sleep")
             .unwrap()
             .with(|e| e.arg("1"));
-        if let Err(TmcError::Command(CommandError::Popen(_, PopenError::IoError(io)))) =
-            cmd.output_with_timeout(Duration::from_millis(100))
-        {
-            assert_eq!(io.kind(), std::io::ErrorKind::TimedOut)
-        }
+        assert!(matches!(
+            cmd.output_with_timeout(Duration::from_nanos(1)),
+            Err(TmcError::Command(CommandError::TimeOut {..}))
+        ));
+    }
+
+    #[test]
+    fn not_found() {
+        let cmd = TmcCommand::new_with_file_io("nonexistent command").unwrap();
+        assert!(matches!(
+            cmd.output(),
+            Err(TmcError::Command(CommandError::NotFound {..}))
+        ));
     }
 }
