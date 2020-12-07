@@ -6,9 +6,7 @@ use crate::{
 };
 use std::ffi::OsStr;
 use std::fs::File;
-use std::io::Read;
-use std::io::Seek;
-use std::io::SeekFrom;
+use std::io::{Read, Seek, SeekFrom};
 use std::time::Duration;
 use subprocess::{Exec, ExitStatus, PopenError};
 
@@ -53,12 +51,13 @@ impl TmcCommand {
             exec: Exec::cmd(cmd)
                 .stdout(stdout.try_clone().map_err(FileIo::FileHandleClone)?)
                 .stderr(stderr.try_clone().map_err(FileIo::FileHandleClone)?)
-                .env("LANG", "en_US.UTF-8"),
+                .env("LANG", "en_US.UTF-8"), // some languages may error on UTF-8 files if the LANG variable is unset or set to some non-UTF-8 value
             stdout: Some(stdout),
             stderr: Some(stderr),
         })
     }
 
+    /// Allows modification of the internal command without providing access to it.
     pub fn with(self, f: impl FnOnce(Exec) -> Exec) -> Self {
         Self {
             exec: f(self.exec),
@@ -77,9 +76,11 @@ impl TmcCommand {
             stderr,
         } = self;
 
+        // starts executing the command
         let mut popen = exec.popen().map_err(|e| popen_to_tmc_err(cmd.clone(), e))?;
 
         let exit_status = if let Some(timeout) = timeout {
+            // timeout set
             let exit_status = popen
                 .wait_timeout(timeout)
                 .map_err(|e| popen_to_tmc_err(cmd.clone(), e))?;
@@ -87,6 +88,7 @@ impl TmcCommand {
             match exit_status {
                 Some(exit_status) => exit_status,
                 None => {
+                    // None means that we timed out
                     popen
                         .terminate()
                         .map_err(|e| CommandError::Terminate(cmd.clone(), e))?;
@@ -101,6 +103,7 @@ impl TmcCommand {
                 }
             }
         } else {
+            // no timeout, block until done
             popen.wait().map_err(|e| popen_to_tmc_err(cmd.clone(), e))?
         };
 
@@ -108,6 +111,7 @@ impl TmcCommand {
         let stdout = read_output(stdout, popen.stdout.as_mut())?;
         let stderr = read_output(stderr, popen.stderr.as_mut())?;
 
+        // if checked is set, error with failed exit status
         if checked && !exit_status.success() {
             log::warn!("stdout: {}", String::from_utf8_lossy(&stdout));
             log::warn!("stderr: {}", String::from_utf8_lossy(&stderr));
