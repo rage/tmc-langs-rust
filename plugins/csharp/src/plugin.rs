@@ -587,7 +587,7 @@ mod test {
     fn scans_exercise() {
         init();
 
-        let temp = dir_to_temp("tests/data/PassingProject");
+        let temp = dir_to_temp("tests/data/passing-exercise");
         let plugin = CSharpPlugin::new();
         let scan = plugin
             .scan_exercise(temp.path(), "name".to_string(), &mut vec![])
@@ -600,7 +600,7 @@ mod test {
     fn runs_tests_passing() {
         init();
 
-        let temp = dir_to_temp("tests/data/PassingProject");
+        let temp = dir_to_temp("tests/data/passing-exercise");
         let plugin = CSharpPlugin::new();
         let res = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(res.status, RunStatus::Passed);
@@ -616,7 +616,7 @@ mod test {
     fn runs_tests_failing() {
         init();
 
-        let temp = dir_to_temp("tests/data/FailingProject");
+        let temp = dir_to_temp("tests/data/failing-exercise");
         let plugin = CSharpPlugin::new();
         let res = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(res.status, RunStatus::TestsFailed);
@@ -634,7 +634,7 @@ mod test {
     fn runs_tests_compile_err() {
         init();
 
-        let temp = dir_to_temp("tests/data/NonCompilingProject");
+        let temp = dir_to_temp("tests/data/non-compiling-exercise");
         let plugin = CSharpPlugin::new();
         let res = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
         assert_eq!(res.status, RunStatus::CompileFailed);
@@ -651,7 +651,7 @@ mod test {
     fn runs_tests_timeout() {
         init();
 
-        let temp = dir_to_temp("tests/data/PassingProject");
+        let temp = dir_to_temp("tests/data/passing-exercise");
         let plugin = CSharpPlugin::new();
         let res = plugin
             .run_tests_with_timeout(
@@ -667,7 +667,7 @@ mod test {
     fn cleans() {
         init();
 
-        let temp = dir_to_temp("tests/data/PassingProject");
+        let temp = dir_to_temp("tests/data/passing-exercise");
         let plugin = CSharpPlugin::new();
         let bin_path = temp.path().join("src").join("PassingSample").join("bin");
         let obj_path_test = temp
