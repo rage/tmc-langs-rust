@@ -9,10 +9,6 @@ pub enum TmcError {
     // IO
     #[error("File IO error")]
     FileIo(#[from] FileIo),
-    #[error("{0} exists and is not a directory")]
-    UnexpectedFile(PathBuf),
-    #[error("Failed to read stdio")]
-    ReadStdio(#[source] std::io::Error),
 
     #[error("Failed to read file inside zip archive with path {0}")]
     ZipRead(PathBuf, #[source] std::io::Error),
@@ -29,21 +25,11 @@ pub enum TmcError {
     SubmissionParse(PathBuf, #[source] Box<Self>),
     #[error("Failed to canonicalize path {0}")]
     Canonicalize(PathBuf, #[source] std::io::Error),
-    #[error("Error occurred in a child process")]
-    Process(#[source] std::io::Error),
-    #[error("Failed to set permissions for {0}")]
-    SetPermissions(PathBuf, #[source] std::io::Error),
-    #[error("Invalid parameter value: {0}")]
-    InvalidParam(String),
     #[error("File {0} not in given project root {1}")]
     FileNotInProject(PathBuf, PathBuf),
-    #[error("Path {0} is not absolute")]
-    PathNotAbsolute(PathBuf),
     #[error("Error while parsing available points: {0}")]
     PointParse(String),
 
-    #[error("Path {0} contained invalid UTF8")]
-    UTF8(PathBuf),
     #[error("Path {0} contained no file name")]
     NoFileName(PathBuf),
 
