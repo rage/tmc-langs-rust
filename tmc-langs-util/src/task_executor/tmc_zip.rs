@@ -333,7 +333,7 @@ mod test {
     fn windows_paths_get_converted() {
         let win_path = PathBuf::from(r"tests\data\dir");
         let zipped = zip(
-            EverythingIsStudentFilePolicy::new(win_path.clone()),
+            EverythingIsStudentFilePolicy::new(win_path.clone()).unwrap(),
             &win_path,
         )
         .unwrap();
