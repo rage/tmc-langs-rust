@@ -36,29 +36,6 @@ pub trait LanguagePlugin {
     const BLOCK_COMMENT: Option<(&'static str, &'static str)>;
     type StudentFilePolicy: StudentFilePolicy;
 
-    /// Returns a list of all directories inside that contain an exercise in this
-    /// language.
-    ///
-    /// These directories might overlap with directories returned by some other
-    /// language plug-in.
-    // TODO: rewrite using the exercise finder used by find exercises of the tmc-langs-cli?
-    fn find_exercises(base_path: &Path) -> Vec<PathBuf> {
-        let mut exercises = vec![];
-        if base_path.is_dir() {
-            for entry in WalkDir::new(base_path)
-                .into_iter()
-                .filter_entry(|e| e.path().is_dir())
-                .filter_map(|e| e.ok())
-            {
-                if Self::is_exercise_type_correct(entry.path()) {
-                    log::debug!("found exercise {}", entry.path().display());
-                    exercises.push(entry.into_path());
-                }
-            }
-        }
-        exercises
-    }
-
     /// Produces an exercise description of an exercise directory.
     ///
     /// This involves finding the test cases and the points offered by the
@@ -126,6 +103,7 @@ pub trait LanguagePlugin {
     ///
     /// This will overwrite any existing files as long as they are not specified as student files
     /// by the language dependent student file policy.
+    // TODO: look at removing or relocating
     fn extract_project(
         compressed_project: &Path,
         target_location: &Path,
@@ -332,6 +310,7 @@ pub trait LanguagePlugin {
     fn is_exercise_type_correct(path: &Path) -> bool;
 
     /// Returns configuration which is used to package submission on tmc-server.
+    // TODO: rethink
     fn get_exercise_packaging_configuration(
         path: &Path,
     ) -> Result<ExercisePackagingConfiguration, TmcError> {
@@ -361,7 +340,7 @@ pub trait LanguagePlugin {
 
     fn get_default_exercise_file_paths() -> Vec<PathBuf>;
 
-    /// Parses
+    /// Parses exercise files using Self::LINE_COMMENT and Self::BLOCK_COMMENt to filter out comments and Self::points_parser to parse points from the actual code.
     fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, TmcError> {
         let config = Self::get_exercise_packaging_configuration(exercise_path)?;
 
@@ -548,32 +527,6 @@ mod test {
 
     fn init() {
         let _ = env_logger::builder().is_test(true).try_init();
-    }
-
-    #[test]
-    fn finds_exercises() {
-        init();
-        let exercises = MockPlugin::find_exercises(&PathBuf::from("tests/data"));
-        assert!(
-            exercises.contains(&PathBuf::from("tests/data/dir")),
-            "{:?} did not contain tests/data/dir",
-            exercises
-        );
-        assert!(
-            exercises.contains(&PathBuf::from("tests/data/dir/inner")),
-            "{:?} did not contain tests/data/dir/inner",
-            exercises
-        );
-        assert!(
-            !exercises.contains(&PathBuf::from("tests/data/ignored")),
-            "{:?} contained tests/data/ignored",
-            exercises
-        );
-        assert!(
-            !exercises.contains(&PathBuf::from("tests/data/dir/nonbinary.java")),
-            "{:?} contained tests/data/dir/nonbinary.java",
-            exercises
-        );
     }
 
     #[test]

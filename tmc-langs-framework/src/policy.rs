@@ -42,7 +42,8 @@ pub trait StudentFilePolicy {
     /// The file_path should be some file inside project_root_path.
     ///
     /// # Errors
-    /// Returns an error if either the file_path or project_root_path don't exist, or if file_path is not in project_root_path.
+    /// Returns an error if project_root_path doesn't exist, or if file_path is not in project_root_path.
+    // TODO: look at removing project_root_path and just requiring file_path to be relative
     fn is_student_file(
         &self,
         file_path: &Path,
