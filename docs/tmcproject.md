@@ -22,6 +22,7 @@ extra_student_files:
   - "./another_file_in_exercise_root.py"
 extra_exercise_files:
   - "dir/file_in_subdirectory.xml"
+  - "directory_with_exercise_files"
 force_update:
   - "./tests/forced_to_update"
 tests_timeout_ms: 1000

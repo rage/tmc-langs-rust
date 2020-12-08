@@ -53,16 +53,6 @@ pub trait StudentFilePolicy {
             return Ok(false);
         }
 
-        // check extra student files
-        let is_extra_student_file = self
-            .get_project_config()
-            .extra_student_files
-            .iter()
-            .any(|f| file_path.starts_with(f));
-        if is_extra_student_file {
-            return Ok(true);
-        }
-
         // make paths absolute
         let path_canon = file_path
             .canonicalize()
@@ -81,7 +71,16 @@ pub trait StudentFilePolicy {
             .strip_prefix(&root_canon)
             .map_err(|_| TmcError::FileNotInProject(path_canon.clone(), root_canon.clone()))?;
 
-        Ok(Self::is_student_source_file(relative))
+        log::debug!("relat {}", relative.display());
+
+        // check extra student files
+        let is_extra_student_file = self
+            .get_project_config()
+            .extra_student_files
+            .iter()
+            .any(|f| relative.starts_with(f));
+
+        Ok(is_extra_student_file || Self::is_student_source_file(relative))
     }
 
     /// Used to check for files which should always be overwritten.
@@ -175,5 +174,135 @@ impl StudentFilePolicy for EverythingIsStudentFilePolicy {
 
     fn is_student_source_file(_path: &Path) -> bool {
         true
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use std::path::{Path, PathBuf};
+
+    fn init() {
+        use log::*;
+        use simple_logger::*;
+        let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
+    }
+
+    fn file_to(
+        target_dir: impl AsRef<std::path::Path>,
+        target_relative: impl AsRef<std::path::Path>,
+        contents: impl AsRef<[u8]>,
+    ) -> PathBuf {
+        let target = target_dir.as_ref().join(target_relative);
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent).unwrap();
+        }
+        std::fs::write(&target, contents.as_ref()).unwrap();
+        target
+    }
+
+    struct MockPolicy {
+        project_config: TmcProjectYml,
+    }
+
+    impl StudentFilePolicy for MockPolicy {
+        fn new_with_project_config(project_config: TmcProjectYml) -> Self
+        where
+            Self: Sized,
+        {
+            Self { project_config }
+        }
+
+        fn get_project_config(&self) -> &TmcProjectYml {
+            &self.project_config
+        }
+
+        fn is_student_source_file(file_path: &Path) -> bool {
+            file_path
+                .components()
+                .any(|c| c.as_os_str() == "student_file")
+        }
+    }
+
+    #[test]
+    fn considers_student_source_files() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "dir/student_file/some file", "");
+        file_to(&temp, "other dir/student_file", "");
+        file_to(&temp, "other dir/other file", "");
+        file_to(&temp, "other file", "");
+
+        let project_config = TmcProjectYml::default();
+        let policy = MockPolicy { project_config };
+        assert!(policy
+            .is_student_file(&temp.path().join("dir/student_file/some file"), temp.path())
+            .unwrap());
+        assert!(policy
+            .is_student_file(&temp.path().join("other dir/student_file"), temp.path())
+            .unwrap());
+        assert!(!policy
+            .is_student_file(&temp.path().join("other dir/other file"), temp.path())
+            .unwrap());
+        assert!(!policy
+            .is_student_file(&temp.path().join("other file"), temp.path())
+            .unwrap());
+    }
+
+    #[test]
+    fn considers_extra_student_files() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "sdir/some file", "");
+        file_to(&temp, "other dir/sfile", "");
+        file_to(&temp, "other dir/other file", "");
+        file_to(&temp, "other file", "");
+
+        let project_config = TmcProjectYml {
+            extra_student_files: vec![PathBuf::from("sdir"), PathBuf::from("other dir/sfile")],
+            ..Default::default()
+        };
+        let policy = MockPolicy { project_config };
+        assert!(policy
+            .is_student_file(&temp.path().join("sdir/some file"), temp.path())
+            .unwrap());
+        assert!(policy
+            .is_student_file(&temp.path().join("other dir/sfile"), temp.path())
+            .unwrap());
+        assert!(!policy
+            .is_student_file(&temp.path().join("other dir/other file"), temp.path())
+            .unwrap());
+        assert!(!policy
+            .is_student_file(&temp.path().join("other file"), temp.path())
+            .unwrap());
+    }
+
+    #[test]
+    fn considers_force_uodate_paths() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "sdir/some file", "");
+        file_to(&temp, "other dir/sfile", "");
+        file_to(&temp, "other dir/other file", "");
+        file_to(&temp, "other file", "");
+
+        let project_config = TmcProjectYml {
+            force_update: vec![PathBuf::from("sdir"), PathBuf::from("other dir/sfile")],
+            ..Default::default()
+        };
+        let policy = MockPolicy { project_config };
+        assert!(policy
+            .is_updating_forced(Path::new("sdir/some file"))
+            .unwrap());
+        assert!(policy
+            .is_updating_forced(Path::new("other dir/sfile"))
+            .unwrap());
+        assert!(!policy
+            .is_updating_forced(Path::new("other dir/other file"))
+            .unwrap());
+        assert!(!policy.is_updating_forced(Path::new("other file")).unwrap());
     }
 }
