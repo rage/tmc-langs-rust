@@ -421,6 +421,19 @@ mod test {
     use nom::character;
     use std::collections::HashMap;
 
+    fn file_to(
+        target_dir: impl AsRef<std::path::Path>,
+        target_relative: impl AsRef<std::path::Path>,
+        contents: impl AsRef<[u8]>,
+    ) -> PathBuf {
+        let target = target_dir.as_ref().join(target_relative);
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent).unwrap();
+        }
+        std::fs::write(&target, contents.as_ref()).unwrap();
+        target
+    }
+
     struct MockPlugin {}
 
     struct MockPolicy {
@@ -567,14 +580,75 @@ mod test {
     #[test]
     fn gets_available_points() {
         init();
-        let points =
-            MockPlugin::get_available_points(Path::new("tests/data/get_available_points_1"))
-                .unwrap();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(
+            &temp,
+            "non_test_dir/file.py",
+            r#"
+@Points("1.1")
+"#,
+        );
+        let points = MockPlugin::get_available_points(&temp.path()).unwrap();
         assert!(points.is_empty());
 
-        let points =
-            MockPlugin::get_available_points(Path::new("tests/data/get_available_points_2"))
-                .unwrap();
+        let temp = tempfile::tempdir().unwrap();
+        file_to(
+            &temp,
+            "test/file.py",
+            r#"
+@Points("1")
+def a():
+    pass
+
+@ points ( '2' )
+def b():
+    pass
+    @    Points    (    "3"    )
+def c():
+    pass
+
+@pOiNtS("4")
+def d():
+    pass
+"#,
+        );
+        let points = MockPlugin::get_available_points(&temp.path()).unwrap();
         assert_eq!(points, &["1", "2", "3", "4"]);
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(
+            &temp,
+            "test/file.py",
+            r#"
+@Points("1")
+def a():
+    pass
+
+// @Points("2")
+def b():
+    pass
+
+@Points("3") // comment
+def c():
+    pass
+
+/* @Points("4") */
+def d():
+    pass
+
+/*
+@Points("5")
+def e():
+    pass
+*/
+
+@Test // @Points("6")
+def f():
+    pass
+"#,
+        );
+        let points = MockPlugin::get_available_points(&temp.path()).unwrap();
+        assert_eq!(points, &["1", "3"]);
     }
 }
