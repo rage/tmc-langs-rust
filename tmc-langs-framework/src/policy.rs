@@ -98,6 +98,7 @@ pub trait StudentFilePolicy {
 }
 
 /// Mock policy that ignores the config file and returns false for all files.
+// TODO: remove
 pub struct NothingIsStudentFilePolicy {
     project_config: TmcProjectYml,
 }
@@ -137,6 +138,7 @@ impl StudentFilePolicy for NothingIsStudentFilePolicy {
 }
 
 /// Mock policy that ignores the config file and returns true for all files.
+// TODO: remove
 #[derive(Default)]
 pub struct EverythingIsStudentFilePolicy {
     project_config: TmcProjectYml,
