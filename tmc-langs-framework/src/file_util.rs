@@ -1,12 +1,10 @@
 //! Various utility functions, primarily wrapping the standard library's IO and filesystem functions
 
-use crate::error::{FileIo, TmcError};
-use std::ffi::OsStr;
+use crate::error::FileIo;
 use std::fs::{self, File};
 use std::io::{Read, Write};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use walkdir::WalkDir;
-use zip::{read::ZipFile, ZipArchive};
 
 pub fn temp_file() -> Result<File, FileIo> {
     tempfile::tempfile().map_err(FileIo::TempFile)
@@ -35,7 +33,9 @@ pub fn read_file_to_string<P: AsRef<Path>>(path: P) -> Result<String, FileIo> {
 pub fn create_file<P: AsRef<Path>>(path: P) -> Result<File, FileIo> {
     let path = path.as_ref();
     if let Some(parent) = path.parent() {
-        create_dir_all(parent)?;
+        if !parent.exists() {
+            create_dir_all(parent)?;
+        }
     }
     File::create(path).map_err(|e| FileIo::FileCreate(path.to_path_buf(), e))
 }
@@ -47,9 +47,6 @@ pub fn remove_file<P: AsRef<Path>>(path: P) -> Result<(), FileIo> {
 
 pub fn write_to_file<S: AsRef<[u8]>, P: AsRef<Path>>(source: S, target: P) -> Result<File, FileIo> {
     let target = target.as_ref();
-    if let Some(parent) = target.parent() {
-        create_dir_all(parent)?;
-    }
     let mut target_file = create_file(target)?;
     target_file
         .write_all(source.as_ref())
@@ -59,9 +56,6 @@ pub fn write_to_file<S: AsRef<[u8]>, P: AsRef<Path>>(source: S, target: P) -> Re
 
 pub fn read_to_file<R: Read, P: AsRef<Path>>(source: &mut R, target: P) -> Result<File, FileIo> {
     let target = target.as_ref();
-    if let Some(parent) = target.parent() {
-        create_dir_all(parent)?;
-    }
     let mut target_file = create_file(target)?;
     std::io::copy(source, &mut target_file)
         .map_err(|e| FileIo::FileWrite(target.to_path_buf(), e))?;
@@ -90,20 +84,6 @@ pub fn rename<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> Result<(), File
     })
 }
 
-pub fn find_project_root<P: AsRef<Path>>(path: P) -> Result<Option<PathBuf>, FileIo> {
-    for entry in WalkDir::new(&path) {
-        let entry = entry?;
-        if entry.path().is_dir() && entry.file_name() == OsStr::new("src") {
-            return Ok(entry.path().parent().map(Path::to_path_buf));
-        }
-    }
-    log::warn!(
-        "No src director found, defaulting the project root to the input path {}",
-        path.as_ref().display()
-    );
-    Ok(Some(path.as_ref().to_path_buf()))
-}
-
 /// Copies the file or directory at source into the target path.
 /// If the source is a file and the target is not a directory, the source file is copied to the target path.
 /// If the source is a file and the target is a directory, the source file is copied into the target directory.
@@ -112,11 +92,14 @@ pub fn find_project_root<P: AsRef<Path>>(path: P) -> Result<Option<PathBuf>, Fil
 pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), FileIo> {
     let source = source.as_ref();
     let target = target.as_ref();
-    log::debug!("copying {} -> {}", source.display(), target.display());
 
     if source.is_file() {
         if target.is_dir() {
-            // copy source into target dir
+            log::debug!(
+                "copying into dir {} -> {}",
+                source.display(),
+                target.display()
+            );
             let file_name = if let Some(file_name) = source.file_name() {
                 file_name
             } else {
@@ -129,7 +112,12 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
                 source: e,
             })?;
         } else {
-            // copy source into target path
+            log::debug!("copying file {} -> {}", source.display(), target.display());
+            if let Some(parent) = target.parent() {
+                if !parent.exists() {
+                    create_dir_all(parent)?;
+                }
+            }
             std::fs::copy(source, target).map_err(|e| FileIo::FileCopy {
                 from: source.to_path_buf(),
                 to: target.to_path_buf(),
@@ -137,7 +125,11 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
             })?;
         }
     } else {
-        // recursively copy contents of source to target
+        log::debug!(
+            "recursively copying {} -> {}",
+            source.display(),
+            target.display()
+        );
         if target.is_file() {
             return Err(FileIo::UnexpectedFile(target.to_path_buf()));
         } else {
@@ -166,34 +158,88 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
     Ok(())
 }
 
-pub fn unzip<P: AsRef<Path>, Q: AsRef<Path>, F>(
-    zip_path: P,
-    target: Q,
-    filter: F,
-) -> Result<(), TmcError>
-where
-    F: Fn(&ZipFile) -> bool,
-{
-    let zip_path = zip_path.as_ref();
+#[cfg(test)]
+mod test {
+    use super::*;
+    use std::path::PathBuf;
 
-    let target = target.as_ref();
-    log::debug!("unzip from {} to {}", zip_path.display(), target.display());
-
-    let archive = open_file(zip_path)?;
-    let mut archive = ZipArchive::new(archive)?;
-    for i in 0..archive.len() {
-        let mut file = archive.by_index(i)?;
-        if filter(&file) {
-            log::debug!("skipped file {}", file.name());
-            continue;
-        }
-
-        let target_path = target.join(Path::new(file.name()));
-        if file.is_dir() {
-            create_dir_all(target_path)?;
-        } else {
-            read_to_file(&mut file, target_path)?;
-        }
+    fn init() {
+        use log::*;
+        use simple_logger::*;
+        let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
     }
-    Ok(())
+
+    fn file_to(
+        target_dir: impl AsRef<std::path::Path>,
+        target_relative: impl AsRef<std::path::Path>,
+        contents: impl AsRef<[u8]>,
+    ) -> PathBuf {
+        let target = target_dir.as_ref().join(target_relative);
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent).unwrap();
+        }
+        std::fs::write(&target, contents.as_ref()).unwrap();
+        target
+    }
+
+    fn dir_to(
+        target_dir: impl AsRef<std::path::Path>,
+        target_relative: impl AsRef<std::path::Path>,
+    ) -> PathBuf {
+        let target = target_dir.as_ref().join(target_relative);
+        std::fs::create_dir_all(&target).unwrap();
+        target
+    }
+
+    #[test]
+    fn copies_file_to_file() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "dir/file", "file contents");
+
+        let target = tempfile::tempdir().unwrap();
+        copy(
+            temp.path().join("dir/file"),
+            target.path().join("another/place"),
+        )
+        .unwrap();
+
+        let conts = read_file_to_string(target.path().join("another/place")).unwrap();
+        assert_eq!(conts, "file contents");
+    }
+
+    #[test]
+    fn copies_file_to_dir() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "dir/file", "file contents");
+
+        let target = tempfile::tempdir().unwrap();
+        dir_to(&target, "some/dir");
+        copy(temp.path().join("dir/file"), target.path().join("some/dir")).unwrap();
+
+        let conts = read_file_to_string(target.path().join("some/dir/file")).unwrap();
+        assert_eq!(conts, "file contents");
+    }
+
+    #[test]
+    fn copies_dir() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "dir/another/file", "file contents");
+        file_to(&temp, "dir/elsewhere/f", "another file");
+        dir_to(&temp, "dir/some dir");
+
+        let target = tempfile::tempdir().unwrap();
+        copy(temp.path().join("dir"), target.path()).unwrap();
+
+        let conts = read_file_to_string(target.path().join("dir/another/file")).unwrap();
+        assert_eq!(conts, "file contents");
+        let conts = read_file_to_string(target.path().join("dir/elsewhere/f")).unwrap();
+        assert_eq!(conts, "another file");
+        assert!(target.path().join("dir/some dir").is_dir());
+    }
 }

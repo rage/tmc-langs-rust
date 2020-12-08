@@ -184,10 +184,10 @@ pub fn prepare_submission(
 
     // unzip submission to received dir
     log::debug!("unzipping submission");
-    file_util::unzip(zip_path, &received_dir, useless_file_filter)?;
+    unzip(zip_path, &received_dir, useless_file_filter)?;
 
     // find project dir in unzipped files
-    let project_root = file_util::find_project_root(&received_dir)?;
+    let project_root = find_project_root(&received_dir)?;
     let project_root =
         project_root.ok_or_else(|| UtilError::NoProjectDirInZip(zip_path.to_path_buf()))?;
 
@@ -241,8 +241,8 @@ pub fn prepare_submission(
     // if stub zip path was given, unzip and find its project root
     let stub_project_root = if let Some(stub_zip_path) = stub_zip_path {
         let stub_dir = temp.path().join("stub");
-        file_util::unzip(stub_zip_path, &stub_dir, useless_file_filter)?;
-        file_util::find_project_root(stub_dir)?
+        unzip(stub_zip_path, &stub_dir, useless_file_filter)?;
+        find_project_root(stub_dir)?
     } else {
         None
     };
@@ -430,6 +430,55 @@ pub fn prepare_submission(
             let reopened = file_util::open_file(tar.path())?;
             zstd::stream::copy_encode(reopened, archive_file, 0)
                 .map_err(|e| UtilError::Zstd(tar.path().to_path_buf(), e))?;
+        }
+    }
+    Ok(())
+}
+
+use std::ffi::OsStr;
+use std::path::PathBuf;
+fn find_project_root<P: AsRef<Path>>(path: P) -> Result<Option<PathBuf>, FileIo> {
+    for entry in WalkDir::new(&path) {
+        let entry = entry?;
+        if entry.path().is_dir() && entry.file_name() == OsStr::new("src") {
+            return Ok(entry.path().parent().map(Path::to_path_buf));
+        }
+    }
+    log::warn!(
+        "No src director found, defaulting the project root to the input path {}",
+        path.as_ref().display()
+    );
+    Ok(Some(path.as_ref().to_path_buf()))
+}
+
+use tmc_langs_framework::TmcError;
+pub fn unzip<P: AsRef<Path>, Q: AsRef<Path>, F>(
+    zip_path: P,
+    target: Q,
+    filter: F,
+) -> Result<(), TmcError>
+where
+    F: Fn(&ZipFile) -> bool,
+{
+    let zip_path = zip_path.as_ref();
+
+    let target = target.as_ref();
+    log::debug!("unzip from {} to {}", zip_path.display(), target.display());
+
+    let archive = file_util::open_file(zip_path)?;
+    let mut archive = zip::ZipArchive::new(archive)?;
+    for i in 0..archive.len() {
+        let mut file = archive.by_index(i)?;
+        if filter(&file) {
+            log::debug!("skipped file {}", file.name());
+            continue;
+        }
+
+        let target_path = target.join(Path::new(file.name()));
+        if file.is_dir() {
+            file_util::create_dir_all(target_path)?;
+        } else {
+            file_util::read_to_file(&mut file, target_path)?;
         }
     }
     Ok(())
