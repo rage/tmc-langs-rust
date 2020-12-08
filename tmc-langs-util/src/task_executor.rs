@@ -186,7 +186,8 @@ pub fn compress_project(path: &Path) -> Result<Vec<u8>, UtilError> {
 pub fn get_exercise_packaging_configuration(
     path: &Path,
 ) -> Result<ExercisePackagingConfiguration, UtilError> {
-    Ok(get_language_plugin(path)?.get_exercise_packaging_configuration(path)?)
+    let config = TmcProjectYml::from(path)?;
+    Ok(get_language_plugin(path)?.get_exercise_packaging_configuration(config)?)
 }
 
 /// Creates a tarball that can be submitted to TMC-sandbox.
@@ -246,7 +247,7 @@ pub fn refresh_course(
 // enum containing all the plugins
 #[impl_enum::with_methods(
     fn clean(&self, path: &Path) -> Result<(), TmcError> {}
-    fn get_exercise_packaging_configuration(path: &Path) -> Result<ExercisePackagingConfiguration, TmcError> {}
+    fn get_exercise_packaging_configuration(config: TmcProjectYml) -> Result<ExercisePackagingConfiguration, TmcError> {}
     fn extract_project(compressed_project: &Path, target_location: &Path, clean: bool) -> Result<(), TmcError> {}
     fn extract_student_files(compressed_project: &Path, target_location: &Path) -> Result<(), TmcError> {}
     fn scan_exercise(&self, path: &Path, exercise_name: String, warnings: &mut Vec<anyhow::Error>) -> Result<ExerciseDesc, TmcError> {}

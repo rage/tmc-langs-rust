@@ -266,7 +266,8 @@ pub fn prepare_submission(
             }
 
             // copy files from config
-            let config = plugin.get_exercise_packaging_configuration(clone_path)?;
+            let config = TmcProjectYml::from(clone_path)?;
+            let config = plugin.get_exercise_packaging_configuration(config)?;
             for path in config.student_file_paths {
                 let student_file = project_root.join(&path);
                 if student_file.exists() {
@@ -332,7 +333,8 @@ pub fn prepare_submission(
 
             // copy files from config
             log::debug!("copying files according to packaging config");
-            let config = plugin.get_exercise_packaging_configuration(clone_path)?;
+            let config = TmcProjectYml::from(clone_path)?;
+            let config = plugin.get_exercise_packaging_configuration(config)?;
             for path in config.student_file_paths {
                 let student_file = project_root.join(&path);
                 if student_file.exists() {

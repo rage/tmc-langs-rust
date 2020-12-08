@@ -312,9 +312,8 @@ pub trait LanguagePlugin {
     /// Returns configuration which is used to package submission on tmc-server.
     // TODO: rethink
     fn get_exercise_packaging_configuration(
-        path: &Path,
+        configuration: TmcProjectYml,
     ) -> Result<ExercisePackagingConfiguration, TmcError> {
-        let configuration = TmcProjectYml::from(path)?;
         let extra_student_files = configuration.extra_student_files;
         let extra_test_files = configuration.extra_exercise_files;
 
@@ -342,7 +341,8 @@ pub trait LanguagePlugin {
 
     /// Parses exercise files using Self::LINE_COMMENT and Self::BLOCK_COMMENt to filter out comments and Self::points_parser to parse points from the actual code.
     fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, TmcError> {
-        let config = Self::get_exercise_packaging_configuration(exercise_path)?;
+        let config = TmcProjectYml::from(exercise_path)?;
+        let config = Self::get_exercise_packaging_configuration(config)?;
 
         let mut points = Vec::new();
         for exercise_file_path in config.exercise_file_paths {
@@ -532,26 +532,13 @@ mod test {
     #[test]
     fn gets_exercise_packaging_configuration() {
         init();
-        use std::fs::File;
-        use std::io::Write;
 
-        let temp = tempfile::tempdir().unwrap();
-        let mut path = temp.path().to_owned();
-        path.push(".tmcproject.yml");
-        let mut file = File::create(&path).unwrap();
-        file.write_all(
-            r#"
-extra_student_files:
-  - test/StudentTest.java
-  - test/OtherTest.java
-extra_exercise_files:
-  - test/SomeFile.java
-  - test/OtherTest.java
-"#
-            .as_bytes(),
-        )
-        .unwrap();
-        let conf = MockPlugin::get_exercise_packaging_configuration(&temp.path()).unwrap();
+        let config = TmcProjectYml {
+            extra_student_files: vec!["test/StudentTest.java".into(), "test/OtherTest.java".into()],
+            extra_exercise_files: vec!["test/SomeFile.java".into(), "OtherTest.java".into()],
+            ..Default::default()
+        };
+        let conf = MockPlugin::get_exercise_packaging_configuration(config).unwrap();
         assert!(conf.student_file_paths.contains(&PathBuf::from("src")));
         assert!(conf
             .student_file_paths
