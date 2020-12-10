@@ -7,12 +7,13 @@ mod tar_helper;
 mod tmc_zip;
 
 pub use self::course_refresher::{
-    Course, CourseRefresher, GroupBits, ModeBits, Options, RefreshData, RefreshExercise,
+    Course, GroupBits, ModeBits, Options, RefreshData, RefreshExercise, RefreshUpdateData,
     SourceBackend,
 };
 pub use self::submission_packaging::{OutputFormat, TmcParams};
 
 use crate::error::UtilError;
+use crate::progress_reporter::StatusUpdate;
 use crate::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, StyleValidationResult};
 use std::path::{Path, PathBuf};
 use tmc_langs_csharp::CSharpPlugin;
@@ -238,9 +239,21 @@ pub fn refresh_course(
     chgrp_uid: Option<GroupBits>,
     cache_root: PathBuf,
     rails_root: PathBuf,
+    progress_reporter: impl 'static
+        + Sync
+        + Send
+        + Fn(
+            StatusUpdate<RefreshUpdateData>,
+        ) -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>>,
 ) -> Result<RefreshData, UtilError> {
     course_refresher::refresh_course(
-        course, options, chmod_bits, chgrp_uid, cache_root, rails_root,
+        course,
+        options,
+        chmod_bits,
+        chgrp_uid,
+        cache_root,
+        rails_root,
+        progress_reporter,
     )
 }
 

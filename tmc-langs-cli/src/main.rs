@@ -31,8 +31,7 @@ use tmc_langs_framework::{domain::StyleValidationResult, error::CommandError};
 use tmc_langs_util::{
     progress_reporter::ProgressReporter,
     task_executor::{
-        self, Course, CourseRefresher, GroupBits, ModeBits, Options, RefreshExercise,
-        SourceBackend, TmcParams,
+        self, Course, GroupBits, ModeBits, Options, RefreshExercise, SourceBackend, TmcParams,
     },
     Language, OutputFormat,
 };
@@ -597,21 +596,20 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 None
             };
 
-            let course_refresher = CourseRefresher::new(move |update| {
-                let output = Output::StatusUpdate(update);
-                print_output(&output, pretty, &[])?;
-                Ok(())
-            });
-            let refresh_result = course_refresher
-                .refresh_course(
-                    course,
-                    options,
-                    chmod_bits,
-                    chgrp_uid,
-                    PathBuf::from(cache_root),
-                    PathBuf::from(rails_root),
-                )
-                .with_context(|| format!("Failed to refresh course {}", course_name))?;
+            let refresh_result = task_executor::refresh_course(
+                course,
+                options,
+                chmod_bits,
+                chgrp_uid,
+                PathBuf::from(cache_root),
+                PathBuf::from(rails_root),
+                move |update| {
+                    let output = Output::StatusUpdate(update);
+                    print_output(&output, pretty, &[])?;
+                    Ok(())
+                },
+            )
+            .with_context(|| format!("Failed to refresh course {}", course_name))?;
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,

@@ -84,7 +84,7 @@ pub struct UpdatePoints {
 #[derive(Debug, Serialize, Deserialize)]
 pub enum RefreshUpdateData {}
 
-pub struct CourseRefresher {
+struct CourseRefresher {
     progress_reporter: ProgressReporter<'static, RefreshUpdateData>,
 }
 
@@ -114,6 +114,7 @@ impl CourseRefresher {
         log::info!("refreshing course {}", course.name);
         self.progress_reporter.start_timer();
 
+        // sets the total amount of progress steps properly
         self.progress_reporter.increment_progress_steps(4);
         if !options.no_directory_changes {
             self.progress_reporter.increment_progress_steps(8);
@@ -247,6 +248,7 @@ impl CourseRefresher {
     }
 }
 
+/// Refreshes a course...
 pub fn refresh_course(
     course: Course,
     options: Options,
@@ -254,10 +256,14 @@ pub fn refresh_course(
     git_repos_chgrp: Option<GroupBits>,
     cache_root: PathBuf,
     rails_root: PathBuf,
+    progress_reporter: impl 'static
+        + Sync
+        + Send
+        + Fn(
+            StatusUpdate<RefreshUpdateData>,
+        ) -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>>,
 ) -> Result<RefreshData, UtilError> {
-    let course_refresher = CourseRefresher {
-        progress_reporter: ProgressReporter::new(|_| Ok(())),
-    };
+    let course_refresher = CourseRefresher::new(progress_reporter);
     course_refresher.refresh_course(
         course,
         options,
