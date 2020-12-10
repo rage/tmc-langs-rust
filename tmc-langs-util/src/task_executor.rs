@@ -99,7 +99,7 @@ pub fn is_exercise_root_directory(path: &Path) -> bool {
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::extract_project`,
 /// If no language plugin matches, see `extract_project_overwrite`.
 pub fn extract_project(
-    compressed_project: &Path,
+    compressed_project: impl std::io::Read + std::io::Seek,
     target_location: &Path,
     clean: bool,
 ) -> Result<(), UtilError> {
@@ -108,7 +108,7 @@ pub fn extract_project(
     } else {
         log::debug!(
             "no matching language plugin found for {}, overwriting",
-            compressed_project.display()
+            target_location.display()
         );
         extract_project_overwrite(compressed_project, target_location)?;
     }
@@ -118,7 +118,7 @@ pub fn extract_project(
 /// Extract a given archive file containing a compressed project to a target location.
 /// This will overwrite any existing files.
 pub fn extract_project_overwrite(
-    compressed_project: &Path,
+    compressed_project: impl std::io::Read + std::io::Seek,
     target_location: &Path,
 ) -> Result<(), UtilError> {
     tmc_zip::unzip(
@@ -131,7 +131,7 @@ pub fn extract_project_overwrite(
 
 /// Extracts a project archive, only taking out files classified as student files.
 pub fn extract_student_files(
-    compressed_project: &Path,
+    compressed_project: impl std::io::Read + std::io::Seek,
     target_location: &Path,
 ) -> Result<(), UtilError> {
     if let Ok(plugin) = get_language_plugin(target_location) {
@@ -139,7 +139,7 @@ pub fn extract_student_files(
     } else {
         log::debug!(
             "no matching language plugin found for {}, overwriting",
-            compressed_project.display()
+            target_location.display()
         );
         extract_project_overwrite(compressed_project, target_location)?;
     }
@@ -248,8 +248,8 @@ pub fn refresh_course(
 #[impl_enum::with_methods(
     fn clean(&self, path: &Path) -> Result<(), TmcError> {}
     fn get_exercise_packaging_configuration(config: TmcProjectYml) -> Result<ExercisePackagingConfiguration, TmcError> {}
-    fn extract_project(compressed_project: &Path, target_location: &Path, clean: bool) -> Result<(), TmcError> {}
-    fn extract_student_files(compressed_project: &Path, target_location: &Path) -> Result<(), TmcError> {}
+    fn extract_project(compressed_project: impl std::io::Read + std::io::Seek, target_location: &Path, clean: bool) -> Result<(), TmcError> {}
+    fn extract_student_files(compressed_project: impl std::io::Read + std::io::Seek, target_location: &Path) -> Result<(), TmcError> {}
     fn scan_exercise(&self, path: &Path, exercise_name: String, warnings: &mut Vec<anyhow::Error>) -> Result<ExerciseDesc, TmcError> {}
     fn run_tests(&self, path: &Path, warnings: &mut Vec<anyhow::Error>) -> Result<RunResult, TmcError> {}
     fn check_code_style(&self, path: &Path, locale: Language) -> Result<Option<StyleValidationResult>, TmcError> {}

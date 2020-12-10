@@ -297,12 +297,13 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
         }
         ("extract-project", Some(matches)) => {
             let archive_path = matches.value_of("archive-path").unwrap();
-            let archive_path = Path::new(archive_path);
 
             let output_path = matches.value_of("output-path").unwrap();
             let output_path = Path::new(output_path);
 
-            task_executor::extract_project(archive_path, output_path, true).with_context(|| {
+            let archive = File::open(archive_path)
+                .with_context(|| format!("Failed to open file at {}", archive_path))?;
+            task_executor::extract_project(archive, output_path, true).with_context(|| {
                 format!("Failed to extract project at {}", output_path.display())
             })?;
 
@@ -310,7 +311,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 status: Status::Finished,
                 message: Some(format!(
                     "extracted project from {} to {}",
-                    archive_path.display(),
+                    archive_path,
                     output_path.display()
                 )),
                 result: OutputResult::ExecutedCommand,
@@ -790,7 +791,7 @@ fn run_core(
             log::debug!("downloaded old submission to {}", temp_zip.path().display());
 
             // extract submission
-            task_executor::extract_student_files(temp_zip.path(), &output_path)?;
+            task_executor::extract_student_files(temp_zip, &output_path)?;
             log::debug!("extracted project");
 
             let output = Output::OutputData::<()>(OutputData {

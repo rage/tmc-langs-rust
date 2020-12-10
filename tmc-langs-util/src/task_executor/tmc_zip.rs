@@ -62,14 +62,17 @@ fn path_to_zip_compatible_string(path: &Path) -> String {
 ///
 /// First a project directory is found within the directory. Only files within the project directory are unzipped.
 ///
-pub fn unzip<P>(policy: P, zip: &Path, target: &Path) -> Result<(), TmcError>
+pub fn unzip<P>(
+    policy: P,
+    zip: impl std::io::Read + std::io::Seek,
+    target: &Path,
+) -> Result<(), TmcError>
 where
     P: StudentFilePolicy,
 {
-    log::debug!("Unzipping {} to {}", zip.display(), target.display());
+    log::debug!("Unzipping to {}", target.display());
 
-    let file = file_util::open_file(zip)?;
-    let mut zip_archive = ZipArchive::new(file)?;
+    let mut zip_archive = ZipArchive::new(zip)?;
 
     let project_dir = find_project_dir(&mut zip_archive)?;
     log::debug!("Project dir in zip: {}", project_dir.display());
@@ -269,25 +272,14 @@ mod test {
     }
 
     #[test]
-    fn unzipping_nonexisting_errors() {
-        init();
-
-        assert!(unzip(
-            EverythingIsStudentFilePolicy::new(Path::new("nonexistent project")).unwrap(),
-            Path::new("nonexistent"),
-            Path::new(""),
-        )
-        .is_err())
-    }
-
-    #[test]
     fn unzips_simple() {
         init();
 
         let temp = tempdir().unwrap();
+        let zip = file_util::open_file("tests/data/zip/module-trivial.zip").unwrap();
         unzip(
             EverythingIsStudentFilePolicy::new(temp.path()).unwrap(),
-            Path::new("tests/data/zip/module-trivial.zip"),
+            zip,
             temp.path(),
         )
         .unwrap();
@@ -302,9 +294,10 @@ mod test {
         init();
 
         let temp = tempdir().unwrap();
+        let zip = file_util::open_file("tests/data/zip/course-module-trivial.zip").unwrap();
         unzip(
             EverythingIsStudentFilePolicy::new(temp.path()).unwrap(),
-            Path::new("tests/data/zip/course-module-trivial.zip"),
+            zip,
             temp.path(),
         )
         .unwrap();
@@ -319,9 +312,10 @@ mod test {
         init();
 
         let temp = tempdir().unwrap();
+        let zip = file_util::open_file("tests/data/zip/no-src-entry.zip").unwrap();
         unzip(
             EverythingIsStudentFilePolicy::new(temp.path()).unwrap(),
-            Path::new("tests/data/zip/no-src-entry.zip"),
+            zip,
             temp.path(),
         )
         .unwrap();

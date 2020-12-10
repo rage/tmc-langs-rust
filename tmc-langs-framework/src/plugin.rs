@@ -105,20 +105,15 @@ pub trait LanguagePlugin {
     /// by the language dependent student file policy.
     // TODO: look at removing or relocating
     fn extract_project(
-        compressed_project: &Path,
+        compressed_project: impl std::io::Read + std::io::Seek,
         target_location: &Path,
         clean: bool,
     ) -> Result<(), TmcError> {
         let policy = Self::StudentFilePolicy::new(target_location)?;
 
-        log::debug!(
-            "Unzipping {} to {}",
-            compressed_project.display(),
-            target_location.display()
-        );
+        log::debug!("Unzipping to {}", target_location.display());
 
-        let file = file_util::open_file(compressed_project)?;
-        let mut zip_archive = ZipArchive::new(file)?;
+        let mut zip_archive = ZipArchive::new(compressed_project)?;
 
         // find the exercise root directory inside the archive
         let project_dir = Self::find_project_dir_in_zip(&mut zip_archive)?;

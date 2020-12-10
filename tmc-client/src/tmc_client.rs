@@ -326,7 +326,7 @@ impl TmcClient {
                     let downloaded_count = downloaded_counter.fetch_add(1, Ordering::SeqCst);
                     let progress_count = progress_counter.fetch_add(1, Ordering::SeqCst);
                     let progress = progress_count as f64 / progress_goal;
-                    task_executor::extract_project(zip_file.path(), &target, true)?;
+                    task_executor::extract_project(zip_file, &target, true)?;
                     client_clone.progress(
                         format!(
                             "Downloaded exercise {} to '{}'. ({} out of {})",
@@ -776,7 +776,7 @@ impl TmcClient {
     ) -> Result<(), ClientError> {
         let zip_file = NamedTempFile::new().map_err(ClientError::TempFile)?;
         self.download_from(solution_download_url, zip_file.path())?;
-        task_executor::extract_project(zip_file.path(), target, false)?;
+        task_executor::extract_project(zip_file, target, false)?;
         Ok(())
     }
 
