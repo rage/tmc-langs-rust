@@ -1,1 +1,0 @@
-initSidebarItems({"mod":[["file_util","Various utility functions, primarily wrapping the standard library's IO and filesystem functions"],["submission_processing","Functions for processing submissions."],["tmc_zip","Contains functions for zipping and unzipping projects."]]});

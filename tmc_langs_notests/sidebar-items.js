@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["NoTestsPlugin",""],["NoTestsStudentFilePolicy",""]]});
+initSidebarItems({"struct":[["NoTestsPlugin",""],["NoTestsStudentFilePolicy","The no-tests policy considers all files to be student source files by default."]]});

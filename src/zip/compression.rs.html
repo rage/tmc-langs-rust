@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zip-0.5.8/src/compression.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>compression.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zip-0.5.9/src/compression.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>compression.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../zip/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -146,6 +146,41 @@
 <span id="143">143</span>
 <span id="144">144</span>
 <span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Possible ZIP compression methods.</span>
 
@@ -159,7 +194,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// When creating ZIP files, you may choose the method to use with</span>
 <span class="doccomment">/// [`zip::write::FileOptions::compression_method`]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CompressionMethod</span> {
     <span class="doccomment">/// Store the file as is</span>
     <span class="ident">Stored</span>,
@@ -174,18 +209,53 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bzip2&quot;</span>)]</span>
     <span class="ident">Bzip2</span>,
     <span class="doccomment">/// Unsupported compression method</span>
-    <span class="attribute">#[<span class="ident">deprecated</span>(
-        <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.5.7&quot;</span>,
-        <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;implementation details are being removed from the public API&quot;</span>
-    )]</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.5.7&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use the constants instead&quot;</span>)]</span>
     <span class="ident">Unsupported</span>(<span class="ident">u16</span>),
 }
-
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>, <span class="ident">missing_docs</span>)]</span>
+<span class="doccomment">/// All compression methods defined for the ZIP format</span>
+<span class="kw">impl</span> <span class="ident">CompressionMethod</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STORE</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Stored</span>;
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SHRINK</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">1</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REDUCE_1</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">2</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REDUCE_2</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">3</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REDUCE_3</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">4</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REDUCE_4</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">5</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IMPLODE</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">6</span>);
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>,
+        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-miniz&quot;</span>,
+        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-zlib&quot;</span>
+    ))]</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEFLATE</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Deflated</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(
+        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate&quot;</span>,
+        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-miniz&quot;</span>,
+        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deflate-zlib&quot;</span>
+    )))]</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEFLATE</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">8</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEFLATE64</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">9</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PKWARE_IMPLODE</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">10</span>);
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bzip2&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BZIP2</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Bzip2</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;bzip2&quot;</span>))]</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BZIP2</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">12</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LZMA</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">14</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IBM_ZOS_CMPSC</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">16</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IBM_TERSE</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">18</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ZSTD_DEPRECATED</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">20</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ZSTD</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">93</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MP3</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">94</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">XZ</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">95</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">JPEG</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">96</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">WAVPACK</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">97</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PPMD</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">CompressionMethod</span>::<span class="ident">Unsupported</span>(<span class="number">98</span>);
+}
 <span class="kw">impl</span> <span class="ident">CompressionMethod</span> {
     <span class="doccomment">/// Converts an u16 to its corresponding CompressionMethod</span>
     <span class="attribute">#[<span class="ident">deprecated</span>(
         <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.5.7&quot;</span>,
-        <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;implementation details are being removed from the public API&quot;</span>
+        <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use a constant to construct a compression method&quot;</span>
     )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_u16</span>(<span class="ident">val</span>: <span class="ident">u16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CompressionMethod</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
@@ -207,7 +277,7 @@
     <span class="doccomment">/// Converts a CompressionMethod to a u16</span>
     <span class="attribute">#[<span class="ident">deprecated</span>(
         <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.5.7&quot;</span>,
-        <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;implementation details are being removed from the public API&quot;</span>
+        <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;to match on other compression methods, use a constant&quot;</span>
     )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_u16</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u16</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>

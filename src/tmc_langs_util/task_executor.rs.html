@@ -273,12 +273,39 @@
 <span id="270">270</span>
 <span id="271">271</span>
 <span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Module for calling different tasks of TMC-langs language plug-ins.</span>
 
 <span class="kw">mod</span> <span class="ident">course_refresher</span>;
 <span class="kw">mod</span> <span class="ident">submission_packaging</span>;
+<span class="kw">mod</span> <span class="ident">submission_processing</span>;
 <span class="kw">mod</span> <span class="ident">tar_helper</span>;
+<span class="kw">mod</span> <span class="ident">tmc_zip</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">course_refresher</span>::{
     <span class="ident">Course</span>, <span class="ident">CourseRefresher</span>, <span class="ident">GroupBits</span>, <span class="ident">ModeBits</span>, <span class="ident">Options</span>, <span class="ident">RefreshData</span>, <span class="ident">RefreshExercise</span>,
@@ -287,16 +314,14 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">submission_packaging</span>::{<span class="ident">OutputFormat</span>, <span class="ident">TmcParams</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">UtilError</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ExerciseDesc</span>, <span class="ident">ExercisePackagingConfiguration</span>, <span class="ident">RunResult</span>, <span class="ident">ValidationResult</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ExerciseDesc</span>, <span class="ident">ExercisePackagingConfiguration</span>, <span class="ident">RunResult</span>, <span class="ident">StyleValidationResult</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
 <span class="kw">use</span> <span class="ident">tmc_langs_csharp</span>::<span class="ident">CSharpPlugin</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
     <span class="ident">anyhow</span>,
-    <span class="ident">domain</span>::<span class="ident">TmcProjectYml</span>,
-    <span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">submission_processing</span>},
     <span class="ident">plugin</span>::{<span class="ident">Language</span>, <span class="ident">LanguagePlugin</span>},
     <span class="ident">policy</span>::<span class="ident">NothingIsStudentFilePolicy</span>,
-    <span class="ident">TmcError</span>,
+    <span class="ident">StudentFilePolicy</span>, <span class="ident">TmcError</span>, <span class="ident">TmcProjectYml</span>,
 };
 <span class="kw">use</span> <span class="ident">tmc_langs_java</span>::<span class="ident">AntPlugin</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_java</span>::<span class="ident">MavenPlugin</span>;
@@ -306,24 +331,19 @@
 <span class="kw">use</span> <span class="ident">tmc_langs_r</span>::<span class="ident">RPlugin</span>;
 <span class="kw">use</span> <span class="ident">walkdir</span>::<span class="ident">WalkDir</span>;
 
-<span class="doccomment">/// See `submission_processing::prepare_solutions`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prepare_solutions</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PathBuf</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-    <span class="ident">exercise_paths</span>: <span class="ident">I</span>,
-    <span class="ident">dest_root</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
-    <span class="ident">io</span>::<span class="ident">submission_processing</span>::<span class="ident">prepare_solutions</span>(<span class="ident">exercise_paths</span>, <span class="ident">dest_root</span>)<span class="question-mark">?</span>;
+<span class="doccomment">/// See `submission_processing::prepare_solution`.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prepare_solution</span>(<span class="ident">exercise_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">dest_root</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
+    <span class="ident">submission_processing</span>::<span class="ident">prepare_solution</span>(<span class="ident">exercise_path</span>, <span class="ident">dest_root</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// See `LanguagePlugin::prepare_stubs`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prepare_stubs</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">PathBuf</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-    <span class="ident">exercise_paths</span>: <span class="ident">I</span>,
-    <span class="ident">repo_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-    <span class="ident">dest_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
-    <span class="kw">for</span> <span class="ident">exercise_path</span> <span class="kw">in</span> <span class="ident">exercise_paths</span> {
-        <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">get_language_plugin</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>)<span class="question-mark">?</span>;
-        <span class="ident">plugin</span>.<span class="ident">prepare_stub</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>, <span class="ident">repo_path</span>, <span class="ident">dest_path</span>)<span class="question-mark">?</span>;
+<span class="doccomment">/// See `submission_processing::prepare_stub`.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prepare_stub</span>(<span class="ident">exercise_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">dest_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
+    <span class="ident">submission_processing</span>::<span class="ident">prepare_stub</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>, <span class="ident">dest_path</span>)<span class="question-mark">?</span>;
+
+    <span class="comment">// The Ant plugin needs some additional files to be copied over.</span>
+    <span class="kw">if</span> <span class="ident">AntPlugin</span>::<span class="ident">is_exercise_type_correct</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>) {
+        <span class="ident">AntPlugin</span>::<span class="ident">copy_tmc_junit_runner</span>(<span class="ident">dest_path</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">TmcError</span>::<span class="ident">Plugin</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">e</span>)))<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
 }
@@ -354,7 +374,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_check_code_style</span>(
     <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">locale</span>: <span class="ident">Language</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationResult</span><span class="op">&gt;</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StyleValidationResult</span><span class="op">&gt;</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
     <span class="prelude-val">Ok</span>(<span class="ident">get_language_plugin</span>(<span class="ident">path</span>)<span class="question-mark">?</span>.<span class="ident">check_code_style</span>(<span class="ident">path</span>, <span class="ident">locale</span>)<span class="question-mark">?</span>)
 }
 
@@ -380,7 +400,7 @@
 <span class="doccomment">/// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::extract_project`,</span>
 <span class="doccomment">/// If no language plugin matches, see `extract_project_overwrite`.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extract_project</span>(
-    <span class="ident">compressed_project</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+    <span class="ident">compressed_project</span>: <span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span> <span class="op">+</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Seek</span>,
     <span class="ident">target_location</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">clean</span>: <span class="ident">bool</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
@@ -389,7 +409,7 @@
     } <span class="kw">else</span> {
         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
             <span class="string">&quot;no matching language plugin found for {}, overwriting&quot;</span>,
-            <span class="ident">compressed_project</span>.<span class="ident">display</span>()
+            <span class="ident">target_location</span>.<span class="ident">display</span>()
         );
         <span class="ident">extract_project_overwrite</span>(<span class="ident">compressed_project</span>, <span class="ident">target_location</span>)<span class="question-mark">?</span>;
     }
@@ -399,11 +419,11 @@
 <span class="doccomment">/// Extract a given archive file containing a compressed project to a target location.</span>
 <span class="doccomment">/// This will overwrite any existing files.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extract_project_overwrite</span>(
-    <span class="ident">compressed_project</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+    <span class="ident">compressed_project</span>: <span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span> <span class="op">+</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Seek</span>,
     <span class="ident">target_location</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
-    <span class="ident">io</span>::<span class="ident">tmc_zip</span>::<span class="ident">unzip</span>(
-        <span class="ident">NothingIsStudentFilePolicy</span> {},
+    <span class="ident">tmc_zip</span>::<span class="ident">unzip</span>(
+        <span class="ident">NothingIsStudentFilePolicy</span>::<span class="ident">new</span>(<span class="ident">target_location</span>)<span class="question-mark">?</span>,
         <span class="ident">compressed_project</span>,
         <span class="ident">target_location</span>,
     )<span class="question-mark">?</span>;
@@ -412,7 +432,7 @@
 
 <span class="doccomment">/// Extracts a project archive, only taking out files classified as student files.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extract_student_files</span>(
-    <span class="ident">compressed_project</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+    <span class="ident">compressed_project</span>: <span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span> <span class="op">+</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Seek</span>,
     <span class="ident">target_location</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">plugin</span>) <span class="op">=</span> <span class="ident">get_language_plugin</span>(<span class="ident">target_location</span>) {
@@ -420,7 +440,7 @@
     } <span class="kw">else</span> {
         <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
             <span class="string">&quot;no matching language plugin found for {}, overwriting&quot;</span>,
-            <span class="ident">compressed_project</span>.<span class="ident">display</span>()
+            <span class="ident">target_location</span>.<span class="ident">display</span>()
         );
         <span class="ident">extract_project_overwrite</span>(<span class="ident">compressed_project</span>, <span class="ident">target_location</span>)<span class="question-mark">?</span>;
     }
@@ -428,15 +448,47 @@
 }
 
 <span class="doccomment">/// See `LanguagePlugin::compress_project`.</span>
+<span class="comment">// TODO: clean up</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compress_project</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
-    <span class="prelude-val">Ok</span>(<span class="ident">get_language_plugin</span>(<span class="ident">path</span>)<span class="question-mark">?</span>.<span class="ident">compress_project</span>(<span class="ident">path</span>)<span class="question-mark">?</span>)
+    <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">get_language_plugin</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
+    <span class="kw">match</span> <span class="ident">plugin</span> {
+        <span class="ident">Plugin</span>::<span class="ident">CSharp</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip</span>::<span class="ident">zip</span>(
+            <span class="op">&lt;</span><span class="ident">CSharpPlugin</span> <span class="kw">as</span> <span class="ident">LanguagePlugin</span><span class="op">&gt;</span>::<span class="ident">StudentFilePolicy</span>::<span class="ident">new</span>(<span class="ident">path</span>)<span class="question-mark">?</span>,
+            <span class="ident">path</span>,
+        )<span class="question-mark">?</span>),
+        <span class="ident">Plugin</span>::<span class="ident">Make</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip</span>::<span class="ident">zip</span>(
+            <span class="op">&lt;</span><span class="ident">MakePlugin</span> <span class="kw">as</span> <span class="ident">LanguagePlugin</span><span class="op">&gt;</span>::<span class="ident">StudentFilePolicy</span>::<span class="ident">new</span>(<span class="ident">path</span>)<span class="question-mark">?</span>,
+            <span class="ident">path</span>,
+        )<span class="question-mark">?</span>),
+        <span class="ident">Plugin</span>::<span class="ident">Maven</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip</span>::<span class="ident">zip</span>(
+            <span class="op">&lt;</span><span class="ident">MavenPlugin</span> <span class="kw">as</span> <span class="ident">LanguagePlugin</span><span class="op">&gt;</span>::<span class="ident">StudentFilePolicy</span>::<span class="ident">new</span>(<span class="ident">path</span>)<span class="question-mark">?</span>,
+            <span class="ident">path</span>,
+        )<span class="question-mark">?</span>),
+        <span class="ident">Plugin</span>::<span class="ident">NoTests</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip</span>::<span class="ident">zip</span>(
+            <span class="op">&lt;</span><span class="ident">NoTestsPlugin</span> <span class="kw">as</span> <span class="ident">LanguagePlugin</span><span class="op">&gt;</span>::<span class="ident">StudentFilePolicy</span>::<span class="ident">new</span>(<span class="ident">path</span>)<span class="question-mark">?</span>,
+            <span class="ident">path</span>,
+        )<span class="question-mark">?</span>),
+        <span class="ident">Plugin</span>::<span class="ident">Python3</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip</span>::<span class="ident">zip</span>(
+            <span class="op">&lt;</span><span class="ident">Python3Plugin</span> <span class="kw">as</span> <span class="ident">LanguagePlugin</span><span class="op">&gt;</span>::<span class="ident">StudentFilePolicy</span>::<span class="ident">new</span>(<span class="ident">path</span>)<span class="question-mark">?</span>,
+            <span class="ident">path</span>,
+        )<span class="question-mark">?</span>),
+        <span class="ident">Plugin</span>::<span class="ident">R</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip</span>::<span class="ident">zip</span>(
+            <span class="op">&lt;</span><span class="ident">RPlugin</span> <span class="kw">as</span> <span class="ident">LanguagePlugin</span><span class="op">&gt;</span>::<span class="ident">StudentFilePolicy</span>::<span class="ident">new</span>(<span class="ident">path</span>)<span class="question-mark">?</span>,
+            <span class="ident">path</span>,
+        )<span class="question-mark">?</span>),
+        <span class="ident">Plugin</span>::<span class="ident">Ant</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip</span>::<span class="ident">zip</span>(
+            <span class="op">&lt;</span><span class="ident">AntPlugin</span> <span class="kw">as</span> <span class="ident">LanguagePlugin</span><span class="op">&gt;</span>::<span class="ident">StudentFilePolicy</span>::<span class="ident">new</span>(<span class="ident">path</span>)<span class="question-mark">?</span>,
+            <span class="ident">path</span>,
+        )<span class="question-mark">?</span>),
+    }
 }
 
 <span class="doccomment">/// See `LanguagePlugin::get_exercise_packaging_configuration`.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_exercise_packaging_configuration</span>(
     <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExercisePackagingConfiguration</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
-    <span class="prelude-val">Ok</span>(<span class="ident">get_language_plugin</span>(<span class="ident">path</span>)<span class="question-mark">?</span>.<span class="ident">get_exercise_packaging_configuration</span>(<span class="ident">path</span>)<span class="question-mark">?</span>)
+    <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">TmcProjectYml</span>::<span class="ident">from</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(<span class="ident">get_language_plugin</span>(<span class="ident">path</span>)<span class="question-mark">?</span>.<span class="ident">get_exercise_packaging_configuration</span>(<span class="ident">config</span>)<span class="question-mark">?</span>)
 }
 
 <span class="doccomment">/// Creates a tarball that can be submitted to TMC-sandbox.</span>
@@ -496,15 +548,13 @@
 <span class="comment">// enum containing all the plugins</span>
 <span class="attribute">#[<span class="ident">impl_enum</span>::<span class="ident">with_methods</span>(
     <span class="kw">fn</span> <span class="ident">clean</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TmcError</span><span class="op">&gt;</span> {}
-    <span class="kw">fn</span> <span class="ident">get_exercise_packaging_configuration</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExercisePackagingConfiguration</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {}
-    <span class="kw">fn</span> <span class="ident">compress_project</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {}
-    <span class="kw">fn</span> <span class="ident">extract_project</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">compressed_project</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">target_location</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">clean</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TmcError</span><span class="op">&gt;</span> {}
-    <span class="kw">fn</span> <span class="ident">extract_student_files</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">compressed_project</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">target_location</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TmcError</span><span class="op">&gt;</span> {}
+    <span class="kw">fn</span> <span class="ident">get_exercise_packaging_configuration</span>(<span class="ident">config</span>: <span class="ident">TmcProjectYml</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExercisePackagingConfiguration</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {}
+    <span class="kw">fn</span> <span class="ident">extract_project</span>(<span class="ident">compressed_project</span>: <span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span> <span class="op">+</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Seek</span>, <span class="ident">target_location</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">clean</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TmcError</span><span class="op">&gt;</span> {}
+    <span class="kw">fn</span> <span class="ident">extract_student_files</span>(<span class="ident">compressed_project</span>: <span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span> <span class="op">+</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Seek</span>, <span class="ident">target_location</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TmcError</span><span class="op">&gt;</span> {}
     <span class="kw">fn</span> <span class="ident">scan_exercise</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">exercise_name</span>: <span class="ident">String</span>, <span class="ident">warnings</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">anyhow</span>::<span class="ident">Error</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {}
     <span class="kw">fn</span> <span class="ident">run_tests</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">warnings</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">anyhow</span>::<span class="ident">Error</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RunResult</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {}
-    <span class="kw">fn</span> <span class="ident">check_code_style</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">locale</span>: <span class="ident">Language</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationResult</span><span class="op">&gt;</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {}
-    <span class="kw">fn</span> <span class="ident">prepare_stub</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">exercise_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">repo_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">dest_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TmcError</span><span class="op">&gt;</span> {}
-    <span class="kw">fn</span> <span class="ident">get_available_points</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">exercise_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {}
+    <span class="kw">fn</span> <span class="ident">check_code_style</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">locale</span>: <span class="ident">Language</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StyleValidationResult</span><span class="op">&gt;</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {}
+    <span class="kw">fn</span> <span class="ident">get_available_points</span>(<span class="ident">exercise_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {}
 )]</span>
 <span class="kw">enum</span> <span class="ident">Plugin</span> {
     <span class="ident">CSharp</span>(<span class="ident">CSharpPlugin</span>),

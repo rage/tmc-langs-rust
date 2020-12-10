@@ -146,21 +146,7 @@
 <span id="143">143</span>
 <span id="144">144</span>
 <span id="145">145</span>
-<span id="146">146</span>
-<span id="147">147</span>
-<span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
-<span id="152">152</span>
-<span id="153">153</span>
-<span id="154">154</span>
-<span id="155">155</span>
-<span id="156">156</span>
-<span id="157">157</span>
-<span id="158">158</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">io</span>::<span class="ident">tmc_zip</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 <span class="kw">use</span> <span class="ident">subprocess</span>::<span class="ident">ExitStatus</span>;
@@ -172,10 +158,6 @@
     <span class="comment">// IO</span>
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;File IO error&quot;</span>)]</span>
     <span class="ident">FileIo</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">FileIo</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;{0} exists and is not a directory&quot;</span>)]</span>
-    <span class="ident">UnexpectedFile</span>(<span class="ident">PathBuf</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to read stdio&quot;</span>)]</span>
-    <span class="ident">ReadStdio</span>(<span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
 
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to read file inside zip archive with path {0}&quot;</span>)]</span>
     <span class="ident">ZipRead</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
@@ -192,21 +174,11 @@
     <span class="ident">SubmissionParse</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to canonicalize path {0}&quot;</span>)]</span>
     <span class="ident">Canonicalize</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Error occurred in a child process&quot;</span>)]</span>
-    <span class="ident">Process</span>(<span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to set permissions for {0}&quot;</span>)]</span>
-    <span class="ident">SetPermissions</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Invalid parameter value: {0}&quot;</span>)]</span>
-    <span class="ident">InvalidParam</span>(<span class="ident">String</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;File {0} not in given project root {1}&quot;</span>)]</span>
     <span class="ident">FileNotInProject</span>(<span class="ident">PathBuf</span>, <span class="ident">PathBuf</span>),
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Path {0} is not absolute&quot;</span>)]</span>
-    <span class="ident">PathNotAbsolute</span>(<span class="ident">PathBuf</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Error while parsing available points: {0}&quot;</span>)]</span>
     <span class="ident">PointParse</span>(<span class="ident">String</span>),
 
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Path {0} contained invalid UTF8&quot;</span>)]</span>
-    <span class="ident">UTF8</span>(<span class="ident">PathBuf</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Path {0} contained no file name&quot;</span>)]</span>
     <span class="ident">NoFileName</span>(<span class="ident">PathBuf</span>),
 
@@ -214,6 +186,8 @@
     <span class="ident">PluginNotFound</span>(<span class="ident">PathBuf</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;No project directory found in archive during unzip&quot;</span>)]</span>
     <span class="ident">NoProjectDirInZip</span>,
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Found project dir in zip, but its path contained invalid UTF-8: {0}&quot;</span>)]</span>
+    <span class="ident">ProjectDirInvalidUtf8</span>(<span class="ident">PathBuf</span>),
 
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Error in plugin&quot;</span>)]</span>
     <span class="ident">Plugin</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>),
@@ -224,7 +198,7 @@
     <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
     <span class="ident">YamlDeserialization</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">serde_yaml</span>::<span class="ident">Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
-    <span class="ident">ZipError</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">tmc_zip</span>::<span class="ident">ZipError</span>),
+    <span class="ident">ZipError</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">zip</span>::<span class="ident">result</span>::<span class="ident">ZipError</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
     <span class="ident">WalkDir</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">walkdir</span>::<span class="ident">Error</span>),
 }
