@@ -775,7 +775,7 @@ def f():
 
         let mut zip = ZipArchive::new(std::io::Cursor::new(zip)).unwrap();
         let dir = MockPlugin::find_project_dir_in_zip(&mut zip).unwrap();
-        assert_eq!(dir.as_os_str(), "dir1/dir2/dir3");
+        assert_eq!(dir, Path::new("dir1").join("dir2").join("dir3"));
     }
 
     #[test]
