@@ -198,7 +198,9 @@ mod test {
     const BINARY_REL: &str = "dir/inner/binary.bin";
 
     fn init() {
-        let _ = env_logger::builder().is_test(true).try_init();
+        use log::*;
+        use simple_logger::*;
+        let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
     }
 
     #[test]

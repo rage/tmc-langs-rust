@@ -89,13 +89,12 @@ mod test {
     use super::*;
 
     fn init_logging() {
-        use simplelog::*;
-        let _ = TestLogger::init(
-            LevelFilter::Debug,
-            ConfigBuilder::new()
-                .set_location_level(LevelFilter::Debug)
-                .build(),
-        );
+        use log::*;
+        use simple_logger::*;
+        let _ = SimpleLogger::new()
+            .with_level(LevelFilter::Debug)
+            .with_module_level("j4rs", LevelFilter::Warn)
+            .init();
     }
 
     fn file_to(

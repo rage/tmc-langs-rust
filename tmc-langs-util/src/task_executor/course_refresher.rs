@@ -731,7 +731,9 @@ mod test {
     const GIT_REPO: &str = "https://github.com/rage/rfcs";
 
     fn init() {
-        let _ = env_logger::builder().is_test(true).try_init();
+        use log::*;
+        use simple_logger::*;
+        let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
     }
 
     #[test]

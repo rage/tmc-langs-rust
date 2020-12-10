@@ -8,13 +8,14 @@ use tmc_client::*;
 
 fn init() {
     dotenv().ok();
-    if env::var("RUST_LOG").is_err() {
-        env::set_var(
-            "RUST_LOG",
-            "debug,hyper=warn,tokio_reactor=warn,reqwest=warn",
-        );
-    }
-    let _ = env_logger::builder().is_test(true).try_init();
+    use log::*;
+    use simple_logger::*;
+    let _ = SimpleLogger::new()
+        .with_level(LevelFilter::Debug)
+        .with_module_level("hyper", LevelFilter::Warn)
+        .with_module_level("tokio_reactor", LevelFilter::Warn)
+        .with_module_level("reqwest", LevelFilter::Warn)
+        .init();
 }
 
 fn run_core_cmd(args: &[&str]) -> Output {

@@ -231,7 +231,9 @@ mod test {
     use tmc_langs_framework::policy::EverythingIsStudentFilePolicy;
 
     fn init() {
-        let _ = env_logger::builder().is_test(true).try_init();
+        use log::*;
+        use simple_logger::*;
+        let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
     }
 
     fn get_relative_file_paths(dir: &Path) -> HashSet<PathBuf> {
