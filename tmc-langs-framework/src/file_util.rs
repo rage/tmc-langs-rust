@@ -62,6 +62,10 @@ pub fn read_to_file<R: Read, P: AsRef<Path>>(source: &mut R, target: P) -> Resul
     Ok(target_file)
 }
 
+pub fn create_dir<P: AsRef<Path>>(path: P) -> Result<(), FileIo> {
+    fs::create_dir(&path).map_err(|e| FileIo::DirCreate(path.as_ref().to_path_buf(), e))
+}
+
 pub fn create_dir_all<P: AsRef<Path>>(path: P) -> Result<(), FileIo> {
     fs::create_dir_all(&path).map_err(|e| FileIo::DirCreate(path.as_ref().to_path_buf(), e))
 }

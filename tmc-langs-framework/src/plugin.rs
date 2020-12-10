@@ -208,26 +208,18 @@ pub trait LanguagePlugin {
 
     // todo: DRY
     fn extract_student_files(
-        compressed_project: &Path,
+        compressed_project: impl Read + Seek,
         target_location: &Path,
     ) -> Result<(), TmcError> {
         let policy = Self::StudentFilePolicy::new(target_location)?;
 
-        log::debug!(
-            "Unzipping student files from {} to {}",
-            compressed_project.display(),
-            target_location.display()
-        );
+        log::debug!("Unzipping student files to {}", target_location.display());
 
-        let file = file_util::open_file(compressed_project)?;
-        let mut zip_archive = ZipArchive::new(file)?;
+        let mut zip_archive = ZipArchive::new(compressed_project)?;
 
         // find the exercise root directory inside the archive
         let project_dir = Self::find_project_dir_in_zip(&mut zip_archive)?;
         log::debug!("Project dir in zip: {}", project_dir.display());
-
-        // used to clean non-student files not in the zip later
-        let mut unzip_paths = HashSet::new();
 
         for i in 0..zip_archive.len() {
             let mut file = zip_archive.by_index(i)?;
@@ -241,22 +233,44 @@ pub trait LanguagePlugin {
             };
             let path_in_target = target_location.join(&relative);
             log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
-            unzip_paths.insert(path_in_target.clone());
 
-            if file.is_dir() {
-                log::trace!("creating {:?}", path_in_target);
-                file_util::create_dir_all(&path_in_target)?;
-            } else {
-                let mut write = true;
-                // always overwrite .tmcproject.yml
-                if !policy.is_student_file(&path_in_target, &target_location)? {
-                    write = false;
+            let write = {
+                if !path_in_target.exists() {
+                    // currently policies do not consider nonexistent files to ever be student files
+                    // this is a not-so-nice hack around that, TODO: fix properly
+                    let mut created_dirs = vec![];
+                    for dir in path_in_target
+                        .ancestors()
+                        .collect::<Vec<_>>()
+                        .into_iter()
+                        .rev()
+                    {
+                        if !dir.exists() {
+                            file_util::create_dir(dir)?;
+                            created_dirs.push(dir.to_path_buf());
+                        }
+                    }
+                    let is_student_file =
+                        policy.is_student_file(&path_in_target, &target_location)?;
+                    for dir in created_dirs.into_iter().rev() {
+                        file_util::remove_dir_empty(&dir)?;
+                    }
+                    is_student_file
+                } else {
+                    policy.is_student_file(&path_in_target, &target_location)?
                 }
-                if write {
+            };
+            if write {
+                if file.is_dir() && !path_in_target.exists() {
+                    log::trace!("creating {:?}", path_in_target);
+                    file_util::create_dir_all(&path_in_target)?;
+                } else if file.is_file() {
                     let mut file_contents = vec![];
                     file.read_to_end(&mut file_contents)
                         .map_err(|e| TmcError::ZipRead(file_path.clone(), e))?;
                     log::trace!("writing to {}", path_in_target.display());
+                    log::trace!("writing to {}", path_in_target.exists());
+                    log::trace!("writing to {}", path_in_target.is_dir());
                     if let Some(parent) = path_in_target.parent() {
                         file_util::create_dir_all(parent)?;
                     }
@@ -414,7 +428,12 @@ enum Parse {
 mod test {
     use super::*;
     use nom::character;
-    use std::collections::HashMap;
+
+    fn init() {
+        use log::*;
+        use simple_logger::*;
+        let _ = SimpleLogger::new().with_level(LevelFilter::Trace).init();
+    }
 
     fn file_to(
         target_dir: impl AsRef<std::path::Path>,
@@ -426,6 +445,46 @@ mod test {
             std::fs::create_dir_all(parent).unwrap();
         }
         std::fs::write(&target, contents.as_ref()).unwrap();
+        target
+    }
+
+    fn dir_to(
+        target_dir: impl AsRef<std::path::Path>,
+        target_relative: impl AsRef<std::path::Path>,
+    ) -> PathBuf {
+        let target = target_dir.as_ref().join(target_relative);
+        std::fs::create_dir_all(&target).unwrap();
+        target
+    }
+
+    fn dir_to_zip(source_dir: impl AsRef<std::path::Path>) -> Vec<u8> {
+        let mut target = vec![];
+        let mut zip = zip::ZipWriter::new(std::io::Cursor::new(&mut target));
+
+        for entry in walkdir::WalkDir::new(&source_dir)
+            .min_depth(1)
+            .sort_by(|a, b| a.path().cmp(b.path()))
+        {
+            let entry = entry.unwrap();
+            let rela = entry
+                .path()
+                .strip_prefix(&source_dir)
+                .unwrap()
+                .to_str()
+                .unwrap();
+            if entry.path().is_dir() {
+                zip.add_directory(rela, zip::write::FileOptions::default())
+                    .unwrap();
+            } else if entry.path().is_file() {
+                zip.start_file(rela, zip::write::FileOptions::default())
+                    .unwrap();
+                let bytes = std::fs::read(entry.path()).unwrap();
+                zip.write_all(&bytes).unwrap();
+            }
+        }
+
+        zip.finish().unwrap();
+        drop(zip);
         target
     }
 
@@ -445,8 +504,8 @@ mod test {
         fn get_project_config(&self) -> &TmcProjectYml {
             &self.project_config
         }
-        fn is_student_source_file(_path: &Path) -> bool {
-            unimplemented!()
+        fn is_student_source_file(path: &Path) -> bool {
+            path.starts_with("src")
         }
     }
 
@@ -455,12 +514,6 @@ mod test {
         const LINE_COMMENT: &'static str = "//";
         const BLOCK_COMMENT: Option<(&'static str, &'static str)> = Some(("/*", "*/"));
         type StudentFilePolicy = MockPolicy;
-
-        fn find_project_dir_in_zip<R: Read + Seek>(
-            _zip_archive: &mut ZipArchive<R>,
-        ) -> Result<PathBuf, TmcError> {
-            todo!()
-        }
 
         fn scan_exercise(
             &self,
@@ -480,16 +533,16 @@ mod test {
             Ok(RunResult {
                 status: RunStatus::Passed,
                 test_results: vec![],
-                logs: HashMap::new(),
+                logs: std::collections::HashMap::new(),
             })
         }
 
-        fn is_exercise_type_correct(path: &Path) -> bool {
-            !path.to_str().unwrap().contains("ignored")
+        fn is_exercise_type_correct(_path: &Path) -> bool {
+            unimplemented!()
         }
 
         fn clean(&self, _path: &Path) -> Result<(), TmcError> {
-            unimplemented!()
+            Ok(())
         }
 
         fn points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str> {
@@ -531,10 +584,6 @@ mod test {
         fn get_default_exercise_file_paths() -> Vec<PathBuf> {
             vec![PathBuf::from("test")]
         }
-    }
-
-    fn init() {
-        let _ = env_logger::builder().is_test(true).try_init();
     }
 
     #[test]
@@ -645,5 +694,88 @@ def f():
         );
         let points = MockPlugin::get_available_points(&temp.path()).unwrap();
         assert_eq!(points, &["1", "3"]);
+    }
+
+    #[test]
+    fn finds_project_dir_in_zip() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "dir1/dir2/dir3/src/file", "");
+        let zip = dir_to_zip(&temp);
+
+        let mut zip = ZipArchive::new(std::io::Cursor::new(zip)).unwrap();
+        let dir = MockPlugin::find_project_dir_in_zip(&mut zip).unwrap();
+        assert_eq!(dir.as_os_str(), "dir1/dir2/dir3");
+    }
+
+    #[test]
+    fn doesnt_find_project_dir_in_macos() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "dir1/dir2/dir3/__MACOSX/src/file", "");
+        file_to(&temp, "dir1/__MACOSX/dir2/dir3/src/file", "");
+        let zip = dir_to_zip(&temp);
+
+        let mut zip = ZipArchive::new(std::io::Cursor::new(zip)).unwrap();
+        let dir = MockPlugin::find_project_dir_in_zip(&mut zip);
+        assert!(dir.is_err());
+    }
+
+    #[test]
+    fn extracts_student_files() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "dir/src/more/dirs/student file", "");
+        file_to(&temp, "dir/test/exercise file", "");
+        file_to(&temp, "not in project dir", "");
+        let zip = dir_to_zip(&temp);
+
+        MockPlugin::extract_student_files(
+            std::io::Cursor::new(zip),
+            &temp.path().join("extracted"),
+        )
+        .unwrap();
+
+        for entry in WalkDir::new(temp.path().join("extracted")) {
+            if let Ok(entry) = entry {
+                log::debug!("{}", entry.path().display());
+            }
+        }
+
+        assert!(temp
+            .path()
+            .join("extracted/src/more/dirs/student file")
+            .exists());
+        assert!(!temp.path().join("extracted/test/exercise file").exists());
+    }
+
+    #[test]
+    fn extracts_student_dirs() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        dir_to(&temp, "dir/src");
+        dir_to(&temp, "dir/test");
+        dir_to(&temp, "not in project dir");
+        let zip = dir_to_zip(&temp);
+
+        MockPlugin::extract_student_files(
+            std::io::Cursor::new(zip),
+            &temp.path().join("extracted"),
+        )
+        .unwrap();
+
+        for entry in WalkDir::new(temp.path().join("extracted")) {
+            if let Ok(entry) = entry {
+                log::debug!("{}", entry.path().display());
+            }
+        }
+
+        assert!(temp.path().join("extracted/src").exists());
+        assert!(!temp.path().join("extracted/test").exists());
+        assert!(!temp.path().join("extracted/not in project dir").exists());
     }
 }

@@ -72,8 +72,6 @@ pub trait StudentFilePolicy {
             .strip_prefix(&root_canon)
             .map_err(|_| TmcError::FileNotInProject(path_canon.clone(), root_canon.clone()))?;
 
-        log::debug!("relat {}", relative.display());
-
         // check extra student files
         let is_extra_student_file = self
             .get_project_config()
