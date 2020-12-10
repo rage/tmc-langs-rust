@@ -46,7 +46,9 @@ impl TmcProjectYml {
         }
         log::debug!("reading .tmcproject.yml from {}", config_path.display());
         let file = file_util::open_file(&config_path)?;
-        Ok(serde_yaml::from_reader(file)?)
+        let config = serde_yaml::from_reader(file)?;
+        log::trace!("read {:#?}", config);
+        Ok(config)
     }
 }
 

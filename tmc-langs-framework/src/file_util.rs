@@ -54,6 +54,7 @@ pub fn write_to_file<S: AsRef<[u8]>, P: AsRef<Path>>(source: S, target: P) -> Re
     Ok(target_file)
 }
 
+/// Reads all of the data from source and writes it into a new file at target.
 pub fn read_to_file<R: Read, P: AsRef<Path>>(source: &mut R, target: P) -> Result<File, FileIo> {
     let target = target.as_ref();
     let mut target_file = create_file(target)?;

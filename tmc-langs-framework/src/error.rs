@@ -37,6 +37,8 @@ pub enum TmcError {
     PluginNotFound(PathBuf),
     #[error("No project directory found in archive during unzip")]
     NoProjectDirInZip,
+    #[error("Found project dir in zip, but its path contained invalid UTF-8: {0}")]
+    ProjectDirInvalidUtf8(PathBuf),
 
     #[error("Error in plugin")]
     Plugin(#[from] Box<dyn std::error::Error + 'static + Send + Sync>),

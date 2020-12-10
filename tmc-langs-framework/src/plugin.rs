@@ -109,8 +109,6 @@ pub trait LanguagePlugin {
         target_location: &Path,
         clean: bool,
     ) -> Result<(), TmcError> {
-        let policy = Self::StudentFilePolicy::new(target_location)?;
-
         log::debug!("Unzipping to {}", target_location.display());
 
         let mut zip_archive = ZipArchive::new(compressed_project)?;
@@ -119,12 +117,28 @@ pub trait LanguagePlugin {
         let project_dir = Self::find_project_dir_in_zip(&mut zip_archive)?;
         log::debug!("Project dir in zip: {}", project_dir.display());
 
+        // extract config file if any
+        let tmc_project_yml_path = project_dir.join(".tmcproject.yml");
+        let tmc_project_yml_path_s = tmc_project_yml_path
+            .to_str()
+            .ok_or_else(|| TmcError::ProjectDirInvalidUtf8(project_dir.clone()))?;
+        if let Ok(mut file) = zip_archive.by_name(tmc_project_yml_path_s) {
+            let target_path = target_location.join(".tmcproject.yml");
+            file_util::read_to_file(&mut file, target_path)?;
+        }
+        let policy = Self::StudentFilePolicy::new(target_location)?;
+
         // used to clean non-student files not in the zip later
         let mut unzip_paths = HashSet::new();
 
         for i in 0..zip_archive.len() {
             let mut file = zip_archive.by_index(i)?;
             let file_path = PathBuf::from(file.name());
+            if file_path == tmc_project_yml_path {
+                // already extracted
+                continue;
+            }
+
             let relative = match file_path.strip_prefix(&project_dir) {
                 Ok(relative) => relative,
                 _ => {
@@ -136,35 +150,72 @@ pub trait LanguagePlugin {
             log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
             unzip_paths.insert(path_in_target.clone());
 
-            if file.is_dir() {
-                log::trace!("creating {:?}", path_in_target);
-                file_util::create_dir_all(&path_in_target)?;
-            } else {
-                let mut write = true;
-                let mut file_contents = vec![];
-                file.read_to_end(&mut file_contents)
-                    .map_err(|e| TmcError::ZipRead(file_path.clone(), e))?;
-                // always overwrite .tmcproject.yml
-                if path_in_target.exists()
-                    && !path_in_target
-                        .file_name()
-                        .map(|o| o == ".tmcproject.yml")
-                        .unwrap_or_default()
-                {
-                    let target_file_contents = file_util::read_file(&path_in_target)?;
-                    if file_contents == target_file_contents
-                        || (policy.is_student_file(&path_in_target, &target_location)?
-                            && !policy.is_updating_forced(&relative)?)
+            // not student file, or forced update
+            let overwrite = {
+                if !path_in_target.exists() {
+                    // currently policies do not consider nonexistent files to ever be student files
+                    // this is a not-so-nice hack around that, TODO: fix properly
+                    let mut created_dirs = vec![];
+                    for dir in path_in_target
+                        .ancestors()
+                        .collect::<Vec<_>>()
+                        .into_iter()
+                        .rev()
                     {
-                        write = false;
+                        if !dir.exists() {
+                            file_util::create_dir(dir)?;
+                            created_dirs.push(dir.to_path_buf());
+                        }
                     }
+                    let write = !policy.is_student_file(&path_in_target, &target_location)?
+                        || policy.is_updating_forced(&relative)?;
+                    for dir in created_dirs.into_iter().rev() {
+                        file_util::remove_dir_empty(&dir)?;
+                    }
+                    write
+                } else {
+                    !policy.is_student_file(&path_in_target, &target_location)?
+                        || policy.is_updating_forced(&relative)?
                 }
-                if write {
+            };
+
+            if !path_in_target.exists() {
+                // just extract
+                if file.is_dir() {
+                    file_util::create_dir_all(path_in_target)?;
+                } else {
+                    let mut overwrite_target = file_util::create_file(&path_in_target)?;
+                    let mut file_contents = vec![];
+                    file.read_to_end(&mut file_contents)
+                        .map_err(|e| TmcError::ZipRead(file_path.clone(), e))?;
+                    overwrite_target
+                        .write_all(&file_contents)
+                        .map_err(|e| TmcError::ZipWrite(path_in_target.clone(), e))?;
+                }
+            } else if overwrite {
+                // overwrite existing
+                if file.is_dir() {
+                    // remove old and overwrite
+                    if path_in_target.is_dir() {
+                        file_util::remove_dir_all(&path_in_target)?;
+                    } else if path_in_target.is_file() {
+                        file_util::remove_file(&path_in_target)?;
+                    }
+                    log::trace!("creating {:?}", path_in_target);
+                    file_util::create_dir_all(&path_in_target)?;
+                } else {
+                    // remove old if dir
+                    if path_in_target.is_dir() {
+                        file_util::remove_dir_all(&path_in_target)?;
+                    }
                     log::trace!("writing to {}", path_in_target.display());
                     if let Some(parent) = path_in_target.parent() {
                         file_util::create_dir_all(parent)?;
                     }
                     let mut overwrite_target = file_util::create_file(&path_in_target)?;
+                    let mut file_contents = vec![];
+                    file.read_to_end(&mut file_contents)
+                        .map_err(|e| TmcError::ZipRead(file_path.clone(), e))?;
                     overwrite_target
                         .write_all(&file_contents)
                         .map_err(|e| TmcError::ZipWrite(path_in_target.clone(), e))?;
@@ -206,13 +257,14 @@ pub trait LanguagePlugin {
         Ok(())
     }
 
-    // todo: DRY
+    /// Extracts student files from the compressed project.
+    /// It finds the project dir from the zip and extracts the student files from there.
+    /// Overwrites all files/directories.
+    // todo: DRY, very similar to extract_project
     fn extract_student_files(
         compressed_project: impl Read + Seek,
         target_location: &Path,
     ) -> Result<(), TmcError> {
-        let policy = Self::StudentFilePolicy::new(target_location)?;
-
         log::debug!("Unzipping student files to {}", target_location.display());
 
         let mut zip_archive = ZipArchive::new(compressed_project)?;
@@ -220,6 +272,17 @@ pub trait LanguagePlugin {
         // find the exercise root directory inside the archive
         let project_dir = Self::find_project_dir_in_zip(&mut zip_archive)?;
         log::debug!("Project dir in zip: {}", project_dir.display());
+
+        // extract config file if any
+        let tmc_project_yml_path = project_dir.join(".tmcproject.yml");
+        let tmc_project_yml_path = tmc_project_yml_path
+            .to_str()
+            .ok_or_else(|| TmcError::ProjectDirInvalidUtf8(project_dir.clone()))?;
+        if let Ok(mut file) = zip_archive.by_name(tmc_project_yml_path) {
+            let target_path = target_location.join(".tmcproject.yml");
+            file_util::read_to_file(&mut file, target_path)?;
+        }
+        let policy = Self::StudentFilePolicy::new(target_location)?;
 
         for i in 0..zip_archive.len() {
             let mut file = zip_archive.by_index(i)?;
@@ -260,17 +323,23 @@ pub trait LanguagePlugin {
                     policy.is_student_file(&path_in_target, &target_location)?
                 }
             };
+
             if write {
-                if file.is_dir() && !path_in_target.exists() {
+                if file.is_dir() {
+                    if path_in_target.exists() {
+                        // remove old and overwrite
+                        if path_in_target.is_dir() {
+                            file_util::remove_dir_all(&path_in_target)?;
+                        } else {
+                            file_util::remove_file(&path_in_target)?;
+                        }
+                    }
                     log::trace!("creating {:?}", path_in_target);
                     file_util::create_dir_all(&path_in_target)?;
                 } else if file.is_file() {
                     let mut file_contents = vec![];
                     file.read_to_end(&mut file_contents)
                         .map_err(|e| TmcError::ZipRead(file_path.clone(), e))?;
-                    log::trace!("writing to {}", path_in_target.display());
-                    log::trace!("writing to {}", path_in_target.exists());
-                    log::trace!("writing to {}", path_in_target.is_dir());
                     if let Some(parent) = path_in_target.parent() {
                         file_util::create_dir_all(parent)?;
                     }
@@ -777,5 +846,215 @@ def f():
         assert!(temp.path().join("extracted/src").exists());
         assert!(!temp.path().join("extracted/test").exists());
         assert!(!temp.path().join("extracted/not in project dir").exists());
+    }
+
+    #[test]
+    fn extract_student_files_overwrites() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "dir/src/file overwrites file", "new");
+        file_to(&temp, "dir/src/file overwrites dir", "data");
+        dir_to(&temp, "dir/src/dir overwrites file");
+        dir_to(&temp, "dir/src/dir overwrites dir");
+        let zip = dir_to_zip(&temp);
+        file_to(&temp, "extracted/src/file overwrites file", "old");
+        file_to(
+            &temp,
+            "extracted/src/file overwrites dir/some dir/some file",
+            "",
+        );
+        file_to(&temp, "extracted/src/dir overwrites file", "old");
+        file_to(
+            &temp,
+            "extracted/src/dir overwrites dir/another dir/another file",
+            "",
+        );
+
+        MockPlugin::extract_student_files(
+            std::io::Cursor::new(zip),
+            &temp.path().join("extracted"),
+        )
+        .unwrap();
+
+        for entry in WalkDir::new(temp.path().join("extracted")) {
+            if let Ok(entry) = entry {
+                log::debug!("{}", entry.path().display());
+            }
+        }
+
+        let path = temp.path().join("extracted/src/file overwrites file");
+        assert!(path.is_file());
+        let s = std::fs::read_to_string(path).unwrap();
+        assert_eq!(s, "new");
+
+        let path = temp.path().join("extracted/src/file overwrites dir");
+        assert!(path.is_file());
+        let s = std::fs::read_to_string(path).unwrap();
+        assert_eq!(s, "data");
+
+        let path = temp.path().join("extracted/src/dir overwrites file");
+        assert!(path.is_dir());
+
+        let path = temp.path().join("extracted/src/dir overwrites dir");
+        assert!(path.is_dir());
+        assert!(!path.join("another dir").exists())
+    }
+
+    #[test]
+    fn extracts_project() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "dir/src/more/dirs/student file", "");
+        file_to(&temp, "dir/test/exercise file", "");
+        file_to(&temp, "not in project dir", "");
+        let zip = dir_to_zip(&temp);
+
+        MockPlugin::extract_project(
+            std::io::Cursor::new(zip),
+            &temp.path().join("extracted"),
+            false,
+        )
+        .unwrap();
+
+        for entry in WalkDir::new(temp.path().join("extracted")) {
+            if let Ok(entry) = entry {
+                log::debug!("{}", entry.path().display());
+            }
+        }
+
+        assert!(temp
+            .path()
+            .join("extracted/src/more/dirs/student file")
+            .exists());
+        assert!(temp.path().join("extracted/test/exercise file").exists());
+        assert!(!temp.path().join("extracted/not in project dir").exists());
+    }
+
+    #[test]
+    fn extract_project_overwrites_default() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "dir/src/student file", "new");
+        file_to(&temp, "dir/test/exercise file", "new");
+        let zip = dir_to_zip(&temp);
+        file_to(&temp, "extracted/src/student file", "old");
+        file_to(&temp, "extracted/test/exercise file", "old");
+
+        MockPlugin::extract_project(
+            std::io::Cursor::new(zip),
+            &temp.path().join("extracted"),
+            false,
+        )
+        .unwrap();
+
+        for entry in WalkDir::new(temp.path().join("extracted")) {
+            if let Ok(entry) = entry {
+                log::debug!("{}", entry.path().display());
+            }
+        }
+
+        let s = std::fs::read_to_string(temp.path().join("extracted/src/student file")).unwrap();
+        assert_eq!(s, "old");
+        let s = std::fs::read_to_string(temp.path().join("extracted/test/exercise file")).unwrap();
+        assert_eq!(s, "new");
+    }
+
+    #[test]
+    fn extract_project_overwrites_with_config_file() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "dir/src/forced update", "new");
+        file_to(&temp, "dir/extra student file", "new");
+        file_to(
+            &temp,
+            "dir/.tmcproject.yml",
+            r#"
+extra_student_files:
+  - "extra student file"
+force_update:
+  - "src/forced update"
+"#,
+        );
+        let zip = dir_to_zip(&temp);
+        file_to(&temp, "extracted/src/forced update", "old");
+        file_to(&temp, "extracted/extra student file", "old");
+
+        MockPlugin::extract_project(
+            std::io::Cursor::new(zip),
+            &temp.path().join("extracted"),
+            false,
+        )
+        .unwrap();
+
+        for entry in WalkDir::new(temp.path().join("extracted")) {
+            if let Ok(entry) = entry {
+                log::debug!("{}", entry.path().display());
+            }
+        }
+
+        let s = std::fs::read_to_string(temp.path().join("extracted/src/forced update")).unwrap();
+        assert_eq!(s, "new");
+        let s = std::fs::read_to_string(temp.path().join("extracted/extra student file")).unwrap();
+        assert_eq!(s, "old");
+    }
+
+    #[test]
+    fn extract_project_doesnt_clean() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "dir/src/some file", "");
+        let zip = dir_to_zip(&temp);
+        file_to(&temp, "extracted/test/some existing non-student file", "");
+
+        MockPlugin::extract_project(
+            std::io::Cursor::new(zip),
+            &temp.path().join("extracted"),
+            false,
+        )
+        .unwrap();
+
+        for entry in WalkDir::new(temp.path().join("extracted")) {
+            if let Ok(entry) = entry {
+                log::debug!("{}", entry.path().display());
+            }
+        }
+
+        assert!(temp
+            .path()
+            .join("extracted/test/some existing non-student file")
+            .exists())
+    }
+
+    #[test]
+    fn extract_project_cleans() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "dir/src/some file", "");
+        let zip = dir_to_zip(&temp);
+        file_to(&temp, "extracted/test/some existing non-student file", "");
+
+        MockPlugin::extract_project(
+            std::io::Cursor::new(zip),
+            &temp.path().join("extracted"),
+            true,
+        )
+        .unwrap();
+
+        for entry in WalkDir::new(temp.path().join("extracted")) {
+            if let Ok(entry) = entry {
+                log::debug!("{}", entry.path().display());
+            }
+        }
+
+        assert!(!temp
+            .path()
+            .join("extracted/test/some existing non-student file")
+            .exists())
     }
 }
