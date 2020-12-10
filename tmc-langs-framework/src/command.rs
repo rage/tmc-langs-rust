@@ -111,20 +111,29 @@ impl TmcCommand {
         let stdout = read_output(stdout, popen.stdout.as_mut())?;
         let stderr = read_output(stderr, popen.stderr.as_mut())?;
 
-        // if checked is set, error with failed exit status
-        if checked && !exit_status.success() {
-            log::warn!("stdout: {}", String::from_utf8_lossy(&stdout));
-            log::warn!("stderr: {}", String::from_utf8_lossy(&stderr));
-            return Err(CommandError::Failed {
-                command: cmd,
-                status: exit_status,
-                stdout: String::from_utf8_lossy(&stdout).into_owned(),
-                stderr: String::from_utf8_lossy(&stderr).into_owned(),
+        // on success, log stdout trace and stderr debug
+        // on failure if checked, log warn
+        // on failure if not checked, log debug
+        if !exit_status.success() {
+            // if checked is set, error with failed exit status
+            if checked {
+                log::warn!("stdout: {}", String::from_utf8_lossy(&stdout));
+                log::warn!("stderr: {}", String::from_utf8_lossy(&stderr));
+                return Err(CommandError::Failed {
+                    command: cmd,
+                    status: exit_status,
+                    stdout: String::from_utf8_lossy(&stdout).into_owned(),
+                    stderr: String::from_utf8_lossy(&stderr).into_owned(),
+                }
+                .into());
+            } else {
+                log::debug!("stdout: {}", String::from_utf8_lossy(&stdout));
+                log::debug!("stderr: {}", String::from_utf8_lossy(&stderr));
             }
-            .into());
+        } else {
+            log::trace!("stdout: {}", String::from_utf8_lossy(&stdout));
+            log::debug!("stderr: {}", String::from_utf8_lossy(&stderr));
         }
-        log::trace!("stdout: {}", String::from_utf8_lossy(&stdout));
-        log::debug!("stderr: {}", String::from_utf8_lossy(&stderr));
         Ok(Output {
             status: exit_status,
             stdout,

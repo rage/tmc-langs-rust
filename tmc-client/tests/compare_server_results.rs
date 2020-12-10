@@ -13,13 +13,16 @@ use url::Url;
 const TMC_ROOT: &str = "https://tmc.mooc.fi/";
 
 fn init() {
-    if env::var("RUST_LOG").is_err() {
-        env::set_var(
-            "RUST_LOG",
-            "debug,j4rs=warn,hyper=warn,reqwest=warn,serde_xml_rs=warn,rustls=warn",
-        );
-    }
-    let _ = env_logger::builder().is_test(true).try_init();
+    use log::*;
+    use simple_logger::*;
+    let _ = SimpleLogger::new()
+        .with_level(LevelFilter::Debug)
+        .with_module_level("j4rs", LevelFilter::Warn)
+        .with_module_level("reqwest", LevelFilter::Warn)
+        .with_module_level("hyper", LevelFilter::Warn)
+        .with_module_level("serde_xml_rs", LevelFilter::Warn)
+        .with_module_level("rustls", LevelFilter::Warn)
+        .init();
     dotenv().ok();
 }
 
