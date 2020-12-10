@@ -810,14 +810,20 @@ impl AsRef<TmcCore> for TmcClient {
 mod test {
     use super::*;
     use mockito::{mock, Matcher};
-    use std::env;
 
     // sets up mock-authenticated TmcClient and logging
     fn init() -> (TmcClient, String) {
-        if env::var("RUST_LOG").is_err() {
-            env::set_var("RUST_LOG", "debug,hyper=warn,tokio_reactor=warn");
-        }
-        let _ = env_logger::builder().is_test(true).try_init();
+        use log::*;
+        use simple_logger::*;
+        let _ = SimpleLogger::new()
+            .with_level(LevelFilter::Debug)
+            // mockito does some logging
+            .with_module_level("mockito", LevelFilter::Warn)
+            // reqwest does a lot of logging
+            .with_module_level("reqwest", LevelFilter::Warn)
+            // hyper does a lot of logging
+            .with_module_level("hyper", LevelFilter::Warn)
+            .init();
 
         let _m = mock("GET", "/api/v8/application/client_name/credentials")
             .match_query(Matcher::Any)
