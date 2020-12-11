@@ -148,14 +148,14 @@ impl CourseRefresher {
         }
 
         log::info!("updating course options");
-        let course_options = update_course_options(&course.clone_path, &course.name)?;
+        let course_options = get_course_options(&course.clone_path, &course.name)?;
         self.progress_reporter
             .finish_step("Updated course options".to_string(), None)?;
 
         // add_records_for_new_exercises & delete_records_for_removed_exercises
         log::info!("updating exercises");
         let (new_exercises, removed_exercises) =
-            update_exercises(&course.clone_path, &course.exercises)?;
+            get_exercise_changes(&course.clone_path, &course.exercises)?;
         self.progress_reporter
             .finish_step("Updated exercises".to_string(), None)?;
         log::info!("updating exercise options");
@@ -274,6 +274,10 @@ pub fn refresh_course(
     )
 }
 
+/// Checks old_cache_path/clone for a git repo.
+/// If found, copies it to course_clone_path fetches origin from course_source_url, checks out origin/course_git_branch, cleans and checks out the repo.
+/// If not found or found but one of the git commands causes an error, deletes course_clone_path and clones course_git_branch from course_source_url there.
+/// NOP during testing.
 fn update_or_clone_repository(
     course_source_backend: &SourceBackend,
     course_clone_path: &Path,
@@ -281,6 +285,11 @@ fn update_or_clone_repository(
     course_git_branch: &str,
     old_cache_path: &Path,
 ) -> Result<(), UtilError> {
+    // NOP during tests
+    if cfg!(test) {
+        return Ok(());
+    }
+
     if course_source_backend != &SourceBackend::Git {
         log::error!("Source types other than git not yet implemented");
         return Err(UtilError::UnsupportedSourceBackend);
@@ -341,6 +350,8 @@ fn update_or_clone_repository(
     Ok(())
 }
 
+/// Makes sure no directory directly under path is an exercise directory containing a dash in the relative path from path to the dir.
+/// (For some reason)
 fn check_directory_names(path: &Path) -> Result<(), UtilError> {
     // exercise directories in canonicalized form
     let exercise_dirs = {
@@ -372,23 +383,23 @@ fn check_directory_names(path: &Path) -> Result<(), UtilError> {
     Ok(())
 }
 
-fn update_course_options(
-    course_clone_path: &Path,
-    course_name: &str,
-) -> Result<Mapping, UtilError> {
+/// Checks for a course_clone_path/course_options.yml
+/// If found, course-specific options are merged into it and it is returned.
+/// Else, an empty mapping is returned.
+fn get_course_options(course_clone_path: &Path, course_name: &str) -> Result<Mapping, UtilError> {
     let options_file = course_clone_path.join("course_options.yml");
-    let opts = if options_file.exists() {
+    if options_file.exists() {
         let file = file_util::open_file(options_file)?;
         let mut course_options: Mapping = serde_yaml::from_reader(file).unwrap();
-        merge_course_specific_options(course_name, &mut course_options);
-        course_options
+        merge_course_options(course_name, &mut course_options);
+        Ok(course_options)
     } else {
-        Mapping::new()
-    };
-    Ok(opts)
+        Ok(Mapping::new())
+    }
 }
 
-fn merge_course_specific_options(course_name: &str, opts: &mut Mapping) {
+/// Checks for a courses: course_name map in opts and merges that map with opts if it exists.
+fn merge_course_options(course_name: &str, opts: &mut Mapping) {
     // try to remove the "courses" map
     if let Some(serde_yaml::Value::Mapping(mut courses)) =
         opts.remove(&serde_yaml::Value::String("courses".to_string()))
@@ -405,7 +416,10 @@ fn merge_course_specific_options(course_name: &str, opts: &mut Mapping) {
     }
 }
 
-fn update_exercises(
+/// Finds exercise directories, and converts the directories to "exercise names" by swapping the separators for dashes.
+/// Adds exercise names not in course_exercises to new exercises
+/// Adds exercise names in course_exercises but not in exercise names to removed exercises
+fn get_exercise_changes(
     course_clone_path: &Path,
     course_exercises: &[RefreshExercise],
 ) -> Result<(Vec<String>, Vec<String>), UtilError> {
@@ -480,7 +494,7 @@ fn update_exercise_options(
             if metadata_path.exists() {
                 let file = file_util::open_file(metadata_path)?;
                 if let Ok(mut yaml) = serde_yaml::from_reader::<_, Mapping>(file) {
-                    merge_course_specific_options(course_name, &mut yaml);
+                    merge_course_options(course_name, &mut yaml);
                     recursive_merge(yaml, &mut metadata);
                 }
             }
@@ -815,7 +829,7 @@ mod test {
 
         let clone = tempfile::TempDir::new().unwrap();
         let name = "name";
-        let options = update_course_options(clone.path(), name).unwrap();
+        let options = get_course_options(clone.path(), name).unwrap();
         assert!(options.is_empty());
     }
 
@@ -825,7 +839,7 @@ mod test {
 
         let clone_path = Path::new("tests/data/course_refresher");
         let name = "course-name";
-        let options = update_course_options(clone_path, name).unwrap();
+        let options = get_course_options(clone_path, name).unwrap();
         assert!(!options.is_empty());
 
         let b = options
@@ -853,12 +867,12 @@ mod test {
         init();
 
         let clone_path = Path::new("tests/data/course_refresher/empty");
-        let (new, removed) = update_exercises(clone_path, &[]).unwrap();
+        let (new, removed) = get_exercise_changes(clone_path, &[]).unwrap();
         assert!(new.is_empty());
         assert!(removed.is_empty());
 
         let clone_path = Path::new("tests/data/course_refresher/valid_exercises");
-        let (new, removed) = update_exercises(
+        let (new, removed) = get_exercise_changes(
             clone_path,
             &[
                 RefreshExercise {
