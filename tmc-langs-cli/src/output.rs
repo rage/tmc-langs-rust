@@ -79,6 +79,19 @@ pub struct CombinedCourseData {
     pub settings: CourseData,
 }
 
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct DownloadOrUpdateCourseExercisesResult {
+    pub downloaded: Vec<DownloadOrUpdateCourseExercise>,
+    pub skipped: Vec<DownloadOrUpdateCourseExercise>,
+}
+
+#[derive(Debug, Serialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub struct DownloadOrUpdateCourseExercise {
+    pub course_slug: String,
+    pub exercise_slug: String,
+}
+
 #[derive(Debug, Serialize)]
 pub struct DownloadTarget {
     pub id: usize,

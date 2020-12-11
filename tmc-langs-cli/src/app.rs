@@ -1,6 +1,6 @@
 //! Create clap app
 
-use crate::output::CombinedCourseData;
+use crate::output::{CombinedCourseData, DownloadOrUpdateCourseExercisesResult};
 use clap::{App, AppSettings, Arg, SubCommand};
 use schemars::JsonSchema;
 use std::path::PathBuf;
@@ -370,7 +370,7 @@ fn create_core_app() -> App<'static, 'static> {
 
         .subcommand(SubCommand::with_name("download-or-update-course-exercises")
             .about("Downloads exercises. If downloading an exercise that has been downloaded before, the student file policy will be used to avoid overwriting student files, effectively just updating the exercise files")
-            .long_about(SCHEMA_NULL)
+            .long_about(schema_leaked::<DownloadOrUpdateCourseExercisesResult>())
             .arg(Arg::with_name("exercise-id")
                 .help("Exercise id of an exercise that should be downloaded. Multiple ids can be given.")
                 .long("exercise-id")

@@ -9,7 +9,8 @@ use self::config::ProjectsConfig;
 use self::config::{CourseConfig, Credentials, Exercise, TmcConfig};
 use self::error::{InvalidTokenError, SandboxTestError};
 use self::output::{
-    CombinedCourseData, ErrorData, Kind, Output, OutputData, OutputResult, Status, Warnings,
+    CombinedCourseData, DownloadOrUpdateCourseExercise, DownloadOrUpdateCourseExercisesResult,
+    ErrorData, Kind, Output, OutputData, OutputResult, Status, Warnings,
 };
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
@@ -818,6 +819,8 @@ fn run_core(
 
             let mut course_data = HashMap::<String, Vec<(String, String)>>::new();
             let mut exercises_and_paths = vec![];
+            let mut downloaded = vec![];
+            let mut skipped = vec![];
             for exercise_detail in exercises_details {
                 // check if the checksum is different from what's already on disk
                 if let Some(course_config) =
@@ -834,10 +837,20 @@ fn run_core(
                                 exercise_detail.course_name,
                                 exercise_detail.exercise_name
                             );
+                            skipped.push(DownloadOrUpdateCourseExercise {
+                                course_slug: exercise_detail.course_name,
+                                exercise_slug: exercise_detail.exercise_name,
+                            });
                             continue;
                         }
                     }
                 }
+                // not skipped, will be downloaded
+                // if any download fails, an error is returned instead, so it's ok to just push them to downloaded here
+                downloaded.push(DownloadOrUpdateCourseExercise {
+                    course_slug: exercise_detail.course_name.clone(),
+                    exercise_slug: exercise_detail.exercise_name.clone(),
+                });
 
                 let target = ProjectsConfig::get_exercise_download_target(
                     &projects_dir,
@@ -873,12 +886,16 @@ fn run_core(
                 };
             }
 
-            let output = Output::OutputData::<()>(OutputData {
+            let data = DownloadOrUpdateCourseExercisesResult {
+                downloaded,
+                skipped,
+            };
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: None,
+                data: Some(data),
             });
             print_output(&output, pretty, &warnings)?
         }
