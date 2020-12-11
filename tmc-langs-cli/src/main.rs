@@ -842,9 +842,7 @@ fn run_core(
                 .collect::<Result<_>>()?;
             let exercises_details = client.get_exercises_details(exercises)?;
 
-            let tmc_config = TmcConfig::load(client_name)?;
-
-            let projects_dir = tmc_config.projects_dir;
+            let projects_dir = TmcConfig::load(client_name)?.projects_dir;
             let mut projects_config = ProjectsConfig::load(&projects_dir)?;
 
             let mut course_data = HashMap::<String, Vec<(String, String)>>::new();
@@ -1519,6 +1517,53 @@ fn run_settings(
             });
             print_output(&output, pretty, warnings)
         }
+        ("migrate", Some(matches)) => {
+            let exercise_path = matches.value_of("exercise-path").unwrap();
+            let exercise_path = Path::new(exercise_path);
+
+            let course_slug = matches.value_of("course-slug").unwrap();
+
+            let exercise_slug = matches.value_of("exercise-slug").unwrap();
+
+            let exercise_checksum = matches.value_of("exercise-checksum").unwrap();
+
+            let mut projects_config = ProjectsConfig::load(&tmc_config.projects_dir)?;
+            let course_config = projects_config
+                .courses
+                .entry(course_slug.to_string())
+                .or_insert(CourseConfig {
+                    course: course_slug.to_string(),
+                    exercises: BTreeMap::new(),
+                });
+
+            let target_dir = ProjectsConfig::get_exercise_download_target(
+                &tmc_config.projects_dir,
+                course_slug,
+                exercise_slug,
+            );
+            if target_dir.exists() {
+                anyhow::bail!("Tried to migrate exercise to {}; however, something already exists at that path.", target_dir.display());
+            }
+
+            course_config.exercises.insert(
+                exercise_slug.to_string(),
+                Exercise {
+                    checksum: exercise_checksum.to_string(),
+                },
+            );
+
+            move_dir(exercise_path, &target_dir, pretty)?;
+            course_config.save_to_projects_dir(&tmc_config.projects_dir)?;
+
+            let output = Output::<()>::OutputData(OutputData {
+                status: Status::Finished,
+                result: OutputResult::ExecutedCommand,
+                message: Some("Migrated exercise".to_string()),
+                percent_done: 1.0,
+                data: None,
+            });
+            print_output(&output, pretty, warnings)
+        }
         ("move-projects-dir", Some(matches)) => {
             let dir = matches.value_of("dir").unwrap();
             let target = PathBuf::from(dir);
@@ -1547,83 +1592,9 @@ fn run_settings(
                 )
             }
 
-            let reporter = ProgressReporter::new(move |update| {
-                let output = Output::StatusUpdate::<()>(update);
-                print_output(&output, pretty, &[])?;
-                Ok(())
-            });
-
-            reporter
-                .progress("Moving projects-dir", 0.0, None)
-                .map_err(|e| anyhow::anyhow!(e))?;
-
             let old_projects_dir = tmc_config.set_projects_dir(target.clone())?;
-            let mut file_count_copied = 0;
-            let mut file_count_total = 0;
-            for entry in WalkDir::new(&old_projects_dir) {
-                let entry = entry.with_context(|| {
-                    format!("Failed to read file inside {}", old_projects_dir.display())
-                })?;
-                if entry.path().is_file() {
-                    file_count_total += 1;
-                }
-            }
-            for entry in WalkDir::new(&old_projects_dir).contents_first(true) {
-                let entry = entry.with_context(|| {
-                    format!("Failed to read file inside {}", old_projects_dir.display())
-                })?;
-                let entry_path = entry.path();
-
-                if entry_path.is_file() {
-                    let relative = entry_path.strip_prefix(&old_projects_dir).unwrap();
-                    let target_path = target.join(relative);
-                    log::debug!(
-                        "Moving {} -> {}",
-                        entry_path.display(),
-                        target_path.display()
-                    );
-
-                    // create parent dir for target and copy it, remove source file after
-                    if let Some(parent) = target_path.parent() {
-                        fs::create_dir_all(parent).with_context(|| {
-                            format!("Failed to create directory at {}", parent.display())
-                        })?;
-                    }
-                    fs::copy(entry_path, &target_path).with_context(|| {
-                        format!(
-                            "Failed to copy file from {} to {}",
-                            entry_path.display(),
-                            target_path.display()
-                        )
-                    })?;
-                    fs::remove_file(entry_path).with_context(|| {
-                        format!(
-                            "Failed to remove file at {} after copying it",
-                            entry_path.display()
-                        )
-                    })?;
-
-                    file_count_copied += 1;
-                    reporter
-                        .progress(
-                            format!("Moved file {} / {}", file_count_copied, file_count_total),
-                            file_count_copied as f64 / file_count_total as f64,
-                            None,
-                        )
-                        .map_err(|e| anyhow::anyhow!(e))?;
-                } else if entry_path.is_dir() {
-                    log::debug!("Deleting {}", entry_path.display());
-                    fs::remove_dir(entry_path).with_context(|| {
-                        format!("Failed to remove directory at {}", entry_path.display())
-                    })?;
-                }
-            }
-
+            move_dir(&old_projects_dir, &target, pretty)?;
             tmc_config.save(client_name)?;
-
-            reporter
-                .finish_step("Finished moving project directory", None)
-                .map_err(|e| anyhow::anyhow!(e))?;
 
             let output = Output::<()>::OutputData(OutputData {
                 status: Status::Finished,
@@ -1853,6 +1824,86 @@ fn json_to_toml(json: JsonValue) -> Result<TomlValue> {
         }
         JsonValue::String(s) => Ok(TomlValue::String(s)),
     }
+}
+
+fn move_dir(source: &Path, target: &Path, pretty: bool) -> anyhow::Result<()> {
+    let reporter = ProgressReporter::new(move |update| {
+        let output = Output::StatusUpdate::<()>(update);
+        print_output(&output, pretty, &[])?;
+        Ok(())
+    });
+
+    reporter
+        .progress(
+            format!("Moving dir {} -> {}", source.display(), target.display()),
+            0.0,
+            None,
+        )
+        .map_err(|e| anyhow::anyhow!(e))?;
+
+    let mut file_count_copied = 0;
+    let mut file_count_total = 0;
+    for entry in WalkDir::new(source) {
+        let entry =
+            entry.with_context(|| format!("Failed to read file inside {}", source.display()))?;
+        if entry.path().is_file() {
+            file_count_total += 1;
+        }
+    }
+    for entry in WalkDir::new(source).contents_first(true) {
+        let entry =
+            entry.with_context(|| format!("Failed to read file inside {}", source.display()))?;
+        let entry_path = entry.path();
+
+        if entry_path.is_file() {
+            let relative = entry_path.strip_prefix(source).unwrap();
+            let target_path = target.join(relative);
+            log::debug!(
+                "Moving {} -> {}",
+                entry_path.display(),
+                target_path.display()
+            );
+
+            // create parent dir for target and copy it, remove source file after
+            if let Some(parent) = target_path.parent() {
+                fs::create_dir_all(parent).with_context(|| {
+                    format!("Failed to create directory at {}", parent.display())
+                })?;
+            }
+            fs::copy(entry_path, &target_path).with_context(|| {
+                format!(
+                    "Failed to copy file from {} to {}",
+                    entry_path.display(),
+                    target_path.display()
+                )
+            })?;
+            fs::remove_file(entry_path).with_context(|| {
+                format!(
+                    "Failed to remove file at {} after copying it",
+                    entry_path.display()
+                )
+            })?;
+
+            file_count_copied += 1;
+            reporter
+                .progress(
+                    format!("Moved file {} / {}", file_count_copied, file_count_total),
+                    file_count_copied as f64 / file_count_total as f64,
+                    None,
+                )
+                .map_err(|e| anyhow::anyhow!(e))?;
+        } else if entry_path.is_dir() {
+            log::debug!("Deleting {}", entry_path.display());
+            fs::remove_dir(entry_path).with_context(|| {
+                format!("Failed to remove directory at {}", entry_path.display())
+            })?;
+        }
+    }
+
+    reporter
+        .finish_step("Finished moving project directory", None)
+        .map_err(|e| anyhow::anyhow!(e))?;
+    Ok(())
 }
 
 struct PrintToken;

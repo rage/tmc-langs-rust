@@ -11,13 +11,13 @@ pub struct ProjectsConfig {
 }
 
 impl ProjectsConfig {
-    pub fn load(path: &Path) -> Result<ProjectsConfig> {
+    pub fn load(projects_dir: &Path) -> Result<ProjectsConfig> {
         let mut course_configs = BTreeMap::new();
-        for file in fs::read_dir(path)
-            .with_context(|| format!("Failed to read directory at {}", path.display()))?
+        for file in fs::read_dir(projects_dir)
+            .with_context(|| format!("Failed to read directory at {}", projects_dir.display()))?
         {
             let file =
-                file.with_context(|| format!("Failed to read file in {}", path.display()))?;
+                file.with_context(|| format!("Failed to read file in {}", projects_dir.display()))?;
             let course_config_path = file.path().join("course_config.toml");
             if course_config_path.exists() {
                 let file_name = file.file_name();
@@ -36,8 +36,31 @@ impl ProjectsConfig {
                 log::warn!(
                     "File or directory {} with no config file found while loading projects from {}",
                     file.path().display(),
-                    path.display()
+                    projects_dir.display()
                 );
+            }
+        }
+
+        // maintenance: check that the exercises in the config actually exist on disk
+        // if any are found that do not, update the course config file accordingly
+        for (_, course_config) in course_configs.iter_mut() {
+            let mut deleted_exercises = vec![];
+            for exercise_name in course_config.exercises.keys() {
+                let expected_dir = Self::get_exercise_download_target(
+                    projects_dir,
+                    &course_config.course,
+                    &exercise_name,
+                );
+                if !expected_dir.exists() {
+                    deleted_exercises.push(exercise_name.clone());
+                }
+            }
+            for deleted_exercise in &deleted_exercises {
+                course_config.exercises.remove(deleted_exercise).unwrap(); // cannot fail
+            }
+            if !deleted_exercises.is_empty() {
+                // if any exercises were deleted, save the course config
+                course_config.save_to_projects_dir(projects_dir)?;
             }
         }
         Ok(Self {

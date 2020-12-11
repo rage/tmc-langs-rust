@@ -704,6 +704,38 @@ fn create_settings_app() -> App<'static, 'static> {
             SubCommand::with_name("list").about("Prints every key=value pair in the settings file"),
         )
         .subcommand(
+            SubCommand::with_name("migrate")
+                .about("Migrates an exercise on disk into the langs project directory")
+                .arg(
+                    Arg::with_name("exercise-path")
+                        .help("Path to the directory where the project resides.")
+                        .long("exercise-path")
+                        .required(true)
+                        .takes_value(true),
+                )
+                .arg(
+                    Arg::with_name("course-slug")
+                        .help("The course slug, e.g. mooc-java-programming-i.")
+                        .long("course-slug")
+                        .required(true)
+                        .takes_value(true),
+                )
+                .arg(
+                    Arg::with_name("exercise-slug")
+                        .help("The exercise slug, e.g. part01-Part01_01.Sandbox.")
+                        .long("exercise-slug")
+                        .required(true)
+                        .takes_value(true),
+                )
+                .arg(
+                    Arg::with_name("exercise-checksum")
+                        .help("The checksum of the exercise from the TMC server.")
+                        .long("exercise-checksum")
+                        .required(true)
+                        .takes_value(true),
+                ),
+        )
+        .subcommand(
             SubCommand::with_name("move-projects-dir")
                 .about(
                     "Change the projects-dir setting, moving the contents into the new directory",
