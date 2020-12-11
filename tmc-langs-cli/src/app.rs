@@ -1,6 +1,6 @@
 //! Create clap app
 
-use crate::output::{CombinedCourseData, DownloadOrUpdateCourseExercisesResult};
+use crate::output::{CombinedCourseData, DownloadOrUpdateCourseExercisesResult, LocalExercise};
 use clap::{App, AppSettings, Arg, SubCommand};
 use schemars::JsonSchema;
 use std::path::PathBuf;
@@ -120,6 +120,20 @@ pub fn create_app() -> App<'static, 'static> {
             .arg(Arg::with_name("output-path")
                 .help("If given, the configuration will be written to this path. Overwritten if it already exists.")
                 .long("output-path")
+                .takes_value(true)))
+
+        .subcommand(SubCommand::with_name("list-local-course-exercises")
+            .about("Returns a list of local exercises for the given course")
+            .long_about(schema_leaked::<Vec<LocalExercise>>())
+            .arg(Arg::with_name("client-name")
+                .help("The client for which exercises should be listed.")
+                .long("client-name")
+                .required(true)
+                .takes_value(true))
+            .arg(Arg::with_name("course-slug")
+                .help("The course slug the local exercises of which should be listed.")
+                .long("course-slug")
+                .required(true)
                 .takes_value(true)))
 
         .subcommand(SubCommand::with_name("prepare-solutions")

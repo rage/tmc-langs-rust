@@ -92,6 +92,13 @@ pub struct DownloadOrUpdateCourseExercise {
     pub exercise_slug: String,
 }
 
+#[derive(Debug, Serialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub struct LocalExercise {
+    pub exercise_slug: String,
+    pub exercise_path: PathBuf,
+}
+
 #[derive(Debug, Serialize)]
 pub struct DownloadTarget {
     pub id: usize,

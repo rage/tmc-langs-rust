@@ -10,7 +10,7 @@ use self::config::{CourseConfig, Credentials, Exercise, TmcConfig};
 use self::error::{InvalidTokenError, SandboxTestError};
 use self::output::{
     CombinedCourseData, DownloadOrUpdateCourseExercise, DownloadOrUpdateCourseExercisesResult,
-    ErrorData, Kind, Output, OutputData, OutputResult, Status, Warnings,
+    ErrorData, Kind, LocalExercise, Output, OutputData, OutputResult, Status, Warnings,
 };
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
@@ -391,6 +391,36 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
                 data: Some(config),
+            });
+            print_output(&output, pretty, &warnings)?
+        }
+        ("list-local-course-exercises", Some(matches)) => {
+            let client_name = matches.value_of("client-name").unwrap();
+
+            let course_slug = matches.value_of("course-slug").unwrap();
+
+            let projects_dir = TmcConfig::load(client_name)?.projects_dir;
+            let mut projects_config = ProjectsConfig::load(&projects_dir)?;
+
+            let exercises = projects_config
+                .courses
+                .remove(course_slug)
+                .map(|cc| cc.exercises)
+                .unwrap_or_default();
+            let mut local_exercises: Vec<LocalExercise> = vec![];
+            for (exercise_slug, _) in exercises {
+                local_exercises.push(LocalExercise {
+                    exercise_path: projects_dir.join(course_slug).join(&exercise_slug),
+                    exercise_slug,
+                })
+            }
+
+            let output = Output::OutputData(OutputData {
+                status: Status::Finished,
+                message: Some(format!("listed local exercises for {}", course_slug,)),
+                result: OutputResult::ExecutedCommand,
+                percent_done: 1.0,
+                data: Some(local_exercises),
             });
             print_output(&output, pretty, &warnings)?
         }
