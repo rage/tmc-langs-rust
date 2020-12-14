@@ -1514,6 +1514,102 @@ fn run_core(
                 print_output(&output, pretty, &warnings)?
             }
         }
+        ("update-exercises", Some(_)) => {
+            let mut exercises_to_update = vec![];
+            let mut downloaded_exercises = vec![];
+            let mut skipped_exercises = vec![];
+            let mut course_data = HashMap::<String, Vec<(String, String, usize)>>::new();
+
+            let projects_dir = TmcConfig::load(client_name)?.projects_dir;
+            let mut projects_config = ProjectsConfig::load(&projects_dir)?;
+            let local_exercises = projects_config
+                .courses
+                .iter()
+                .map(|c| &c.1.exercises)
+                .flatten()
+                .map(|e| e.1)
+                .collect::<Vec<_>>();
+            let exercise_ids = local_exercises.iter().map(|e| e.id).collect::<Vec<_>>();
+
+            // request would error with 0 exercise ids
+            if !exercise_ids.is_empty() {
+                let server_exercises = client
+                    .get_exercises_details(exercise_ids)?
+                    .into_iter()
+                    .map(|e| (e.id, e))
+                    .collect::<HashMap<_, _>>();
+                for local_exercise in local_exercises {
+                    let server_exercise =
+                        server_exercises.get(&local_exercise.id).with_context(|| {
+                            format!(
+                                "Server did not return details for local exercise with id {}",
+                                local_exercise.id
+                            )
+                        })?;
+                    if server_exercise.checksum != local_exercise.checksum {
+                        // server has an updated exercise
+                        let target = ProjectsConfig::get_exercise_download_target(
+                            &projects_dir,
+                            &server_exercise.course_name,
+                            &server_exercise.exercise_name,
+                        );
+                        let exercise_list = course_data
+                            .entry(server_exercise.course_name.clone())
+                            .or_default();
+                        exercise_list.push((
+                            server_exercise.exercise_name.clone(),
+                            server_exercise.checksum.clone(),
+                            server_exercise.id,
+                        ));
+                        exercises_to_update.push((local_exercise.id, target));
+                        downloaded_exercises.push(DownloadOrUpdateCourseExercise {
+                            course_slug: server_exercise.course_name.clone(),
+                            exercise_slug: server_exercise.exercise_name.clone(),
+                        });
+                    } else {
+                        skipped_exercises.push(DownloadOrUpdateCourseExercise {
+                            course_slug: server_exercise.course_name.clone(),
+                            exercise_slug: server_exercise.exercise_name.clone(),
+                        });
+                    }
+                }
+
+                if !exercises_to_update.is_empty() {
+                    client.download_or_update_exercises(exercises_to_update)?;
+
+                    for (course_name, exercise_names) in course_data {
+                        let mut exercises = BTreeMap::new();
+                        for (exercise_name, checksum, id) in exercise_names {
+                            exercises.insert(exercise_name, Exercise { id, checksum });
+                        }
+
+                        if let Some(course_config) = projects_config.courses.get_mut(&course_name) {
+                            course_config.exercises.extend(exercises);
+                            course_config.save_to_projects_dir(&projects_dir)?;
+                        } else {
+                            let course_config = CourseConfig {
+                                course: course_name,
+                                exercises,
+                            };
+                            course_config.save_to_projects_dir(&projects_dir)?;
+                        };
+                    }
+                }
+            }
+
+            let data = DownloadOrUpdateCourseExercisesResult {
+                downloaded: downloaded_exercises,
+                skipped: skipped_exercises,
+            };
+            let output = Output::OutputData(OutputData {
+                status: Status::Finished,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: Some(data),
+            });
+            print_output(&output, pretty, &warnings)?
+        }
         ("wait-for-submission", Some(matches)) => {
             let submission_url = matches.value_of("submission-url").unwrap();
 

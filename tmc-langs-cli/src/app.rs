@@ -675,6 +675,10 @@ fn create_core_app() -> App<'static, 'static> {
                 .required(true)
                 .takes_value(true)))
 
+        .subcommand(SubCommand::with_name("update-exercises")
+            .about("Updates all local exercises that have been updated on the server")
+            .long_about(SCHEMA_NULL))
+
         .subcommand(SubCommand::with_name("wait-for-submission")
             .about("Waits for a submission to finish")
             .long_about(schema_leaked::<SubmissionFinished>())
