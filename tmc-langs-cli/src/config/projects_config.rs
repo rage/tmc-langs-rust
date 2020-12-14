@@ -104,6 +104,7 @@ impl CourseConfig {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Exercise {
+    pub id: usize,
     pub checksum: String,
 }
 
@@ -145,6 +146,7 @@ mod test {
         exercises.insert(
             "ex 1".to_string(),
             Exercise {
+                id: 4321,
                 checksum: "abcd1234".to_string(),
             },
         );
@@ -157,6 +159,7 @@ mod test {
             s,
             r#"course = "course 1"
 [exercises."ex 1"]
+id = 4321
 checksum = "abcd1234"
 "#
         )
@@ -170,9 +173,11 @@ checksum = "abcd1234"
 course = "python course"
 
 [exercises.ex1]
+id = 4321
 checksum = "abcd1234"
 
 [exercises."ex 2"]
+id = 5432
 checksum = "bcde2345"
 "#;
 
@@ -191,9 +196,11 @@ checksum = "bcde2345"
 course = "python"
 
 [exercises.ex1]
+id = 4321
 checksum = "abcd1234"
 
 [exercises."ex 2"]
+id = 5432
 checksum = "bcde2345"
 "#,
         );
@@ -204,9 +211,11 @@ checksum = "bcde2345"
 course = "java"
 
 [exercises.ex3]
+id = 6543
 checksum = "cdef3456"
 
 [exercises."ex 4"]
+id = 7654
 checksum = "defg4567"
 "#,
         );
@@ -218,16 +227,20 @@ checksum = "defg4567"
         assert_eq!(cc.course, "python");
         assert_eq!(cc.exercises.len(), 2);
         let ex = cc.exercises.remove("ex1").unwrap();
+        assert_eq!(ex.id, 4321);
         assert_eq!(ex.checksum, "abcd1234");
         let ex = cc.exercises.remove("ex 2").unwrap();
+        assert_eq!(ex.id, 5432);
         assert_eq!(ex.checksum, "bcde2345");
 
         let mut cc = pc.courses.remove("course 2").unwrap();
         assert_eq!(cc.course, "java");
         assert_eq!(cc.exercises.len(), 2);
         let ex = cc.exercises.remove("ex3").unwrap();
+        assert_eq!(ex.id, 6543);
         assert_eq!(ex.checksum, "cdef3456");
         let ex = cc.exercises.remove("ex 4").unwrap();
+        assert_eq!(ex.id, 7654);
         assert_eq!(ex.checksum, "defg4567");
     }
 }

@@ -1,6 +1,8 @@
 //! Create clap app
 
-use crate::output::{CombinedCourseData, DownloadOrUpdateCourseExercisesResult, LocalExercise};
+use crate::output::{
+    CombinedCourseData, DownloadOrUpdateCourseExercisesResult, LocalExercise, UpdatedExercise,
+};
 use clap::{App, AppSettings, Arg, SubCommand};
 use schemars::JsonSchema;
 use std::path::PathBuf;
@@ -340,6 +342,10 @@ fn create_core_app() -> App<'static, 'static> {
             .long("client-version")
             .required(true)
             .takes_value(true))
+
+        .subcommand(SubCommand::with_name("check-exercise-updates")
+            .about("Checks for updates to any exercises that exist locally.")
+            .long_about(schema_leaked::<Vec<UpdatedExercise>>()))
 
         .subcommand(SubCommand::with_name("download-model-solution")
             .about("Downloads an exercise's model solution")
@@ -717,6 +723,13 @@ fn create_settings_app() -> App<'static, 'static> {
                     Arg::with_name("course-slug")
                         .help("The course slug, e.g. mooc-java-programming-i.")
                         .long("course-slug")
+                        .required(true)
+                        .takes_value(true),
+                )
+                .arg(
+                    Arg::with_name("exercise-id")
+                        .help("The exercise id, e.g. 1234.")
+                        .long("exercise-id")
                         .required(true)
                         .takes_value(true),
                 )

@@ -10,7 +10,8 @@ use self::config::{CourseConfig, Credentials, Exercise, TmcConfig};
 use self::error::{InvalidTokenError, SandboxTestError};
 use self::output::{
     CombinedCourseData, DownloadOrUpdateCourseExercise, DownloadOrUpdateCourseExercisesResult,
-    ErrorData, Kind, LocalExercise, Output, OutputData, OutputResult, Status, Warnings,
+    ErrorData, Kind, LocalExercise, Output, OutputData, OutputResult, Status, UpdatedExercise,
+    Warnings,
 };
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
@@ -765,6 +766,52 @@ fn run_core(
 
     // proof of having printed the output
     let printed: PrintToken = match matches.subcommand() {
+        ("check-exercise-updates", Some(_)) => {
+            let mut updated_exercises = vec![];
+
+            let projects_dir = TmcConfig::load(client_name)?.projects_dir;
+            let config = ProjectsConfig::load(&projects_dir)?;
+            let local_exercises = config
+                .courses
+                .into_iter()
+                .map(|c| c.1.exercises)
+                .flatten()
+                .map(|e| e.1)
+                .collect::<Vec<_>>();
+
+            if !local_exercises.is_empty() {
+                let exercise_ids = local_exercises.iter().map(|e| e.id).collect::<Vec<_>>();
+                let server_exercises = client
+                    .get_exercises_details(exercise_ids)?
+                    .into_iter()
+                    .map(|e| (e.id, e))
+                    .collect::<HashMap<_, _>>();
+                for local_exercise in local_exercises {
+                    let server_exercise =
+                        server_exercises.get(&local_exercise.id).with_context(|| {
+                            format!(
+                                "Server did not return details for local exercise with id {}",
+                                local_exercise.id
+                            )
+                        })?;
+                    if server_exercise.checksum != local_exercise.checksum {
+                        // server has an updated exercise
+                        updated_exercises.push(UpdatedExercise {
+                            id: local_exercise.id,
+                        });
+                    }
+                }
+            }
+
+            let output = Output::OutputData(OutputData {
+                status: Status::Finished,
+                message: None,
+                result: OutputResult::RetrievedData,
+                percent_done: 1.0,
+                data: Some(updated_exercises),
+            });
+            print_output(&output, pretty, &warnings)?
+        }
         ("download-model-solution", Some(matches)) => {
             let solution_download_url = matches.value_of("solution-download-url").unwrap();
             let solution_download_url = into_url(solution_download_url)?;
@@ -845,7 +892,7 @@ fn run_core(
             let projects_dir = TmcConfig::load(client_name)?.projects_dir;
             let mut projects_config = ProjectsConfig::load(&projects_dir)?;
 
-            let mut course_data = HashMap::<String, Vec<(String, String)>>::new();
+            let mut course_data = HashMap::<String, Vec<(String, String, usize)>>::new();
             let mut exercises_and_paths = vec![];
             let mut downloaded = vec![];
             let mut skipped = vec![];
@@ -888,7 +935,11 @@ fn run_core(
 
                 let entry = course_data.entry(exercise_detail.course_name);
                 let course_exercises = entry.or_default();
-                course_exercises.push((exercise_detail.exercise_name, exercise_detail.checksum));
+                course_exercises.push((
+                    exercise_detail.exercise_name,
+                    exercise_detail.checksum,
+                    exercise_detail.id,
+                ));
 
                 exercises_and_paths.push((exercise_detail.id, target));
             }
@@ -898,8 +949,8 @@ fn run_core(
 
             for (course_name, exercise_names) in course_data {
                 let mut exercises = BTreeMap::new();
-                for (exercise_name, checksum) in exercise_names {
-                    exercises.insert(exercise_name, Exercise { checksum });
+                for (exercise_name, checksum, id) in exercise_names {
+                    exercises.insert(exercise_name, Exercise { id, checksum });
                 }
 
                 if let Some(course_config) = projects_config.courses.get_mut(&course_name) {
@@ -1523,6 +1574,9 @@ fn run_settings(
 
             let course_slug = matches.value_of("course-slug").unwrap();
 
+            let exercise_id = matches.value_of("exercise-id").unwrap();
+            let exercise_id = into_usize(exercise_id)?;
+
             let exercise_slug = matches.value_of("exercise-slug").unwrap();
 
             let exercise_checksum = matches.value_of("exercise-checksum").unwrap();
@@ -1548,6 +1602,7 @@ fn run_settings(
             course_config.exercises.insert(
                 exercise_slug.to_string(),
                 Exercise {
+                    id: exercise_id,
                     checksum: exercise_checksum.to_string(),
                 },
             );

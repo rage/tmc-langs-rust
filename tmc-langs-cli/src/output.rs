@@ -99,6 +99,12 @@ pub struct LocalExercise {
     pub exercise_path: PathBuf,
 }
 
+#[derive(Debug, Serialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub struct UpdatedExercise {
+    pub id: usize,
+}
+
 #[derive(Debug, Serialize)]
 pub struct DownloadTarget {
     pub id: usize,
