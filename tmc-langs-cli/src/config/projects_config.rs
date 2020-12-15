@@ -52,6 +52,10 @@ impl ProjectsConfig {
                     &exercise_name,
                 );
                 if !expected_dir.exists() {
+                    log::debug!(
+                        "local exercise {} not found, deleting from config",
+                        expected_dir.display()
+                    );
                     deleted_exercises.push(exercise_name.clone());
                 }
             }
@@ -133,7 +137,7 @@ mod test {
         std::fs::write(target, contents.as_ref()).unwrap();
     }
 
-    fn _dir_to(temp: impl AsRef<std::path::Path>, relative_path: impl AsRef<std::path::Path>) {
+    fn dir_to(temp: impl AsRef<std::path::Path>, relative_path: impl AsRef<std::path::Path>) {
         let target = temp.as_ref().join(relative_path);
         std::fs::create_dir_all(target).unwrap();
     }
@@ -191,7 +195,7 @@ checksum = "bcde2345"
         let temp = tempfile::TempDir::new().unwrap();
         file_to(
             &temp,
-            "course 1/course_config.toml",
+            "python/course_config.toml",
             r#"
 course = "python"
 
@@ -204,9 +208,11 @@ id = 5432
 checksum = "bcde2345"
 "#,
         );
+        dir_to(&temp, "python/ex1");
+        dir_to(&temp, "python/ex 2");
         file_to(
             &temp,
-            "course 2/course_config.toml",
+            "java/course_config.toml",
             r#"
 course = "java"
 
@@ -219,11 +225,13 @@ id = 7654
 checksum = "defg4567"
 "#,
         );
+        dir_to(&temp, "java/ex3");
+        dir_to(&temp, "java/ex 4");
 
         let mut pc = ProjectsConfig::load(temp.path()).unwrap();
         assert_eq!(pc.courses.len(), 2);
 
-        let mut cc = pc.courses.remove("course 1").unwrap();
+        let mut cc = pc.courses.remove("python").unwrap();
         assert_eq!(cc.course, "python");
         assert_eq!(cc.exercises.len(), 2);
         let ex = cc.exercises.remove("ex1").unwrap();
@@ -233,7 +241,7 @@ checksum = "defg4567"
         assert_eq!(ex.id, 5432);
         assert_eq!(ex.checksum, "bcde2345");
 
-        let mut cc = pc.courses.remove("course 2").unwrap();
+        let mut cc = pc.courses.remove("java").unwrap();
         assert_eq!(cc.course, "java");
         assert_eq!(cc.exercises.len(), 2);
         let ex = cc.exercises.remove("ex3").unwrap();
