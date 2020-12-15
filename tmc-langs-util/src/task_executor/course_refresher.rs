@@ -285,11 +285,6 @@ fn update_or_clone_repository(
     course_git_branch: &str,
     old_cache_path: &Path,
 ) -> Result<(), UtilError> {
-    // NOP during tests
-    if cfg!(test) {
-        return Ok(());
-    }
-
     if course_source_backend != &SourceBackend::Git {
         log::error!("Source types other than git not yet implemented");
         return Err(UtilError::UnsupportedSourceBackend);
@@ -757,6 +752,7 @@ mod test {
     }
 
     #[test]
+    #[ignore = "uses git"]
     fn updates_repository() {
         init();
 
@@ -792,6 +788,7 @@ mod test {
     }
 
     #[test]
+    #[ignore = "uses git"]
     fn clones_repository() {
         init();
 
