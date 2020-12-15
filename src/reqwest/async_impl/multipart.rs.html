@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.10.9/src/async_impl/multipart.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>multipart.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.10.10/src/async_impl/multipart.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>multipart.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../reqwest/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -616,13 +616,60 @@
 <span id="613">613</span>
 <span id="614">614</span>
 <span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! multipart/form-data</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">borrow</span>::<span class="ident">Cow</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">pin</span>::<span class="ident">Pin</span>;
 
-<span class="kw">use</span> <span class="ident">bytes</span>::{<span class="ident">Bytes</span>};
+<span class="kw">use</span> <span class="ident">bytes</span>::<span class="ident">Bytes</span>;
 <span class="kw">use</span> <span class="ident">http</span>::<span class="ident">HeaderMap</span>;
 <span class="kw">use</span> <span class="ident">mime_guess</span>::<span class="ident">Mime</span>;
 <span class="kw">use</span> <span class="ident">percent_encoding</span>::{<span class="self">self</span>, <span class="ident">AsciiSet</span>, <span class="ident">NON_ALPHANUMERIC</span>};
@@ -641,6 +688,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Part</span> {
     <span class="ident">meta</span>: <span class="ident">PartMetadata</span>,
     <span class="ident">value</span>: <span class="ident">Body</span>,
+    <span class="ident">body_length</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">FormParts</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {
@@ -809,7 +857,7 @@
             <span class="ident">Cow</span>::<span class="ident">Borrowed</span>(<span class="ident">slice</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Body</span>::<span class="ident">from</span>(<span class="ident">slice</span>),
             <span class="ident">Cow</span>::<span class="ident">Owned</span>(<span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Body</span>::<span class="ident">from</span>(<span class="ident">string</span>),
         };
-        <span class="ident">Part</span>::<span class="ident">new</span>(<span class="ident">body</span>)
+        <span class="ident">Part</span>::<span class="ident">new</span>(<span class="ident">body</span>, <span class="prelude-val">None</span>)
     }
 
     <span class="doccomment">/// Makes a new parameter from arbitrary bytes.</span>
@@ -821,18 +869,26 @@
             <span class="ident">Cow</span>::<span class="ident">Borrowed</span>(<span class="ident">slice</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Body</span>::<span class="ident">from</span>(<span class="ident">slice</span>),
             <span class="ident">Cow</span>::<span class="ident">Owned</span>(<span class="ident">vec</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Body</span>::<span class="ident">from</span>(<span class="ident">vec</span>),
         };
-        <span class="ident">Part</span>::<span class="ident">new</span>(<span class="ident">body</span>)
+        <span class="ident">Part</span>::<span class="ident">new</span>(<span class="ident">body</span>, <span class="prelude-val">None</span>)
     }
 
     <span class="doccomment">/// Makes a new parameter from an arbitrary stream.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stream</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Part</span> {
-        <span class="ident">Part</span>::<span class="ident">new</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+        <span class="ident">Part</span>::<span class="ident">new</span>(<span class="ident">value</span>.<span class="ident">into</span>(), <span class="prelude-val">None</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">Body</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Part</span> {
+    <span class="doccomment">/// Makes a new parameter from an arbitrary stream with a known length. This is particularly</span>
+    <span class="doccomment">/// useful when adding something like file contents as a stream, where you can know the content</span>
+    <span class="doccomment">/// length beforehand.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stream_with_length</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>, <span class="ident">length</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Part</span> {
+        <span class="ident">Part</span>::<span class="ident">new</span>(<span class="ident">value</span>.<span class="ident">into</span>(), <span class="prelude-val">Some</span>(<span class="ident">length</span>))
+    }
+
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">Body</span>, <span class="ident">body_length</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Part</span> {
         <span class="ident">Part</span> {
             <span class="ident">meta</span>: <span class="ident">PartMetadata</span>::<span class="ident">new</span>(),
             <span class="ident">value</span>,
+            <span class="ident">body_length</span>,
         }
     }
 
@@ -860,7 +916,7 @@
     {
         <span class="ident">Part</span> {
             <span class="ident">meta</span>: <span class="ident">func</span>(<span class="self">self</span>.<span class="ident">meta</span>),
-            <span class="ident">value</span>: <span class="self">self</span>.<span class="ident">value</span>,
+            ..<span class="self">self</span>
         }
     }
 }
@@ -876,7 +932,11 @@
 
 <span class="kw">impl</span> <span class="ident">PartProps</span> <span class="kw">for</span> <span class="ident">Part</span> {
     <span class="kw">fn</span> <span class="ident">value_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">value</span>.<span class="ident">content_length</span>()
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">body_length</span>.<span class="ident">is_some</span>() {
+            <span class="self">self</span>.<span class="ident">body_length</span>
+        } <span class="kw">else</span> {
+            <span class="self">self</span>.<span class="ident">value</span>.<span class="ident">content_length</span>()
+        }
     }
 
     <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PartMetadata</span> {
@@ -1127,7 +1187,11 @@
     <span class="kw">fn</span> <span class="ident">form_empty</span>() {
         <span class="kw">let</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">Form</span>::<span class="ident">new</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rt</span> <span class="op">=</span> <span class="ident">runtime</span>::<span class="ident">Builder</span>::<span class="ident">new</span>().<span class="ident">basic_scheduler</span>().<span class="ident">enable_all</span>().<span class="ident">build</span>().<span class="ident">expect</span>(<span class="string">&quot;new rt&quot;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rt</span> <span class="op">=</span> <span class="ident">runtime</span>::<span class="ident">Builder</span>::<span class="ident">new</span>()
+            .<span class="ident">basic_scheduler</span>()
+            .<span class="ident">enable_all</span>()
+            .<span class="ident">build</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;new rt&quot;</span>);
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">form</span>.<span class="ident">stream</span>().<span class="ident">into_stream</span>();
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">map_ok</span>(<span class="op">|</span><span class="ident">try_c</span><span class="op">|</span> <span class="ident">try_c</span>.<span class="ident">to_vec</span>()).<span class="ident">try_concat</span>();
 
@@ -1143,7 +1207,7 @@
                 <span class="ident">Part</span>::<span class="ident">stream</span>(<span class="ident">Body</span>::<span class="ident">stream</span>(<span class="ident">stream</span>::<span class="ident">once</span>(<span class="ident">future</span>::<span class="ident">ready</span>::<span class="op">&lt;</span>
                     <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="kw">crate</span>::<span class="ident">Error</span><span class="op">&gt;</span>,
                 <span class="op">&gt;</span>(<span class="prelude-val">Ok</span>(
-                    <span class="string">&quot;part1&quot;</span>.<span class="ident">to_owned</span>(),
+                    <span class="string">&quot;part1&quot;</span>.<span class="ident">to_owned</span>()
                 ))))),
             )
             .<span class="ident">part</span>(<span class="string">&quot;key1&quot;</span>, <span class="ident">Part</span>::<span class="ident">text</span>(<span class="string">&quot;value1&quot;</span>))
@@ -1153,13 +1217,12 @@
                 <span class="ident">Part</span>::<span class="ident">stream</span>(<span class="ident">Body</span>::<span class="ident">stream</span>(<span class="ident">stream</span>::<span class="ident">once</span>(<span class="ident">future</span>::<span class="ident">ready</span>::<span class="op">&lt;</span>
                     <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="kw">crate</span>::<span class="ident">Error</span><span class="op">&gt;</span>,
                 <span class="op">&gt;</span>(<span class="prelude-val">Ok</span>(
-                    <span class="string">&quot;part2&quot;</span>.<span class="ident">to_owned</span>(),
+                    <span class="string">&quot;part2&quot;</span>.<span class="ident">to_owned</span>()
                 ))))),
             )
             .<span class="ident">part</span>(<span class="string">&quot;key3&quot;</span>, <span class="ident">Part</span>::<span class="ident">text</span>(<span class="string">&quot;value3&quot;</span>).<span class="ident">file_name</span>(<span class="string">&quot;filename&quot;</span>));
         <span class="ident">form</span>.<span class="ident">inner</span>.<span class="ident">boundary</span> <span class="op">=</span> <span class="string">&quot;boundary&quot;</span>.<span class="ident">to_string</span>();
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span>
-            <span class="string">&quot;--boundary\r\n\
+        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">&quot;--boundary\r\n\
              Content-Disposition: form-data; name=\&quot;reader1\&quot;\r\n\r\n\
              part1\r\n\
              --boundary\r\n\
@@ -1175,7 +1238,11 @@
              --boundary\r\n\
              Content-Disposition: form-data; name=\&quot;key3\&quot;; filename=\&quot;filename\&quot;\r\n\r\n\
              value3\r\n--boundary--\r\n&quot;</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rt</span> <span class="op">=</span> <span class="ident">runtime</span>::<span class="ident">Builder</span>::<span class="ident">new</span>().<span class="ident">basic_scheduler</span>().<span class="ident">enable_all</span>().<span class="ident">build</span>().<span class="ident">expect</span>(<span class="string">&quot;new rt&quot;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rt</span> <span class="op">=</span> <span class="ident">runtime</span>::<span class="ident">Builder</span>::<span class="ident">new</span>()
+            .<span class="ident">basic_scheduler</span>()
+            .<span class="ident">enable_all</span>()
+            .<span class="ident">build</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;new rt&quot;</span>);
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">form</span>.<span class="ident">stream</span>().<span class="ident">into_stream</span>();
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">try_c</span><span class="op">|</span> <span class="ident">try_c</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">to_vec</span>())).<span class="ident">try_concat</span>();
 
@@ -1202,7 +1269,11 @@
                         \r\n\
                         value2\r\n\
                         --boundary--\r\n&quot;</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rt</span> <span class="op">=</span> <span class="ident">runtime</span>::<span class="ident">Builder</span>::<span class="ident">new</span>().<span class="ident">basic_scheduler</span>().<span class="ident">enable_all</span>().<span class="ident">build</span>().<span class="ident">expect</span>(<span class="string">&quot;new rt&quot;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rt</span> <span class="op">=</span> <span class="ident">runtime</span>::<span class="ident">Builder</span>::<span class="ident">new</span>()
+            .<span class="ident">basic_scheduler</span>()
+            .<span class="ident">enable_all</span>()
+            .<span class="ident">build</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;new rt&quot;</span>);
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">form</span>.<span class="ident">stream</span>().<span class="ident">into_stream</span>();
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">try_c</span><span class="op">|</span> <span class="ident">try_c</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">to_vec</span>())).<span class="ident">try_concat</span>();
 
@@ -1214,6 +1285,29 @@
         );
         <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;START EXPECTED\n{}\nEND EXPECTED&quot;</span>, <span class="ident">expected</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">out</span>).<span class="ident">unwrap</span>(), <span class="ident">expected</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">correct_content_length</span>() {
+        <span class="comment">// Setup an arbitrary data stream</span>
+        <span class="kw">let</span> <span class="ident">stream_data</span> <span class="op">=</span> <span class="string">b&quot;just some stream data&quot;</span>;
+        <span class="kw">let</span> <span class="ident">stream_len</span> <span class="op">=</span> <span class="ident">stream_data</span>.<span class="ident">len</span>();
+        <span class="kw">let</span> <span class="ident">stream_data</span> <span class="op">=</span> <span class="ident">stream_data</span>
+            .<span class="ident">chunks</span>(<span class="number">3</span>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="prelude-val">Ok</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span>(<span class="ident">Bytes</span>::<span class="ident">from</span>(<span class="ident">c</span>)));
+        <span class="kw">let</span> <span class="ident">the_stream</span> <span class="op">=</span> <span class="ident">futures_util</span>::<span class="ident">stream</span>::<span class="ident">iter</span>(<span class="ident">stream_data</span>);
+
+        <span class="kw">let</span> <span class="ident">bytes_data</span> <span class="op">=</span> <span class="string">b&quot;some bytes data&quot;</span>.<span class="ident">to_vec</span>();
+        <span class="kw">let</span> <span class="ident">bytes_len</span> <span class="op">=</span> <span class="ident">bytes_data</span>.<span class="ident">len</span>();
+
+        <span class="kw">let</span> <span class="ident">stream_part</span> <span class="op">=</span> <span class="ident">Part</span>::<span class="ident">stream_with_length</span>(<span class="ident">Body</span>::<span class="ident">stream</span>(<span class="ident">the_stream</span>), <span class="ident">stream_len</span> <span class="kw">as</span> <span class="ident">u64</span>);
+        <span class="kw">let</span> <span class="ident">body_part</span> <span class="op">=</span> <span class="ident">Part</span>::<span class="ident">bytes</span>(<span class="ident">bytes_data</span>);
+
+        <span class="comment">// A simple check to make sure we get the configured body length</span>
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">stream_part</span>.<span class="ident">value_len</span>().<span class="ident">unwrap</span>(), <span class="ident">stream_len</span> <span class="kw">as</span> <span class="ident">u64</span>);
+
+        <span class="comment">// Make sure it delegates to the underlying body if length is not specified</span>
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">body_part</span>.<span class="ident">value_len</span>().<span class="ident">unwrap</span>(), <span class="ident">bytes_len</span> <span class="kw">as</span> <span class="ident">u64</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>

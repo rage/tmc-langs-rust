@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/http-0.2.1/src/uri/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/http-0.2.2/src/uri/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../http/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -1084,6 +1084,12 @@
 <span id="1081">1081</span>
 <span id="1082">1082</span>
 <span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! URI component of request and response lines</span>
 <span class="doccomment">//!</span>
@@ -1230,6 +1236,12 @@
 <span class="comment">// u16::MAX is reserved for None</span>
 <span class="kw">const</span> <span class="ident">MAX_LEN</span>: <span class="ident">usize</span> <span class="op">=</span> (<span class="ident">u16</span>::<span class="ident">MAX</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">usize</span>;
 
+<span class="comment">// URI_CHARS is a table of valid characters in a URI. An entry in the table is</span>
+<span class="comment">// 0 for invalid characters. For valid characters the entry is itself (i.e.</span>
+<span class="comment">// the entry for 33 is b&#39;!&#39; because b&#39;!&#39; == 33u8). An important characteristic</span>
+<span class="comment">// of this table is that all entries above 127 are invalid. This makes all of the</span>
+<span class="comment">// valid entries a valid single-byte UTF-8 code point. This means that a slice</span>
+<span class="comment">// of such valid entries is valid UTF-8.</span>
 <span class="kw">const</span> <span class="ident">URI_CHARS</span>: [<span class="ident">u8</span>; <span class="number">256</span>] <span class="op">=</span> [
     <span class="comment">//  0      1      2      3      4      5      6      7      8      9</span>
         <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>,     <span class="number">0</span>, <span class="comment">//   x</span>

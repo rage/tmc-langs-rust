@@ -1080,6 +1080,25 @@
 <span id="1077">1077</span>
 <span id="1078">1078</span>
 <span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Course refresher.</span>
 
@@ -1167,7 +1186,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">RefreshUpdateData</span> {}
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CourseRefresher</span> {
+<span class="kw">struct</span> <span class="ident">CourseRefresher</span> {
     <span class="ident">progress_reporter</span>: <span class="ident">ProgressReporter</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">RefreshUpdateData</span><span class="op">&gt;</span>,
 }
 
@@ -1197,6 +1216,7 @@
         <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;refreshing course {}&quot;</span>, <span class="ident">course</span>.<span class="ident">name</span>);
         <span class="self">self</span>.<span class="ident">progress_reporter</span>.<span class="ident">start_timer</span>();
 
+        <span class="comment">// sets the total amount of progress steps properly</span>
         <span class="self">self</span>.<span class="ident">progress_reporter</span>.<span class="ident">increment_progress_steps</span>(<span class="number">4</span>);
         <span class="kw">if</span> <span class="op">!</span><span class="ident">options</span>.<span class="ident">no_directory_changes</span> {
             <span class="self">self</span>.<span class="ident">progress_reporter</span>.<span class="ident">increment_progress_steps</span>(<span class="number">8</span>);
@@ -1230,14 +1250,14 @@
         }
 
         <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;updating course options&quot;</span>);
-        <span class="kw">let</span> <span class="ident">course_options</span> <span class="op">=</span> <span class="ident">update_course_options</span>(<span class="kw-2">&amp;</span><span class="ident">course</span>.<span class="ident">clone_path</span>, <span class="kw-2">&amp;</span><span class="ident">course</span>.<span class="ident">name</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">course_options</span> <span class="op">=</span> <span class="ident">get_course_options</span>(<span class="kw-2">&amp;</span><span class="ident">course</span>.<span class="ident">clone_path</span>, <span class="kw-2">&amp;</span><span class="ident">course</span>.<span class="ident">name</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">progress_reporter</span>
             .<span class="ident">finish_step</span>(<span class="string">&quot;Updated course options&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// add_records_for_new_exercises &amp; delete_records_for_removed_exercises</span>
         <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;updating exercises&quot;</span>);
         <span class="kw">let</span> (<span class="ident">new_exercises</span>, <span class="ident">removed_exercises</span>) <span class="op">=</span>
-            <span class="ident">update_exercises</span>(<span class="kw-2">&amp;</span><span class="ident">course</span>.<span class="ident">clone_path</span>, <span class="kw-2">&amp;</span><span class="ident">course</span>.<span class="ident">exercises</span>)<span class="question-mark">?</span>;
+            <span class="ident">get_exercise_changes</span>(<span class="kw-2">&amp;</span><span class="ident">course</span>.<span class="ident">clone_path</span>, <span class="kw-2">&amp;</span><span class="ident">course</span>.<span class="ident">exercises</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">progress_reporter</span>
             .<span class="ident">finish_step</span>(<span class="string">&quot;Updated exercises&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
         <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;updating exercise options&quot;</span>);
@@ -1330,6 +1350,7 @@
     }
 }
 
+<span class="doccomment">/// Refreshes a course...</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">refresh_course</span>(
     <span class="ident">course</span>: <span class="ident">Course</span>,
     <span class="ident">options</span>: <span class="ident">Options</span>,
@@ -1337,10 +1358,14 @@
     <span class="ident">git_repos_chgrp</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GroupBits</span><span class="op">&gt;</span>,
     <span class="ident">cache_root</span>: <span class="ident">PathBuf</span>,
     <span class="ident">rails_root</span>: <span class="ident">PathBuf</span>,
+    <span class="ident">progress_reporter</span>: <span class="kw">impl</span> <span class="lifetime">&#39;static</span>
+        <span class="op">+</span> <span class="ident">Sync</span>
+        <span class="op">+</span> <span class="ident">Send</span>
+        <span class="op">+</span> <span class="ident">Fn</span>(
+            <span class="ident">StatusUpdate</span><span class="op">&lt;</span><span class="ident">RefreshUpdateData</span><span class="op">&gt;</span>,
+        ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RefreshData</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">course_refresher</span> <span class="op">=</span> <span class="ident">CourseRefresher</span> {
-        <span class="ident">progress_reporter</span>: <span class="ident">ProgressReporter</span>::<span class="ident">new</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(())),
-    };
+    <span class="kw">let</span> <span class="ident">course_refresher</span> <span class="op">=</span> <span class="ident">CourseRefresher</span>::<span class="ident">new</span>(<span class="ident">progress_reporter</span>);
     <span class="ident">course_refresher</span>.<span class="ident">refresh_course</span>(
         <span class="ident">course</span>,
         <span class="ident">options</span>,
@@ -1351,6 +1376,10 @@
     )
 }
 
+<span class="doccomment">/// Checks old_cache_path/clone for a git repo.</span>
+<span class="doccomment">/// If found, copies it to course_clone_path fetches origin from course_source_url, checks out origin/course_git_branch, cleans and checks out the repo.</span>
+<span class="doccomment">/// If not found or found but one of the git commands causes an error, deletes course_clone_path and clones course_git_branch from course_source_url there.</span>
+<span class="doccomment">/// NOP during testing.</span>
 <span class="kw">fn</span> <span class="ident">update_or_clone_repository</span>(
     <span class="ident">course_source_backend</span>: <span class="kw-2">&amp;</span><span class="ident">SourceBackend</span>,
     <span class="ident">course_clone_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
@@ -1418,6 +1447,8 @@
     <span class="prelude-val">Ok</span>(())
 }
 
+<span class="doccomment">/// Makes sure no directory directly under path is an exercise directory containing a dash in the relative path from path to the dir.</span>
+<span class="doccomment">/// (For some reason)</span>
 <span class="kw">fn</span> <span class="ident">check_directory_names</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UtilError</span><span class="op">&gt;</span> {
     <span class="comment">// exercise directories in canonicalized form</span>
     <span class="kw">let</span> <span class="ident">exercise_dirs</span> <span class="op">=</span> {
@@ -1449,23 +1480,23 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">update_course_options</span>(
-    <span class="ident">course_clone_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-    <span class="ident">course_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Mapping</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
+<span class="doccomment">/// Checks for a course_clone_path/course_options.yml</span>
+<span class="doccomment">/// If found, course-specific options are merged into it and it is returned.</span>
+<span class="doccomment">/// Else, an empty mapping is returned.</span>
+<span class="kw">fn</span> <span class="ident">get_course_options</span>(<span class="ident">course_clone_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">course_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Mapping</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">options_file</span> <span class="op">=</span> <span class="ident">course_clone_path</span>.<span class="ident">join</span>(<span class="string">&quot;course_options.yml&quot;</span>);
-    <span class="kw">let</span> <span class="ident">opts</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">options_file</span>.<span class="ident">exists</span>() {
+    <span class="kw">if</span> <span class="ident">options_file</span>.<span class="ident">exists</span>() {
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">open_file</span>(<span class="ident">options_file</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">course_options</span>: <span class="ident">Mapping</span> <span class="op">=</span> <span class="ident">serde_yaml</span>::<span class="ident">from_reader</span>(<span class="ident">file</span>).<span class="ident">unwrap</span>();
-        <span class="ident">merge_course_specific_options</span>(<span class="ident">course_name</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">course_options</span>);
-        <span class="ident">course_options</span>
+        <span class="ident">merge_course_options</span>(<span class="ident">course_name</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">course_options</span>);
+        <span class="prelude-val">Ok</span>(<span class="ident">course_options</span>)
     } <span class="kw">else</span> {
-        <span class="ident">Mapping</span>::<span class="ident">new</span>()
-    };
-    <span class="prelude-val">Ok</span>(<span class="ident">opts</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">Mapping</span>::<span class="ident">new</span>())
+    }
 }
 
-<span class="kw">fn</span> <span class="ident">merge_course_specific_options</span>(<span class="ident">course_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">opts</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Mapping</span>) {
+<span class="doccomment">/// Checks for a courses: course_name map in opts and merges that map with opts if it exists.</span>
+<span class="kw">fn</span> <span class="ident">merge_course_options</span>(<span class="ident">course_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">opts</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Mapping</span>) {
     <span class="comment">// try to remove the &quot;courses&quot; map</span>
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">serde_yaml</span>::<span class="ident">Value</span>::<span class="ident">Mapping</span>(<span class="kw-2">mut</span> <span class="ident">courses</span>)) <span class="op">=</span>
         <span class="ident">opts</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">serde_yaml</span>::<span class="ident">Value</span>::<span class="ident">String</span>(<span class="string">&quot;courses&quot;</span>.<span class="ident">to_string</span>()))
@@ -1482,7 +1513,10 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">update_exercises</span>(
+<span class="doccomment">/// Finds exercise directories, and converts the directories to &quot;exercise names&quot; by swapping the separators for dashes.</span>
+<span class="doccomment">/// Adds exercise names not in course_exercises to new exercises</span>
+<span class="doccomment">/// Adds exercise names in course_exercises but not in exercise names to removed exercises</span>
+<span class="kw">fn</span> <span class="ident">get_exercise_changes</span>(
     <span class="ident">course_clone_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">course_exercises</span>: <span class="kw-2">&amp;</span>[<span class="ident">RefreshExercise</span>],
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>), <span class="ident">UtilError</span><span class="op">&gt;</span> {
@@ -1557,7 +1591,7 @@
             <span class="kw">if</span> <span class="ident">metadata_path</span>.<span class="ident">exists</span>() {
                 <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">open_file</span>(<span class="ident">metadata_path</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">yaml</span>) <span class="op">=</span> <span class="ident">serde_yaml</span>::<span class="ident">from_reader</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Mapping</span><span class="op">&gt;</span>(<span class="ident">file</span>) {
-                    <span class="ident">merge_course_specific_options</span>(<span class="ident">course_name</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">yaml</span>);
+                    <span class="ident">merge_course_options</span>(<span class="ident">course_name</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">yaml</span>);
                     <span class="ident">recursive_merge</span>(<span class="ident">yaml</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">metadata</span>);
                 }
             }
@@ -1814,10 +1848,13 @@
     <span class="kw">const</span> <span class="ident">GIT_REPO</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;https://github.com/rage/rfcs&quot;</span>;
 
     <span class="kw">fn</span> <span class="ident">init</span>() {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">env_logger</span>::<span class="ident">builder</span>().<span class="ident">is_test</span>(<span class="bool-val">true</span>).<span class="ident">try_init</span>();
+        <span class="kw">use</span> <span class="ident">log</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="ident">simple_logger</span>::<span class="kw-2">*</span>;
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">SimpleLogger</span>::<span class="ident">new</span>().<span class="ident">with_level</span>(<span class="ident">LevelFilter</span>::<span class="ident">Debug</span>).<span class="ident">init</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="attribute">#[<span class="ident">ignore</span> <span class="op">=</span> <span class="string">&quot;uses git&quot;</span>]</span>
     <span class="kw">fn</span> <span class="ident">updates_repository</span>() {
         <span class="ident">init</span>();
 
@@ -1853,6 +1890,7 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="attribute">#[<span class="ident">ignore</span> <span class="op">=</span> <span class="string">&quot;uses git&quot;</span>]</span>
     <span class="kw">fn</span> <span class="ident">clones_repository</span>() {
         <span class="ident">init</span>();
 
@@ -1890,7 +1928,7 @@
 
         <span class="kw">let</span> <span class="ident">clone</span> <span class="op">=</span> <span class="ident">tempfile</span>::<span class="ident">TempDir</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;name&quot;</span>;
-        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">update_course_options</span>(<span class="ident">clone</span>.<span class="ident">path</span>(), <span class="ident">name</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">get_course_options</span>(<span class="ident">clone</span>.<span class="ident">path</span>(), <span class="ident">name</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">options</span>.<span class="ident">is_empty</span>());
     }
 
@@ -1900,7 +1938,7 @@
 
         <span class="kw">let</span> <span class="ident">clone_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;tests/data/course_refresher&quot;</span>);
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;course-name&quot;</span>;
-        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">update_course_options</span>(<span class="ident">clone_path</span>, <span class="ident">name</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">get_course_options</span>(<span class="ident">clone_path</span>, <span class="ident">name</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">options</span>.<span class="ident">is_empty</span>());
 
         <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">options</span>
@@ -1928,12 +1966,12 @@
         <span class="ident">init</span>();
 
         <span class="kw">let</span> <span class="ident">clone_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;tests/data/course_refresher/empty&quot;</span>);
-        <span class="kw">let</span> (<span class="ident">new</span>, <span class="ident">removed</span>) <span class="op">=</span> <span class="ident">update_exercises</span>(<span class="ident">clone_path</span>, <span class="kw-2">&amp;</span>[]).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> (<span class="ident">new</span>, <span class="ident">removed</span>) <span class="op">=</span> <span class="ident">get_exercise_changes</span>(<span class="ident">clone_path</span>, <span class="kw-2">&amp;</span>[]).<span class="ident">unwrap</span>();
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">new</span>.<span class="ident">is_empty</span>());
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">removed</span>.<span class="ident">is_empty</span>());
 
         <span class="kw">let</span> <span class="ident">clone_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;tests/data/course_refresher/valid_exercises&quot;</span>);
-        <span class="kw">let</span> (<span class="ident">new</span>, <span class="ident">removed</span>) <span class="op">=</span> <span class="ident">update_exercises</span>(
+        <span class="kw">let</span> (<span class="ident">new</span>, <span class="ident">removed</span>) <span class="op">=</span> <span class="ident">get_exercise_changes</span>(
             <span class="ident">clone_path</span>,
             <span class="kw-2">&amp;</span>[
                 <span class="ident">RefreshExercise</span> {

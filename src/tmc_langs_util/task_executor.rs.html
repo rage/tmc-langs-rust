@@ -298,6 +298,19 @@
 <span id="295">295</span>
 <span id="296">296</span>
 <span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Module for calling different tasks of TMC-langs language plug-ins.</span>
 
@@ -308,12 +321,13 @@
 <span class="kw">mod</span> <span class="ident">tmc_zip</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">course_refresher</span>::{
-    <span class="ident">Course</span>, <span class="ident">CourseRefresher</span>, <span class="ident">GroupBits</span>, <span class="ident">ModeBits</span>, <span class="ident">Options</span>, <span class="ident">RefreshData</span>, <span class="ident">RefreshExercise</span>,
+    <span class="ident">Course</span>, <span class="ident">GroupBits</span>, <span class="ident">ModeBits</span>, <span class="ident">Options</span>, <span class="ident">RefreshData</span>, <span class="ident">RefreshExercise</span>, <span class="ident">RefreshUpdateData</span>,
     <span class="ident">SourceBackend</span>,
 };
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">submission_packaging</span>::{<span class="ident">OutputFormat</span>, <span class="ident">TmcParams</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">UtilError</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">progress_reporter</span>::<span class="ident">StatusUpdate</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ExerciseDesc</span>, <span class="ident">ExercisePackagingConfiguration</span>, <span class="ident">RunResult</span>, <span class="ident">StyleValidationResult</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
 <span class="kw">use</span> <span class="ident">tmc_langs_csharp</span>::<span class="ident">CSharpPlugin</span>;
@@ -539,9 +553,21 @@
     <span class="ident">chgrp_uid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GroupBits</span><span class="op">&gt;</span>,
     <span class="ident">cache_root</span>: <span class="ident">PathBuf</span>,
     <span class="ident">rails_root</span>: <span class="ident">PathBuf</span>,
+    <span class="ident">progress_reporter</span>: <span class="kw">impl</span> <span class="lifetime">&#39;static</span>
+        <span class="op">+</span> <span class="ident">Sync</span>
+        <span class="op">+</span> <span class="ident">Send</span>
+        <span class="op">+</span> <span class="ident">Fn</span>(
+            <span class="ident">StatusUpdate</span><span class="op">&lt;</span><span class="ident">RefreshUpdateData</span><span class="op">&gt;</span>,
+        ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RefreshData</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
     <span class="ident">course_refresher</span>::<span class="ident">refresh_course</span>(
-        <span class="ident">course</span>, <span class="ident">options</span>, <span class="ident">chmod_bits</span>, <span class="ident">chgrp_uid</span>, <span class="ident">cache_root</span>, <span class="ident">rails_root</span>,
+        <span class="ident">course</span>,
+        <span class="ident">options</span>,
+        <span class="ident">chmod_bits</span>,
+        <span class="ident">chgrp_uid</span>,
+        <span class="ident">cache_root</span>,
+        <span class="ident">rails_root</span>,
+        <span class="ident">progress_reporter</span>,
     )
 }
 
