@@ -7,7 +7,7 @@ mod output;
 
 use self::config::ProjectsConfig;
 use self::config::{CourseConfig, Credentials, Exercise, TmcConfig};
-use self::error::{InvalidTokenError, SandboxTestError};
+use self::error::{DownloadsFailedError, InvalidTokenError, SandboxTestError};
 use self::output::{
     CombinedCourseData, DownloadOrUpdateCourseExercise, DownloadOrUpdateCourseExercisesResult,
     ErrorData, Kind, LocalExercise, Output, OutputData, OutputResult, Status, UpdatedExercise,
@@ -20,6 +20,7 @@ use serde::Serialize;
 use serde_json::Value as JsonValue;
 use std::collections::{BTreeMap, HashMap};
 use std::env;
+use std::error::Error as StdError;
 use std::fmt::Debug;
 use std::fs::{self, File};
 use std::io::Write;
@@ -94,30 +95,45 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
             return Kind::InvalidToken;
         }
 
-        // check for http errors
-        if let Some(ClientError::HttpError {
-            url: _,
-            status,
-            error: _,
-            obsolete_client,
-        }) = cause.downcast_ref::<ClientError>()
-        {
-            if *obsolete_client {
-                return Kind::ObsoleteClient;
+        // check for client errors
+        match cause.downcast_ref::<ClientError>() {
+            Some(ClientError::HttpError {
+                url: _,
+                status,
+                error: _,
+                obsolete_client,
+            }) => {
+                if *obsolete_client {
+                    return Kind::ObsoleteClient;
+                }
+                if status.as_u16() == 403 {
+                    return Kind::Forbidden;
+                }
+                if status.as_u16() == 401 {
+                    return Kind::NotLoggedIn;
+                }
             }
-            if status.as_u16() == 403 {
-                return Kind::Forbidden;
-            }
-            if status.as_u16() == 401 {
+            Some(ClientError::NotLoggedIn) => {
                 return Kind::NotLoggedIn;
             }
+            Some(ClientError::ConnectionError(..)) => {
+                return Kind::ConnectionError;
+            }
+            _ => {}
         }
-        if let Some(ClientError::NotLoggedIn) = cause.downcast_ref::<ClientError>() {
-            return Kind::NotLoggedIn;
-        }
-        // check for connection error
-        if let Some(ClientError::ConnectionError(..)) = cause.downcast_ref::<ClientError>() {
-            return Kind::ConnectionError;
+
+        // check for download failed error
+        if let Some(DownloadsFailedError {
+            completed,
+            skipped,
+            failed,
+        }) = cause.downcast_ref::<DownloadsFailedError>()
+        {
+            return Kind::FailedExerciseDownload {
+                completed: completed.clone(),
+                skipped: skipped.clone(),
+                failed: failed.clone(),
+            };
         }
     }
 
@@ -138,7 +154,6 @@ fn error_message_special_casing(e: &anyhow::Error) -> String {
 /// Goes through the error chain and returns the error output file path if a sandbox test error is found
 fn check_sandbox_err(e: &anyhow::Error) -> Option<PathBuf> {
     for cause in e.chain() {
-        // command not found errors are special cased to notify the user that they may need to install additional software
         if let Some(SandboxTestError {
             path: Some(path), ..
         }) = cause.downcast_ref::<SandboxTestError>()
@@ -880,6 +895,7 @@ fn run_core(
             print_output(&output, pretty, &warnings)?
         }
         ("download-or-update-course-exercises", Some(matches)) => {
+            // todo: bit of a mess, refactor
             let exercise_ids = matches.values_of("exercise-id").unwrap();
 
             // collect exercise into (id, path) pairs
@@ -943,9 +959,30 @@ fn run_core(
 
                 exercises_and_paths.push((exercise_detail.id, target));
             }
-            client
-                .download_or_update_exercises(exercises_and_paths)
-                .context("Failed to download exercises")?;
+
+            if let Err(error) = client.download_or_update_exercises(exercises_and_paths) {
+                // check for incomplete download result
+                if let ClientError::IncompleteDownloadResult { downloaded, failed } = error {
+                    anyhow::bail!(DownloadsFailedError {
+                        completed: downloaded,
+                        skipped: vec![],
+                        failed: failed
+                            .into_iter()
+                            .map(|e| {
+                                let mut error = &e.1 as &dyn StdError;
+                                let mut chain = vec![error.to_string()];
+                                while let Some(source) = error.source() {
+                                    chain.push(source.to_string());
+                                    error = source;
+                                }
+                                (e.0, chain)
+                            })
+                            .collect(),
+                    })
+                } else {
+                    anyhow::bail!(error)
+                }
+            }
 
             for (course_name, exercise_names) in course_data {
                 let mut exercises = BTreeMap::new();

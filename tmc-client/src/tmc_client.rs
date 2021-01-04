@@ -264,6 +264,7 @@ impl TmcClient {
         &self,
         exercises: Vec<(usize, PathBuf)>,
     ) -> Result<(), ClientError> {
+        // todo: bit of a mess, refactor
         let exercises_len = exercises.len();
         self.progress(
             format!("Downloading {} exercises", exercises_len),
@@ -286,8 +287,13 @@ impl TmcClient {
             let starting_download_counter = Arc::clone(&starting_download_counter);
             let downloaded_counter = Arc::clone(&downloaded_counter);
             let progress_counter = Arc::clone(&progress_counter);
-            let handle = std::thread::spawn(move || -> Result<(), ClientError> {
+
+            // each thread returns either a list of successful downloads, or a tuple of successful downloads and errors
+            type ThreadErr = (Vec<usize>, Vec<(usize, Box<ClientError>)>);
+            let handle = std::thread::spawn(move || -> Result<Vec<usize>, ThreadErr> {
                 let client_clone = TmcClient(client);
+                let mut downloaded = vec![];
+                let mut errors = vec![];
 
                 // repeat until out of exercises
                 loop {
@@ -296,66 +302,104 @@ impl TmcClient {
                     let (exercise_id, target) = if let Some((id, path)) = exercises.pop() {
                         (id, path)
                     } else {
+                        // no exercises left, break loop and exit thread
                         break;
                     };
                     drop(exercises);
                     // dropped mutex
 
-                    // TODO: do in memory without zip_file?
-                    let starting_download_count =
-                        starting_download_counter.fetch_add(1, Ordering::SeqCst);
-                    let progress_count = progress_counter.fetch_add(1, Ordering::SeqCst);
-                    let progress = progress_count as f64 / progress_goal;
-                    let zip_file = NamedTempFile::new().map_err(ClientError::TempFile)?;
-                    client_clone.progress(
-                        format!(
-                            "Downloading exercise {} to '{}'. ({} out of {})",
-                            exercise_id,
-                            target.display(),
-                            starting_download_count,
-                            exercises_len
-                        ),
-                        progress,
-                        Some(ClientUpdateData::ExerciseDownload {
-                            id: exercise_id,
-                            path: target.clone(),
-                        }),
-                    )?;
+                    let exercise_download_result = || -> Result<(), ClientError> {
+                        // TODO: do in memory without zip_file?
+                        let starting_download_count =
+                            starting_download_counter.fetch_add(1, Ordering::SeqCst);
+                        let progress_count = progress_counter.fetch_add(1, Ordering::SeqCst);
+                        let progress = progress_count as f64 / progress_goal;
+                        let zip_file = NamedTempFile::new().map_err(ClientError::TempFile)?;
+                        client_clone.progress(
+                            format!(
+                                "Downloading exercise {} to '{}'. ({} out of {})",
+                                exercise_id,
+                                target.display(),
+                                starting_download_count,
+                                exercises_len
+                            ),
+                            progress,
+                            Some(ClientUpdateData::ExerciseDownload {
+                                id: exercise_id,
+                                path: target.clone(),
+                            }),
+                        )?;
 
-                    client_clone.download_exercise(exercise_id, zip_file.path())?;
-                    let downloaded_count = downloaded_counter.fetch_add(1, Ordering::SeqCst);
-                    let progress_count = progress_counter.fetch_add(1, Ordering::SeqCst);
-                    let progress = progress_count as f64 / progress_goal;
-                    task_executor::extract_project(zip_file, &target, true)?;
-                    client_clone.progress(
-                        format!(
-                            "Downloaded exercise {} to '{}'. ({} out of {})",
-                            exercise_id,
-                            target.display(),
-                            downloaded_count,
-                            exercises_len
-                        ),
-                        progress,
-                        Some(ClientUpdateData::ExerciseDownload {
-                            id: exercise_id,
-                            path: target,
-                        }),
-                    )?;
+                        client_clone.download_exercise(exercise_id, zip_file.path())?;
+                        let downloaded_count = downloaded_counter.fetch_add(1, Ordering::SeqCst);
+                        let progress_count = progress_counter.fetch_add(1, Ordering::SeqCst);
+                        let progress = progress_count as f64 / progress_goal;
+                        task_executor::extract_project(zip_file, &target, true)?;
+                        client_clone.progress(
+                            format!(
+                                "Downloaded exercise {} to '{}'. ({} out of {})",
+                                exercise_id,
+                                target.display(),
+                                downloaded_count,
+                                exercises_len
+                            ),
+                            progress,
+                            Some(ClientUpdateData::ExerciseDownload {
+                                id: exercise_id,
+                                path: target,
+                            }),
+                        )?;
+                        Ok(())
+                    }();
+
+                    // return underlying error with exercise id if download failed
+                    match exercise_download_result {
+                        Ok(()) => downloaded.push(exercise_id),
+                        Err(e) => {
+                            log::error!("Failed to download exercise {}", exercise_id);
+                            errors.push((exercise_id, Box::new(e)));
+                        }
+                    }
                 }
 
-                Ok(())
+                if errors.is_empty() {
+                    Ok(downloaded)
+                } else {
+                    Err((downloaded, errors))
+                }
             });
             handles.push(handle);
         }
+
+        let mut successful = vec![];
+        let mut failed = vec![];
         for handle in handles {
-            handle.join().unwrap()?; // the threads should never panic
+            // the threads should never panic
+            match handle.join().unwrap() {
+                Ok(s) => successful.extend(s),
+                Err((s, f)) => {
+                    successful.extend(s);
+                    failed.extend(f);
+                }
+            }
         }
 
         self.step_complete(
-            format!("Finished downloading {} exercises.", exercises_len),
+            format!(
+                "Successfully downloaded {} out of {} exercises.",
+                successful.len(),
+                exercises_len
+            ),
             None,
         )?;
-        Ok(())
+        if !failed.is_empty() {
+            Err(ClientError::IncompleteDownloadResult {
+                downloaded: successful,
+                failed,
+            })
+        } else {
+            Ok(())
+        }
     }
 
     /// Fetches the course's information.

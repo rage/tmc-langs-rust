@@ -70,6 +70,12 @@ pub enum Kind {
     ObsoleteClient,
     /// Invalid token
     InvalidToken,
+    /// Failed to download some or all exercises
+    FailedExerciseDownload {
+        completed: Vec<usize>,
+        skipped: Vec<usize>,
+        failed: Vec<(usize, Vec<String>)>,
+    },
 }
 
 #[derive(Debug, Serialize, JsonSchema)]

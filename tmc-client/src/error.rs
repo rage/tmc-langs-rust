@@ -42,6 +42,12 @@ pub enum ClientError {
     #[error("Failed to deserialize response from {0} as JSON")]
     HttpJsonResponse(Url, #[source] reqwest::Error),
 
+    #[error("Failed to download some exercises")]
+    IncompleteDownloadResult {
+        downloaded: Vec<usize>,
+        failed: Vec<(usize, Box<ClientError>)>,
+    },
+
     #[error("Already authenticated")]
     AlreadyAuthenticated,
     #[error("Authentication required")]

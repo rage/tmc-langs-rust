@@ -17,6 +17,7 @@ use tmc_langs_util::StyleValidationResult;
 #[error("Response contained errors: {error:?}, {errors:#?}, obsolete client: {obsolete_client}")]
 #[serde(deny_unknown_fields)] // prevents responses with an errors field from being parsed as an error
 pub struct ErrorResponse {
+    pub status: Option<String>,
     pub error: Option<String>,
     pub errors: Option<Vec<String>>,
     #[serde(default)]

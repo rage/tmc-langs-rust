@@ -123,15 +123,38 @@ impl TmcClient {
         // download zip
         let mut target_file = file_util::create_file(target)?;
         log::debug!("downloading {}", url);
-        self.0
+        let mut response = self
+            .0
             .client
             .get(url.clone())
             .tmc_headers(self)
             .send()
-            .map_err(|e| ClientError::ConnectionError(Method::GET, url, e))?
-            .copy_to(&mut target_file)
-            .map_err(|e| ClientError::HttpWriteResponse(target.to_path_buf(), e))?;
-        Ok(())
+            .map_err(|e| ClientError::ConnectionError(Method::GET, url.clone(), e))?;
+
+        // check for HTTP error
+        if !response.status().is_success() {
+            let status = response.status();
+            let err: ErrorResponse = response
+                .json()
+                .map_err(|e| ClientError::HttpJsonResponse(url.clone(), e))?;
+            let error = match (err.error, err.errors) {
+                (Some(err), Some(errs)) => format!("{}, {}", err, errs.join(",")),
+                (Some(err), None) => err,
+                (None, Some(errs)) => errs.join(","),
+                _ => "".to_string(),
+            };
+            Err(ClientError::HttpError {
+                url,
+                status,
+                error,
+                obsolete_client: err.obsolete_client,
+            })
+        } else {
+            response
+                .copy_to(&mut target_file)
+                .map_err(|e| ClientError::HttpWriteResponse(target.to_path_buf(), e))?;
+            Ok(())
+        }
     }
 
     pub(crate) fn download_from(&self, url: Url, target: &Path) -> Result<(), ClientError> {
