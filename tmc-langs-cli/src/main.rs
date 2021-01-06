@@ -9,19 +9,19 @@ use self::config::ProjectsConfig;
 use self::config::{CourseConfig, Credentials, Exercise, TmcConfig};
 use self::error::{DownloadsFailedError, InvalidTokenError, SandboxTestError};
 use self::output::{
-    CombinedCourseData, DownloadOrUpdateCourseExercise, DownloadOrUpdateCourseExercisesResult,
-    ErrorData, Kind, LocalExercise, Output, OutputData, OutputResult, Status, UpdatedExercise,
-    Warnings,
+    CombinedCourseData, Data, DownloadOrUpdateCourseExercise,
+    DownloadOrUpdateCourseExercisesResult, Kind, LocalExercise, Output, OutputData, OutputResult,
+    Status, StatusUpdateData, UpdatedExercise, Warnings,
 };
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
+use config::ConfigValue;
 use heim::disk;
 use serde::Serialize;
 use serde_json::Value as JsonValue;
 use std::collections::{BTreeMap, HashMap};
 use std::env;
 use std::error::Error as StdError;
-use std::fmt::Debug;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -65,7 +65,7 @@ fn main() {
             status: Status::Finished,
             message: Some(message),
             result: OutputResult::Error,
-            data: Some(ErrorData {
+            data: Some(Data::Error {
                 kind,
                 trace: causes,
             }),
@@ -74,7 +74,7 @@ fn main() {
         if let Err(err) = print_output_with_file(&error_output, pretty, sandbox_path, &warnings) {
             // the above function shouldn't fail ever, but in theory some data could
             // have a flawed Serialize implementation, so better safe than sorry
-            let output = Output::OutputData::<()>(OutputData {
+            let output = Output::OutputData(OutputData {
                 status: Status::Crashed,
                 message: Some(err.to_string()),
                 result: OutputResult::Error,
@@ -186,7 +186,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 message: Some("ran checkstyle".to_string()),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
-                data: check_result,
+                data: check_result.map(Data::Validation),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -200,7 +200,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 format!("Failed to clean exercise at {}", exercise_path.display(),)
             })?;
 
-            let output = Output::OutputData::<()>(OutputData {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: Some(format!("cleaned exercise at {}", exercise_path.display(),)),
                 result: OutputResult::ExecutedCommand,
@@ -233,7 +233,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 )
             })?;
 
-            let output = Output::OutputData::<()>(OutputData {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: Some(format!(
                     "compressed project from {} to {}",
@@ -313,7 +313,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 )),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
-                data: Some(free),
+                data: Some(Data::FreeDiskSpace(free)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -331,7 +331,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 format!("Failed to extract project at {}", output_path.display())
             })?;
 
-            let output = Output::OutputData::<()>(OutputData {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: Some(format!(
                     "extracted project from {} to {}",
@@ -357,7 +357,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 message: Some(format!("found {} available points", points.len())),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
-                data: Some(points),
+                data: Some(Data::AvailablePoints(points)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -388,7 +388,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 message: Some(format!("found exercises at {}", exercise_path.display(),)),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
-                data: Some(exercises),
+                data: Some(Data::Exercises(exercises)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -422,7 +422,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 )),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
-                data: Some(config),
+                data: Some(Data::ExercisePackagingConfiguration(config)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -452,7 +452,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 message: Some(format!("listed local exercises for {}", course_slug,)),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
-                data: Some(local_exercises),
+                data: Some(Data::LocalExercises(local_exercises)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -472,7 +472,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 )
             })?;
 
-            let output = Output::OutputData::<()>(OutputData {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: Some(format!(
                     "prepared solutions for {} at {}",
@@ -501,7 +501,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 )
             })?;
 
-            let output = Output::OutputData::<()>(OutputData {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: Some(format!(
                     "prepared stubs for {} at {}",
@@ -578,7 +578,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 output_format,
             )?;
 
-            let output = Output::OutputData::<()>(OutputData {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: Some(format!(
                     "prepared submission for {} at {}",
@@ -671,7 +671,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 PathBuf::from(cache_root),
                 PathBuf::from(rails_root),
                 move |update| {
-                    let output = Output::StatusUpdate(update);
+                    let output = Output::StatusUpdate(StatusUpdateData::RefreshUpdateData(update));
                     print_output(&output, pretty, &[])?;
                     Ok(())
                 },
@@ -683,7 +683,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 message: Some(format!("refreshed course {}", course_name)),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
-                data: Some(refresh_result),
+                data: Some(Data::RefreshResult(refresh_result)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -736,7 +736,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 message: Some(format!("ran tests for {}", exercise_path.display(),)),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
-                data: Some(test_result),
+                data: Some(Data::RunResult(test_result)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -779,7 +779,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 message: Some(format!("scanned exercise at {}", exercise_path.display(),)),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
-                data: Some(scan_result),
+                data: Some(Data::ExerciseDesc(scan_result)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -798,7 +798,7 @@ fn run_core(
 ) -> Result<PrintToken> {
     // set progress report to print the updates to stdout as JSON
     client.set_progress_reporter(ProgressReporter::new(move |update| {
-        let output = Output::StatusUpdate::<ClientUpdateData>(update);
+        let output = Output::StatusUpdate(StatusUpdateData::ClientUpdateData(update));
         print_output(&output, pretty, &[])?;
         Ok(())
     }))?;
@@ -847,7 +847,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(updated_exercises),
+                data: Some(Data::UpdatedExercises(updated_exercises)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -862,7 +862,7 @@ fn run_core(
                 .download_model_solution(solution_download_url, target)
                 .context("Failed to download model solution")?;
 
-            let output = Output::OutputData::<()>(OutputData {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
@@ -909,7 +909,7 @@ fn run_core(
             task_executor::extract_student_files(temp_zip, &output_path)?;
             log::debug!("extracted project");
 
-            let output = Output::OutputData::<()>(OutputData {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
@@ -1035,7 +1035,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(data),
+                data: Some(Data::DownloadOrUpdateCourseExercisesResult(data)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1055,7 +1055,7 @@ fn run_core(
                 .download_or_update_exercises(exercises)
                 .context("Failed to download exercises")?;
 
-            let output = Output::OutputData::<()>(OutputData {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
@@ -1088,7 +1088,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(data),
+                data: Some(Data::CombinedCourseData(Box::new(data))),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1105,7 +1105,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(details),
+                data: Some(Data::CourseDetails(details)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1122,7 +1122,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(exercises),
+                data: Some(Data::CourseExercises(exercises)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1139,7 +1139,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(settings),
+                data: Some(Data::CourseData(settings)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1155,7 +1155,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(courses),
+                data: Some(Data::Courses(courses)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1172,7 +1172,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(course),
+                data: Some(Data::ExerciseDetails(course)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1189,7 +1189,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(submissions),
+                data: Some(Data::Submissions(submissions)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1215,7 +1215,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(update_result),
+                data: Some(Data::UpdateResult(update_result)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1231,7 +1231,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(org),
+                data: Some(Data::Organization(org)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1245,7 +1245,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(orgs),
+                data: Some(Data::Organizations(orgs)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1262,7 +1262,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::LoggedOut,
                 percent_done: 1.0,
-                data: Some(reviews),
+                data: Some(Data::Reviews(reviews)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1273,11 +1273,11 @@ fn run_core(
                     message: None,
                     result: OutputResult::LoggedIn,
                     percent_done: 1.0,
-                    data: Some(credentials.token()),
+                    data: Some(Data::Token(credentials.token())),
                 });
                 print_output(&output, pretty, &warnings)?
             } else {
-                let output = Output::OutputData::<()>(OutputData {
+                let output = Output::OutputData(OutputData {
                     status: Status::Finished,
                     message: None,
                     result: OutputResult::NotLoggedIn,
@@ -1322,7 +1322,7 @@ fn run_core(
             // create token file
             Credentials::save(client_name, token)?;
 
-            let output = Output::OutputData::<()>(OutputData {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::LoggedIn,
@@ -1336,7 +1336,7 @@ fn run_core(
                 credentials.remove()?;
             }
 
-            let output = Output::OutputData::<()>(OutputData {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::LoggedOut,
@@ -1352,7 +1352,7 @@ fn run_core(
                 .mark_review_as_read(review_update_url.to_string())
                 .context("Failed to mark review as read")?;
 
-            let output = Output::OutputData::<()>(OutputData {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::SentData,
@@ -1393,7 +1393,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(new_submission),
+                data: Some(Data::NewSubmission(new_submission)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1429,7 +1429,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::SentData,
                 percent_done: 1.0,
-                data: Some(new_submission),
+                data: Some(Data::NewSubmission(new_submission)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1456,7 +1456,7 @@ fn run_core(
             // reset exercise
             client.reset(exercise_id, exercise_path)?;
 
-            let output = Output::OutputData::<()>(OutputData {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::ExecutedCommand,
@@ -1483,7 +1483,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
-                data: Some(validation_result),
+                data: validation_result.map(Data::StyleValidationResult),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1502,7 +1502,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
-                data: Some(run_result),
+                data: Some(Data::RunResult(run_result)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1531,7 +1531,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::SentData,
                 percent_done: 1.0,
-                data: Some(response),
+                data: Some(Data::SubmissionFeedbackResponse(response)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1566,7 +1566,7 @@ fn run_core(
                     message: None,
                     result: OutputResult::SentData,
                     percent_done: 1.0,
-                    data: Some(new_submission),
+                    data: Some(Data::NewSubmission(new_submission)),
                 });
 
                 print_output(&output, pretty, &warnings)?
@@ -1582,7 +1582,7 @@ fn run_core(
                     message: None,
                     result: OutputResult::RetrievedData,
                     percent_done: 1.0,
-                    data: Some(submission_finished),
+                    data: Some(Data::SubmissionFinished(submission_finished)),
                 });
                 print_output(&output, pretty, &warnings)?
             }
@@ -1679,7 +1679,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(data),
+                data: Some(Data::DownloadOrUpdateCourseExercisesResult(data)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1689,15 +1689,13 @@ fn run_core(
             let submission_finished = client
                 .wait_for_submission(submission_url)
                 .context("Failed while waiting for submissions")?;
-            let submission_finished = serde_json::to_string(&submission_finished)
-                .context("Failed to serialize submission results")?;
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(submission_finished),
+                data: Some(Data::SubmissionFinished(submission_finished)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1718,12 +1716,13 @@ fn run_settings(
     match matches.subcommand() {
         ("get", Some(matches)) => {
             let key = matches.value_of("setting").unwrap();
+            let value: ConfigValue<'static> = tmc_config.get(key).into_owned();
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 result: OutputResult::RetrievedData,
                 message: Some("Retrieved value".to_string()),
                 percent_done: 1.0,
-                data: Some(tmc_config.get(key)),
+                data: Some(Data::ConfigValue(value)),
             });
             print_output(&output, pretty, warnings)
         }
@@ -1733,7 +1732,7 @@ fn run_settings(
                 result: OutputResult::RetrievedData,
                 message: Some("Retrieved settings".to_string()),
                 percent_done: 1.0,
-                data: Some(tmc_config),
+                data: Some(Data::TmcConfig(tmc_config)),
             });
             print_output(&output, pretty, warnings)
         }
@@ -1781,7 +1780,7 @@ fn run_settings(
             move_dir(exercise_path, &target_dir, pretty)?;
             course_config.save_to_projects_dir(&tmc_config.projects_dir)?;
 
-            let output = Output::<()>::OutputData(OutputData {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 result: OutputResult::ExecutedCommand,
                 message: Some("Migrated exercise".to_string()),
@@ -1824,7 +1823,7 @@ fn run_settings(
             move_dir(&old_projects_dir, &target, pretty)?;
             tmc_config.save(client_name)?;
 
-            let output = Output::<()>::OutputData(OutputData {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 result: OutputResult::ExecutedCommand,
                 message: Some("Moved project directory".to_string()),
@@ -1851,7 +1850,7 @@ fn run_settings(
                 .with_context(|| format!("Failed to set {} to {}", key, value))?;
             tmc_config.save(client_name)?;
 
-            let output = Output::<()>::OutputData(OutputData {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 result: OutputResult::ExecutedCommand,
                 message: Some("Set setting".to_string()),
@@ -1863,7 +1862,7 @@ fn run_settings(
         ("reset", Some(_)) => {
             TmcConfig::reset(client_name)?;
 
-            let output = Output::<()>::OutputData(OutputData {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 result: OutputResult::ExecutedCommand,
                 message: Some("Reset settings".to_string()),
@@ -1879,7 +1878,7 @@ fn run_settings(
                 .with_context(|| format!("Failed to unset {}", key))?;
             tmc_config.save(client_name)?;
 
-            let output = Output::<()>::OutputData(OutputData {
+            let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 result: OutputResult::ExecutedCommand,
                 message: Some("Unset setting".to_string()),
@@ -1892,16 +1891,12 @@ fn run_settings(
     }
 }
 
-fn print_output<T: Serialize + Debug>(
-    output: &Output<T>,
-    pretty: bool,
-    warnings: &[anyhow::Error],
-) -> Result<PrintToken> {
+fn print_output(output: &Output, pretty: bool, warnings: &[anyhow::Error]) -> Result<PrintToken> {
     print_output_with_file(output, pretty, None, warnings)
 }
 
-fn print_output_with_file<T: Serialize + Debug>(
-    output: &Output<T>,
+fn print_output_with_file(
+    output: &Output,
     pretty: bool,
     path: Option<PathBuf>,
     warnings: &[anyhow::Error],
@@ -1930,7 +1925,7 @@ fn print_warnings(pretty: bool, warnings: &[anyhow::Error]) -> Result<()> {
         return Ok(());
     }
 
-    let warnings_output = Output::<()>::Warnings(Warnings::from_error_list(warnings));
+    let warnings_output = Output::Warnings(Warnings::from_error_list(warnings));
     let warnings_json = if pretty {
         serde_json::to_string_pretty(&warnings_output)
     } else {
@@ -2055,8 +2050,8 @@ fn json_to_toml(json: JsonValue) -> Result<TomlValue> {
 }
 
 fn move_dir(source: &Path, target: &Path, pretty: bool) -> anyhow::Result<()> {
-    let reporter = ProgressReporter::new(move |update| {
-        let output = Output::StatusUpdate::<()>(update);
+    let reporter = ProgressReporter::<()>::new(move |update| {
+        let output = Output::StatusUpdate(StatusUpdateData::None(update));
         print_output(&output, pretty, &[])?;
         Ok(())
     });

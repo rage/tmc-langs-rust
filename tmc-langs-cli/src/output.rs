@@ -3,27 +3,78 @@
 use schemars::JsonSchema;
 use serde::Serialize;
 use std::path::PathBuf;
-use tmc_client::{CourseData, CourseDetails, CourseExercise};
-use tmc_langs_util::progress_reporter::StatusUpdate;
+use tmc_client::{
+    ClientUpdateData, Course, CourseData, CourseDetails, CourseExercise, ExerciseDetails,
+    NewSubmission, Organization, Review, RunResult, StyleValidationResult, Submission,
+    SubmissionFeedbackResponse, SubmissionFinished, Token, UpdateResult,
+};
+use tmc_langs_util::{
+    progress_reporter::StatusUpdate,
+    task_executor::{RefreshData, RefreshUpdateData},
+    ExerciseDesc, ExercisePackagingConfiguration,
+};
+
+use crate::config::{ConfigValue, TmcConfig};
 
 /// The format for all messages written to stdout by the CLI
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "output-kind")]
-pub enum Output<T: Serialize> {
-    OutputData(OutputData<T>),
-    StatusUpdate(StatusUpdate<T>),
+pub enum Output {
+    OutputData(OutputData),
+    StatusUpdate(StatusUpdateData),
     Warnings(Warnings),
 }
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
-pub struct OutputData<T: Serialize> {
+pub struct OutputData {
     pub status: Status,
     pub message: Option<String>,
     pub result: OutputResult,
     pub percent_done: f64,
-    pub data: Option<T>,
+    pub data: Option<Data>,
+}
+
+#[derive(Debug, Serialize)]
+pub enum Data {
+    Error { kind: Kind, trace: Vec<String> },
+    Validation(StyleValidationResult),
+    FreeDiskSpace(u64),
+    AvailablePoints(Vec<String>),
+    Exercises(Vec<PathBuf>),
+    ExercisePackagingConfiguration(ExercisePackagingConfiguration),
+    LocalExercises(Vec<LocalExercise>),
+    RefreshResult(RefreshData),
+    RunResult(RunResult),
+    ExerciseDesc(ExerciseDesc),
+    UpdatedExercises(Vec<UpdatedExercise>),
+    DownloadOrUpdateCourseExercisesResult(DownloadOrUpdateCourseExercisesResult),
+    CombinedCourseData(Box<CombinedCourseData>),
+    CourseDetails(CourseDetails),
+    CourseExercises(Vec<CourseExercise>),
+    CourseData(CourseData),
+    Courses(Vec<Course>),
+    ExerciseDetails(ExerciseDetails),
+    Submissions(Vec<Submission>),
+    UpdateResult(UpdateResult),
+    Organization(Organization),
+    Organizations(Vec<Organization>),
+    Reviews(Vec<Review>),
+    Token(Token),
+    NewSubmission(NewSubmission),
+    StyleValidationResult(StyleValidationResult),
+    SubmissionFeedbackResponse(SubmissionFeedbackResponse),
+    SubmissionFinished(SubmissionFinished),
+    ConfigValue(ConfigValue<'static>),
+    TmcConfig(TmcConfig),
+}
+
+#[derive(Debug, Serialize)]
+pub enum StatusUpdateData {
+    RefreshUpdateData(StatusUpdate<RefreshUpdateData>),
+    ClientUpdateData(StatusUpdate<ClientUpdateData>),
+    None(StatusUpdate<()>),
 }
 
 #[derive(Debug, Serialize)]
@@ -45,14 +96,6 @@ pub enum OutputResult {
     SentData,
     RetrievedData,
     ExecutedCommand,
-}
-
-/// The format for all error messages printed in Output.data
-#[derive(Debug, Serialize)]
-pub struct ErrorData {
-    pub kind: Kind,
-    /// Contains the error cause chain
-    pub trace: Vec<String>,
 }
 
 #[derive(Debug, Serialize)]

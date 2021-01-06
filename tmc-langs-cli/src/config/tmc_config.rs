@@ -2,9 +2,12 @@
 
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::{
+    borrow::Cow,
+    fs::{self, File},
+};
 use tmc_langs_framework::file_util;
 use toml::{value::Table, Value};
 
@@ -19,8 +22,8 @@ pub struct TmcConfig {
 impl TmcConfig {
     pub fn get(&self, key: &str) -> ConfigValue {
         match key {
-            "projects-dir" => ConfigValue::Path(&self.projects_dir),
-            _ => ConfigValue::Value(self.table.get(key)),
+            "projects-dir" => ConfigValue::Path(Cow::Borrowed(&self.projects_dir)),
+            _ => ConfigValue::Value(self.table.get(key).map(Cow::Borrowed)),
         }
     }
 
@@ -150,9 +153,19 @@ impl TmcConfig {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 #[serde(untagged)]
 pub enum ConfigValue<'a> {
-    Value(Option<&'a Value>),
-    Path(&'a Path),
+    Value(Option<Cow<'a, Value>>),
+    Path(Cow<'a, Path>),
+}
+
+impl ConfigValue<'_> {
+    pub fn into_owned(self) -> ConfigValue<'static> {
+        match self {
+            Self::Value(Some(v)) => ConfigValue::Value(Some(Cow::Owned(v.into_owned()))),
+            Self::Value(None) => ConfigValue::Value(None),
+            Self::Path(p) => ConfigValue::Path(Cow::Owned(p.into_owned())),
+        }
+    }
 }
