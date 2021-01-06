@@ -37,6 +37,8 @@ pub struct OutputData {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "kebab-case")]
+#[serde(tag = "output-data-kind")]
 pub enum Data {
     Error { kind: Kind, trace: Vec<String> },
     Validation(StyleValidationResult),
@@ -46,10 +48,10 @@ pub enum Data {
     ExercisePackagingConfiguration(ExercisePackagingConfiguration),
     LocalExercises(Vec<LocalExercise>),
     RefreshResult(RefreshData),
-    RunResult(RunResult),
+    TestResult(RunResult),
     ExerciseDesc(ExerciseDesc),
     UpdatedExercises(Vec<UpdatedExercise>),
-    DownloadOrUpdateCourseExercisesResult(DownloadOrUpdateCourseExercisesResult),
+    ExerciseDownload(DownloadOrUpdateCourseExercisesResult),
     CombinedCourseData(Box<CombinedCourseData>),
     CourseDetails(CourseDetails),
     CourseExercises(Vec<CourseExercise>),
@@ -71,6 +73,8 @@ pub enum Data {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "kebab-case")]
+#[serde(tag = "update-data-kind")]
 pub enum StatusUpdateData {
     RefreshUpdateData(StatusUpdate<RefreshUpdateData>),
     ClientUpdateData(StatusUpdate<ClientUpdateData>),
@@ -170,5 +174,104 @@ impl Warnings {
         Self {
             warnings: warnings.iter().map(|w| w.to_string()).collect(),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    fn read(filename: &str) -> String {
+        std::fs::read_to_string(std::path::Path::new("api").join(filename)).unwrap()
+    }
+
+    #[test]
+    fn output_data_none() {
+        let output_data = Output::OutputData(OutputData {
+            status: Status::Finished,
+            message: None,
+            result: OutputResult::ExecutedCommand,
+            percent_done: 100.0,
+            data: None,
+        });
+        let actual = serde_json::to_string_pretty(&output_data).unwrap();
+        let expected = read("output-data-none.json");
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn output_data_error() {
+        let output_data = Output::OutputData(OutputData {
+            status: Status::Finished,
+            message: None,
+            result: OutputResult::Error,
+            percent_done: 100.0,
+            data: Some(Data::Error {
+                kind: Kind::Generic,
+                trace: vec!["trace 1".to_string(), "trace 2".to_string()],
+            }),
+        });
+        let actual = serde_json::to_string_pretty(&output_data).unwrap();
+        let expected = read("output-data-error.json");
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn output_data_dl() {
+        let output_data = Output::OutputData(OutputData {
+            status: Status::Finished,
+            message: None,
+            result: OutputResult::ExecutedCommand,
+            percent_done: 100.0,
+            data: Some(Data::ExerciseDownload(
+                DownloadOrUpdateCourseExercisesResult {
+                    downloaded: vec![
+                        DownloadOrUpdateCourseExercise {
+                            course_slug: "some course".to_string(),
+                            exercise_slug: "some exercise".to_string(),
+                        },
+                        DownloadOrUpdateCourseExercise {
+                            course_slug: "some course".to_string(),
+                            exercise_slug: "another exercise".to_string(),
+                        },
+                    ],
+                    skipped: vec![DownloadOrUpdateCourseExercise {
+                        course_slug: "another course".to_string(),
+                        exercise_slug: "some skipped exercise".to_string(),
+                    }],
+                },
+            )),
+        });
+        let actual = serde_json::to_string_pretty(&output_data).unwrap();
+        let expected = read("output-data-download-or-update.json");
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn status_update() {
+        let status_update =
+            Output::StatusUpdate(StatusUpdateData::ClientUpdateData(StatusUpdate {
+                data: Some(ClientUpdateData::ExerciseDownload {
+                    id: 1234,
+                    path: PathBuf::from("some path"),
+                }),
+                finished: false,
+                message: "doing things...".to_string(),
+                percent_done: 33.3333,
+                time: Some(2000),
+            }));
+        let actual = serde_json::to_string_pretty(&status_update).unwrap();
+        let expected = read("status-update.json");
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn warnings() {
+        let status_update = Output::Warnings(Warnings {
+            warnings: vec!["warning 1".to_string(), "warning 2".to_string()],
+        });
+        let actual = serde_json::to_string_pretty(&status_update).unwrap();
+        let expected = read("warnings.json");
+        assert_eq!(actual, expected);
     }
 }

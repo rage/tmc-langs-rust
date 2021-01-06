@@ -736,7 +736,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 message: Some(format!("ran tests for {}", exercise_path.display(),)),
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
-                data: Some(Data::RunResult(test_result)),
+                data: Some(Data::TestResult(test_result)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1035,7 +1035,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(Data::DownloadOrUpdateCourseExercisesResult(data)),
+                data: Some(Data::ExerciseDownload(data)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1502,7 +1502,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::ExecutedCommand,
                 percent_done: 1.0,
-                data: Some(Data::RunResult(run_result)),
+                data: Some(Data::TestResult(run_result)),
             });
             print_output(&output, pretty, &warnings)?
         }
@@ -1679,7 +1679,7 @@ fn run_core(
                 message: None,
                 result: OutputResult::RetrievedData,
                 percent_done: 1.0,
-                data: Some(Data::DownloadOrUpdateCourseExercisesResult(data)),
+                data: Some(Data::ExerciseDownload(data)),
             });
             print_output(&output, pretty, &warnings)?
         }

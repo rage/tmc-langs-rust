@@ -31,6 +31,7 @@ pub type Token =
 /// The update data type for the progress reporter.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+#[serde(tag = "client-update-data-kind")]
 pub enum ClientUpdateData {
     ExerciseDownload { id: usize, path: PathBuf },
     PostedSubmission(NewSubmission),
