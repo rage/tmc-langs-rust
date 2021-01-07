@@ -20,8 +20,11 @@ use crate::config::{ConfigValue, TmcConfig};
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "output-kind")]
 pub enum Output {
+    /// Data that is output at the end of a command.
     OutputData(OutputData),
+    /// Status update output as a command progresses.
     StatusUpdate(StatusUpdateData),
+    /// Additional warnings, such as for an outdated Python dependency.
     Warnings(Warnings),
 }
 
