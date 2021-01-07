@@ -69,7 +69,6 @@ fn main() {
                 kind,
                 trace: causes,
             }),
-            percent_done: 1.0,
         });
         if let Err(err) = print_output_with_file(&error_output, pretty, sandbox_path, &warnings) {
             // the above function shouldn't fail ever, but in theory some data could
@@ -78,7 +77,7 @@ fn main() {
                 status: Status::Crashed,
                 message: Some(err.to_string()),
                 result: OutputResult::Error,
-                percent_done: 1.0,
+
                 data: None,
             });
             print_output(&output, pretty, &warnings).expect("this should never fail");
@@ -185,7 +184,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 status: Status::Finished,
                 message: Some("ran checkstyle".to_string()),
                 result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
+
                 data: check_result.map(Data::Validation),
             });
             print_output(&output, pretty, &warnings)?
@@ -204,7 +203,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 status: Status::Finished,
                 message: Some(format!("cleaned exercise at {}", exercise_path.display(),)),
                 result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
+
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -241,7 +240,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                     output_path.display()
                 )),
                 result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
+
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -312,7 +311,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                     path.display()
                 )),
                 result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
+
                 data: Some(Data::FreeDiskSpace(free)),
             });
             print_output(&output, pretty, &warnings)?
@@ -339,7 +338,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                     output_path.display()
                 )),
                 result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
+
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -356,7 +355,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 status: Status::Finished,
                 message: Some(format!("found {} available points", points.len())),
                 result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
+
                 data: Some(Data::AvailablePoints(points)),
             });
             print_output(&output, pretty, &warnings)?
@@ -387,7 +386,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 status: Status::Finished,
                 message: Some(format!("found exercises at {}", exercise_path.display(),)),
                 result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
+
                 data: Some(Data::Exercises(exercises)),
             });
             print_output(&output, pretty, &warnings)?
@@ -421,7 +420,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                     exercise_path.display(),
                 )),
                 result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
+
                 data: Some(Data::ExercisePackagingConfiguration(config)),
             });
             print_output(&output, pretty, &warnings)?
@@ -451,7 +450,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 status: Status::Finished,
                 message: Some(format!("listed local exercises for {}", course_slug,)),
                 result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
+
                 data: Some(Data::LocalExercises(local_exercises)),
             });
             print_output(&output, pretty, &warnings)?
@@ -480,7 +479,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                     output_path.display()
                 )),
                 result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
+
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -509,7 +508,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                     output_path.display()
                 )),
                 result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
+
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -586,7 +585,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                     output_path.display()
                 )),
                 result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
+
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -682,7 +681,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 status: Status::Finished,
                 message: Some(format!("refreshed course {}", course_name)),
                 result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
+
                 data: Some(Data::RefreshResult(refresh_result)),
             });
             print_output(&output, pretty, &warnings)?
@@ -735,7 +734,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 status: Status::Finished,
                 message: Some(format!("ran tests for {}", exercise_path.display(),)),
                 result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
+
                 data: Some(Data::TestResult(test_result)),
             });
             print_output(&output, pretty, &warnings)?
@@ -778,7 +777,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 status: Status::Finished,
                 message: Some(format!("scanned exercise at {}", exercise_path.display(),)),
                 result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
+
                 data: Some(Data::ExerciseDesc(scan_result)),
             });
             print_output(&output, pretty, &warnings)?
@@ -846,7 +845,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
-                percent_done: 1.0,
+
                 data: Some(Data::UpdatedExercises(updated_exercises)),
             });
             print_output(&output, pretty, &warnings)?
@@ -866,7 +865,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
-                percent_done: 1.0,
+
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -913,7 +912,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
-                percent_done: 1.0,
+
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -1034,7 +1033,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
-                percent_done: 1.0,
+
                 data: Some(Data::ExerciseDownload(data)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1059,7 +1058,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
-                percent_done: 1.0,
+
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -1087,7 +1086,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
-                percent_done: 1.0,
+
                 data: Some(Data::CombinedCourseData(Box::new(data))),
             });
             print_output(&output, pretty, &warnings)?
@@ -1104,7 +1103,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
-                percent_done: 1.0,
+
                 data: Some(Data::CourseDetails(details)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1121,7 +1120,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
-                percent_done: 1.0,
+
                 data: Some(Data::CourseExercises(exercises)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1138,7 +1137,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
-                percent_done: 1.0,
+
                 data: Some(Data::CourseData(settings)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1154,7 +1153,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
-                percent_done: 1.0,
+
                 data: Some(Data::Courses(courses)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1171,7 +1170,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
-                percent_done: 1.0,
+
                 data: Some(Data::ExerciseDetails(course)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1188,7 +1187,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
-                percent_done: 1.0,
+
                 data: Some(Data::Submissions(submissions)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1214,7 +1213,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
-                percent_done: 1.0,
+
                 data: Some(Data::UpdateResult(update_result)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1230,7 +1229,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
-                percent_done: 1.0,
+
                 data: Some(Data::Organization(org)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1244,7 +1243,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
-                percent_done: 1.0,
+
                 data: Some(Data::Organizations(orgs)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1261,7 +1260,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::LoggedOut,
-                percent_done: 1.0,
+
                 data: Some(Data::Reviews(reviews)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1272,7 +1271,7 @@ fn run_core(
                     status: Status::Finished,
                     message: None,
                     result: OutputResult::LoggedIn,
-                    percent_done: 1.0,
+
                     data: Some(Data::Token(credentials.token())),
                 });
                 print_output(&output, pretty, &warnings)?
@@ -1281,7 +1280,7 @@ fn run_core(
                     status: Status::Finished,
                     message: None,
                     result: OutputResult::NotLoggedIn,
-                    percent_done: 1.0,
+
                     data: None,
                 });
                 print_output(&output, pretty, &warnings)?
@@ -1326,7 +1325,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::LoggedIn,
-                percent_done: 1.0,
+
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -1340,7 +1339,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::LoggedOut,
-                percent_done: 1.0,
+
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -1356,7 +1355,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::SentData,
-                percent_done: 1.0,
+
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -1392,7 +1391,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
-                percent_done: 1.0,
+
                 data: Some(Data::NewSubmission(new_submission)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1428,7 +1427,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::SentData,
-                percent_done: 1.0,
+
                 data: Some(Data::NewSubmission(new_submission)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1460,7 +1459,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
+
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -1482,7 +1481,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
+
                 data: validation_result.map(Data::StyleValidationResult),
             });
             print_output(&output, pretty, &warnings)?
@@ -1501,7 +1500,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::ExecutedCommand,
-                percent_done: 1.0,
+
                 data: Some(Data::TestResult(run_result)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1530,7 +1529,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::SentData,
-                percent_done: 1.0,
+
                 data: Some(Data::SubmissionFeedbackResponse(response)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1565,7 +1564,7 @@ fn run_core(
                     status: Status::Finished,
                     message: None,
                     result: OutputResult::SentData,
-                    percent_done: 1.0,
+
                     data: Some(Data::NewSubmission(new_submission)),
                 });
 
@@ -1581,7 +1580,7 @@ fn run_core(
                     status: Status::Finished,
                     message: None,
                     result: OutputResult::RetrievedData,
-                    percent_done: 1.0,
+
                     data: Some(Data::SubmissionFinished(submission_finished)),
                 });
                 print_output(&output, pretty, &warnings)?
@@ -1678,7 +1677,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
-                percent_done: 1.0,
+
                 data: Some(Data::ExerciseDownload(data)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1694,7 +1693,7 @@ fn run_core(
                 status: Status::Finished,
                 message: None,
                 result: OutputResult::RetrievedData,
-                percent_done: 1.0,
+
                 data: Some(Data::SubmissionFinished(submission_finished)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1721,7 +1720,7 @@ fn run_settings(
                 status: Status::Finished,
                 result: OutputResult::RetrievedData,
                 message: Some("Retrieved value".to_string()),
-                percent_done: 1.0,
+
                 data: Some(Data::ConfigValue(value)),
             });
             print_output(&output, pretty, warnings)
@@ -1731,7 +1730,7 @@ fn run_settings(
                 status: Status::Finished,
                 result: OutputResult::RetrievedData,
                 message: Some("Retrieved settings".to_string()),
-                percent_done: 1.0,
+
                 data: Some(Data::TmcConfig(tmc_config)),
             });
             print_output(&output, pretty, warnings)
@@ -1784,7 +1783,7 @@ fn run_settings(
                 status: Status::Finished,
                 result: OutputResult::ExecutedCommand,
                 message: Some("Migrated exercise".to_string()),
-                percent_done: 1.0,
+
                 data: None,
             });
             print_output(&output, pretty, warnings)
@@ -1827,7 +1826,7 @@ fn run_settings(
                 status: Status::Finished,
                 result: OutputResult::ExecutedCommand,
                 message: Some("Moved project directory".to_string()),
-                percent_done: 1.0,
+
                 data: None,
             });
             print_output(&output, pretty, warnings)
@@ -1854,7 +1853,7 @@ fn run_settings(
                 status: Status::Finished,
                 result: OutputResult::ExecutedCommand,
                 message: Some("Set setting".to_string()),
-                percent_done: 1.0,
+
                 data: None,
             });
             print_output(&output, pretty, warnings)
@@ -1866,7 +1865,7 @@ fn run_settings(
                 status: Status::Finished,
                 result: OutputResult::ExecutedCommand,
                 message: Some("Reset settings".to_string()),
-                percent_done: 1.0,
+
                 data: None,
             });
             print_output(&output, pretty, warnings)
@@ -1882,7 +1881,7 @@ fn run_settings(
                 status: Status::Finished,
                 result: OutputResult::ExecutedCommand,
                 message: Some("Unset setting".to_string()),
-                percent_done: 1.0,
+
                 data: None,
             });
             print_output(&output, pretty, warnings)

@@ -32,7 +32,6 @@ pub struct OutputData {
     pub status: Status,
     pub message: Option<String>,
     pub result: OutputResult,
-    pub percent_done: f64,
     pub data: Option<Data>,
 }
 
@@ -191,7 +190,6 @@ mod test {
             status: Status::Finished,
             message: None,
             result: OutputResult::ExecutedCommand,
-            percent_done: 100.0,
             data: None,
         });
         let actual = serde_json::to_string_pretty(&output_data).unwrap();
@@ -205,7 +203,6 @@ mod test {
             status: Status::Finished,
             message: None,
             result: OutputResult::Error,
-            percent_done: 100.0,
             data: Some(Data::Error {
                 kind: Kind::Generic,
                 trace: vec!["trace 1".to_string(), "trace 2".to_string()],
@@ -222,7 +219,6 @@ mod test {
             status: Status::Finished,
             message: None,
             result: OutputResult::ExecutedCommand,
-            percent_done: 100.0,
             data: Some(Data::ExerciseDownload(
                 DownloadOrUpdateCourseExercisesResult {
                     downloaded: vec![
