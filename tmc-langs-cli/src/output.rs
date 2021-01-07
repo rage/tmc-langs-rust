@@ -9,9 +9,8 @@ use tmc_client::{
     SubmissionFeedbackResponse, SubmissionFinished, Token, UpdateResult,
 };
 use tmc_langs_util::{
-    progress_reporter::StatusUpdate,
-    task_executor::{RefreshData, RefreshUpdateData},
-    ExerciseDesc, ExercisePackagingConfiguration,
+    progress_reporter::StatusUpdate, task_executor::RefreshData, ExerciseDesc,
+    ExercisePackagingConfiguration,
 };
 
 use crate::config::{ConfigValue, TmcConfig};
@@ -75,7 +74,6 @@ pub enum Data {
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "update-data-kind")]
 pub enum StatusUpdateData {
-    RefreshUpdateData(StatusUpdate<RefreshUpdateData>),
     ClientUpdateData(StatusUpdate<ClientUpdateData>),
     None(StatusUpdate<()>),
 }

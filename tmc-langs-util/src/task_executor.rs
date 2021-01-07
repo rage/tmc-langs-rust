@@ -7,8 +7,7 @@ mod tar_helper;
 mod tmc_zip;
 
 pub use self::course_refresher::{
-    Course, GroupBits, ModeBits, Options, RefreshData, RefreshExercise, RefreshUpdateData,
-    SourceBackend,
+    Course, GroupBits, ModeBits, Options, RefreshData, RefreshExercise, SourceBackend,
 };
 pub use self::submission_packaging::{OutputFormat, TmcParams};
 
@@ -242,9 +241,7 @@ pub fn refresh_course(
     progress_reporter: impl 'static
         + Sync
         + Send
-        + Fn(
-            StatusUpdate<RefreshUpdateData>,
-        ) -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>>,
+        + Fn(StatusUpdate<()>) -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>>,
 ) -> Result<RefreshData, UtilError> {
     course_refresher::refresh_course(
         course,

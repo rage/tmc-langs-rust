@@ -81,11 +81,8 @@ pub struct UpdatePoints {
     removed: Vec<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub enum RefreshUpdateData {}
-
 struct CourseRefresher {
-    progress_reporter: ProgressReporter<'static, RefreshUpdateData>,
+    progress_reporter: ProgressReporter<'static, ()>,
 }
 
 impl CourseRefresher {
@@ -93,9 +90,7 @@ impl CourseRefresher {
         progress_report: impl 'static
             + Sync
             + Send
-            + Fn(
-                StatusUpdate<RefreshUpdateData>,
-            ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>,
+            + Fn(StatusUpdate<()>) -> Result<(), Box<dyn std::error::Error + Send + Sync>>,
     ) -> Self {
         Self {
             progress_reporter: ProgressReporter::new(progress_report),
@@ -259,9 +254,7 @@ pub fn refresh_course(
     progress_reporter: impl 'static
         + Sync
         + Send
-        + Fn(
-            StatusUpdate<RefreshUpdateData>,
-        ) -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>>,
+        + Fn(StatusUpdate<()>) -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>>,
 ) -> Result<RefreshData, UtilError> {
     let course_refresher = CourseRefresher::new(progress_reporter);
     course_refresher.refresh_course(

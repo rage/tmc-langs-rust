@@ -670,7 +670,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 PathBuf::from(cache_root),
                 PathBuf::from(rails_root),
                 move |update| {
-                    let output = Output::StatusUpdate(StatusUpdateData::RefreshUpdateData(update));
+                    let output = Output::StatusUpdate(StatusUpdateData::None(update));
                     print_output(&output, pretty, &[])?;
                     Ok(())
                 },
