@@ -131,6 +131,9 @@ pub enum FileIo {
         source: std::io::Error,
     },
 
+    #[error("Failed to lock file at path {0}")]
+    FdLock(PathBuf, #[source] std::io::Error),
+
     #[error("Path {0} has no file name")]
     NoFileName(PathBuf),
     #[error("Expected {0} to be a directory, but it was a file")]

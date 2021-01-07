@@ -1,9 +1,13 @@
 //! Various utility functions, primarily wrapping the standard library's IO and filesystem functions
 
 use crate::error::FileIo;
-use std::fs::{self, File};
+use fd_lock::{FdLock, FdLockGuard};
 use std::io::{Read, Write};
 use std::path::Path;
+use std::{
+    fs::{self, File},
+    path::PathBuf,
+};
 use walkdir::WalkDir;
 
 pub fn temp_file() -> Result<File, FileIo> {
@@ -161,6 +165,46 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
         }
     }
     Ok(())
+}
+
+#[macro_export]
+macro_rules! lock {
+    ( $( $path: expr ),+ ) => {
+        $(
+            let mut fl = $crate::file_util::FileLock::new(&$path)?;
+            let _lock = fl.lock()?;
+        )*
+    };
+}
+// macros always live at the top-level, re-export here
+pub use crate::lock;
+
+/// Wrapper for fd_lock::FdLock. Used to lock files/directories to prevent concurrent access
+/// from multiple instances of tmc-langs.
+// TODO: should this be in file_util or in the frontend (CLI)?
+pub struct FileLock {
+    path: PathBuf,
+    fd_lock: FdLock<File>,
+}
+
+impl FileLock {
+    pub fn new(path: impl Into<PathBuf>) -> Result<FileLock, FileIo> {
+        let path = path.into();
+        let file = open_file(&path)?;
+        Ok(Self {
+            path,
+            fd_lock: FdLock::new(file),
+        })
+    }
+
+    /// Blocks until the lock can be acquired.
+    pub fn lock(&mut self) -> Result<FdLockGuard<'_, File>, FileIo> {
+        let path = &self.path;
+        let fd_lock = &mut self.fd_lock;
+        Ok(fd_lock
+            .lock()
+            .map_err(|e| FileIo::FdLock(path.clone(), e))?)
+    }
 }
 
 #[cfg(test)]
