@@ -29,7 +29,7 @@ use tempfile::NamedTempFile;
 use tmc_client::oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
-use tmc_client::{ClientError, ClientUpdateData, FeedbackAnswer, TmcClient, Token};
+use tmc_client::{ClientError, FeedbackAnswer, TmcClient, Token};
 use tmc_langs_framework::{domain::StyleValidationResult, error::CommandError, file_util};
 use tmc_langs_util::{
     progress_reporter::ProgressReporter,
