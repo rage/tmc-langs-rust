@@ -3,6 +3,7 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::fs::{self, File};
 use std::path::PathBuf;
+use tmc_langs_framework::file_util;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Credentials {
@@ -27,6 +28,8 @@ impl Credentials {
         if !credentials_path.exists() {
             return Ok(None);
         }
+
+        file_util::lock!(&credentials_path);
 
         let file = File::open(&credentials_path).with_context(|| {
             format!(
@@ -60,6 +63,9 @@ impl Credentials {
 
     pub fn save(client_name: &str, token: Token) -> Result<()> {
         let credentials_path = Self::get_credentials_path(client_name)?;
+
+        file_util::lock!(&credentials_path);
+
         if let Some(p) = credentials_path.parent() {
             fs::create_dir_all(p)
                 .with_context(|| format!("Failed to create directory {}", p.display()))?;
@@ -87,6 +93,8 @@ impl Credentials {
     }
 
     pub fn remove(self) -> Result<()> {
+        file_util::lock!(&self.path);
+
         fs::remove_file(&self.path)
             .with_context(|| format!("Failed to remove credentials at {}", self.path.display()))?;
         Ok(())

@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+use tmc_langs_framework::file_util;
 
 #[derive(Debug)]
 pub struct ProjectsConfig {
@@ -12,6 +13,8 @@ pub struct ProjectsConfig {
 
 impl ProjectsConfig {
     pub fn load(projects_dir: &Path) -> Result<ProjectsConfig> {
+        file_util::lock!(projects_dir);
+
         let mut course_configs = BTreeMap::new();
         for file in fs::read_dir(projects_dir)
             .with_context(|| format!("Failed to read directory at {}", projects_dir.display()))?
@@ -89,6 +92,8 @@ pub struct CourseConfig {
 
 impl CourseConfig {
     pub fn save_to_projects_dir(&self, projects_dir: &Path) -> Result<()> {
+        file_util::lock!(projects_dir);
+
         let course_dir = projects_dir.join(&self.course);
         if !course_dir.exists() {
             fs::create_dir_all(&course_dir).with_context(|| {

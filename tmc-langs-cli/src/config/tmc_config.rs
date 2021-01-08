@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use tmc_langs_framework::file_util;
 use toml::{value::Table, Value};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -62,6 +63,8 @@ impl TmcConfig {
 
     pub fn save(self, client_name: &str) -> Result<()> {
         let path = Self::get_location(client_name)?;
+        file_util::lock!(&path);
+
         let toml = toml::to_string_pretty(&self).context("Failed to serialize HashMap")?;
         fs::write(&path, toml.as_bytes())
             .with_context(|| format!("Failed to write TOML to {}", path.display()))?;
@@ -70,12 +73,16 @@ impl TmcConfig {
 
     pub fn reset(client_name: &str) -> Result<()> {
         let path = Self::get_location(client_name)?;
+        file_util::lock!(&path);
+
         Self::init_at(client_name, &path)?;
         Ok(())
     }
 
     pub fn load(client_name: &str) -> Result<TmcConfig> {
         let path = Self::get_location(client_name)?;
+        file_util::lock!(&path);
+
         let config = match fs::read(&path) {
             Ok(bytes) => match toml::from_slice(&bytes) {
                 Ok(config) => Ok(config),
@@ -102,6 +109,8 @@ impl TmcConfig {
 
     // initializes the default configuration file at the given path
     fn init_at(client_name: &str, path: &Path) -> Result<TmcConfig> {
+        file_util::lock!(path);
+
         let mut file = File::create(&path)
             .with_context(|| format!("Failed to create new config file at {}", path.display()))?;
 

@@ -30,7 +30,7 @@ use tmc_client::oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
 use tmc_client::{ClientError, ClientUpdateData, FeedbackAnswer, TmcClient, Token};
-use tmc_langs_framework::{domain::StyleValidationResult, error::CommandError};
+use tmc_langs_framework::{domain::StyleValidationResult, error::CommandError, file_util};
 use tmc_langs_util::{
     progress_reporter::ProgressReporter,
     task_executor::{
@@ -177,6 +177,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
             let output_path = matches.value_of("output-path");
             let output_path = output_path.map(Path::new);
 
+            file_util::lock!(exercise_path);
+
             let check_result = run_checkstyle_write_results(exercise_path, output_path, locale)?;
 
             let output = Output::OutputData(OutputData {
@@ -191,6 +193,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
         ("clean", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);
+
+            file_util::lock!(exercise_path);
 
             task_executor::clean(exercise_path).with_context(|| {
                 format!("Failed to clean exercise at {}", exercise_path.display(),)
@@ -211,6 +215,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let output_path = matches.value_of("output-path").unwrap();
             let output_path = Path::new(output_path);
+
+            file_util::lock!(exercise_path);
 
             let data = task_executor::compress_project(exercise_path).with_context(|| {
                 format!("Failed to compress project at {}", exercise_path.display())
@@ -317,6 +323,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
             let output_path = matches.value_of("output-path").unwrap();
             let output_path = Path::new(output_path);
 
+            file_util::lock!(archive_path);
+
             let archive = File::open(archive_path)
                 .with_context(|| format!("Failed to open file at {}", archive_path))?;
             task_executor::extract_project(archive, output_path, true).with_context(|| {
@@ -340,6 +348,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
             let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);
 
+            file_util::lock!(exercise_path);
+
             let points = task_executor::get_available_points(exercise_path)?;
 
             let output = Output::OutputData(OutputData {
@@ -358,6 +368,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
             let output_path = matches.value_of("output-path");
             let output_path = output_path.map(Path::new);
 
+            file_util::lock!(exercise_path);
+
             let exercises =
                 task_executor::find_exercise_directories(exercise_path).with_context(|| {
                     format!(
@@ -367,6 +379,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 })?;
 
             if let Some(output_path) = output_path {
+                file_util::lock!(output_path);
                 write_result_to_file_as_json(&exercises, output_path, pretty)?;
             }
 
@@ -386,6 +399,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
             let output_path = matches.value_of("output-path");
             let output_path = output_path.map(Path::new);
 
+            file_util::lock!(exercise_path);
+
             let config = task_executor::get_exercise_packaging_configuration(exercise_path)
                 .with_context(|| {
                     format!(
@@ -395,6 +410,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 })?;
 
             if let Some(output_path) = output_path {
+                file_util::lock!(output_path);
                 write_result_to_file_as_json(&config, output_path, pretty)?;
             }
 
@@ -447,6 +463,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
             let output_path = matches.value_of("output-path").unwrap();
             let output_path = Path::new(output_path);
 
+            file_util::lock!(exercise_path);
+
             task_executor::prepare_solution(exercise_path, output_path).with_context(|| {
                 format!(
                     "Failed to prepare solutions for exercise at {}",
@@ -473,6 +491,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let output_path = matches.value_of("output-path").unwrap();
             let output_path = Path::new(output_path);
+
+            file_util::lock!(exercise_path);
 
             task_executor::prepare_stub(exercise_path, output_path).with_context(|| {
                 format!(
@@ -679,6 +699,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
             let output_path = matches.value_of("output-path");
             let output_path = output_path.map(Path::new);
 
+            file_util::lock!(exercise_path);
+
             let test_result =
                 task_executor::run_tests(exercise_path, warnings).with_context(|| {
                     format!(
@@ -725,6 +747,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let output_path = matches.value_of("output-path");
             let output_path = output_path.map(Path::new);
+
+            file_util::lock!(exercise_path);
 
             let exercise_name = exercise_path.file_name().with_context(|| {
                 format!(
@@ -1353,6 +1377,8 @@ fn run_core(
             let submission_url = matches.value_of("submission-url").unwrap();
             let submission_url = into_url(submission_url)?;
 
+            file_util::lock!(submission_path);
+
             let new_submission = client
                 .paste(
                     submission_url,
@@ -1387,6 +1413,8 @@ fn run_core(
             let submission_url = matches.value_of("submission-url").unwrap();
             let submission_url = into_url(submission_url)?;
 
+            file_util::lock!(submission_path);
+
             let new_submission = client
                 .request_code_review(
                     submission_url,
@@ -1416,6 +1444,8 @@ fn run_core(
 
             let submission_url = matches.value_of("submission-url");
 
+            file_util::lock!(&exercise_path);
+
             if save_old_state {
                 // submit current state
                 let submission_url = into_url(submission_url.unwrap())?;
@@ -1442,6 +1472,8 @@ fn run_core(
             let locale = matches.value_of("locale").unwrap();
             let locale = into_locale(locale)?;
 
+            file_util::lock!(exercise_path);
+
             let validation_result = client
                 .run_checkstyle(exercise_path, locale)
                 .context("Failed to run checkstyle")?;
@@ -1458,6 +1490,8 @@ fn run_core(
         ("run-tests", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);
+
+            file_util::lock!(exercise_path);
 
             let run_result = client
                 .run_tests(exercise_path, warnings)
@@ -1516,6 +1550,8 @@ fn run_core(
 
             let submission_url = matches.value_of("submission-url").unwrap();
             let submission_url = into_url(submission_url)?;
+
+            file_util::lock!(submission_path);
 
             if !dont_block {
                 client.increment_progress_steps();
@@ -1714,6 +1750,8 @@ fn run_settings(
 
             let exercise_checksum = matches.value_of("exercise-checksum").unwrap();
 
+            file_util::lock!(exercise_path);
+
             let mut projects_config = ProjectsConfig::load(&tmc_config.projects_dir)?;
             let course_config = projects_config
                 .courses
@@ -1755,6 +1793,8 @@ fn run_settings(
         ("move-projects-dir", Some(matches)) => {
             let dir = matches.value_of("dir").unwrap();
             let target = PathBuf::from(dir);
+
+            file_util::lock!(&target);
 
             if target.is_file() {
                 anyhow::bail!("The target path points to a file.")

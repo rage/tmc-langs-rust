@@ -171,7 +171,8 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
 macro_rules! lock {
     ( $( $path: expr ),+ ) => {
         $(
-            let mut fl = $crate::file_util::FileLock::new(&$path)?;
+            let path_buf: PathBuf = $path.into();
+            let mut fl = $crate::file_util::FileLock::new(path_buf)?;
             let _lock = fl.lock()?;
         )*
     };
@@ -188,8 +189,7 @@ pub struct FileLock {
 }
 
 impl FileLock {
-    pub fn new(path: impl Into<PathBuf>) -> Result<FileLock, FileIo> {
-        let path = path.into();
+    pub fn new(path: PathBuf) -> Result<FileLock, FileIo> {
         let file = open_file(&path)?;
         Ok(Self {
             path,
@@ -198,12 +198,30 @@ impl FileLock {
     }
 
     /// Blocks until the lock can be acquired.
-    pub fn lock(&mut self) -> Result<FdLockGuard<'_, File>, FileIo> {
+    pub fn lock(&mut self) -> Result<FileLockGuard, FileIo> {
+        log::debug!("locking {}", self.path.display());
         let path = &self.path;
         let fd_lock = &mut self.fd_lock;
-        Ok(fd_lock
+        let guard = fd_lock
             .lock()
-            .map_err(|e| FileIo::FdLock(path.clone(), e))?)
+            .map_err(|e| FileIo::FdLock(path.clone(), e))?;
+        log::debug!("locked {}", self.path.display());
+        Ok(FileLockGuard {
+            path,
+            _guard: guard,
+        })
+    }
+}
+
+#[derive(Debug)]
+pub struct FileLockGuard<'a> {
+    path: &'a Path,
+    _guard: FdLockGuard<'a, File>,
+}
+
+impl Drop for FileLockGuard<'_> {
+    fn drop(&mut self) {
+        log::debug!("unlocking {}", self.path.display());
     }
 }
 
