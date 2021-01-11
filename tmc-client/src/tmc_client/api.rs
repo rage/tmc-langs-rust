@@ -30,13 +30,12 @@ impl ClientExt for ReqwestResponse {
         let url = self.url().clone();
         let status = self.status();
         if status.is_success() {
+            // expecting successful response
             Ok(self
                 .json()
                 .map_err(|e| ClientError::HttpJsonResponse(url.clone(), e))?)
-        } else {
-            let err: ErrorResponse = self
-                .json()
-                .map_err(|e| ClientError::HttpJsonResponse(url.clone(), e))?;
+        } else if let Ok(err) = self.json::<ErrorResponse>() {
+            // failed and got an error json
             let error = match (err.error, err.errors) {
                 (Some(err), Some(errs)) => format!("{}, {}", err, errs.join(",")),
                 (Some(err), None) => err,
@@ -48,6 +47,14 @@ impl ClientExt for ReqwestResponse {
                 status,
                 error,
                 obsolete_client: err.obsolete_client,
+            })
+        } else {
+            // failed and failed to parse error json, return generic HTTP error
+            Err(ClientError::HttpError {
+                url,
+                status,
+                error: status.to_string(),
+                obsolete_client: false,
             })
         }
     }
@@ -132,23 +139,32 @@ impl TmcClient {
             .map_err(|e| ClientError::ConnectionError(Method::GET, url.clone(), e))?;
 
         // check for HTTP error
+        // todo use same code here and in json_res
         if !response.status().is_success() {
             let status = response.status();
-            let err: ErrorResponse = response
-                .json()
-                .map_err(|e| ClientError::HttpJsonResponse(url.clone(), e))?;
-            let error = match (err.error, err.errors) {
-                (Some(err), Some(errs)) => format!("{}, {}", err, errs.join(",")),
-                (Some(err), None) => err,
-                (None, Some(errs)) => errs.join(","),
-                _ => "".to_string(),
-            };
-            Err(ClientError::HttpError {
-                url,
-                status,
-                error,
-                obsolete_client: err.obsolete_client,
-            })
+            if let Ok(err) = response.json::<ErrorResponse>() {
+                // failed and got an error json
+                let error = match (err.error, err.errors) {
+                    (Some(err), Some(errs)) => format!("{}, {}", err, errs.join(",")),
+                    (Some(err), None) => err,
+                    (None, Some(errs)) => errs.join(","),
+                    _ => "".to_string(),
+                };
+                Err(ClientError::HttpError {
+                    url,
+                    status,
+                    error,
+                    obsolete_client: err.obsolete_client,
+                })
+            } else {
+                // failed and failed to parse error json, return generic HTTP error
+                Err(ClientError::HttpError {
+                    url,
+                    status,
+                    error: status.to_string(),
+                    obsolete_client: false,
+                })
+            }
         } else {
             response
                 .copy_to(&mut target_file)
