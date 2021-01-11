@@ -30,7 +30,12 @@ pub enum Output {
 
 impl Output {
     pub fn finished_with_data(message: impl Into<String>, data: impl Into<Option<Data>>) -> Self {
-        todo!()
+        Self::OutputData(OutputData {
+            status: Status::Finished,
+            message: message.into(),
+            result: OutputResult::ExecutedCommand,
+            data: data.into(),
+        })
     }
 }
 
@@ -103,8 +108,6 @@ pub enum OutputResult {
     LoggedOut,
     NotLoggedIn,
     Error,
-    SentData,
-    RetrievedData,
     ExecutedCommand,
 }
 

@@ -511,50 +511,6 @@ impl TmcClient {
         self.post_submission_to_paste(submission_url, file.path(), paste_message, locale)
     }
 
-    /// Checks the coding style for the project.
-    ///
-    /// # Errors
-    /// Returns an error if no matching language plugin for the project is found,
-    /// or if the plugin returns an error while trying to run the style check.
-    ///
-    /// # Examples
-    /// ```rust,no_run
-    /// use tmc_client::{TmcClient, Language};
-    /// use std::path::Path;
-    ///
-    /// let client = TmcClient::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
-    /// // authenticate
-    /// let validation_result = client.run_checkstyle(Path::new("./exercises/python/123"), Language::Eng).unwrap();
-    /// match validation_result {
-    ///     Some(validation_result) => if let Some(validation_errors) = validation_result.validation_errors {
-    ///         println!("found validation errors: {:?}", validation_errors);
-    ///     } else {
-    ///         println!("no errors");
-    ///     }
-    ///     None => println!("no style checks"),
-    /// }
-    /// ```
-    pub fn run_checkstyle(
-        &self,
-        path: &Path,
-        locale: Language,
-    ) -> Result<Option<StyleValidationResult>, ClientError> {
-        Ok(task_executor::run_check_code_style(path, locale)?)
-    }
-
-    /// Runs tests for the project.
-    ///
-    /// # Errors
-    /// Returns an error if no matching language plugin for the project is found,
-    /// or if the plugin returns an error while trying to run the tests.
-    pub fn run_tests(
-        &self,
-        path: &Path,
-        warnings: &mut Vec<anyhow::Error>,
-    ) -> Result<RunResult, ClientError> {
-        Ok(task_executor::run_tests(path, warnings)?)
-    }
-
     /// Sends feedback.
     ///
     /// # Errors

@@ -179,12 +179,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let check_result = run_checkstyle_write_results(exercise_path, output_path, locale)?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "ran checkstyle".to_string(),
-                result: OutputResult::ExecutedCommand,
-                data: check_result.map(Data::Validation),
-            });
+            let output =
+                Output::finished_with_data("ran checkstyle", check_result.map(Data::Validation));
             print_output(&output, pretty, &warnings)?
         }
         ("clean", Some(matches)) => {
@@ -197,12 +193,10 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 format!("Failed to clean exercise at {}", exercise_path.display(),)
             })?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: format!("cleaned exercise at {}", exercise_path.display()),
-                result: OutputResult::ExecutedCommand,
-                data: None,
-            });
+            let output = Output::finished_with_data(
+                format!("cleaned exercise at {}", exercise_path.display()),
+                None,
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("compress-project", Some(matches)) => {
@@ -229,16 +223,14 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 )
             })?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: format!(
+            let output = Output::finished_with_data(
+                format!(
                     "compressed project from {} to {}",
                     exercise_path.display(),
                     output_path.display()
                 ),
-                result: OutputResult::ExecutedCommand,
-                data: None,
-            });
+                None,
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("core", Some(matches)) => {
@@ -300,15 +292,13 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
             })?;
             let free = usage.free().get::<heim::units::information::megabyte>();
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: format!(
+            let output = Output::finished_with_data(
+                format!(
                     "calculated free disk space for partition containing {}",
                     path.display()
                 ),
-                result: OutputResult::ExecutedCommand,
-                data: Some(Data::FreeDiskSpace(free)),
-            });
+                Data::FreeDiskSpace(free),
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("extract-project", Some(matches)) => {
@@ -325,16 +315,14 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 format!("Failed to extract project at {}", output_path.display())
             })?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: format!(
+            let output = Output::finished_with_data(
+                format!(
                     "extracted project from {} to {}",
                     archive_path,
                     output_path.display()
                 ),
-                result: OutputResult::ExecutedCommand,
-                data: None,
-            });
+                None,
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("fast-available-points", Some(matches)) => {
@@ -345,12 +333,10 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let points = task_executor::get_available_points(exercise_path)?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: format!("found {} available points", points.len()),
-                result: OutputResult::ExecutedCommand,
-                data: Some(Data::AvailablePoints(points)),
-            });
+            let output = Output::finished_with_data(
+                format!("found {} available points", points.len()),
+                Data::AvailablePoints(points),
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("find-exercises", Some(matches)) => {
@@ -375,12 +361,10 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 write_result_to_file_as_json(&exercises, output_path, pretty)?;
             }
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: format!("found exercises at {}", exercise_path.display()),
-                result: OutputResult::ExecutedCommand,
-                data: Some(Data::Exercises(exercises)),
-            });
+            let output = Output::finished_with_data(
+                format!("found exercises at {}", exercise_path.display()),
+                Data::Exercises(exercises),
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("get-exercise-packaging-configuration", Some(matches)) => {
@@ -405,15 +389,13 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 write_result_to_file_as_json(&config, output_path, pretty)?;
             }
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: format!(
+            let output = Output::finished_with_data(
+                format!(
                     "created exercise packaging config from {}",
                     exercise_path.display(),
                 ),
-                result: OutputResult::ExecutedCommand,
-                data: Some(Data::ExercisePackagingConfiguration(config)),
-            });
+                Data::ExercisePackagingConfiguration(config),
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("list-local-course-exercises", Some(matches)) => {
@@ -437,12 +419,10 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 })
             }
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: format!("listed local exercises for {}", course_slug),
-                result: OutputResult::ExecutedCommand,
-                data: Some(Data::LocalExercises(local_exercises)),
-            });
+            let output = Output::finished_with_data(
+                format!("listed local exercises for {}", course_slug),
+                Data::LocalExercises(local_exercises),
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("prepare-solutions", Some(matches)) => {
@@ -461,16 +441,14 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 )
             })?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: format!(
+            let output = Output::finished_with_data(
+                format!(
                     "prepared solutions for {} at {}",
                     exercise_path.display(),
                     output_path.display()
                 ),
-                result: OutputResult::ExecutedCommand,
-                data: None,
-            });
+                None,
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("prepare-stubs", Some(matches)) => {
@@ -489,16 +467,14 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 )
             })?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: format!(
+            let output = Output::finished_with_data(
+                format!(
                     "prepared stubs for {} at {}",
                     exercise_path.display(),
                     output_path.display()
                 ),
-                result: OutputResult::ExecutedCommand,
-                data: None,
-            });
+                None,
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("prepare-submission", Some(matches)) => {
@@ -565,16 +541,14 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 output_format,
             )?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: format!(
+            let output = Output::finished_with_data(
+                format!(
                     "prepared submission for {} at {}",
                     submission_path.display(),
                     output_path.display()
                 ),
-                result: OutputResult::ExecutedCommand,
-                data: None,
-            });
+                None,
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("refresh-course", Some(matches)) => {
@@ -664,12 +638,10 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
             )
             .with_context(|| format!("Failed to refresh course {}", course_name))?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: format!("refreshed course {}", course_name),
-                result: OutputResult::ExecutedCommand,
-                data: Some(Data::RefreshResult(refresh_result)),
-            });
+            let output = Output::finished_with_data(
+                format!("refreshed course {}", course_name),
+                Data::RefreshResult(refresh_result),
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("run-tests", Some(matches)) => {
@@ -716,12 +688,10 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 run_checkstyle_write_results(exercise_path, Some(checkstyle_output_path), locale)?;
             }
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: format!("ran tests for {}", exercise_path.display()),
-                result: OutputResult::ExecutedCommand,
-                data: Some(Data::TestResult(test_result)),
-            });
+            let output = Output::finished_with_data(
+                format!("ran tests for {}", exercise_path.display()),
+                Data::TestResult(test_result),
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("settings", Some(matches)) => run_settings(matches, pretty, &warnings)?,
@@ -758,12 +728,10 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 write_result_to_file_as_json(&scan_result, output_path, pretty)?;
             }
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: format!("scanned exercise at {}", exercise_path.display()),
-                result: OutputResult::ExecutedCommand,
-                data: Some(Data::ExerciseDesc(scan_result)),
-            });
+            let output = Output::finished_with_data(
+                format!("scanned exercise at {}", exercise_path.display()),
+                Data::ExerciseDesc(scan_result),
+            );
             print_output(&output, pretty, &warnings)?
         }
         _ => unreachable!("missing subcommand arm"),
@@ -825,12 +793,10 @@ fn run_core(
                 }
             }
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "updated exercises".to_string(),
-                result: OutputResult::RetrievedData,
-                data: Some(Data::UpdatedExercises(updated_exercises)),
-            });
+            let output = Output::finished_with_data(
+                "updated exercises",
+                Data::UpdatedExercises(updated_exercises),
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("download-model-solution", Some(matches)) => {
@@ -844,12 +810,7 @@ fn run_core(
                 .download_model_solution(solution_download_url, target)
                 .context("Failed to download model solution")?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "downloaded model solution".to_string(),
-                result: OutputResult::RetrievedData,
-                data: None,
-            });
+            let output = Output::finished_with_data("downloaded model solution", None);
             print_output(&output, pretty, &warnings)?
         }
         ("download-old-submission", Some(matches)) => {
@@ -890,12 +851,7 @@ fn run_core(
             task_executor::extract_student_files(temp_zip, &output_path)?;
             log::debug!("extracted project");
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "extracted project".to_string(),
-                result: OutputResult::ExecutedCommand,
-                data: None,
-            });
+            let output = Output::finished_with_data("extracted project", None);
             print_output(&output, pretty, &warnings)?
         }
         ("download-or-update-course-exercises", Some(matches)) => {
@@ -1010,12 +966,10 @@ fn run_core(
                 downloaded,
                 skipped,
             };
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "downloaded or updated exercises".to_string(),
-                result: OutputResult::RetrievedData,
-                data: Some(Data::ExerciseDownload(data)),
-            });
+            let output = Output::finished_with_data(
+                "downloaded or updated exercises",
+                Data::ExerciseDownload(data),
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("download-or-update-exercises", Some(matches)) => {
@@ -1034,12 +988,7 @@ fn run_core(
                 .download_or_update_exercises(exercises)
                 .context("Failed to download exercises")?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "downloaded or updated exercises".to_string(),
-                result: OutputResult::RetrievedData,
-                data: None,
-            });
+            let output = Output::finished_with_data("downloaded or updated exercises", None);
             print_output(&output, pretty, &warnings)?
         }
         ("get-course-data", Some(matches)) => {
@@ -1061,12 +1010,10 @@ fn run_core(
                 settings,
             };
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "fetched course data".to_string(),
-                result: OutputResult::RetrievedData,
-                data: Some(Data::CombinedCourseData(Box::new(data))),
-            });
+            let output = Output::finished_with_data(
+                "fetched course data",
+                Data::CombinedCourseData(Box::new(data)),
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("get-course-details", Some(matches)) => {
@@ -1077,12 +1024,8 @@ fn run_core(
                 .get_course_details(course_id)
                 .context("Failed to get course details")?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "fetched course details".to_string(),
-                result: OutputResult::RetrievedData,
-                data: Some(Data::CourseDetails(details)),
-            });
+            let output =
+                Output::finished_with_data("fetched course details", Data::CourseDetails(details));
             print_output(&output, pretty, &warnings)?
         }
         ("get-course-exercises", Some(matches)) => {
@@ -1093,12 +1036,10 @@ fn run_core(
                 .get_course_exercises(course_id)
                 .context("Failed to get course")?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "fetched course exercises".to_string(),
-                result: OutputResult::RetrievedData,
-                data: Some(Data::CourseExercises(exercises)),
-            });
+            let output = Output::finished_with_data(
+                "fetched course exercises",
+                Data::CourseExercises(exercises),
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("get-course-settings", Some(matches)) => {
@@ -1109,12 +1050,8 @@ fn run_core(
                 .get_course(course_id)
                 .context("Failed to get course")?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "fetched course settings".to_string(),
-                result: OutputResult::RetrievedData,
-                data: Some(Data::CourseData(settings)),
-            });
+            let output =
+                Output::finished_with_data("fetched course settings", Data::CourseData(settings));
             print_output(&output, pretty, &warnings)?
         }
         ("get-courses", Some(matches)) => {
@@ -1124,12 +1061,7 @@ fn run_core(
                 .list_courses(organization_slug)
                 .context("Failed to get courses")?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "fetched courses".to_string(),
-                result: OutputResult::RetrievedData,
-                data: Some(Data::Courses(courses)),
-            });
+            let output = Output::finished_with_data("fetched courses", Data::Courses(courses));
             print_output(&output, pretty, &warnings)?
         }
         ("get-exercise-details", Some(matches)) => {
@@ -1140,12 +1072,10 @@ fn run_core(
                 .get_exercise_details(exercise_id)
                 .context("Failed to get course")?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "fetched exercise details".to_string(),
-                result: OutputResult::RetrievedData,
-                data: Some(Data::ExerciseDetails(course)),
-            });
+            let output = Output::finished_with_data(
+                "fetched exercise details",
+                Data::ExerciseDetails(course),
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("get-exercise-submissions", Some(matches)) => {
@@ -1156,12 +1086,10 @@ fn run_core(
                 .get_exercise_submissions_for_current_user(exercise_id)
                 .context("Failed to get submissions")?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "fetched exercise submissions".to_string(),
-                result: OutputResult::RetrievedData,
-                data: Some(Data::Submissions(submissions)),
-            });
+            let output = Output::finished_with_data(
+                "fetched exercise submissions",
+                Data::Submissions(submissions),
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("get-exercise-updates", Some(matches)) => {
@@ -1181,12 +1109,10 @@ fn run_core(
                 .get_exercise_updates(course_id, checksums)
                 .context("Failed to get exercise updates")?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "fetched exercise updates".to_string(),
-                result: OutputResult::RetrievedData,
-                data: Some(Data::UpdateResult(update_result)),
-            });
+            let output = Output::finished_with_data(
+                "fetched exercise updates",
+                Data::UpdateResult(update_result),
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("get-organization", Some(matches)) => {
@@ -1196,12 +1122,8 @@ fn run_core(
                 .get_organization(organization_slug)
                 .context("Failed to get organization")?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "fetched organization".to_string(),
-                result: OutputResult::RetrievedData,
-                data: Some(Data::Organization(org)),
-            });
+            let output =
+                Output::finished_with_data("fetched organization", Data::Organization(org));
             print_output(&output, pretty, &warnings)?
         }
         ("get-organizations", Some(_matches)) => {
@@ -1209,12 +1131,8 @@ fn run_core(
                 .get_organizations()
                 .context("Failed to get organizations")?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "fetched organizations".to_string(),
-                result: OutputResult::RetrievedData,
-                data: Some(Data::Organizations(orgs)),
-            });
+            let output =
+                Output::finished_with_data("fetched organizations", Data::Organizations(orgs));
             print_output(&output, pretty, &warnings)?
         }
         ("get-unread-reviews", Some(matches)) => {
@@ -1225,12 +1143,8 @@ fn run_core(
                 .get_unread_reviews(reviews_url)
                 .context("Failed to get unread reviews")?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "fetched unread reviews".to_string(),
-                result: OutputResult::LoggedOut,
-                data: Some(Data::Reviews(reviews)),
-            });
+            let output =
+                Output::finished_with_data("fetched unread reviews", Data::Reviews(reviews));
             print_output(&output, pretty, &warnings)?
         }
         ("logged-in", Some(_matches)) => {
@@ -1315,12 +1229,7 @@ fn run_core(
                 .mark_review_as_read(review_update_url.to_string())
                 .context("Failed to mark review as read")?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "marked review as read".to_string(),
-                result: OutputResult::SentData,
-                data: None,
-            });
+            let output = Output::finished_with_data("marked review as read", None);
             print_output(&output, pretty, &warnings)?
         }
         ("paste", Some(matches)) => {
@@ -1350,12 +1259,8 @@ fn run_core(
                 )
                 .context("Failed to get paste with comment")?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "sent paste".to_string(),
-                result: OutputResult::RetrievedData,
-                data: Some(Data::NewSubmission(new_submission)),
-            });
+            let output =
+                Output::finished_with_data("sent paste", Data::NewSubmission(new_submission));
             print_output(&output, pretty, &warnings)?
         }
         ("request-code-review", Some(matches)) => {
@@ -1385,12 +1290,10 @@ fn run_core(
                 )
                 .context("Failed to request code review")?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "requested code review".to_string(),
-                result: OutputResult::SentData,
-                data: Some(Data::NewSubmission(new_submission)),
-            });
+            let output = Output::finished_with_data(
+                "requested code review",
+                Data::NewSubmission(new_submission),
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("reset-exercise", Some(matches)) => {
@@ -1416,51 +1319,7 @@ fn run_core(
             // reset exercise
             client.reset(exercise_id, exercise_path)?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "reset exercise".to_string(),
-                result: OutputResult::ExecutedCommand,
-                data: None,
-            });
-            print_output(&output, pretty, &warnings)?
-        }
-        ("run-checkstyle", Some(matches)) => {
-            let exercise_path = matches.value_of("exercise-path").unwrap();
-            let exercise_path = Path::new(exercise_path);
-
-            let locale = matches.value_of("locale").unwrap();
-            let locale = into_locale(locale)?;
-
-            file_util::lock!(exercise_path);
-
-            let validation_result = client
-                .run_checkstyle(exercise_path, locale)
-                .context("Failed to run checkstyle")?;
-
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "ran checkstyle".to_string(),
-                result: OutputResult::ExecutedCommand,
-                data: validation_result.map(Data::StyleValidationResult),
-            });
-            print_output(&output, pretty, &warnings)?
-        }
-        ("run-tests", Some(matches)) => {
-            let exercise_path = matches.value_of("exercise-path").unwrap();
-            let exercise_path = Path::new(exercise_path);
-
-            file_util::lock!(exercise_path);
-
-            let run_result = client
-                .run_tests(exercise_path, warnings)
-                .context("Failed to run tests")?;
-
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "ran tests".to_string(),
-                result: OutputResult::ExecutedCommand,
-                data: Some(Data::TestResult(run_result)),
-            });
+            let output = Output::finished_with_data("reset exercise", None);
             print_output(&output, pretty, &warnings)?
         }
         ("send-feedback", Some(matches)) => {
@@ -1483,12 +1342,10 @@ fn run_core(
                 .send_feedback(feedback_url, feedback)
                 .context("Failed to send feedback")?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "sent feedback".to_string(),
-                result: OutputResult::SentData,
-                data: Some(Data::SubmissionFeedbackResponse(response)),
-            });
+            let output = Output::finished_with_data(
+                "sent feedback",
+                Data::SubmissionFeedbackResponse(response),
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("submit", Some(matches)) => {
@@ -1517,13 +1374,10 @@ fn run_core(
                 .context("Failed to submit")?;
 
             if dont_block {
-                let output = Output::OutputData(OutputData {
-                    status: Status::Finished,
-                    message: "submit exercise".to_string(),
-                    result: OutputResult::SentData,
-                    data: Some(Data::NewSubmission(new_submission)),
-                });
-
+                let output = Output::finished_with_data(
+                    "submit exercise",
+                    Data::NewSubmission(new_submission),
+                );
                 print_output(&output, pretty, &warnings)?
             } else {
                 // same as wait-for-submission
@@ -1532,12 +1386,10 @@ fn run_core(
                     .wait_for_submission(&submission_url)
                     .context("Failed while waiting for submissions")?;
 
-                let output = Output::OutputData(OutputData {
-                    status: Status::Finished,
-                    message: "submit exercise".to_string(),
-                    result: OutputResult::RetrievedData,
-                    data: Some(Data::SubmissionFinished(submission_finished)),
-                });
+                let output = Output::finished_with_data(
+                    "submit exercise",
+                    Data::SubmissionFinished(submission_finished),
+                );
                 print_output(&output, pretty, &warnings)?
             }
         }
@@ -1628,12 +1480,10 @@ fn run_core(
                 downloaded: downloaded_exercises,
                 skipped: skipped_exercises,
             };
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "downloaded or updated exercises".to_string(),
-                result: OutputResult::RetrievedData,
-                data: Some(Data::ExerciseDownload(data)),
-            });
+            let output = Output::finished_with_data(
+                "downloaded or updated exercises",
+                Data::ExerciseDownload(data),
+            );
             print_output(&output, pretty, &warnings)?
         }
         ("wait-for-submission", Some(matches)) => {
@@ -1643,12 +1493,10 @@ fn run_core(
                 .wait_for_submission(submission_url)
                 .context("Failed while waiting for submissions")?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                message: "finished waiting for submission".to_string(),
-                result: OutputResult::RetrievedData,
-                data: Some(Data::SubmissionFinished(submission_finished)),
-            });
+            let output = Output::finished_with_data(
+                "finished waiting for submission",
+                Data::SubmissionFinished(submission_finished),
+            );
             print_output(&output, pretty, &warnings)?
         }
         _ => unreachable!(),
@@ -1669,21 +1517,12 @@ fn run_settings(
         ("get", Some(matches)) => {
             let key = matches.value_of("setting").unwrap();
             let value: ConfigValue<'static> = tmc_config.get(key).into_owned();
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                result: OutputResult::RetrievedData,
-                message: "Retrieved value".to_string(),
-                data: Some(Data::ConfigValue(value)),
-            });
+            let output = Output::finished_with_data("retrieved value", Data::ConfigValue(value));
             print_output(&output, pretty, warnings)
         }
         ("list", Some(_)) => {
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                result: OutputResult::RetrievedData,
-                message: "Retrieved settings".to_string(),
-                data: Some(Data::TmcConfig(tmc_config)),
-            });
+            let output =
+                Output::finished_with_data("retrieved settings", Data::TmcConfig(tmc_config));
             print_output(&output, pretty, warnings)
         }
         ("migrate", Some(matches)) => {
@@ -1730,12 +1569,7 @@ fn run_settings(
             move_dir(exercise_path, &target_dir, pretty)?;
             course_config.save_to_projects_dir(&tmc_config.projects_dir)?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                result: OutputResult::ExecutedCommand,
-                message: "Migrated exercise".to_string(),
-                data: None,
-            });
+            let output = Output::finished_with_data("migrated exercise", None);
             print_output(&output, pretty, warnings)
         }
         ("move-projects-dir", Some(matches)) => {
@@ -1772,12 +1606,7 @@ fn run_settings(
             move_dir(&old_projects_dir, &target, pretty)?;
             tmc_config.save(client_name)?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                result: OutputResult::ExecutedCommand,
-                message: "Moved project directory".to_string(),
-                data: None,
-            });
+            let output = Output::finished_with_data("moved project directory", None);
             print_output(&output, pretty, warnings)
         }
         ("set", Some(matches)) => {
@@ -1798,23 +1627,13 @@ fn run_settings(
                 .with_context(|| format!("Failed to set {} to {}", key, value))?;
             tmc_config.save(client_name)?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                result: OutputResult::ExecutedCommand,
-                message: "Set setting".to_string(),
-                data: None,
-            });
+            let output = Output::finished_with_data("set setting", None);
             print_output(&output, pretty, warnings)
         }
         ("reset", Some(_)) => {
             TmcConfig::reset(client_name)?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                result: OutputResult::ExecutedCommand,
-                message: "Reset settings".to_string(),
-                data: None,
-            });
+            let output = Output::finished_with_data("reset settings", None);
             print_output(&output, pretty, warnings)
         }
         ("unset", Some(matches)) => {
@@ -1824,12 +1643,7 @@ fn run_settings(
                 .with_context(|| format!("Failed to unset {}", key))?;
             tmc_config.save(client_name)?;
 
-            let output = Output::OutputData(OutputData {
-                status: Status::Finished,
-                result: OutputResult::ExecutedCommand,
-                message: "Unset setting".to_string(),
-                data: None,
-            });
+            let output = Output::finished_with_data("unset setting", None);
             print_output(&output, pretty, warnings)
         }
         _ => unreachable!("validation error"),
