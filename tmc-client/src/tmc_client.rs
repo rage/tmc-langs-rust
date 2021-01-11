@@ -3,7 +3,7 @@ mod api;
 use crate::error::ClientError;
 use crate::request::*;
 use crate::response::*;
-use crate::{Language, RunResult, StyleValidationResult};
+use crate::Language;
 use oauth2::{
     basic::BasicClient, AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword,
     ResourceOwnerUsername, TokenUrl,
@@ -20,9 +20,7 @@ use std::sync::{
 use std::thread;
 use std::time::Duration;
 use tempfile::NamedTempFile;
-use tmc_langs_util::{
-    anyhow, file_util, progress_reporter::ProgressReporter, task_executor, FileIo,
-};
+use tmc_langs_util::{file_util, progress_reporter::ProgressReporter, task_executor, FileIo};
 use walkdir::WalkDir;
 
 pub type Token =

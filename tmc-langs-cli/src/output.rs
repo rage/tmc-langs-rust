@@ -77,7 +77,6 @@ pub enum Data {
     Reviews(Vec<Review>),
     Token(Token),
     NewSubmission(NewSubmission),
-    StyleValidationResult(StyleValidationResult),
     SubmissionFeedbackResponse(SubmissionFeedbackResponse),
     SubmissionFinished(SubmissionFinished),
     ConfigValue(ConfigValue<'static>),

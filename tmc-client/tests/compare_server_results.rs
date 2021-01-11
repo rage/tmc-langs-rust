@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use std::thread;
 use std::time::Duration;
 use tmc_client::{ClientError, Exercise, SubmissionProcessingStatus, SubmissionStatus, TmcClient};
-use tmc_langs_util::{Language, RunStatus};
+use tmc_langs_util::{task_executor, Language, RunStatus};
 use url::Url;
 
 const TMC_ROOT: &str = "https://tmc.mooc.fi/";
@@ -120,7 +120,7 @@ where
     downloader(submission_path.clone()).unwrap();
 
     log::debug!("testing locally {}", submission_path.display());
-    let test_results = client.run_tests(&submission_path, &mut vec![]).unwrap();
+    let test_results = task_executor::run_tests(&submission_path, &mut vec![]).unwrap();
     let expected = test_results.status;
     log::debug!("expecting {:?}", expected);
 
