@@ -63,7 +63,7 @@ fn main() {
         let sandbox_path = check_sandbox_err(&e);
         let error_output = Output::OutputData(OutputData {
             status: Status::Finished,
-            message: Some(message),
+            message,
             result: OutputResult::Error,
             data: Some(Data::Error {
                 kind,
@@ -75,9 +75,8 @@ fn main() {
             // have a flawed Serialize implementation, so better safe than sorry
             let output = Output::OutputData(OutputData {
                 status: Status::Crashed,
-                message: Some(err.to_string()),
+                message: err.to_string(),
                 result: OutputResult::Error,
-
                 data: None,
             });
             print_output(&output, pretty, &warnings).expect("this should never fail");
@@ -182,9 +181,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: Some("ran checkstyle".to_string()),
+                message: "ran checkstyle".to_string(),
                 result: OutputResult::ExecutedCommand,
-
                 data: check_result.map(Data::Validation),
             });
             print_output(&output, pretty, &warnings)?
@@ -201,9 +199,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: Some(format!("cleaned exercise at {}", exercise_path.display(),)),
+                message: format!("cleaned exercise at {}", exercise_path.display()),
                 result: OutputResult::ExecutedCommand,
-
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -234,13 +231,12 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: Some(format!(
+                message: format!(
                     "compressed project from {} to {}",
                     exercise_path.display(),
                     output_path.display()
-                )),
+                ),
                 result: OutputResult::ExecutedCommand,
-
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -306,12 +302,11 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: Some(format!(
+                message: format!(
                     "calculated free disk space for partition containing {}",
                     path.display()
-                )),
+                ),
                 result: OutputResult::ExecutedCommand,
-
                 data: Some(Data::FreeDiskSpace(free)),
             });
             print_output(&output, pretty, &warnings)?
@@ -332,13 +327,12 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: Some(format!(
+                message: format!(
                     "extracted project from {} to {}",
                     archive_path,
                     output_path.display()
-                )),
+                ),
                 result: OutputResult::ExecutedCommand,
-
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -353,9 +347,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: Some(format!("found {} available points", points.len())),
+                message: format!("found {} available points", points.len()),
                 result: OutputResult::ExecutedCommand,
-
                 data: Some(Data::AvailablePoints(points)),
             });
             print_output(&output, pretty, &warnings)?
@@ -384,9 +377,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: Some(format!("found exercises at {}", exercise_path.display(),)),
+                message: format!("found exercises at {}", exercise_path.display()),
                 result: OutputResult::ExecutedCommand,
-
                 data: Some(Data::Exercises(exercises)),
             });
             print_output(&output, pretty, &warnings)?
@@ -415,12 +407,11 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: Some(format!(
+                message: format!(
                     "created exercise packaging config from {}",
                     exercise_path.display(),
-                )),
+                ),
                 result: OutputResult::ExecutedCommand,
-
                 data: Some(Data::ExercisePackagingConfiguration(config)),
             });
             print_output(&output, pretty, &warnings)?
@@ -448,9 +439,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: Some(format!("listed local exercises for {}", course_slug,)),
+                message: format!("listed local exercises for {}", course_slug),
                 result: OutputResult::ExecutedCommand,
-
                 data: Some(Data::LocalExercises(local_exercises)),
             });
             print_output(&output, pretty, &warnings)?
@@ -473,13 +463,12 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: Some(format!(
+                message: format!(
                     "prepared solutions for {} at {}",
                     exercise_path.display(),
                     output_path.display()
-                )),
+                ),
                 result: OutputResult::ExecutedCommand,
-
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -502,13 +491,12 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: Some(format!(
+                message: format!(
                     "prepared stubs for {} at {}",
                     exercise_path.display(),
                     output_path.display()
-                )),
+                ),
                 result: OutputResult::ExecutedCommand,
-
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -579,13 +567,12 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: Some(format!(
+                message: format!(
                     "prepared submission for {} at {}",
                     submission_path.display(),
                     output_path.display()
-                )),
+                ),
                 result: OutputResult::ExecutedCommand,
-
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -679,9 +666,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: Some(format!("refreshed course {}", course_name)),
+                message: format!("refreshed course {}", course_name),
                 result: OutputResult::ExecutedCommand,
-
                 data: Some(Data::RefreshResult(refresh_result)),
             });
             print_output(&output, pretty, &warnings)?
@@ -732,9 +718,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: Some(format!("ran tests for {}", exercise_path.display(),)),
+                message: format!("ran tests for {}", exercise_path.display()),
                 result: OutputResult::ExecutedCommand,
-
                 data: Some(Data::TestResult(test_result)),
             });
             print_output(&output, pretty, &warnings)?
@@ -775,9 +760,8 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: Some(format!("scanned exercise at {}", exercise_path.display(),)),
+                message: format!("scanned exercise at {}", exercise_path.display()),
                 result: OutputResult::ExecutedCommand,
-
                 data: Some(Data::ExerciseDesc(scan_result)),
             });
             print_output(&output, pretty, &warnings)?
@@ -843,9 +827,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "updated exercises".to_string(),
                 result: OutputResult::RetrievedData,
-
                 data: Some(Data::UpdatedExercises(updated_exercises)),
             });
             print_output(&output, pretty, &warnings)?
@@ -863,9 +846,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "downloaded model solution".to_string(),
                 result: OutputResult::RetrievedData,
-
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -910,9 +892,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
-                result: OutputResult::RetrievedData,
-
+                message: "extracted project".to_string(),
+                result: OutputResult::ExecutedCommand,
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -1031,9 +1012,8 @@ fn run_core(
             };
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "downloaded or updated exercises".to_string(),
                 result: OutputResult::RetrievedData,
-
                 data: Some(Data::ExerciseDownload(data)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1056,9 +1036,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "downloaded or updated exercises".to_string(),
                 result: OutputResult::RetrievedData,
-
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -1084,9 +1063,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "fetched course data".to_string(),
                 result: OutputResult::RetrievedData,
-
                 data: Some(Data::CombinedCourseData(Box::new(data))),
             });
             print_output(&output, pretty, &warnings)?
@@ -1101,9 +1079,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "fetched course details".to_string(),
                 result: OutputResult::RetrievedData,
-
                 data: Some(Data::CourseDetails(details)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1118,9 +1095,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "fetched course exercises".to_string(),
                 result: OutputResult::RetrievedData,
-
                 data: Some(Data::CourseExercises(exercises)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1135,9 +1111,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "fetched course settings".to_string(),
                 result: OutputResult::RetrievedData,
-
                 data: Some(Data::CourseData(settings)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1151,9 +1126,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "fetched courses".to_string(),
                 result: OutputResult::RetrievedData,
-
                 data: Some(Data::Courses(courses)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1168,9 +1142,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "fetched exercise details".to_string(),
                 result: OutputResult::RetrievedData,
-
                 data: Some(Data::ExerciseDetails(course)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1185,9 +1158,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "fetched exercise submissions".to_string(),
                 result: OutputResult::RetrievedData,
-
                 data: Some(Data::Submissions(submissions)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1211,9 +1183,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "fetched exercise updates".to_string(),
                 result: OutputResult::RetrievedData,
-
                 data: Some(Data::UpdateResult(update_result)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1227,9 +1198,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "fetched organization".to_string(),
                 result: OutputResult::RetrievedData,
-
                 data: Some(Data::Organization(org)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1241,9 +1211,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "fetched organizations".to_string(),
                 result: OutputResult::RetrievedData,
-
                 data: Some(Data::Organizations(orgs)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1258,9 +1227,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "fetched unread reviews".to_string(),
                 result: OutputResult::LoggedOut,
-
                 data: Some(Data::Reviews(reviews)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1269,18 +1237,16 @@ fn run_core(
             if let Some(credentials) = credentials {
                 let output = Output::OutputData(OutputData {
                     status: Status::Finished,
-                    message: None,
+                    message: "currently logged in".to_string(),
                     result: OutputResult::LoggedIn,
-
                     data: Some(Data::Token(credentials.token())),
                 });
                 print_output(&output, pretty, &warnings)?
             } else {
                 let output = Output::OutputData(OutputData {
                     status: Status::Finished,
-                    message: None,
+                    message: "currently not logged in".to_string(),
                     result: OutputResult::NotLoggedIn,
-
                     data: None,
                 });
                 print_output(&output, pretty, &warnings)?
@@ -1323,9 +1289,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "logged in".to_string(),
                 result: OutputResult::LoggedIn,
-
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -1337,9 +1302,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "logged out".to_string(),
                 result: OutputResult::LoggedOut,
-
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -1353,9 +1317,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "marked review as read".to_string(),
                 result: OutputResult::SentData,
-
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -1389,9 +1352,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "sent paste".to_string(),
                 result: OutputResult::RetrievedData,
-
                 data: Some(Data::NewSubmission(new_submission)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1425,9 +1387,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "requested code review".to_string(),
                 result: OutputResult::SentData,
-
                 data: Some(Data::NewSubmission(new_submission)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1457,9 +1418,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "reset exercise".to_string(),
                 result: OutputResult::ExecutedCommand,
-
                 data: None,
             });
             print_output(&output, pretty, &warnings)?
@@ -1479,9 +1439,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "ran checkstyle".to_string(),
                 result: OutputResult::ExecutedCommand,
-
                 data: validation_result.map(Data::StyleValidationResult),
             });
             print_output(&output, pretty, &warnings)?
@@ -1498,9 +1457,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "ran tests".to_string(),
                 result: OutputResult::ExecutedCommand,
-
                 data: Some(Data::TestResult(run_result)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1527,9 +1485,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "sent feedback".to_string(),
                 result: OutputResult::SentData,
-
                 data: Some(Data::SubmissionFeedbackResponse(response)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1562,9 +1519,8 @@ fn run_core(
             if dont_block {
                 let output = Output::OutputData(OutputData {
                     status: Status::Finished,
-                    message: None,
+                    message: "submit exercise".to_string(),
                     result: OutputResult::SentData,
-
                     data: Some(Data::NewSubmission(new_submission)),
                 });
 
@@ -1578,9 +1534,8 @@ fn run_core(
 
                 let output = Output::OutputData(OutputData {
                     status: Status::Finished,
-                    message: None,
+                    message: "submit exercise".to_string(),
                     result: OutputResult::RetrievedData,
-
                     data: Some(Data::SubmissionFinished(submission_finished)),
                 });
                 print_output(&output, pretty, &warnings)?
@@ -1675,9 +1630,8 @@ fn run_core(
             };
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "downloaded or updated exercises".to_string(),
                 result: OutputResult::RetrievedData,
-
                 data: Some(Data::ExerciseDownload(data)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1691,9 +1645,8 @@ fn run_core(
 
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
-                message: None,
+                message: "finished waiting for submission".to_string(),
                 result: OutputResult::RetrievedData,
-
                 data: Some(Data::SubmissionFinished(submission_finished)),
             });
             print_output(&output, pretty, &warnings)?
@@ -1719,8 +1672,7 @@ fn run_settings(
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 result: OutputResult::RetrievedData,
-                message: Some("Retrieved value".to_string()),
-
+                message: "Retrieved value".to_string(),
                 data: Some(Data::ConfigValue(value)),
             });
             print_output(&output, pretty, warnings)
@@ -1729,8 +1681,7 @@ fn run_settings(
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 result: OutputResult::RetrievedData,
-                message: Some("Retrieved settings".to_string()),
-
+                message: "Retrieved settings".to_string(),
                 data: Some(Data::TmcConfig(tmc_config)),
             });
             print_output(&output, pretty, warnings)
@@ -1782,8 +1733,7 @@ fn run_settings(
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 result: OutputResult::ExecutedCommand,
-                message: Some("Migrated exercise".to_string()),
-
+                message: "Migrated exercise".to_string(),
                 data: None,
             });
             print_output(&output, pretty, warnings)
@@ -1825,8 +1775,7 @@ fn run_settings(
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 result: OutputResult::ExecutedCommand,
-                message: Some("Moved project directory".to_string()),
-
+                message: "Moved project directory".to_string(),
                 data: None,
             });
             print_output(&output, pretty, warnings)
@@ -1852,8 +1801,7 @@ fn run_settings(
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 result: OutputResult::ExecutedCommand,
-                message: Some("Set setting".to_string()),
-
+                message: "Set setting".to_string(),
                 data: None,
             });
             print_output(&output, pretty, warnings)
@@ -1864,8 +1812,7 @@ fn run_settings(
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 result: OutputResult::ExecutedCommand,
-                message: Some("Reset settings".to_string()),
-
+                message: "Reset settings".to_string(),
                 data: None,
             });
             print_output(&output, pretty, warnings)
@@ -1880,8 +1827,7 @@ fn run_settings(
             let output = Output::OutputData(OutputData {
                 status: Status::Finished,
                 result: OutputResult::ExecutedCommand,
-                message: Some("Unset setting".to_string()),
-
+                message: "Unset setting".to_string(),
                 data: None,
             });
             print_output(&output, pretty, warnings)

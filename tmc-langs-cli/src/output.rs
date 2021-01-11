@@ -28,11 +28,17 @@ pub enum Output {
     Warnings(Warnings),
 }
 
+impl Output {
+    pub fn finished_with_data(message: impl Into<String>, data: impl Into<Option<Data>>) -> Self {
+        todo!()
+    }
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct OutputData {
     pub status: Status,
-    pub message: Option<String>,
+    pub message: String,
     pub result: OutputResult,
     pub data: Option<Data>,
 }
@@ -189,7 +195,7 @@ mod test {
     fn output_data_none() {
         let output_data = Output::OutputData(OutputData {
             status: Status::Finished,
-            message: None,
+            message: "output with no data".to_string(),
             result: OutputResult::ExecutedCommand,
             data: None,
         });
@@ -202,7 +208,7 @@ mod test {
     fn output_data_error() {
         let output_data = Output::OutputData(OutputData {
             status: Status::Finished,
-            message: None,
+            message: "errored!".to_string(),
             result: OutputResult::Error,
             data: Some(Data::Error {
                 kind: Kind::Generic,
@@ -218,7 +224,7 @@ mod test {
     fn output_data_dl() {
         let output_data = Output::OutputData(OutputData {
             status: Status::Finished,
-            message: None,
+            message: "downloaded things".to_string(),
             result: OutputResult::ExecutedCommand,
             data: Some(Data::ExerciseDownload(
                 DownloadOrUpdateCourseExercisesResult {
