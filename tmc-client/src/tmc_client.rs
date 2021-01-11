@@ -814,6 +814,7 @@ mod test {
     fn init() -> (TmcClient, String) {
         use log::*;
         use simple_logger::*;
+
         let _ = SimpleLogger::new()
             .with_level(LevelFilter::Debug)
             // mockito does some logging
@@ -1023,16 +1024,6 @@ mod test {
     }
 
     #[test]
-    fn runs_checkstyle() {
-        // todo, just calls task executor
-    }
-
-    #[test]
-    fn runs_tests() {
-        // todo, just calls task executor
-    }
-
-    #[test]
     fn sends_feedback() {
         let (client, url) = init();
         let feedback_url = Url::parse(&format!("{}/feedback", url)).unwrap();
@@ -1219,8 +1210,9 @@ mod test {
         assert_eq!(update_result.updated[0].checksum, "zz");
     }
 
-    //#[test]
-    fn _marks_review_as_read() {
+    #[test]
+    #[ignore]
+    fn marks_review_as_read() {
         // todo
         let (client, addr) = init();
         let update_url = Url::parse(&addr).unwrap().join("update-url").unwrap();

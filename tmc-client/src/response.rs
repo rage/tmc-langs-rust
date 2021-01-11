@@ -448,7 +448,17 @@ mod test {
     fn init() {
         use log::*;
         use simple_logger::*;
-        let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
+        // the module levels must be set here too for some reason,
+        // even though this module does not use mockito etc.
+        let _ = SimpleLogger::new()
+            .with_level(LevelFilter::Debug)
+            // mockito does some logging
+            .with_module_level("mockito", LevelFilter::Warn)
+            // reqwest does a lot of logging
+            .with_module_level("reqwest", LevelFilter::Warn)
+            // hyper does a lot of logging
+            .with_module_level("hyper", LevelFilter::Warn)
+            .init();
     }
 
     #[test]
