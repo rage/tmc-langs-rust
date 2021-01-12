@@ -318,7 +318,7 @@ impl LanguagePlugin for Python3Plugin {
         vec![PathBuf::from("test"), PathBuf::from("tmc")]
     }
 
-    fn points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str> {
+    fn points_parser(i: &str) -> IResult<&str, &str> {
         combinator::map(
             sequence::delimited(
                 sequence::tuple((

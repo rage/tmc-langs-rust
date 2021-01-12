@@ -102,7 +102,7 @@ impl LanguagePlugin for NoTestsPlugin {
         vec![PathBuf::from("test")]
     }
 
-    fn points_parser<'a>(_: &'a str) -> IResult<&'a str, &'a str> {
+    fn points_parser(_: &str) -> IResult<&str, &str> {
         Ok(("", ""))
     }
 }

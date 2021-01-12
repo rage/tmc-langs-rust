@@ -151,7 +151,7 @@ impl LanguagePlugin for RPlugin {
         vec![PathBuf::from("tests")]
     }
 
-    fn points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str> {
+    fn points_parser(i: &str) -> IResult<&str, &str> {
         combinator::map(
             sequence::delimited(
                 sequence::tuple((
@@ -414,7 +414,10 @@ test("sample", c("r1.1"), {
             if let Some(cmd_error) =
                 inner.downcast_ref::<tmc_langs_framework::error::CommandError>()
             {
-                if matches!(cmd_error, tmc_langs_framework::error::CommandError::TimeOut {..}) {
+                if matches!(
+                    cmd_error,
+                    tmc_langs_framework::error::CommandError::TimeOut { .. }
+                ) {
                     return;
                 }
             }

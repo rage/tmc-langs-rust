@@ -254,7 +254,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
     }
 
     /// Parses @Points("1.1") point annotations.
-    fn java_points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str> {
+    fn java_points_parser(i: &str) -> IResult<&str, &str> {
         combinator::map(
             sequence::delimited(
                 sequence::tuple((

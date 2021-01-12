@@ -127,7 +127,7 @@ impl LanguagePlugin for AntPlugin {
         Ok(())
     }
 
-    fn points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str> {
+    fn points_parser(i: &str) -> IResult<&str, &str> {
         Self::java_points_parser(i)
     }
 
@@ -569,7 +569,10 @@ mod test {
             if let Some(cmd_error) =
                 inner.downcast_ref::<tmc_langs_framework::error::CommandError>()
             {
-                if matches!(cmd_error, tmc_langs_framework::error::CommandError::TimeOut {..}) {
+                if matches!(
+                    cmd_error,
+                    tmc_langs_framework::error::CommandError::TimeOut { .. }
+                ) {
                     return;
                 }
             }

@@ -926,7 +926,7 @@ fn run_core(
             let download_result = client.download_or_update_exercises(exercises_and_paths);
             let (downloaded, failed) = match download_result {
                 Ok(_) => {
-                    let downloaded = to_be_downloaded.into_iter().map(|(k, v)| v).collect();
+                    let downloaded = to_be_downloaded.into_iter().map(|(_, v)| v).collect();
                     let failed = vec![];
                     (downloaded, failed)
                 }
@@ -989,7 +989,7 @@ fn run_core(
                 // add an error trace to each failed download
                 let failed = failed
                     .into_iter()
-                    .map(|((ex, id, checksum), err)| {
+                    .map(|((ex, ..), err)| {
                         let mut error = &err as &dyn StdError;
                         let mut chain = vec![error.to_string()];
                         while let Some(source) = error.source() {
@@ -1438,7 +1438,7 @@ fn run_core(
             }
         }
         ("update-exercises", Some(_)) => {
-            let mut exercises_to_update = vec![];
+            let exercises_to_update = vec![];
             let mut to_be_downloaded = vec![];
             let mut to_be_skipped = vec![];
             let mut course_data = HashMap::<String, Vec<(String, String, usize)>>::new();

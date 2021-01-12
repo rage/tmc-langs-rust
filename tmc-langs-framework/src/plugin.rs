@@ -482,7 +482,7 @@ pub trait LanguagePlugin {
     /// A nom parser that recognizes a points annotation and returns the inner points value.
     ///
     /// For example implementations, see the existing language plugins.
-    fn points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str>;
+    fn points_parser(i: &str) -> IResult<&str, &str>;
 }
 
 #[derive(Debug, Clone)]
