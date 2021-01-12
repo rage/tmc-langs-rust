@@ -122,7 +122,7 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
 
         // check for download failed error
         if let Some(DownloadsFailedError {
-            completed,
+            downloaded: completed,
             skipped,
             failed,
         }) = cause.downcast_ref::<DownloadsFailedError>()
@@ -868,11 +868,16 @@ fn run_core(
             let projects_dir = TmcConfig::load(client_name)?.projects_dir;
             let mut projects_config = ProjectsConfig::load(&projects_dir)?;
 
-            let mut course_data = HashMap::<String, Vec<(String, String, usize)>>::new();
-            let mut exercises_and_paths = vec![];
-            let mut downloaded = vec![];
-            let mut skipped = vec![];
+            // separate downloads into ones that don't need to be downloaded and ones that do
+            let mut to_be_downloaded = HashMap::new();
+            let mut to_be_skipped = vec![];
             for exercise_detail in exercises_details {
+                let target = ProjectsConfig::get_exercise_download_target(
+                    &projects_dir,
+                    &exercise_detail.course_name,
+                    &exercise_detail.exercise_name,
+                );
+
                 // check if the checksum is different from what's already on disk
                 if let Some(course_config) =
                     projects_config.courses.get(&exercise_detail.course_name)
@@ -888,68 +893,84 @@ fn run_core(
                                 exercise_detail.course_name,
                                 exercise_detail.exercise_name
                             );
-                            skipped.push(DownloadOrUpdateCourseExercise {
+                            to_be_skipped.push(DownloadOrUpdateCourseExercise {
                                 course_slug: exercise_detail.course_name,
                                 exercise_slug: exercise_detail.exercise_name,
+                                path: target,
                             });
                             continue;
                         }
                     }
                 }
-                // not skipped, will be downloaded
-                // if any download fails, an error is returned instead, so it's ok to just push them to downloaded here
-                downloaded.push(DownloadOrUpdateCourseExercise {
-                    course_slug: exercise_detail.course_name.clone(),
-                    exercise_slug: exercise_detail.exercise_name.clone(),
-                });
-
-                let target = ProjectsConfig::get_exercise_download_target(
-                    &projects_dir,
-                    &exercise_detail.course_name,
-                    &exercise_detail.exercise_name,
-                );
-
-                let entry = course_data.entry(exercise_detail.course_name);
-                let course_exercises = entry.or_default();
-                course_exercises.push((
-                    exercise_detail.exercise_name,
-                    exercise_detail.checksum,
+                // not skipped, should be downloaded
+                // also store id and checksum to be used later
+                to_be_downloaded.insert(
                     exercise_detail.id,
-                ));
-
-                exercises_and_paths.push((exercise_detail.id, target));
+                    (
+                        DownloadOrUpdateCourseExercise {
+                            course_slug: exercise_detail.course_name.clone(),
+                            exercise_slug: exercise_detail.exercise_name.clone(),
+                            path: target,
+                        },
+                        exercise_detail.id,
+                        exercise_detail.checksum,
+                    ),
+                );
             }
 
-            if let Err(error) = client.download_or_update_exercises(exercises_and_paths) {
-                // check for incomplete download result
-                if let ClientError::IncompleteDownloadResult { downloaded, failed } = error {
-                    anyhow::bail!(DownloadsFailedError {
-                        completed: downloaded,
-                        skipped: vec![],
-                        failed: failed
-                            .into_iter()
-                            .map(|e| {
-                                let mut error = &e.1 as &dyn StdError;
-                                let mut chain = vec![error.to_string()];
-                                while let Some(source) = error.source() {
-                                    chain.push(source.to_string());
-                                    error = source;
-                                }
-                                (e.0, chain)
-                            })
-                            .collect(),
-                    })
-                } else {
+            // download and divide the results into successful and failed downloads
+            let exercises_and_paths = to_be_downloaded
+                .iter()
+                .map(|(id, (ex, ..))| (*id, ex.path.clone()))
+                .collect();
+            let download_result = client.download_or_update_exercises(exercises_and_paths);
+            let (downloaded, failed) = match download_result {
+                Ok(_) => {
+                    let downloaded = to_be_downloaded.into_iter().map(|(k, v)| v).collect();
+                    let failed = vec![];
+                    (downloaded, failed)
+                }
+                Err(ClientError::IncompleteDownloadResult { downloaded, failed }) => {
+                    let downloaded = downloaded
+                        .iter()
+                        .map(|id| to_be_downloaded.remove(id).unwrap())
+                        .collect::<Vec<_>>();
+                    let failed = failed
+                        .into_iter()
+                        .map(|(id, e)| (to_be_downloaded.remove(&id).unwrap(), e))
+                        .collect::<Vec<_>>();
+                    (downloaded, failed)
+                }
+                Err(error) => {
                     anyhow::bail!(error)
                 }
+            };
+
+            /*
+            let entry = course_data.entry(exercise_detail.course_name);
+            let course_exercises = entry.or_default();
+            course_exercises.push((
+                exercise_detail.exercise_name,
+                exercise_detail.checksum,
+                exercise_detail.id,
+            ));
+
+            exercises_and_paths.push((exercise_detail.id, target));
+            */
+
+            // turn the downloaded exercises into a hashmap with the course as key
+            let mut course_data = HashMap::<String, Vec<(String, String, usize)>>::new();
+            for (download, id, checksum) in &downloaded {
+                let entry = course_data.entry(download.course_slug.clone());
+                let course_exercises = entry.or_default();
+                course_exercises.push((download.exercise_slug.clone(), checksum.clone(), *id));
             }
-
+            // update/create the course configs that contain downloaded or updated exercises
             for (course_name, exercise_names) in course_data {
-                let mut exercises = BTreeMap::new();
-                for (exercise_name, checksum, id) in exercise_names {
-                    exercises.insert(exercise_name, Exercise { id, checksum });
-                }
-
+                let exercises = exercise_names
+                    .into_iter()
+                    .map(|(name, checksum, id)| (name, Exercise { id, checksum }))
+                    .collect();
                 if let Some(course_config) = projects_config.courses.get_mut(&course_name) {
                     course_config.exercises.extend(exercises);
                     course_config.save_to_projects_dir(&projects_dir)?;
@@ -962,9 +983,32 @@ fn run_core(
                 };
             }
 
+            let completed = downloaded.into_iter().map(|d| d.0).collect();
+            // return an error if any downloads failed
+            if !failed.is_empty() {
+                // add an error trace to each failed download
+                let failed = failed
+                    .into_iter()
+                    .map(|((ex, id, checksum), err)| {
+                        let mut error = &err as &dyn StdError;
+                        let mut chain = vec![error.to_string()];
+                        while let Some(source) = error.source() {
+                            chain.push(source.to_string());
+                            error = source;
+                        }
+                        (ex, chain)
+                    })
+                    .collect();
+                anyhow::bail!(DownloadsFailedError {
+                    downloaded: completed,
+                    skipped: to_be_skipped,
+                    failed,
+                })
+            }
+
             let data = DownloadOrUpdateCourseExercisesResult {
-                downloaded,
-                skipped,
+                downloaded: completed,
+                skipped: to_be_skipped,
             };
             let output = Output::finished_with_data(
                 "downloaded or updated exercises",
@@ -1395,8 +1439,8 @@ fn run_core(
         }
         ("update-exercises", Some(_)) => {
             let mut exercises_to_update = vec![];
-            let mut downloaded_exercises = vec![];
-            let mut skipped_exercises = vec![];
+            let mut to_be_downloaded = vec![];
+            let mut to_be_skipped = vec![];
             let mut course_data = HashMap::<String, Vec<(String, String, usize)>>::new();
 
             let projects_dir = TmcConfig::load(client_name)?.projects_dir;
@@ -1425,13 +1469,13 @@ fn run_core(
                                 local_exercise.id
                             )
                         })?;
+                    let target = ProjectsConfig::get_exercise_download_target(
+                        &projects_dir,
+                        &server_exercise.course_name,
+                        &server_exercise.exercise_name,
+                    );
                     if server_exercise.checksum != local_exercise.checksum {
                         // server has an updated exercise
-                        let target = ProjectsConfig::get_exercise_download_target(
-                            &projects_dir,
-                            &server_exercise.course_name,
-                            &server_exercise.exercise_name,
-                        );
                         let exercise_list = course_data
                             .entry(server_exercise.course_name.clone())
                             .or_default();
@@ -1440,15 +1484,16 @@ fn run_core(
                             server_exercise.checksum.clone(),
                             server_exercise.id,
                         ));
-                        exercises_to_update.push((local_exercise.id, target));
-                        downloaded_exercises.push(DownloadOrUpdateCourseExercise {
+                        to_be_downloaded.push(DownloadOrUpdateCourseExercise {
                             course_slug: server_exercise.course_name.clone(),
                             exercise_slug: server_exercise.exercise_name.clone(),
+                            path: target,
                         });
                     } else {
-                        skipped_exercises.push(DownloadOrUpdateCourseExercise {
+                        to_be_skipped.push(DownloadOrUpdateCourseExercise {
                             course_slug: server_exercise.course_name.clone(),
                             exercise_slug: server_exercise.exercise_name.clone(),
+                            path: target,
                         });
                     }
                 }
@@ -1477,8 +1522,8 @@ fn run_core(
             }
 
             let data = DownloadOrUpdateCourseExercisesResult {
-                downloaded: downloaded_exercises,
-                skipped: skipped_exercises,
+                downloaded: to_be_downloaded,
+                skipped: to_be_skipped,
             };
             let output = Output::finished_with_data(
                 "downloaded or updated exercises",

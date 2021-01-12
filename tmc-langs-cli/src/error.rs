@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 use thiserror::Error;
 
+use crate::output::DownloadOrUpdateCourseExercise;
+
 #[derive(Debug, Error)]
 #[error("Invalid token. Deleted credentials file")]
 pub struct InvalidTokenError {
@@ -17,7 +19,7 @@ pub struct SandboxTestError {
 #[derive(Debug, Error)]
 #[error("Failed to download one or more exercises")]
 pub struct DownloadsFailedError {
-    pub completed: Vec<usize>,
-    pub skipped: Vec<usize>,
-    pub failed: Vec<(usize, Vec<String>)>,
+    pub downloaded: Vec<DownloadOrUpdateCourseExercise>,
+    pub skipped: Vec<DownloadOrUpdateCourseExercise>,
+    pub failed: Vec<(DownloadOrUpdateCourseExercise, Vec<String>)>,
 }

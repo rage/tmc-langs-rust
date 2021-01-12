@@ -127,9 +127,9 @@ pub enum Kind {
     InvalidToken,
     /// Failed to download some or all exercises
     FailedExerciseDownload {
-        completed: Vec<usize>,
-        skipped: Vec<usize>,
-        failed: Vec<(usize, Vec<String>)>,
+        completed: Vec<DownloadOrUpdateCourseExercise>,
+        skipped: Vec<DownloadOrUpdateCourseExercise>,
+        failed: Vec<(DownloadOrUpdateCourseExercise, Vec<String>)>,
     },
 }
 
@@ -146,11 +146,12 @@ pub struct DownloadOrUpdateCourseExercisesResult {
     pub skipped: Vec<DownloadOrUpdateCourseExercise>,
 }
 
-#[derive(Debug, Serialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub struct DownloadOrUpdateCourseExercise {
     pub course_slug: String,
     pub exercise_slug: String,
+    pub path: PathBuf,
 }
 
 #[derive(Debug, Serialize, JsonSchema)]
@@ -189,7 +190,7 @@ impl Warnings {
 mod test {
     use super::*;
 
-    fn read(filename: &str) -> String {
+    fn read_api_file(filename: &str) -> String {
         std::fs::read_to_string(std::path::Path::new("api").join(filename)).unwrap()
     }
 
@@ -202,7 +203,7 @@ mod test {
             data: None,
         });
         let actual = serde_json::to_string_pretty(&output_data).unwrap();
-        let expected = read("output-data-none.json");
+        let expected = read_api_file("output-data-none.json");
         assert_eq!(actual, expected);
     }
 
@@ -218,7 +219,7 @@ mod test {
             }),
         });
         let actual = serde_json::to_string_pretty(&output_data).unwrap();
-        let expected = read("output-data-error.json");
+        let expected = read_api_file("output-data-error.json");
         assert_eq!(actual, expected);
     }
 
@@ -234,21 +235,24 @@ mod test {
                         DownloadOrUpdateCourseExercise {
                             course_slug: "some course".to_string(),
                             exercise_slug: "some exercise".to_string(),
+                            path: PathBuf::from("some path"),
                         },
                         DownloadOrUpdateCourseExercise {
                             course_slug: "some course".to_string(),
                             exercise_slug: "another exercise".to_string(),
+                            path: PathBuf::from("another path"),
                         },
                     ],
                     skipped: vec![DownloadOrUpdateCourseExercise {
                         course_slug: "another course".to_string(),
                         exercise_slug: "some skipped exercise".to_string(),
+                        path: PathBuf::from("third path"),
                     }],
                 },
             )),
         });
         let actual = serde_json::to_string_pretty(&output_data).unwrap();
-        let expected = read("output-data-download-or-update.json");
+        let expected = read_api_file("output-data-download-or-update.json");
         assert_eq!(actual, expected);
     }
 
@@ -266,7 +270,7 @@ mod test {
                 time: Some(2000),
             }));
         let actual = serde_json::to_string_pretty(&status_update).unwrap();
-        let expected = read("status-update.json");
+        let expected = read_api_file("status-update.json");
         assert_eq!(actual, expected);
     }
 
@@ -276,7 +280,7 @@ mod test {
             warnings: vec!["warning 1".to_string(), "warning 2".to_string()],
         });
         let actual = serde_json::to_string_pretty(&status_update).unwrap();
-        let expected = read("warnings.json");
+        let expected = read_api_file("warnings.json");
         assert_eq!(actual, expected);
     }
 }
