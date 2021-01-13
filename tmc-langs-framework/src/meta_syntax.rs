@@ -110,11 +110,13 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
     type Item = Result<MetaString, TmcError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let mut s = String::new();
-        match self.reader.read_line(&mut s) {
+        let mut raw_string_buffer: Vec<u8> = Vec::new();
+
+        match self.reader.read_until(b'\n', &mut raw_string_buffer) {
             // read 0 bytes = reader empty = iterator empty
             Ok(0) => None,
             Ok(_) => {
+                let mut s = String::from_utf8_lossy(&raw_string_buffer).to_string();
                 // check line with each meta syntax
                 for meta_syntax in self.meta_syntaxes {
                     // check for stub
