@@ -138,6 +138,8 @@ pub enum FileIo {
     NoFileName(PathBuf),
     #[error("Expected {0} to be a directory, but it was a file")]
     UnexpectedFile(PathBuf),
+    #[error("Expected {0} to be a file")]
+    UnexpectedNonFile(PathBuf),
 
     #[error("Directory walk error")]
     Walkdir(#[from] walkdir::Error),
