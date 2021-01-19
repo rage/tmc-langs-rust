@@ -6,11 +6,16 @@
 use crate::error::FileIo;
 use crate::file_util::*;
 use fd_lock::{FdLock, FdLockGuard};
+use std::os::windows::fs::OpenOptionsExt;
 use std::path::PathBuf;
 use std::{borrow::Cow, io::ErrorKind};
 use std::{
     fs::OpenOptions,
     time::{Duration, Instant},
+};
+use winapi::um::{
+    winbase::FILE_FLAG_DELETE_ON_CLOSE,
+    winnt::{FILE_ATTRIBUTE_HIDDEN, FILE_ATTRIBUTE_TEMPORARY},
 };
 
 #[macro_export]
@@ -56,9 +61,8 @@ impl FileLock {
             let lock = self.lock.as_mut().unwrap();
             let guard = lock.lock().unwrap();
             Ok(FileLockGuard {
-                _guard: guard,
+                _guard: LockInner::FdLockGuard(guard),
                 path: Cow::Borrowed(&self.path),
-                is_lock_file: false,
             })
         } else if self.path.is_dir() {
             // for directories, we'll create/open a .tmc.lock file
@@ -66,30 +70,46 @@ impl FileLock {
             loop {
                 // try to create a new lock file
                 match OpenOptions::new()
+                    // needed for create_new
                     .write(true)
+                    // only creates file if it exists, check and creation are atomic
                     .create_new(true)
+                    // hidden, so it won't be a problem when going through the directory
+                    .attributes(FILE_ATTRIBUTE_HIDDEN)
+                    // just tells windows there's probably no point in writing this to disk;
+                    // this might further reduce the risk of leftover lock files
+                    .attributes(FILE_ATTRIBUTE_TEMPORARY)
+                    // windows deletes the lock file when the handle is closed = when the lock is dropped
+                    .custom_flags(FILE_FLAG_DELETE_ON_CLOSE)
                     .open(&lock_path)
                 {
                     Ok(file) => {
                         // was able to create a new lock file
-                        let lock = FdLock::new(file);
-                        self.lock = Some(lock);
-                        let lock = self.lock.as_mut().unwrap();
-                        let guard = lock.lock().unwrap();
                         return Ok(FileLockGuard {
-                            _guard: guard,
+                            _guard: LockInner::LockFile(file),
                             path: Cow::Owned(lock_path),
-                            is_lock_file: true,
                         });
                     }
                     Err(err) => {
                         if err.kind() == ErrorKind::AlreadyExists {
                             // lock file already exists, let's wait a little and try again
+                            // after 30 seconds, print a warning in the logs every 10 seconds
+                            // after 120 seconds, print an error in the logs every 10 seconds
                             if start_time.elapsed() > Duration::from_secs(30)
                                 && warning_timer.elapsed() > Duration::from_secs(10)
                             {
                                 warning_timer = Instant::now();
                                 log::warn!(
+                                    "The program has been waiting for lock file {} to be deleted for {} seconds,
+                                    the lock file might have been left over from a previous run due to an error.",
+                                    lock_path.display(),
+                                    start_time.elapsed().as_secs()
+                                );
+                            } else if start_time.elapsed() > Duration::from_secs(120)
+                                && warning_timer.elapsed() > Duration::from_secs(10)
+                            {
+                                warning_timer = Instant::now();
+                                log::error!(
                                     "The program has been waiting for lock file {} to be deleted for {} seconds,
                                     the lock file might have been left over from a previous run due to an error.",
                                     lock_path.display(),
@@ -105,30 +125,24 @@ impl FileLock {
                 }
             }
         } else {
-            return Err(FileIo::InvalidLockPath(self.path.to_path_buf()));
+            Err(FileIo::InvalidLockPath(self.path.to_path_buf()))
         }
     }
 }
 
 pub struct FileLockGuard<'a> {
-    _guard: FdLockGuard<'a, File>,
+    _guard: LockInner<'a>,
     path: Cow<'a, PathBuf>,
-    is_lock_file: bool,
+}
+
+enum LockInner<'a> {
+    LockFile(File),
+    FdLockGuard(FdLockGuard<'a, File>),
 }
 
 impl Drop for FileLockGuard<'_> {
     fn drop(&mut self) {
         log::debug!("unlocking {}", self.path.display());
-        if self.is_lock_file {
-            log::debug!("removing lock file");
-            if let Err(err) = remove_file(self.path.as_ref()) {
-                log::error!(
-                    "failed to remove lock file at {}: {}",
-                    self.path.display(),
-                    err
-                );
-            }
-        }
     }
 }
 
@@ -215,5 +229,19 @@ mod test {
         drop(guard);
         // wait for thread, if it panicked, it tried to lock the mutex without the file lock
         handle.join().unwrap();
+    }
+
+    #[test]
+    fn lock_file_is_created_and_is_deleted() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        let mut lock = FileLock::new(temp.path().to_path_buf()).unwrap();
+        let lock_path = temp.path().join(".tmc.lock");
+        assert!(!lock_path.exists());
+        let guard = lock.lock().unwrap();
+        assert!(lock_path.exists());
+        drop(guard);
+        assert!(!lock_path.exists());
     }
 }
