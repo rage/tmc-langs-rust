@@ -614,29 +614,6 @@ fn create_core_app() -> App<'static, 'static> {
                 .long("submission-url")
                 .takes_value(true)))
 
-        .subcommand(SubCommand::with_name("run-checkstyle")
-            .about("Checks the code style for the given exercise")
-            .long_about(schema_leaked::<Option<StyleValidationResult>>())
-            .arg(Arg::with_name("exercise-path")
-                .help("Path to the directory where the exercise resides.")
-                .long("exercise-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("locale")
-                .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")
-                .long("locale")
-                .required(true)
-                .takes_value(true)))
-
-        .subcommand(SubCommand::with_name("run-tests")
-            .about("Run tests")
-            .long_about(schema_leaked::<RunResult>())
-            .arg(Arg::with_name("exercise-path")
-                .help("Path to the directory where the exercise resides.")
-                .long("exercise-path")
-                .required(true)
-                .takes_value(true)))
-
         .subcommand(SubCommand::with_name("send-feedback")
             .about("Sends feedback for an exercise")
             .long_about(schema_leaked::<SubmissionFeedbackResponse>())
@@ -815,4 +792,519 @@ fn schema_leaked<T: JsonSchema>() -> &'static str {
         serde_json::to_string_pretty(&schema).unwrap()
     );
     Box::leak(Box::new(json))
+}
+
+#[cfg(test)]
+mod base_test {
+    use super::*;
+
+    fn get_matches(args: &[&str]) {
+        create_app().get_matches_from(&["tmc-langs-cli"].iter().chain(args).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn sanity() {
+        assert!(create_app()
+            .get_matches_from_safe(&["tmc-langs-cli", "checkstyle", "--non-existent-arg"])
+            .is_err());
+    }
+
+    #[test]
+    fn checkstyle() {
+        get_matches(&[
+            "checkstyle",
+            "--exercise-path",
+            "path",
+            "--locale",
+            "fi",
+            "--output-path",
+            "path",
+        ]);
+    }
+
+    #[test]
+    fn clean() {
+        get_matches(&["clean", "--exercise-path", "path"]);
+    }
+
+    #[test]
+    fn compress_project() {
+        get_matches(&[
+            "compress-project",
+            "--exercise-path",
+            "path",
+            "--output-path",
+            "path",
+        ]);
+    }
+
+    #[test]
+    fn disk_space() {
+        get_matches(&["disk-space", "--path", "path"]);
+    }
+
+    #[test]
+    fn extract_project() {
+        get_matches(&[
+            "extract-project",
+            "--archive-path",
+            "path",
+            "--output-path",
+            "path",
+        ]);
+    }
+
+    #[test]
+    fn fast_available_points() {
+        get_matches(&["fast-available-points", "--exercise-path", "path"]);
+    }
+
+    #[test]
+    fn find_exercises() {
+        get_matches(&[
+            "find-exercises",
+            "--exercise-path",
+            "path",
+            "--output-path",
+            "path",
+        ]);
+    }
+
+    #[test]
+    fn get_exercise_packaging_configuration() {
+        get_matches(&[
+            "get-exercise-packaging-configuration",
+            "--exercise-path",
+            "path",
+            "--output-path",
+            "path",
+        ]);
+    }
+
+    #[test]
+    fn list_local_course_exercises() {
+        get_matches(&[
+            "list-local-course-exercises",
+            "--client-name",
+            "client",
+            "--course-slug",
+            "slug",
+        ]);
+    }
+
+    #[test]
+    fn prepare_solutions() {
+        get_matches(&[
+            "prepare-solutions",
+            "--exercise-path",
+            "path",
+            "--output-path",
+            "path",
+        ]);
+    }
+
+    #[test]
+    fn prepare_stubs() {
+        get_matches(&[
+            "prepare-stubs",
+            "--exercise-path",
+            "path",
+            "--output-path",
+            "path",
+        ]);
+    }
+
+    #[test]
+    fn prepare_submission() {
+        get_matches(&[
+            "prepare-submission",
+            "--clone-path",
+            "path",
+            "--output-format",
+            "tar",
+            "--output-path",
+            "path",
+            "--stub-zip-path",
+            "path",
+            "--submission-path",
+            "path",
+            "--tmc-param",
+            "a=b",
+            "--tmc-param",
+            "c=d",
+        ]);
+    }
+
+    #[test]
+    fn refresh_course() {
+        get_matches(&[
+            "refresh-course",
+            "--cache-path",
+            "path",
+            "--cache-root",
+            "path",
+            "--chgrp-uid",
+            "1234",
+            "--chmod-bits",
+            "1234",
+            "--clone-path",
+            "path",
+            "--course-name",
+            "name",
+            "--exercise",
+            "name",
+            "path",
+            "10,11,12",
+            "--exercise",
+            "second",
+            "path",
+            "20,21,22",
+            "--git-branch",
+            "main",
+            "--no-background-operations",
+            "--no-directory-changes",
+            "--rails-root",
+            "path",
+            "--solution-path",
+            "path",
+            "--solution-zip-path",
+            "path",
+            "--source-backend",
+            "git",
+            "--source-url",
+            "example.com",
+            "--stub-path",
+            "path",
+            "--stub-zip-path",
+            "path",
+        ]);
+    }
+
+    #[test]
+    fn run_tests() {
+        get_matches(&[
+            "run-tests",
+            "--checkstyle-output-path",
+            "path",
+            "--exercise-path",
+            "path",
+            "--locale",
+            "fi",
+            "--output-path",
+            "path",
+        ]);
+    }
+
+    #[test]
+    fn scan_exercise() {
+        get_matches(&[
+            "scan-exercise",
+            "--exercise-path",
+            "path",
+            "--output-path",
+            "path",
+        ]);
+    }
+}
+
+#[cfg(test)]
+mod core_test {
+    use super::*;
+
+    fn get_matches_core(args: &[&str]) {
+        create_app().get_matches_from(
+            &[
+                "tmc-langs-cli",
+                "core",
+                "--client-name",
+                "client",
+                "--client-version",
+                "version",
+            ]
+            .iter()
+            .chain(args)
+            .collect::<Vec<_>>(),
+        );
+    }
+
+    #[test]
+    fn check_exercise_updates() {
+        get_matches_core(&["check-exercise-updates"]);
+    }
+
+    #[test]
+    fn download_model_solution() {
+        get_matches_core(&[
+            "download-model-solution",
+            "--solution-download-url",
+            "localhost",
+            "--target",
+            "path",
+        ]);
+    }
+
+    #[test]
+    fn download_old_submission() {
+        get_matches_core(&[
+            "download-old-submission",
+            "--save-old-state",
+            "--exercise-id",
+            "1234",
+            "--output-path",
+            "path",
+            "--submission-id",
+            "2345",
+            "--submission-url",
+            "localhost",
+        ]);
+    }
+
+    #[test]
+    fn download_or_update_course_exercises() {
+        get_matches_core(&[
+            "download-or-update-course-exercises",
+            "--exercise-id",
+            "1234",
+            "--exercise-id",
+            "2345",
+        ]);
+    }
+
+    #[test]
+    fn download_or_update_exercises() {
+        get_matches_core(&["download-or-update-exercises", "--exercise", "1234", "path"]);
+    }
+
+    #[test]
+    fn get_course_data() {
+        get_matches_core(&["get-course-data", "--course-id", "1234"]);
+    }
+
+    #[test]
+    fn get_course_details() {
+        get_matches_core(&["get-course-details", "--course-id", "1234"]);
+    }
+
+    #[test]
+    fn get_course_exercises() {
+        get_matches_core(&["get-course-exercises", "--course-id", "1234"]);
+    }
+
+    #[test]
+    fn get_course_settings() {
+        get_matches_core(&["get-course-settings", "--course-id", "1234"]);
+    }
+
+    #[test]
+    fn get_courses() {
+        get_matches_core(&["get-courses", "--organization", "org"]);
+    }
+
+    #[test]
+    fn get_exercise_details() {
+        get_matches_core(&["get-exercise-details", "--exercise-id", "1234"]);
+    }
+
+    #[test]
+    fn get_exercise_submissions() {
+        get_matches_core(&["get-exercise-submissions", "--exercise-id", "1234"]);
+    }
+
+    #[test]
+    fn get_exercise_updates() {
+        get_matches_core(&[
+            "get-exercise-updates",
+            "--course-id",
+            "1234",
+            "--exercise",
+            "1234",
+            "abcd",
+            "--exercise",
+            "2345",
+            "bcde",
+        ]);
+    }
+
+    #[test]
+    fn get_organization() {
+        get_matches_core(&["get-organization", "--organization", "org"]);
+    }
+
+    #[test]
+    fn get_organizations() {
+        get_matches_core(&["get-organizations"]);
+    }
+
+    #[test]
+    fn get_unread_reviews() {
+        get_matches_core(&["get-unread-reviews", "--reviews-url", "localhost"]);
+    }
+
+    #[test]
+    fn logged_in() {
+        get_matches_core(&["logged-in"]);
+    }
+
+    #[test]
+    fn login() {
+        get_matches_core(&[
+            "login",
+            "--base64",
+            "--email",
+            "email",
+            "--set-access-token",
+            "access token",
+        ]);
+    }
+
+    #[test]
+    fn logout() {
+        get_matches_core(&["logout"]);
+    }
+
+    #[test]
+    fn mark_review_as_read() {
+        get_matches_core(&["mark-review-as-read", "--review-update-url", "localhost"]);
+    }
+
+    #[test]
+    fn paste() {
+        get_matches_core(&[
+            "paste",
+            "--locale",
+            "fi",
+            "--paste-message",
+            "msg",
+            "--submission-path",
+            "path",
+            "--submission-url",
+            "localhost",
+        ]);
+    }
+
+    #[test]
+    fn request_code_review() {
+        get_matches_core(&[
+            "request-code-review",
+            "--locale",
+            "fi",
+            "--message-for-reviewer",
+            "msg",
+            "--submission-path",
+            "path",
+            "--submission-url",
+            "localhost",
+        ]);
+    }
+
+    #[test]
+    fn reset_exercise() {
+        get_matches_core(&[
+            "reset-exercise",
+            "--save-old-state",
+            "--exercise-id",
+            "1234",
+            "--exercise-path",
+            "path",
+            "--submission-url",
+            "localhost",
+        ]);
+    }
+
+    #[test]
+    fn send_feedback() {
+        get_matches_core(&[
+            "send-feedback",
+            "--feedback",
+            "1234",
+            "answer",
+            "--feedback-url",
+            "localhost",
+        ]);
+    }
+
+    #[test]
+    fn submit() {
+        get_matches_core(&[
+            "submit",
+            "--dont-block",
+            "--locale",
+            "fi",
+            "--submission-path",
+            "path",
+            "--submission-url",
+            "localhost",
+        ]);
+    }
+
+    #[test]
+    fn update_exercises() {
+        get_matches_core(&["update-exercises"]);
+    }
+
+    #[test]
+    fn wait_for_submission() {
+        get_matches_core(&["wait-for-submission", "--submission-url", "localhost"]);
+    }
+}
+
+#[cfg(test)]
+mod settings_test {
+    use super::*;
+
+    fn get_matches_settings(args: &[&str]) {
+        create_app().get_matches_from(
+            &["tmc-langs-cli", "settings", "--client-name", "client"]
+                .iter()
+                .chain(args)
+                .collect::<Vec<_>>(),
+        );
+    }
+
+    #[test]
+    fn get() {
+        get_matches_settings(&["get", "key"]);
+    }
+
+    #[test]
+    fn list() {
+        get_matches_settings(&["list"]);
+    }
+
+    #[test]
+    fn migrate() {
+        get_matches_settings(&[
+            "migrate",
+            "--exercise-path",
+            "path",
+            "--course-slug",
+            "slug",
+            "--exercise-id",
+            "1234",
+            "--exercise-slug",
+            "slug",
+            "--exercise-checksum",
+            "abcd",
+        ]);
+    }
+
+    #[test]
+    fn move_projects_dir() {
+        get_matches_settings(&["move-projects-dir", "path"]);
+    }
+
+    #[test]
+    fn reset() {
+        get_matches_settings(&["reset"]);
+    }
+
+    #[test]
+    fn set() {
+        get_matches_settings(&["set", "key", "json"]);
+    }
+
+    #[test]
+    fn unset() {
+        get_matches_settings(&["unset", "key"]);
+    }
 }

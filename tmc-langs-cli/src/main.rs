@@ -1271,7 +1271,7 @@ fn run_core(
             print_output(&output, pretty, &warnings)?
         }
         ("mark-review-as-read", Some(matches)) => {
-            let review_update_url = matches.value_of("reiew-update-url").unwrap();
+            let review_update_url = matches.value_of("review-update-url").unwrap();
 
             client
                 .mark_review_as_read(review_update_url.to_string())
