@@ -1,18 +1,16 @@
 //! File locking utilities on Windows.
 //!
 //! Windows directories can't be locked with fd-lock, so a different solution is needed.
-//! Currently, regular files are locked with fd-lock, but directories are opened in exclusive mode.
-//! This probably means the lock needs to be used with more care; deleting a locked directory is possible on Unix but not on Windows(?).
+//! Currently, regular files are locked with fd-lock, but for directories a .tmc.lock file is created.
 
 use crate::error::FileIo;
 use crate::file_util::*;
 use fd_lock::{FdLock, FdLockGuard};
-use std::fs::OpenOptions;
-use std::os::windows::fs::OpenOptionsExt;
 use std::path::PathBuf;
-use winapi::{
-    shared::winerror::ERROR_SHARING_VIOLATION,
-    um::{winbase::FILE_FLAG_BACKUP_SEMANTICS, winnt::GENERIC_READ},
+use std::{borrow::Cow, io::ErrorKind};
+use std::{
+    fs::OpenOptions,
+    time::{Duration, Instant},
 };
 
 #[macro_export]
@@ -47,55 +45,90 @@ impl FileLock {
     /// On Windows, directories cannot be locked, so we use a lock file instead.
     pub fn lock(&mut self) -> Result<FileLockGuard, FileIo> {
         log::debug!("locking {}", self.path.display());
+        let start_time = Instant::now();
+        let mut warning_timer = Instant::now();
 
         if self.path.is_file() {
             // for files, just use the path
             let file = open_file(&self.path)?;
             let lock = FdLock::new(file);
             self.lock = Some(lock);
-            let guard = self.lock.as_mut().unwrap().lock().unwrap();
-            Ok(FileLockGuard::File(guard, &self.path))
+            let lock = self.lock.as_mut().unwrap();
+            let guard = lock.lock().unwrap();
+            Ok(FileLockGuard {
+                _guard: guard,
+                path: Cow::Borrowed(&self.path),
+                is_lock_file: false,
+            })
         } else if self.path.is_dir() {
-            // for directories, we'll continuously try opening it in exclusive access mode
+            // for directories, we'll create/open a .tmc.lock file
+            let lock_path = self.path.join(".tmc.lock");
             loop {
-                // try to create lock file
+                // try to create a new lock file
                 match OpenOptions::new()
-                    .access_mode(GENERIC_READ)
-                    .share_mode(0) // exclusive access = fail if another process has the file open (locked)
-                    .custom_flags(FILE_FLAG_BACKUP_SEMANTICS)
-                    .open(&self.path)
+                    .write(true)
+                    .create_new(true)
+                    .open(&lock_path)
                 {
-                    Ok(file) => return Ok(FileLockGuard::Dir(file, &self.path)), // succeeded in "locking" the dir
+                    Ok(file) => {
+                        // was able to create a new lock file
+                        let lock = FdLock::new(file);
+                        self.lock = Some(lock);
+                        let lock = self.lock.as_mut().unwrap();
+                        let guard = lock.lock().unwrap();
+                        return Ok(FileLockGuard {
+                            _guard: guard,
+                            path: Cow::Owned(lock_path),
+                            is_lock_file: true,
+                        });
+                    }
                     Err(err) => {
-                        let code = err.raw_os_error().unwrap();
-
-                        if code as u32 == ERROR_SHARING_VIOLATION {
-                            // file already opened in exclusive mode, wait for the other process
-                            std::thread::sleep(std::time::Duration::from_secs(2));
+                        if err.kind() == ErrorKind::AlreadyExists {
+                            // lock file already exists, let's wait a little and try again
+                            if start_time.elapsed() > Duration::from_secs(30)
+                                && warning_timer.elapsed() > Duration::from_secs(10)
+                            {
+                                warning_timer = Instant::now();
+                                log::warn!(
+                                    "The program has been waiting for lock file {} to be deleted for {} seconds,
+                                    the lock file might have been left over from a previous run due to an error.",
+                                    lock_path.display(),
+                                    start_time.elapsed().as_secs()
+                                );
+                            }
+                            std::thread::sleep(Duration::from_millis(500));
                         } else {
-                            todo!()
+                            // something else went wrong, propagate error
+                            return Err(FileIo::FileCreate(lock_path, err));
                         }
                     }
                 }
             }
         } else {
-            panic!("invalid path");
+            return Err(FileIo::InvalidLockPath(self.path.to_path_buf()));
         }
     }
 }
 
-pub enum FileLockGuard<'a> {
-    File(FdLockGuard<'a, File>, &'a Path), // file locked with fd-lock
-    Dir(File, &'a Path),                   // directory opened in exclusive access mode
+pub struct FileLockGuard<'a> {
+    _guard: FdLockGuard<'a, File>,
+    path: Cow<'a, PathBuf>,
+    is_lock_file: bool,
 }
 
 impl Drop for FileLockGuard<'_> {
     fn drop(&mut self) {
-        let path = match self {
-            Self::File(_, path) => path,
-            Self::Dir(_, path) => path,
-        };
-        log::debug!("unlocking {}", path.display());
+        log::debug!("unlocking {}", self.path.display());
+        if self.is_lock_file {
+            log::debug!("removing lock file");
+            if let Err(err) = remove_file(self.path.as_ref()) {
+                log::error!(
+                    "failed to remove lock file at {}: {}",
+                    self.path.display(),
+                    err
+                );
+            }
+        }
     }
 }
 
@@ -182,43 +215,5 @@ mod test {
         drop(guard);
         // wait for thread, if it panicked, it tried to lock the mutex without the file lock
         handle.join().unwrap();
-    }
-
-    /// on windows locking the directory means we open the directory in exclusive mode
-    /// this test is just to make sure it doesn't matter for the files inside the dir
-    #[test]
-    fn locking_dir_doesnt_lock_files() {
-        init();
-
-        let temp = tempfile::tempdir().unwrap();
-        let temp_path = temp.path();
-        let file_path = temp_path.join("some file");
-        std::fs::write(&file_path, "some contents").unwrap();
-        let mut lock = FileLock::new(temp_path.to_path_buf()).unwrap();
-        let mutex = Arc::new(Mutex::new(vec![]));
-
-        // take file lock and mutex
-        let guard = lock.lock().unwrap();
-        let mut mguard = mutex.try_lock().unwrap();
-
-        let handle = {
-            let file_path = file_path.clone();
-            std::thread::spawn(move || {
-                // we try to rewrite the file from another thread
-                std::fs::write(file_path, "new contents").unwrap();
-            })
-        };
-
-        // release locks and allow the thread to proceed
-        std::thread::sleep(std::time::Duration::from_millis(200));
-        mguard.push(1);
-
-        // release locks and allow the thread to proceed
-        drop(mguard);
-        drop(guard);
-        // wait for thread, if it panicked, it tried to lock the mutex without the file lock
-        handle.join().unwrap();
-
-        assert_eq!("new contents", read_file_to_string(file_path).unwrap());
     }
 }

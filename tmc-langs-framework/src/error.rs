@@ -144,6 +144,9 @@ pub enum FileIo {
     #[error("Directory walk error")]
     Walkdir(#[from] walkdir::Error),
 
+    #[error("Failed to lock {0}: not a file or directory")]
+    InvalidLockPath(PathBuf),
+
     // when there is no meaningful data that can be added to an error
     #[error("transparent")]
     Generic(#[from] std::io::Error),
