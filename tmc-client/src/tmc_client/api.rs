@@ -142,14 +142,8 @@ impl TmcClient {
         // todo use same code here and in json_res
         if !response.status().is_success() {
             let status = response.status();
-<<<<<<< HEAD
             if let Ok(err) = response.json::<ErrorResponse>() {
                 // failed and got an error json
-=======
-            let err: Result<ErrorResponse, _> = response.json();
-
-            if let Ok(err) = err {
->>>>>>> temp
                 let error = match (err.error, err.errors) {
                     (Some(err), Some(errs)) => format!("{}, {}", err, errs.join(",")),
                     (Some(err), None) => err,
@@ -163,18 +157,11 @@ impl TmcClient {
                     obsolete_client: err.obsolete_client,
                 })
             } else {
-<<<<<<< HEAD
                 // failed and failed to parse error json, return generic HTTP error
                 Err(ClientError::HttpError {
                     url,
                     status,
                     error: status.to_string(),
-=======
-                Err(ClientError::HttpError {
-                    url,
-                    status,
-                    error: "HTTP error".to_string(),
->>>>>>> temp
                     obsolete_client: false,
                 })
             }

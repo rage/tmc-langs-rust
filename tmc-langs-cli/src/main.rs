@@ -344,17 +344,19 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
             let exercise_path = Path::new(exercise_path);
 
             let output_path = matches.value_of("output-path");
+
             let output_path = output_path.map(Path::new);
 
-            file_util::lock!(exercise_path);
+            let exercises = {
+                file_util::lock!(exercise_path);
 
-            let exercises =
                 task_executor::find_exercise_directories(exercise_path).with_context(|| {
                     format!(
                         "Failed to find exercise directories in {}",
                         exercise_path.display(),
                     )
-                })?;
+                })?
+            };
 
             if let Some(output_path) = output_path {
                 file_util::lock!(output_path);
@@ -478,15 +480,15 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
             print_output(&output, pretty, &warnings)?
         }
         ("prepare-submission", Some(matches)) => {
+            let clone_path = matches.value_of("clone-path").unwrap();
+            let clone_path = Path::new(clone_path);
+
             let output_format = match matches.value_of("output-format") {
                 Some("tar") => OutputFormat::Tar,
                 Some("zip") => OutputFormat::Zip,
                 Some("zstd") => OutputFormat::TarZstd,
                 _ => unreachable!("validation error"),
             };
-
-            let clone_path = matches.value_of("clone-path").unwrap();
-            let clone_path = Path::new(clone_path);
 
             let output_path = matches.value_of("output-path").unwrap();
             let output_path = Path::new(output_path);
@@ -552,23 +554,25 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
             print_output(&output, pretty, &warnings)?
         }
         ("refresh-course", Some(matches)) => {
-            let course_name = matches.value_of("course-name").unwrap();
             let cache_path = matches.value_of("cache-path").unwrap();
+            let cache_root = matches.value_of("cache-root").unwrap();
+            let chgrp_uid = matches.value_of("chgrp-uid");
+            let chmod_bits = matches.value_of("chmod-bits");
             let clone_path = matches.value_of("clone-path").unwrap();
-            let stub_path = matches.value_of("stub-path").unwrap();
-            let stub_zip_path = matches.value_of("stub-zip-path").unwrap();
+            let course_name = matches.value_of("course-name").unwrap();
+
+            let exercise_args = matches.values_of("exercise");
+            let git_branch = matches.value_of("git-branch").unwrap();
+            let no_background_operations = matches.is_present("no-background-operations");
+            let no_directory_changes = matches.is_present("no-directory-changes");
+            let rails_root = matches.value_of("rails-root").unwrap();
+
             let solution_path = matches.value_of("solution-path").unwrap();
             let solution_zip_path = matches.value_of("solution-zip-path").unwrap();
-            let exercise_args = matches.values_of("exercise");
             let source_backend = matches.value_of("source-backend").unwrap();
             let source_url = matches.value_of("source-url").unwrap();
-            let git_branch = matches.value_of("git-branch").unwrap();
-            let no_directory_changes = matches.is_present("no-directory-changes");
-            let no_background_operations = matches.is_present("no-background-operations");
-            let chmod_bits = matches.value_of("chmod-bits");
-            let chgrp_uid = matches.value_of("chgrp-uid");
-            let cache_root = matches.value_of("cache-root").unwrap();
-            let rails_root = matches.value_of("rails-root").unwrap();
+            let stub_path = matches.value_of("stub-path").unwrap();
+            let stub_zip_path = matches.value_of("stub-zip-path").unwrap();
 
             let mut exercises = vec![];
             if let Some(mut exercise_args) = exercise_args {
