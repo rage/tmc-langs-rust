@@ -1,14 +1,20 @@
 //! Various utility functions, primarily wrapping the standard library's IO and filesystem functions
 
 use crate::error::FileIo;
-use fd_lock::{FdLock, FdLockGuard};
+use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::Path;
-use std::{
-    fs::{self, File},
-    path::PathBuf,
-};
 use walkdir::WalkDir;
+
+#[cfg(unix)]
+mod lock_unix;
+#[cfg(unix)]
+pub use lock_unix::*;
+
+#[cfg(windows)]
+mod lock_windows;
+#[cfg(windows)]
+pub use lock_windows::*;
 
 pub fn temp_file() -> Result<File, FileIo> {
     tempfile::tempfile().map_err(FileIo::TempFile)
@@ -165,64 +171,6 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
         }
     }
     Ok(())
-}
-
-#[macro_export]
-macro_rules! lock {
-    ( $( $path: expr ),+ ) => {
-        $(
-            let path_buf: PathBuf = $path.into();
-            let mut fl = $crate::file_util::FileLock::new(path_buf)?;
-            let _lock = fl.lock()?;
-        )*
-    };
-}
-// macros always live at the top-level, re-export here
-pub use crate::lock;
-
-/// Wrapper for fd_lock::FdLock. Used to lock files/directories to prevent concurrent access
-/// from multiple instances of tmc-langs.
-// TODO: should this be in file_util or in the frontend (CLI)?
-pub struct FileLock {
-    path: PathBuf,
-    fd_lock: FdLock<File>,
-}
-
-impl FileLock {
-    pub fn new(path: PathBuf) -> Result<FileLock, FileIo> {
-        let file = open_file(&path)?;
-        Ok(Self {
-            path,
-            fd_lock: FdLock::new(file),
-        })
-    }
-
-    /// Blocks until the lock can be acquired.
-    pub fn lock(&mut self) -> Result<FileLockGuard, FileIo> {
-        log::debug!("locking {}", self.path.display());
-        let path = &self.path;
-        let fd_lock = &mut self.fd_lock;
-        let guard = fd_lock
-            .lock()
-            .map_err(|e| FileIo::FdLock(path.clone(), e))?;
-        log::debug!("locked {}", self.path.display());
-        Ok(FileLockGuard {
-            path,
-            _guard: guard,
-        })
-    }
-}
-
-#[derive(Debug)]
-pub struct FileLockGuard<'a> {
-    path: &'a Path,
-    _guard: FdLockGuard<'a, File>,
-}
-
-impl Drop for FileLockGuard<'_> {
-    fn drop(&mut self) {
-        log::debug!("unlocking {}", self.path.display());
-    }
 }
 
 #[cfg(test)]

@@ -138,9 +138,14 @@ pub enum FileIo {
     NoFileName(PathBuf),
     #[error("Expected {0} to be a directory, but it was a file")]
     UnexpectedFile(PathBuf),
+    #[error("Expected {0} to be a file")]
+    UnexpectedNonFile(PathBuf),
 
     #[error("Directory walk error")]
     Walkdir(#[from] walkdir::Error),
+
+    #[error("Failed to lock {0}: not a file or directory")]
+    InvalidLockPath(PathBuf),
 
     // when there is no meaningful data that can be added to an error
     #[error("transparent")]
