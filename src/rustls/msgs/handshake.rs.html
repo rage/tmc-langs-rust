@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustls-0.18.1/src/msgs/handshake.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>handshake.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustls-0.19.0/src/msgs/handshake.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>handshake.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../rustls/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -2305,35 +2305,25 @@
 <span id="2302">2302</span>
 <span id="2303">2303</span>
 <span id="2304">2304</span>
-<span id="2305">2305</span>
-<span id="2306">2306</span>
-<span id="2307">2307</span>
-<span id="2308">2308</span>
-<span id="2309">2309</span>
-<span id="2310">2310</span>
-<span id="2311">2311</span>
-<span id="2312">2312</span>
-<span id="2313">2313</span>
-<span id="2314">2314</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::{<span class="ident">ProtocolVersion</span>, <span class="ident">HandshakeType</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::{<span class="ident">CipherSuite</span>, <span class="ident">Compression</span>, <span class="ident">ExtensionType</span>, <span class="ident">ECPointFormat</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::{<span class="ident">HashAlgorithm</span>, <span class="ident">SignatureAlgorithm</span>, <span class="ident">ServerNameType</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::{<span class="ident">SignatureScheme</span>, <span class="ident">KeyUpdateRequest</span>, <span class="ident">NamedGroup</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::{<span class="ident">ClientCertificateType</span>, <span class="ident">CertificateStatusType</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::<span class="ident">ECCurveType</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::<span class="ident">PSKKeyExchangeMode</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">key</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">base</span>::{<span class="ident">Payload</span>, <span class="ident">PayloadU8</span>, <span class="ident">PayloadU16</span>, <span class="ident">PayloadU24</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">codec</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">codec</span>::{<span class="ident">Codec</span>, <span class="ident">Reader</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">key</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::<span class="ident">ECCurveType</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::<span class="ident">PSKKeyExchangeMode</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::{<span class="ident">CertificateStatusType</span>, <span class="ident">ClientCertificateType</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::{<span class="ident">CipherSuite</span>, <span class="ident">Compression</span>, <span class="ident">ECPointFormat</span>, <span class="ident">ExtensionType</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::{<span class="ident">HandshakeType</span>, <span class="ident">ProtocolVersion</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::{<span class="ident">HashAlgorithm</span>, <span class="ident">ServerNameType</span>, <span class="ident">SignatureAlgorithm</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::{<span class="ident">KeyUpdateRequest</span>, <span class="ident">NamedGroup</span>, <span class="ident">SignatureScheme</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;logging&quot;</span>)]</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">log</span>::<span class="ident">warn</span>;
 
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
 <span class="kw">use</span> <span class="ident">webpki</span>;
 
@@ -2376,10 +2366,8 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Random</span>([<span class="ident">u8</span>; <span class="number">32</span>]);
 
 <span class="kw">static</span> <span class="ident">HELLO_RETRY_REQUEST_RANDOM</span>: <span class="ident">Random</span> <span class="op">=</span> <span class="ident">Random</span>([
-    <span class="number">0xcf</span>, <span class="number">0x21</span>, <span class="number">0xad</span>, <span class="number">0x74</span>, <span class="number">0xe5</span>, <span class="number">0x9a</span>, <span class="number">0x61</span>, <span class="number">0x11</span>,
-    <span class="number">0xbe</span>, <span class="number">0x1d</span>, <span class="number">0x8c</span>, <span class="number">0x02</span>, <span class="number">0x1e</span>, <span class="number">0x65</span>, <span class="number">0xb8</span>, <span class="number">0x91</span>,
-    <span class="number">0xc2</span>, <span class="number">0xa2</span>, <span class="number">0x11</span>, <span class="number">0x16</span>, <span class="number">0x7a</span>, <span class="number">0xbb</span>, <span class="number">0x8c</span>, <span class="number">0x5e</span>,
-    <span class="number">0x07</span>, <span class="number">0x9e</span>, <span class="number">0x09</span>, <span class="number">0xe2</span>, <span class="number">0xc8</span>, <span class="number">0xa8</span>, <span class="number">0x33</span>, <span class="number">0x9c</span>,
+    <span class="number">0xcf</span>, <span class="number">0x21</span>, <span class="number">0xad</span>, <span class="number">0x74</span>, <span class="number">0xe5</span>, <span class="number">0x9a</span>, <span class="number">0x61</span>, <span class="number">0x11</span>, <span class="number">0xbe</span>, <span class="number">0x1d</span>, <span class="number">0x8c</span>, <span class="number">0x02</span>, <span class="number">0x1e</span>, <span class="number">0x65</span>, <span class="number">0xb8</span>, <span class="number">0x91</span>,
+    <span class="number">0xc2</span>, <span class="number">0xa2</span>, <span class="number">0x11</span>, <span class="number">0x16</span>, <span class="number">0x7a</span>, <span class="number">0xbb</span>, <span class="number">0x8c</span>, <span class="number">0x5e</span>, <span class="number">0x07</span>, <span class="number">0x9e</span>, <span class="number">0x09</span>, <span class="number">0xe2</span>, <span class="number">0xc8</span>, <span class="number">0xa8</span>, <span class="number">0x33</span>, <span class="number">0x9c</span>,
 ]);
 
 <span class="kw">static</span> <span class="ident">ZERO_RANDOM</span>: <span class="ident">Random</span> <span class="op">=</span> <span class="ident">Random</span>([<span class="number">0u8</span>; <span class="number">32</span>]);
@@ -2458,10 +2446,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">32</span>];
         <span class="ident">out</span>[..<span class="ident">len</span>].<span class="ident">clone_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>[..<span class="ident">len</span>]);
 
-        <span class="prelude-val">Some</span>(<span class="ident">SessionID</span> {
-            <span class="ident">data</span>: <span class="ident">out</span>,
-            <span class="ident">len</span>,
-        })
+        <span class="prelude-val">Some</span>(<span class="ident">SessionID</span> { <span class="ident">data</span>: <span class="ident">out</span>, <span class="ident">len</span> })
     }
 }
 
@@ -2506,10 +2491,7 @@
 
     <span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">typ</span>: <span class="ident">ExtensionType</span>, <span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Reader</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">UnknownExtension</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="ident">Payload</span>::<span class="ident">read</span>(<span class="ident">r</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>(<span class="ident">UnknownExtension</span> {
-            <span class="ident">typ</span>,
-            <span class="ident">payload</span>,
-        })
+        <span class="prelude-val">Some</span>(<span class="ident">UnknownExtension</span> { <span class="ident">typ</span>, <span class="ident">payload</span> })
     }
 }
 
@@ -2537,23 +2519,23 @@
 <span class="kw">impl</span> <span class="ident">DecomposedSignatureScheme</span> <span class="kw">for</span> <span class="ident">SignatureScheme</span> {
     <span class="kw">fn</span> <span class="ident">sign</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SignatureAlgorithm</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PKCS1_SHA1</span> <span class="op">|</span>
-                <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PKCS1_SHA256</span> <span class="op">|</span>
-                <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PKCS1_SHA384</span> <span class="op">|</span>
-                <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PKCS1_SHA512</span> <span class="op">|</span>
-                <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PSS_SHA256</span> <span class="op">|</span>
-                <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PSS_SHA384</span> <span class="op">|</span>
-                <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PSS_SHA512</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SignatureAlgorithm</span>::<span class="ident">RSA</span>,
-            <span class="ident">SignatureScheme</span>::<span class="ident">ECDSA_NISTP256_SHA256</span> <span class="op">|</span>
-                <span class="ident">SignatureScheme</span>::<span class="ident">ECDSA_NISTP384_SHA384</span> <span class="op">|</span>
-                <span class="ident">SignatureScheme</span>::<span class="ident">ECDSA_NISTP521_SHA512</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SignatureAlgorithm</span>::<span class="ident">ECDSA</span>,
+            <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PKCS1_SHA1</span>
+            <span class="op">|</span> <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PKCS1_SHA256</span>
+            <span class="op">|</span> <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PKCS1_SHA384</span>
+            <span class="op">|</span> <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PKCS1_SHA512</span>
+            <span class="op">|</span> <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PSS_SHA256</span>
+            <span class="op">|</span> <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PSS_SHA384</span>
+            <span class="op">|</span> <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PSS_SHA512</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SignatureAlgorithm</span>::<span class="ident">RSA</span>,
+            <span class="ident">SignatureScheme</span>::<span class="ident">ECDSA_NISTP256_SHA256</span>
+            <span class="op">|</span> <span class="ident">SignatureScheme</span>::<span class="ident">ECDSA_NISTP384_SHA384</span>
+            <span class="op">|</span> <span class="ident">SignatureScheme</span>::<span class="ident">ECDSA_NISTP521_SHA512</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SignatureAlgorithm</span>::<span class="ident">ECDSA</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SignatureAlgorithm</span>::<span class="ident">Unknown</span>(<span class="number">0</span>),
         }
     }
 
     <span class="kw">fn</span> <span class="ident">make</span>(<span class="ident">alg</span>: <span class="ident">SignatureAlgorithm</span>, <span class="ident">hash</span>: <span class="ident">HashAlgorithm</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SignatureScheme</span> {
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::<span class="ident">SignatureAlgorithm</span>::{<span class="ident">RSA</span>, <span class="ident">ECDSA</span>};
         <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::<span class="ident">HashAlgorithm</span>::{<span class="ident">SHA1</span>, <span class="ident">SHA256</span>, <span class="ident">SHA384</span>, <span class="ident">SHA512</span>};
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">msgs</span>::<span class="ident">enums</span>::<span class="ident">SignatureAlgorithm</span>::{<span class="ident">ECDSA</span>, <span class="ident">RSA</span>};
 
         <span class="kw">match</span> (<span class="ident">alg</span>, <span class="ident">hash</span>) {
             (<span class="ident">RSA</span>, <span class="ident">SHA1</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SignatureScheme</span>::<span class="ident">RSA_PKCS1_SHA1</span>,
@@ -2596,7 +2578,9 @@
 
     <span class="kw">fn</span> <span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">ServerNamePayload</span>::<span class="ident">HostName</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ServerNamePayload</span>::<span class="ident">encode_hostname</span>(<span class="ident">r</span>.<span class="ident">as_ref</span>(), <span class="ident">bytes</span>),
+            <span class="ident">ServerNamePayload</span>::<span class="ident">HostName</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ServerNamePayload</span>::<span class="ident">encode_hostname</span>(<span class="ident">r</span>.<span class="ident">as_ref</span>(), <span class="ident">bytes</span>)
+            }
             <span class="ident">ServerNamePayload</span>::<span class="ident">Unknown</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">encode</span>(<span class="ident">bytes</span>),
         }
     }
@@ -2622,10 +2606,7 @@
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ServerNamePayload</span>::<span class="ident">Unknown</span>(<span class="ident">Payload</span>::<span class="ident">read</span>(<span class="ident">r</span>).<span class="ident">unwrap</span>()),
         };
 
-        <span class="prelude-val">Some</span>(<span class="ident">ServerName</span> {
-            <span class="ident">typ</span>,
-            <span class="ident">payload</span>,
-        })
+        <span class="prelude-val">Some</span>(<span class="ident">ServerName</span> { <span class="ident">typ</span>, <span class="ident">payload</span> })
     }
 }
 
@@ -2725,10 +2706,7 @@
         <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident">NamedGroup</span>::<span class="ident">read</span>(<span class="ident">r</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="ident">PayloadU16</span>::<span class="ident">read</span>(<span class="ident">r</span>)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Some</span>(<span class="ident">KeyShareEntry</span> {
-            <span class="ident">group</span>,
-            <span class="ident">payload</span>,
-        })
+        <span class="prelude-val">Some</span>(<span class="ident">KeyShareEntry</span> { <span class="ident">group</span>, <span class="ident">payload</span> })
     }
 }
 
@@ -2776,8 +2754,8 @@
     <span class="doccomment">/// Make a new one with one entry.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">id</span>: <span class="ident">PresharedKeyIdentity</span>, <span class="ident">binder</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PresharedKeyOffer</span> {
         <span class="ident">PresharedKeyOffer</span> {
-            <span class="ident">identities</span>: <span class="macro">vec</span><span class="macro">!</span>[ <span class="ident">id</span> ],
-            <span class="ident">binders</span>: <span class="macro">vec</span><span class="macro">!</span>[ <span class="ident">PresharedKeyBinder</span>::<span class="ident">new</span>(<span class="ident">binder</span>) ],
+            <span class="ident">identities</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">id</span>],
+            <span class="ident">binders</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">PresharedKeyBinder</span>::<span class="ident">new</span>(<span class="ident">binder</span>)],
         }
     }
 }
@@ -2823,7 +2801,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CertificateStatusRequest</span> {
     <span class="ident">OCSP</span>(<span class="ident">OCSPCertificateStatusRequest</span>),
-    <span class="ident">Unknown</span>((<span class="ident">CertificateStatusType</span>, <span class="ident">Payload</span>))
+    <span class="ident">Unknown</span>((<span class="ident">CertificateStatusType</span>, <span class="ident">Payload</span>)),
 }
 
 <span class="kw">impl</span> <span class="ident">Codec</span> <span class="kw">for</span> <span class="ident">CertificateStatusRequest</span> {
@@ -2903,8 +2881,9 @@
             <span class="ident">ClientExtension</span>::<span class="ident">NamedGroups</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ExtensionType</span>::<span class="ident">EllipticCurves</span>,
             <span class="ident">ClientExtension</span>::<span class="ident">SignatureAlgorithms</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ExtensionType</span>::<span class="ident">SignatureAlgorithms</span>,
             <span class="ident">ClientExtension</span>::<span class="ident">ServerName</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ExtensionType</span>::<span class="ident">ServerName</span>,
-            <span class="ident">ClientExtension</span>::<span class="ident">SessionTicketRequest</span> <span class="op">|</span>
-                <span class="ident">ClientExtension</span>::<span class="ident">SessionTicketOffer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ExtensionType</span>::<span class="ident">SessionTicket</span>,
+            <span class="ident">ClientExtension</span>::<span class="ident">SessionTicketRequest</span> <span class="op">|</span> <span class="ident">ClientExtension</span>::<span class="ident">SessionTicketOffer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ExtensionType</span>::<span class="ident">SessionTicket</span>
+            }
             <span class="ident">ClientExtension</span>::<span class="ident">Protocols</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ExtensionType</span>::<span class="ident">ALProtocolNegotiation</span>,
             <span class="ident">ClientExtension</span>::<span class="ident">SupportedVersions</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ExtensionType</span>::<span class="ident">SupportedVersions</span>,
             <span class="ident">ClientExtension</span>::<span class="ident">KeyShare</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ExtensionType</span>::<span class="ident">KeyShare</span>,
@@ -2931,10 +2910,10 @@
             <span class="ident">ClientExtension</span>::<span class="ident">NamedGroups</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>),
             <span class="ident">ClientExtension</span>::<span class="ident">SignatureAlgorithms</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>),
             <span class="ident">ClientExtension</span>::<span class="ident">ServerName</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>),
-            <span class="ident">ClientExtension</span>::<span class="ident">SessionTicketRequest</span> <span class="op">|</span>
-                <span class="ident">ClientExtension</span>::<span class="ident">ExtendedMasterSecretRequest</span> <span class="op">|</span>
-                <span class="ident">ClientExtension</span>::<span class="ident">SignedCertificateTimestampRequest</span> <span class="op">|</span>
-                <span class="ident">ClientExtension</span>::<span class="ident">EarlyData</span> <span class="op">=</span><span class="op">&gt;</span> (),
+            <span class="ident">ClientExtension</span>::<span class="ident">SessionTicketRequest</span>
+            <span class="op">|</span> <span class="ident">ClientExtension</span>::<span class="ident">ExtendedMasterSecretRequest</span>
+            <span class="op">|</span> <span class="ident">ClientExtension</span>::<span class="ident">SignedCertificateTimestampRequest</span>
+            <span class="op">|</span> <span class="ident">ClientExtension</span>::<span class="ident">EarlyData</span> <span class="op">=</span><span class="op">&gt;</span> {}
             <span class="ident">ClientExtension</span>::<span class="ident">SessionTicketOffer</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>),
             <span class="ident">ClientExtension</span>::<span class="ident">Protocols</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>),
             <span class="ident">ClientExtension</span>::<span class="ident">SupportedVersions</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>),
@@ -2984,9 +2963,7 @@
             <span class="ident">ExtensionType</span>::<span class="ident">SupportedVersions</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">ClientExtension</span>::<span class="ident">SupportedVersions</span>(<span class="ident">ProtocolVersions</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>)
             }
-            <span class="ident">ExtensionType</span>::<span class="ident">KeyShare</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">ClientExtension</span>::<span class="ident">KeyShare</span>(<span class="ident">KeyShareEntries</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>)
-            }
+            <span class="ident">ExtensionType</span>::<span class="ident">KeyShare</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ClientExtension</span>::<span class="ident">KeyShare</span>(<span class="ident">KeyShareEntries</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>),
             <span class="ident">ExtensionType</span>::<span class="ident">PSKKeyExchangeModes</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">ClientExtension</span>::<span class="ident">PresharedKeyModes</span>(<span class="ident">PSKKeyExchangeModes</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>)
             }
@@ -3007,11 +2984,24 @@
             <span class="ident">ExtensionType</span>::<span class="ident">TransportParameters</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">ClientExtension</span>::<span class="ident">TransportParameters</span>(<span class="ident">sub</span>.<span class="ident">rest</span>().<span class="ident">to_vec</span>())
             }
-            <span class="ident">ExtensionType</span>::<span class="ident">EarlyData</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">sub</span>.<span class="ident">any_left</span>() <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">ClientExtension</span>::<span class="ident">EarlyData</span>
-            }
+            <span class="ident">ExtensionType</span>::<span class="ident">EarlyData</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">sub</span>.<span class="ident">any_left</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ClientExtension</span>::<span class="ident">EarlyData</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ClientExtension</span>::<span class="ident">Unknown</span>(<span class="ident">UnknownExtension</span>::<span class="ident">read</span>(<span class="ident">typ</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>),
         })
+    }
+}
+
+<span class="kw">fn</span> <span class="ident">trim_hostname_trailing_dot_for_sni</span>(<span class="ident">dns_name</span>: <span class="ident">webpki</span>::<span class="ident">DNSNameRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">webpki</span>::<span class="ident">DNSName</span> {
+    <span class="kw">let</span> <span class="ident">dns_name_str</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="ident">dns_name</span>.<span class="ident">into</span>();
+
+    <span class="comment">// RFC6066: &quot;The hostname is represented as a byte string using</span>
+    <span class="comment">// ASCII encoding without a trailing dot&quot;</span>
+    <span class="kw">if</span> <span class="ident">dns_name_str</span>.<span class="ident">ends_with</span>(<span class="string">&#39;.&#39;</span>) {
+        <span class="kw">let</span> <span class="ident">trimmed</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">dns_name_str</span>[<span class="number">0</span>..<span class="ident">dns_name_str</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>];
+        <span class="ident">webpki</span>::<span class="ident">DNSNameRef</span>::<span class="ident">try_from_ascii_str</span>(<span class="ident">trimmed</span>)
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">to_owned</span>()
+    } <span class="kw">else</span> {
+        <span class="ident">dns_name</span>.<span class="ident">to_owned</span>()
     }
 }
 
@@ -3020,10 +3010,10 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_sni</span>(<span class="ident">dns_name</span>: <span class="ident">webpki</span>::<span class="ident">DNSNameRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClientExtension</span> {
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">ServerName</span> {
             <span class="ident">typ</span>: <span class="ident">ServerNameType</span>::<span class="ident">HostName</span>,
-            <span class="ident">payload</span>: <span class="ident">ServerNamePayload</span>::<span class="ident">HostName</span>(<span class="ident">dns_name</span>.<span class="ident">into</span>()),
+            <span class="ident">payload</span>: <span class="ident">ServerNamePayload</span>::<span class="ident">HostName</span>(<span class="ident">trim_hostname_trailing_dot_for_sni</span>(<span class="ident">dns_name</span>)),
         };
 
-        <span class="ident">ClientExtension</span>::<span class="ident">ServerName</span>(<span class="macro">vec</span><span class="macro">!</span>[ <span class="ident">name</span> ])
+        <span class="ident">ClientExtension</span>::<span class="ident">ServerName</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">name</span>])
     }
 }
 
@@ -3073,11 +3063,11 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sub</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">ServerExtension</span>::<span class="ident">ECPointFormats</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>),
-            <span class="ident">ServerExtension</span>::<span class="ident">ServerNameAck</span> <span class="op">|</span>
-                <span class="ident">ServerExtension</span>::<span class="ident">SessionTicketAck</span> <span class="op">|</span>
-                <span class="ident">ServerExtension</span>::<span class="ident">ExtendedMasterSecretAck</span> <span class="op">|</span>
-                <span class="ident">ServerExtension</span>::<span class="ident">CertificateStatusAck</span> <span class="op">|</span>
-                <span class="ident">ServerExtension</span>::<span class="ident">EarlyData</span> <span class="op">=</span><span class="op">&gt;</span> (),
+            <span class="ident">ServerExtension</span>::<span class="ident">ServerNameAck</span>
+            <span class="op">|</span> <span class="ident">ServerExtension</span>::<span class="ident">SessionTicketAck</span>
+            <span class="op">|</span> <span class="ident">ServerExtension</span>::<span class="ident">ExtendedMasterSecretAck</span>
+            <span class="op">|</span> <span class="ident">ServerExtension</span>::<span class="ident">CertificateStatusAck</span>
+            <span class="op">|</span> <span class="ident">ServerExtension</span>::<span class="ident">EarlyData</span> <span class="op">=</span><span class="op">&gt;</span> {}
             <span class="ident">ServerExtension</span>::<span class="ident">RenegotiationInfo</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>),
             <span class="ident">ServerExtension</span>::<span class="ident">Protocols</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>),
             <span class="ident">ServerExtension</span>::<span class="ident">KeyShare</span>(<span class="kw-2">ref</span> <span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>.<span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>),
@@ -3110,12 +3100,8 @@
             <span class="ident">ExtensionType</span>::<span class="ident">ALProtocolNegotiation</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">ServerExtension</span>::<span class="ident">Protocols</span>(<span class="ident">ProtocolNameList</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>)
             }
-            <span class="ident">ExtensionType</span>::<span class="ident">KeyShare</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">ServerExtension</span>::<span class="ident">KeyShare</span>(<span class="ident">KeyShareEntry</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>)
-            }
-            <span class="ident">ExtensionType</span>::<span class="ident">PreSharedKey</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">ServerExtension</span>::<span class="ident">PresharedKey</span>(<span class="ident">u16</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>)
-            }
+            <span class="ident">ExtensionType</span>::<span class="ident">KeyShare</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ServerExtension</span>::<span class="ident">KeyShare</span>(<span class="ident">KeyShareEntry</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>),
+            <span class="ident">ExtensionType</span>::<span class="ident">PreSharedKey</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ServerExtension</span>::<span class="ident">PresharedKey</span>(<span class="ident">u16</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>),
             <span class="ident">ExtensionType</span>::<span class="ident">ExtendedMasterSecret</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ServerExtension</span>::<span class="ident">ExtendedMasterSecretAck</span>,
             <span class="ident">ExtensionType</span>::<span class="ident">SCT</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">scts</span> <span class="op">=</span> <span class="ident">SCTList</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>;
@@ -3144,8 +3130,7 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_sct</span>(<span class="ident">sctl</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ServerExtension</span> {
-        <span class="kw">let</span> <span class="ident">scts</span> <span class="op">=</span> <span class="ident">SCTList</span>::<span class="ident">read_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">sctl</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;invalid SCT list&quot;</span>);
+        <span class="kw">let</span> <span class="ident">scts</span> <span class="op">=</span> <span class="ident">SCTList</span>::<span class="ident">read_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">sctl</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid SCT list&quot;</span>);
         <span class="ident">ServerExtension</span>::<span class="ident">SignedCertificateTimestamp</span>(<span class="ident">scts</span>)
     }
 }
@@ -3210,7 +3195,9 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_extension</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ext</span>: <span class="ident">ExtensionType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ClientExtension</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">extensions</span>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">get_type</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">ext</span>)
+        <span class="self">self</span>.<span class="ident">extensions</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">find</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">get_type</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">ext</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_sni_extension</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ServerNameRequest</span><span class="op">&gt;</span> {
@@ -3345,7 +3332,8 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">early_data_extension_offered</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">find_extension</span>(<span class="ident">ExtensionType</span>::<span class="ident">EarlyData</span>).<span class="ident">is_some</span>()
+        <span class="self">self</span>.<span class="ident">find_extension</span>(<span class="ident">ExtensionType</span>::<span class="ident">EarlyData</span>)
+            .<span class="ident">is_some</span>()
     }
 }
 
@@ -3390,12 +3378,8 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sub</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">sub</span>(<span class="ident">len</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Some</span>(<span class="kw">match</span> <span class="ident">typ</span> {
-            <span class="ident">ExtensionType</span>::<span class="ident">KeyShare</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">HelloRetryExtension</span>::<span class="ident">KeyShare</span>(<span class="ident">NamedGroup</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>)
-            }
-            <span class="ident">ExtensionType</span>::<span class="ident">Cookie</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">HelloRetryExtension</span>::<span class="ident">Cookie</span>(<span class="ident">PayloadU16</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>)
-            }
+            <span class="ident">ExtensionType</span>::<span class="ident">KeyShare</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HelloRetryExtension</span>::<span class="ident">KeyShare</span>(<span class="ident">NamedGroup</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>),
+            <span class="ident">ExtensionType</span>::<span class="ident">Cookie</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HelloRetryExtension</span>::<span class="ident">Cookie</span>(<span class="ident">PayloadU16</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>),
             <span class="ident">ExtensionType</span>::<span class="ident">SupportedVersions</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">HelloRetryExtension</span>::<span class="ident">SupportedVersions</span>(<span class="ident">ProtocolVersion</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>)
             }
@@ -3459,17 +3443,17 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_unknown_extension</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">extensions</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">any</span>(<span class="op">|</span><span class="ident">ext</span><span class="op">|</span> {
-                 <span class="ident">ext</span>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">ExtensionType</span>::<span class="ident">KeyShare</span> <span class="op">&amp;&amp;</span>
-                 <span class="ident">ext</span>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">ExtensionType</span>::<span class="ident">SupportedVersions</span> <span class="op">&amp;&amp;</span>
-                 <span class="ident">ext</span>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">ExtensionType</span>::<span class="ident">Cookie</span>
-                 })
+        <span class="self">self</span>.<span class="ident">extensions</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">ext</span><span class="op">|</span> {
+            <span class="ident">ext</span>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">ExtensionType</span>::<span class="ident">KeyShare</span>
+                <span class="op">&amp;&amp;</span> <span class="ident">ext</span>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">ExtensionType</span>::<span class="ident">SupportedVersions</span>
+                <span class="op">&amp;&amp;</span> <span class="ident">ext</span>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">ExtensionType</span>::<span class="ident">Cookie</span>
+        })
     }
 
     <span class="kw">fn</span> <span class="ident">find_extension</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ext</span>: <span class="ident">ExtensionType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">HelloRetryExtension</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">extensions</span>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">get_type</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">ext</span>)
+        <span class="self">self</span>.<span class="ident">extensions</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">find</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">get_type</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">ext</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_requested_key_share_group</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NamedGroup</span><span class="op">&gt;</span> {
@@ -3631,22 +3615,21 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_sct</span>(<span class="ident">sct_list</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CertificateExtension</span> {
-        <span class="kw">let</span> <span class="ident">sctl</span> <span class="op">=</span> <span class="ident">SCTList</span>::<span class="ident">read_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">sct_list</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;invalid SCT list&quot;</span>);
+        <span class="kw">let</span> <span class="ident">sctl</span> <span class="op">=</span> <span class="ident">SCTList</span>::<span class="ident">read_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">sct_list</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid SCT list&quot;</span>);
         <span class="ident">CertificateExtension</span>::<span class="ident">SignedCertificateTimestamp</span>(<span class="ident">sctl</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_cert_status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">CertificateExtension</span>::<span class="ident">CertificateStatus</span>(<span class="kw-2">ref</span> <span class="ident">cs</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">cs</span>.<span class="ident">ocsp_response</span>.<span class="number">0</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_sct_list</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">SCTList</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">CertificateExtension</span>::<span class="ident">SignedCertificateTimestamp</span>(<span class="kw-2">ref</span> <span class="ident">sctl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">sctl</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 }
@@ -3731,12 +3714,9 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_unknown_extension</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">exts</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">any</span>(<span class="op">|</span><span class="ident">ext</span><span class="op">|</span> {
-                 <span class="ident">ext</span>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">ExtensionType</span>::<span class="ident">StatusRequest</span> <span class="op">&amp;&amp;</span>
-                 <span class="ident">ext</span>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">ExtensionType</span>::<span class="ident">SCT</span>
-                 })
+        <span class="self">self</span>.<span class="ident">exts</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">ext</span><span class="op">|</span> {
+            <span class="ident">ext</span>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">ExtensionType</span>::<span class="ident">StatusRequest</span> <span class="op">&amp;&amp;</span> <span class="ident">ext</span>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">ExtensionType</span>::<span class="ident">SCT</span>
+        })
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ocsp_response</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
@@ -3813,14 +3793,16 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_end_entity_ocsp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">first</span>()
+        <span class="self">self</span>.<span class="ident">entries</span>
+            .<span class="ident">first</span>()
             .<span class="ident">and_then</span>(<span class="ident">CertificateEntry</span>::<span class="ident">get_ocsp_response</span>)
             .<span class="ident">cloned</span>()
-            .<span class="ident">unwrap_or_else</span>( <span class="ident">Vec</span>::<span class="ident">new</span>)
+            .<span class="ident">unwrap_or_else</span>(<span class="ident">Vec</span>::<span class="ident">new</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_end_entity_scts</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SCTList</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">first</span>()
+        <span class="self">self</span>.<span class="ident">entries</span>
+            .<span class="ident">first</span>()
             .<span class="ident">and_then</span>(<span class="ident">CertificateEntry</span>::<span class="ident">get_scts</span>)
             .<span class="ident">cloned</span>()
     }
@@ -3900,10 +3882,7 @@
         <span class="kw">let</span> <span class="ident">scheme</span> <span class="op">=</span> <span class="ident">SignatureScheme</span>::<span class="ident">read</span>(<span class="ident">r</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <span class="ident">PayloadU16</span>::<span class="ident">read</span>(<span class="ident">r</span>)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Some</span>(<span class="ident">DigitallySignedStruct</span> {
-            <span class="ident">scheme</span>,
-            <span class="ident">sig</span>,
-        })
+        <span class="prelude-val">Some</span>(<span class="ident">DigitallySignedStruct</span> { <span class="ident">scheme</span>, <span class="ident">sig</span> })
     }
 }
 
@@ -3974,10 +3953,7 @@
         <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">ServerECDHParams</span>::<span class="ident">read</span>(<span class="ident">r</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">dss</span> <span class="op">=</span> <span class="ident">DigitallySignedStruct</span>::<span class="ident">read</span>(<span class="ident">r</span>)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Some</span>(<span class="ident">ECDHEServerKeyExchange</span> {
-            <span class="ident">params</span>,
-            <span class="ident">dss</span>,
-        })
+        <span class="prelude-val">Some</span>(<span class="ident">ECDHEServerKeyExchange</span> { <span class="ident">params</span>, <span class="ident">dss</span> })
     }
 }
 
@@ -4009,8 +3985,7 @@
 
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">kxa</span> {
                 <span class="ident">KeyExchangeAlgorithm</span>::<span class="ident">ECDHE</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">ECDHEServerKeyExchange</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rd</span>)
-                        .<span class="ident">map</span>(<span class="ident">ServerKeyExchangePayload</span>::<span class="ident">ECDHE</span>)
+                    <span class="ident">ECDHEServerKeyExchange</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rd</span>).<span class="ident">map</span>(<span class="ident">ServerKeyExchangePayload</span>::<span class="ident">ECDHE</span>)
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
             };
@@ -4063,7 +4038,9 @@
     }
 
     <span class="kw">fn</span> <span class="ident">find_extension</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ext</span>: <span class="ident">ExtensionType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ServerExtension</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_extensions</span>().<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">get_type</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">ext</span>)
+        <span class="self">self</span>.<span class="ident">get_extensions</span>()
+            .<span class="ident">iter</span>()
+            .<span class="ident">find</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">get_type</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">ext</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">get_alpn_protocol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> {
@@ -4083,7 +4060,8 @@
     }
 
     <span class="kw">fn</span> <span class="ident">early_data_extension_offered</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">find_extension</span>(<span class="ident">ExtensionType</span>::<span class="ident">EarlyData</span>).<span class="ident">is_some</span>()
+        <span class="self">self</span>.<span class="ident">find_extension</span>(<span class="ident">ExtensionType</span>::<span class="ident">EarlyData</span>)
+            .<span class="ident">is_some</span>()
     }
 }
 
@@ -4211,7 +4189,9 @@
 
 <span class="kw">impl</span> <span class="ident">CertificateRequestPayloadTLS13</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_extension</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ext</span>: <span class="ident">ExtensionType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">CertReqExtension</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">extensions</span>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">get_type</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">ext</span>)
+        <span class="self">self</span>.<span class="ident">extensions</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">find</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">get_type</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">ext</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_sigalgs_extension</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">SupportedSignatureSchemes</span><span class="op">&gt;</span> {
@@ -4301,9 +4281,7 @@
 
         <span class="prelude-val">Some</span>(<span class="kw">match</span> <span class="ident">typ</span> {
             <span class="ident">ExtensionType</span>::<span class="ident">EarlyData</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NewSessionTicketExtension</span>::<span class="ident">EarlyData</span>(<span class="ident">u32</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">NewSessionTicketExtension</span>::<span class="ident">Unknown</span>(<span class="ident">UnknownExtension</span>::<span class="ident">read</span>(<span class="ident">typ</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>)
-            }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NewSessionTicketExtension</span>::<span class="ident">Unknown</span>(<span class="ident">UnknownExtension</span>::<span class="ident">read</span>(<span class="ident">typ</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>),
         })
     }
 }
@@ -4320,10 +4298,12 @@
 }
 
 <span class="kw">impl</span> <span class="ident">NewSessionTicketPayloadTLS13</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">lifetime</span>: <span class="ident">u32</span>,
-               <span class="ident">age_add</span>: <span class="ident">u32</span>,
-               <span class="ident">nonce</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-               <span class="ident">ticket</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NewSessionTicketPayloadTLS13</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
+        <span class="ident">lifetime</span>: <span class="ident">u32</span>,
+        <span class="ident">age_add</span>: <span class="ident">u32</span>,
+        <span class="ident">nonce</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+        <span class="ident">ticket</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NewSessionTicketPayloadTLS13</span> {
         <span class="ident">NewSessionTicketPayloadTLS13</span> {
             <span class="ident">lifetime</span>,
             <span class="ident">age_add</span>,
@@ -4334,14 +4314,16 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_extension</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ext</span>: <span class="ident">ExtensionType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">NewSessionTicketExtension</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">exts</span>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">get_type</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">ext</span>)
+        <span class="self">self</span>.<span class="ident">exts</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">find</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">get_type</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">ext</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_max_early_data_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ext</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">find_extension</span>(<span class="ident">ExtensionType</span>::<span class="ident">EarlyData</span>)<span class="question-mark">?</span>;
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ext</span> {
             <span class="ident">NewSessionTicketExtension</span>::<span class="ident">EarlyData</span>(<span class="kw-2">ref</span> <span class="ident">sz</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">sz</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 }
@@ -4377,7 +4359,7 @@
 <span class="doccomment">/// Only supports OCSP</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CertificateStatus</span> {
-    <span class="kw">pub</span> <span class="ident">ocsp_response</span>: <span class="ident">PayloadU24</span>
+    <span class="kw">pub</span> <span class="ident">ocsp_response</span>: <span class="ident">PayloadU24</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Codec</span> <span class="kw">for</span> <span class="ident">CertificateStatus</span> {
@@ -4390,19 +4372,19 @@
         <span class="kw">let</span> <span class="ident">typ</span> <span class="op">=</span> <span class="ident">CertificateStatusType</span>::<span class="ident">read</span>(<span class="ident">r</span>)<span class="question-mark">?</span>;
 
         <span class="kw">match</span> <span class="ident">typ</span> {
-            <span class="ident">CertificateStatusType</span>::<span class="ident">OCSP</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">CertificateStatus</span> {
-                    <span class="ident">ocsp_response</span>: <span class="ident">PayloadU24</span>::<span class="ident">read</span>(<span class="ident">r</span>)<span class="question-mark">?</span>
-                })
-            }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>
+            <span class="ident">CertificateStatusType</span>::<span class="ident">OCSP</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">CertificateStatus</span> {
+                <span class="ident">ocsp_response</span>: <span class="ident">PayloadU24</span>::<span class="ident">read</span>(<span class="ident">r</span>)<span class="question-mark">?</span>,
+            }),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">CertificateStatus</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ocsp</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CertificateStatus</span> {
-        <span class="ident">CertificateStatus</span> { <span class="ident">ocsp_response</span>: <span class="ident">PayloadU24</span>::<span class="ident">new</span>(<span class="ident">ocsp</span>) }
+        <span class="ident">CertificateStatus</span> {
+            <span class="ident">ocsp_response</span>: <span class="ident">PayloadU24</span>::<span class="ident">new</span>(<span class="ident">ocsp</span>),
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_ocsp_response</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
@@ -4440,10 +4422,10 @@
 <span class="kw">impl</span> <span class="ident">HandshakePayload</span> {
     <span class="kw">fn</span> <span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">HandshakePayload</span>::<span class="ident">HelloRequest</span> <span class="op">|</span>
-                <span class="ident">HandshakePayload</span>::<span class="ident">ServerHelloDone</span> <span class="op">|</span>
-                <span class="ident">HandshakePayload</span>::<span class="ident">EarlyData</span> <span class="op">|</span>
-                <span class="ident">HandshakePayload</span>::<span class="ident">EndOfEarlyData</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">HandshakePayload</span>::<span class="ident">HelloRequest</span>
+            <span class="op">|</span> <span class="ident">HandshakePayload</span>::<span class="ident">ServerHelloDone</span>
+            <span class="op">|</span> <span class="ident">HandshakePayload</span>::<span class="ident">EarlyData</span>
+            <span class="op">|</span> <span class="ident">HandshakePayload</span>::<span class="ident">EndOfEarlyData</span> <span class="op">=</span><span class="op">&gt;</span> {}
             <span class="ident">HandshakePayload</span>::<span class="ident">ClientHello</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">encode</span>(<span class="ident">bytes</span>),
             <span class="ident">HandshakePayload</span>::<span class="ident">ServerHello</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">encode</span>(<span class="ident">bytes</span>),
             <span class="ident">HandshakePayload</span>::<span class="ident">HelloRetryRequest</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">encode</span>(<span class="ident">bytes</span>),
@@ -4482,7 +4464,8 @@
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">typ</span> {
             <span class="ident">HandshakeType</span>::<span class="ident">HelloRetryRequest</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HandshakeType</span>::<span class="ident">ServerHello</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">typ</span>,
-        }.<span class="ident">encode</span>(<span class="ident">bytes</span>);
+        }
+        .<span class="ident">encode</span>(<span class="ident">bytes</span>);
         <span class="ident">codec</span>::<span class="ident">u24</span>(<span class="ident">sub</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">encode</span>(<span class="ident">bytes</span>);
         <span class="ident">bytes</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>);
     }
@@ -4570,9 +4553,7 @@
             <span class="ident">HandshakeType</span>::<span class="ident">KeyUpdate</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">HandshakePayload</span>::<span class="ident">KeyUpdate</span>(<span class="ident">KeyUpdateRequest</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>)
             }
-            <span class="ident">HandshakeType</span>::<span class="ident">Finished</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">HandshakePayload</span>::<span class="ident">Finished</span>(<span class="ident">Payload</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>).<span class="ident">unwrap</span>())
-            }
+            <span class="ident">HandshakeType</span>::<span class="ident">Finished</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HandshakePayload</span>::<span class="ident">Finished</span>(<span class="ident">Payload</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>).<span class="ident">unwrap</span>()),
             <span class="ident">HandshakeType</span>::<span class="ident">CertificateStatus</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">HandshakePayload</span>::<span class="ident">CertificateStatus</span>(<span class="ident">CertificateStatus</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>)<span class="question-mark">?</span>)
             }
@@ -4590,10 +4571,7 @@
         <span class="kw">if</span> <span class="ident">sub</span>.<span class="ident">any_left</span>() {
             <span class="prelude-val">None</span>
         } <span class="kw">else</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">HandshakeMessagePayload</span> {
-                <span class="ident">typ</span>,
-                <span class="ident">payload</span>,
-            })
+            <span class="prelude-val">Some</span>(<span class="ident">HandshakeMessagePayload</span> { <span class="ident">typ</span>, <span class="ident">payload</span> })
         }
     }
 
@@ -4612,7 +4590,9 @@
                 <span class="kw">let</span> <span class="ident">offer</span> <span class="op">=</span> <span class="ident">ch</span>.<span class="ident">get_psk</span>().<span class="ident">unwrap</span>();
 
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">binders_encoding</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
-                <span class="ident">offer</span>.<span class="ident">binders</span>.<span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">binders_encoding</span>);
+                <span class="ident">offer</span>
+                    .<span class="ident">binders</span>
+                    .<span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">binders_encoding</span>);
                 <span class="ident">binders_encoding</span>.<span class="ident">len</span>()
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
@@ -4626,7 +4606,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_handshake_hash</span>(<span class="ident">hash</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">HandshakeMessagePayload</span> {
         <span class="ident">HandshakeMessagePayload</span> {
             <span class="ident">typ</span>: <span class="ident">HandshakeType</span>::<span class="ident">MessageHash</span>,
-            <span class="ident">payload</span>: <span class="ident">HandshakePayload</span>::<span class="ident">MessageHash</span>(<span class="ident">Payload</span>::<span class="ident">new</span>(<span class="ident">hash</span>.<span class="ident">to_vec</span>()))
+            <span class="ident">payload</span>: <span class="ident">HandshakePayload</span>::<span class="ident">MessageHash</span>(<span class="ident">Payload</span>::<span class="ident">new</span>(<span class="ident">hash</span>.<span class="ident">to_vec</span>())),
         }
     }
 }

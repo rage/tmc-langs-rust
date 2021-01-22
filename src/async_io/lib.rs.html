@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-io-1.1.6/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-io-1.3.1/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../async_io/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -1483,6 +1483,240 @@
 <span id="1480">1480</span>
 <span id="1481">1481</span>
 <span id="1482">1482</span>
+<span id="1483">1483</span>
+<span id="1484">1484</span>
+<span id="1485">1485</span>
+<span id="1486">1486</span>
+<span id="1487">1487</span>
+<span id="1488">1488</span>
+<span id="1489">1489</span>
+<span id="1490">1490</span>
+<span id="1491">1491</span>
+<span id="1492">1492</span>
+<span id="1493">1493</span>
+<span id="1494">1494</span>
+<span id="1495">1495</span>
+<span id="1496">1496</span>
+<span id="1497">1497</span>
+<span id="1498">1498</span>
+<span id="1499">1499</span>
+<span id="1500">1500</span>
+<span id="1501">1501</span>
+<span id="1502">1502</span>
+<span id="1503">1503</span>
+<span id="1504">1504</span>
+<span id="1505">1505</span>
+<span id="1506">1506</span>
+<span id="1507">1507</span>
+<span id="1508">1508</span>
+<span id="1509">1509</span>
+<span id="1510">1510</span>
+<span id="1511">1511</span>
+<span id="1512">1512</span>
+<span id="1513">1513</span>
+<span id="1514">1514</span>
+<span id="1515">1515</span>
+<span id="1516">1516</span>
+<span id="1517">1517</span>
+<span id="1518">1518</span>
+<span id="1519">1519</span>
+<span id="1520">1520</span>
+<span id="1521">1521</span>
+<span id="1522">1522</span>
+<span id="1523">1523</span>
+<span id="1524">1524</span>
+<span id="1525">1525</span>
+<span id="1526">1526</span>
+<span id="1527">1527</span>
+<span id="1528">1528</span>
+<span id="1529">1529</span>
+<span id="1530">1530</span>
+<span id="1531">1531</span>
+<span id="1532">1532</span>
+<span id="1533">1533</span>
+<span id="1534">1534</span>
+<span id="1535">1535</span>
+<span id="1536">1536</span>
+<span id="1537">1537</span>
+<span id="1538">1538</span>
+<span id="1539">1539</span>
+<span id="1540">1540</span>
+<span id="1541">1541</span>
+<span id="1542">1542</span>
+<span id="1543">1543</span>
+<span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
+<span id="1581">1581</span>
+<span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
+<span id="1587">1587</span>
+<span id="1588">1588</span>
+<span id="1589">1589</span>
+<span id="1590">1590</span>
+<span id="1591">1591</span>
+<span id="1592">1592</span>
+<span id="1593">1593</span>
+<span id="1594">1594</span>
+<span id="1595">1595</span>
+<span id="1596">1596</span>
+<span id="1597">1597</span>
+<span id="1598">1598</span>
+<span id="1599">1599</span>
+<span id="1600">1600</span>
+<span id="1601">1601</span>
+<span id="1602">1602</span>
+<span id="1603">1603</span>
+<span id="1604">1604</span>
+<span id="1605">1605</span>
+<span id="1606">1606</span>
+<span id="1607">1607</span>
+<span id="1608">1608</span>
+<span id="1609">1609</span>
+<span id="1610">1610</span>
+<span id="1611">1611</span>
+<span id="1612">1612</span>
+<span id="1613">1613</span>
+<span id="1614">1614</span>
+<span id="1615">1615</span>
+<span id="1616">1616</span>
+<span id="1617">1617</span>
+<span id="1618">1618</span>
+<span id="1619">1619</span>
+<span id="1620">1620</span>
+<span id="1621">1621</span>
+<span id="1622">1622</span>
+<span id="1623">1623</span>
+<span id="1624">1624</span>
+<span id="1625">1625</span>
+<span id="1626">1626</span>
+<span id="1627">1627</span>
+<span id="1628">1628</span>
+<span id="1629">1629</span>
+<span id="1630">1630</span>
+<span id="1631">1631</span>
+<span id="1632">1632</span>
+<span id="1633">1633</span>
+<span id="1634">1634</span>
+<span id="1635">1635</span>
+<span id="1636">1636</span>
+<span id="1637">1637</span>
+<span id="1638">1638</span>
+<span id="1639">1639</span>
+<span id="1640">1640</span>
+<span id="1641">1641</span>
+<span id="1642">1642</span>
+<span id="1643">1643</span>
+<span id="1644">1644</span>
+<span id="1645">1645</span>
+<span id="1646">1646</span>
+<span id="1647">1647</span>
+<span id="1648">1648</span>
+<span id="1649">1649</span>
+<span id="1650">1650</span>
+<span id="1651">1651</span>
+<span id="1652">1652</span>
+<span id="1653">1653</span>
+<span id="1654">1654</span>
+<span id="1655">1655</span>
+<span id="1656">1656</span>
+<span id="1657">1657</span>
+<span id="1658">1658</span>
+<span id="1659">1659</span>
+<span id="1660">1660</span>
+<span id="1661">1661</span>
+<span id="1662">1662</span>
+<span id="1663">1663</span>
+<span id="1664">1664</span>
+<span id="1665">1665</span>
+<span id="1666">1666</span>
+<span id="1667">1667</span>
+<span id="1668">1668</span>
+<span id="1669">1669</span>
+<span id="1670">1670</span>
+<span id="1671">1671</span>
+<span id="1672">1672</span>
+<span id="1673">1673</span>
+<span id="1674">1674</span>
+<span id="1675">1675</span>
+<span id="1676">1676</span>
+<span id="1677">1677</span>
+<span id="1678">1678</span>
+<span id="1679">1679</span>
+<span id="1680">1680</span>
+<span id="1681">1681</span>
+<span id="1682">1682</span>
+<span id="1683">1683</span>
+<span id="1684">1684</span>
+<span id="1685">1685</span>
+<span id="1686">1686</span>
+<span id="1687">1687</span>
+<span id="1688">1688</span>
+<span id="1689">1689</span>
+<span id="1690">1690</span>
+<span id="1691">1691</span>
+<span id="1692">1692</span>
+<span id="1693">1693</span>
+<span id="1694">1694</span>
+<span id="1695">1695</span>
+<span id="1696">1696</span>
+<span id="1697">1697</span>
+<span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
+<span id="1703">1703</span>
+<span id="1704">1704</span>
+<span id="1705">1705</span>
+<span id="1706">1706</span>
+<span id="1707">1707</span>
+<span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Async I/O and timers.</span>
 <span class="doccomment">//!</span>
@@ -1490,7 +1724,7 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! * [`Async`], an adapter for standard networking types (and [many other] types) to use in</span>
 <span class="doccomment">//!   async programs.</span>
-<span class="doccomment">//! * [`Timer`], a future that expires at a point in time.</span>
+<span class="doccomment">//! * [`Timer`], a future or stream that emits timed events.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! For concrete async networking types built on top of this crate, see [`async-net`].</span>
 <span class="doccomment">//!</span>
@@ -1539,7 +1773,6 @@
 <span class="doccomment">//! # std::io::Result::Ok(()) });</span>
 <span class="doccomment">//! ```</span>
 
-<span class="attribute">#![<span class="ident">forbid</span>(<span class="ident">unsafe_code</span>)]</span>
 <span class="attribute">#![<span class="ident">warn</span>(<span class="ident">missing_docs</span>, <span class="ident">missing_debug_implementations</span>, <span class="ident">rust_2018_idioms</span>)]</span>
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">TryFrom</span>;
@@ -1559,11 +1792,11 @@
 };
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">windows</span>::<span class="ident">io</span>::{<span class="ident">AsRawSocket</span>, <span class="ident">FromRawSocket</span>, <span class="ident">RawSocket</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">windows</span>::<span class="ident">io</span>::{<span class="ident">AsRawSocket</span>, <span class="ident">RawSocket</span>};
 
 <span class="kw">use</span> <span class="ident">futures_lite</span>::<span class="ident">io</span>::{<span class="ident">AsyncRead</span>, <span class="ident">AsyncWrite</span>};
 <span class="kw">use</span> <span class="ident">futures_lite</span>::<span class="ident">stream</span>::{<span class="self">self</span>, <span class="ident">Stream</span>};
-<span class="kw">use</span> <span class="ident">futures_lite</span>::{<span class="ident">future</span>, <span class="ident">pin</span>};
+<span class="kw">use</span> <span class="ident">futures_lite</span>::{<span class="ident">future</span>, <span class="ident">pin</span>, <span class="ident">ready</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">reactor</span>::{<span class="ident">Reactor</span>, <span class="ident">Source</span>};
 
@@ -1572,9 +1805,16 @@
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">driver</span>::<span class="ident">block_on</span>;
 
-<span class="doccomment">/// A future that expires at a point in time.</span>
+<span class="doccomment">/// Use `Duration::MAX` once `duration_constants` are stabilized.</span>
+<span class="kw">fn</span> <span class="ident">duration_max</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Duration</span> {
+    <span class="ident">Duration</span>::<span class="ident">new</span>(<span class="ident">std</span>::<span class="ident">u64</span>::<span class="ident">MAX</span>, <span class="number">1_000_000_000</span> <span class="op">-</span> <span class="number">1</span>)
+}
+
+<span class="doccomment">/// A future or stream that emits timed events.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Timers are futures that output the [`Instant`] at which they fired.</span>
+<span class="doccomment">/// Timers are futures that output a single [`Instant`] when they fire.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Timers are also streams that can output [`Instant`]s periodically.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Examples</span>
 <span class="doccomment">///</span>
@@ -1612,12 +1852,15 @@
     <span class="doccomment">/// When this field is set to `None`, this timer is not registered in the reactor.</span>
     <span class="ident">id_and_waker</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">Waker</span>)<span class="op">&gt;</span>,
 
-    <span class="doccomment">/// When this timer fires.</span>
+    <span class="doccomment">/// The next instant at which this timer fires.</span>
     <span class="ident">when</span>: <span class="ident">Instant</span>,
+
+    <span class="doccomment">/// The period.</span>
+    <span class="ident">period</span>: <span class="ident">Duration</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Timer</span> {
-    <span class="doccomment">/// Creates a timer that expires after the given duration of time.</span>
+    <span class="doccomment">/// Creates a timer that emits an event once after the given duration of time.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1633,7 +1876,7 @@
         <span class="ident">Timer</span>::<span class="ident">at</span>(<span class="ident">Instant</span>::<span class="ident">now</span>() <span class="op">+</span> <span class="ident">duration</span>)
     }
 
-    <span class="doccomment">/// Creates a timer that expires at the given time instant.</span>
+    <span class="doccomment">/// Creates a timer that emits an event once at the given time instant.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1648,13 +1891,52 @@
     <span class="doccomment">/// # });</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">at</span>(<span class="ident">instant</span>: <span class="ident">Instant</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Timer</span> {
+        <span class="comment">// Use Duration::MAX once duration_constants are stabilized.</span>
+        <span class="ident">Timer</span>::<span class="ident">interval_at</span>(<span class="ident">instant</span>, <span class="ident">duration_max</span>())
+    }
+
+    <span class="doccomment">/// Creates a timer that emits events periodically.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use async_io::Timer;</span>
+    <span class="doccomment">/// use futures_lite::StreamExt;</span>
+    <span class="doccomment">/// use std::time::{Duration, Instant};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
+    <span class="doccomment">/// let period = Duration::from_secs(1);</span>
+    <span class="doccomment">/// Timer::interval(period).next().await;</span>
+    <span class="doccomment">/// # });</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">interval</span>(<span class="ident">period</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Timer</span> {
+        <span class="ident">Timer</span>::<span class="ident">interval_at</span>(<span class="ident">Instant</span>::<span class="ident">now</span>() <span class="op">+</span> <span class="ident">period</span>, <span class="ident">period</span>)
+    }
+
+    <span class="doccomment">/// Creates a timer that emits events periodically, starting at `start`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use async_io::Timer;</span>
+    <span class="doccomment">/// use futures_lite::StreamExt;</span>
+    <span class="doccomment">/// use std::time::{Duration, Instant};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
+    <span class="doccomment">/// let start = Instant::now();</span>
+    <span class="doccomment">/// let period = Duration::from_secs(1);</span>
+    <span class="doccomment">/// Timer::interval_at(start, period).next().await;</span>
+    <span class="doccomment">/// # });</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">interval_at</span>(<span class="ident">start</span>: <span class="ident">Instant</span>, <span class="ident">period</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Timer</span> {
         <span class="ident">Timer</span> {
             <span class="ident">id_and_waker</span>: <span class="prelude-val">None</span>,
-            <span class="ident">when</span>: <span class="ident">instant</span>,
+            <span class="ident">when</span>: <span class="ident">start</span>,
+            <span class="ident">period</span>,
         }
     }
 
-    <span class="doccomment">/// Sets the timer to expire after the new duration of time.</span>
+    <span class="doccomment">/// Sets the timer to emit an en event once after the given duration of time.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Note that resetting a timer is different from creating a new timer because</span>
     <span class="doccomment">/// [`set_after()`][`Timer::set_after()`] does not remove the waker associated with the task</span>
@@ -1675,10 +1957,10 @@
         <span class="self">self</span>.<span class="ident">set_at</span>(<span class="ident">Instant</span>::<span class="ident">now</span>() <span class="op">+</span> <span class="ident">duration</span>);
     }
 
-    <span class="doccomment">/// Sets the timer to expire at the new time instant.</span>
+    <span class="doccomment">/// Sets the timer to emit an event once at the given time instant.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Note that resetting a timer is different from creating a new timer because</span>
-    <span class="doccomment">/// [`set_after()`][`Timer::set_after()`] does not remove the waker associated with the task</span>
+    <span class="doccomment">/// [`set_at()`][`Timer::set_at()`] does not remove the waker associated with the task</span>
     <span class="doccomment">/// that is polling the timer.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
@@ -1709,6 +1991,66 @@
             <span class="kw-2">*</span><span class="ident">id</span> <span class="op">=</span> <span class="ident">Reactor</span>::<span class="ident">get</span>().<span class="ident">insert_timer</span>(<span class="self">self</span>.<span class="ident">when</span>, <span class="ident">waker</span>);
         }
     }
+
+    <span class="doccomment">/// Sets the timer to emit events periodically.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that resetting a timer is different from creating a new timer because</span>
+    <span class="doccomment">/// [`set_interval()`][`Timer::set_interval()`] does not remove the waker associated with the</span>
+    <span class="doccomment">/// task that is polling the timer.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use async_io::Timer;</span>
+    <span class="doccomment">/// use futures_lite::StreamExt;</span>
+    <span class="doccomment">/// use std::time::{Duration, Instant};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
+    <span class="doccomment">/// let mut t = Timer::after(Duration::from_secs(1));</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let period = Duration::from_secs(2);</span>
+    <span class="doccomment">/// t.set_interval(period);</span>
+    <span class="doccomment">/// # });</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_interval</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">period</span>: <span class="ident">Duration</span>) {
+        <span class="self">self</span>.<span class="ident">set_interval_at</span>(<span class="ident">Instant</span>::<span class="ident">now</span>() <span class="op">+</span> <span class="ident">period</span>, <span class="ident">period</span>);
+    }
+
+    <span class="doccomment">/// Sets the timer to emit events periodically, starting at `start`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that resetting a timer is different from creating a new timer because</span>
+    <span class="doccomment">/// [`set_interval_at()`][`Timer::set_interval_at()`] does not remove the waker associated with</span>
+    <span class="doccomment">/// the task that is polling the timer.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use async_io::Timer;</span>
+    <span class="doccomment">/// use futures_lite::StreamExt;</span>
+    <span class="doccomment">/// use std::time::{Duration, Instant};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
+    <span class="doccomment">/// let mut t = Timer::after(Duration::from_secs(1));</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let start = Instant::now();</span>
+    <span class="doccomment">/// let period = Duration::from_secs(2);</span>
+    <span class="doccomment">/// t.set_interval_at(start, period);</span>
+    <span class="doccomment">/// # });</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_interval_at</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">start</span>: <span class="ident">Instant</span>, <span class="ident">period</span>: <span class="ident">Duration</span>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">id_and_waker</span>.<span class="ident">as_ref</span>() {
+            <span class="comment">// Deregister the timer from the reactor.</span>
+            <span class="ident">Reactor</span>::<span class="ident">get</span>().<span class="ident">remove_timer</span>(<span class="self">self</span>.<span class="ident">when</span>, <span class="kw-2">*</span><span class="ident">id</span>);
+        }
+
+        <span class="self">self</span>.<span class="ident">when</span> <span class="op">=</span> <span class="ident">start</span>;
+        <span class="self">self</span>.<span class="ident">period</span> <span class="op">=</span> <span class="ident">period</span>;
+
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="ident">waker</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">id_and_waker</span>.<span class="ident">as_mut</span>() {
+            <span class="comment">// Re-register the timer with the new timeout.</span>
+            <span class="kw-2">*</span><span class="ident">id</span> <span class="op">=</span> <span class="ident">Reactor</span>::<span class="ident">get</span>().<span class="ident">insert_timer</span>(<span class="self">self</span>.<span class="ident">when</span>, <span class="ident">waker</span>);
+        }
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Timer</span> {
@@ -1723,14 +2065,33 @@
 <span class="kw">impl</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">Timer</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Instant</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>) {
+            <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">when</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">when</span>),
+            <span class="ident">Poll</span>::<span class="ident">Pending</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Poll</span>::<span class="ident">Pending</span>,
+            <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Stream</span> <span class="kw">for</span> <span class="ident">Timer</span> {
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Instant</span>;
+
+    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// Check if the timer has already fired.</span>
         <span class="kw">if</span> <span class="ident">Instant</span>::<span class="ident">now</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">when</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">id_and_waker</span>.<span class="ident">take</span>() {
                 <span class="comment">// Deregister the timer from the reactor.</span>
                 <span class="ident">Reactor</span>::<span class="ident">get</span>().<span class="ident">remove_timer</span>(<span class="self">self</span>.<span class="ident">when</span>, <span class="ident">id</span>);
             }
-            <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="self">self</span>.<span class="ident">when</span>)
+            <span class="kw">let</span> <span class="ident">when</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">when</span>;
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <span class="ident">when</span>.<span class="ident">checked_add</span>(<span class="self">self</span>.<span class="ident">period</span>) {
+                <span class="self">self</span>.<span class="ident">when</span> <span class="op">=</span> <span class="ident">next</span>;
+                <span class="comment">// Register the timer in the reactor.</span>
+                <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">Reactor</span>::<span class="ident">get</span>().<span class="ident">insert_timer</span>(<span class="self">self</span>.<span class="ident">when</span>, <span class="ident">cx</span>.<span class="ident">waker</span>());
+                <span class="self">self</span>.<span class="ident">id_and_waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="ident">cx</span>.<span class="ident">waker</span>().<span class="ident">clone</span>()));
+            }
+            <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">when</span>));
         } <span class="kw">else</span> {
             <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">id_and_waker</span> {
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
@@ -1748,8 +2109,8 @@
                 }
                 <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
             }
-            <span class="ident">Poll</span>::<span class="ident">Pending</span>
         }
+        <span class="ident">Poll</span>::<span class="ident">Pending</span>
     }
 }
 
@@ -1797,9 +2158,12 @@
 <span class="doccomment">/// try to do that, conflicting tasks will just keep waking each other in turn, thus wasting CPU</span>
 <span class="doccomment">/// time.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This caveat only applies to [`AsyncRead`] and [`AsyncWrite`]. Any number of tasks can be</span>
-<span class="doccomment">/// concurrently calling other methods like [`readable()`][`Async::readable()`] or</span>
-<span class="doccomment">/// [`read_with()`][`Async::read_with()`].</span>
+<span class="doccomment">/// Besides [`AsyncRead`] and [`AsyncWrite`], this caveat also applies to</span>
+<span class="doccomment">/// [`poll_readable()`][`Async::poll_readable()`] and</span>
+<span class="doccomment">/// [`poll_writable()`][`Async::poll_writable()`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// However, any number of tasks can be concurrently calling other methods like</span>
+<span class="doccomment">/// [`readable()`][`Async::readable()`] or [`read_with()`][`Async::read_with()`].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ### Closing</span>
 <span class="doccomment">///</span>
@@ -1856,7 +2220,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRawFd</span><span class="op">&gt;</span> <span class="ident">Async</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Creates an async I/O handle.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will put the handle in non-blocking mode and register it in</span>
+    <span class="doccomment">/// This method will put the handle in non-blocking mode and register it in</span>
     <span class="doccomment">/// [epoll]/[kqueue]/[event ports]/[wepoll].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// On Unix systems, the handle must implement `AsRawFd`, while on Windows it must implement</span>
@@ -1879,8 +2243,21 @@
     <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">io</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Async</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">io</span>.<span class="ident">as_raw_fd</span>();
+
+        <span class="comment">// Put the file descriptor in non-blocking mode.</span>
+        <span class="kw">unsafe</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">fcntl</span>(<span class="ident">fd</span>, <span class="ident">libc</span>::<span class="ident">F_GETFL</span>);
+            <span class="kw">if</span> <span class="ident">res</span> <span class="op">!</span><span class="op">=</span> <span class="op">-</span><span class="number">1</span> {
+                <span class="ident">res</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">fcntl</span>(<span class="ident">fd</span>, <span class="ident">libc</span>::<span class="ident">F_SETFL</span>, <span class="ident">res</span> <span class="op">|</span> <span class="ident">libc</span>::<span class="ident">O_NONBLOCK</span>);
+            }
+            <span class="kw">if</span> <span class="ident">res</span> <span class="op">=</span><span class="op">=</span> <span class="op">-</span><span class="number">1</span> {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">last_os_error</span>());
+            }
+        }
+
         <span class="prelude-val">Ok</span>(<span class="ident">Async</span> {
-            <span class="ident">source</span>: <span class="ident">Reactor</span>::<span class="ident">get</span>().<span class="ident">insert_io</span>(<span class="ident">io</span>.<span class="ident">as_raw_fd</span>())<span class="question-mark">?</span>,
+            <span class="ident">source</span>: <span class="ident">Reactor</span>::<span class="ident">get</span>().<span class="ident">insert_io</span>(<span class="ident">fd</span>)<span class="question-mark">?</span>,
             <span class="ident">io</span>: <span class="prelude-val">Some</span>(<span class="ident">io</span>),
         })
     }
@@ -1897,7 +2274,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRawSocket</span><span class="op">&gt;</span> <span class="ident">Async</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Creates an async I/O handle.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will put the handle in non-blocking mode and register it in</span>
+    <span class="doccomment">/// This method will put the handle in non-blocking mode and register it in</span>
     <span class="doccomment">/// [epoll]/[kqueue]/[event ports]/[wepoll].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// On Unix systems, the handle must implement `AsRawFd`, while on Windows it must implement</span>
@@ -1920,8 +2297,26 @@
     <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">io</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Async</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">sock</span> <span class="op">=</span> <span class="ident">io</span>.<span class="ident">as_raw_socket</span>();
+
+        <span class="comment">// Put the socket in non-blocking mode.</span>
+        <span class="kw">unsafe</span> {
+            <span class="kw">use</span> <span class="ident">winapi</span>::<span class="ident">ctypes</span>;
+            <span class="kw">use</span> <span class="ident">winapi</span>::<span class="ident">um</span>::<span class="ident">winsock2</span>;
+
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nonblocking</span> <span class="op">=</span> <span class="bool-val">true</span> <span class="kw">as</span> <span class="ident">ctypes</span>::<span class="ident">c_ulong</span>;
+            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">winsock2</span>::<span class="ident">ioctlsocket</span>(
+                <span class="ident">sock</span> <span class="kw">as</span> <span class="ident">winsock2</span>::<span class="ident">SOCKET</span>,
+                <span class="ident">winsock2</span>::<span class="ident">FIONBIO</span>,
+                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">nonblocking</span>,
+            );
+            <span class="kw">if</span> <span class="ident">res</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">last_os_error</span>());
+            }
+        }
+
         <span class="prelude-val">Ok</span>(<span class="ident">Async</span> {
-            <span class="ident">source</span>: <span class="ident">Reactor</span>::<span class="ident">get</span>().<span class="ident">insert_io</span>(<span class="ident">io</span>.<span class="ident">as_raw_socket</span>())<span class="question-mark">?</span>,
+            <span class="ident">source</span>: <span class="ident">Reactor</span>::<span class="ident">get</span>().<span class="ident">insert_io</span>(<span class="ident">sock</span>)<span class="question-mark">?</span>,
             <span class="ident">io</span>: <span class="prelude-val">Some</span>(<span class="ident">io</span>),
         })
     }
@@ -1995,7 +2390,7 @@
 
     <span class="doccomment">/// Waits until the I/O handle is readable.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This function completes when a read operation on this I/O handle wouldn&#39;t block.</span>
+    <span class="doccomment">/// This method completes when a read operation on this I/O handle wouldn&#39;t block.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -2016,7 +2411,7 @@
 
     <span class="doccomment">/// Waits until the I/O handle is writable.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This function completes when a write operation on this I/O handle wouldn&#39;t block.</span>
+    <span class="doccomment">/// This method completes when a write operation on this I/O handle wouldn&#39;t block.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -2036,9 +2431,72 @@
         <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">writable</span>().<span class="ident">await</span>
     }
 
+    <span class="doccomment">/// Polls the I/O handle for readability.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// When this method returns [`Poll::Ready`], that means the OS has delivered an event</span>
+    <span class="doccomment">/// indicating readability since the last time this task has called the method and received</span>
+    <span class="doccomment">/// [`Poll::Pending`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Caveats</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Two different tasks should not call this method concurrently. Otherwise, conflicting tasks</span>
+    <span class="doccomment">/// will just keep waking each other in turn, thus wasting CPU time.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that the [`AsyncRead`] implementation for [`Async`] also uses this method.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```no_run</span>
+    <span class="doccomment">/// use async_io::Async;</span>
+    <span class="doccomment">/// use futures_lite::future;</span>
+    <span class="doccomment">/// use std::net::TcpListener;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
+    <span class="doccomment">/// let mut listener = Async::&lt;TcpListener&gt;::bind(([127, 0, 0, 1], 0))?;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// // Wait until a client can be accepted.</span>
+    <span class="doccomment">/// future::poll_fn(|cx| listener.poll_readable(cx)).await?;</span>
+    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_readable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">poll_readable</span>(<span class="ident">cx</span>)
+    }
+
+    <span class="doccomment">/// Polls the I/O handle for writability.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// When this method returns [`Poll::Ready`], that means the OS has delivered an event</span>
+    <span class="doccomment">/// indicating writability since the last time this task has called the method and received</span>
+    <span class="doccomment">/// [`Poll::Pending`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Caveats</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Two different tasks should not call this method concurrently. Otherwise, conflicting tasks</span>
+    <span class="doccomment">/// will just keep waking each other in turn, thus wasting CPU time.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that the [`AsyncWrite`] implementation for [`Async`] also uses this method.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use async_io::Async;</span>
+    <span class="doccomment">/// use futures_lite::future;</span>
+    <span class="doccomment">/// use std::net::{TcpStream, ToSocketAddrs};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
+    <span class="doccomment">/// let addr = &quot;example.com:80&quot;.to_socket_addrs()?.next().unwrap();</span>
+    <span class="doccomment">/// let stream = Async::&lt;TcpStream&gt;::connect(addr).await?;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// // Wait until the stream is writable.</span>
+    <span class="doccomment">/// future::poll_fn(|cx| stream.poll_writable(cx)).await?;</span>
+    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_writable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">poll_writable</span>(<span class="ident">cx</span>)
+    }
+
     <span class="doccomment">/// Performs a read operation asynchronously.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The I/O handle is registered in the reactor and put in non-blocking mode. This function</span>
+    <span class="doccomment">/// The I/O handle is registered in the reactor and put in non-blocking mode. This method</span>
     <span class="doccomment">/// invokes the `op` closure in a loop until it succeeds or returns an error other than</span>
     <span class="doccomment">/// [`io::ErrorKind::WouldBlock`]. In between iterations of the loop, it waits until the OS</span>
     <span class="doccomment">/// sends a notification that the I/O handle is readable.</span>
@@ -2071,7 +2529,7 @@
 
     <span class="doccomment">/// Performs a read operation asynchronously.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The I/O handle is registered in the reactor and put in non-blocking mode. This function</span>
+    <span class="doccomment">/// The I/O handle is registered in the reactor and put in non-blocking mode. This method</span>
     <span class="doccomment">/// invokes the `op` closure in a loop until it succeeds or returns an error other than</span>
     <span class="doccomment">/// [`io::ErrorKind::WouldBlock`]. In between iterations of the loop, it waits until the OS</span>
     <span class="doccomment">/// sends a notification that the I/O handle is readable.</span>
@@ -2107,7 +2565,7 @@
 
     <span class="doccomment">/// Performs a write operation asynchronously.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The I/O handle is registered in the reactor and put in non-blocking mode. This function</span>
+    <span class="doccomment">/// The I/O handle is registered in the reactor and put in non-blocking mode. This method</span>
     <span class="doccomment">/// invokes the `op` closure in a loop until it succeeds or returns an error other than</span>
     <span class="doccomment">/// [`io::ErrorKind::WouldBlock`]. In between iterations of the loop, it waits until the OS</span>
     <span class="doccomment">/// sends a notification that the I/O handle is writable.</span>
@@ -2141,7 +2599,7 @@
 
     <span class="doccomment">/// Performs a write operation asynchronously.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The I/O handle is registered in the reactor and put in non-blocking mode. This function</span>
+    <span class="doccomment">/// The I/O handle is registered in the reactor and put in non-blocking mode. This method</span>
     <span class="doccomment">/// invokes the `op` closure in a loop until it succeeds or returns an error other than</span>
     <span class="doccomment">/// [`io::ErrorKind::WouldBlock`]. In between iterations of the loop, it waits until the OS</span>
     <span class="doccomment">/// sends a notification that the I/O handle is writable.</span>
@@ -2195,12 +2653,13 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_mut</span>().<span class="ident">read</span>(<span class="ident">buf</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+        <span class="kw">loop</span> {
+            <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_mut</span>().<span class="ident">read</span>(<span class="ident">buf</span>) {
+                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+            }
+            <span class="macro">ready</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">poll_readable</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
         }
-        <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">register_reader</span>(<span class="ident">cx</span>.<span class="ident">waker</span>())<span class="question-mark">?</span>;
-        <span class="ident">Poll</span>::<span class="ident">Pending</span>
     }
 
     <span class="kw">fn</span> <span class="ident">poll_read_vectored</span>(
@@ -2208,12 +2667,13 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">bufs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">IoSliceMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_mut</span>().<span class="ident">read_vectored</span>(<span class="ident">bufs</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+        <span class="kw">loop</span> {
+            <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_mut</span>().<span class="ident">read_vectored</span>(<span class="ident">bufs</span>) {
+                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+            }
+            <span class="macro">ready</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">poll_readable</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
         }
-        <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">register_reader</span>(<span class="ident">cx</span>.<span class="ident">waker</span>())<span class="question-mark">?</span>;
-        <span class="ident">Poll</span>::<span class="ident">Pending</span>
     }
 }
 
@@ -2226,12 +2686,13 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_ref</span>().<span class="ident">read</span>(<span class="ident">buf</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+        <span class="kw">loop</span> {
+            <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_ref</span>().<span class="ident">read</span>(<span class="ident">buf</span>) {
+                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+            }
+            <span class="macro">ready</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">poll_readable</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
         }
-        <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">register_reader</span>(<span class="ident">cx</span>.<span class="ident">waker</span>())<span class="question-mark">?</span>;
-        <span class="ident">Poll</span>::<span class="ident">Pending</span>
     }
 
     <span class="kw">fn</span> <span class="ident">poll_read_vectored</span>(
@@ -2239,12 +2700,13 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">bufs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">IoSliceMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_ref</span>().<span class="ident">read_vectored</span>(<span class="ident">bufs</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+        <span class="kw">loop</span> {
+            <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_ref</span>().<span class="ident">read_vectored</span>(<span class="ident">bufs</span>) {
+                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+            }
+            <span class="macro">ready</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">poll_readable</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
         }
-        <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">register_reader</span>(<span class="ident">cx</span>.<span class="ident">waker</span>())<span class="question-mark">?</span>;
-        <span class="ident">Poll</span>::<span class="ident">Pending</span>
     }
 }
 
@@ -2254,12 +2716,13 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_mut</span>().<span class="ident">write</span>(<span class="ident">buf</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+        <span class="kw">loop</span> {
+            <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_mut</span>().<span class="ident">write</span>(<span class="ident">buf</span>) {
+                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+            }
+            <span class="macro">ready</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">poll_writable</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
         }
-        <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">register_writer</span>(<span class="ident">cx</span>.<span class="ident">waker</span>())<span class="question-mark">?</span>;
-        <span class="ident">Poll</span>::<span class="ident">Pending</span>
     }
 
     <span class="kw">fn</span> <span class="ident">poll_write_vectored</span>(
@@ -2267,21 +2730,23 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">bufs</span>: <span class="kw-2">&amp;</span>[<span class="ident">IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_mut</span>().<span class="ident">write_vectored</span>(<span class="ident">bufs</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+        <span class="kw">loop</span> {
+            <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_mut</span>().<span class="ident">write_vectored</span>(<span class="ident">bufs</span>) {
+                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+            }
+            <span class="macro">ready</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">poll_writable</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
         }
-        <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">register_writer</span>(<span class="ident">cx</span>.<span class="ident">waker</span>())<span class="question-mark">?</span>;
-        <span class="ident">Poll</span>::<span class="ident">Pending</span>
     }
 
     <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_mut</span>().<span class="ident">flush</span>() {
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+        <span class="kw">loop</span> {
+            <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_mut</span>().<span class="ident">flush</span>() {
+                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+            }
+            <span class="macro">ready</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">poll_writable</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
         }
-        <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">register_writer</span>(<span class="ident">cx</span>.<span class="ident">waker</span>())<span class="question-mark">?</span>;
-        <span class="ident">Poll</span>::<span class="ident">Pending</span>
     }
 
     <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
@@ -2298,12 +2763,13 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_ref</span>().<span class="ident">write</span>(<span class="ident">buf</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+        <span class="kw">loop</span> {
+            <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_ref</span>().<span class="ident">write</span>(<span class="ident">buf</span>) {
+                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+            }
+            <span class="macro">ready</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">poll_writable</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
         }
-        <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">register_writer</span>(<span class="ident">cx</span>.<span class="ident">waker</span>())<span class="question-mark">?</span>;
-        <span class="ident">Poll</span>::<span class="ident">Pending</span>
     }
 
     <span class="kw">fn</span> <span class="ident">poll_write_vectored</span>(
@@ -2311,21 +2777,23 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">bufs</span>: <span class="kw-2">&amp;</span>[<span class="ident">IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_ref</span>().<span class="ident">write_vectored</span>(<span class="ident">bufs</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+        <span class="kw">loop</span> {
+            <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_ref</span>().<span class="ident">write_vectored</span>(<span class="ident">bufs</span>) {
+                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+            }
+            <span class="macro">ready</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">poll_writable</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
         }
-        <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">register_writer</span>(<span class="ident">cx</span>.<span class="ident">waker</span>())<span class="question-mark">?</span>;
-        <span class="ident">Poll</span>::<span class="ident">Pending</span>
     }
 
     <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_ref</span>().<span class="ident">flush</span>() {
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+        <span class="kw">loop</span> {
+            <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">get_ref</span>().<span class="ident">flush</span>() {
+                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="ident">res</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">res</span>),
+            }
+            <span class="macro">ready</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">poll_writable</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
         }
-        <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">register_writer</span>(<span class="ident">cx</span>.<span class="ident">waker</span>())<span class="question-mark">?</span>;
-        <span class="ident">Poll</span>::<span class="ident">Pending</span>
     }
 
     <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {

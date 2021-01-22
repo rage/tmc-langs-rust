@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/polling-1.1.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/polling-2.0.2/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../polling/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -448,6 +448,41 @@
 <span id="445">445</span>
 <span id="446">446</span>
 <span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Portable interface to epoll, kqueue, event ports, and wepoll.</span>
 <span class="doccomment">//!</span>
@@ -458,8 +493,8 @@
 <span class="doccomment">//! - [event ports](https://illumos.org/man/port_create): illumos, Solaris</span>
 <span class="doccomment">//! - [wepoll](https://github.com/piscisaureus/wepoll): Windows</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Polling is done in oneshot mode, which means interest in I/O events needs to be reset after</span>
-<span class="doccomment">//! an event is delivered if we&#39;re interested in the next event of the same kind.</span>
+<span class="doccomment">//! Polling is done in oneshot mode, which means interest in I/O events needs to be re-enabled</span>
+<span class="doccomment">//! after an event is delivered if we&#39;re interested in the next event of the same kind.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Only one thread can be waiting for I/O events at a time.</span>
 <span class="doccomment">//!</span>
@@ -471,12 +506,12 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! // Create a TCP listener.</span>
 <span class="doccomment">//! let socket = TcpListener::bind(&quot;127.0.0.1:8000&quot;)?;</span>
-<span class="doccomment">//! let key = 7; // arbitrary key identifying the socket</span>
+<span class="doccomment">//! socket.set_nonblocking(true)?;</span>
+<span class="doccomment">//! let key = 7; // Arbitrary key identifying the socket.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! // Create a poller and register interest in readability on the socket.</span>
 <span class="doccomment">//! let poller = Poller::new()?;</span>
-<span class="doccomment">//! poller.insert(&amp;socket)?;</span>
-<span class="doccomment">//! poller.interest(&amp;socket, Event::readable(key))?;</span>
+<span class="doccomment">//! poller.add(&amp;socket, Event::readable(key))?;</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! // The event loop.</span>
 <span class="doccomment">//! let mut events = Vec::new();</span>
@@ -490,7 +525,7 @@
 <span class="doccomment">//!             // Perform a non-blocking accept operation.</span>
 <span class="doccomment">//!             socket.accept()?;</span>
 <span class="doccomment">//!             // Set interest in the next readability event.</span>
-<span class="doccomment">//!             poller.interest(&amp;socket, Event::readable(key))?;</span>
+<span class="doccomment">//!             poller.modify(&amp;socket, Event::readable(key))?;</span>
 <span class="doccomment">//!         }</span>
 <span class="doccomment">//!     }</span>
 <span class="doccomment">//! }</span>
@@ -637,30 +672,7 @@
         })
     }
 
-    <span class="doccomment">/// Inserts a file descriptor or socket into the poller and puts it in non-blocking mode.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Before setting interest in readability or writability, the file descriptor or socket must</span>
-    <span class="doccomment">/// be inserted into the poller. This method also puts it in non-blocking mode.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Don&#39;t forget to [remove][`Poller::remove()`] it when it is no longer used!</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use polling::Poller;</span>
-    <span class="doccomment">/// use std::net::TcpListener;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let poller = Poller::new()?;</span>
-    <span class="doccomment">/// let socket = TcpListener::bind(&quot;127.0.0.1:0&quot;)?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// poller.insert(&amp;socket)?;</span>
-    <span class="doccomment">/// # std::io::Result::Ok(())</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source</span>: <span class="kw">impl</span> <span class="ident">Source</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">poller</span>.<span class="ident">insert</span>(<span class="ident">source</span>.<span class="ident">raw</span>())
-    }
-
-    <span class="doccomment">/// Enables or disables interest in a file descriptor or socket.</span>
+    <span class="doccomment">/// Adds a file descriptor or socket to the poller.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A file descriptor or socket is considered readable or writable when a read or write</span>
     <span class="doccomment">/// operation on it would not block. This doesn&#39;t mean the read or write operation will</span>
@@ -674,11 +686,61 @@
     <span class="doccomment">/// - `Event { key: 7, readable: true, writable: false }`</span>
     <span class="doccomment">/// - `Event { key: 7, readable: false, writable: true }`</span>
     <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that interest in I/O events needs to be re-enabled using</span>
+    <span class="doccomment">/// [`modify()`][`Poller::modify()`] again after an event is delivered if we&#39;re interested in</span>
+    <span class="doccomment">/// the next event of the same kind.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Don&#39;t forget to [`delete()`][`Poller::delete()`] the file descriptor or socket when it is</span>
+    <span class="doccomment">/// no longer used!</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// # Errors</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This method returns an error in the following situations:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// * If `source` was not [inserted][`Poller::interest()`] into the poller.</span>
+    <span class="doccomment">/// * If `key` equals `usize::MAX` because that key is reserved for internal use.</span>
+    <span class="doccomment">/// * If an error is returned by the syscall.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Set interest in all events:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```no_run</span>
+    <span class="doccomment">/// use polling::{Event, Poller};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let source = std::net::TcpListener::bind(&quot;127.0.0.1:0&quot;)?;</span>
+    <span class="doccomment">/// source.set_nonblocking(true)?;</span>
+    <span class="doccomment">/// let key = 7;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let poller = Poller::new()?;</span>
+    <span class="doccomment">/// poller.add(&amp;source, Event::all(key))?;</span>
+    <span class="doccomment">/// # std::io::Result::Ok(())</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source</span>: <span class="kw">impl</span> <span class="ident">Source</span>, <span class="ident">interest</span>: <span class="ident">Event</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">interest</span>.<span class="ident">key</span> <span class="op">=</span><span class="op">=</span> <span class="ident">NOTIFY_KEY</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">new</span>(
+                <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">InvalidInput</span>,
+                <span class="string">&quot;the key is not allowed to be `usize::MAX`&quot;</span>,
+            ));
+        }
+        <span class="self">self</span>.<span class="ident">poller</span>.<span class="ident">add</span>(<span class="ident">source</span>.<span class="ident">raw</span>(), <span class="ident">interest</span>)
+    }
+
+    <span class="doccomment">/// Modifies the interest in a file descriptor or socket.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This method has the same behavior as [`add()`][`Poller::add()`] except it modifies the</span>
+    <span class="doccomment">/// interest of a previously added file descriptor or socket.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// To use this method with a file descriptor or socket, you must first add it using</span>
+    <span class="doccomment">/// [`add()`][`Poller::add()`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that interest in I/O events needs to be re-enabled using</span>
+    <span class="doccomment">/// [`modify()`][`Poller::modify()`] again after an event is delivered if we&#39;re interested in</span>
+    <span class="doccomment">/// the next event of the same kind.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Errors</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This method returns an error in the following situations:</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// * If `key` equals `usize::MAX` because that key is reserved for internal use.</span>
     <span class="doccomment">/// * If an error is returned by the syscall.</span>
     <span class="doccomment">///</span>
@@ -688,10 +750,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```no_run</span>
     <span class="doccomment">/// # use polling::{Event, Poller};</span>
-    <span class="doccomment">/// # let poller = Poller::new()?;</span>
-    <span class="doccomment">/// # let key = 7;</span>
     <span class="doccomment">/// # let source = std::net::TcpListener::bind(&quot;127.0.0.1:0&quot;)?;</span>
-    <span class="doccomment">/// poller.interest(&amp;source, Event::all(key))?;</span>
+    <span class="doccomment">/// # let key = 7;</span>
+    <span class="doccomment">/// # let poller = Poller::new()?;</span>
+    <span class="doccomment">/// # poller.add(&amp;source, Event::none(key))?;</span>
+    <span class="doccomment">/// poller.modify(&amp;source, Event::all(key))?;</span>
     <span class="doccomment">/// # std::io::Result::Ok(())</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
@@ -699,10 +762,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```no_run</span>
     <span class="doccomment">/// # use polling::{Event, Poller};</span>
-    <span class="doccomment">/// # let poller = Poller::new()?;</span>
-    <span class="doccomment">/// # let key = 7;</span>
     <span class="doccomment">/// # let source = std::net::TcpListener::bind(&quot;127.0.0.1:0&quot;)?;</span>
-    <span class="doccomment">/// poller.interest(&amp;source, Event::readable(key))?;</span>
+    <span class="doccomment">/// # let key = 7;</span>
+    <span class="doccomment">/// # let poller = Poller::new()?;</span>
+    <span class="doccomment">/// # poller.add(&amp;source, Event::none(key))?;</span>
+    <span class="doccomment">/// poller.modify(&amp;source, Event::readable(key))?;</span>
     <span class="doccomment">/// # std::io::Result::Ok(())</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
@@ -713,7 +777,8 @@
     <span class="doccomment">/// # let poller = Poller::new()?;</span>
     <span class="doccomment">/// # let key = 7;</span>
     <span class="doccomment">/// # let source = std::net::TcpListener::bind(&quot;127.0.0.1:0&quot;)?;</span>
-    <span class="doccomment">/// poller.interest(&amp;source, Event::writable(key))?;</span>
+    <span class="doccomment">/// # poller.add(&amp;source, Event::none(key))?;</span>
+    <span class="doccomment">/// poller.modify(&amp;source, Event::writable(key))?;</span>
     <span class="doccomment">/// # std::io::Result::Ok(())</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
@@ -721,43 +786,45 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```no_run</span>
     <span class="doccomment">/// # use polling::{Event, Poller};</span>
-    <span class="doccomment">/// # let poller = Poller::new()?;</span>
-    <span class="doccomment">/// # let key = 7;</span>
     <span class="doccomment">/// # let source = std::net::TcpListener::bind(&quot;127.0.0.1:0&quot;)?;</span>
-    <span class="doccomment">/// poller.interest(&amp;source, Event::none(key))?;</span>
+    <span class="doccomment">/// # let key = 7;</span>
+    <span class="doccomment">/// # let poller = Poller::new()?;</span>
+    <span class="doccomment">/// # poller.add(&amp;source, Event::none(key))?;</span>
+    <span class="doccomment">/// poller.modify(&amp;source, Event::none(key))?;</span>
     <span class="doccomment">/// # std::io::Result::Ok(())</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">interest</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source</span>: <span class="kw">impl</span> <span class="ident">Source</span>, <span class="ident">event</span>: <span class="ident">Event</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">event</span>.<span class="ident">key</span> <span class="op">=</span><span class="op">=</span> <span class="ident">usize</span>::<span class="ident">MAX</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">new</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">modify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source</span>: <span class="kw">impl</span> <span class="ident">Source</span>, <span class="ident">interest</span>: <span class="ident">Event</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">interest</span>.<span class="ident">key</span> <span class="op">=</span><span class="op">=</span> <span class="ident">NOTIFY_KEY</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">new</span>(
                 <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">InvalidInput</span>,
                 <span class="string">&quot;the key is not allowed to be `usize::MAX`&quot;</span>,
-            ))
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">poller</span>.<span class="ident">interest</span>(<span class="ident">source</span>.<span class="ident">raw</span>(), <span class="ident">event</span>)
+            ));
         }
+        <span class="self">self</span>.<span class="ident">poller</span>.<span class="ident">modify</span>(<span class="ident">source</span>.<span class="ident">raw</span>(), <span class="ident">interest</span>)
     }
 
     <span class="doccomment">/// Removes a file descriptor or socket from the poller.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Unlike [`insert()`][`Poller::insert()`], this method only removes the file descriptor or</span>
+    <span class="doccomment">/// Unlike [`add()`][`Poller::add()`], this method only removes the file descriptor or</span>
     <span class="doccomment">/// socket from the poller without putting it back into blocking mode.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use polling::Poller;</span>
+    <span class="doccomment">/// use polling::{Event, Poller};</span>
     <span class="doccomment">/// use std::net::TcpListener;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let poller = Poller::new()?;</span>
     <span class="doccomment">/// let socket = TcpListener::bind(&quot;127.0.0.1:0&quot;)?;</span>
+    <span class="doccomment">/// socket.set_nonblocking(true)?;</span>
+    <span class="doccomment">/// let key = 7;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// poller.insert(&amp;socket)?;</span>
-    <span class="doccomment">/// poller.remove(&amp;socket)?;</span>
+    <span class="doccomment">/// let poller = Poller::new()?;</span>
+    <span class="doccomment">/// poller.add(&amp;socket, Event::all(key))?;</span>
+    <span class="doccomment">/// poller.delete(&amp;socket)?;</span>
     <span class="doccomment">/// # std::io::Result::Ok(())</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source</span>: <span class="kw">impl</span> <span class="ident">Source</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">poller</span>.<span class="ident">remove</span>(<span class="ident">source</span>.<span class="ident">raw</span>())
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">delete</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source</span>: <span class="kw">impl</span> <span class="ident">Source</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">poller</span>.<span class="ident">delete</span>(<span class="ident">source</span>.<span class="ident">raw</span>())
     }
 
     <span class="doccomment">/// Waits for at least one I/O event and returns the number of new events.</span>
@@ -781,13 +848,16 @@
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use polling::Poller;</span>
+    <span class="doccomment">/// use polling::{Event, Poller};</span>
     <span class="doccomment">/// use std::net::TcpListener;</span>
     <span class="doccomment">/// use std::time::Duration;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let poller = Poller::new()?;</span>
     <span class="doccomment">/// let socket = TcpListener::bind(&quot;127.0.0.1:0&quot;)?;</span>
-    <span class="doccomment">/// poller.insert(&amp;socket)?;</span>
+    <span class="doccomment">/// socket.set_nonblocking(true)?;</span>
+    <span class="doccomment">/// let key = 7;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let poller = Poller::new()?;</span>
+    <span class="doccomment">/// poller.add(&amp;socket, Event::all(key))?;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let mut events = Vec::new();</span>
     <span class="doccomment">/// let n = poller.wait(&amp;mut events, Some(Duration::from_secs(1)))?;</span>

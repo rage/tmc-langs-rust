@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/parking-1.0.6/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/parking-2.0.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../parking/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -349,6 +349,10 @@
 <span id="346">346</span>
 <span id="347">347</span>
 <span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Thread parking and unparking.</span>
 <span class="doccomment">//!</span>
@@ -498,6 +502,9 @@
 
     <span class="doccomment">/// Notifies the parker.</span>
     <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns `true` if this call is the first to notify the parker, or `false` if the parker</span>
+    <span class="doccomment">/// was already notified.</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
@@ -506,17 +513,14 @@
     <span class="doccomment">/// use parking::Parker;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let p = Parker::new();</span>
-    <span class="doccomment">/// let u = p.unparker();</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// thread::spawn(move || {</span>
-    <span class="doccomment">///     thread::sleep(Duration::from_millis(500));</span>
-    <span class="doccomment">///     u.unpark();</span>
-    <span class="doccomment">/// });</span>
+    <span class="doccomment">/// assert_eq!(p.unpark(), true);</span>
+    <span class="doccomment">/// assert_eq!(p.unpark(), false);</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// // Wakes up when `u.unpark()` notifies and then goes back into unnotified state.</span>
+    <span class="doccomment">/// // Wakes up immediately.</span>
     <span class="doccomment">/// p.park();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">unparker</span>.<span class="ident">unpark</span>()
     }
 
@@ -563,6 +567,9 @@
 <span class="kw">impl</span> <span class="ident">Unparker</span> {
     <span class="doccomment">/// Notifies the associated parker.</span>
     <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns `true` if this call is the first to notify the parker, or `false` if the parker</span>
+    <span class="doccomment">/// was already notified.</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
@@ -581,7 +588,7 @@
     <span class="doccomment">/// // Wakes up when `u.unpark()` notifies and then goes back into unnotified state.</span>
     <span class="doccomment">/// p.park();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">unpark</span>()
     }
 }
@@ -674,15 +681,15 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="comment">// To ensure the unparked thread will observe any writes we made before this call, we must</span>
         <span class="comment">// perform a release operation that `park` can synchronize with. To do that we must write</span>
         <span class="comment">// `NOTIFIED` even if `state` is already `NOTIFIED`. That is why this must be a swap rather</span>
         <span class="comment">// than a compare-and-swap that returns if it reads `NOTIFIED` on failure.</span>
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">swap</span>(<span class="ident">NOTIFIED</span>, <span class="ident">SeqCst</span>) {
-            <span class="ident">EMPTY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,    <span class="comment">// no one was waiting</span>
-            <span class="ident">NOTIFIED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>, <span class="comment">// already unparked</span>
-            <span class="ident">PARKED</span> <span class="op">=</span><span class="op">&gt;</span> {}        <span class="comment">// gotta go wake someone up</span>
+            <span class="ident">EMPTY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">true</span>,     <span class="comment">// no one was waiting</span>
+            <span class="ident">NOTIFIED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>, <span class="comment">// already unparked</span>
+            <span class="ident">PARKED</span> <span class="op">=</span><span class="op">&gt;</span> {}              <span class="comment">// gotta go wake someone up</span>
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;inconsistent state in unpark&quot;</span>),
         }
 
@@ -696,6 +703,7 @@
         <span class="comment">// it doesn&#39;t get woken only to have to wait for us to release `lock`.</span>
         <span class="ident">drop</span>(<span class="self">self</span>.<span class="ident">lock</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>());
         <span class="self">self</span>.<span class="ident">cvar</span>.<span class="ident">notify_one</span>();
+        <span class="bool-val">true</span>
     }
 }
 </pre></div>

@@ -10,15 +10,15 @@
 </ul>
 <h1 id="resolvers-are-services" class="section-header"><a href="#resolvers-are-services">Resolvers are <code>Service</code>s</a></h1>
 <p>A resolver is just a
-<code>Service&lt;Name, Response = impl Iterator&lt;Item = IpAddr&gt;&gt;</code>.</p>
+<code>Service&lt;Name, Response = impl Iterator&lt;Item = SocketAddr&gt;&gt;</code>.</p>
 <p>A simple resolver that ignores the name and always returns a specific
 address:</p>
 
 <div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert</span>::<span class="ident">Infallible</span>, <span class="ident">iter</span>, <span class="ident">net</span>::<span class="ident">IpAddr</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert</span>::<span class="ident">Infallible</span>, <span class="ident">iter</span>, <span class="ident">net</span>::<span class="ident">SocketAddr</span>};
 
 <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">tower</span>::<span class="ident">service_fn</span>(<span class="op">|</span><span class="ident">_name</span><span class="op">|</span> <span class="ident">async</span> {
-    <span class="prelude-val">Ok</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Infallible</span><span class="op">&gt;</span>(<span class="ident">iter</span>::<span class="ident">once</span>(<span class="ident">IpAddr</span>::<span class="ident">from</span>([<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>])))
+    <span class="prelude-val">Ok</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Infallible</span><span class="op">&gt;</span>(<span class="ident">iter</span>::<span class="ident">once</span>(<span class="ident">SocketAddr</span>::<span class="ident">from</span>(([<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>], <span class="number">8080</span>))))
 });</pre></div>
 </div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table><tr class='module-item'><td><a class="struct" href="struct.GaiAddrs.html" title='hyper::client::connect::dns::GaiAddrs struct'>GaiAddrs</a></td><td class='docblock-short'><p>An iterator of IP addresses returned from <code>getaddrinfo</code>.</p>

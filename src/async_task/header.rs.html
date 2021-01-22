@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-task-3.0.0/src/header.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>header.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-task-4.0.3/src/header.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>header.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../async_task/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -163,32 +163,7 @@
 <span id="160">160</span>
 <span id="161">161</span>
 <span id="162">162</span>
-<span id="163">163</span>
-<span id="164">164</span>
-<span id="165">165</span>
-<span id="166">166</span>
-<span id="167">167</span>
-<span id="168">168</span>
-<span id="169">169</span>
-<span id="170">170</span>
-<span id="171">171</span>
-<span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">alloc</span>::<span class="ident">Layout</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">cell</span>::<span class="ident">UnsafeCell</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::{<span class="ident">AtomicUsize</span>, <span class="ident">Ordering</span>};
@@ -196,18 +171,18 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">raw</span>::<span class="ident">TaskVTable</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">state</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">utils</span>::{<span class="ident">abort_on_panic</span>, <span class="ident">extend</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">utils</span>::<span class="ident">abort_on_panic</span>;
 
 <span class="doccomment">/// The header of a task.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This header is stored right at the beginning of every heap-allocated task.</span>
+<span class="doccomment">/// This header is stored in memory at the beginning of the heap-allocated task.</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Header</span> {
     <span class="doccomment">/// Current state of the task.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Contains flags representing the current state and the reference count.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">state</span>: <span class="ident">AtomicUsize</span>,
 
-    <span class="doccomment">/// The task that is blocked on the `JoinHandle`.</span>
+    <span class="doccomment">/// The task that is blocked on the `Task` handle.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This waker needs to be woken up once the task completes or is closed.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">awaiter</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Waker</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -220,70 +195,56 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Header</span> {
-    <span class="doccomment">/// Cancels the task.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method will mark the task as closed, but it won&#39;t reschedule the task or drop its</span>
-    <span class="doccomment">/// future.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cancel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">Acquire</span>);
-
-        <span class="kw">loop</span> {
-            <span class="comment">// If the task has been completed or closed, it can&#39;t be canceled.</span>
-            <span class="kw">if</span> <span class="ident">state</span> <span class="op">&amp;</span> (<span class="ident">COMPLETED</span> <span class="op">|</span> <span class="ident">CLOSED</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                <span class="kw">break</span>;
-            }
-
-            <span class="comment">// Mark the task as closed.</span>
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">compare_exchange_weak</span>(
-                <span class="ident">state</span>,
-                <span class="ident">state</span> <span class="op">|</span> <span class="ident">CLOSED</span>,
-                <span class="ident">Ordering</span>::<span class="ident">AcqRel</span>,
-                <span class="ident">Ordering</span>::<span class="ident">Acquire</span>,
-            ) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">s</span>,
-            }
-        }
-    }
-
     <span class="doccomment">/// Notifies the awaiter blocked on this task.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the awaiter is the same as the current waker, it will not be notified.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">notify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Waker</span><span class="op">&gt;</span>) {
-        <span class="comment">// Mark the awaiter as being notified.</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">w</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">take</span>(<span class="ident">current</span>) {
+            <span class="ident">abort_on_panic</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">wake</span>());
+        }
+    }
+
+    <span class="doccomment">/// Takes the awaiter blocked on this task.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If there is no awaiter or if it is the same as the current waker, returns `None`.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">take</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">current</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Waker</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Waker</span><span class="op">&gt;</span> {
+        <span class="comment">// Set the bit indicating that the task is notifying its awaiter.</span>
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<span class="ident">NOTIFYING</span>, <span class="ident">Ordering</span>::<span class="ident">AcqRel</span>);
 
-        <span class="comment">// If the awaiter was not being notified nor registered...</span>
+        <span class="comment">// If the task was not notifying or registering an awaiter...</span>
         <span class="kw">if</span> <span class="ident">state</span> <span class="op">&amp;</span> (<span class="ident">NOTIFYING</span> <span class="op">|</span> <span class="ident">REGISTERING</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="comment">// Take the waker out.</span>
             <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">awaiter</span>.<span class="ident">get</span>()).<span class="ident">take</span>() };
 
-            <span class="comment">// Mark the state as not being notified anymore nor containing an awaiter.</span>
+            <span class="comment">// Unset the bit indicating that the task is notifying its awaiter.</span>
             <span class="self">self</span>.<span class="ident">state</span>
                 .<span class="ident">fetch_and</span>(<span class="op">!</span><span class="ident">NOTIFYING</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">AWAITER</span>, <span class="ident">Ordering</span>::<span class="ident">Release</span>);
 
+            <span class="comment">// Finally, notify the waker if it&#39;s different from the current waker.</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">w</span>) <span class="op">=</span> <span class="ident">waker</span> {
-                <span class="comment">// We need a safeguard against panics because waking can panic.</span>
-                <span class="ident">abort_on_panic</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">current</span> {
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">w</span>.<span class="ident">wake</span>(),
-                    <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">w</span>.<span class="ident">will_wake</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">w</span>.<span class="ident">wake</span>(),
-                    <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-                });
+                <span class="kw">match</span> <span class="ident">current</span> {
+                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">w</span>),
+                    <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">w</span>.<span class="ident">will_wake</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">w</span>),
+                    <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">abort_on_panic</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">drop</span>(<span class="ident">w</span>)),
+                }
             }
         }
+
+        <span class="prelude-val">None</span>
     }
 
     <span class="doccomment">/// Registers a new awaiter blocked on this task.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is called when `JoinHandle` is polled and the task has not completed.</span>
+    <span class="doccomment">/// This method is called when `Task` is polled and it has not yet completed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">waker</span>: <span class="kw-2">&amp;</span><span class="ident">Waker</span>) {
         <span class="comment">// Load the state and synchronize with it.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<span class="number">0</span>, <span class="ident">Ordering</span>::<span class="ident">Acquire</span>);
 
         <span class="kw">loop</span> {
-            <span class="comment">// There can&#39;t be two concurrent registrations because `JoinHandle` can only be polled</span>
+            <span class="comment">// There can&#39;t be two concurrent registrations because `Task` can only be polled</span>
             <span class="comment">// by a unique pinned reference.</span>
             <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">REGISTERING</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
 
@@ -348,15 +309,6 @@
             <span class="ident">abort_on_panic</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">wake</span>());
         }
     }
-
-    <span class="doccomment">/// Returns the offset at which the tag of type `T` is stored.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">offset_tag</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-        <span class="kw">let</span> <span class="ident">layout_header</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">new</span>::<span class="op">&lt;</span><span class="ident">Header</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">layout_t</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">new</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">offset_t</span>) <span class="op">=</span> <span class="ident">extend</span>(<span class="ident">layout_header</span>, <span class="ident">layout_t</span>);
-        <span class="ident">offset_t</span>
-    }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Header</span> {
@@ -369,7 +321,7 @@
             .<span class="ident">field</span>(<span class="string">&quot;completed&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">COMPLETED</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>))
             .<span class="ident">field</span>(<span class="string">&quot;closed&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">CLOSED</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>))
             .<span class="ident">field</span>(<span class="string">&quot;awaiter&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">AWAITER</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>))
-            .<span class="ident">field</span>(<span class="string">&quot;handle&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">HANDLE</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>))
+            .<span class="ident">field</span>(<span class="string">&quot;task&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">TASK</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>))
             .<span class="ident">field</span>(<span class="string">&quot;ref_count&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">state</span> <span class="op">/</span> <span class="ident">REFERENCE</span>))
             .<span class="ident">finish</span>()
     }

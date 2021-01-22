@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["InvalidTokenError",""],["SandboxTestError",""]]});
+initSidebarItems({"struct":[["DownloadsFailedError",""],["InvalidTokenError",""],["SandboxTestError",""]]});

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.24/src/sync/watch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>watch.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.0.2/src/sync/watch.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>watch.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -432,6 +432,67 @@
 <span id="429">429</span>
 <span id="430">430</span>
 <span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A single-producer, multi-consumer channel that only retains the *last* sent</span>
 <span class="doccomment">//! value.</span>
@@ -441,13 +502,11 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Usage</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! [`channel`] returns a [`Sender`] / [`Receiver`] pair. These are</span>
-<span class="doccomment">//! the producer and sender halves of the channel. The channel is</span>
-<span class="doccomment">//! created with an initial value. [`Receiver::recv`] will always</span>
-<span class="doccomment">//! be ready upon creation and will yield either this initial value or</span>
-<span class="doccomment">//! the latest value that has been sent by `Sender`.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Calls to [`Receiver::recv`] will always yield the latest value.</span>
+<span class="doccomment">//! [`channel`] returns a [`Sender`] / [`Receiver`] pair. These are the producer</span>
+<span class="doccomment">//! and sender halves of the channel. The channel is created with an initial</span>
+<span class="doccomment">//! value. The **latest** value stored in the channel is accessed with</span>
+<span class="doccomment">//! [`Receiver::borrow()`]. Awaiting [`Receiver::changed()`] waits for a new</span>
+<span class="doccomment">//! value to sent by the [`Sender`] half.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Examples</span>
 <span class="doccomment">//!</span>
@@ -458,21 +517,21 @@
 <span class="doccomment">//!     let (tx, mut rx) = watch::channel(&quot;hello&quot;);</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!     tokio::spawn(async move {</span>
-<span class="doccomment">//!         while let Some(value) = rx.recv().await {</span>
-<span class="doccomment">//!             println!(&quot;received = {:?}&quot;, value);</span>
+<span class="doccomment">//!         while rx.changed().await.is_ok() {</span>
+<span class="doccomment">//!             println!(&quot;received = {:?}&quot;, *rx.borrow());</span>
 <span class="doccomment">//!         }</span>
 <span class="doccomment">//!     });</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//!     tx.broadcast(&quot;world&quot;)?;</span>
+<span class="doccomment">//!     tx.send(&quot;world&quot;)?;</span>
 <span class="doccomment">//! # Ok(())</span>
 <span class="doccomment">//! # }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Closing</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! [`Sender::closed`] allows the producer to detect when all [`Receiver`]</span>
-<span class="doccomment">//! handles have been dropped. This indicates that there is no further interest</span>
-<span class="doccomment">//! in the values being produced and work can be stopped.</span>
+<span class="doccomment">//! [`Sender::is_closed`] and [`Sender::closed`] allow the producer to detect</span>
+<span class="doccomment">//! when all [`Receiver`] handles have been dropped. This indicates that there</span>
+<span class="doccomment">//! is no further interest in the values being produced and work can be stopped.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Thread safety</span>
 <span class="doccomment">//!</span>
@@ -482,20 +541,18 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [`Sender`]: crate::sync::watch::Sender</span>
 <span class="doccomment">//! [`Receiver`]: crate::sync::watch::Receiver</span>
-<span class="doccomment">//! [`Receiver::recv`]: crate::sync::watch::Receiver::recv</span>
+<span class="doccomment">//! [`Receiver::changed()`]: crate::sync::watch::Receiver::changed</span>
+<span class="doccomment">//! [`Receiver::borrow()`]: crate::sync::watch::Receiver::borrow</span>
 <span class="doccomment">//! [`channel`]: crate::sync::watch::channel</span>
+<span class="doccomment">//! [`Sender::is_closed`]: crate::sync::watch::Sender::is_closed</span>
 <span class="doccomment">//! [`Sender::closed`]: crate::sync::watch::Sender::closed</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">future</span>::<span class="ident">poll_fn</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">sync</span>::<span class="ident">task</span>::<span class="ident">AtomicWaker</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">sync</span>::<span class="ident">Notify</span>;
 
-<span class="kw">use</span> <span class="ident">fnv</span>::<span class="ident">FnvHashSet</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">loom</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">AtomicUsize</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">loom</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">Ordering</span>::{<span class="ident">Relaxed</span>, <span class="ident">SeqCst</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">loom</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">RwLock</span>, <span class="ident">RwLockReadGuard</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">AtomicUsize</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">Ordering</span>::{<span class="ident">Relaxed</span>, <span class="ident">SeqCst</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>, <span class="ident">RwLock</span>, <span class="ident">RwLockReadGuard</span>, <span class="ident">Weak</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">task</span>::<span class="ident">Poll</span>::{<span class="ident">Pending</span>, <span class="ident">Ready</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">task</span>::{<span class="ident">Context</span>, <span class="ident">Poll</span>};
 
 <span class="doccomment">/// Receives values from the associated [`Sender`](struct@Sender).</span>
 <span class="doccomment">///</span>
@@ -505,8 +562,8 @@
     <span class="doccomment">/// Pointer to the shared state</span>
     <span class="ident">shared</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Shared</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
-    <span class="doccomment">/// Pointer to the watcher&#39;s internal state</span>
-    <span class="ident">inner</span>: <span class="ident">Watcher</span>,
+    <span class="doccomment">/// Last observed version</span>
+    <span class="ident">version</span>: <span class="ident">usize</span>,
 }
 
 <span class="doccomment">/// Sends values to the associated [`Receiver`](struct@Receiver).</span>
@@ -514,7 +571,7 @@
 <span class="doccomment">/// Instances are created by the [`channel`](fn@channel) function.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">shared</span>: <span class="ident">Weak</span><span class="op">&lt;</span><span class="ident">Shared</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">shared</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Shared</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Returns a reference to the inner value</span>
@@ -525,6 +582,27 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Ref</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="ident">inner</span>: <span class="ident">RwLockReadGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">struct</span> <span class="ident">Shared</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// The most recent value</span>
+    <span class="ident">value</span>: <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// The current version</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The lowest bit represents a &quot;closed&quot; state. The rest of the bits</span>
+    <span class="doccomment">/// represent the current version.</span>
+    <span class="ident">version</span>: <span class="ident">AtomicUsize</span>,
+
+    <span class="doccomment">/// Tracks the number of `Receiver` instances</span>
+    <span class="ident">ref_count_rx</span>: <span class="ident">AtomicUsize</span>,
+
+    <span class="doccomment">/// Notifies waiting receivers that the value changed.</span>
+    <span class="ident">notify_rx</span>: <span class="ident">Notify</span>,
+
+    <span class="doccomment">/// Notifies any task listening for `Receiver` dropped events</span>
+    <span class="ident">notify_tx</span>: <span class="ident">Notify</span>,
 }
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span> {
@@ -547,37 +625,20 @@
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">for</span> <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
-}
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Shared</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The most recent value</span>
-    <span class="ident">value</span>: <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Error produced when receiving a change notification.</span>
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RecvError</span>(<span class="kw">pub</span>(<span class="kw">super</span>) ());
 
-    <span class="doccomment">/// The current version</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The lowest bit represents a &quot;closed&quot; state. The rest of the bits</span>
-    <span class="doccomment">/// represent the current version.</span>
-    <span class="ident">version</span>: <span class="ident">AtomicUsize</span>,
+    <span class="comment">// ===== impl RecvError =====</span>
 
-    <span class="doccomment">/// All watchers</span>
-    <span class="ident">watchers</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Watchers</span><span class="op">&gt;</span>,
+    <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">RecvError</span> {
+        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+            <span class="macro">write</span><span class="macro">!</span>(<span class="ident">fmt</span>, <span class="string">&quot;channel closed&quot;</span>)
+        }
+    }
 
-    <span class="doccomment">/// Task to notify when all watchers drop</span>
-    <span class="ident">cancel</span>: <span class="ident">AtomicWaker</span>,
-}
-
-<span class="kw">type</span> <span class="ident">Watchers</span> <span class="op">=</span> <span class="ident">FnvHashSet</span><span class="op">&lt;</span><span class="ident">Watcher</span><span class="op">&gt;</span>;
-
-<span class="doccomment">/// The watcher&#39;s ID is based on the Arc&#39;s pointer.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Watcher</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">WatchInner</span><span class="op">&gt;</span>);
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">WatchInner</span> {
-    <span class="doccomment">/// Last observed version</span>
-    <span class="ident">version</span>: <span class="ident">AtomicUsize</span>,
-    <span class="ident">waker</span>: <span class="ident">AtomicWaker</span>,
+    <span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">for</span> <span class="ident">RecvError</span> {}
 }
 
 <span class="kw">const</span> <span class="ident">CLOSED</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
@@ -597,41 +658,32 @@
 <span class="doccomment">///     let (tx, mut rx) = watch::channel(&quot;hello&quot;);</span>
 <span class="doccomment">///</span>
 <span class="doccomment">///     tokio::spawn(async move {</span>
-<span class="doccomment">///         while let Some(value) = rx.recv().await {</span>
-<span class="doccomment">///             println!(&quot;received = {:?}&quot;, value);</span>
+<span class="doccomment">///         while rx.changed().await.is_ok() {</span>
+<span class="doccomment">///             println!(&quot;received = {:?}&quot;, *rx.borrow());</span>
 <span class="doccomment">///         }</span>
 <span class="doccomment">///     });</span>
 <span class="doccomment">///</span>
-<span class="doccomment">///     tx.broadcast(&quot;world&quot;)?;</span>
+<span class="doccomment">///     tx.send(&quot;world&quot;)?;</span>
 <span class="doccomment">/// # Ok(())</span>
 <span class="doccomment">/// # }</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`Sender`]: struct@Sender</span>
 <span class="doccomment">/// [`Receiver`]: struct@Receiver</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Clone</span><span class="op">&gt;</span>(<span class="ident">init</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
-    <span class="kw">const</span> <span class="ident">VERSION_0</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">const</span> <span class="ident">VERSION_1</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2</span>;
-
-    <span class="comment">// We don&#39;t start knowing VERSION_1</span>
-    <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Watcher</span>::<span class="ident">new_version</span>(<span class="ident">VERSION_0</span>);
-
-    <span class="comment">// Insert the watcher</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">watchers</span> <span class="op">=</span> <span class="ident">FnvHashSet</span>::<span class="ident">with_capacity_and_hasher</span>(<span class="number">0</span>, <span class="ident">Default</span>::<span class="ident">default</span>());
-    <span class="ident">watchers</span>.<span class="ident">insert</span>(<span class="ident">inner</span>.<span class="ident">clone</span>());
-
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">init</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
     <span class="kw">let</span> <span class="ident">shared</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Shared</span> {
         <span class="ident">value</span>: <span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="ident">init</span>),
-        <span class="ident">version</span>: <span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="ident">VERSION_1</span>),
-        <span class="ident">watchers</span>: <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">watchers</span>),
-        <span class="ident">cancel</span>: <span class="ident">AtomicWaker</span>::<span class="ident">new</span>(),
+        <span class="ident">version</span>: <span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="number">0</span>),
+        <span class="ident">ref_count_rx</span>: <span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="number">1</span>),
+        <span class="ident">notify_rx</span>: <span class="ident">Notify</span>::<span class="ident">new</span>(),
+        <span class="ident">notify_tx</span>: <span class="ident">Notify</span>::<span class="ident">new</span>(),
     });
 
     <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <span class="ident">Sender</span> {
-        <span class="ident">shared</span>: <span class="ident">Arc</span>::<span class="ident">downgrade</span>(<span class="kw-2">&amp;</span><span class="ident">shared</span>),
+        <span class="ident">shared</span>: <span class="ident">shared</span>.<span class="ident">clone</span>(),
     };
 
-    <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">Receiver</span> { <span class="ident">shared</span>, <span class="ident">inner</span> };
+    <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">Receiver</span> { <span class="ident">shared</span>, <span class="ident">version</span>: <span class="number">0</span> };
 
     (<span class="ident">tx</span>, <span class="ident">rx</span>)
 }
@@ -656,39 +708,13 @@
         <span class="ident">Ref</span> { <span class="ident">inner</span> }
     }
 
-    <span class="comment">// TODO: document</span>
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_recv_ref</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ref</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="comment">// Make sure the task is up to date</span>
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">waker</span>.<span class="ident">register_by_ref</span>(<span class="ident">cx</span>.<span class="ident">waker</span>());
-
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">version</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
-        <span class="kw">let</span> <span class="ident">version</span> <span class="op">=</span> <span class="ident">state</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">CLOSED</span>;
-
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">version</span>.<span class="ident">swap</span>(<span class="ident">version</span>, <span class="ident">Relaxed</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">version</span> {
-            <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">value</span>.<span class="ident">read</span>().<span class="ident">unwrap</span>();
-
-            <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">Ref</span> { <span class="ident">inner</span> }));
-        }
-
-        <span class="kw">if</span> <span class="ident">CLOSED</span> <span class="op">=</span><span class="op">=</span> <span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">CLOSED</span> {
-            <span class="comment">// The `Store` handle has been dropped.</span>
-            <span class="kw">return</span> <span class="ident">Ready</span>(<span class="prelude-val">None</span>);
-        }
-
-        <span class="ident">Pending</span>
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Clone</span><span class="op">&gt;</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Attempts to clone the latest value sent via the channel.</span>
+    <span class="doccomment">/// Wait for a change notification</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// If this is the first time the function is called on a `Receiver`</span>
-    <span class="doccomment">/// instance, then the function completes immediately with the **current**</span>
-    <span class="doccomment">/// value held by the channel. On the next call, the function waits until</span>
-    <span class="doccomment">/// a new value is sent in the channel.</span>
+    <span class="doccomment">/// Returns when a new value has been sent by the [`Sender`] since the last</span>
+    <span class="doccomment">/// time `changed()` was called. When the `Sender` half is dropped, `Err` is</span>
+    <span class="doccomment">/// returned.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// `None` is returned if the `Sender` half is dropped.</span>
+    <span class="doccomment">/// [`Sender`]: struct@Sender</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -699,118 +725,174 @@
     <span class="doccomment">/// async fn main() {</span>
     <span class="doccomment">///     let (tx, mut rx) = watch::channel(&quot;hello&quot;);</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">///     let v = rx.recv().await.unwrap();</span>
-    <span class="doccomment">///     assert_eq!(v, &quot;hello&quot;);</span>
-    <span class="doccomment">///</span>
     <span class="doccomment">///     tokio::spawn(async move {</span>
-    <span class="doccomment">///         tx.broadcast(&quot;goodbye&quot;).unwrap();</span>
+    <span class="doccomment">///         tx.send(&quot;goodbye&quot;).unwrap();</span>
     <span class="doccomment">///     });</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">///     // Waits for the new task to spawn and send the value.</span>
-    <span class="doccomment">///     let v = rx.recv().await.unwrap();</span>
-    <span class="doccomment">///     assert_eq!(v, &quot;goodbye&quot;);</span>
+    <span class="doccomment">///     assert!(rx.changed().await.is_ok());</span>
+    <span class="doccomment">///     assert_eq!(*rx.borrow(), &quot;goodbye&quot;);</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">///     let v = rx.recv().await;</span>
-    <span class="doccomment">///     assert!(v.is_none());</span>
+    <span class="doccomment">///     // The `tx` handle has been dropped</span>
+    <span class="doccomment">///     assert!(rx.changed().await.is_err());</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">recv</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">poll_fn</span>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">v_ref</span> <span class="op">=</span> <span class="macro">ready</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">poll_recv_ref</span>(<span class="ident">cx</span>));
-            <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">v_ref</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">v_ref</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">v_ref</span>).<span class="ident">clone</span>()))
-        })
-        .<span class="ident">await</span>
+    <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">changed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">error</span>::<span class="ident">RecvError</span><span class="op">&gt;</span> {
+        <span class="kw">loop</span> {
+            <span class="comment">// In order to avoid a race condition, we first request a notification,</span>
+            <span class="comment">// **then** check the current value&#39;s version. If a new version exists,</span>
+            <span class="comment">// the notification request is dropped.</span>
+            <span class="kw">let</span> <span class="ident">notified</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">notify_rx</span>.<span class="ident">notified</span>();
+
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ret</span>) <span class="op">=</span> <span class="ident">maybe_changed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">shared</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">version</span>) {
+                <span class="kw">return</span> <span class="ident">ret</span>;
+            }
+
+            <span class="ident">notified</span>.<span class="ident">await</span>;
+            <span class="comment">// loop around again in case the wake-up was spurious</span>
+        }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;stream&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Clone</span><span class="op">&gt;</span> <span class="kw">crate</span>::<span class="ident">stream</span>::<span class="ident">Stream</span> <span class="kw">for</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span>;
+<span class="kw">fn</span> <span class="ident">maybe_changed</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
+    <span class="ident">shared</span>: <span class="kw-2">&amp;</span><span class="ident">Shared</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="ident">version</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">usize</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">error</span>::<span class="ident">RecvError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="comment">// Load the version from the state</span>
+    <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">shared</span>.<span class="ident">version</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
+    <span class="kw">let</span> <span class="ident">new_version</span> <span class="op">=</span> <span class="ident">state</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">CLOSED</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">std</span>::<span class="ident">pin</span>::<span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">v_ref</span> <span class="op">=</span> <span class="macro">ready</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">poll_recv_ref</span>(<span class="ident">cx</span>));
-
-        <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">v_ref</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">v_ref</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">v_ref</span>).<span class="ident">clone</span>()))
+    <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">version</span> <span class="op">!</span><span class="op">=</span> <span class="ident">new_version</span> {
+        <span class="comment">// Observe the new version and return</span>
+        <span class="kw-2">*</span><span class="ident">version</span> <span class="op">=</span> <span class="ident">new_version</span>;
+        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(()));
     }
+
+    <span class="kw">if</span> <span class="ident">CLOSED</span> <span class="op">=</span><span class="op">=</span> <span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">CLOSED</span> {
+        <span class="comment">// All receivers have dropped.</span>
+        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">RecvError</span>(())));
+    }
+
+    <span class="prelude-val">None</span>
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">ver</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">version</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>);
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Watcher</span>::<span class="ident">new_version</span>(<span class="ident">ver</span>);
+        <span class="kw">let</span> <span class="ident">version</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">version</span>;
         <span class="kw">let</span> <span class="ident">shared</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">clone</span>();
 
-        <span class="ident">shared</span>.<span class="ident">watchers</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">insert</span>(<span class="ident">inner</span>.<span class="ident">clone</span>());
+        <span class="comment">// No synchronization necessary as this is only used as a counter and</span>
+        <span class="comment">// not memory access.</span>
+        <span class="ident">shared</span>.<span class="ident">ref_count_rx</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Relaxed</span>);
 
-        <span class="ident">Receiver</span> { <span class="ident">shared</span>, <span class="ident">inner</span> }
+        <span class="ident">Receiver</span> { <span class="ident">version</span>, <span class="ident">shared</span> }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">watchers</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>);
+        <span class="comment">// No synchronization necessary as this is only used as a counter and</span>
+        <span class="comment">// not memory access.</span>
+        <span class="kw">if</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">ref_count_rx</span>.<span class="ident">fetch_sub</span>(<span class="number">1</span>, <span class="ident">Relaxed</span>) {
+            <span class="comment">// This is the last `Receiver` handle, tasks waiting on `Sender::closed()`</span>
+            <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">notify_tx</span>.<span class="ident">notify_waiters</span>();
+        }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Broadcasts a new value via the channel, notifying all receivers.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">broadcast</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">error</span>::<span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">shared</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">upgrade</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">shared</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">shared</span>,
-            <span class="comment">// All `Watch` handles have been canceled</span>
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">SendError</span> { <span class="ident">inner</span>: <span class="ident">value</span> }),
-        };
-
-        <span class="comment">// Replace the value</span>
-        {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lock</span> <span class="op">=</span> <span class="ident">shared</span>.<span class="ident">value</span>.<span class="ident">write</span>().<span class="ident">unwrap</span>();
-            <span class="kw-2">*</span><span class="ident">lock</span> <span class="op">=</span> <span class="ident">value</span>;
+    <span class="doccomment">/// Sends a new value via the channel, notifying all receivers.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">error</span>::<span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="comment">// This is pretty much only useful as a hint anyway, so synchronization isn&#39;t critical.</span>
+        <span class="kw">if</span> <span class="number">0</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">ref_count_rx</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">SendError</span> { <span class="ident">inner</span>: <span class="ident">value</span> });
         }
 
+        <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">value</span>.<span class="ident">write</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="ident">value</span>;
+
         <span class="comment">// Update the version. 2 is used so that the CLOSED bit is not set.</span>
-        <span class="ident">shared</span>.<span class="ident">version</span>.<span class="ident">fetch_add</span>(<span class="number">2</span>, <span class="ident">SeqCst</span>);
+        <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">version</span>.<span class="ident">fetch_add</span>(<span class="number">2</span>, <span class="ident">SeqCst</span>);
 
         <span class="comment">// Notify all watchers</span>
-        <span class="ident">notify_all</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">shared</span>);
+        <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">notify_rx</span>.<span class="ident">notify_waiters</span>();
 
         <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Returns a reference to the most recently sent value</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Outstanding borrows hold a read lock. This means that long lived borrows</span>
+    <span class="doccomment">/// could cause the send half to block. It is recommended to keep the borrow</span>
+    <span class="doccomment">/// as short lived as possible.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use tokio::sync::watch;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let (tx, _) = watch::channel(&quot;hello&quot;);</span>
+    <span class="doccomment">/// assert_eq!(*tx.borrow(), &quot;hello&quot;);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ref</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">value</span>.<span class="ident">read</span>().<span class="ident">unwrap</span>();
+        <span class="ident">Ref</span> { <span class="ident">inner</span> }
+    }
+
+    <span class="doccomment">/// Checks if the channel has been closed. This happens when all receivers</span>
+    <span class="doccomment">/// have dropped.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// let (tx, rx) = tokio::sync::watch::channel(());</span>
+    <span class="doccomment">/// assert!(!tx.is_closed());</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// drop(rx);</span>
+    <span class="doccomment">/// assert!(tx.is_closed());</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">ref_count_rx</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
     }
 
     <span class="doccomment">/// Completes when all receivers have dropped.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This allows the producer to get notified when interest in the produced</span>
     <span class="doccomment">/// values is canceled and immediately stop doing work.</span>
-    <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">closed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="ident">poll_fn</span>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">poll_close</span>(<span class="ident">cx</span>)).<span class="ident">await</span>
-    }
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use tokio::sync::watch;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// #[tokio::main]</span>
+    <span class="doccomment">/// async fn main() {</span>
+    <span class="doccomment">///     let (tx, rx) = watch::channel(&quot;hello&quot;);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">///     tokio::spawn(async move {</span>
+    <span class="doccomment">///         // use `rx`</span>
+    <span class="doccomment">///         drop(rx);</span>
+    <span class="doccomment">///     });</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">///     // Waits for `rx` to drop</span>
+    <span class="doccomment">///     tx.closed().await;</span>
+    <span class="doccomment">///     println!(&quot;the `rx` handles dropped&quot;)</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">let</span> <span class="ident">notified</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">notify_tx</span>.<span class="ident">notified</span>();
 
-    <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">upgrade</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">shared</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">shared</span>.<span class="ident">cancel</span>.<span class="ident">register_by_ref</span>(<span class="ident">cx</span>.<span class="ident">waker</span>());
-                <span class="ident">Pending</span>
-            }
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ready</span>(()),
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">ref_count_rx</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">return</span>;
         }
-    }
-}
 
-<span class="doccomment">/// Notifies all watchers of a change</span>
-<span class="kw">fn</span> <span class="ident">notify_all</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">shared</span>: <span class="kw-2">&amp;</span><span class="ident">Shared</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
-    <span class="kw">let</span> <span class="ident">watchers</span> <span class="op">=</span> <span class="ident">shared</span>.<span class="ident">watchers</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-
-    <span class="kw">for</span> <span class="ident">watcher</span> <span class="kw">in</span> <span class="ident">watchers</span>.<span class="ident">iter</span>() {
-        <span class="comment">// Notify the task</span>
-        <span class="ident">watcher</span>.<span class="ident">waker</span>.<span class="ident">wake</span>();
+        <span class="ident">notified</span>.<span class="ident">await</span>;
+        <span class="macro">debug_assert_eq</span><span class="macro">!</span>(<span class="number">0</span>, <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">ref_count_rx</span>.<span class="ident">load</span>(<span class="ident">Relaxed</span>));
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">shared</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">upgrade</span>() {
-            <span class="ident">shared</span>.<span class="ident">version</span>.<span class="ident">fetch_or</span>(<span class="ident">CLOSED</span>, <span class="ident">SeqCst</span>);
-            <span class="ident">notify_all</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">shared</span>);
-        }
+        <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">version</span>.<span class="ident">fetch_or</span>(<span class="ident">CLOSED</span>, <span class="ident">SeqCst</span>);
+        <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">notify_rx</span>.<span class="ident">notify_waiters</span>();
     }
 }
 
@@ -824,44 +906,84 @@
     }
 }
 
-<span class="comment">// ===== impl Shared =====</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">test</span>, <span class="ident">loom</span>))]</span>
+<span class="kw">mod</span> <span class="ident">tests</span> {
+    <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">future</span>::<span class="ident">FutureExt</span>;
+    <span class="kw">use</span> <span class="ident">loom</span>::<span class="ident">thread</span>;
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Shared</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">cancel</span>.<span class="ident">wake</span>();
+    <span class="comment">// test for https://github.com/tokio-rs/tokio/issues/3168</span>
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">watch_spurious_wakeup</span>() {
+        <span class="ident">loom</span>::<span class="ident">model</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="kw">let</span> (<span class="ident">send</span>, <span class="kw-2">mut</span> <span class="ident">recv</span>) <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">sync</span>::<span class="ident">watch</span>::<span class="ident">channel</span>(<span class="number">0i32</span>);
+
+            <span class="ident">send</span>.<span class="ident">send</span>(<span class="number">1</span>).<span class="ident">unwrap</span>();
+
+            <span class="kw">let</span> <span class="ident">send_thread</span> <span class="op">=</span> <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
+                <span class="ident">send</span>.<span class="ident">send</span>(<span class="number">2</span>).<span class="ident">unwrap</span>();
+                <span class="ident">send</span>
+            });
+
+            <span class="ident">recv</span>.<span class="ident">changed</span>().<span class="ident">now_or_never</span>();
+
+            <span class="kw">let</span> <span class="ident">send</span> <span class="op">=</span> <span class="ident">send_thread</span>.<span class="ident">join</span>().<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">recv_thread</span> <span class="op">=</span> <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
+                <span class="ident">recv</span>.<span class="ident">changed</span>().<span class="ident">now_or_never</span>();
+                <span class="ident">recv</span>.<span class="ident">changed</span>().<span class="ident">now_or_never</span>();
+                <span class="ident">recv</span>
+            });
+
+            <span class="ident">send</span>.<span class="ident">send</span>(<span class="number">3</span>).<span class="ident">unwrap</span>();
+
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">recv</span> <span class="op">=</span> <span class="ident">recv_thread</span>.<span class="ident">join</span>().<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">send_thread</span> <span class="op">=</span> <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
+                <span class="ident">send</span>.<span class="ident">send</span>(<span class="number">2</span>).<span class="ident">unwrap</span>();
+            });
+
+            <span class="ident">recv</span>.<span class="ident">changed</span>().<span class="ident">now_or_never</span>();
+
+            <span class="ident">send_thread</span>.<span class="ident">join</span>().<span class="ident">unwrap</span>();
+        });
     }
-}
 
-<span class="comment">// ===== impl Watcher =====</span>
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">watch_borrow</span>() {
+        <span class="ident">loom</span>::<span class="ident">model</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="kw">let</span> (<span class="ident">send</span>, <span class="kw-2">mut</span> <span class="ident">recv</span>) <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">sync</span>::<span class="ident">watch</span>::<span class="ident">channel</span>(<span class="number">0i32</span>);
 
-<span class="kw">impl</span> <span class="ident">Watcher</span> {
-    <span class="kw">fn</span> <span class="ident">new_version</span>(<span class="ident">version</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Watcher</span>(<span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">WatchInner</span> {
-            <span class="ident">version</span>: <span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="ident">version</span>),
-            <span class="ident">waker</span>: <span class="ident">AtomicWaker</span>::<span class="ident">new</span>(),
-        }))
-    }
-}
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">send</span>.<span class="ident">borrow</span>().<span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="number">0</span>));
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">recv</span>.<span class="ident">borrow</span>().<span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="number">0</span>));
 
-<span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Watcher</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Watcher</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="ident">Arc</span>::<span class="ident">ptr_eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="number">0</span>)
-    }
-}
+            <span class="ident">send</span>.<span class="ident">send</span>(<span class="number">1</span>).<span class="ident">unwrap</span>();
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">send</span>.<span class="ident">borrow</span>().<span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="number">1</span>));
 
-<span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">Watcher</span> {}
+            <span class="kw">let</span> <span class="ident">send_thread</span> <span class="op">=</span> <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
+                <span class="ident">send</span>.<span class="ident">send</span>(<span class="number">2</span>).<span class="ident">unwrap</span>();
+                <span class="ident">send</span>
+            });
 
-<span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">hash</span>::<span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Watcher</span> {
-    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">std</span>::<span class="ident">hash</span>::<span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) {
-        (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">WatchInner</span>).<span class="ident">hash</span>(<span class="ident">state</span>)
-    }
-}
+            <span class="ident">recv</span>.<span class="ident">changed</span>().<span class="ident">now_or_never</span>();
 
-<span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">Watcher</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">WatchInner</span>;
+            <span class="kw">let</span> <span class="ident">send</span> <span class="op">=</span> <span class="ident">send_thread</span>.<span class="ident">join</span>().<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">recv_thread</span> <span class="op">=</span> <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
+                <span class="ident">recv</span>.<span class="ident">changed</span>().<span class="ident">now_or_never</span>();
+                <span class="ident">recv</span>.<span class="ident">changed</span>().<span class="ident">now_or_never</span>();
+                <span class="ident">recv</span>
+            });
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Target</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>
+            <span class="ident">send</span>.<span class="ident">send</span>(<span class="number">3</span>).<span class="ident">unwrap</span>();
+
+            <span class="kw">let</span> <span class="ident">recv</span> <span class="op">=</span> <span class="ident">recv_thread</span>.<span class="ident">join</span>().<span class="ident">unwrap</span>();
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">recv</span>.<span class="ident">borrow</span>().<span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="number">3</span>));
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">send</span>.<span class="ident">borrow</span>().<span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="number">3</span>));
+
+            <span class="ident">send</span>.<span class="ident">send</span>(<span class="number">2</span>).<span class="ident">unwrap</span>();
+
+            <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
+                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">recv</span>.<span class="ident">borrow</span>().<span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="number">2</span>));
+            });
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">send</span>.<span class="ident">borrow</span>().<span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="number">2</span>));
+        });
     }
 }
 </pre></div>

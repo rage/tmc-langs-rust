@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-io-1.1.6/src/reactor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reactor.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-io-1.3.1/src/reactor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reactor.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../async_io/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -498,6 +498,27 @@
 <span id="495">495</span>
 <span id="496">496</span>
 <span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
@@ -509,7 +530,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">panic</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::{<span class="ident">AtomicUsize</span>, <span class="ident">Ordering</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>, <span class="ident">MutexGuard</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">task</span>::{<span class="ident">Poll</span>, <span class="ident">Waker</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">task</span>::{<span class="ident">Context</span>, <span class="ident">Poll</span>, <span class="ident">Waker</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>};
 
 <span class="kw">use</span> <span class="ident">concurrent_queue</span>::<span class="ident">ConcurrentQueue</span>;
@@ -588,18 +609,25 @@
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span> <span class="ident">raw</span>: <span class="ident">RawFd</span>,
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span> <span class="ident">raw</span>: <span class="ident">RawSocket</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Source</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="comment">// Register the file descriptor.</span>
-        <span class="self">self</span>.<span class="ident">poller</span>.<span class="ident">insert</span>(<span class="ident">raw</span>)<span class="question-mark">?</span>;
-
         <span class="comment">// Create an I/O source for this file descriptor.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sources</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sources</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">sources</span>.<span class="ident">next_vacant</span>();
-        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Source</span> {
-            <span class="ident">raw</span>,
-            <span class="ident">key</span>,
-            <span class="ident">state</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-        });
-        <span class="ident">sources</span>.<span class="ident">insert</span>(<span class="ident">source</span>.<span class="ident">clone</span>());
+        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sources</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sources</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">sources</span>.<span class="ident">next_vacant</span>();
+            <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Source</span> {
+                <span class="ident">raw</span>,
+                <span class="ident">key</span>,
+                <span class="ident">state</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+            });
+            <span class="ident">sources</span>.<span class="ident">insert</span>(<span class="ident">source</span>.<span class="ident">clone</span>());
+            <span class="ident">source</span>
+        };
+
+        <span class="comment">// Register the file descriptor.</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">poller</span>.<span class="ident">add</span>(<span class="ident">raw</span>, <span class="ident">Event</span>::<span class="ident">none</span>(<span class="ident">source</span>.<span class="ident">key</span>)) {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sources</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sources</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+            <span class="ident">sources</span>.<span class="ident">remove</span>(<span class="ident">source</span>.<span class="ident">key</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>);
+        }
 
         <span class="prelude-val">Ok</span>(<span class="ident">source</span>)
     }
@@ -608,7 +636,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">remove_io</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">Source</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sources</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sources</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
         <span class="ident">sources</span>.<span class="ident">remove</span>(<span class="ident">source</span>.<span class="ident">key</span>);
-        <span class="self">self</span>.<span class="ident">poller</span>.<span class="ident">remove</span>(<span class="ident">source</span>.<span class="ident">raw</span>)
+        <span class="self">self</span>.<span class="ident">poller</span>.<span class="ident">delete</span>(<span class="ident">source</span>.<span class="ident">raw</span>)
     }
 
     <span class="doccomment">/// Registers a timer in the reactor.</span>
@@ -784,7 +812,7 @@
                         <span class="comment">// e.g. we were previously interested in both readability and writability,</span>
                         <span class="comment">// but only one of them was emitted.</span>
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">state</span>[<span class="ident">READ</span>].<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">state</span>[<span class="ident">WRITE</span>].<span class="ident">is_empty</span>() {
-                            <span class="self">self</span>.<span class="ident">reactor</span>.<span class="ident">poller</span>.<span class="ident">interest</span>(
+                            <span class="self">self</span>.<span class="ident">reactor</span>.<span class="ident">poller</span>.<span class="ident">modify</span>(
                                 <span class="ident">source</span>.<span class="ident">raw</span>,
                                 <span class="ident">Event</span> {
                                     <span class="ident">key</span>: <span class="ident">source</span>.<span class="ident">key</span>,
@@ -847,10 +875,15 @@
     <span class="doccomment">/// Last reactor tick that delivered an event.</span>
     <span class="ident">tick</span>: <span class="ident">usize</span>,
 
-    <span class="doccomment">/// Waker stored by `AsyncRead` or `AsyncWrite`.</span>
+    <span class="doccomment">/// Ticks remembered by `Async::poll_readable()` or `Async::poll_writable()`.</span>
+    <span class="ident">ticks</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>,
+
+    <span class="doccomment">/// Waker stored by `Async::poll_readable()` or `Async::poll_writable()`.</span>
     <span class="ident">waker</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Waker</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Wakers of tasks waiting for the next event.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Registered by `Async::readable()` and `Async::writable()`.</span>
     <span class="ident">wakers</span>: <span class="ident">Arena</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Waker</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
@@ -874,49 +907,49 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Source</span> {
-    <span class="doccomment">/// Registers a waker from `AsyncRead`.</span>
+    <span class="doccomment">/// Polls the I/O source for readability.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">poll_readable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">poll_ready</span>(<span class="ident">READ</span>, <span class="ident">cx</span>)
+    }
+
+    <span class="doccomment">/// Polls the I/O source for writability.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">poll_writable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">poll_ready</span>(<span class="ident">WRITE</span>, <span class="ident">cx</span>)
+    }
+
+    <span class="doccomment">/// Registers a waker from `poll_readable()` or `poll_writable()`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If a different waker is already registered, it gets replaced and woken.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register_reader</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">waker</span>: <span class="kw-2">&amp;</span><span class="ident">Waker</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">register</span>(<span class="ident">READ</span>, <span class="ident">waker</span>)
-    }
-
-    <span class="doccomment">/// Registers a waker from `AsyncWrite`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If a different waker is already registered, it gets replaced and woken.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register_writer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">waker</span>: <span class="kw-2">&amp;</span><span class="ident">Waker</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">register</span>(<span class="ident">WRITE</span>, <span class="ident">waker</span>)
-    }
-
-    <span class="doccomment">/// Waits until the I/O source is readable.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">readable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">ready</span>(<span class="ident">READ</span>).<span class="ident">await</span>
-    }
-
-    <span class="doccomment">/// Waits until the I/O source is writable.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">writable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">ready</span>(<span class="ident">WRITE</span>).<span class="ident">await</span>
-    }
-
-    <span class="doccomment">/// Registers a waker from `AsyncRead` or `AsyncWrite`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If a different waker is already registered, it gets replaced and woken.</span>
-    <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dir</span>: <span class="ident">usize</span>, <span class="ident">waker</span>: <span class="kw-2">&amp;</span><span class="ident">Waker</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dir</span>: <span class="ident">usize</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+
+        <span class="comment">// Check if the reactor has delivered an event.</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">a</span>, <span class="ident">b</span>)) <span class="op">=</span> <span class="ident">state</span>[<span class="ident">dir</span>].<span class="ident">ticks</span> {
+            <span class="comment">// If `state[dir].tick` has changed to a value other than the old reactor tick,</span>
+            <span class="comment">// that means a newer reactor tick has delivered an event.</span>
+            <span class="kw">if</span> <span class="ident">state</span>[<span class="ident">dir</span>].<span class="ident">tick</span> <span class="op">!</span><span class="op">=</span> <span class="ident">a</span> <span class="op">&amp;&amp;</span> <span class="ident">state</span>[<span class="ident">dir</span>].<span class="ident">tick</span> <span class="op">!</span><span class="op">=</span> <span class="ident">b</span> {
+                <span class="ident">state</span>[<span class="ident">dir</span>].<span class="ident">ticks</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()));
+            }
+        }
+
         <span class="kw">let</span> <span class="ident">was_empty</span> <span class="op">=</span> <span class="ident">state</span>[<span class="ident">dir</span>].<span class="ident">is_empty</span>();
 
+        <span class="comment">// Register the current task&#39;s waker.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">w</span>) <span class="op">=</span> <span class="ident">state</span>[<span class="ident">dir</span>].<span class="ident">waker</span>.<span class="ident">take</span>() {
-            <span class="kw">if</span> <span class="ident">w</span>.<span class="ident">will_wake</span>(<span class="ident">waker</span>) {
+            <span class="kw">if</span> <span class="ident">w</span>.<span class="ident">will_wake</span>(<span class="ident">cx</span>.<span class="ident">waker</span>()) {
                 <span class="ident">state</span>[<span class="ident">dir</span>].<span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">w</span>);
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+                <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Pending</span>;
             }
+            <span class="comment">// Wake the previous waker because it&#39;s going to get replaced.</span>
             <span class="ident">panic</span>::<span class="ident">catch_unwind</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">wake</span>()).<span class="ident">ok</span>();
         }
-        <span class="ident">state</span>[<span class="ident">dir</span>].<span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>.<span class="ident">clone</span>());
+        <span class="ident">state</span>[<span class="ident">dir</span>].<span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">cx</span>.<span class="ident">waker</span>().<span class="ident">clone</span>());
+        <span class="ident">state</span>[<span class="ident">dir</span>].<span class="ident">ticks</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="ident">Reactor</span>::<span class="ident">get</span>().<span class="ident">ticker</span>(), <span class="ident">state</span>[<span class="ident">dir</span>].<span class="ident">tick</span>));
 
         <span class="comment">// Update interest in this I/O handle.</span>
         <span class="kw">if</span> <span class="ident">was_empty</span> {
-            <span class="ident">Reactor</span>::<span class="ident">get</span>().<span class="ident">poller</span>.<span class="ident">interest</span>(
+            <span class="ident">Reactor</span>::<span class="ident">get</span>().<span class="ident">poller</span>.<span class="ident">modify</span>(
                 <span class="self">self</span>.<span class="ident">raw</span>,
                 <span class="ident">Event</span> {
                     <span class="ident">key</span>: <span class="self">self</span>.<span class="ident">key</span>,
@@ -926,6 +959,20 @@
             )<span class="question-mark">?</span>;
         }
 
+        <span class="ident">Poll</span>::<span class="ident">Pending</span>
+    }
+
+    <span class="doccomment">/// Waits until the I/O source is readable.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">readable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">ready</span>(<span class="ident">READ</span>).<span class="ident">await</span><span class="question-mark">?</span>;
+        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;readable: fd={}&quot;</span>, <span class="self">self</span>.<span class="ident">raw</span>);
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Waits until the I/O source is writable.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">writable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">ready</span>(<span class="ident">WRITE</span>).<span class="ident">await</span><span class="question-mark">?</span>;
+        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;writable: fd={}&quot;</span>, <span class="self">self</span>.<span class="ident">raw</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -938,12 +985,11 @@
         <span class="ident">future</span>::<span class="ident">poll_fn</span>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
 
-            <span class="comment">// Check if the reactor has delivered a readability event.</span>
+            <span class="comment">// Check if the reactor has delivered an event.</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">a</span>, <span class="ident">b</span>)) <span class="op">=</span> <span class="ident">ticks</span> {
-                <span class="comment">// If `state.read.tick` has changed to a value other than the old reactor tick,</span>
-                <span class="comment">// that means a newer reactor tick has delivered a readability event.</span>
+                <span class="comment">// If `state[dir].tick` has changed to a value other than the old reactor tick,</span>
+                <span class="comment">// that means a newer reactor tick has delivered an event.</span>
                 <span class="kw">if</span> <span class="ident">state</span>[<span class="ident">dir</span>].<span class="ident">tick</span> <span class="op">!</span><span class="op">=</span> <span class="ident">a</span> <span class="op">&amp;&amp;</span> <span class="ident">state</span>[<span class="ident">dir</span>].<span class="ident">tick</span> <span class="op">!</span><span class="op">=</span> <span class="ident">b</span> {
-                    <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;readable: fd={}&quot;</span>, <span class="self">self</span>.<span class="ident">raw</span>);
                     <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()));
                 }
             }
@@ -960,6 +1006,7 @@
                         <span class="ident">state</span>[<span class="ident">dir</span>].<span class="ident">wakers</span>.<span class="ident">remove</span>(<span class="ident">i</span>);
                     }));
                     <span class="ident">index</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>);
+                    <span class="ident">ticks</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="ident">Reactor</span>::<span class="ident">get</span>().<span class="ident">ticker</span>(), <span class="ident">state</span>[<span class="ident">dir</span>].<span class="ident">tick</span>));
                     <span class="ident">i</span>
                 }
             };
@@ -967,7 +1014,7 @@
 
             <span class="comment">// Update interest in this I/O handle.</span>
             <span class="kw">if</span> <span class="ident">was_empty</span> {
-                <span class="ident">Reactor</span>::<span class="ident">get</span>().<span class="ident">poller</span>.<span class="ident">interest</span>(
+                <span class="ident">Reactor</span>::<span class="ident">get</span>().<span class="ident">poller</span>.<span class="ident">modify</span>(
                     <span class="self">self</span>.<span class="ident">raw</span>,
                     <span class="ident">Event</span> {
                         <span class="ident">key</span>: <span class="self">self</span>.<span class="ident">key</span>,
@@ -975,11 +1022,6 @@
                         <span class="ident">writable</span>: <span class="op">!</span><span class="ident">state</span>[<span class="ident">WRITE</span>].<span class="ident">is_empty</span>(),
                     },
                 )<span class="question-mark">?</span>;
-            }
-
-            <span class="comment">// Remember the current ticks.</span>
-            <span class="kw">if</span> <span class="ident">ticks</span>.<span class="ident">is_none</span>() {
-                <span class="ident">ticks</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="ident">Reactor</span>::<span class="ident">get</span>().<span class="ident">ticker</span>(), <span class="ident">state</span>[<span class="ident">dir</span>].<span class="ident">tick</span>));
             }
 
             <span class="ident">Poll</span>::<span class="ident">Pending</span>

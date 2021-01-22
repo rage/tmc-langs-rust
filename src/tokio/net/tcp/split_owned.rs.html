@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.24/src/net/tcp/split_owned.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>split_owned.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.0.2/src/net/tcp/split_owned.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>split_owned.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -273,6 +273,12 @@
 <span id="270">270</span>
 <span id="271">271</span>
 <span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! `TcpStream` owned split support.</span>
 <span class="doccomment">//!</span>
@@ -285,12 +291,10 @@
 <span class="doccomment">//! level.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">future</span>::<span class="ident">poll_fn</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">io</span>::{<span class="ident">AsyncRead</span>, <span class="ident">AsyncWrite</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">io</span>::{<span class="ident">AsyncRead</span>, <span class="ident">AsyncWrite</span>, <span class="ident">ReadBuf</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">net</span>::<span class="ident">TcpStream</span>;
 
-<span class="kw">use</span> <span class="ident">bytes</span>::<span class="ident">Buf</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">MaybeUninit</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">Shutdown</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">pin</span>::<span class="ident">Pin</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
@@ -300,12 +304,11 @@
 <span class="doccomment">/// Owned read half of a [`TcpStream`], created by [`into_split`].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Reading from an `OwnedReadHalf` is usually done using the convenience methods found</span>
-<span class="doccomment">/// on the [`AsyncReadExt`] trait. Examples import this trait through [the prelude].</span>
+<span class="doccomment">/// on the [`AsyncReadExt`] trait.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`TcpStream`]: TcpStream</span>
 <span class="doccomment">/// [`into_split`]: TcpStream::into_split()</span>
 <span class="doccomment">/// [`AsyncReadExt`]: trait@crate::io::AsyncReadExt</span>
-<span class="doccomment">/// [the prelude]: crate::prelude</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OwnedReadHalf</span> {
     <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">TcpStream</span><span class="op">&gt;</span>,
@@ -318,14 +321,13 @@
 <span class="doccomment">/// will also shut down the write half of the TCP stream.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Writing to an `OwnedWriteHalf` is usually done using the convenience methods found</span>
-<span class="doccomment">/// on the [`AsyncWriteExt`] trait. Examples import this trait through [the prelude].</span>
+<span class="doccomment">/// on the [`AsyncWriteExt`] trait.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`TcpStream`]: TcpStream</span>
 <span class="doccomment">/// [`into_split`]: TcpStream::into_split()</span>
 <span class="doccomment">/// [`AsyncWrite`]: trait@crate::io::AsyncWrite</span>
 <span class="doccomment">/// [`poll_shutdown`]: fn@crate::io::AsyncWrite::poll_shutdown</span>
 <span class="doccomment">/// [`AsyncWriteExt`]: trait@crate::io::AsyncWriteExt</span>
-<span class="doccomment">/// [the prelude]: crate::prelude</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OwnedWriteHalf</span> {
     <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">TcpStream</span><span class="op">&gt;</span>,
@@ -388,12 +390,16 @@
     <span class="doccomment">/// the queue, registering the current task for wakeup if data is not yet</span>
     <span class="doccomment">/// available.</span>
     <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that on multiple calls to `poll_peek` or `poll_read`, only the</span>
+    <span class="doccomment">/// `Waker` from the `Context` passed to the most recent call is scheduled</span>
+    <span class="doccomment">/// to receive a wakeup.</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// See the [`TcpStream::poll_peek`] level documenation for more details.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use tokio::io;</span>
+    <span class="doccomment">/// use tokio::io::{self, ReadBuf};</span>
     <span class="doccomment">/// use tokio::net::TcpStream;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// use futures::future::poll_fn;</span>
@@ -403,6 +409,7 @@
     <span class="doccomment">///     let stream = TcpStream::connect(&quot;127.0.0.1:8000&quot;).await?;</span>
     <span class="doccomment">///     let (mut read_half, _) = stream.into_split();</span>
     <span class="doccomment">///     let mut buf = [0; 10];</span>
+    <span class="doccomment">///     let mut buf = ReadBuf::new(&amp;mut buf);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">///     poll_fn(|cx| {</span>
     <span class="doccomment">///         read_half.poll_peek(cx, &amp;mut buf)</span>
@@ -413,8 +420,12 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`TcpStream::poll_peek`]: TcpStream::poll_peek</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_peek</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">poll_peek2</span>(<span class="ident">cx</span>, <span class="ident">buf</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_peek</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">poll_peek</span>(<span class="ident">cx</span>, <span class="ident">buf</span>)
     }
 
     <span class="doccomment">/// Receives data on the socket from the remote address to which it is</span>
@@ -429,7 +440,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```no_run</span>
     <span class="doccomment">/// use tokio::net::TcpStream;</span>
-    <span class="doccomment">/// use tokio::prelude::*;</span>
+    <span class="doccomment">/// use tokio::io::AsyncReadExt;</span>
     <span class="doccomment">/// use std::error::Error;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// #[tokio::main]</span>
@@ -457,20 +468,17 @@
     <span class="doccomment">/// [`read`]: fn@crate::io::AsyncReadExt::read</span>
     <span class="doccomment">/// [`AsyncReadExt`]: trait@crate::io::AsyncReadExt</span>
     <span class="kw">pub</span> <span class="ident">async</span> <span class="kw">fn</span> <span class="ident">peek</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="ident">poll_fn</span>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">poll_peek</span>(<span class="ident">cx</span>, <span class="ident">buf</span>)).<span class="ident">await</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">ReadBuf</span>::<span class="ident">new</span>(<span class="ident">buf</span>);
+        <span class="ident">poll_fn</span>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">poll_peek</span>(<span class="ident">cx</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>)).<span class="ident">await</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">AsyncRead</span> <span class="kw">for</span> <span class="ident">OwnedReadHalf</span> {
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">prepare_uninitialized_buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="bool-val">false</span>
-    }
-
     <span class="kw">fn</span> <span class="ident">poll_read</span>(
         <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">poll_read_priv</span>(<span class="ident">cx</span>, <span class="ident">buf</span>)
     }
 }
@@ -497,7 +505,7 @@
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">OwnedWriteHalf</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">shutdown_on_drop</span> {
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">shutdown</span>(<span class="ident">Shutdown</span>::<span class="ident">Write</span>);
+            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">shutdown_std</span>(<span class="ident">Shutdown</span>::<span class="ident">Write</span>);
         }
     }
 }
@@ -511,12 +519,16 @@
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">poll_write_priv</span>(<span class="ident">cx</span>, <span class="ident">buf</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_write_buf</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">Buf</span><span class="op">&gt;</span>(
+    <span class="kw">fn</span> <span class="ident">poll_write_vectored</span>(
         <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">B</span>,
+        <span class="ident">bufs</span>: <span class="kw-2">&amp;</span>[<span class="ident">io</span>::<span class="ident">IoSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">poll_write_buf_priv</span>(<span class="ident">cx</span>, <span class="ident">buf</span>)
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">poll_write_vectored_priv</span>(<span class="ident">cx</span>, <span class="ident">bufs</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">is_write_vectored</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">is_write_vectored</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -527,7 +539,7 @@
 
     <span class="comment">// `poll_shutdown` on a write half shutdowns the stream in the &quot;write&quot; direction.</span>
     <span class="kw">fn</span> <span class="ident">poll_shutdown</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">shutdown</span>(<span class="ident">Shutdown</span>::<span class="ident">Write</span>);
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">shutdown_std</span>(<span class="ident">Shutdown</span>::<span class="ident">Write</span>);
         <span class="kw">if</span> <span class="ident">res</span>.<span class="ident">is_ok</span>() {
             <span class="ident">Pin</span>::<span class="ident">into_inner</span>(<span class="self">self</span>).<span class="ident">shutdown_on_drop</span> <span class="op">=</span> <span class="bool-val">false</span>;
         }

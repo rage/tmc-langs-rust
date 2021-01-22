@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.8/src/io/buf_writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buf_writer.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.12/src/io/buf_writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buf_writer.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../futures_util/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -164,42 +164,46 @@
 <span id="161">161</span>
 <span id="162">162</span>
 <span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="kw">use</span> <span class="ident">futures_core</span>::<span class="ident">ready</span>;
 <span class="kw">use</span> <span class="ident">futures_core</span>::<span class="ident">task</span>::{<span class="ident">Context</span>, <span class="ident">Poll</span>};
 <span class="kw">use</span> <span class="ident">futures_io</span>::{<span class="ident">AsyncBufRead</span>, <span class="ident">AsyncRead</span>, <span class="ident">AsyncSeek</span>, <span class="ident">AsyncWrite</span>, <span class="ident">IoSlice</span>, <span class="ident">SeekFrom</span>};
-<span class="kw">use</span> <span class="ident">pin_project</span>::<span class="ident">pin_project</span>;
+<span class="kw">use</span> <span class="ident">pin_project_lite</span>::<span class="ident">pin_project</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">Write</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">pin</span>::<span class="ident">Pin</span>;
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">DEFAULT_BUF_SIZE</span>;
 
-<span class="doccomment">/// Wraps a writer and buffers its output.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It can be excessively inefficient to work directly with something that</span>
-<span class="doccomment">/// implements [`AsyncWrite`]. A `BufWriter` keeps an in-memory buffer of data and</span>
-<span class="doccomment">/// writes it to an underlying writer in large, infrequent batches.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `BufWriter` can improve the speed of programs that make *small* and</span>
-<span class="doccomment">/// *repeated* write calls to the same file or network socket. It does not</span>
-<span class="doccomment">/// help when writing very large amounts at once, or writing just one or a few</span>
-<span class="doccomment">/// times. It also provides no advantage when writing to a destination that is</span>
-<span class="doccomment">/// in memory, like a `Vec&lt;u8&gt;`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// When the `BufWriter` is dropped, the contents of its buffer will be</span>
-<span class="doccomment">/// discarded. Creating multiple instances of a `BufWriter` on the same</span>
-<span class="doccomment">/// stream can cause data loss. If you need to write out the contents of its</span>
-<span class="doccomment">/// buffer, you must manually call flush before the writer is dropped.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`AsyncWrite`]: futures_io::AsyncWrite</span>
-<span class="doccomment">/// [`flush`]: super::AsyncWriteExt::flush</span>
-<span class="doccomment">///</span>
-<span class="comment">// TODO: Examples</span>
-<span class="attribute">#[<span class="ident">pin_project</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BufWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">pin</span>]</span>
-    <span class="ident">inner</span>: <span class="ident">W</span>,
-    <span class="ident">buf</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-    <span class="ident">written</span>: <span class="ident">usize</span>,
+<span class="macro">pin_project</span><span class="macro">!</span> {
+    <span class="doccomment">/// Wraps a writer and buffers its output.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// It can be excessively inefficient to work directly with something that</span>
+    <span class="doccomment">/// implements [`AsyncWrite`]. A `BufWriter` keeps an in-memory buffer of data and</span>
+    <span class="doccomment">/// writes it to an underlying writer in large, infrequent batches.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// `BufWriter` can improve the speed of programs that make *small* and</span>
+    <span class="doccomment">/// *repeated* write calls to the same file or network socket. It does not</span>
+    <span class="doccomment">/// help when writing very large amounts at once, or writing just one or a few</span>
+    <span class="doccomment">/// times. It also provides no advantage when writing to a destination that is</span>
+    <span class="doccomment">/// in memory, like a `Vec&lt;u8&gt;`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// When the `BufWriter` is dropped, the contents of its buffer will be</span>
+    <span class="doccomment">/// discarded. Creating multiple instances of a `BufWriter` on the same</span>
+    <span class="doccomment">/// stream can cause data loss. If you need to write out the contents of its</span>
+    <span class="doccomment">/// buffer, you must manually call flush before the writer is dropped.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`AsyncWrite`]: futures_io::AsyncWrite</span>
+    <span class="doccomment">/// [`flush`]: super::AsyncWriteExt::flush</span>
+    <span class="doccomment">///</span>
+    <span class="comment">// TODO: Examples</span>
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BufWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
+        <span class="attribute">#[<span class="ident">pin</span>]</span>
+        <span class="ident">inner</span>: <span class="ident">W</span>,
+        <span class="ident">buf</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+        <span class="ident">written</span>: <span class="ident">usize</span>,
+    }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">AsyncWrite</span><span class="op">&gt;</span> <span class="ident">BufWriter</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {

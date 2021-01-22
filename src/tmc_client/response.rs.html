@@ -512,6 +512,17 @@
 <span id="509">509</span>
 <span id="510">510</span>
 <span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains types which model the JSON responses from tmc-server</span>
 
@@ -532,6 +543,7 @@
 <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Response contained errors: {error:?}, {errors:#?}, obsolete client: {obsolete_client}&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">deny_unknown_fields</span>)]</span> <span class="comment">// prevents responses with an errors field from being parsed as an error</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ErrorResponse</span> {
+    <span class="kw">pub</span> <span class="ident">status</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">error</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">errors</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
@@ -962,7 +974,17 @@
     <span class="kw">fn</span> <span class="ident">init</span>() {
         <span class="kw">use</span> <span class="ident">log</span>::<span class="kw-2">*</span>;
         <span class="kw">use</span> <span class="ident">simple_logger</span>::<span class="kw-2">*</span>;
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">SimpleLogger</span>::<span class="ident">new</span>().<span class="ident">with_level</span>(<span class="ident">LevelFilter</span>::<span class="ident">Debug</span>).<span class="ident">init</span>();
+        <span class="comment">// the module levels must be set here too for some reason,</span>
+        <span class="comment">// even though this module does not use mockito etc.</span>
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">SimpleLogger</span>::<span class="ident">new</span>()
+            .<span class="ident">with_level</span>(<span class="ident">LevelFilter</span>::<span class="ident">Debug</span>)
+            <span class="comment">// mockito does some logging</span>
+            .<span class="ident">with_module_level</span>(<span class="string">&quot;mockito&quot;</span>, <span class="ident">LevelFilter</span>::<span class="ident">Warn</span>)
+            <span class="comment">// reqwest does a lot of logging</span>
+            .<span class="ident">with_module_level</span>(<span class="string">&quot;reqwest&quot;</span>, <span class="ident">LevelFilter</span>::<span class="ident">Warn</span>)
+            <span class="comment">// hyper does a lot of logging</span>
+            .<span class="ident">with_module_level</span>(<span class="string">&quot;hyper&quot;</span>, <span class="ident">LevelFilter</span>::<span class="ident">Warn</span>)
+            .<span class="ident">init</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>

@@ -1,1 +1,0 @@
-initSidebarItems({"mod":[["comparator",""],["lexer","Lexer for semver ranges."],["parser","Recursive-descent parser for semver ranges."],["range","Version range and requirements data and functions (used for version comparison)."],["version","Version data and functions."]]});

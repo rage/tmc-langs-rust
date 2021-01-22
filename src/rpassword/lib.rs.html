@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rpassword-5.0.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rpassword-5.0.1/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../rpassword/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -324,7 +324,6 @@
 <span id="321">321</span>
 <span id="322">322</span>
 <span id="323">323</span>
-<span id="324">324</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2014-2017 The Rpassword Developers</span>
 <span class="comment">//</span>
@@ -369,7 +368,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
 <span class="kw">mod</span> <span class="ident">unix</span> {
-    <span class="kw">use</span> <span class="ident">libc</span>::{<span class="ident">c_int</span>, <span class="ident">termios</span>, <span class="ident">isatty</span>, <span class="ident">tcsetattr</span>, <span class="ident">TCSANOW</span>, <span class="ident">ECHO</span>, <span class="ident">ECHONL</span>, <span class="ident">STDIN_FILENO</span>};
+    <span class="kw">use</span> <span class="ident">libc</span>::{<span class="ident">c_int</span>, <span class="ident">isatty</span>, <span class="ident">tcsetattr</span>, <span class="ident">termios</span>, <span class="ident">ECHO</span>, <span class="ident">ECHONL</span>, <span class="ident">STDIN_FILENO</span>, <span class="ident">TCSANOW</span>};
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">BufRead</span>, <span class="ident">Write</span>};
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">unix</span>::<span class="ident">io</span>::<span class="ident">AsRawFd</span>;
@@ -412,8 +411,8 @@
             <span class="comment">// Make two copies of the terminal settings. The first one will be modified</span>
             <span class="comment">// and the second one will act as a backup for when we want to set the</span>
             <span class="comment">// terminal back to its original state.</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">term</span>      <span class="op">=</span> <span class="ident">safe_tcgetattr</span>(<span class="ident">tty_fd</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span>     <span class="ident">term_orig</span> <span class="op">=</span> <span class="ident">safe_tcgetattr</span>(<span class="ident">tty_fd</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">term</span> <span class="op">=</span> <span class="ident">safe_tcgetattr</span>(<span class="ident">tty_fd</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">term_orig</span> <span class="op">=</span> <span class="ident">safe_tcgetattr</span>(<span class="ident">tty_fd</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// Hide the password. This is what makes this function useful.</span>
             <span class="ident">term</span>.<span class="ident">c_lflag</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="ident">ECHO</span>;
@@ -451,8 +450,7 @@
 
     <span class="doccomment">/// Displays a prompt on the terminal</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">display_on_tty</span>(<span class="ident">prompt</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">std</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span>
-            ::<span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">OpenOptions</span>::<span class="ident">new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">open</span>(<span class="string">&quot;/dev/tty&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span> ::<span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">OpenOptions</span>::<span class="ident">new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">open</span>(<span class="string">&quot;/dev/tty&quot;</span>)<span class="question-mark">?</span>;
         <span class="macro">write</span><span class="macro">!</span>(<span class="ident">stream</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">prompt</span>)<span class="question-mark">?</span>;
         <span class="ident">stream</span>.<span class="ident">flush</span>()
     }
@@ -460,19 +458,17 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
 <span class="kw">mod</span> <span class="ident">windows</span> {
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ptr</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">Write</span>};
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">windows</span>::<span class="ident">io</span>::{<span class="ident">FromRawHandle</span>, <span class="ident">AsRawHandle</span>};
-    <span class="kw">use</span> <span class="ident">winapi</span>::<span class="ident">um</span>::<span class="ident">winnt</span>::{
-        <span class="ident">GENERIC_READ</span>, <span class="ident">GENERIC_WRITE</span>, <span class="ident">FILE_SHARE_READ</span>, <span class="ident">FILE_SHARE_WRITE</span>,
-    };
+    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">windows</span>::<span class="ident">io</span>::{<span class="ident">AsRawHandle</span>, <span class="ident">FromRawHandle</span>};
+    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ptr</span>;
+    <span class="kw">use</span> <span class="ident">winapi</span>::<span class="ident">shared</span>::<span class="ident">minwindef</span>::<span class="ident">LPDWORD</span>;
+    <span class="kw">use</span> <span class="ident">winapi</span>::<span class="ident">um</span>::<span class="ident">consoleapi</span>::{<span class="ident">GetConsoleMode</span>, <span class="ident">SetConsoleMode</span>};
     <span class="kw">use</span> <span class="ident">winapi</span>::<span class="ident">um</span>::<span class="ident">fileapi</span>::{<span class="ident">CreateFileA</span>, <span class="ident">GetFileType</span>, <span class="ident">OPEN_EXISTING</span>};
+    <span class="kw">use</span> <span class="ident">winapi</span>::<span class="ident">um</span>::<span class="ident">handleapi</span>::<span class="ident">INVALID_HANDLE_VALUE</span>;
     <span class="kw">use</span> <span class="ident">winapi</span>::<span class="ident">um</span>::<span class="ident">processenv</span>::<span class="ident">GetStdHandle</span>;
     <span class="kw">use</span> <span class="ident">winapi</span>::<span class="ident">um</span>::<span class="ident">winbase</span>::{<span class="ident">FILE_TYPE_PIPE</span>, <span class="ident">STD_INPUT_HANDLE</span>};
-    <span class="kw">use</span> <span class="ident">winapi</span>::<span class="ident">um</span>::<span class="ident">handleapi</span>::<span class="ident">INVALID_HANDLE_VALUE</span>;
-    <span class="kw">use</span> <span class="ident">winapi</span>::<span class="ident">um</span>::<span class="ident">consoleapi</span>::{<span class="ident">GetConsoleMode</span>, <span class="ident">SetConsoleMode</span>};
-    <span class="kw">use</span> <span class="ident">winapi</span>::<span class="ident">shared</span>::<span class="ident">minwindef</span>::<span class="ident">LPDWORD</span>;
     <span class="kw">use</span> <span class="ident">winapi</span>::<span class="ident">um</span>::<span class="ident">wincon</span>::{<span class="ident">ENABLE_LINE_INPUT</span>, <span class="ident">ENABLE_PROCESSED_INPUT</span>};
+    <span class="kw">use</span> <span class="ident">winapi</span>::<span class="ident">um</span>::<span class="ident">winnt</span>::{<span class="ident">FILE_SHARE_READ</span>, <span class="ident">FILE_SHARE_WRITE</span>, <span class="ident">GENERIC_READ</span>, <span class="ident">GENERIC_WRITE</span>};
 
     <span class="doccomment">/// Reads a password from stdin</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_password_from_stdin</span>(<span class="ident">open_tty</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
@@ -481,16 +477,18 @@
         <span class="comment">// Get the stdin handle</span>
         <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">open_tty</span> {
             <span class="kw">unsafe</span> {
-                <span class="ident">CreateFileA</span>(<span class="string">b&quot;CONIN$\x00&quot;</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">i8</span>,
-                                      <span class="ident">GENERIC_READ</span> <span class="op">|</span> <span class="ident">GENERIC_WRITE</span>,
-                                      <span class="ident">FILE_SHARE_READ</span> <span class="op">|</span> <span class="ident">FILE_SHARE_WRITE</span>,
-                                      <span class="ident">ptr</span>::<span class="ident">null_mut</span>(), <span class="ident">OPEN_EXISTING</span>, <span class="number">0</span>,
-                                      <span class="ident">ptr</span>::<span class="ident">null_mut</span>())
+                <span class="ident">CreateFileA</span>(
+                    <span class="string">b&quot;CONIN$\x00&quot;</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">i8</span>,
+                    <span class="ident">GENERIC_READ</span> <span class="op">|</span> <span class="ident">GENERIC_WRITE</span>,
+                    <span class="ident">FILE_SHARE_READ</span> <span class="op">|</span> <span class="ident">FILE_SHARE_WRITE</span>,
+                    <span class="ident">ptr</span>::<span class="ident">null_mut</span>(),
+                    <span class="ident">OPEN_EXISTING</span>,
+                    <span class="number">0</span>,
+                    <span class="ident">ptr</span>::<span class="ident">null_mut</span>(),
+                )
             }
         } <span class="kw">else</span> {
-            <span class="kw">unsafe</span> {
-                <span class="ident">GetStdHandle</span>(<span class="ident">STD_INPUT_HANDLE</span>)
-            }
+            <span class="kw">unsafe</span> { <span class="ident">GetStdHandle</span>(<span class="ident">STD_INPUT_HANDLE</span>) }
         };
         <span class="kw">if</span> <span class="ident">handle</span> <span class="op">=</span><span class="op">=</span> <span class="ident">INVALID_HANDLE_VALUE</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(::<span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">last_os_error</span>());
@@ -539,30 +537,31 @@
     <span class="doccomment">/// Displays a prompt on the terminal</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">display_on_tty</span>(<span class="ident">prompt</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">std</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">CreateFileA</span>(<span class="string">b&quot;CONOUT$\x00&quot;</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">i8</span>,
-                                  <span class="ident">GENERIC_READ</span> <span class="op">|</span> <span class="ident">GENERIC_WRITE</span>,
-                                  <span class="ident">FILE_SHARE_READ</span> <span class="op">|</span> <span class="ident">FILE_SHARE_WRITE</span>,
-                                  ::<span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>(), <span class="ident">OPEN_EXISTING</span>, <span class="number">0</span>,
-                                  ::<span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>())
+            <span class="ident">CreateFileA</span>(
+                <span class="string">b&quot;CONOUT$\x00&quot;</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">i8</span>,
+                <span class="ident">GENERIC_READ</span> <span class="op">|</span> <span class="ident">GENERIC_WRITE</span>,
+                <span class="ident">FILE_SHARE_READ</span> <span class="op">|</span> <span class="ident">FILE_SHARE_WRITE</span>,
+                ::<span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>(),
+                <span class="ident">OPEN_EXISTING</span>,
+                <span class="number">0</span>,
+                ::<span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>(),
+            )
         };
         <span class="kw">if</span> <span class="ident">handle</span> <span class="op">=</span><span class="op">=</span> <span class="ident">INVALID_HANDLE_VALUE</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(::<span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">last_os_error</span>());
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            ::<span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>::<span class="ident">from_raw_handle</span>(<span class="ident">handle</span>)
-        };
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span> <span class="kw">unsafe</span> { ::<span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>::<span class="ident">from_raw_handle</span>(<span class="ident">handle</span>) };
 
         <span class="macro">write</span><span class="macro">!</span>(<span class="ident">stream</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">prompt</span>)<span class="question-mark">?</span>;
         <span class="ident">stream</span>.<span class="ident">flush</span>()
     }
 }
 
-
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">use</span> <span class="ident">unix</span>::{<span class="ident">read_password_from_stdin</span>, <span class="ident">display_on_tty</span>};
+<span class="kw">use</span> <span class="ident">unix</span>::{<span class="ident">display_on_tty</span>, <span class="ident">read_password_from_stdin</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">use</span> <span class="ident">windows</span>::{<span class="ident">read_password_from_stdin</span>, <span class="ident">display_on_tty</span>};
+<span class="kw">use</span> <span class="ident">windows</span>::{<span class="ident">display_on_tty</span>, <span class="ident">read_password_from_stdin</span>};
 
 <span class="doccomment">/// Reads a password from anything that implements BufRead</span>
 <span class="kw">mod</span> <span class="ident">mock</span> {
@@ -625,8 +624,7 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">mock</span>::{<span class="ident">read_password</span>, <span class="ident">read_password_with_reader</span>};
 
 <span class="doccomment">/// Reads a password from the terminal</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_password_from_tty</span>(<span class="ident">prompt</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>)
-                              <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">std</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_password_from_tty</span>(<span class="ident">prompt</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">std</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">prompt</span>) <span class="op">=</span> <span class="ident">prompt</span> {
         <span class="ident">display_on_tty</span>(<span class="ident">prompt</span>)<span class="question-mark">?</span>;
     }

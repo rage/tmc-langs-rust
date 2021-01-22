@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.3.1/src/codec/length_delimited.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>length_delimited.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.6.2/src/codec/length_delimited.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>length_delimited.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../tokio_util/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -963,6 +963,37 @@
 <span id="960">960</span>
 <span id="961">961</span>
 <span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
+<span id="968">968</span>
+<span id="969">969</span>
+<span id="970">970</span>
+<span id="971">971</span>
+<span id="972">972</span>
+<span id="973">973</span>
+<span id="974">974</span>
+<span id="975">975</span>
+<span id="976">976</span>
+<span id="977">977</span>
+<span id="978">978</span>
+<span id="979">979</span>
+<span id="980">980</span>
+<span id="981">981</span>
+<span id="982">982</span>
+<span id="983">983</span>
+<span id="984">984</span>
+<span id="985">985</span>
+<span id="986">986</span>
+<span id="987">987</span>
+<span id="988">988</span>
+<span id="989">989</span>
+<span id="990">990</span>
+<span id="991">991</span>
+<span id="992">992</span>
+<span id="993">993</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Frame a stream of bytes based on a length prefix</span>
 <span class="doccomment">//!</span>
@@ -1005,7 +1036,7 @@
 <span class="doccomment">//! Specifically, given the following:</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```</span>
-<span class="doccomment">//! use tokio::prelude::*;</span>
+<span class="doccomment">//! use tokio::io::{AsyncRead, AsyncWrite};</span>
 <span class="doccomment">//! use tokio_util::codec::{Framed, LengthDelimitedCodec};</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! use futures::SinkExt;</span>
@@ -1268,6 +1299,37 @@
 <span class="doccomment">//! anywhere because it already is factored into the total frame length that</span>
 <span class="doccomment">//! is read from the byte stream.</span>
 <span class="doccomment">//!</span>
+<span class="doccomment">//! ## Example 7</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The following will parse a 3 byte length field at offset 0 in a 4 byte</span>
+<span class="doccomment">//! frame head, excluding the 4th byte from the yielded `BytesMut`.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//! # use tokio::io::AsyncRead;</span>
+<span class="doccomment">//! # use tokio_util::codec::LengthDelimitedCodec;</span>
+<span class="doccomment">//! # fn bind_read&lt;T: AsyncRead&gt;(io: T) {</span>
+<span class="doccomment">//! LengthDelimitedCodec::builder()</span>
+<span class="doccomment">//!     .length_field_offset(0) // default value</span>
+<span class="doccomment">//!     .length_field_length(3)</span>
+<span class="doccomment">//!     .length_adjustment(0)  // default value</span>
+<span class="doccomment">//!     .num_skip(4) // skip the first 4 bytes</span>
+<span class="doccomment">//!     .new_read(io);</span>
+<span class="doccomment">//! # }</span>
+<span class="doccomment">//! # pub fn main() {}</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The following frame will be decoded as such:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```text</span>
+<span class="doccomment">//!                  INPUT                       DECODED</span>
+<span class="doccomment">//! +------- len ------+--- Payload ---+    +--- Payload ---+</span>
+<span class="doccomment">//! | \x00\x00\x0B\xFF |  Hello world  | =&gt; |  Hello world  |</span>
+<span class="doccomment">//! +------------------+---------------+    +---------------+</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! A simple example where there are unused bytes between the length field</span>
+<span class="doccomment">//! and the payload.</span>
+<span class="doccomment">//!</span>
 <span class="doccomment">//! # Encoding</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [`FramedWrite`] adapts an [`AsyncWrite`] into a `Sink` of [`BytesMut`],</span>
@@ -1299,13 +1361,13 @@
 <span class="doccomment">//! +------------+--------------+</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! [`LengthDelimitedCodec::new()`]: struct.LengthDelimitedCodec.html#method.new</span>
-<span class="doccomment">//! [`FramedRead`]: struct.FramedRead.html</span>
-<span class="doccomment">//! [`FramedWrite`]: struct.FramedWrite.html</span>
-<span class="doccomment">//! [`AsyncRead`]: ../../trait.AsyncRead.html</span>
-<span class="doccomment">//! [`AsyncWrite`]: ../../trait.AsyncWrite.html</span>
-<span class="doccomment">//! [`Encoder`]: ../trait.Encoder.html</span>
-<span class="doccomment">//! [`BytesMut`]: https://docs.rs/bytes/0.4/bytes/struct.BytesMut.html</span>
+<span class="doccomment">//! [`LengthDelimitedCodec::new()`]: method@LengthDelimitedCodec::new</span>
+<span class="doccomment">//! [`FramedRead`]: struct@FramedRead</span>
+<span class="doccomment">//! [`FramedWrite`]: struct@FramedWrite</span>
+<span class="doccomment">//! [`AsyncRead`]: trait@tokio::io::AsyncRead</span>
+<span class="doccomment">//! [`AsyncWrite`]: trait@tokio::io::AsyncWrite</span>
+<span class="doccomment">//! [`Encoder`]: trait@Encoder</span>
+<span class="doccomment">//! [`BytesMut`]: bytes::BytesMut</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">codec</span>::{<span class="ident">Decoder</span>, <span class="ident">Encoder</span>, <span class="ident">Framed</span>, <span class="ident">FramedRead</span>, <span class="ident">FramedWrite</span>};
 
