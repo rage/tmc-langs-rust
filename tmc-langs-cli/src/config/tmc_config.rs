@@ -63,6 +63,9 @@ impl TmcConfig {
 
     pub fn save(self, client_name: &str) -> Result<()> {
         let path = Self::get_location(client_name)?;
+        if let Some(parent) = path.parent() {
+            file_util::create_dir_all(parent)?;
+        }
         let mut lock = file_util::create_file_lock(&path)?;
         let mut guard = lock.lock()?;
 
@@ -81,23 +84,38 @@ impl TmcConfig {
 
     pub fn load(client_name: &str) -> Result<TmcConfig> {
         let path = Self::get_location(client_name)?;
-        let mut lock = file_util::open_file_lock(&path)?;
-        let mut guard = lock.lock()?;
 
-        let mut buf = vec![];
-        let config = match guard.read_to_end(&mut buf) {
-            Ok(_) => match toml::from_slice(&buf) {
-                Ok(config) => Ok(config),
-                Err(_) => {
-                    log::error!(
-                        "Failed to deserialize config at {}, resetting",
-                        path.display()
-                    );
-                    Self::init_at(client_name, &path)
+        // try to open config file
+        let config = match file_util::open_file_lock(&path) {
+            Ok(mut lock) => {
+                // found config file, lock and read
+                let mut guard = lock.lock()?;
+                let mut buf = vec![];
+                let _bytes = guard.read_to_end(&mut buf)?;
+                match toml::from_slice(&buf) {
+                    // successfully read file, try to deserialize
+                    Ok(config) => config, // successfully read and deserialized the config
+                    Err(_) => {
+                        log::error!(
+                            "Failed to deserialize config at {}, resetting",
+                            path.display()
+                        );
+                        Self::init_at(client_name, &path)?
+                    }
                 }
-            },
-            Err(_) => Self::init_at(client_name, &path),
-        }?;
+            }
+            Err(e) => {
+                // failed to open config file, create new one
+                log::info!(
+                    "could not open config file at {} due to {}, initializing a new config file",
+                    path.display(),
+                    e
+                );
+                // todo: check the cause to make sure this makes sense, might be necessary to propagate some error kinds
+                Self::init_at(client_name, &path)?
+            }
+        };
+
         if !config.projects_dir.exists() {
             fs::create_dir_all(&config.projects_dir).with_context(|| {
                 format!(
@@ -111,6 +129,10 @@ impl TmcConfig {
 
     // initializes the default configuration file at the given path
     fn init_at(client_name: &str, path: &Path) -> Result<TmcConfig> {
+        if let Some(parent) = path.parent() {
+            file_util::create_dir_all(parent)?;
+        }
+
         let mut lock = file_util::create_file_lock(path)
             .with_context(|| format!("Failed to create new config file at {}", path.display()))?;
         let mut guard = lock.lock()?;
