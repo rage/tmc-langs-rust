@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tinyvec-1.1.0/src/tinyvec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tinyvec.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tinyvec-1.1.1/src/tinyvec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tinyvec.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../tinyvec/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -1477,6 +1477,29 @@
 <span id="1474">1474</span>
 <span id="1475">1475</span>
 <span id="1476">1476</span>
+<span id="1477">1477</span>
+<span id="1478">1478</span>
+<span id="1479">1479</span>
+<span id="1480">1480</span>
+<span id="1481">1481</span>
+<span id="1482">1482</span>
+<span id="1483">1483</span>
+<span id="1484">1484</span>
+<span id="1485">1485</span>
+<span id="1486">1486</span>
+<span id="1487">1487</span>
+<span id="1488">1488</span>
+<span id="1489">1489</span>
+<span id="1490">1490</span>
+<span id="1491">1491</span>
+<span id="1492">1492</span>
+<span id="1493">1493</span>
+<span id="1494">1494</span>
+<span id="1495">1495</span>
+<span id="1496">1496</span>
+<span id="1497">1497</span>
+<span id="1498">1498</span>
+<span id="1499">1499</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
 
@@ -2156,18 +2179,34 @@
   <span class="doccomment">/// tv.push(4);</span>
   <span class="doccomment">/// assert_eq!(tv.as_slice(), &amp;[1, 2, 3, 4]);</span>
   <span class="doccomment">/// ```</span>
-  <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
+  <span class="attribute">#[<span class="ident">inline</span>]</span>
   <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">A</span>::<span class="ident">Item</span>) {
-    <span class="kw">let</span> <span class="ident">arr</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">TinyVec</span>::<span class="ident">Heap</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">v</span>.<span class="ident">push</span>(<span class="ident">val</span>),
-      <span class="ident">TinyVec</span>::<span class="ident">Inline</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>,
-    };
-
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="ident">arr</span>.<span class="ident">try_push</span>(<span class="ident">val</span>) {
+    <span class="comment">// The code path for moving the inline contents to the heap produces a lot</span>
+    <span class="comment">// of instructions, but we have a strong guarantee that this is a cold</span>
+    <span class="comment">// path. LLVM doesn&#39;t know this, inlines it, and this tends to cause a</span>
+    <span class="comment">// cascade of other bad inlining decisions because the body of push looks</span>
+    <span class="comment">// huge even though nearly every call executes the same few instructions.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Moving the logic out of line with #[cold] causes the hot code to  be</span>
+    <span class="comment">// inlined together, and we take the extra cost of a function call only</span>
+    <span class="comment">// in rare cases.</span>
+    <span class="attribute">#[<span class="ident">cold</span>]</span>
+    <span class="kw">fn</span> <span class="ident">drain_to_heap_and_push</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span>(
+      <span class="ident">arr</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>, <span class="ident">val</span>: <span class="ident">A</span>::<span class="ident">Item</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
       <span class="comment">/* Make the Vec twice the size to amortize the cost of draining */</span>
       <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">arr</span>.<span class="ident">drain_to_vec_and_reserve</span>(<span class="ident">arr</span>.<span class="ident">len</span>());
-      <span class="ident">v</span>.<span class="ident">push</span>(<span class="ident">x</span>);
-      <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">TinyVec</span>::<span class="ident">Heap</span>(<span class="ident">v</span>);
+      <span class="ident">v</span>.<span class="ident">push</span>(<span class="ident">val</span>);
+      <span class="ident">TinyVec</span>::<span class="ident">Heap</span>(<span class="ident">v</span>)
+    }
+
+    <span class="kw">match</span> <span class="self">self</span> {
+      <span class="ident">TinyVec</span>::<span class="ident">Heap</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">push</span>(<span class="ident">val</span>),
+      <span class="ident">TinyVec</span>::<span class="ident">Inline</span>(<span class="ident">arr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="ident">arr</span>.<span class="ident">try_push</span>(<span class="ident">val</span>) {
+          <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">drain_to_heap_and_push</span>(<span class="ident">arr</span>, <span class="ident">x</span>);
+        }
+      }
     }
   }
 
@@ -2582,8 +2621,15 @@
       <span class="ident">TinyVec</span>::<span class="ident">Heap</span>(<span class="ident">slice</span>.<span class="ident">into</span>())
     } <span class="kw">else</span> {
       <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arr</span> <span class="op">=</span> <span class="ident">ArrayVec</span>::<span class="ident">new</span>();
-      <span class="ident">arr</span>.<span class="ident">extend_from_slice</span>(<span class="ident">slice</span>);
-
+      <span class="comment">// We do not use ArrayVec::extend_from_slice, because it looks like LLVM</span>
+      <span class="comment">// fails to deduplicate all the length-checking logic between the</span>
+      <span class="comment">// above if and the contents of that method, thus producing much</span>
+      <span class="comment">// slower code. Unlike many of the other optimizations in this</span>
+      <span class="comment">// crate, this one is worth keeping an eye on. I see no reason, for</span>
+      <span class="comment">// any element type, that these should produce different code. But</span>
+      <span class="comment">// they do. (rustc 1.51.0)</span>
+      <span class="ident">arr</span>.<span class="ident">set_len</span>(<span class="ident">slice</span>.<span class="ident">len</span>());
+      <span class="ident">arr</span>.<span class="ident">as_mut_slice</span>().<span class="ident">clone_from_slice</span>(<span class="ident">slice</span>);
       <span class="ident">TinyVec</span>::<span class="ident">Inline</span>(<span class="ident">arr</span>)
     }
   }

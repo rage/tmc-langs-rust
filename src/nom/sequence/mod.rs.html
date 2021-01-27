@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nom-6.0.1/src/sequence/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nom-6.1.0/src/sequence/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../nom/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -562,31 +562,31 @@
   <span class="ident">separated_pair</span>(<span class="ident">first</span>, <span class="ident">sep</span>, <span class="ident">second</span>)(<span class="ident">input</span>)
 }
 
-<span class="doccomment">/// Matches an object from the first parser,</span>
-<span class="doccomment">/// then gets an object from the sep_parser,</span>
-<span class="doccomment">/// then matches another object from the second parser.</span>
+<span class="doccomment">/// Matches an object from the first parser and discards it,</span>
+<span class="doccomment">/// then gets an object from the second parser,</span>
+<span class="doccomment">/// and finally matches an object from the third parser and discards it.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Arguments</span>
-<span class="doccomment">/// * `first` The first parser to apply.</span>
-<span class="doccomment">/// * `sep` The separator parser to apply.</span>
+<span class="doccomment">/// * `first` The first parser to apply and discard.</span>
 <span class="doccomment">/// * `second` The second parser to apply.</span>
+<span class="doccomment">/// * `third` The third parser to apply and discard.</span>
 <span class="doccomment">/// ```rust</span>
 <span class="doccomment">/// # use nom::{Err, error::ErrorKind, Needed};</span>
 <span class="doccomment">/// # use nom::Needed::Size;</span>
 <span class="doccomment">/// use nom::sequence::delimited;</span>
 <span class="doccomment">/// use nom::bytes::complete::tag;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let mut parser = delimited(tag(&quot;abc&quot;), tag(&quot;|&quot;), tag(&quot;efg&quot;));</span>
+<span class="doccomment">/// let mut parser = delimited(tag(&quot;(&quot;), tag(&quot;abc&quot;), tag(&quot;)&quot;));</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// assert_eq!(parser(&quot;abc|efg&quot;), Ok((&quot;&quot;, &quot;|&quot;)));</span>
-<span class="doccomment">/// assert_eq!(parser(&quot;abc|efghij&quot;), Ok((&quot;hij&quot;, &quot;|&quot;)));</span>
+<span class="doccomment">/// assert_eq!(parser(&quot;(abc)&quot;), Ok((&quot;&quot;, &quot;abc&quot;)));</span>
+<span class="doccomment">/// assert_eq!(parser(&quot;(abc)def&quot;), Ok((&quot;def&quot;, &quot;abc&quot;)));</span>
 <span class="doccomment">/// assert_eq!(parser(&quot;&quot;), Err(Err::Error((&quot;&quot;, ErrorKind::Tag))));</span>
 <span class="doccomment">/// assert_eq!(parser(&quot;123&quot;), Err(Err::Error((&quot;123&quot;, ErrorKind::Tag))));</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">delimited</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O1</span>, <span class="ident">O2</span>, <span class="ident">O3</span>, <span class="ident">E</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>, <span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">H</span><span class="op">&gt;</span>(
   <span class="kw-2">mut</span> <span class="ident">first</span>: <span class="ident">F</span>,
-  <span class="kw-2">mut</span> <span class="ident">sep</span>: <span class="ident">G</span>,
-  <span class="kw-2">mut</span> <span class="ident">second</span>: <span class="ident">H</span>,
+  <span class="kw-2">mut</span> <span class="ident">second</span>: <span class="ident">G</span>,
+  <span class="kw-2">mut</span> <span class="ident">third</span>: <span class="ident">H</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O2</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
   <span class="ident">F</span>: <span class="ident">Parser</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O1</span>, <span class="ident">E</span><span class="op">&gt;</span>,
@@ -595,8 +595,8 @@
 {
   <span class="kw">move</span> <span class="op">|</span><span class="ident">input</span>: <span class="ident">I</span><span class="op">|</span> {
     <span class="kw">let</span> (<span class="ident">input</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">first</span>.<span class="ident">parse</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">o2</span>) <span class="op">=</span> <span class="ident">sep</span>.<span class="ident">parse</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-    <span class="ident">second</span>.<span class="ident">parse</span>(<span class="ident">input</span>).<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="kw">_</span>)<span class="op">|</span> (<span class="ident">i</span>, <span class="ident">o2</span>))
+    <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">o2</span>) <span class="op">=</span> <span class="ident">second</span>.<span class="ident">parse</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
+    <span class="ident">third</span>.<span class="ident">parse</span>(<span class="ident">input</span>).<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="kw">_</span>)<span class="op">|</span> (<span class="ident">i</span>, <span class="ident">o2</span>))
   }
 }
 
@@ -605,15 +605,15 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">delimitedc</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O1</span>, <span class="ident">O2</span>, <span class="ident">O3</span>, <span class="ident">E</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>, <span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">H</span><span class="op">&gt;</span>(
   <span class="ident">input</span>: <span class="ident">I</span>,
   <span class="ident">first</span>: <span class="ident">F</span>,
-  <span class="ident">sep</span>: <span class="ident">G</span>,
-  <span class="ident">second</span>: <span class="ident">H</span>,
+  <span class="ident">second</span>: <span class="ident">G</span>,
+  <span class="ident">third</span>: <span class="ident">H</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O2</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
   <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O1</span>, <span class="ident">E</span><span class="op">&gt;</span>,
   <span class="ident">G</span>: <span class="ident">Fn</span>(<span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O2</span>, <span class="ident">E</span><span class="op">&gt;</span>,
   <span class="ident">H</span>: <span class="ident">Fn</span>(<span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O3</span>, <span class="ident">E</span><span class="op">&gt;</span>,
 {
-  <span class="ident">delimited</span>(<span class="ident">first</span>, <span class="ident">sep</span>, <span class="ident">second</span>)(<span class="ident">input</span>)
+  <span class="ident">delimited</span>(<span class="ident">first</span>, <span class="ident">second</span>, <span class="ident">third</span>)(<span class="ident">input</span>)
 }
 
 <span class="doccomment">/// Helper trait for the tuple combinator.</span>
