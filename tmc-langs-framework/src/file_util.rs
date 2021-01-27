@@ -1,6 +1,7 @@
 //! Various utility functions, primarily wrapping the standard library's IO and filesystem functions
 
 use crate::error::FileIo;
+use fd_lock::FdLock;
 use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::Path;
@@ -23,6 +24,13 @@ pub fn temp_file() -> Result<File, FileIo> {
 pub fn open_file<P: AsRef<Path>>(path: P) -> Result<File, FileIo> {
     let path = path.as_ref();
     File::open(path).map_err(|e| FileIo::FileOpen(path.to_path_buf(), e))
+}
+
+/// Does not work on directories on Windows.
+pub fn open_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLock<File>, FileIo> {
+    let file = open_file(path)?;
+    let lock = FdLock::new(file);
+    Ok(lock)
 }
 
 pub fn read_file<P: AsRef<Path>>(path: P) -> Result<Vec<u8>, FileIo> {
@@ -48,6 +56,17 @@ pub fn create_file<P: AsRef<Path>>(path: P) -> Result<File, FileIo> {
         }
     }
     File::create(path).map_err(|e| FileIo::FileCreate(path.to_path_buf(), e))
+}
+
+pub fn create_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLock<File>, FileIo> {
+    if let Ok(existing) = open_file(&path) {
+        // wait for an existing process to be done with the file before rewriting
+        let mut lock = FdLock::new(existing);
+        lock.lock().unwrap();
+    }
+    let file = create_file(path)?;
+    let lock = FdLock::new(file);
+    Ok(lock)
 }
 
 pub fn remove_file<P: AsRef<Path>>(path: P) -> Result<(), FileIo> {
