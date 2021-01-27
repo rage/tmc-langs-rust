@@ -64,7 +64,10 @@ impl Credentials {
     pub fn save(client_name: &str, token: Token) -> Result<()> {
         let credentials_path = Self::get_credentials_path(client_name)?;
 
-        file_util::lock!(&credentials_path);
+        if credentials_path.exists() {
+            // waiting for any other process working with the file to finish
+            file_util::lock!(&credentials_path);
+        }
 
         if let Some(p) = credentials_path.parent() {
             fs::create_dir_all(p)
@@ -72,6 +75,7 @@ impl Credentials {
         }
         let credentials_file = File::create(&credentials_path)
             .with_context(|| format!("Failed to create file at {}", credentials_path.display()))?;
+        file_util::lock!(&credentials_path);
 
         // write token
         if let Err(e) = serde_json::to_writer(credentials_file, &token) {
