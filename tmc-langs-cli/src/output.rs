@@ -50,7 +50,7 @@ pub struct OutputData {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
-#[serde(tag = "output-data-kind")]
+#[serde(tag = "output-data-kind", content = "output-data")]
 pub enum Data {
     Error { kind: Kind, trace: Vec<String> },
     Validation(StyleValidationResult),
