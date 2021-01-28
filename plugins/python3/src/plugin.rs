@@ -4,7 +4,7 @@ use crate::error::PythonError;
 use crate::policy::Python3StudentFilePolicy;
 use crate::python_test_result::PythonTestResult;
 use lazy_static::lazy_static;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::env;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
@@ -176,17 +176,20 @@ impl Python3Plugin {
         let test_results: Vec<PythonTestResult> =
             serde_json::from_reader(BufReader::new(results_file))
                 .map_err(|e| PythonError::Deserialize(test_results_json.to_path_buf(), e))?;
-        let test_results: Vec<TestResult> = test_results
-            .into_iter()
-            .map(PythonTestResult::into_test_result)
-            .collect();
 
         let mut status = RunStatus::Passed;
+        let mut failed_points = HashSet::new();
         for result in &test_results {
-            if !result.successful {
+            if !result.passed {
                 status = RunStatus::TestsFailed;
+                failed_points.extend(result.points.iter().cloned());
             }
         }
+
+        let test_results: Vec<TestResult> = test_results
+            .into_iter()
+            .map(|r| r.into_test_result(&failed_points))
+            .collect();
         Ok(RunResult::new(status, test_results, logs))
     }
 }
@@ -253,7 +256,21 @@ impl LanguagePlugin for Python3Plugin {
                 if test_results_json.exists() {
                     file_util::remove_file(&test_results_json)?;
                 }
-                Ok(parse_res?)
+
+                let mut run_result = parse_res?;
+
+                // remove points associated with any failed tests
+                let mut failed_points = HashSet::new();
+                for test_result in &run_result.test_results {
+                    if !test_result.successful {
+                        failed_points.extend(test_result.points.iter().cloned());
+                    }
+                }
+                for test_result in &mut run_result.test_results {
+                    test_result.points.retain(|p| !failed_points.contains(p));
+                }
+
+                Ok(run_result)
             }
             Err(PythonError::Tmc(TmcError::Command(CommandError::TimeOut {
                 stdout,
@@ -707,5 +724,43 @@ class TestErroring(unittest.TestCase):
         let mut zip = ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
         let res = Python3Plugin::find_project_dir_in_zip(&mut zip);
         assert!(res.is_err());
+    }
+
+    #[test]
+    fn doesnt_give_points_unless_all_relevant_exercises_pass() {
+        init();
+
+        let temp_dir = temp_with_tmc();
+        file_to(&temp_dir, "test/__init__.py", "");
+        file_to(
+            &temp_dir,
+            "test/test_file.py",
+            r#"
+import unittest
+from tmc import points
+
+@points('1')
+class TestClass(unittest.TestCase):
+    @points('1.1', '1.2')
+    def test_func1(self):
+        self.assertTrue(False)
+
+    @points('1.1', '1.3')
+    def test_func2(self):
+        self.assertTrue(True)
+"#,
+        );
+
+        let plugin = Python3Plugin::new();
+        let results = plugin.run_tests(temp_dir.path(), &mut vec![]).unwrap();
+        assert_eq!(results.status, RunStatus::TestsFailed);
+        let mut got_point = false;
+        for test in results.test_results {
+            got_point = got_point || test.points.contains(&"1.3".to_string());
+            assert!(!test.points.contains(&"1".to_string()));
+            assert!(!test.points.contains(&"1.1".to_string()));
+            assert!(!test.points.contains(&"1.2".to_string()));
+        }
+        assert!(got_point);
     }
 }

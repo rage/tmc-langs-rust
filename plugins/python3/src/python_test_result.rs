@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use tmc_langs_framework::domain::TestResult;
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -12,7 +13,8 @@ pub struct PythonTestResult {
 }
 
 impl PythonTestResult {
-    pub fn into_test_result(self) -> TestResult {
+    pub fn into_test_result(mut self, failed_points: &HashSet<String>) -> TestResult {
+        self.points.retain(|point| !failed_points.contains(point));
         TestResult {
             name: parse_test_name(self.name),
             successful: self.passed,
