@@ -379,6 +379,7 @@ fn set_permissions(path: &Path) -> Result<(), UtilError> {
 }
 
 #[cfg(test)]
+#[cfg(unix)] // not used on windows
 mod test {
     use std::io::Read;
 
@@ -565,14 +566,27 @@ courses:
             log::debug!("{}", i);
         }
         assert!(fz.by_name("setup.py").is_ok());
-        assert!(fz.by_name("dir/subdir/.hidden").is_err());
-        let mut file = fz.by_name("dir/subdir/file").unwrap();
+        assert!(fz
+            .by_name(
+                &Path::new("dir")
+                    .join("subdir")
+                    .join(".hidden")
+                    .to_string_lossy()
+            )
+            .is_err());
+        let mut file = fz
+            .by_name(
+                &Path::new("dir")
+                    .join("subdir")
+                    .join("file")
+                    .to_string_lossy(),
+            )
+            .unwrap();
         let mut buf = String::new();
         file.read_to_string(&mut buf).unwrap();
         assert_eq!(buf, "some file");
     }
 
-    #[cfg(unix)]
     #[test]
     #[ignore = "issues in CI, maybe due to the user ID"]
     fn sets_permissions() {
