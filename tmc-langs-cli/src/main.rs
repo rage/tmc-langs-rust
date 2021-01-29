@@ -19,12 +19,15 @@ use config::ConfigValue;
 use heim::disk;
 use serde::Serialize;
 use serde_json::Value as JsonValue;
-use std::collections::{BTreeMap, HashMap};
 use std::env;
 use std::error::Error as StdError;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::{
+    collections::{BTreeMap, HashMap},
+    ffi::OsStr,
+};
 use tempfile::NamedTempFile;
 use tmc_client::oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
@@ -1885,6 +1888,22 @@ fn move_dir(source: &Path, target: &Path, pretty: bool) -> anyhow::Result<()> {
         let entry =
             entry.with_context(|| format!("Failed to read file inside {}", source.display()))?;
         let entry_path = entry.path();
+
+        if entry_path.file_name() == Some(OsStr::new(".tmc.lock")) {
+            log::info!("skipping lock file");
+            file_count_copied += 1;
+            reporter
+                .progress(
+                    format!(
+                        "Skipped moving file {} / {}",
+                        file_count_copied, file_count_total
+                    ),
+                    file_count_copied as f64 / file_count_total as f64,
+                    None,
+                )
+                .map_err(|e| anyhow::anyhow!(e))?;
+            continue;
+        }
 
         if entry_path.is_file() {
             let relative = entry_path.strip_prefix(source).unwrap();
