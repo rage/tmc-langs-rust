@@ -548,10 +548,10 @@ class TestFailing(unittest.TestCase):
 
         let plugin = Python3Plugin::new();
         let run_result = plugin.run_tests(temp_dir.path(), &mut vec![]).unwrap();
+        log::debug!("{:#?}", run_result);
         assert_eq!(run_result.status, RunStatus::TestsFailed);
         assert_eq!(run_result.test_results[0].name, "TestFailing: test_func");
         assert!(!run_result.test_results[0].successful);
-        assert!(run_result.test_results[0].points.contains(&"1.1".into()));
         assert!(run_result.test_results[0].message.starts_with("'a' != 'b'"));
         assert!(!run_result.test_results[0].exception.is_empty());
         assert_eq!(run_result.test_results.len(), 1);
@@ -579,10 +579,10 @@ class TestErroring(unittest.TestCase):
 
         let plugin = Python3Plugin::new();
         let run_result = plugin.run_tests(temp_dir.path(), &mut vec![]).unwrap();
+        log::debug!("{:#?}", run_result);
         assert_eq!(run_result.status, RunStatus::TestsFailed);
         assert_eq!(run_result.test_results[0].name, "TestErroring: test_func");
         assert!(!run_result.test_results[0].successful);
-        assert!(run_result.test_results[0].points.contains(&"1.1".into()));
         assert_eq!(
             run_result.test_results[0].message,
             "name 'doSomethingIllegal' is not defined"
