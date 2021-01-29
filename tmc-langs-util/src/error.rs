@@ -1,7 +1,6 @@
 //! Contains the crate error type
 
 #[cfg(unix)]
-use crate::task_executor::ModeBits;
 use std::path::PathBuf;
 use thiserror::Error;
 use tmc_langs_framework::error::FileIo;
@@ -53,7 +52,7 @@ pub enum UtilError {
     NixPermissionChange(PathBuf, #[source] nix::Error),
     #[cfg(unix)]
     #[error("Invalid chmod flag: {0}")]
-    NixFlag(ModeBits),
+    NixFlag(u32),
 
     #[error(transparent)]
     DynError(#[from] Box<dyn 'static + std::error::Error + Sync + Send>),

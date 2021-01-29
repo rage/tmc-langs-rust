@@ -206,57 +206,19 @@ pub fn create_app() -> App<'static, 'static> {
         .subcommand(SubCommand::with_name("refresh-course")
             .about("Refresh the given course")
             // .long_about(schema_leaked::<RefreshData>()) // can't format YAML mapping
-            .arg(Arg::with_name("course-name")
-                .help("The name of the course.")
-                .long("course-name")
-                .required(true)
-                .takes_value(true))
             .arg(Arg::with_name("cache-path")
                 .help("Path to the cached course.")
                 .long("cache-path")
                 .required(true)
                 .takes_value(true))
-            .arg(Arg::with_name("clone-path")
-                .help("Path to the course clone.")
-                .long("clone-path")
+            .arg(Arg::with_name("cache-root")
+                .help("The cache root.")
+                .long("cache-root")
                 .required(true)
                 .takes_value(true))
-            .arg(Arg::with_name("stub-path")
-                .help("Path to the course stub.")
-                .long("stub-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("stub-zip-path")
-                .help("Path to the directory where the stub zips will be created.")
-                .long("stub-zip-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("solution-path")
-                .help("The name of the course solution.")
-                .long("solution-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("solution-zip-path")
-                .help("Path to the directory where the solution zips will be created.")
-                .long("solution-zip-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("exercise")
-                .help("An exercise. Takes 3 values: the exercise's name, its relative path, and a comma separated list of its available points. Multiple exercises can be given.")
-                .long("exercise")
-                .takes_value(true)
-                .multiple(true)
-                .number_of_values(3)
-                .value_names(&["exercise name", "relative path", "available points"]))
-            .arg(Arg::with_name("source-backend")
-                .help("The version control used for the course.")
-                .long("source-backend")
-                .required(true)
-                .takes_value(true)
-                .possible_values(&["git"]))
-            .arg(Arg::with_name("source-url")
-                .help("Version control URL.")
-                .long("source-url")
+            .arg(Arg::with_name("course-name")
+                .help("The name of the course.")
+                .long("course-name")
                 .required(true)
                 .takes_value(true))
             .arg(Arg::with_name("git-branch")
@@ -264,28 +226,9 @@ pub fn create_app() -> App<'static, 'static> {
                 .long("git-branch")
                 .required(true)
                 .takes_value(true))
-            .arg(Arg::with_name("no-directory-changes")
-                .help("If set, the cache is not reset and the clone is not updated/cloned, and the solutions and stubs are not prepared.")
-                .long("no-directory-changes"))
-            .arg(Arg::with_name("no-background-operations")
-                .help("If set, will not update available points.")
-                .long("no-background-operations"))
-            .arg(Arg::with_name("chmod-bits")
-                .help("The unix file permission bits in octal notation used for the directories from the rails root to the cache root and the cache root's contents.")
-                .long("chmod-bits")
-                .takes_value(true))
-            .arg(Arg::with_name("chgrp-uid")
-                .help("The UID of the owner of the directories from the rails root to the cache root and the cache root's contents.")
-                .long("chgrp-uid")
-                .takes_value(true))
-            .arg(Arg::with_name("cache-root")
-                .help("The cache root.")
-                .long("cache-root")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("rails-root")
-                .help("The Rails root directory.")
-                .long("rails-root")
+            .arg(Arg::with_name("source-url")
+                .help("Version control URL.")
+                .long("source-url")
                 .required(true)
                 .takes_value(true)))
 
@@ -943,40 +886,12 @@ mod base_test {
             "path",
             "--cache-root",
             "path",
-            "--chgrp-uid",
-            "1234",
-            "--chmod-bits",
-            "1234",
-            "--clone-path",
-            "path",
             "--course-name",
             "name",
-            "--exercise",
-            "name",
-            "path",
-            "10,11,12",
-            "--exercise",
-            "second",
-            "path",
-            "20,21,22",
             "--git-branch",
             "main",
-            "--no-background-operations",
-            "--no-directory-changes",
-            "--rails-root",
-            "path",
-            "--solution-path",
-            "path",
-            "--solution-zip-path",
-            "path",
-            "--source-backend",
-            "git",
             "--source-url",
             "example.com",
-            "--stub-path",
-            "path",
-            "--stub-zip-path",
-            "path",
         ]);
     }
 

@@ -6,13 +6,10 @@ mod submission_processing;
 mod tar_helper;
 mod tmc_zip;
 
-pub use self::course_refresher::{
-    Course, GroupBits, ModeBits, Options, RefreshData, RefreshExercise, SourceBackend,
-};
+pub use self::course_refresher::{refresh_course, RefreshData, RefreshExercise};
 pub use self::submission_packaging::{OutputFormat, TmcParams};
 
 use crate::error::UtilError;
-use crate::progress_reporter::StatusUpdate;
 use crate::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, StyleValidationResult};
 use std::path::{Path, PathBuf};
 use tmc_langs_csharp::CSharpPlugin;
@@ -213,8 +210,8 @@ pub fn find_exercise_directories(exercise_path: &Path) -> Result<Vec<PathBuf>, U
     let mut paths = vec![];
     for entry in WalkDir::new(exercise_path).into_iter().filter_entry(|e| {
         !submission_processing::is_hidden_dir(e)
-            || e.file_name() == "private"
-            || submission_processing::contains_tmcignore(e)
+            && e.file_name() != "private"
+            && !submission_processing::contains_tmcignore(e)
     }) {
         let entry = entry?;
         // TODO: Java implementation doesn't scan root directories
@@ -229,29 +226,6 @@ pub fn find_exercise_directories(exercise_path: &Path) -> Result<Vec<PathBuf>, U
 pub fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, UtilError> {
     let points = get_language_plugin(exercise_path)?.get_available_points(exercise_path)?;
     Ok(points)
-}
-
-pub fn refresh_course(
-    course: Course,
-    options: Options,
-    chmod_bits: Option<ModeBits>,
-    chgrp_uid: Option<GroupBits>,
-    cache_root: PathBuf,
-    rails_root: PathBuf,
-    progress_reporter: impl 'static
-        + Sync
-        + Send
-        + Fn(StatusUpdate<()>) -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>>,
-) -> Result<RefreshData, UtilError> {
-    course_refresher::refresh_course(
-        course,
-        options,
-        chmod_bits,
-        chgrp_uid,
-        cache_root,
-        rails_root,
-        progress_reporter,
-    )
 }
 
 // enum containing all the plugins
@@ -278,28 +252,56 @@ enum Plugin {
 // Get language plugin for the given path.
 fn get_language_plugin(path: &Path) -> Result<Plugin, TmcError> {
     if NoTestsPlugin::is_exercise_type_correct(path) {
-        log::info!("Detected project as {}", NoTestsPlugin::PLUGIN_NAME);
+        log::info!(
+            "Detected project at {} as {}",
+            path.display(),
+            NoTestsPlugin::PLUGIN_NAME
+        );
         Ok(Plugin::NoTests(NoTestsPlugin::new()))
     } else if CSharpPlugin::is_exercise_type_correct(path) {
         let csharp = CSharpPlugin::new();
-        log::info!("Detected project as {}", CSharpPlugin::PLUGIN_NAME);
+        log::info!(
+            "Detected project at {} as {}",
+            path.display(),
+            CSharpPlugin::PLUGIN_NAME
+        );
         Ok(Plugin::CSharp(csharp))
     } else if MakePlugin::is_exercise_type_correct(path) {
         let make = MakePlugin::new();
-        log::info!("Detected project as {}", MakePlugin::PLUGIN_NAME);
+        log::info!(
+            "Detected project at {} as {}",
+            path.display(),
+            MakePlugin::PLUGIN_NAME
+        );
         Ok(Plugin::Make(make))
     } else if Python3Plugin::is_exercise_type_correct(path) {
-        log::info!("Detected project as {}", Python3Plugin::PLUGIN_NAME);
+        log::info!(
+            "Detected project at {} as {}",
+            path.display(),
+            Python3Plugin::PLUGIN_NAME
+        );
         Ok(Plugin::Python3(Python3Plugin::new()))
     } else if RPlugin::is_exercise_type_correct(path) {
-        log::info!("Detected project as {}", RPlugin::PLUGIN_NAME);
+        log::info!(
+            "Detected project at {} as {}",
+            path.display(),
+            RPlugin::PLUGIN_NAME
+        );
         Ok(Plugin::R(RPlugin::new()))
     } else if MavenPlugin::is_exercise_type_correct(path) {
-        log::info!("Detected project as {}", MavenPlugin::PLUGIN_NAME);
+        log::info!(
+            "Detected project at {} as {}",
+            path.display(),
+            MavenPlugin::PLUGIN_NAME
+        );
         Ok(Plugin::Maven(MavenPlugin::new()?))
     } else if AntPlugin::is_exercise_type_correct(path) {
         // TODO: currently, ant needs to be last because any project with src and test are recognized as ant
-        log::info!("Detected project as {}", AntPlugin::PLUGIN_NAME);
+        log::info!(
+            "Detected project at {} as {}",
+            path.display(),
+            AntPlugin::PLUGIN_NAME
+        );
         Ok(Plugin::Ant(AntPlugin::new()?))
     } else {
         Err(TmcError::PluginNotFound(path.to_path_buf()))
