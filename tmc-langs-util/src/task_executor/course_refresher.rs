@@ -97,19 +97,8 @@ impl CourseRefresher {
         self.progress_reporter
             .finish_step("Updated course options".to_string(), None)?;
 
-        // make_solutions
         let new_solution_path = new_cache_path.join("solution");
-        log::info!("preparing solution to {}", new_solution_path.display());
-        task_executor::prepare_solution(&new_clone_path, &new_solution_path)?;
-        self.progress_reporter
-            .finish_step("Prepared solutions".to_string(), None)?;
-
-        // make_stubs
         let new_stub_path = new_cache_path.join("stub");
-        log::info!("preparing stubs to {}", new_stub_path.display());
-        task_executor::prepare_stub(&new_clone_path, &new_stub_path)?;
-        self.progress_reporter
-            .finish_step("Prepared stubs".to_string(), None)?;
 
         // find exercises in new clone path
         log::info!("finding exercises");
@@ -117,6 +106,28 @@ impl CourseRefresher {
         let exercises = get_exercises(&new_clone_path, &new_stub_path)?;
         self.progress_reporter
             .finish_step("Located exercises".to_string(), None)?;
+
+        // make_solutions
+        log::info!("preparing solutions to {}", new_solution_path.display());
+        for exercise in &exercises {
+            task_executor::prepare_solution(
+                &new_clone_path.join(&exercise.path),
+                &new_solution_path.join(&exercise.path),
+            )?;
+        }
+        self.progress_reporter
+            .finish_step("Prepared solutions".to_string(), None)?;
+
+        // make_stubs
+        log::info!("preparing stubs to {}", new_stub_path.display());
+        for exercise in &exercises {
+            task_executor::prepare_stub(
+                &new_clone_path.join(&exercise.path),
+                &new_stub_path.join(&exercise.path),
+            )?;
+        }
+        self.progress_reporter
+            .finish_step("Prepared stubs".to_string(), None)?;
 
         // make_zips_of_solutions
         let new_solution_zip_path = new_cache_path.join("solution_zip");
@@ -523,6 +534,7 @@ courses:
         let exercises =
             get_exercises(&temp.path().join("course"), &temp.path().join("course")).unwrap();
         assert_eq!(exercises.len(), 1);
+        assert_eq!(exercises[0].path, Path::new("part1/ex1"));
         assert_eq!(exercises[0].points.len(), 2);
         assert_eq!(exercises[0].points[0], "1");
         assert_eq!(exercises[0].points[1], "2");
