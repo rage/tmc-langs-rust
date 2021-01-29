@@ -1,10 +1,10 @@
 //! Contains the crate error type
 
-#[cfg(unix)]
-use crate::task_executor::ModeBits;
 use std::path::PathBuf;
 use thiserror::Error;
 use tmc_langs_framework::error::FileIo;
+
+use crate::task_executor::ModeBits;
 
 #[derive(Debug, Error)]
 pub enum UtilError {
@@ -32,12 +32,8 @@ pub enum UtilError {
     #[error("Error while writing file to zip")]
     ZipWrite(#[source] std::io::Error),
 
-    #[error("Unsupported source backend")]
-    UnsupportedSourceBackend,
     #[error("Path {0} contained a dash '-' which is currently not allowed")]
     InvalidDirectory(PathBuf),
-    #[error("The cache path  ({0}) must be inside the rails root path ({1})")]
-    CacheNotInRailsRoot(PathBuf, PathBuf),
 
     #[error(transparent)]
     TmcError(#[from] tmc_langs_framework::TmcError),

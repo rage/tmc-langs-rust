@@ -41,7 +41,7 @@ impl TmcProjectYml {
         config_path.push(".tmcproject.yml");
 
         if !config_path.exists() {
-            log::debug!("no config found at {}", config_path.display());
+            log::trace!("no config found at {}", config_path.display());
             return Ok(Self::default());
         }
         log::debug!("reading .tmcproject.yml from {}", config_path.display());

@@ -36,9 +36,7 @@ use tmc_client::{ClientError, FeedbackAnswer, TmcClient, Token};
 use tmc_langs_framework::{domain::StyleValidationResult, error::CommandError, file_util};
 use tmc_langs_util::{
     progress_reporter::ProgressReporter,
-    task_executor::{
-        self, Course, GroupBits, ModeBits, Options, RefreshExercise, SourceBackend, TmcParams,
-    },
+    task_executor::{self, TmcParams},
     Language, OutputFormat,
 };
 use toml::{map::Map as TomlMap, Value as TomlValue};
@@ -559,84 +557,16 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
         ("refresh-course", Some(matches)) => {
             let cache_path = matches.value_of("cache-path").unwrap();
             let cache_root = matches.value_of("cache-root").unwrap();
-            let chgrp_uid = matches.value_of("chgrp-uid");
-            let chmod_bits = matches.value_of("chmod-bits");
-            let clone_path = matches.value_of("clone-path").unwrap();
             let course_name = matches.value_of("course-name").unwrap();
-
-            let exercise_args = matches.values_of("exercise");
             let git_branch = matches.value_of("git-branch").unwrap();
-            let no_background_operations = matches.is_present("no-background-operations");
-            let no_directory_changes = matches.is_present("no-directory-changes");
-            let rails_root = matches.value_of("rails-root").unwrap();
-
-            let solution_path = matches.value_of("solution-path").unwrap();
-            let solution_zip_path = matches.value_of("solution-zip-path").unwrap();
-            let source_backend = matches.value_of("source-backend").unwrap();
             let source_url = matches.value_of("source-url").unwrap();
-            let stub_path = matches.value_of("stub-path").unwrap();
-            let stub_zip_path = matches.value_of("stub-zip-path").unwrap();
-
-            let mut exercises = vec![];
-            if let Some(mut exercise_args) = exercise_args {
-                while let Some(exercise_name) = exercise_args.next() {
-                    let relative_path = exercise_args.next().unwrap();
-                    let available_points: Vec<_> =
-                        exercise_args.next().unwrap().split(',').collect();
-                    exercises.push(RefreshExercise {
-                        name: exercise_name.to_string(),
-                        relative_path: PathBuf::from(relative_path),
-                        available_points: available_points
-                            .into_iter()
-                            .map(str::to_string)
-                            .filter(|s| !s.is_empty())
-                            .collect(),
-                    });
-                }
-            }
-            let source_backend = match source_backend {
-                "git" => SourceBackend::Git,
-                _ => unreachable!("validation error"),
-            };
-            let course = Course {
-                name: course_name.to_string(),
-                cache_path: PathBuf::from(cache_path),
-                clone_path: PathBuf::from(clone_path),
-                stub_path: PathBuf::from(stub_path),
-                stub_zip_path: PathBuf::from(stub_zip_path),
-                solution_path: PathBuf::from(solution_path),
-                solution_zip_path: solution_zip_path.into(),
-                exercises,
-                source_backend,
-                source_url: source_url.to_string(),
-                git_branch: git_branch.to_string(),
-            };
-            let options = Options {
-                no_background_operations,
-                no_directory_changes,
-            };
-            let chmod_bits = if let Some(chmod_bits) = chmod_bits {
-                Some(ModeBits::from_str_radix(chmod_bits, 8).with_context(|| {
-                    format!("Failed to convert chmod bits to an integer: {}", chmod_bits,)
-                })?)
-            } else {
-                None
-            };
-            let chgrp_uid = if let Some(chgrp_uid) = chgrp_uid {
-                Some(GroupBits::from_str_radix(chgrp_uid, 10).with_context(|| {
-                    format!("Failed to convert chgrp UID to an integer: {}", chgrp_uid,)
-                })?)
-            } else {
-                None
-            };
 
             let refresh_result = task_executor::refresh_course(
-                course,
-                options,
-                chmod_bits,
-                chgrp_uid,
+                course_name.to_string(),
+                PathBuf::from(cache_path),
+                source_url.to_string(),
+                git_branch.to_string(),
                 PathBuf::from(cache_root),
-                PathBuf::from(rails_root),
                 move |update| {
                     let output = Output::StatusUpdate(StatusUpdateData::None(update));
                     print_output(&output, pretty, &[])?;
