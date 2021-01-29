@@ -6,7 +6,7 @@ mod submission_processing;
 mod tar_helper;
 mod tmc_zip;
 
-pub use self::course_refresher::{refresh_course, RefreshData, RefreshExercise};
+pub use self::course_refresher::{refresh_course, ModeBits, RefreshData, RefreshExercise};
 pub use self::submission_packaging::{OutputFormat, TmcParams};
 
 use crate::error::UtilError;

@@ -13,6 +13,11 @@ use std::path::{Path, PathBuf};
 use tmc_langs_framework::{command::TmcCommand, file_util, subprocess::Redirection};
 use walkdir::WalkDir;
 
+#[cfg(unix)]
+pub type ModeBits = nix::sys::stat::mode_t;
+#[cfg(not(unix))]
+pub type ModeBits = u32;
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct RefreshData {
@@ -359,7 +364,7 @@ fn set_permissions(path: &Path) -> Result<(), UtilError> {
     use nix::sys::stat;
     use std::os::unix::io::AsRawFd;
 
-    let chmod = 0o555; // octal, read and execute permissions for all users
+    let chmod: ModeBits = 0o555; // octal, read and execute permissions for all users
     for entry in WalkDir::new(path) {
         let entry = entry?;
         let file = file_util::open_file(entry.path())?;
