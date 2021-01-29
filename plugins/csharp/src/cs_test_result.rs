@@ -1,6 +1,7 @@
 //! Contains the CSTestResult type that models the C# test runner result.
 
 use serde::Deserialize;
+use std::collections::HashSet;
 use tmc_langs_framework::domain::TestResult;
 
 /// Test result from the C# test runner.
@@ -14,14 +15,15 @@ pub struct CSTestResult {
     pub error_stack_trace: Vec<String>,
 }
 
-impl From<CSTestResult> for TestResult {
-    fn from(test_result: CSTestResult) -> Self {
+impl CSTestResult {
+    pub fn into_test_result(mut self, failed_points: &HashSet<String>) -> TestResult {
+        self.points.retain(|point| !failed_points.contains(point));
         TestResult {
-            name: test_result.name,
-            successful: test_result.passed,
-            message: test_result.message,
-            exception: test_result.error_stack_trace,
-            points: test_result.points,
+            name: self.name,
+            successful: self.passed,
+            message: self.message,
+            exception: self.error_stack_trace,
+            points: self.points,
         }
     }
 }

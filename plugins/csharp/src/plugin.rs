@@ -2,7 +2,7 @@
 
 use crate::policy::CSharpStudentFilePolicy;
 use crate::{cs_test_result::CSTestResult, CSharpError};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::env;
 use std::ffi::{OsStr, OsString};
 use std::io::{BufReader, Cursor, Read, Seek};
@@ -24,7 +24,7 @@ use tmc_langs_framework::{
 };
 use walkdir::WalkDir;
 
-const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../deps/tmc-csharp-runner-1.1.zip");
+const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../deps/tmc-csharp-runner-1.1.1.zip");
 
 #[derive(Default)]
 pub struct CSharpPlugin {}
@@ -142,15 +142,19 @@ impl CSharpPlugin {
             .map_err(|e| CSharpError::ParseTestResults(test_results_path.to_path_buf(), e))?;
 
         let mut status = RunStatus::Passed;
+        let mut failed_points = HashSet::new();
         for test_result in &test_results {
             if !test_result.passed {
-                log::info!("C# tests failed");
                 status = RunStatus::TestsFailed;
-                break;
+                failed_points.extend(test_result.points.iter().cloned());
             }
         }
+
         // convert the parsed C# test results into TMC test results
-        let test_results = test_results.into_iter().map(|t| t.into()).collect();
+        let test_results = test_results
+            .into_iter()
+            .map(|t| t.into_test_result(&failed_points))
+            .collect();
         Ok(RunResult {
             status,
             test_results,
@@ -696,5 +700,22 @@ mod test {
 
         let res = CSharpPlugin::points_parser("@  pOiNtS  (  \"  1  \"  )  ").unwrap();
         assert_eq!(res.1, "1");
+    }
+
+    #[test]
+    #[ignore = "requires newer version of C# runner that always includes all points in the tests"]
+    fn doesnt_give_points_unless_all_relevant_exercises_pass() {
+        init();
+
+        let temp = dir_to_temp("tests/data/partially-passing");
+        let plugin = CSharpPlugin::new();
+        let results = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
+        assert_eq!(results.status, RunStatus::TestsFailed);
+        let mut got_point = false;
+        for test in results.test_results {
+            got_point = got_point || test.points.contains(&"1.2".to_string());
+            assert!(!test.points.contains(&"1".to_string()));
+            assert!(!test.points.contains(&"1.1".to_string()));
+        }
     }
 }
