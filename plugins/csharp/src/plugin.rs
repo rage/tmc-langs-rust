@@ -24,7 +24,7 @@ use tmc_langs_framework::{
 };
 use walkdir::WalkDir;
 
-const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../deps/tmc-csharp-runner-1.1.zip");
+const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../deps/tmc-csharp-runner-1.1.1.zip");
 
 #[derive(Default)]
 pub struct CSharpPlugin {}
