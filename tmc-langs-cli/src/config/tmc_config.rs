@@ -2,12 +2,9 @@
 
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use std::io::Write;
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
-use std::{
-    borrow::Cow,
-    fs::{self, File},
-};
+use std::{borrow::Cow, fs};
 use tmc_langs_framework::file_util;
 use toml::{value::Table, Value};
 
@@ -66,39 +63,59 @@ impl TmcConfig {
 
     pub fn save(self, client_name: &str) -> Result<()> {
         let path = Self::get_location(client_name)?;
-        file_util::lock!(&path);
+        if let Some(parent) = path.parent() {
+            file_util::create_dir_all(parent)?;
+        }
+        let mut lock = file_util::create_file_lock(&path)?;
+        let mut guard = lock.lock()?;
 
         let toml = toml::to_string_pretty(&self).context("Failed to serialize HashMap")?;
-        fs::write(&path, toml.as_bytes())
+        guard
+            .write_all(toml.as_bytes())
             .with_context(|| format!("Failed to write TOML to {}", path.display()))?;
         Ok(())
     }
 
     pub fn reset(client_name: &str) -> Result<()> {
         let path = Self::get_location(client_name)?;
-        file_util::lock!(&path);
-
-        Self::init_at(client_name, &path)?;
+        Self::init_at(client_name, &path)?; // init locks the file
         Ok(())
     }
 
     pub fn load(client_name: &str) -> Result<TmcConfig> {
         let path = Self::get_location(client_name)?;
-        file_util::lock!(&path);
 
-        let config = match fs::read(&path) {
-            Ok(bytes) => match toml::from_slice(&bytes) {
-                Ok(config) => Ok(config),
-                Err(_) => {
-                    log::error!(
-                        "Failed to deserialize config at {}, resetting",
-                        path.display()
-                    );
-                    Self::init_at(client_name, &path)
+        // try to open config file
+        let config = match file_util::open_file_lock(&path) {
+            Ok(mut lock) => {
+                // found config file, lock and read
+                let mut guard = lock.lock()?;
+                let mut buf = vec![];
+                let _bytes = guard.read_to_end(&mut buf)?;
+                match toml::from_slice(&buf) {
+                    // successfully read file, try to deserialize
+                    Ok(config) => config, // successfully read and deserialized the config
+                    Err(_) => {
+                        log::error!(
+                            "Failed to deserialize config at {}, resetting",
+                            path.display()
+                        );
+                        Self::init_at(client_name, &path)?
+                    }
                 }
-            },
-            Err(_) => Self::init_at(client_name, &path),
-        }?;
+            }
+            Err(e) => {
+                // failed to open config file, create new one
+                log::info!(
+                    "could not open config file at {} due to {}, initializing a new config file",
+                    path.display(),
+                    e
+                );
+                // todo: check the cause to make sure this makes sense, might be necessary to propagate some error kinds
+                Self::init_at(client_name, &path)?
+            }
+        };
+
         if !config.projects_dir.exists() {
             fs::create_dir_all(&config.projects_dir).with_context(|| {
                 format!(
@@ -112,10 +129,13 @@ impl TmcConfig {
 
     // initializes the default configuration file at the given path
     fn init_at(client_name: &str, path: &Path) -> Result<TmcConfig> {
-        file_util::lock!(path);
+        if let Some(parent) = path.parent() {
+            file_util::create_dir_all(parent)?;
+        }
 
-        let mut file = File::create(&path)
+        let mut lock = file_util::create_file_lock(path)
             .with_context(|| format!("Failed to create new config file at {}", path.display()))?;
+        let mut guard = lock.lock()?;
 
         let default_project_dir = dirs::data_local_dir()
             .context("Failed to find local data directory")?
@@ -134,7 +154,8 @@ impl TmcConfig {
         };
 
         let toml = toml::to_string_pretty(&config).context("Failed to serialize config")?;
-        file.write_all(toml.as_bytes())
+        guard
+            .write_all(toml.as_bytes())
             .with_context(|| format!("Failed to write default config to {}", path.display()))?;
         Ok(config)
     }

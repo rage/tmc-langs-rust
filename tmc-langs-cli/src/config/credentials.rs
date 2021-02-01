@@ -1,7 +1,9 @@
 use crate::Token;
 use anyhow::{Context, Result};
+use file_util::create_file_lock;
 use serde::{Deserialize, Serialize};
-use std::fs::{self, File};
+use std::fs;
+use std::ops::Deref;
 use std::path::PathBuf;
 use tmc_langs_framework::file_util;
 
@@ -29,15 +31,15 @@ impl Credentials {
             return Ok(None);
         }
 
-        file_util::lock!(&credentials_path);
-
-        let file = File::open(&credentials_path).with_context(|| {
+        let mut credentials_file = file_util::open_file_lock(&credentials_path)?;
+        let guard = credentials_file.lock().with_context(|| {
             format!(
-                "Failed to read credentials file at {}",
+                "Failed to lock credentials file at {}",
                 credentials_path.display()
             )
         })?;
-        match serde_json::from_reader(file) {
+
+        match serde_json::from_reader(guard.deref()) {
             Ok(token) => Ok(Some(Credentials {
                 path: credentials_path,
                 token,
@@ -64,17 +66,16 @@ impl Credentials {
     pub fn save(client_name: &str, token: Token) -> Result<()> {
         let credentials_path = Self::get_credentials_path(client_name)?;
 
-        file_util::lock!(&credentials_path);
-
         if let Some(p) = credentials_path.parent() {
             fs::create_dir_all(p)
                 .with_context(|| format!("Failed to create directory {}", p.display()))?;
         }
-        let credentials_file = File::create(&credentials_path)
+        let mut credentials_file = create_file_lock(&credentials_path)
             .with_context(|| format!("Failed to create file at {}", credentials_path.display()))?;
+        let guard = credentials_file.lock()?;
 
         // write token
-        if let Err(e) = serde_json::to_writer(credentials_file, &token) {
+        if let Err(e) = serde_json::to_writer(guard.deref(), &token) {
             // failed to write token, removing credentials file
             fs::remove_file(&credentials_path).with_context(|| {
                 format!(
