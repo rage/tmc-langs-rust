@@ -388,7 +388,7 @@ fn set_permissions(path: &Path) -> Result<(), UtilError> {
     use nix::sys::stat;
     use std::os::unix::io::AsRawFd;
 
-    let chmod: ModeBits = 0o555; // octal, read and execute permissions for all users
+    let chmod: ModeBits = 0o775; // octal, read and execute permissions for all users
     for entry in WalkDir::new(path) {
         let entry = entry?;
         let file = file_util::open_file(entry.path())?;
