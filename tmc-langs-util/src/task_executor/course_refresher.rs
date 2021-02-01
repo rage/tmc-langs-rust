@@ -322,17 +322,8 @@ fn get_exercises(
 fn calculate_checksum(exercise_dir: &Path) -> Result<String, UtilError> {
     let mut digest = Context::new();
 
-    for entry in WalkDir::new(exercise_dir)
-        .sort_by(|a, b| a.file_name().cmp(b.file_name())) // order filenames for a consistent hash
-        .into_iter()
-        .filter_entry(|e| {
-            // filter out files starting with '.'
-            !e.file_name()
-                .to_str()
-                .map(|e| e.starts_with('.'))
-                .unwrap_or_default()
-        })
-    {
+    // order filenames for a consistent hash
+    for entry in WalkDir::new(exercise_dir).sort_by(|a, b| a.file_name().cmp(b.file_name())) {
         let entry = entry?;
         let relative = entry.path().strip_prefix(exercise_dir).unwrap();
         let string = relative.as_os_str().to_string_lossy();
@@ -650,6 +641,6 @@ courses:
         let checksum =
             calculate_checksum(Path::new("tests/data/course_refresher/valid_exercises/ex1"))
                 .unwrap();
-        assert_eq!(checksum, "1830118f2570f3448c0e096a7369b127");
+        assert_eq!(checksum, "6cacf02f21f9242674a876954132fb11");
     }
 }
