@@ -213,10 +213,16 @@ fn update_or_clone_repository(
             run_git(&["checkout", "."])?;
             Ok(())
         };
-        if let Err(error) = copy_and_update_repository() {
-            log::warn!("failed to update repository: {}", error);
+        match copy_and_update_repository() {
+            Ok(_) => {
+                log::info!("updated repository");
+                return Ok(());
+            }
+            Err(error) => {
+                log::warn!("failed to update repository: {}", error);
 
-            file_util::remove_dir_all(new_clone_path)?;
+                file_util::remove_dir_all(new_clone_path)?;
+            }
         }
     };
 
