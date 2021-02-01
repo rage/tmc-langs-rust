@@ -100,19 +100,14 @@ impl CourseRefresher {
         let new_solution_path = new_cache_path.join("solution");
         let new_stub_path = new_cache_path.join("stub");
 
-        // find exercises in new clone path
-        log::info!("finding exercises");
-        // (exercise name, exercise path)
-        let exercises = get_exercises(&new_clone_path, &new_stub_path)?;
-        self.progress_reporter
-            .finish_step("Located exercises".to_string(), None)?;
+        let exercise_dirs = task_executor::find_exercise_directories(&new_clone_path)?;
 
         // make_solutions
         log::info!("preparing solutions to {}", new_solution_path.display());
-        for exercise in &exercises {
+        for exercise in &exercise_dirs {
             task_executor::prepare_solution(
-                &new_clone_path.join(&exercise.path),
-                &new_solution_path.join(&exercise.path),
+                &new_clone_path.join(&exercise),
+                &new_solution_path.join(&exercise),
             )?;
         }
         self.progress_reporter
@@ -120,14 +115,21 @@ impl CourseRefresher {
 
         // make_stubs
         log::info!("preparing stubs to {}", new_stub_path.display());
-        for exercise in &exercises {
+        for exercise in &exercise_dirs {
             task_executor::prepare_stub(
-                &new_clone_path.join(&exercise.path),
-                &new_stub_path.join(&exercise.path),
+                &new_clone_path.join(&exercise),
+                &new_stub_path.join(&exercise),
             )?;
         }
         self.progress_reporter
             .finish_step("Prepared stubs".to_string(), None)?;
+
+        // find exercises in new clone path
+        log::info!("finding exercises");
+        // (exercise name, exercise path)
+        let exercises = get_exercises(exercise_dirs, &new_clone_path, &new_stub_path)?;
+        self.progress_reporter
+            .finish_step("Located exercises".to_string(), None)?;
 
         // make_zips_of_solutions
         let new_solution_zip_path = new_cache_path.join("solution_zip");
@@ -284,14 +286,18 @@ fn get_course_options(course_clone_path: &Path, course_name: &str) -> Result<Map
 /// Finds exercise directories, and converts the directories to "exercise names" by swapping the separators for dashes.
 /// Also calculates checksums and fetches points for all
 fn get_exercises(
+    exercise_dirs: Vec<PathBuf>,
     course_clone_path: &Path,
     course_stub_path: &Path,
 ) -> Result<Vec<RefreshExercise>, UtilError> {
-    let exercises = task_executor::find_exercise_directories(course_clone_path)?
+    let exercises = exercise_dirs
         .into_iter()
         .map(|exercise_dir| {
             let exercise_dir = exercise_dir.strip_prefix(course_clone_path).unwrap();
-            log::debug!("{}", exercise_dir.display());
+            log::debug!(
+                "processing points and checksum for {}",
+                exercise_dir.display()
+            );
             let name = exercise_dir.to_string_lossy().replace("/", "-");
 
             // checksum
