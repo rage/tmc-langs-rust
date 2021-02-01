@@ -75,7 +75,6 @@ implementors["tmc_langs_notests"] = [{"text":"impl Default for NoTestsPlugin","s
 implementors["tmc_langs_r"] = [{"text":"impl Default for RPlugin","synthetic":false,"types":[]}];
 implementors["tmc_langs_util"] = [{"text":"impl Default for TmcParams","synthetic":false,"types":[]}];
 implementors["tokio"] = [{"text":"impl&lt;T&gt; Default for Mutex&lt;T&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;T: Default,&nbsp;</span>","synthetic":false,"types":[]},{"text":"impl Default for Notify","synthetic":false,"types":[]},{"text":"impl&lt;T:&nbsp;?Sized&gt; Default for RwLock&lt;T&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;T: Default,&nbsp;</span>","synthetic":false,"types":[]},{"text":"impl Default for LocalSet","synthetic":false,"types":[]}];
-implementors["tokio_stream"] = [{"text":"impl&lt;K, V&gt; Default for StreamMap&lt;K, V&gt;","synthetic":false,"types":[]}];
 implementors["tokio_util"] = [{"text":"impl Default for BytesCodec","synthetic":false,"types":[]},{"text":"impl Default for LengthDelimitedCodec","synthetic":false,"types":[]},{"text":"impl Default for Builder","synthetic":false,"types":[]},{"text":"impl Default for LinesCodec","synthetic":false,"types":[]},{"text":"impl Default for CancellationToken","synthetic":false,"types":[]}];
 implementors["toml"] = [{"text":"impl Default for Map&lt;String, Value&gt;","synthetic":false,"types":[]}];
 implementors["tracing_core"] = [{"text":"impl Default for Dispatch","synthetic":false,"types":[]}];
