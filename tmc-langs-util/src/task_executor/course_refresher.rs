@@ -100,7 +100,10 @@ impl CourseRefresher {
         let new_solution_path = new_cache_path.join("solution");
         let new_stub_path = new_cache_path.join("stub");
 
-        let exercise_dirs = task_executor::find_exercise_directories(&new_clone_path)?;
+        let exercise_dirs = task_executor::find_exercise_directories(&new_clone_path)?
+            .into_iter()
+            .map(|ed| ed.strip_prefix(&new_clone_path).unwrap().to_path_buf())
+            .collect();
 
         // make_solutions
         log::info!("preparing solutions to {}", new_solution_path.display());
@@ -293,7 +296,6 @@ fn get_exercises(
     let exercises = exercise_dirs
         .into_iter()
         .map(|exercise_dir| {
-            let exercise_dir = exercise_dir.strip_prefix(course_clone_path).unwrap();
             log::debug!(
                 "processing points and checksum for {}",
                 exercise_dir.display()
