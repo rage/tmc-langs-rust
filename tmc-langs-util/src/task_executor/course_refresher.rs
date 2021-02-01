@@ -79,7 +79,7 @@ impl CourseRefresher {
             log::info!("clearing new cache path at {}", new_cache_path.display());
             file_util::remove_dir_all(&new_cache_path)?;
         }
-        file_util::create_dir_all(&course_cache_path)?;
+        file_util::create_dir_all(&new_cache_path)?;
         self.progress_reporter
             .finish_step("Created new cache dir".to_string(), None)?;
 
