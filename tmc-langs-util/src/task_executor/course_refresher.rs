@@ -315,7 +315,6 @@ fn get_exercises(
                 })
             {
                 let entry = entry?;
-                println!("{}", entry.path().display());
                 if entry.path().is_file() {
                     let relative = entry.path().strip_prefix(course_stub_path).unwrap();
                     digest.consume(relative.as_os_str().to_string_lossy().into_owned());
