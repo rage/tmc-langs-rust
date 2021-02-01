@@ -303,29 +303,7 @@ fn get_exercises(
             let name = exercise_dir.to_string_lossy().replace("/", "-");
 
             // checksum
-            let mut digest = Context::new();
-            for entry in WalkDir::new(course_stub_path.join(&exercise_dir))
-                .sort_by(|a, b| a.file_name().cmp(b.file_name()))
-                .into_iter()
-                .filter_entry(|e| {
-                    !e.file_name()
-                        .to_str()
-                        .map(|e| e.starts_with('.'))
-                        .unwrap_or_default()
-                })
-            {
-                let entry = entry?;
-                if entry.path().is_file() {
-                    let relative = entry.path().strip_prefix(course_stub_path).unwrap();
-                    digest.consume(relative.as_os_str().to_string_lossy().into_owned());
-                    let file = file_util::read_file(entry.path())?;
-                    digest.consume(file);
-                }
-            }
-
-            // convert the digest into a hex string
-            let digest = digest.compute();
-            let checksum = format!("{:x}", digest);
+            let checksum = calculate_checksum(&course_stub_path.join(&exercise_dir))?;
 
             let exercise_path = course_clone_path.join(&exercise_dir);
             let points = task_executor::get_available_points(&exercise_path)?;
@@ -339,6 +317,37 @@ fn get_exercises(
         })
         .collect::<Result<_, UtilError>>()?;
     Ok(exercises)
+}
+
+fn calculate_checksum(exercise_dir: &Path) -> Result<String, UtilError> {
+    let mut digest = Context::new();
+
+    for entry in WalkDir::new(exercise_dir)
+        .sort_by(|a, b| a.file_name().cmp(b.file_name())) // order filenames for a consistent hash
+        .into_iter()
+        .filter_entry(|e| {
+            // filter out files starting with '.'
+            !e.file_name()
+                .to_str()
+                .map(|e| e.starts_with('.'))
+                .unwrap_or_default()
+        })
+    {
+        let entry = entry?;
+        let relative = entry.path().strip_prefix(exercise_dir).unwrap();
+        let string = relative.as_os_str().to_string_lossy();
+        log::debug!("updating {}", string);
+        digest.consume(string.as_ref());
+        if entry.path().is_file() {
+            log::debug!("updating with file");
+            let file = file_util::read_file(entry.path())?;
+            digest.consume(file);
+        }
+    }
+
+    // convert the digest into a hex string
+    let digest = digest.compute();
+    Ok(format!("{:x}", digest))
 }
 
 fn execute_zip(
@@ -409,6 +418,7 @@ mod test {
 
     use super::*;
     use serde_yaml::Value;
+    use task_executor::find_exercise_directories;
     use tempfile::tempdir;
 
     fn init() {
@@ -544,8 +554,13 @@ courses:
             "course/part1/ex1/test/test.py",
             "@points('1') @points('2')",
         );
-        let exercises =
-            get_exercises(&temp.path().join("course"), &temp.path().join("course")).unwrap();
+        let exercise_dirs = find_exercise_directories(&temp.path().join("course")).unwrap();
+        let exercises = get_exercises(
+            exercise_dirs,
+            &temp.path().join("course"),
+            &temp.path().join("course"),
+        )
+        .unwrap();
         assert_eq!(exercises.len(), 1);
         assert_eq!(exercises[0].path, Path::new("part1/ex1"));
         assert_eq!(exercises[0].points.len(), 2);
@@ -572,8 +587,13 @@ courses:
         file_to(&temp, "stub/part2/ex2/dir/subdir/file", "some file");
         file_to(&temp, "stub/part2/ex2/dir/subdir/.hidden", "hidden file");
 
-        let exercises =
-            get_exercises(&temp.path().join("clone"), &temp.path().join("stub")).unwrap();
+        let exercise_dirs = find_exercise_directories(&temp.path().join("clone")).unwrap();
+        let exercises = get_exercises(
+            exercise_dirs,
+            &temp.path().join("clone"),
+            &temp.path().join("stub"),
+        )
+        .unwrap();
 
         execute_zip(&exercises, &temp.path().join("stub"), temp.path()).unwrap();
 
@@ -621,5 +641,15 @@ courses:
         file_to(&temp, "file", "contents");
 
         set_permissions(temp.path()).unwrap();
+    }
+
+    #[test]
+    fn checksum_matches_old_implementation() {
+        init();
+
+        let checksum =
+            calculate_checksum(Path::new("tests/data/course_refresher/valid_exercises/ex1"))
+                .unwrap();
+        assert_eq!(checksum, "1830118f2570f3448c0e096a7369b127");
     }
 }
