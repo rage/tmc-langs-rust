@@ -211,11 +211,24 @@ fn update_or_clone_repository(
                     .output_checked()
             };
 
-            run_git(&["remote", "set-url", "origin", course_source_url])?;
-            run_git(&["fetch", "origin"])?;
-            run_git(&["checkout", &format!("origin/{}", course_git_branch)])?;
-            run_git(&["clean", "-df"])?;
-            run_git(&["checkout", "."])?;
+            let clone_path_str = new_clone_path.to_str().unwrap();
+            run_git(&[
+                "-C",
+                clone_path_str,
+                "remote",
+                "set-url",
+                "origin",
+                course_source_url,
+            ])?;
+            run_git(&["-C", clone_path_str, "fetch", "origin"])?;
+            run_git(&[
+                "-C",
+                clone_path_str,
+                "checkout",
+                &format!("origin/{}", course_git_branch),
+            ])?;
+            run_git(&["-C", clone_path_str, "clean", "-df"])?;
+            run_git(&["-C", clone_path_str, "checkout", "."])?;
             Ok(())
         };
         match copy_and_update_repository() {
