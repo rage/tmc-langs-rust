@@ -207,6 +207,11 @@ pub fn clean(path: &Path) -> Result<(), UtilError> {
 
 /// Recursively searches for valid exercise directories in the path.
 pub fn find_exercise_directories(exercise_path: &Path) -> Result<Vec<PathBuf>, UtilError> {
+    log::info!(
+        "finding exercise directories in {}",
+        exercise_path.display()
+    );
+
     let mut paths = vec![];
     for entry in WalkDir::new(exercise_path).into_iter().filter_entry(|e| {
         !submission_processing::is_hidden_dir(e)
@@ -214,7 +219,6 @@ pub fn find_exercise_directories(exercise_path: &Path) -> Result<Vec<PathBuf>, U
             && !submission_processing::contains_tmcignore(e)
     }) {
         let entry = entry?;
-        // TODO: Java implementation doesn't scan root directories
         if is_exercise_root_directory(entry.path()) {
             paths.push(entry.into_path())
         }

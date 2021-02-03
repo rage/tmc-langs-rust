@@ -159,6 +159,12 @@ fn process_files(
 ///
 /// Binary files are copied without extra processing, while text files are parsed to remove solution tags and stubs.
 pub fn prepare_solution(exercise_path: &Path, dest_root: &Path) -> Result<(), TmcError> {
+    log::debug!(
+        "preparing solution from {} to {}",
+        exercise_path.display(),
+        dest_root.display()
+    );
+
     let line_filter = |meta: &MetaString| !matches!(meta, MetaString::Stub(_));
     let file_filter = |_metas: &[_]| true; // include all files in solution
     process_files(exercise_path, dest_root, line_filter, file_filter)?;
@@ -174,6 +180,12 @@ pub fn prepare_solution(exercise_path: &Path, dest_root: &Path) -> Result<(), Tm
 ///
 /// Additionally, copies any shared files with the corresponding language plugins.
 pub fn prepare_stub(exercise_path: &Path, dest_root: &Path) -> Result<(), TmcError> {
+    log::debug!(
+        "preparing stub from {} to {}",
+        exercise_path.display(),
+        dest_root.display()
+    );
+
     let line_filter = |meta: &MetaString| !matches!(meta, MetaString::Solution(_));
     let file_filter = |metas: &[MetaString]| {
         !metas
