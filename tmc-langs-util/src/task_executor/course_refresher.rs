@@ -87,7 +87,13 @@ impl CourseRefresher {
         let new_clone_path = new_cache_path.join("clone");
         log::info!("updating repository to {}", new_clone_path.display());
         let old_clone_path = course_cache_path.join("clone");
-        update_or_clone_repository(&new_clone_path, &old_clone_path, &source_url, &git_branch)?;
+        update_or_clone_repository(
+            &new_cache_path,
+            &new_clone_path,
+            &old_clone_path,
+            &source_url,
+            &git_branch,
+        )?;
         check_directory_names(&new_clone_path)?;
         self.progress_reporter
             .finish_step("Updated repository".to_string(), None)?;
@@ -188,6 +194,7 @@ pub fn refresh_course(
 /// If not found or found but one of the git commands causes an error, deletes course_clone_path and clones course_git_branch from course_source_url there.
 /// NOP during testing.
 fn update_or_clone_repository(
+    new_course_root: &Path,
     new_clone_path: &Path,
     old_clone_path: &Path,
     course_source_url: &str,
@@ -198,7 +205,7 @@ fn update_or_clone_repository(
 
         // closure to collect any error that occurs during the process
         let copy_and_update_repository = || -> Result<(), UtilError> {
-            file_util::copy(old_clone_path, new_clone_path)?;
+            file_util::copy(old_clone_path, new_course_root)?;
 
             let run_git = |args: &[&str]| {
                 TmcCommand::new("git".to_string())
@@ -211,24 +218,11 @@ fn update_or_clone_repository(
                     .output_checked()
             };
 
-            let clone_path_str = new_clone_path.to_str().unwrap();
-            run_git(&[
-                "-C",
-                clone_path_str,
-                "remote",
-                "set-url",
-                "origin",
-                course_source_url,
-            ])?;
-            run_git(&["-C", clone_path_str, "fetch", "origin"])?;
-            run_git(&[
-                "-C",
-                clone_path_str,
-                "checkout",
-                &format!("origin/{}", course_git_branch),
-            ])?;
-            run_git(&["-C", clone_path_str, "clean", "-df"])?;
-            run_git(&["-C", clone_path_str, "checkout", "."])?;
+            run_git(&["remote", "set-url", "origin", course_source_url])?;
+            run_git(&["fetch", "origin"])?;
+            run_git(&["checkout", &format!("origin/{}", course_git_branch)])?;
+            run_git(&["clean", "-df"])?;
+            run_git(&["checkout", "."])?;
             Ok(())
         };
         match copy_and_update_repository() {
