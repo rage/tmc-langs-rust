@@ -312,7 +312,7 @@ fn get_exercises(
                 name,
                 points,
                 checksum,
-                path: exercise_dir.to_path_buf(),
+                path: exercise_dir,
             })
         })
         .collect::<Result<_, UtilError>>()?;
@@ -323,7 +323,10 @@ fn calculate_checksum(exercise_dir: &Path) -> Result<String, UtilError> {
     let mut digest = Context::new();
 
     // order filenames for a consistent hash
-    for entry in WalkDir::new(exercise_dir).sort_by(|a, b| a.file_name().cmp(b.file_name())) {
+    for entry in WalkDir::new(exercise_dir)
+        .min_depth(1) // do not hash the directory itself ('.')
+        .sort_by(|a, b| a.file_name().cmp(b.file_name()))
+    {
         let entry = entry?;
         let relative = entry.path().strip_prefix(exercise_dir).unwrap();
         let string = relative.as_os_str().to_string_lossy();
