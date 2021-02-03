@@ -365,7 +365,7 @@ fn execute_zip(
         {
             let entry = entry?;
             if entry.path().is_file() {
-                let relative_path = entry.path().strip_prefix(&exercise_root).unwrap(); // safe
+                let relative_path = entry.path().strip_prefix(&root_path).unwrap(); // safe
                 writer
                     .start_file(
                         relative_path.to_string_lossy(),
