@@ -1558,8 +1558,6 @@ fn run_settings(
             let dir = matches.value_of("dir").unwrap();
             let target = PathBuf::from(dir);
 
-            file_util::lock!(&target);
-
             if target.is_file() {
                 anyhow::bail!("The target path points to a file.")
             }

@@ -32,6 +32,8 @@ pub enum UtilError {
     #[error("Error while writing file to zip")]
     ZipWrite(#[source] std::io::Error),
 
+    #[error("Cache path {0} was invalid. Not a valid UTF-8 string or did not contain a cache version after a dash")]
+    InvalidCachePath(PathBuf),
     #[error("Path {0} contained a dash '-' which is currently not allowed")]
     InvalidDirectory(PathBuf),
 
@@ -43,6 +45,8 @@ pub enum UtilError {
     Zip(#[from] zip::result::ZipError),
     #[error(transparent)]
     FileIo(#[from] FileIo),
+    #[error(transparent)]
+    Yaml(#[from] serde_yaml::Error),
 
     #[cfg(unix)]
     #[error("Error changing permissions of {0}")]

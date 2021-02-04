@@ -68,31 +68,34 @@ impl CourseRefresher {
         // create new cache path
         let old_version = course_cache_path
             .to_str()
-            .unwrap()
-            .split('-')
-            .last()
-            .unwrap()
-            .parse::<u32>()
-            .unwrap();
+            .and_then(|s| s.split('-').last())
+            .and_then(|s| s.parse::<u32>().ok())
+            .ok_or_else(|| UtilError::InvalidCachePath(course_cache_path.clone()))?;
         let new_cache_path = cache_root.join(format!("{}-{}", course_name, old_version + 1));
+        log::info!("next cache path: {}", new_cache_path.display());
+
         if new_cache_path.exists() {
             log::info!("clearing new cache path at {}", new_cache_path.display());
             file_util::remove_dir_all(&new_cache_path)?;
         }
-        file_util::create_dir_all(&course_cache_path)?;
+        file_util::create_dir_all(&new_cache_path)?;
         self.progress_reporter
             .finish_step("Created new cache dir".to_string(), None)?;
 
         // initialize new clone path and verify directory names
         let new_clone_path = new_cache_path.join("clone");
-        log::info!("updating repository to {}", new_clone_path.display());
         let old_clone_path = course_cache_path.join("clone");
-        update_or_clone_repository(&new_clone_path, &old_clone_path, &source_url, &git_branch)?;
+        initialize_new_cache_clone(
+            &new_cache_path,
+            &new_clone_path,
+            &old_clone_path,
+            &source_url,
+            &git_branch,
+        )?;
         check_directory_names(&new_clone_path)?;
         self.progress_reporter
             .finish_step("Updated repository".to_string(), None)?;
 
-        log::info!("updating course options");
         let course_options = get_course_options(&new_clone_path, &course_name)?;
         self.progress_reporter
             .finish_step("Updated course options".to_string(), None)?;
@@ -100,19 +103,17 @@ impl CourseRefresher {
         let new_solution_path = new_cache_path.join("solution");
         let new_stub_path = new_cache_path.join("stub");
 
-        // find exercises in new clone path
-        log::info!("finding exercises");
-        // (exercise name, exercise path)
-        let exercises = get_exercises(&new_clone_path, &new_stub_path)?;
-        self.progress_reporter
-            .finish_step("Located exercises".to_string(), None)?;
+        let exercise_dirs = task_executor::find_exercise_directories(&new_clone_path)?
+            .into_iter()
+            .map(|ed| ed.strip_prefix(&new_clone_path).unwrap().to_path_buf()) // safe
+            .collect();
 
         // make_solutions
         log::info!("preparing solutions to {}", new_solution_path.display());
-        for exercise in &exercises {
+        for exercise in &exercise_dirs {
             task_executor::prepare_solution(
-                &new_clone_path.join(&exercise.path),
-                &new_solution_path.join(&exercise.path),
+                &new_clone_path.join(&exercise),
+                &new_solution_path.join(&exercise),
             )?;
         }
         self.progress_reporter
@@ -120,25 +121,32 @@ impl CourseRefresher {
 
         // make_stubs
         log::info!("preparing stubs to {}", new_stub_path.display());
-        for exercise in &exercises {
+        for exercise in &exercise_dirs {
             task_executor::prepare_stub(
-                &new_clone_path.join(&exercise.path),
-                &new_stub_path.join(&exercise.path),
+                &new_clone_path.join(&exercise),
+                &new_stub_path.join(&exercise),
             )?;
         }
         self.progress_reporter
             .finish_step("Prepared stubs".to_string(), None)?;
 
+        let exercises = get_exercises(exercise_dirs, &new_clone_path, &new_stub_path)?;
+        self.progress_reporter
+            .finish_step("Located exercises".to_string(), None)?;
+
         // make_zips_of_solutions
         let new_solution_zip_path = new_cache_path.join("solution_zip");
-        log::info!("compressing solutions");
         execute_zip(&exercises, &new_solution_path, &new_solution_zip_path)?;
         self.progress_reporter
             .finish_step("Compressed solutions".to_string(), None)?;
 
         // make_zips_of_stubs
         let new_stub_zip_path = new_cache_path.join("stub_zip");
-        log::info!("compressing stubs");
+        log::info!(
+            "compressing stubs from {} to {}",
+            new_stub_path.display(),
+            new_stub_zip_path.display()
+        );
         execute_zip(&exercises, &new_stub_path, &new_stub_zip_path)?;
         self.progress_reporter
             .finish_step("Compressed stubs".to_string(), None)?;
@@ -182,18 +190,21 @@ pub fn refresh_course(
 /// If found, copies it to course_clone_path fetches origin from course_source_url, checks out origin/course_git_branch, cleans and checks out the repo.
 /// If not found or found but one of the git commands causes an error, deletes course_clone_path and clones course_git_branch from course_source_url there.
 /// NOP during testing.
-fn update_or_clone_repository(
+fn initialize_new_cache_clone(
+    new_course_root: &Path,
     new_clone_path: &Path,
     old_clone_path: &Path,
     course_source_url: &str,
     course_git_branch: &str,
 ) -> Result<(), UtilError> {
+    log::info!("initializing repository at {}", new_clone_path.display());
+
     if old_clone_path.join(".git").exists() {
-        // Try a fast path: copy old clone and git fetch new stuff
+        log::info!("trying to copy clone from previous cache");
 
         // closure to collect any error that occurs during the process
         let copy_and_update_repository = || -> Result<(), UtilError> {
-            file_util::copy(old_clone_path, new_clone_path)?;
+            file_util::copy(old_clone_path, new_course_root)?;
 
             let run_git = |args: &[&str]| {
                 TmcCommand::new("git".to_string())
@@ -213,12 +224,20 @@ fn update_or_clone_repository(
             run_git(&["checkout", "."])?;
             Ok(())
         };
-        if let Err(error) = copy_and_update_repository() {
-            log::warn!("failed to update repository: {}", error);
+        match copy_and_update_repository() {
+            Ok(_) => {
+                log::info!("updated repository");
+                return Ok(());
+            }
+            Err(error) => {
+                log::warn!("failed to update repository: {}", error);
 
-            file_util::remove_dir_all(new_clone_path)?;
+                file_util::remove_dir_all(new_clone_path)?;
+            }
         }
     };
+
+    log::info!("could not copy from previous cache, cloning");
 
     // clone_repository
     TmcCommand::new("git".to_string())
@@ -237,9 +256,11 @@ fn update_or_clone_repository(
 /// Makes sure no directory directly under path is an exercise directory containing a dash in the relative path from path to the dir.
 /// A dash is used as a special delimiter.
 fn check_directory_names(path: &Path) -> Result<(), UtilError> {
+    log::info!("checking directory names for dashes");
+
     // exercise directories in canonicalized form
     for exercise_dir in task_executor::find_exercise_directories(path)? {
-        let relative = exercise_dir.strip_prefix(path).unwrap();
+        let relative = exercise_dir.strip_prefix(path).unwrap(); // safe
         if relative.to_string_lossy().contains('-') {
             return Err(UtilError::InvalidDirectory(exercise_dir));
         }
@@ -251,10 +272,16 @@ fn check_directory_names(path: &Path) -> Result<(), UtilError> {
 /// If found, course-specific options are merged into it and it is returned.
 /// Else, an empty mapping is returned.
 fn get_course_options(course_clone_path: &Path, course_name: &str) -> Result<Mapping, UtilError> {
+    log::info!(
+        "collecting course options for {} in {}",
+        course_name,
+        course_clone_path.display()
+    );
+
     let options_file = course_clone_path.join("course_options.yml");
     if options_file.exists() {
         let file = file_util::open_file(options_file)?;
-        let mut course_options: Mapping = serde_yaml::from_reader(file).unwrap();
+        let mut course_options: Mapping = serde_yaml::from_reader(file)?;
         // try to remove the "courses" map
         if let Some(serde_yaml::Value::Mapping(mut courses)) =
             course_options.remove(&serde_yaml::Value::String("courses".to_string()))
@@ -278,42 +305,21 @@ fn get_course_options(course_clone_path: &Path, course_name: &str) -> Result<Map
 /// Finds exercise directories, and converts the directories to "exercise names" by swapping the separators for dashes.
 /// Also calculates checksums and fetches points for all
 fn get_exercises(
+    exercise_dirs: Vec<PathBuf>,
     course_clone_path: &Path,
     course_stub_path: &Path,
 ) -> Result<Vec<RefreshExercise>, UtilError> {
-    let exercises = task_executor::find_exercise_directories(course_clone_path)?
+    log::info!("finding exercise checksums and points");
+
+    let exercises = exercise_dirs
         .into_iter()
         .map(|exercise_dir| {
-            let exercise_dir = exercise_dir.strip_prefix(course_clone_path).unwrap();
-            log::debug!("{}", exercise_dir.display());
+            log::debug!(
+                "processing points and checksum for {}",
+                exercise_dir.display()
+            );
             let name = exercise_dir.to_string_lossy().replace("/", "-");
-
-            // checksum
-            let mut digest = Context::new();
-            for entry in WalkDir::new(course_stub_path.join(&exercise_dir))
-                .sort_by(|a, b| a.file_name().cmp(b.file_name()))
-                .into_iter()
-                .filter_entry(|e| {
-                    !e.file_name()
-                        .to_str()
-                        .map(|e| e.starts_with('.'))
-                        .unwrap_or_default()
-                })
-            {
-                let entry = entry?;
-                println!("{}", entry.path().display());
-                if entry.path().is_file() {
-                    let relative = entry.path().strip_prefix(course_stub_path).unwrap();
-                    digest.consume(relative.as_os_str().to_string_lossy().into_owned());
-                    let file = file_util::read_file(entry.path())?;
-                    digest.consume(file);
-                }
-            }
-
-            // convert the digest into a hex string
-            let digest = digest.compute();
-            let checksum = format!("{:x}", digest);
-
+            let checksum = calculate_checksum(&course_stub_path.join(&exercise_dir))?;
             let exercise_path = course_clone_path.join(&exercise_dir);
             let points = task_executor::get_available_points(&exercise_path)?;
 
@@ -321,11 +327,34 @@ fn get_exercises(
                 name,
                 points,
                 checksum,
-                path: exercise_dir.to_path_buf(),
+                path: exercise_dir,
             })
         })
         .collect::<Result<_, UtilError>>()?;
     Ok(exercises)
+}
+
+fn calculate_checksum(exercise_dir: &Path) -> Result<String, UtilError> {
+    let mut digest = Context::new();
+
+    // order filenames for a consistent hash
+    for entry in WalkDir::new(exercise_dir)
+        .min_depth(1) // do not hash the directory itself ('.')
+        .sort_by(|a, b| a.file_name().cmp(b.file_name()))
+    {
+        let entry = entry?;
+        let relative = entry.path().strip_prefix(exercise_dir).unwrap(); // safe
+        let string = relative.as_os_str().to_string_lossy();
+        digest.consume(string.as_ref());
+        if entry.path().is_file() {
+            let file = file_util::read_file(entry.path())?;
+            digest.consume(file);
+        }
+    }
+
+    // convert the digest into a hex string
+    let digest = digest.compute();
+    Ok(format!("{:x}", digest))
 }
 
 fn execute_zip(
@@ -333,6 +362,12 @@ fn execute_zip(
     root_path: &Path,
     zip_dir: &Path,
 ) -> Result<(), UtilError> {
+    log::info!(
+        "compressing exercises from from {} to {}",
+        root_path.display(),
+        zip_dir.display()
+    );
+
     file_util::create_dir_all(zip_dir)?;
     for exercise in course_exercises {
         let exercise_root = root_path.join(&exercise.path);
@@ -349,17 +384,16 @@ fn execute_zip(
         {
             let entry = entry?;
             if entry.path().is_file() {
-                let relative_path = entry.path().strip_prefix(&exercise_root).unwrap(); // safe
-                writer
-                    .start_file(
-                        relative_path.to_string_lossy(),
-                        zip::write::FileOptions::default(),
-                    )
-                    .unwrap();
+                let relative_path = entry.path().strip_prefix(&root_path).unwrap(); // safe
+                writer.start_file(
+                    relative_path.to_string_lossy(),
+                    zip::write::FileOptions::default(),
+                )?;
                 let bytes = file_util::read_file(entry.path())?;
                 writer.write_all(&bytes).map_err(UtilError::ZipWrite)?;
             }
         }
+        writer.finish()?;
     }
     Ok(())
 }
@@ -375,7 +409,9 @@ fn set_permissions(path: &Path) -> Result<(), UtilError> {
     use nix::sys::stat;
     use std::os::unix::io::AsRawFd;
 
-    let chmod: ModeBits = 0o555; // octal, read and execute permissions for all users
+    log::info!("setting permissions in {}", path.display());
+
+    let chmod: ModeBits = 0o775; // octal, read and execute permissions for all users
     for entry in WalkDir::new(path) {
         let entry = entry?;
         let file = file_util::open_file(entry.path())?;
@@ -396,6 +432,7 @@ mod test {
 
     use super::*;
     use serde_yaml::Value;
+    use task_executor::find_exercise_directories;
     use tempfile::tempdir;
 
     fn init() {
@@ -531,14 +568,27 @@ courses:
             "course/part1/ex1/test/test.py",
             "@points('1') @points('2')",
         );
-        let exercises =
-            get_exercises(&temp.path().join("course"), &temp.path().join("course")).unwrap();
+        let exercise_dirs = find_exercise_directories(&temp.path().join("course"))
+            .unwrap()
+            .into_iter()
+            .map(|ed| {
+                ed.strip_prefix(&temp.path().join("course"))
+                    .unwrap()
+                    .to_path_buf()
+            })
+            .collect();
+        let exercises = get_exercises(
+            exercise_dirs,
+            &temp.path().join("course"),
+            &temp.path().join("course"),
+        )
+        .unwrap();
         assert_eq!(exercises.len(), 1);
         assert_eq!(exercises[0].path, Path::new("part1/ex1"));
         assert_eq!(exercises[0].points.len(), 2);
         assert_eq!(exercises[0].points[0], "1");
         assert_eq!(exercises[0].points[1], "2");
-        assert_eq!(exercises[0].checksum, "043fb4832da4e3fbf5babd13ed9fa732");
+        assert_eq!(exercises[0].checksum, "129e7e898698465c4f24494219f06df9");
     }
 
     #[test]
@@ -559,8 +609,21 @@ courses:
         file_to(&temp, "stub/part2/ex2/dir/subdir/file", "some file");
         file_to(&temp, "stub/part2/ex2/dir/subdir/.hidden", "hidden file");
 
-        let exercises =
-            get_exercises(&temp.path().join("clone"), &temp.path().join("stub")).unwrap();
+        let exercise_dirs = find_exercise_directories(&temp.path().join("clone"))
+            .unwrap()
+            .into_iter()
+            .map(|ed| {
+                ed.strip_prefix(&temp.path().join("clone"))
+                    .unwrap()
+                    .to_path_buf()
+            })
+            .collect();
+        let exercises = get_exercises(
+            exercise_dirs,
+            &temp.path().join("clone"),
+            &temp.path().join("stub"),
+        )
+        .unwrap();
 
         execute_zip(&exercises, &temp.path().join("stub"), temp.path()).unwrap();
 
@@ -577,23 +640,26 @@ courses:
         for i in fz.file_names() {
             log::debug!("{}", i);
         }
-        assert!(fz.by_name("setup.py").is_ok());
         assert!(fz
             .by_name(
-                &Path::new("dir")
+                &Path::new("part2")
+                    .join("ex2")
+                    .join("dir")
                     .join("subdir")
                     .join(".hidden")
                     .to_string_lossy()
             )
-            .is_err());
+            .is_err()); // hidden files filtered
         let mut file = fz
             .by_name(
-                &Path::new("dir")
+                &Path::new("part2")
+                    .join("ex2")
+                    .join("dir")
                     .join("subdir")
                     .join("file")
                     .to_string_lossy(),
             )
-            .unwrap();
+            .unwrap(); // other files have their stub contents
         let mut buf = String::new();
         file.read_to_string(&mut buf).unwrap();
         assert_eq!(buf, "some file");
@@ -608,5 +674,15 @@ courses:
         file_to(&temp, "file", "contents");
 
         set_permissions(temp.path()).unwrap();
+    }
+
+    #[test]
+    fn checksum_matches_old_implementation() {
+        init();
+
+        let checksum =
+            calculate_checksum(Path::new("tests/data/course_refresher/valid_exercises/ex1"))
+                .unwrap();
+        assert_eq!(checksum, "6cacf02f21f9242674a876954132fb11");
     }
 }
