@@ -2,5 +2,6 @@
 implementors["serde_json"] = [{"text":"impl&lt;'a, W, F&gt; Serializer for &amp;'a mut Serializer&lt;W, F&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;W: Write,<br>&nbsp;&nbsp;&nbsp;&nbsp;F: Formatter,&nbsp;</span>","synthetic":false,"types":[]},{"text":"impl Serializer for Serializer","synthetic":false,"types":[]}];
 implementors["serde_urlencoded"] = [{"text":"impl&lt;'input, 'output, Target&gt; Serializer for Serializer&lt;'input, 'output, Target&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Target: 'output + UrlEncodedTarget,&nbsp;</span>","synthetic":false,"types":[]}];
 implementors["serde_xml_rs"] = [{"text":"impl&lt;'w, W&gt; Serializer for &amp;'w mut Serializer&lt;W&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;W: Write,&nbsp;</span>","synthetic":false,"types":[]}];
+implementors["serde_yaml"] = [{"text":"impl&lt;'a, W&gt; Serializer for &amp;'a mut Serializer&lt;W&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;W: Write,&nbsp;</span>","synthetic":false,"types":[]}];
 implementors["toml"] = [{"text":"impl&lt;'a, 'b&gt; Serializer for &amp;'b mut Serializer&lt;'a&gt;","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
