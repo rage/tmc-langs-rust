@@ -60,6 +60,7 @@ implementors["serde"] = [{"text":"impl&lt;E&gt; Copy for UnitDeserializer&lt;E&g
 implementors["serde_derive_internals"] = [{"text":"impl Copy for Style","synthetic":false,"types":[]},{"text":"impl Copy for Identifier","synthetic":false,"types":[]},{"text":"impl Copy for RenameRule","synthetic":false,"types":[]},{"text":"impl Copy for Derive","synthetic":false,"types":[]}];
 implementors["serde_json"] = [{"text":"impl Copy for Category","synthetic":false,"types":[]}];
 implementors["shellwords"] = [{"text":"impl Copy for MismatchedQuotes","synthetic":false,"types":[]}];
+implementors["signal_hook"] = [{"text":"impl Copy for WithRawSiginfo","synthetic":false,"types":[]},{"text":"impl Copy for SignalOnly","synthetic":false,"types":[]}];
 implementors["signal_hook_registry"] = [{"text":"impl Copy for SigId","synthetic":false,"types":[]}];
 implementors["siphasher"] = [{"text":"impl Copy for SipHasher13","synthetic":false,"types":[]},{"text":"impl Copy for SipHasher24","synthetic":false,"types":[]},{"text":"impl Copy for SipHasher","synthetic":false,"types":[]},{"text":"impl Copy for Hash128","synthetic":false,"types":[]},{"text":"impl Copy for SipHasher13","synthetic":false,"types":[]},{"text":"impl Copy for SipHasher24","synthetic":false,"types":[]},{"text":"impl Copy for SipHasher","synthetic":false,"types":[]}];
 implementors["socket2"] = [{"text":"impl Copy for Domain","synthetic":false,"types":[]},{"text":"impl Copy for Type","synthetic":false,"types":[]},{"text":"impl Copy for Protocol","synthetic":false,"types":[]}];
