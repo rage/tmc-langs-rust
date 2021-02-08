@@ -7,7 +7,7 @@ use crate::valgrind_log::ValgrindLog;
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashMap;
-use std::io::{self, BufRead, BufReader};
+use std::io::{self, BufRead, BufReader, Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
@@ -19,6 +19,7 @@ use tmc_langs_framework::{
     nom::{bytes, character, combinator, sequence, IResult},
     plugin::LanguagePlugin,
     subprocess::PopenError,
+    zip::ZipArchive,
     TmcError, TmcProjectYml,
 };
 
@@ -288,9 +289,40 @@ impl LanguagePlugin for MakePlugin {
         Ok(run_result)
     }
 
-    /// Checks if the directory has a Makefile in it.
+    fn find_project_dir_in_zip<R: Read + Seek>(
+        zip_archive: &mut ZipArchive<R>,
+    ) -> Result<PathBuf, TmcError> {
+        for i in 0..zip_archive.len() {
+            // zips don't necessarily contain entries for intermediate directories,
+            // so we need to check every path for src
+            let file = zip_archive.by_index(i)?;
+            let file_path = PathBuf::from(file.name());
+            drop(file);
+
+            // todo: do in one pass somehow
+            if file_path.components().any(|c| c.as_os_str() == "src") {
+                let path: PathBuf = file_path
+                    .components()
+                    .take_while(|c| c.as_os_str() != "src")
+                    .collect();
+
+                if path.components().any(|p| p.as_os_str() == "__MACOSX") {
+                    continue;
+                }
+                // found src not in __MACOSX, check for Makefile
+                if let Some(makefile_path) = path.join("Makefile").to_str() {
+                    if zip_archive.by_name(makefile_path).is_ok() {
+                        return Ok(path);
+                    }
+                }
+            }
+        }
+        Err(TmcError::NoProjectDirInZip)
+    }
+
+    /// Checks if the directory has a src dir and a Makefile file in it.
     fn is_exercise_type_correct(path: &Path) -> bool {
-        path.join("Makefile").is_file()
+        path.join("src").is_dir() && path.join("Makefile").is_file()
     }
 
     // does not check for success
@@ -539,6 +571,7 @@ test [invalid] point6
         init();
         let temp_dir = tempfile::tempdir().unwrap();
         dir_to(&temp_dir, "Outer/Inner/make_project/src");
+        file_to(&temp_dir, "Outer/Inner/make_project/Makefile", "");
 
         let zip_contents = dir_to_zip(&temp_dir);
         let mut zip = ZipArchive::new(std::io::Cursor::new(zip_contents)).unwrap();
@@ -551,7 +584,8 @@ test [invalid] point6
         init();
 
         let temp_dir = tempfile::tempdir().unwrap();
-        dir_to(&temp_dir, "Outer/Inner/make_project/srcb");
+        dir_to(&temp_dir, "Outer/Inner/make_project/src");
+        file_to(&temp_dir, "Outer/Inner/make_project/Makefil", "");
 
         let zip_contents = dir_to_zip(&temp_dir);
         let mut zip = ZipArchive::new(std::io::Cursor::new(zip_contents)).unwrap();
