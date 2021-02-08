@@ -10,7 +10,7 @@ use walkdir::{DirEntry, WalkDir};
 
 lazy_static! {
     static ref FILES_TO_SKIP_ALWAYS: Regex =
-        Regex::new(r"\.tmcrc|metadata\.yml|(.*)Hidden(.*)").unwrap();
+        Regex::new(r"\.tmcrc|^metadata\.yml$|(.*)Hidden(.*)").unwrap();
     static ref NON_TEXT_TYPES: Regex =
         Regex::new("class|jar|exe|jpg|jpeg|gif|png|zip|tar|gz|db|bin|csv|tsv|sqlite3|^$").unwrap();
 }
