@@ -470,7 +470,9 @@ pub trait LanguagePlugin {
                     let (_, parsed) = res.map_err(|e| TmcError::PointParse(e.to_string()))?;
                     for (_, parse) in parsed {
                         if let Parse::Points(parsed) = parse {
-                            points.push(parsed);
+                            // a single points annotation can contain multiple whitespace separated points
+                            let split_points = parsed.split_whitespace().map(str::to_string);
+                            points.extend(split_points);
                         }
                     }
                 }
@@ -614,7 +616,7 @@ mod test {
             Ok(())
         }
 
-        fn points_parser<'a>(i: &'a str) -> IResult<&'a str, &'a str> {
+        fn points_parser(i: &str) -> IResult<&str, &str> {
             combinator::map(
                 sequence::delimited(
                     sequence::tuple((
@@ -1056,5 +1058,23 @@ force_update:
             .path()
             .join("extracted/test/some existing non-student file")
             .exists())
+    }
+
+    #[test]
+    fn splits_points_by_whitespace() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(
+            &temp,
+            "test/file",
+            r#"
+@points("1 2 3 4")
+@points("  5  6  7  8  ")
+"#,
+        );
+
+        let points = MockPlugin::get_available_points(temp.path()).unwrap();
+        assert_eq!(points, &["1", "2", "3", "4", "5", "6", "7", "8"]);
     }
 }
