@@ -11,10 +11,11 @@ pub use self::submission_packaging::{OutputFormat, TmcParams};
 
 use crate::error::UtilError;
 use crate::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, StyleValidationResult};
+use heim::disk;
 use std::path::{Path, PathBuf};
 use tmc_langs_csharp::CSharpPlugin;
 use tmc_langs_framework::{
-    anyhow,
+    anyhow, file_util,
     plugin::{Language, LanguagePlugin},
     policy::NothingIsStudentFilePolicy,
     StudentFilePolicy, TmcError, TmcProjectYml,
@@ -179,6 +180,16 @@ pub fn compress_project(path: &Path) -> Result<Vec<u8>, UtilError> {
     }
 }
 
+pub fn compress_project_to(source: &Path, target: &Path) -> Result<(), UtilError> {
+    let data = compress_project(source)?;
+
+    if let Some(parent) = target.parent() {
+        file_util::create_dir_all(parent)?;
+    }
+    file_util::write_to_file(&data, target)?;
+    Ok(())
+}
+
 /// See `LanguagePlugin::get_exercise_packaging_configuration`.
 pub fn get_exercise_packaging_configuration(
     path: &Path,
@@ -230,6 +241,13 @@ pub fn find_exercise_directories(exercise_path: &Path) -> Result<Vec<PathBuf>, U
 pub fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, UtilError> {
     let points = get_language_plugin(exercise_path)?.get_available_points(exercise_path)?;
     Ok(points)
+}
+
+pub fn free_disk_space_megabytes(path: &Path) -> Result<u64, UtilError> {
+    let usage = smol::block_on(disk::usage(path))?
+        .free()
+        .get::<heim::units::information::megabyte>();
+    Ok(usage)
 }
 
 // enum containing all the plugins
