@@ -47,6 +47,8 @@ pub enum UtilError {
     FileIo(#[from] FileIo),
     #[error(transparent)]
     Yaml(#[from] serde_yaml::Error),
+    #[error(transparent)]
+    Heim(#[from] heim::Error),
 
     #[cfg(unix)]
     #[error("Error changing permissions of {0}")]

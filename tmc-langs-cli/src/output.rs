@@ -52,8 +52,12 @@ pub struct OutputData {
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "output-data-kind", content = "output-data")]
 pub enum Data {
-    Error { kind: Kind, trace: Vec<String> },
+    Error {
+        kind: Kind,
+        trace: Vec<String>,
+    },
     Validation(StyleValidationResult),
+    /// megabytes
     FreeDiskSpace(u64),
     AvailablePoints(Vec<String>),
     Exercises(Vec<PathBuf>),
