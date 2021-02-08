@@ -98,7 +98,7 @@ impl CourseRefresher {
 
         let course_options = get_course_options(&new_clone_path, &course_name)?;
         self.progress_reporter
-            .finish_step("Updated course options".to_string(), None)?;
+            .finish_step("Fetched course options".to_string(), None)?;
 
         let new_solution_path = new_cache_path.join("solution");
         let new_stub_path = new_cache_path.join("stub");
@@ -281,21 +281,7 @@ fn get_course_options(course_clone_path: &Path, course_name: &str) -> Result<Map
     let options_file = course_clone_path.join("course_options.yml");
     if options_file.exists() {
         let file = file_util::open_file(options_file)?;
-        let mut course_options: Mapping = serde_yaml::from_reader(file)?;
-        // try to remove the "courses" map
-        if let Some(serde_yaml::Value::Mapping(mut courses)) =
-            course_options.remove(&serde_yaml::Value::String("courses".to_string()))
-        {
-            // try to remove the map corresponding to the current course from the "courses" map
-            if let Some(serde_yaml::Value::Mapping(mapping)) =
-                courses.remove(&serde_yaml::Value::String(course_name.to_string()))
-            {
-                // if found, merge the inner course map with the base map
-                for (key, value) in mapping {
-                    course_options.insert(key, value);
-                }
-            }
-        }
+        let course_options: Mapping = serde_yaml::from_reader(file)?;
         Ok(course_options)
     } else {
         Ok(Mapping::new())
@@ -518,37 +504,12 @@ mod test {
     }
 
     #[test]
-    fn updates_course_options() {
+    fn gets_course_options() {
         init();
 
         let temp = tempfile::tempdir().unwrap();
         file_to(&temp, "course_options.yml", "option: true");
         let options = get_course_options(temp.path(), "some course").unwrap();
-        assert_eq!(options.len(), 1);
-        assert!(options
-            .get(&Value::String("option".to_string()))
-            .unwrap()
-            .as_bool()
-            .unwrap())
-    }
-
-    #[test]
-    fn updates_course_options_merged() {
-        init();
-
-        let temp = tempfile::tempdir().unwrap();
-        file_to(
-            &temp,
-            "course_options.yml",
-            r#"
-courses:
-    course_1:
-        option: true
-    course_2:
-        other_option: true
-"#,
-        );
-        let options = get_course_options(temp.path(), "course_1").unwrap();
         assert_eq!(options.len(), 1);
         assert!(options
             .get(&Value::String("option".to_string()))
