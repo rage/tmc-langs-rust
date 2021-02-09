@@ -333,7 +333,6 @@ mod test {
             &self,
             _path: &Path,
             _exercise_name: String,
-            _warnings: &mut Vec<anyhow::Error>,
         ) -> Result<ExerciseDesc, TmcError> {
             unimplemented!()
         }
@@ -342,7 +341,6 @@ mod test {
             &self,
             _path: &Path,
             _timeout: Option<Duration>,
-            _warnings: &mut Vec<anyhow::Error>,
         ) -> Result<RunResult, TmcError> {
             unimplemented!()
         }

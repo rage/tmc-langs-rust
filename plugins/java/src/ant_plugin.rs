@@ -10,7 +10,6 @@ use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    anyhow,
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, StyleValidationResult},
     file_util,
@@ -80,12 +79,7 @@ impl LanguagePlugin for AntPlugin {
     }
 
     /// Scans the exercise at the given path. Immediately exits if the target directory is not a valid exercise.
-    fn scan_exercise(
-        &self,
-        path: &Path,
-        exercise_name: String,
-        _warnings: &mut Vec<anyhow::Error>,
-    ) -> Result<ExerciseDesc, TmcError> {
+    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
         if !Self::is_exercise_type_correct(path) {
             return JavaError::InvalidExercise(path.to_path_buf()).into();
         }
@@ -98,7 +92,6 @@ impl LanguagePlugin for AntPlugin {
         &self,
         project_root_path: &Path,
         timeout: Option<Duration>,
-        _warnings: &mut Vec<anyhow::Error>,
     ) -> Result<RunResult, TmcError> {
         Ok(self.run_java_tests(project_root_path, timeout)?)
     }
@@ -496,7 +489,7 @@ mod test {
         let temp_dir = dir_to_temp("tests/data/ant-exercise");
         let plugin = AntPlugin::new().unwrap();
         let exercises = plugin
-            .scan_exercise(&temp_dir.path(), "test".to_string(), &mut vec![])
+            .scan_exercise(&temp_dir.path(), "test".to_string())
             .unwrap();
         assert_eq!(exercises.name, "test");
         assert_eq!(exercises.tests.len(), 4);
@@ -536,7 +529,7 @@ mod test {
         let temp_dir = dir_to_temp("tests/data/ant-exercise");
         let plugin = AntPlugin::new().unwrap();
         let test_result = plugin
-            .run_tests_with_timeout(Path::new(temp_dir.path()), None, &mut vec![])
+            .run_tests_with_timeout(Path::new(temp_dir.path()), None)
             .unwrap();
         log::debug!("{:?}", test_result);
         assert_eq!(
@@ -552,11 +545,7 @@ mod test {
         let temp_dir = dir_to_temp("tests/data/ant-exercise");
         let plugin = AntPlugin::new().unwrap();
         let test_result_err = plugin
-            .run_tests_with_timeout(
-                Path::new(temp_dir.path()),
-                Some(Duration::from_nanos(1)),
-                &mut vec![],
-            )
+            .run_tests_with_timeout(Path::new(temp_dir.path()), Some(Duration::from_nanos(1)))
             .unwrap_err();
         log::debug!("{:?}", test_result_err);
 

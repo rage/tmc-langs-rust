@@ -11,7 +11,7 @@ use self::error::{DownloadsFailedError, InvalidTokenError, SandboxTestError};
 use self::output::{
     CombinedCourseData, Data, DownloadOrUpdateCourseExercise,
     DownloadOrUpdateCourseExercisesResult, Kind, Output, OutputData, OutputResult, Status,
-    StatusUpdateData, UpdatedExercise, Warnings,
+    StatusUpdateData, UpdatedExercise,
 };
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
@@ -34,7 +34,9 @@ use tmc_client::oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
 use tmc_client::{ClientError, FeedbackAnswer, TmcClient, Token};
-use tmc_langs_framework::{domain::StyleValidationResult, error::CommandError, file_util};
+use tmc_langs_framework::{
+    domain::StyleValidationResult, error::CommandError, file_util, warning_reporter,
+};
 use tmc_langs_util::{
     progress_reporter::ProgressReporter,
     task_executor::{self, TmcParams},
@@ -47,14 +49,15 @@ use walkdir::WalkDir;
 pub fn run() {
     let matches = app::create_app().get_matches();
     let pretty = matches.is_present("pretty");
-    let mut warnings = vec![];
 
-    if let Err(e) = run_app(matches, pretty, &mut warnings) {
-        if print_warnings(pretty, &warnings).is_err() {
-            // No need to handle the error; printing the actual error is more important
-            log::error!("Failed to print warnings");
+    warning_reporter::init(Box::new(move |warning| {
+        let warning_output = Output::Warning(warning);
+        if let Err(err) = print_output(&warning_output, pretty) {
+            log::error!("printing warning failed: {}", err);
         }
+    }));
 
+    if let Err(e) = run_app(matches, pretty) {
         // error handling
         let causes: Vec<String> = e.chain().map(|e| format!("Caused by: {}", e)).collect();
         let message = error_message_special_casing(&e);
@@ -69,7 +72,7 @@ pub fn run() {
                 trace: causes,
             }),
         });
-        if let Err(err) = print_output_with_file(&error_output, pretty, sandbox_path, &warnings) {
+        if let Err(err) = print_output_with_file(&error_output, pretty, sandbox_path) {
             // the above function shouldn't fail ever, but in theory some data could
             // have a flawed Serialize implementation, so better safe than sorry
             let output = Output::OutputData(OutputData {
@@ -78,7 +81,7 @@ pub fn run() {
                 result: OutputResult::Error,
                 data: None,
             });
-            print_output(&output, pretty, &warnings).expect("this should never fail");
+            print_output(&output, pretty).expect("this should never fail");
         }
         quit::with_code(1);
     }
@@ -161,7 +164,7 @@ fn check_sandbox_err(e: &anyhow::Error) -> Option<PathBuf> {
     None
 }
 
-fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>) -> Result<()> {
+fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
     // enforces that each branch must return a PrintToken as proof of having printed the output
     let _printed: PrintToken = match matches.subcommand() {
         ("checkstyle", Some(matches)) => {
@@ -180,7 +183,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             let output =
                 Output::finished_with_data("ran checkstyle", check_result.map(Data::Validation));
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("clean", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -194,7 +197,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 format!("cleaned exercise at {}", exercise_path.display()),
                 None,
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("compress-project", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -215,7 +218,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 ),
                 None,
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("core", Some(matches)) => {
             let client_name = matches.value_of("client-name").unwrap();
@@ -237,14 +240,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 client.set_token(credentials.token())?;
             }
 
-            match run_core(
-                client,
-                client_name,
-                &mut credentials,
-                matches,
-                pretty,
-                warnings,
-            ) {
+            match run_core(client, client_name, &mut credentials, matches, pretty) {
                 Ok(token) => token,
                 Err(error) => {
                     for cause in error.chain() {
@@ -280,7 +276,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 ),
                 Data::FreeDiskSpace(free),
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("extract-project", Some(matches)) => {
             let archive_path = matches.value_of("archive-path").unwrap();
@@ -305,7 +301,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 ),
                 None,
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("fast-available-points", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -319,7 +315,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 format!("found {} available points", points.len()),
                 Data::AvailablePoints(points),
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("find-exercises", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -346,7 +342,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 format!("found exercises at {}", exercise_path.display()),
                 Data::Exercises(exercises),
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("get-exercise-packaging-configuration", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -376,7 +372,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 ),
                 Data::ExercisePackagingConfiguration(config),
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("list-local-course-exercises", Some(matches)) => {
             let client_name = matches.value_of("client-name").unwrap();
@@ -389,7 +385,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 format!("listed local exercises for {}", course_slug),
                 Data::LocalExercises(local_exercises),
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("prepare-solutions", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -415,7 +411,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 ),
                 None,
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("prepare-stubs", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -441,7 +437,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 ),
                 None,
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("prepare-submission", Some(matches)) => {
             let clone_path = matches.value_of("clone-path").unwrap();
@@ -515,7 +511,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 ),
                 None,
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("refresh-course", Some(matches)) => {
             let cache_path = matches.value_of("cache-path").unwrap();
@@ -532,7 +528,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 PathBuf::from(cache_root),
                 move |update| {
                     let output = Output::StatusUpdate(StatusUpdateData::None(update));
-                    print_output(&output, pretty, &[])?;
+                    print_output(&output, pretty)?;
                     Ok(())
                 },
             )
@@ -542,7 +538,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 format!("refreshed course {}", course_name),
                 Data::RefreshResult(refresh_result),
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("run-tests", Some(matches)) => {
             let checkstyle_output_path = matches.value_of("checkstyle-output-path");
@@ -558,13 +554,12 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
 
             file_util::lock!(exercise_path);
 
-            let test_result =
-                task_executor::run_tests(exercise_path, warnings).with_context(|| {
-                    format!(
-                        "Failed to run tests for exercise at {}",
-                        exercise_path.display()
-                    )
-                });
+            let test_result = task_executor::run_tests(exercise_path).with_context(|| {
+                format!(
+                    "Failed to run tests for exercise at {}",
+                    exercise_path.display()
+                )
+            });
 
             let test_result = if env::var("TMC_SANDBOX").is_ok() {
                 // in sandbox, wrap error to signal we want to write the output into a file
@@ -592,9 +587,9 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 format!("ran tests for {}", exercise_path.display()),
                 Data::TestResult(test_result),
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
-        ("settings", Some(matches)) => run_settings(matches, pretty, &warnings)?,
+        ("settings", Some(matches)) => run_settings(matches, pretty)?,
         ("scan-exercise", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
             let exercise_path = Path::new(exercise_path);
@@ -619,7 +614,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
             file_util::lock!(exercise_path);
 
             let scan_result =
-                task_executor::scan_exercise(exercise_path, exercise_name.to_string(), warnings)
+                task_executor::scan_exercise(exercise_path, exercise_name.to_string())
                     .with_context(|| {
                         format!("Failed to scan exercise at {}", exercise_path.display())
                     })?;
@@ -632,7 +627,7 @@ fn run_app(matches: ArgMatches, pretty: bool, warnings: &mut Vec<anyhow::Error>)
                 format!("scanned exercise at {}", exercise_path.display()),
                 Data::ExerciseDesc(scan_result),
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         _ => unreachable!("missing subcommand arm"),
     };
@@ -645,12 +640,11 @@ fn run_core(
     credentials: &mut Option<Credentials>,
     matches: &ArgMatches,
     pretty: bool,
-    warnings: &mut Vec<anyhow::Error>,
 ) -> Result<PrintToken> {
     // set progress report to print the updates to stdout as JSON
     client.set_progress_reporter(ProgressReporter::new(move |update| {
         let output = Output::StatusUpdate(StatusUpdateData::ClientUpdateData(update));
-        print_output(&output, pretty, &[])?;
+        print_output(&output, pretty)?;
         Ok(())
     }))?;
 
@@ -697,7 +691,7 @@ fn run_core(
                 "updated exercises",
                 Data::UpdatedExercises(updated_exercises),
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("download-model-solution", Some(matches)) => {
             let solution_download_url = matches.value_of("solution-download-url").unwrap();
@@ -711,7 +705,7 @@ fn run_core(
                 .context("Failed to download model solution")?;
 
             let output = Output::finished_with_data("downloaded model solution", None);
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("download-old-submission", Some(matches)) => {
             let save_old_state = matches.is_present("save-old-state");
@@ -752,7 +746,7 @@ fn run_core(
             log::debug!("extracted project");
 
             let output = Output::finished_with_data("extracted project", None);
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("download-or-update-course-exercises", Some(matches)) => {
             // todo: bit of a mess, refactor
@@ -914,7 +908,7 @@ fn run_core(
                 "downloaded or updated exercises",
                 Data::ExerciseDownload(data),
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("download-or-update-exercises", Some(matches)) => {
             let mut exercise_args = matches.values_of("exercise").unwrap();
@@ -933,7 +927,7 @@ fn run_core(
                 .context("Failed to download exercises")?;
 
             let output = Output::finished_with_data("downloaded or updated exercises", None);
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("get-course-data", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
@@ -958,7 +952,7 @@ fn run_core(
                 "fetched course data",
                 Data::CombinedCourseData(Box::new(data)),
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("get-course-details", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
@@ -970,7 +964,7 @@ fn run_core(
 
             let output =
                 Output::finished_with_data("fetched course details", Data::CourseDetails(details));
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("get-course-exercises", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
@@ -984,7 +978,7 @@ fn run_core(
                 "fetched course exercises",
                 Data::CourseExercises(exercises),
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("get-course-settings", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
@@ -996,7 +990,7 @@ fn run_core(
 
             let output =
                 Output::finished_with_data("fetched course settings", Data::CourseData(settings));
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("get-courses", Some(matches)) => {
             let organization_slug = matches.value_of("organization").unwrap();
@@ -1006,7 +1000,7 @@ fn run_core(
                 .context("Failed to get courses")?;
 
             let output = Output::finished_with_data("fetched courses", Data::Courses(courses));
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("get-exercise-details", Some(matches)) => {
             let exercise_id = matches.value_of("exercise-id").unwrap();
@@ -1020,7 +1014,7 @@ fn run_core(
                 "fetched exercise details",
                 Data::ExerciseDetails(course),
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("get-exercise-submissions", Some(matches)) => {
             let exercise_id = matches.value_of("exercise-id").unwrap();
@@ -1034,7 +1028,7 @@ fn run_core(
                 "fetched exercise submissions",
                 Data::Submissions(submissions),
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("get-exercise-updates", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
@@ -1057,7 +1051,7 @@ fn run_core(
                 "fetched exercise updates",
                 Data::UpdateResult(update_result),
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("get-organization", Some(matches)) => {
             let organization_slug = matches.value_of("organization").unwrap();
@@ -1068,7 +1062,7 @@ fn run_core(
 
             let output =
                 Output::finished_with_data("fetched organization", Data::Organization(org));
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("get-organizations", Some(_matches)) => {
             let orgs = client
@@ -1077,7 +1071,7 @@ fn run_core(
 
             let output =
                 Output::finished_with_data("fetched organizations", Data::Organizations(orgs));
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("get-unread-reviews", Some(matches)) => {
             let reviews_url = matches.value_of("reviews-url").unwrap();
@@ -1089,7 +1083,7 @@ fn run_core(
 
             let output =
                 Output::finished_with_data("fetched unread reviews", Data::Reviews(reviews));
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("logged-in", Some(_matches)) => {
             if let Some(credentials) = credentials {
@@ -1099,7 +1093,7 @@ fn run_core(
                     result: OutputResult::LoggedIn,
                     data: Some(Data::Token(credentials.token())),
                 });
-                print_output(&output, pretty, &warnings)?
+                print_output(&output, pretty)?
             } else {
                 let output = Output::OutputData(OutputData {
                     status: Status::Finished,
@@ -1107,7 +1101,7 @@ fn run_core(
                     result: OutputResult::NotLoggedIn,
                     data: None,
                 });
-                print_output(&output, pretty, &warnings)?
+                print_output(&output, pretty)?
             }
         }
         ("login", Some(matches)) => {
@@ -1151,7 +1145,7 @@ fn run_core(
                 result: OutputResult::LoggedIn,
                 data: None,
             });
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("logout", Some(_matches)) => {
             if let Some(credentials) = credentials.take() {
@@ -1164,7 +1158,7 @@ fn run_core(
                 result: OutputResult::LoggedOut,
                 data: None,
             });
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("mark-review-as-read", Some(matches)) => {
             let review_update_url = matches.value_of("review-update-url").unwrap();
@@ -1174,7 +1168,7 @@ fn run_core(
                 .context("Failed to mark review as read")?;
 
             let output = Output::finished_with_data("marked review as read", None);
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("paste", Some(matches)) => {
             let locale = matches.value_of("locale");
@@ -1205,7 +1199,7 @@ fn run_core(
 
             let output =
                 Output::finished_with_data("sent paste", Data::NewSubmission(new_submission));
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("request-code-review", Some(matches)) => {
             let locale = matches.value_of("locale");
@@ -1238,7 +1232,7 @@ fn run_core(
                 "requested code review",
                 Data::NewSubmission(new_submission),
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("reset-exercise", Some(matches)) => {
             let save_old_state = matches.is_present("save-old-state");
@@ -1264,7 +1258,7 @@ fn run_core(
             client.reset(exercise_id, exercise_path)?;
 
             let output = Output::finished_with_data("reset exercise", None);
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("send-feedback", Some(matches)) => {
             // collect feedback values into a list
@@ -1290,7 +1284,7 @@ fn run_core(
                 "sent feedback",
                 Data::SubmissionFeedbackResponse(response),
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("submit", Some(matches)) => {
             let dont_block = matches.is_present("dont-block");
@@ -1322,7 +1316,7 @@ fn run_core(
                     "submit exercise",
                     Data::NewSubmission(new_submission),
                 );
-                print_output(&output, pretty, &warnings)?
+                print_output(&output, pretty)?
             } else {
                 // same as wait-for-submission
                 let submission_url = new_submission.submission_url;
@@ -1334,7 +1328,7 @@ fn run_core(
                     "submit exercise",
                     Data::SubmissionFinished(submission_finished),
                 );
-                print_output(&output, pretty, &warnings)?
+                print_output(&output, pretty)?
             }
         }
         ("update-exercises", Some(_)) => {
@@ -1429,7 +1423,7 @@ fn run_core(
                 "downloaded or updated exercises",
                 Data::ExerciseDownload(data),
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         ("wait-for-submission", Some(matches)) => {
             let submission_url = matches.value_of("submission-url").unwrap();
@@ -1442,7 +1436,7 @@ fn run_core(
                 "finished waiting for submission",
                 Data::SubmissionFinished(submission_finished),
             );
-            print_output(&output, pretty, &warnings)?
+            print_output(&output, pretty)?
         }
         _ => unreachable!(),
     };
@@ -1450,11 +1444,7 @@ fn run_core(
     Ok(printed)
 }
 
-fn run_settings(
-    matches: &ArgMatches,
-    pretty: bool,
-    warnings: &[anyhow::Error],
-) -> Result<PrintToken> {
+fn run_settings(matches: &ArgMatches, pretty: bool) -> Result<PrintToken> {
     let client_name = matches.value_of("client-name").unwrap();
     let mut tmc_config = TmcConfig::load(client_name)?;
 
@@ -1463,12 +1453,12 @@ fn run_settings(
             let key = matches.value_of("setting").unwrap();
             let value: ConfigValue<'static> = tmc_config.get(key).into_owned();
             let output = Output::finished_with_data("retrieved value", Data::ConfigValue(value));
-            print_output(&output, pretty, warnings)
+            print_output(&output, pretty)
         }
         ("list", Some(_)) => {
             let output =
                 Output::finished_with_data("retrieved settings", Data::TmcConfig(tmc_config));
-            print_output(&output, pretty, warnings)
+            print_output(&output, pretty)
         }
         ("migrate", Some(matches)) => {
             let exercise_path = matches.value_of("exercise-path").unwrap();
@@ -1515,7 +1505,7 @@ fn run_settings(
             course_config.save_to_projects_dir(&tmc_config.projects_dir)?;
 
             let output = Output::finished_with_data("migrated exercise", None);
-            print_output(&output, pretty, warnings)
+            print_output(&output, pretty)
         }
         ("move-projects-dir", Some(matches)) => {
             let dir = matches.value_of("dir").unwrap();
@@ -1550,7 +1540,7 @@ fn run_settings(
             tmc_config.save(client_name)?;
 
             let output = Output::finished_with_data("moved project directory", None);
-            print_output(&output, pretty, warnings)
+            print_output(&output, pretty)
         }
         ("set", Some(matches)) => {
             let key = matches.value_of("key").unwrap();
@@ -1571,13 +1561,13 @@ fn run_settings(
             tmc_config.save(client_name)?;
 
             let output = Output::finished_with_data("set setting", None);
-            print_output(&output, pretty, warnings)
+            print_output(&output, pretty)
         }
         ("reset", Some(_)) => {
             TmcConfig::reset(client_name)?;
 
             let output = Output::finished_with_data("reset settings", None);
-            print_output(&output, pretty, warnings)
+            print_output(&output, pretty)
         }
         ("unset", Some(matches)) => {
             let key = matches.value_of("setting").unwrap();
@@ -1587,24 +1577,21 @@ fn run_settings(
             tmc_config.save(client_name)?;
 
             let output = Output::finished_with_data("unset setting", None);
-            print_output(&output, pretty, warnings)
+            print_output(&output, pretty)
         }
         _ => unreachable!("validation error"),
     }
 }
 
-fn print_output(output: &Output, pretty: bool, warnings: &[anyhow::Error]) -> Result<PrintToken> {
-    print_output_with_file(output, pretty, None, warnings)
+fn print_output(output: &Output, pretty: bool) -> Result<PrintToken> {
+    print_output_with_file(output, pretty, None)
 }
 
 fn print_output_with_file(
     output: &Output,
     pretty: bool,
     path: Option<PathBuf>,
-    warnings: &[anyhow::Error],
 ) -> Result<PrintToken> {
-    print_warnings(pretty, warnings)?;
-
     let result = if pretty {
         serde_json::to_string_pretty(&output)
     } else {
@@ -1620,22 +1607,6 @@ fn print_output_with_file(
             .with_context(|| format!("Failed to write result to {}", path.display()))?;
     }
     Ok(PrintToken)
-}
-
-fn print_warnings(pretty: bool, warnings: &[anyhow::Error]) -> Result<()> {
-    if warnings.is_empty() {
-        return Ok(());
-    }
-
-    let warnings_output = Output::Warnings(Warnings::from_error_list(warnings));
-    let warnings_json = if pretty {
-        serde_json::to_string_pretty(&warnings_output)
-    } else {
-        serde_json::to_string(&warnings_output)
-    }
-    .with_context(|| format!("Failed to convert {:?} to JSON", warnings_output))?;
-    println!("{}", warnings_json);
-    Ok(())
 }
 
 fn write_result_to_file_as_json<T: Serialize>(
@@ -1755,7 +1726,7 @@ fn json_to_toml(json: JsonValue) -> Result<TomlValue> {
 fn move_dir(source: &Path, target: &Path, pretty: bool) -> anyhow::Result<()> {
     let reporter = ProgressReporter::<()>::new(move |update| {
         let output = Output::StatusUpdate(StatusUpdateData::None(update));
-        print_output(&output, pretty, &[])?;
+        print_output(&output, pretty)?;
         Ok(())
     });
 

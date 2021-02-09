@@ -16,7 +16,7 @@ use heim::disk;
 use std::path::{Path, PathBuf};
 use tmc_langs_csharp::CSharpPlugin;
 use tmc_langs_framework::{
-    anyhow, file_util,
+    file_util,
     plugin::{Language, LanguagePlugin},
     policy::NothingIsStudentFilePolicy,
     StudentFilePolicy, TmcError, TmcProjectYml,
@@ -49,17 +49,13 @@ pub fn run_check_code_style(
 }
 
 /// See `LanguagePlugin::run_tests`.
-pub fn run_tests(path: &Path, warnings: &mut Vec<anyhow::Error>) -> Result<RunResult, UtilError> {
-    Ok(get_language_plugin(path)?.run_tests(path, warnings)?)
+pub fn run_tests(path: &Path) -> Result<RunResult, UtilError> {
+    Ok(get_language_plugin(path)?.run_tests(path)?)
 }
 
 /// See `LanguagePlugin::scan_exercise`.
-pub fn scan_exercise(
-    path: &Path,
-    exercise_name: String,
-    warnings: &mut Vec<anyhow::Error>,
-) -> Result<ExerciseDesc, UtilError> {
-    Ok(get_language_plugin(path)?.scan_exercise(path, exercise_name, warnings)?)
+pub fn scan_exercise(path: &Path, exercise_name: String) -> Result<ExerciseDesc, UtilError> {
+    Ok(get_language_plugin(path)?.scan_exercise(path, exercise_name)?)
 }
 
 /// Tries to find a language plugin for the path, returning `true` if one is found.
@@ -229,8 +225,8 @@ pub fn free_disk_space_megabytes(path: &Path) -> Result<u64, UtilError> {
     fn get_exercise_packaging_configuration(config: TmcProjectYml) -> Result<ExercisePackagingConfiguration, TmcError> {}
     fn extract_project(compressed_project: impl std::io::Read + std::io::Seek, target_location: &Path, clean: bool) -> Result<(), TmcError> {}
     fn extract_student_files(compressed_project: impl std::io::Read + std::io::Seek, target_location: &Path) -> Result<(), TmcError> {}
-    fn scan_exercise(&self, path: &Path, exercise_name: String, warnings: &mut Vec<anyhow::Error>) -> Result<ExerciseDesc, TmcError> {}
-    fn run_tests(&self, path: &Path, warnings: &mut Vec<anyhow::Error>) -> Result<RunResult, TmcError> {}
+    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {}
+    fn run_tests(&self, path: &Path) -> Result<RunResult, TmcError> {}
     fn check_code_style(&self, path: &Path, locale: Language) -> Result<Option<StyleValidationResult>, TmcError> {}
     fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, TmcError> {}
 )]

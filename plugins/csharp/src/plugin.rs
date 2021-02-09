@@ -9,7 +9,6 @@ use std::io::{BufReader, Cursor, Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    anyhow,
     command::TmcCommand,
     domain::{
         ExerciseDesc, RunResult, RunStatus, StyleValidationResult, StyleValidationStrategy,
@@ -207,12 +206,7 @@ impl LanguagePlugin for CSharpPlugin {
     }
 
     /// Runs --generate-points-file and parses the generated .tmc_available_points.json.
-    fn scan_exercise(
-        &self,
-        path: &Path,
-        exercise_name: String,
-        _warnings: &mut Vec<anyhow::Error>,
-    ) -> Result<ExerciseDesc, TmcError> {
+    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
         // clean old points file
         let exercise_desc_json_path = path.join(".tmc_available_points.json");
         if exercise_desc_json_path.exists() {
@@ -251,7 +245,6 @@ impl LanguagePlugin for CSharpPlugin {
         &self,
         path: &Path,
         timeout: Option<Duration>,
-        _warnings: &mut Vec<anyhow::Error>,
     ) -> Result<RunResult, TmcError> {
         // clean old file
         let test_results_path = path.join(".tmc_test_results.json");
@@ -595,7 +588,7 @@ mod test {
         let temp = dir_to_temp("tests/data/passing-exercise");
         let plugin = CSharpPlugin::new();
         let scan = plugin
-            .scan_exercise(temp.path(), "name".to_string(), &mut vec![])
+            .scan_exercise(temp.path(), "name".to_string())
             .unwrap();
         assert_eq!(scan.name, "name");
         assert_eq!(scan.tests.len(), 2);
@@ -607,7 +600,7 @@ mod test {
 
         let temp = dir_to_temp("tests/data/passing-exercise");
         let plugin = CSharpPlugin::new();
-        let res = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
+        let res = plugin.run_tests(temp.path()).unwrap();
         assert_eq!(res.status, RunStatus::Passed);
         assert_eq!(res.test_results.len(), 2);
         for tr in res.test_results {
@@ -623,7 +616,7 @@ mod test {
 
         let temp = dir_to_temp("tests/data/failing-exercise");
         let plugin = CSharpPlugin::new();
-        let res = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
+        let res = plugin.run_tests(temp.path()).unwrap();
         assert_eq!(res.status, RunStatus::TestsFailed);
         assert_eq!(res.test_results.len(), 1);
         let test_result = &res.test_results[0];
@@ -641,7 +634,7 @@ mod test {
 
         let temp = dir_to_temp("tests/data/non-compiling-exercise");
         let plugin = CSharpPlugin::new();
-        let res = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
+        let res = plugin.run_tests(temp.path()).unwrap();
         assert_eq!(res.status, RunStatus::CompileFailed);
         assert!(!res.logs.is_empty());
         log::debug!("{:?}", res.logs.get("stdout"));
@@ -659,11 +652,7 @@ mod test {
         let temp = dir_to_temp("tests/data/passing-exercise");
         let plugin = CSharpPlugin::new();
         let res = plugin
-            .run_tests_with_timeout(
-                temp.path(),
-                Some(std::time::Duration::from_nanos(1)),
-                &mut vec![],
-            )
+            .run_tests_with_timeout(temp.path(), Some(std::time::Duration::from_nanos(1)))
             .unwrap();
         assert_eq!(res.status, RunStatus::TestsFailed);
     }
@@ -682,7 +671,7 @@ mod test {
             .join("obj");
         assert!(!bin_path.exists());
         assert!(!obj_path_test.exists());
-        plugin.run_tests(temp.path(), &mut vec![]).unwrap();
+        plugin.run_tests(temp.path()).unwrap();
         assert!(bin_path.exists());
         assert!(obj_path_test.exists());
         plugin.clean(temp.path()).unwrap();
@@ -709,7 +698,7 @@ mod test {
 
         let temp = dir_to_temp("tests/data/partially-passing");
         let plugin = CSharpPlugin::new();
-        let results = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
+        let results = plugin.run_tests(temp.path()).unwrap();
         assert_eq!(results.status, RunStatus::TestsFailed);
         let mut got_point = false;
         for test in results.test_results {
