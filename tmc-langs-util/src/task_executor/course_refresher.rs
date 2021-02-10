@@ -8,8 +8,8 @@ use crate::{
 use md5::Context;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
-use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::{io::Write, time::Duration};
 use tmc_langs_framework::{command::TmcCommand, file_util, subprocess::Redirection};
 use walkdir::WalkDir;
 
@@ -214,7 +214,7 @@ fn initialize_new_cache_clone(
                             .stdout(Redirection::Pipe)
                             .stderr(Redirection::Pipe)
                     })
-                    .output_checked()
+                    .output_with_timeout_checked(Duration::from_secs(60))
             };
 
             run_git(&["remote", "set-url", "origin", course_source_url])?;
