@@ -116,7 +116,7 @@ fn copy_file(
             }
         }
         // writes all lines
-        log::debug!(
+        log::trace!(
             "filtered file {} to {}",
             file.display(),
             dest_path.display()

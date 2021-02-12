@@ -200,7 +200,10 @@ fn initialize_new_cache_clone(
     log::info!("initializing repository at {}", new_clone_path.display());
 
     if old_clone_path.join(".git").exists() {
-        log::info!("trying to copy clone from previous cache");
+        log::info!(
+            "trying to copy clone from previous cache at {}",
+            old_clone_path.display()
+        );
 
         // closure to collect any error that occurs during the process
         let copy_and_update_repository = || -> Result<(), UtilError> {
@@ -249,7 +252,7 @@ fn initialize_new_cache_clone(
                 .stdout(Redirection::Pipe)
                 .stderr(Redirection::Pipe)
         })
-        .output_checked()?;
+        .output_with_timeout_checked(Duration::from_secs(60))?;
     Ok(())
 }
 
@@ -439,52 +442,6 @@ mod test {
         std::fs::write(&target, contents.as_ref()).unwrap();
         target
     }
-
-    /*
-    #[test]
-    #[ignore = "uses git"]
-    fn updates_repository() {
-        init();
-
-        let cache = tempfile::TempDir::new().unwrap();
-        file_util::create_dir_all(cache.path().join("clone")).unwrap();
-        let run_git = |args: &[&str], cwd: &Path| {
-            TmcCommand::new("git")
-                .with(|e| {
-                    e.args(args)
-                        .cwd(cwd)
-                        .stdout(Redirection::Pipe)
-                        .stderr(Redirection::Pipe)
-                })
-                .output_checked()
-                .unwrap()
-        };
-        run_git(&["init"], &cache.path().join("clone"));
-        assert!(cache.path().join("clone/.git").exists());
-
-        let clone = tempfile::TempDir::new().unwrap();
-        run_git(&["init"], &clone.path());
-        run_git(&["remote", "add", "origin", ""], &clone.path());
-
-        update_or_clone_repository(clone.path(), Path::new(GIT_REPO), "master", cache.path())
-            .unwrap();
-        assert!(clone.path().join("texts").exists());
-    }
-
-    #[test]
-    #[ignore = "uses git"]
-    fn clones_repository() {
-        init();
-
-        let clone = tempfile::TempDir::new().unwrap();
-        assert!(!clone.path().join(".git").exists());
-        let old_cache_path = Path::new("nonexistent");
-
-        update_or_clone_repository(clone.path(), Path::new(GIT_REPO), "master", old_cache_path)
-            .unwrap();
-        assert!(clone.path().join("texts").exists());
-    }
-    */
 
     #[test]
     fn checks_directory_names() {
