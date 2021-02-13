@@ -217,7 +217,7 @@ fn initialize_new_cache_clone(
                             .stdout(Redirection::Pipe)
                             .stderr(Redirection::Pipe)
                     })
-                    .output_with_timeout_checked(Duration::from_secs(60))
+                    .output_with_timeout_checked(Duration::from_secs(60 * 2))
             };
 
             run_git(&["remote", "set-url", "origin", course_source_url])?;
@@ -252,7 +252,7 @@ fn initialize_new_cache_clone(
                 .stdout(Redirection::Pipe)
                 .stderr(Redirection::Pipe)
         })
-        .output_with_timeout_checked(Duration::from_secs(60))?;
+        .output_with_timeout_checked(Duration::from_secs(60 * 2))?;
     Ok(())
 }
 
