@@ -366,7 +366,7 @@ pub fn prepare_submission(
     let tmc_project_yml = TmcProjectYml::from(clone_path)?;
     for extra_student_file in tmc_project_yml.extra_student_files {
         // todo secure path
-        let source = received_dir.join(&extra_student_file);
+        let source = project_root.join(&extra_student_file);
         if source.exists() {
             let target = dest.join(&extra_student_file);
             file_util::copy(source, target)?;

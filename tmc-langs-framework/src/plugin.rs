@@ -433,7 +433,7 @@ pub trait LanguagePlugin {
             for entry in WalkDir::new(exercise_file_path) {
                 let entry = entry?;
                 if entry.path().is_file() {
-                    log::debug!("parsing points from {}", entry.path().display());
+                    log::trace!("parsing points from {}", entry.path().display());
                     let file_contents = file_util::read_file_to_string(entry.path())?;
 
                     let etc_parser = combinator::value(Parse::Other, bytes::complete::take(1usize));
