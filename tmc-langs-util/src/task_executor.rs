@@ -7,7 +7,8 @@ mod tar_helper;
 mod tmc_zip;
 
 pub use self::course_refresher::{refresh_course, ModeBits, RefreshData, RefreshExercise};
-pub use self::submission_packaging::{OutputFormat, TmcParams};
+pub use self::submission_packaging::{prepare_submission, OutputFormat, TmcParams};
+pub use self::submission_processing::prepare_solution;
 
 use crate::error::UtilError;
 use crate::{ExerciseDesc, ExercisePackagingConfiguration, RunResult, StyleValidationResult};
@@ -28,12 +29,6 @@ use tmc_langs_python3::Python3Plugin;
 use tmc_langs_r::RPlugin;
 use walkdir::WalkDir;
 
-/// See `submission_processing::prepare_solution`.
-pub fn prepare_solution(exercise_path: &Path, dest_root: &Path) -> Result<(), UtilError> {
-    submission_processing::prepare_solution(exercise_path, dest_root)?;
-    Ok(())
-}
-
 /// See `submission_processing::prepare_stub`.
 pub fn prepare_stub(exercise_path: &Path, dest_path: &Path) -> Result<(), UtilError> {
     submission_processing::prepare_stub(&exercise_path, dest_path)?;
@@ -43,28 +38,6 @@ pub fn prepare_stub(exercise_path: &Path, dest_path: &Path) -> Result<(), UtilEr
         AntPlugin::copy_tmc_junit_runner(dest_path).map_err(|e| TmcError::Plugin(Box::new(e)))?;
     }
     Ok(())
-}
-
-/// Takes a submission zip and turns it into an archive suitable for
-/// further processing by among other things resetting the test files
-pub fn prepare_submission(
-    zip_path: &Path,
-    target_path: &Path,
-    toplevel_dir_name: Option<String>,
-    tmc_params: TmcParams,
-    clone_path: &Path,
-    stub_zip_path: Option<&Path>,
-    output_format: OutputFormat,
-) -> Result<(), UtilError> {
-    submission_packaging::prepare_submission(
-        zip_path,
-        target_path,
-        toplevel_dir_name,
-        tmc_params,
-        clone_path,
-        stub_zip_path,
-        output_format,
-    )
 }
 
 /// See `LanguagePlugin::check_code_style`.
