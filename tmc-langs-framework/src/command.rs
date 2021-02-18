@@ -4,10 +4,10 @@ use crate::{
     error::{CommandError, FileIo},
     file_util, TmcError,
 };
-use std::ffi::OsStr;
 use std::fs::File;
-use std::io::{Read, Seek, SeekFrom};
+use std::io::Read;
 use std::time::Duration;
+use std::{ffi::OsStr, thread::JoinHandle};
 use subprocess::{Exec, ExitStatus, PopenError};
 
 /// Wrapper around subprocess::Exec
@@ -16,21 +16,6 @@ pub struct TmcCommand {
     exec: Exec,
     stdout: Option<File>,
     stderr: Option<File>,
-}
-
-fn read_output(
-    file_handle: Option<File>,
-    exec_output: Option<&mut File>,
-) -> Result<Vec<u8>, TmcError> {
-    let mut v = vec![];
-    if let Some(mut file) = file_handle {
-        let _ = file.seek(SeekFrom::Start(0)); // ignore errors
-        file.read_to_end(&mut v).map_err(FileIo::Generic)?;
-    } else if let Some(file) = exec_output {
-        let _ = file.seek(SeekFrom::Start(0)); // ignore errors
-        file.read_to_end(&mut v).map_err(FileIo::Generic)?;
-    }
-    Ok(v)
 }
 
 impl TmcCommand {
@@ -44,6 +29,7 @@ impl TmcCommand {
     }
 
     /// Creates a new command with stdout and stderr redirected to files
+    // todo: remember why this is useful
     pub fn new_with_file_io(cmd: impl AsRef<OsStr>) -> Result<Self, TmcError> {
         let stdout = file_util::temp_file()?;
         let stderr = file_util::temp_file()?;
@@ -78,6 +64,8 @@ impl TmcCommand {
 
         // starts executing the command
         let mut popen = exec.popen().map_err(|e| popen_to_tmc_err(cmd.clone(), e))?;
+        let stdout_handle = spawn_reader(stdout, popen.stdout.take());
+        let stderr_handle = spawn_reader(stderr, popen.stderr.take());
 
         let exit_status = if let Some(timeout) = timeout {
             // timeout set
@@ -92,8 +80,12 @@ impl TmcCommand {
                     popen
                         .terminate()
                         .map_err(|e| CommandError::Terminate(cmd.clone(), e))?;
-                    let stdout = read_output(stdout, popen.stdout.as_mut())?;
-                    let stderr = read_output(stderr, popen.stderr.as_mut())?;
+                    let stdout = stdout_handle
+                        .join()
+                        .expect("the thread should not be able to panic");
+                    let stderr = stderr_handle
+                        .join()
+                        .expect("the thread should not be able to panic");
                     return Err(TmcError::Command(CommandError::TimeOut {
                         command: cmd,
                         timeout,
@@ -108,8 +100,12 @@ impl TmcCommand {
         };
 
         log::info!("finished executing {}", cmd);
-        let stdout = read_output(stdout, popen.stdout.as_mut())?;
-        let stderr = read_output(stderr, popen.stderr.as_mut())?;
+        let stdout = stdout_handle
+            .join()
+            .expect("the thread should not be able to panic");
+        let stderr = stderr_handle
+            .join()
+            .expect("the thread should not be able to panic");
 
         // on success, log stdout trace and stderr debug
         // on failure if checked, log warn
@@ -117,8 +113,8 @@ impl TmcCommand {
         if !exit_status.success() {
             // if checked is set, error with failed exit status
             if checked {
-                log::warn!("stdout: {}", String::from_utf8_lossy(&stdout));
-                log::warn!("stderr: {}", String::from_utf8_lossy(&stderr));
+                log::warn!("stdout: {}", String::from_utf8_lossy(&stdout).into_owned());
+                log::warn!("stderr: {}", String::from_utf8_lossy(&stderr).into_owned());
                 return Err(CommandError::Failed {
                     command: cmd,
                     status: exit_status,
@@ -127,12 +123,12 @@ impl TmcCommand {
                 }
                 .into());
             } else {
-                log::debug!("stdout: {}", String::from_utf8_lossy(&stdout));
-                log::debug!("stderr: {}", String::from_utf8_lossy(&stderr));
+                log::debug!("stdout: {}", String::from_utf8_lossy(&stdout).into_owned());
+                log::debug!("stderr: {}", String::from_utf8_lossy(&stderr).into_owned());
             }
         } else {
-            log::trace!("stdout: {}", String::from_utf8_lossy(&stdout));
-            log::debug!("stderr: {}", String::from_utf8_lossy(&stderr));
+            log::trace!("stdout: {}", String::from_utf8_lossy(&stdout).into_owned());
+            log::debug!("stderr: {}", String::from_utf8_lossy(&stderr).into_owned());
         }
         Ok(Output {
             status: exit_status,
@@ -167,6 +163,23 @@ impl TmcCommand {
     }
 }
 
+// it's assumed the thread will never panic
+fn spawn_reader(temp_file: Option<File>, file: Option<File>) -> JoinHandle<Vec<u8>> {
+    std::thread::spawn(move || {
+        if let Some(mut temp_file) = temp_file {
+            let mut buf = vec![];
+            let _ = temp_file.read_to_end(&mut buf);
+            buf
+        } else if let Some(mut file) = file {
+            let mut buf = vec![];
+            let _ = file.read_to_end(&mut buf);
+            buf
+        } else {
+            vec![]
+        }
+    })
+}
+
 // convenience function to convert an error while checking for command not found error
 fn popen_to_tmc_err(cmd: String, err: PopenError) -> TmcError {
     if let PopenError::IoError(io) = &err {
@@ -198,7 +211,7 @@ mod test {
             .with(|e| e.arg("1"));
         assert!(matches!(
             cmd.output_with_timeout(Duration::from_nanos(1)),
-            Err(TmcError::Command(CommandError::TimeOut {..}))
+            Err(TmcError::Command(CommandError::TimeOut { .. }))
         ));
     }
 
@@ -207,7 +220,7 @@ mod test {
         let cmd = TmcCommand::new_with_file_io("nonexistent command").unwrap();
         assert!(matches!(
             cmd.output(),
-            Err(TmcError::Command(CommandError::NotFound {..}))
+            Err(TmcError::Command(CommandError::NotFound { .. }))
         ));
     }
 }
