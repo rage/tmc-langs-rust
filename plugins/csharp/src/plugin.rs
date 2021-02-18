@@ -221,7 +221,7 @@ impl LanguagePlugin for CSharpPlugin {
 
         // run command
         let bootstrap_path = Self::get_bootstrap_path()?;
-        let _output = TmcCommand::new_with_file_io("dotnet")?
+        let _output = TmcCommand::piped("dotnet")
             .with(|e| {
                 e.cwd(path)
                     .arg(bootstrap_path)
@@ -261,7 +261,7 @@ impl LanguagePlugin for CSharpPlugin {
 
         // run command
         let bootstrap_path = Self::get_bootstrap_path()?;
-        let command = TmcCommand::new_with_file_io("dotnet")?
+        let command = TmcCommand::piped("dotnet")
             .with(|e| e.cwd(path).arg(bootstrap_path).arg("--run-tests"));
         let output = if let Some(timeout) = timeout {
             command.output_with_timeout(timeout)

@@ -28,7 +28,7 @@ impl Python3Plugin {
         Self {}
     }
 
-    fn get_local_python_command() -> Result<TmcCommand, PythonError> {
+    fn get_local_python_command() -> TmcCommand {
         lazy_static! {
             // the correct python command is platform-dependent
             static ref LOCAL_PY: LocalPy = {
@@ -62,17 +62,16 @@ impl Python3Plugin {
             Custom { python_exec: String },
         }
 
-        let command = match &*LOCAL_PY {
-            LocalPy::Unix => TmcCommand::new_with_file_io("python3")?,
-            LocalPy::Windows => TmcCommand::new_with_file_io("py")?.with(|e| e.arg("-3")),
-            LocalPy::WindowsConda { conda_path } => TmcCommand::new_with_file_io(conda_path)?,
-            LocalPy::Custom { python_exec } => TmcCommand::new_with_file_io(python_exec)?,
-        };
-        Ok(command)
+        match &*LOCAL_PY {
+            LocalPy::Unix => TmcCommand::piped("python3"),
+            LocalPy::Windows => TmcCommand::piped("py").with(|e| e.arg("-3")),
+            LocalPy::WindowsConda { conda_path } => TmcCommand::piped(conda_path),
+            LocalPy::Custom { python_exec } => TmcCommand::piped(python_exec),
+        }
     }
 
     fn get_local_python_ver() -> Result<(usize, usize, usize), PythonError> {
-        let output = Self::get_local_python_command()?
+        let output = Self::get_local_python_command()
         .with(|e| e.args(&["-c", "import sys; print(sys.version_info.major); print(sys.version_info.minor); print(sys.version_info.micro);"]))
         .output_checked()?;
         let stdout = String::from_utf8_lossy(&output.stdout);
@@ -139,7 +138,7 @@ impl Python3Plugin {
         log::debug!("running tmc command at {}", path.display());
         let common_args = ["-m", "tmc"];
 
-        let command = Self::get_local_python_command()?;
+        let command = Self::get_local_python_command();
         let command = command.with(|e| e.args(&common_args).args(extra_args).cwd(path));
         let output = if let Some(timeout) = timeout {
             command.output_with_timeout(timeout)?
@@ -446,7 +445,7 @@ mod test {
     fn gets_local_python_command() {
         init();
 
-        let _cmd = Python3Plugin::get_local_python_command().unwrap();
+        let _cmd = Python3Plugin::get_local_python_command();
     }
 
     #[test]

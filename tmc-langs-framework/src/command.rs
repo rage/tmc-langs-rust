@@ -1,21 +1,16 @@
 //! Custom wrapper for Command that supports timeouts and contains custom error handling.
 
-use crate::{
-    error::{CommandError, FileIo},
-    file_util, TmcError,
-};
+use crate::{error::CommandError, TmcError};
 use std::fs::File;
 use std::io::Read;
 use std::time::Duration;
 use std::{ffi::OsStr, thread::JoinHandle};
-use subprocess::{Exec, ExitStatus, PopenError};
+use subprocess::{Exec, ExitStatus, PopenError, Redirection};
 
 /// Wrapper around subprocess::Exec
 #[must_use]
 pub struct TmcCommand {
     exec: Exec,
-    stdout: Option<File>,
-    stderr: Option<File>,
 }
 
 impl TmcCommand {
@@ -23,32 +18,22 @@ impl TmcCommand {
     pub fn new(cmd: impl AsRef<OsStr>) -> Self {
         Self {
             exec: Exec::cmd(cmd).env("LANG", "en_US.UTF-8"),
-            stdout: None,
-            stderr: None,
         }
     }
 
-    /// Creates a new command with stdout and stderr redirected to files
-    // todo: remember why this is useful
-    pub fn new_with_file_io(cmd: impl AsRef<OsStr>) -> Result<Self, TmcError> {
-        let stdout = file_util::temp_file()?;
-        let stderr = file_util::temp_file()?;
-        Ok(Self {
+    /// Creates a new command, defaults to piped stdout/stderr.
+    pub fn piped(cmd: impl AsRef<OsStr>) -> Self {
+        Self {
             exec: Exec::cmd(cmd)
-                .stdout(stdout.try_clone().map_err(FileIo::FileHandleClone)?)
-                .stderr(stderr.try_clone().map_err(FileIo::FileHandleClone)?)
-                .env("LANG", "en_US.UTF-8"), // some languages may error on UTF-8 files if the LANG variable is unset or set to some non-UTF-8 value
-            stdout: Some(stdout),
-            stderr: Some(stderr),
-        })
+                .stdout(Redirection::Pipe)
+                .stderr(Redirection::Pipe)
+                .env("LANG", "en_US.UTF-8"),
+        }
     }
 
     /// Allows modification of the internal command without providing access to it.
     pub fn with(self, f: impl FnOnce(Exec) -> Exec) -> Self {
-        Self {
-            exec: f(self.exec),
-            ..self
-        }
+        Self { exec: f(self.exec) }
     }
 
     // executes the given command and collects its output
@@ -56,16 +41,12 @@ impl TmcCommand {
         let cmd = self.exec.to_cmdline_lossy();
         log::info!("executing {}", cmd);
 
-        let Self {
-            exec,
-            stdout,
-            stderr,
-        } = self;
+        let Self { exec } = self;
 
         // starts executing the command
         let mut popen = exec.popen().map_err(|e| popen_to_tmc_err(cmd.clone(), e))?;
-        let stdout_handle = spawn_reader(stdout, popen.stdout.take());
-        let stderr_handle = spawn_reader(stderr, popen.stderr.take());
+        let stdout_handle = spawn_reader(popen.stdout.take());
+        let stderr_handle = spawn_reader(popen.stderr.take());
 
         let exit_status = if let Some(timeout) = timeout {
             // timeout set
@@ -164,13 +145,9 @@ impl TmcCommand {
 }
 
 // it's assumed the thread will never panic
-fn spawn_reader(temp_file: Option<File>, file: Option<File>) -> JoinHandle<Vec<u8>> {
+fn spawn_reader(file: Option<File>) -> JoinHandle<Vec<u8>> {
     std::thread::spawn(move || {
-        if let Some(mut temp_file) = temp_file {
-            let mut buf = vec![];
-            let _ = temp_file.read_to_end(&mut buf);
-            buf
-        } else if let Some(mut file) = file {
+        if let Some(mut file) = file {
             let mut buf = vec![];
             let _ = file.read_to_end(&mut buf);
             buf
@@ -206,9 +183,7 @@ mod test {
 
     #[test]
     fn timeout() {
-        let cmd = TmcCommand::new_with_file_io("sleep")
-            .unwrap()
-            .with(|e| e.arg("1"));
+        let cmd = TmcCommand::piped("sleep").with(|e| e.arg("1"));
         assert!(matches!(
             cmd.output_with_timeout(Duration::from_nanos(1)),
             Err(TmcError::Command(CommandError::TimeOut { .. }))
@@ -217,7 +192,7 @@ mod test {
 
     #[test]
     fn not_found() {
-        let cmd = TmcCommand::new_with_file_io("nonexistent command").unwrap();
+        let cmd = TmcCommand::piped("nonexistent command");
         assert!(matches!(
             cmd.output(),
             Err(TmcError::Command(CommandError::NotFound { .. }))

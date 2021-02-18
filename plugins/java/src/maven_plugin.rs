@@ -40,7 +40,7 @@ impl MavenPlugin {
     // the executable used from within the extracted maven differs per platform
     fn get_mvn_command() -> Result<OsString, JavaError> {
         // check if mvn is in PATH
-        if let Ok(status) = TmcCommand::new_with_file_io("mvn")?
+        if let Ok(status) = TmcCommand::piped("mvn")
             .with(|e| e.arg("--batch-mode").arg("--version"))
             .status()
         {
@@ -118,7 +118,7 @@ impl LanguagePlugin for MavenPlugin {
         log::info!("Cleaning maven project at {}", path.display());
 
         let mvn_command = Self::get_mvn_command()?;
-        let _output = TmcCommand::new_with_file_io(mvn_command)?
+        let _output = TmcCommand::piped(mvn_command)
             .with(|e| e.cwd(path).arg("--batch-mode").arg("clean"))
             .output_checked()?;
 
@@ -153,7 +153,7 @@ impl JavaPlugin for MavenPlugin {
 
         let output_arg = format!("-Dmdep.outputFile={}", class_path_file.display());
         let mvn_path = Self::get_mvn_command()?;
-        let _output = TmcCommand::new_with_file_io(mvn_path)?
+        let _output = TmcCommand::piped(mvn_path)
             .with(|e| {
                 e.cwd(path)
                     .arg("--batch-mode")
@@ -182,7 +182,7 @@ impl JavaPlugin for MavenPlugin {
         log::info!("Building maven project at {}", project_root_path.display());
 
         let mvn_path = Self::get_mvn_command()?;
-        let output = TmcCommand::new_with_file_io(mvn_path)?
+        let output = TmcCommand::piped(mvn_path)
             .with(|e| {
                 e.cwd(project_root_path)
                     .arg("--batch-mode")
@@ -209,7 +209,7 @@ impl JavaPlugin for MavenPlugin {
         log::info!("Running tests for maven project at {}", path.display());
 
         let mvn_path = Self::get_mvn_command()?;
-        let command = TmcCommand::new_with_file_io(mvn_path)?.with(|e| {
+        let command = TmcCommand::piped(mvn_path).with(|e| {
             e.cwd(path)
                 .arg("--batch-mode")
                 .arg("fi.helsinki.cs.tmc:tmc-maven-plugin:1.12:test")

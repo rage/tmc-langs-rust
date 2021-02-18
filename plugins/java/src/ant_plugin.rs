@@ -32,11 +32,10 @@ impl AntPlugin {
 
     fn get_ant_executable(&self) -> &'static str {
         if cfg!(windows) {
-            if let Ok(command) = TmcCommand::new_with_file_io("ant") {
-                if let Ok(status) = command.with(|e| e.arg("-version")).status() {
-                    if status.success() {
-                        return "ant";
-                    }
+            let command = TmcCommand::piped("ant");
+            if let Ok(status) = command.with(|e| e.arg("-version")).status() {
+                if status.success() {
+                    return "ant";
                 }
             }
             // if ant not found on windows, try ant.bat
@@ -188,7 +187,7 @@ impl JavaPlugin for AntPlugin {
         log::info!("building project at {}", project_root_path.display());
 
         let ant_exec = self.get_ant_executable();
-        let output = TmcCommand::new_with_file_io(ant_exec)?
+        let output = TmcCommand::piped(ant_exec)
             .with(|e| e.arg("compile-test").cwd(project_root_path))
             .output()?;
 
@@ -263,7 +262,7 @@ impl JavaPlugin for AntPlugin {
         }
 
         log::debug!("java args '{}' in {}", arguments.join(" "), path.display());
-        let command = TmcCommand::new_with_file_io("java")?.with(|e| e.cwd(path).args(&arguments));
+        let command = TmcCommand::piped("java").with(|e| e.cwd(path).args(&arguments));
         let output = if let Some(timeout) = timeout {
             command.output_with_timeout(timeout)?
         } else {
