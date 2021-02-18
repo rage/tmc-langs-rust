@@ -45,7 +45,7 @@ impl LanguagePlugin for RPlugin {
         } else {
             &["-e", "library(tmcRtestrunner);run_available_points()"]
         };
-        let _output = TmcCommand::new_with_file_io("Rscript")?
+        let _output = TmcCommand::piped("Rscript")
             .with(|e| e.cwd(path).args(args))
             .output_checked()?;
 
@@ -85,11 +85,11 @@ impl LanguagePlugin for RPlugin {
         };
 
         if let Some(timeout) = timeout {
-            let _command = TmcCommand::new_with_file_io("Rscript")?
+            let _command = TmcCommand::piped("Rscript")
                 .with(|e| e.cwd(path).args(args))
                 .output_with_timeout_checked(timeout)?;
         } else {
-            let _command = TmcCommand::new_with_file_io("Rscript")?
+            let _command = TmcCommand::piped("Rscript")
                 .with(|e| e.cwd(path).args(args))
                 .output_checked()?;
         }

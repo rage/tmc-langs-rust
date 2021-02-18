@@ -86,7 +86,7 @@ impl MakePlugin {
         };
         log::info!("Running make {}", arg);
 
-        let output = TmcCommand::new_with_file_io("make")?
+        let output = TmcCommand::piped("make")
             .with(|e| e.cwd(path).arg(arg))
             .output()?;
 
@@ -112,7 +112,7 @@ impl MakePlugin {
     /// the process finished successfully or not.
     fn build(&self, dir: &Path) -> Result<Output, MakeError> {
         log::debug!("building {}", dir.display());
-        let output = TmcCommand::new_with_file_io("make")?
+        let output = TmcCommand::piped("make")
             .with(|e| e.cwd(dir).arg("test"))
             .output()?;
 
@@ -327,7 +327,7 @@ impl LanguagePlugin for MakePlugin {
 
     // does not check for success
     fn clean(&self, path: &Path) -> Result<(), TmcError> {
-        let output = TmcCommand::new_with_file_io("make")?
+        let output = TmcCommand::piped("make")
             .with(|e| e.cwd(path).arg("clean"))
             .output()?;
 

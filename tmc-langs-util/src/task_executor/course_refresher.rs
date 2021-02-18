@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
 use std::path::{Path, PathBuf};
 use std::{io::Write, time::Duration};
-use tmc_langs_framework::{command::TmcCommand, file_util, subprocess::Redirection};
+use tmc_langs_framework::{command::TmcCommand, file_util};
 use walkdir::WalkDir;
 
 #[cfg(unix)]
@@ -210,13 +210,8 @@ fn initialize_new_cache_clone(
             file_util::copy(old_clone_path, new_course_root)?;
 
             let run_git = |args: &[&str]| {
-                TmcCommand::new("git".to_string())
-                    .with(|e| {
-                        e.cwd(new_clone_path)
-                            .args(args)
-                            .stdout(Redirection::Pipe)
-                            .stderr(Redirection::Pipe)
-                    })
+                TmcCommand::piped("git".to_string())
+                    .with(|e| e.cwd(new_clone_path).args(args))
                     .output_with_timeout_checked(Duration::from_secs(60 * 2))
             };
 
@@ -243,14 +238,12 @@ fn initialize_new_cache_clone(
     log::info!("could not copy from previous cache, cloning");
 
     // clone_repository
-    TmcCommand::new("git".to_string())
+    TmcCommand::piped("git".to_string())
         .with(|e| {
             e.args(&["clone", "-q", "-b"])
                 .arg(course_git_branch)
                 .arg(course_source_url)
                 .arg(new_clone_path)
-                .stdout(Redirection::Pipe)
-                .stderr(Redirection::Pipe)
         })
         .output_with_timeout_checked(Duration::from_secs(60 * 2))?;
     Ok(())
