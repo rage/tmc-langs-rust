@@ -14,7 +14,7 @@ use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, StyleValidationResult},
     file_util,
-    nom::IResult,
+    nom::{error::VerboseError, IResult},
     plugin::{Language, LanguagePlugin},
     TmcError,
 };
@@ -126,7 +126,7 @@ impl LanguagePlugin for AntPlugin {
         Ok(())
     }
 
-    fn points_parser(i: &str) -> IResult<&str, &str> {
+    fn points_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
         Self::java_points_parser(i)
     }
 

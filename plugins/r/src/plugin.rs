@@ -13,7 +13,7 @@ use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, TestDesc},
     file_util,
-    nom::{bytes, character, combinator, sequence, IResult},
+    nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
     zip::ZipArchive,
     LanguagePlugin, TmcError,
 };
@@ -151,7 +151,7 @@ impl LanguagePlugin for RPlugin {
         vec![PathBuf::from("tests")]
     }
 
-    fn points_parser(i: &str) -> IResult<&str, &str> {
+    fn points_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
         combinator::map(
             sequence::delimited(
                 sequence::tuple((
@@ -474,5 +474,24 @@ test("sample", c("r1.1"), {
 })
 "#;
         assert_eq!(RPlugin::points_parser(target).unwrap().1, "W1A.1.2");
+    }
+
+    #[test]
+    fn parsing_regression_test() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(
+            &temp,
+            "tests/testthat/testExercise.R",
+            r#"library('testthat')
+"#,
+        );
+
+        let res = RPlugin::get_available_points(temp.path());
+        if let Err(TmcError::PointParse(_, e)) = res {
+            log::info!("{:#}", e);
+        }
+        panic!()
     }
 }
