@@ -27,8 +27,8 @@ pub enum TmcError {
     Canonicalize(PathBuf, #[source] std::io::Error),
     #[error("File {0} not in given project root {1}")]
     FileNotInProject(PathBuf, PathBuf),
-    #[error("Error while parsing available points: {0}")]
-    PointParse(String),
+    #[error("Error while parsing available points from {0}")]
+    PointParse(PathBuf, #[source] nom::error::VerboseError<String>),
 
     #[error("Path {0} contained no file name")]
     NoFileName(PathBuf),

@@ -10,7 +10,7 @@ use crate::error::TmcError;
 use crate::file_util;
 use crate::policy::StudentFilePolicy;
 use crate::TmcProjectYml;
-use nom::{branch, bytes, combinator, multi, sequence, IResult};
+use nom::{branch, bytes, character, combinator, error::VerboseError, multi, sequence, IResult};
 use std::collections::HashSet;
 use std::io::{Read, Seek, Write};
 use std::path::{Path, PathBuf};
@@ -436,43 +436,73 @@ pub trait LanguagePlugin {
                     log::trace!("parsing points from {}", entry.path().display());
                     let file_contents = file_util::read_file_to_string(entry.path())?;
 
-                    let etc_parser = combinator::value(Parse::Other, bytes::complete::take(1usize));
+                    // reads any character
+                    let etc_parser = combinator::value(Parse::Other, character::complete::anychar);
+
+                    // reads a single line comment
                     let line_comment_parser = combinator::value(
                         Parse::LineComment,
-                        sequence::pair(
+                        sequence::delimited(
                             bytes::complete::tag(Self::LINE_COMMENT),
-                            bytes::complete::is_not("\n"),
+                            bytes::complete::take_until("\n"),
+                            character::complete::newline,
                         ),
                     );
+
+                    // reads a single block comment
                     let block_comment_parser: Box<dyn FnMut(_) -> _> =
-                        if let Some(block_comment) = Self::BLOCK_COMMENT {
+                        if let Some((block_start, block_end)) = Self::BLOCK_COMMENT {
                             Box::new(combinator::value(
                                 Parse::BlockComment,
-                                sequence::pair(
-                                    bytes::complete::tag(block_comment.0),
-                                    bytes::complete::is_not(block_comment.1),
+                                sequence::delimited(
+                                    bytes::complete::tag(block_start),
+                                    bytes::complete::take_until(block_end),
+                                    bytes::complete::tag(block_end),
                                 ),
                             ))
                         } else {
                             Box::new(combinator::value(
-                                Parse::Other,
-                                bytes::complete::take_while(|_| false),
+                                Parse::BlockComment,
+                                character::complete::one_of(""),
                             ))
                         };
+
+                    // reads a points annotation
                     let points_parser =
                         combinator::map(Self::points_parser, |p| Parse::Points(p.to_string()));
 
-                    let mut parser = multi::many0(multi::many_till(
+                    // try to apply the interesting parsers, else read a character with the etc parser. repeat until the input ends
+                    let mut parser = multi::many0(branch::alt((
+                        line_comment_parser,
+                        block_comment_parser,
+                        points_parser,
                         etc_parser,
-                        branch::alt((line_comment_parser, block_comment_parser, points_parser)),
-                    ));
-                    let res: IResult<_, _> = parser(&file_contents);
-                    let (_, parsed) = res.map_err(|e| TmcError::PointParse(e.to_string()))?;
-                    for (_, parse) in parsed {
-                        if let Parse::Points(parsed) = parse {
-                            // a single points annotation can contain multiple whitespace separated points
-                            let split_points = parsed.split_whitespace().map(str::to_string);
-                            points.extend(split_points);
+                    )));
+
+                    let res: IResult<_, _, _> = parser(&file_contents);
+                    match res {
+                        Ok((_, parsed)) => {
+                            for parse in parsed {
+                                if let Parse::Points(parsed) = parse {
+                                    // a single points annotation can contain multiple whitespace separated points
+                                    let split_points =
+                                        parsed.split_whitespace().map(str::to_string);
+                                    points.extend(split_points);
+                                }
+                            }
+                        }
+                        Err(nom::Err::Incomplete(_)) => unreachable!("this should never happen"),
+                        Err(nom::Err::Error(e)) | Err(nom::Err::Failure(e)) => {
+                            return Err(TmcError::PointParse(
+                                entry.path().to_path_buf(),
+                                VerboseError {
+                                    errors: e
+                                        .errors
+                                        .into_iter()
+                                        .map(|(s, k)| (s.to_string(), k))
+                                        .collect(),
+                                },
+                            ));
                         }
                     }
                 }
@@ -484,7 +514,7 @@ pub trait LanguagePlugin {
     /// A nom parser that recognizes a points annotation and returns the inner points value.
     ///
     /// For example implementations, see the existing language plugins.
-    fn points_parser(i: &str) -> IResult<&str, &str>;
+    fn points_parser(i: &str) -> IResult<&str, &str, nom::error::VerboseError<&str>>;
 }
 
 #[derive(Debug, Clone)]
@@ -616,7 +646,7 @@ mod test {
             Ok(())
         }
 
-        fn points_parser(i: &str) -> IResult<&str, &str> {
+        fn points_parser(i: &str) -> IResult<&str, &str, nom::error::VerboseError<&str>> {
             combinator::map(
                 sequence::delimited(
                     sequence::tuple((
@@ -1076,5 +1106,27 @@ force_update:
 
         let points = MockPlugin::get_available_points(temp.path()).unwrap();
         assert_eq!(points, &["1", "2", "3", "4", "5", "6", "7", "8"]);
+    }
+
+    #[test]
+    fn parses_empty() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "test/file", r#""#);
+
+        let points = MockPlugin::get_available_points(temp.path()).unwrap();
+        assert!(points.is_empty());
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(
+            &temp,
+            "test/file",
+            r#"
+"#,
+        );
+
+        let points = MockPlugin::get_available_points(temp.path()).unwrap();
+        assert!(points.is_empty());
     }
 }

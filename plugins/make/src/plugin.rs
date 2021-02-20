@@ -16,7 +16,7 @@ use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc},
     error::{CommandError, FileIo},
     file_util,
-    nom::{bytes, character, combinator, sequence, IResult},
+    nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
     plugin::LanguagePlugin,
     subprocess::PopenError,
     zip::ZipArchive,
@@ -348,7 +348,7 @@ impl LanguagePlugin for MakePlugin {
         vec![PathBuf::from("test")]
     }
 
-    fn points_parser(i: &str) -> IResult<&str, &str> {
+    fn points_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
         combinator::map(
             sequence::delimited(
                 sequence::tuple((

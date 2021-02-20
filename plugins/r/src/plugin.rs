@@ -13,7 +13,7 @@ use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, TestDesc},
     file_util,
-    nom::{bytes, character, combinator, sequence, IResult},
+    nom::{branch, bytes, character, combinator, error::VerboseError, sequence, IResult},
     zip::ZipArchive,
     LanguagePlugin, TmcError,
 };
@@ -151,26 +151,44 @@ impl LanguagePlugin for RPlugin {
         vec![PathBuf::from("tests")]
     }
 
-    fn points_parser(i: &str) -> IResult<&str, &str> {
-        combinator::map(
+    fn points_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
+        let test_parser = sequence::delimited(
+            sequence::tuple((
+                bytes::complete::tag("test"),
+                character::complete::multispace0,
+                character::complete::char('('),
+                bytes::complete::take_until(","),
+                bytes::complete::take_until("\""),
+            )),
             sequence::delimited(
-                sequence::tuple((
-                    bytes::complete::tag("test"),
-                    character::complete::multispace0,
-                    character::complete::char('('),
-                    bytes::complete::take_until(","),
-                    bytes::complete::take_until("\""),
-                )),
-                sequence::delimited(
-                    character::complete::char('"'),
-                    bytes::complete::is_not("\""),
-                    character::complete::char('"'),
-                ),
-                sequence::tuple((
-                    character::complete::multispace0,
-                    character::complete::char(')'),
-                )),
+                character::complete::char('"'),
+                bytes::complete::is_not("\""),
+                character::complete::char('"'),
             ),
+            sequence::tuple((
+                character::complete::multispace0,
+                character::complete::char(')'),
+            )),
+        );
+        let points_for_all_tests_parser = sequence::delimited(
+            sequence::tuple((
+                bytes::complete::tag("points_for_all_tests"),
+                character::complete::multispace0,
+                character::complete::char('('),
+                bytes::complete::take_until("\""),
+            )),
+            sequence::delimited(
+                character::complete::char('"'),
+                bytes::complete::is_not("\""),
+                character::complete::char('"'),
+            ),
+            sequence::tuple((
+                character::complete::multispace0,
+                character::complete::char(')'),
+            )),
+        );
+        combinator::map(
+            branch::alt((test_parser, points_for_all_tests_parser)),
             str::trim,
         )(i)
     }
@@ -474,5 +492,40 @@ test("sample", c("r1.1"), {
 })
 "#;
         assert_eq!(RPlugin::points_parser(target).unwrap().1, "W1A.1.2");
+    }
+
+    #[test]
+    fn parsing_regression_test() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        // a file like this used to cause an error before for some reason...
+        file_to(
+            &temp,
+            "tests/testthat/testExercise.R",
+            r#"library('testthat')
+"#,
+        );
+
+        let _points = RPlugin::get_available_points(temp.path()).unwrap();
+    }
+
+    #[test]
+    fn parses_points_for_all_tests() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(
+            &temp,
+            "tests/testthat/testExercise.R",
+            r#"
+something
+points_for_all_tests(c("r1"))
+etc
+"#,
+        );
+
+        let points = RPlugin::get_available_points(temp.path()).unwrap();
+        assert_eq!(points, &["r1"]);
     }
 }

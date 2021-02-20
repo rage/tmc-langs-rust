@@ -15,7 +15,7 @@ use tmc_langs_framework::{
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     error::CommandError,
     file_util,
-    nom::{branch, bytes, character, combinator, sequence, IResult},
+    nom::{branch, bytes, character, combinator, error::VerboseError, sequence, IResult},
     plugin::LanguagePlugin,
     TmcError, TmcProjectYml,
 };
@@ -334,7 +334,7 @@ impl LanguagePlugin for Python3Plugin {
         vec![PathBuf::from("test"), PathBuf::from("tmc")]
     }
 
-    fn points_parser(i: &str) -> IResult<&str, &str> {
+    fn points_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
         combinator::map(
             sequence::delimited(
                 sequence::tuple((

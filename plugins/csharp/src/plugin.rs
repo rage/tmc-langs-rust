@@ -17,7 +17,7 @@ use tmc_langs_framework::{
     },
     error::{CommandError, FileIo},
     file_util,
-    nom::{bytes, character, combinator, sequence, IResult},
+    nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
     plugin::Language,
     zip::ZipArchive,
     LanguagePlugin, TmcError,
@@ -353,7 +353,7 @@ impl LanguagePlugin for CSharpPlugin {
         vec![PathBuf::from("test")]
     }
 
-    fn points_parser(i: &str) -> IResult<&str, &str> {
+    fn points_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
         combinator::map(
             sequence::delimited(
                 sequence::tuple((

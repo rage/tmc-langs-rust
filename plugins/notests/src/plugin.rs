@@ -8,7 +8,7 @@ use std::time::Duration;
 use tmc_langs_framework::{
     anyhow,
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
-    nom::IResult,
+    nom::{self, error::VerboseError, IResult},
     zip::ZipArchive,
     LanguagePlugin, StudentFilePolicy, TmcError,
 };
@@ -102,8 +102,9 @@ impl LanguagePlugin for NoTestsPlugin {
         vec![PathBuf::from("test")]
     }
 
-    fn points_parser(_: &str) -> IResult<&str, &str> {
-        Ok(("", ""))
+    fn points_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
+        // does not match any characters
+        nom::combinator::value("", nom::character::complete::one_of(""))(i)
     }
 }
 
@@ -227,5 +228,27 @@ no-tests: false
 "#,
         );
         assert!(!NoTestsPlugin::is_exercise_type_correct(temp_dir.path()));
+    }
+
+    #[test]
+    fn parses_empty() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "test/.keep", r#""#);
+
+        let points = NoTestsPlugin::get_available_points(temp.path()).unwrap();
+        assert!(points.is_empty());
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(
+            &temp,
+            "test/.keep",
+            r#"
+"#,
+        );
+
+        let points = NoTestsPlugin::get_available_points(temp.path()).unwrap();
+        assert!(points.is_empty());
     }
 }
