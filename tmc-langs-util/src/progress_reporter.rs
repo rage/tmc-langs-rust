@@ -156,17 +156,34 @@ struct ProgressReporter<'a, T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::sync::{Arc, Mutex};
+    use std::sync::{Arc, Mutex, MutexGuard};
 
-    fn init() {
+    static PROGRESS_MUTEX: OnceCell<Mutex<()>> = OnceCell::new();
+
+    fn init() -> MutexGuard<'static, ()> {
         use log::*;
         use simple_logger::*;
         let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
+
+        // wait for lock and clear reporter map
+        let mutex = PROGRESS_MUTEX.get_or_init(|| Mutex::new(()));
+        let guard = mutex.lock().unwrap();
+        if let Some(reporters) = PROGRESS_REPORTERS.get() {
+            let mut reporters = reporters.write().unwrap();
+            *reporters = ProgressReporter2 {
+                reporters: TypeMap::new(),
+                current_progress: 0.0,
+                total_steps_left: 0,
+                start_time: Instant::now(),
+                stage_steps: Vec::new(),
+            };
+        }
+        guard
     }
 
     #[test]
     fn single_stage_progress() {
-        init();
+        let _lock = init();
 
         let su = Arc::new(Mutex::new(None));
         let suc = Arc::clone(&su);
@@ -186,7 +203,7 @@ mod test {
 
     #[test]
     fn multi_stage_progress() {
-        init();
+        let _lock = init();
 
         let su = Arc::new(Mutex::new(None));
         let suc = Arc::clone(&su);
@@ -202,7 +219,7 @@ mod test {
 
         start_stage::<usize>(2, "starting".to_string(), None);
         progress_stage::<usize>("msg".to_string(), None);
-        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 66.66).abs() < 0.01);
+        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 66.6666).abs() < 0.01);
 
         start_stage::<usize>(2, "starting".to_string(), None);
         progress_stage::<usize>("msg".to_string(), None);
