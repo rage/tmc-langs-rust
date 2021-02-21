@@ -1,10 +1,6 @@
 //! Course refresher.
 
-use crate::{
-    error::UtilError,
-    progress_reporter::{ProgressReporter, StatusUpdate},
-    task_executor,
-};
+use crate::{error::UtilError, progress_reporter, task_executor};
 use md5::Context;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
@@ -35,155 +31,103 @@ pub struct RefreshExercise {
     path: PathBuf,
 }
 
-struct CourseRefresher {
-    progress_reporter: ProgressReporter<'static, ()>,
-}
-
-impl CourseRefresher {
-    pub fn new(
-        progress_report: impl 'static
-            + Sync
-            + Send
-            + Fn(StatusUpdate<()>) -> Result<(), Box<dyn std::error::Error + Send + Sync>>,
-    ) -> Self {
-        Self {
-            progress_reporter: ProgressReporter::new(progress_report),
-        }
-    }
-
-    pub fn refresh_course(
-        self,
-        course_name: String,
-        course_cache_path: PathBuf,
-        source_url: String,
-        git_branch: String,
-        cache_root: PathBuf,
-    ) -> Result<RefreshData, UtilError> {
-        log::info!("refreshing course {}", course_name);
-        self.progress_reporter.start_timer();
-
-        // sets the total amount of progress steps properly
-        self.progress_reporter.increment_progress_steps(13);
-
-        // create new cache path
-        let old_version = course_cache_path
-            .to_str()
-            .and_then(|s| s.split('-').last())
-            .and_then(|s| s.parse::<u32>().ok())
-            .ok_or_else(|| UtilError::InvalidCachePath(course_cache_path.clone()))?;
-        let new_cache_path = cache_root.join(format!("{}-{}", course_name, old_version + 1));
-        log::info!("next cache path: {}", new_cache_path.display());
-
-        if new_cache_path.exists() {
-            log::info!("clearing new cache path at {}", new_cache_path.display());
-            file_util::remove_dir_all(&new_cache_path)?;
-        }
-        file_util::create_dir_all(&new_cache_path)?;
-        self.progress_reporter
-            .finish_step("Created new cache dir".to_string(), None)?;
-
-        // initialize new clone path and verify directory names
-        let new_clone_path = new_cache_path.join("clone");
-        let old_clone_path = course_cache_path.join("clone");
-        initialize_new_cache_clone(
-            &new_cache_path,
-            &new_clone_path,
-            &old_clone_path,
-            &source_url,
-            &git_branch,
-        )?;
-        check_directory_names(&new_clone_path)?;
-        self.progress_reporter
-            .finish_step("Updated repository".to_string(), None)?;
-
-        let course_options = get_course_options(&new_clone_path, &course_name)?;
-        self.progress_reporter
-            .finish_step("Fetched course options".to_string(), None)?;
-
-        let new_solution_path = new_cache_path.join("solution");
-        let new_stub_path = new_cache_path.join("stub");
-
-        let exercise_dirs = task_executor::find_exercise_directories(&new_clone_path)?
-            .into_iter()
-            .map(|ed| ed.strip_prefix(&new_clone_path).unwrap().to_path_buf()) // safe
-            .collect();
-
-        // make_solutions
-        log::info!("preparing solutions to {}", new_solution_path.display());
-        for exercise in &exercise_dirs {
-            task_executor::prepare_solution(
-                &new_clone_path.join(&exercise),
-                &new_solution_path.join(&exercise),
-            )?;
-        }
-        self.progress_reporter
-            .finish_step("Prepared solutions".to_string(), None)?;
-
-        // make_stubs
-        log::info!("preparing stubs to {}", new_stub_path.display());
-        for exercise in &exercise_dirs {
-            task_executor::prepare_stub(
-                &new_clone_path.join(&exercise),
-                &new_stub_path.join(&exercise),
-            )?;
-        }
-        self.progress_reporter
-            .finish_step("Prepared stubs".to_string(), None)?;
-
-        let exercises = get_exercises(exercise_dirs, &new_clone_path, &new_stub_path)?;
-        self.progress_reporter
-            .finish_step("Located exercises".to_string(), None)?;
-
-        // make_zips_of_solutions
-        let new_solution_zip_path = new_cache_path.join("solution_zip");
-        execute_zip(&exercises, &new_solution_path, &new_solution_zip_path)?;
-        self.progress_reporter
-            .finish_step("Compressed solutions".to_string(), None)?;
-
-        // make_zips_of_stubs
-        let new_stub_zip_path = new_cache_path.join("stub_zip");
-        log::info!(
-            "compressing stubs from {} to {}",
-            new_stub_path.display(),
-            new_stub_zip_path.display()
-        );
-        execute_zip(&exercises, &new_stub_path, &new_stub_zip_path)?;
-        self.progress_reporter
-            .finish_step("Compressed stubs".to_string(), None)?;
-
-        // make sure the new cache path is readable by anyone
-        set_permissions(&new_cache_path)?;
-
-        self.progress_reporter
-            .finish_step("Refreshed course".to_string(), None)?;
-        Ok(RefreshData {
-            new_cache_path,
-            course_options,
-            exercises,
-        })
-    }
-}
-
-/// Refreshes a course...
 pub fn refresh_course(
     course_name: String,
     course_cache_path: PathBuf,
     source_url: String,
     git_branch: String,
     cache_root: PathBuf,
-    progress_reporter: impl 'static
-        + Sync
-        + Send
-        + Fn(StatusUpdate<()>) -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>>,
 ) -> Result<RefreshData, UtilError> {
-    let course_refresher = CourseRefresher::new(progress_reporter);
-    course_refresher.refresh_course(
-        course_name,
-        course_cache_path,
-        source_url,
-        git_branch,
-        cache_root,
-    )
+    log::info!("refreshing course {}", course_name);
+    start_stage(9, "refreshing course");
+
+    // create new cache path
+    let old_version = course_cache_path
+        .to_str()
+        .and_then(|s| s.split('-').last())
+        .and_then(|s| s.parse::<u32>().ok())
+        .ok_or_else(|| UtilError::InvalidCachePath(course_cache_path.clone()))?;
+    let new_cache_path = cache_root.join(format!("{}-{}", course_name, old_version + 1));
+    log::info!("next cache path: {}", new_cache_path.display());
+
+    if new_cache_path.exists() {
+        log::info!("clearing new cache path at {}", new_cache_path.display());
+        file_util::remove_dir_all(&new_cache_path)?;
+    }
+    file_util::create_dir_all(&new_cache_path)?;
+    progress_stage("Created new cache dir");
+
+    // initialize new clone path and verify directory names
+    let new_clone_path = new_cache_path.join("clone");
+    let old_clone_path = course_cache_path.join("clone");
+    initialize_new_cache_clone(
+        &new_cache_path,
+        &new_clone_path,
+        &old_clone_path,
+        &source_url,
+        &git_branch,
+    )?;
+    check_directory_names(&new_clone_path)?;
+    progress_stage("Updated repository");
+
+    let course_options = get_course_options(&new_clone_path, &course_name)?;
+    progress_stage("Fetched course options");
+
+    let new_solution_path = new_cache_path.join("solution");
+    let new_stub_path = new_cache_path.join("stub");
+
+    let exercise_dirs = task_executor::find_exercise_directories(&new_clone_path)?
+        .into_iter()
+        .map(|ed| ed.strip_prefix(&new_clone_path).unwrap().to_path_buf()) // safe
+        .collect();
+
+    // make_solutions
+    log::info!("preparing solutions to {}", new_solution_path.display());
+    for exercise in &exercise_dirs {
+        task_executor::prepare_solution(
+            &new_clone_path.join(&exercise),
+            &new_solution_path.join(&exercise),
+        )?;
+    }
+    progress_stage("Prepared solutions");
+
+    // make_stubs
+    log::info!("preparing stubs to {}", new_stub_path.display());
+    for exercise in &exercise_dirs {
+        task_executor::prepare_stub(
+            &new_clone_path.join(&exercise),
+            &new_stub_path.join(&exercise),
+        )?;
+    }
+    progress_stage("Prepared stubs");
+
+    let exercises = get_exercises(exercise_dirs, &new_clone_path, &new_stub_path)?;
+    progress_stage("Located exercises");
+
+    // make_zips_of_solutions
+    let new_solution_zip_path = new_cache_path.join("solution_zip");
+    execute_zip(&exercises, &new_solution_path, &new_solution_zip_path)?;
+    progress_stage("Compressed solutions");
+
+    // make_zips_of_stubs
+    let new_stub_zip_path = new_cache_path.join("stub_zip");
+    log::info!(
+        "compressing stubs from {} to {}",
+        new_stub_path.display(),
+        new_stub_zip_path.display()
+    );
+    execute_zip(&exercises, &new_stub_path, &new_stub_zip_path)?;
+    progress_stage("Compressed stubs");
+
+    // make sure the new cache path is readable by anyone
+    set_permissions(&new_cache_path)?;
+
+    finish_stage("Refreshed course");
+    Ok(RefreshData {
+        new_cache_path,
+        course_options,
+        exercises,
+    })
 }
 
 /// Checks old_cache_path/clone for a git repo.
@@ -405,6 +349,18 @@ fn set_permissions(path: &Path) -> Result<(), UtilError> {
     }
 
     Ok(())
+}
+
+fn start_stage(steps: usize, message: impl Into<String>) {
+    progress_reporter::start_stage::<()>(steps, message.into(), None)
+}
+
+fn progress_stage(message: impl Into<String>) {
+    progress_reporter::progress_stage::<()>(message.into(), None)
+}
+
+fn finish_stage(message: impl Into<String>) {
+    progress_reporter::finish_stage::<()>(message.into(), None)
 }
 
 #[cfg(test)]

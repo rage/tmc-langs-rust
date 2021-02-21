@@ -259,7 +259,7 @@ mod test {
                 finished: false,
                 message: "doing things...".to_string(),
                 percent_done: 33.3333,
-                time: Some(2000),
+                time: 2000,
             }));
         let actual = serde_json::to_string_pretty(&status_update).unwrap();
         let expected = read_api_file("status-update.json");

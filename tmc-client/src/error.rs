@@ -65,8 +65,6 @@ pub enum ClientError {
     FileIo(#[from] FileIo),
     #[error(transparent)]
     Tmc(#[from] tmc_langs_util::error::UtilError),
-    #[error("Error while reporting progress")]
-    ProgressReport(#[source] Box<dyn 'static + std::error::Error + Send + Sync>),
 }
 
 impl From<TokenError> for ClientError {

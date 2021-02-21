@@ -285,7 +285,7 @@ mod test {
     use crate::SEPARATOR;
 
     use super::*;
-    use tmc_langs_framework::{anyhow, nom, TmcError};
+    use tmc_langs_framework::{nom, TmcError};
 
     fn init() {
         use log::*;

@@ -30,15 +30,18 @@ use std::{
 };
 use std::{env, io::Cursor};
 use tempfile::NamedTempFile;
-use tmc_client::oauth2::{
-    basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
+use tmc_client::{
+    oauth2::{
+        basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
+    },
+    ClientUpdateData,
 };
 use tmc_client::{ClientError, FeedbackAnswer, TmcClient, Token};
 use tmc_langs_framework::{
     domain::StyleValidationResult, error::CommandError, file_util, warning_reporter,
 };
 use tmc_langs_util::{
-    progress_reporter::ProgressReporter,
+    progress_reporter,
     task_executor::{self, TmcParams},
     Language, OutputFormat,
 };
@@ -56,6 +59,18 @@ pub fn run() {
             log::error!("printing warning failed: {}", err);
         }
     }));
+
+    progress_reporter::subscribe::<(), _>(move |update| {
+        let output = Output::StatusUpdate(StatusUpdateData::None(update));
+        print_output(&output, pretty)?;
+        Ok(())
+    });
+
+    progress_reporter::subscribe::<ClientUpdateData, _>(move |update| {
+        let output = Output::StatusUpdate(StatusUpdateData::ClientUpdateData(update));
+        print_output(&output, pretty)?;
+        Ok(())
+    });
 
     if let Err(e) = run_app(matches, pretty) {
         // error handling
@@ -526,11 +541,6 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
                 source_url.to_string(),
                 git_branch.to_string(),
                 PathBuf::from(cache_root),
-                move |update| {
-                    let output = Output::StatusUpdate(StatusUpdateData::None(update));
-                    print_output(&output, pretty)?;
-                    Ok(())
-                },
             )
             .with_context(|| format!("Failed to refresh course {}", course_name))?;
 
@@ -641,13 +651,6 @@ fn run_core(
     matches: &ArgMatches,
     pretty: bool,
 ) -> Result<PrintToken> {
-    // set progress report to print the updates to stdout as JSON
-    client.set_progress_reporter(ProgressReporter::new(move |update| {
-        let output = Output::StatusUpdate(StatusUpdateData::ClientUpdateData(update));
-        print_output(&output, pretty)?;
-        Ok(())
-    }))?;
-
     // proof of having printed the output
     let printed: PrintToken = match matches.subcommand() {
         ("check-exercise-updates", Some(_)) => {
@@ -721,13 +724,9 @@ fn run_core(
 
             let submission_url = matches.value_of("submission-url");
 
-            // increment steps for reset
-            client.increment_progress_steps();
             if save_old_state {
                 // submit old exercise
                 let submission_url = into_url(submission_url.unwrap())?;
-                // increment steps for submit
-                client.increment_progress_steps();
                 client.submit(submission_url, &output_path, None)?;
                 log::debug!("finished submission");
             }
@@ -1250,7 +1249,6 @@ fn run_core(
             if save_old_state {
                 // submit current state
                 let submission_url = into_url(submission_url.unwrap())?;
-                client.increment_progress_steps();
                 client.submit(submission_url, &exercise_path, None)?;
             }
 
@@ -1304,9 +1302,6 @@ fn run_core(
 
             file_util::lock!(submission_path);
 
-            if !dont_block {
-                client.increment_progress_steps();
-            }
             let new_submission = client
                 .submit(submission_url, submission_path, locale)
                 .context("Failed to submit")?;
@@ -1501,7 +1496,7 @@ fn run_settings(matches: &ArgMatches, pretty: bool) -> Result<PrintToken> {
                 },
             );
 
-            move_dir(exercise_path, &target_dir, pretty)?;
+            move_dir(exercise_path, &target_dir)?;
             course_config.save_to_projects_dir(&tmc_config.projects_dir)?;
 
             let output = Output::finished_with_data("migrated exercise", None);
@@ -1536,7 +1531,7 @@ fn run_settings(matches: &ArgMatches, pretty: bool) -> Result<PrintToken> {
             }
 
             let old_projects_dir = tmc_config.set_projects_dir(target.clone())?;
-            move_dir(&old_projects_dir, &target, pretty)?;
+            move_dir(&old_projects_dir, &target)?;
             tmc_config.save(client_name)?;
 
             let output = Output::finished_with_data("moved project directory", None);
@@ -1723,21 +1718,7 @@ fn json_to_toml(json: JsonValue) -> Result<TomlValue> {
     }
 }
 
-fn move_dir(source: &Path, target: &Path, pretty: bool) -> anyhow::Result<()> {
-    let reporter = ProgressReporter::<()>::new(move |update| {
-        let output = Output::StatusUpdate(StatusUpdateData::None(update));
-        print_output(&output, pretty)?;
-        Ok(())
-    });
-
-    reporter
-        .progress(
-            format!("Moving dir {} -> {}", source.display(), target.display()),
-            0.0,
-            None,
-        )
-        .map_err(|e| anyhow::anyhow!(e))?;
-
+fn move_dir(source: &Path, target: &Path) -> anyhow::Result<()> {
     let mut file_count_copied = 0;
     let mut file_count_total = 0;
     for entry in WalkDir::new(source) {
@@ -1747,6 +1728,11 @@ fn move_dir(source: &Path, target: &Path, pretty: bool) -> anyhow::Result<()> {
             file_count_total += 1;
         }
     }
+    start_stage(
+        file_count_total + 1,
+        format!("Moving dir {} -> {}", source.display(), target.display()),
+    );
+
     for entry in WalkDir::new(source).contents_first(true) {
         let entry =
             entry.with_context(|| format!("Failed to read file inside {}", source.display()))?;
@@ -1755,16 +1741,10 @@ fn move_dir(source: &Path, target: &Path, pretty: bool) -> anyhow::Result<()> {
         if entry_path.file_name() == Some(OsStr::new(".tmc.lock")) {
             log::info!("skipping lock file");
             file_count_copied += 1;
-            reporter
-                .progress(
-                    format!(
-                        "Skipped moving file {} / {}",
-                        file_count_copied, file_count_total
-                    ),
-                    file_count_copied as f64 / file_count_total as f64,
-                    None,
-                )
-                .map_err(|e| anyhow::anyhow!(e))?;
+            progress_stage(format!(
+                "Skipped moving file {} / {}",
+                file_count_copied, file_count_total
+            ));
             continue;
         }
 
@@ -1798,13 +1778,10 @@ fn move_dir(source: &Path, target: &Path, pretty: bool) -> anyhow::Result<()> {
             })?;
 
             file_count_copied += 1;
-            reporter
-                .progress(
-                    format!("Moved file {} / {}", file_count_copied, file_count_total),
-                    file_count_copied as f64 / file_count_total as f64,
-                    None,
-                )
-                .map_err(|e| anyhow::anyhow!(e))?;
+            progress_stage(format!(
+                "Moved file {} / {}",
+                file_count_copied, file_count_total
+            ));
         } else if entry_path.is_dir() {
             log::debug!("Deleting {}", entry_path.display());
             fs::remove_dir(entry_path).with_context(|| {
@@ -1813,10 +1790,20 @@ fn move_dir(source: &Path, target: &Path, pretty: bool) -> anyhow::Result<()> {
         }
     }
 
-    reporter
-        .finish_step("Finished moving project directory", None)
-        .map_err(|e| anyhow::anyhow!(e))?;
+    finish_stage("Finished moving project directory");
     Ok(())
 }
 
 struct PrintToken;
+
+fn start_stage(steps: usize, message: impl Into<String>) {
+    progress_reporter::start_stage::<()>(steps, message.into(), None)
+}
+
+fn progress_stage(message: impl Into<String>) {
+    progress_reporter::progress_stage::<()>(message.into(), None)
+}
+
+fn finish_stage(message: impl Into<String>) {
+    progress_reporter::finish_stage::<()>(message.into(), None)
+}
