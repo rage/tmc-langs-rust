@@ -447,7 +447,7 @@ impl TmcClient {
     pub(super) fn course_submissions_in_last_hour(
         &self,
         course_id: usize,
-    ) -> Result<Vec<Submission>, ClientError> {
+    ) -> Result<Vec<usize>, ClientError> {
         if self.0.token.is_none() {
             return Err(ClientError::NotLoggedIn);
         }
