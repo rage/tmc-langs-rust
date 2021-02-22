@@ -61,8 +61,7 @@ impl TmcConfig {
         Ok(target)
     }
 
-    pub fn save(self, client_name: &str) -> Result<()> {
-        let path = Self::get_location(client_name)?;
+    pub fn save(self, path: &Path) -> Result<()> {
         if let Some(parent) = path.parent() {
             file_util::create_dir_all(parent)?;
         }
@@ -82,9 +81,7 @@ impl TmcConfig {
         Ok(())
     }
 
-    pub fn load(client_name: &str) -> Result<TmcConfig> {
-        let path = Self::get_location(client_name)?;
-
+    pub fn load(client_name: &str, path: &Path) -> Result<TmcConfig> {
         // try to open config file
         let config = match file_util::open_file_lock(&path) {
             Ok(mut lock) => {
@@ -161,11 +158,11 @@ impl TmcConfig {
     }
 
     // path to the configuration file
-    fn get_location(client_name: &str) -> Result<PathBuf> {
+    pub fn get_location(client_name: &str) -> Result<PathBuf> {
         super::get_tmc_dir(client_name).map(|dir| dir.join("config.toml"))
     }
 
-    // some client use a different name for the directory
+    // some clients use a different name for the directory
     fn get_client_stub(client: &str) -> &str {
         match client {
             "vscode_plugin" => "vscode",

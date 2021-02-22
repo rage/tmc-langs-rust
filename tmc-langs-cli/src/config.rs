@@ -11,7 +11,8 @@ use crate::output::LocalExercise;
 
 use anyhow::{Context, Error};
 use std::path::{Path, PathBuf};
-use std::{collections::BTreeMap, env};
+use std::{collections::BTreeMap, env, fs};
+use tmc_langs_framework::file_util;
 
 // base directory for a given plugin's settings files
 fn get_tmc_dir(client_name: &str) -> Result<PathBuf, Error> {
@@ -26,7 +27,8 @@ pub fn list_local_course_exercises(
     client_name: &str,
     course_slug: &str,
 ) -> Result<Vec<LocalExercise>, anyhow::Error> {
-    let projects_dir = TmcConfig::load(client_name)?.projects_dir;
+    let config_path = TmcConfig::get_location(client_name)?;
+    let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
     let mut projects_config = ProjectsConfig::load(&projects_dir)?;
 
     let exercises = projects_config
@@ -52,6 +54,9 @@ pub fn migrate(
     exercise_checksum: &str,
     exercise_path: &Path,
 ) -> anyhow::Result<()> {
+    let mut lock = file_util::FileLock::new(exercise_path.to_path_buf())?;
+    let guard = lock.lock()?;
+
     let mut projects_config = ProjectsConfig::load(&tmc_config.projects_dir)?;
     let course_config = projects_config
         .courses
@@ -81,8 +86,44 @@ pub fn migrate(
         },
     );
 
-    super::move_dir(exercise_path, &target_dir)?;
+    super::move_dir(exercise_path, guard, &target_dir)?;
     course_config.save_to_projects_dir(&tmc_config.projects_dir)?;
+    Ok(())
+}
+
+pub fn move_projects_dir(
+    mut tmc_config: TmcConfig,
+    config_path: &Path,
+    target: PathBuf,
+) -> anyhow::Result<()> {
+    if target.is_file() {
+        anyhow::bail!("The target path points to a file.")
+    }
+    if !target.exists() {
+        fs::create_dir_all(&target)
+            .with_context(|| format!("Failed to create directory at {}", target.display()))?;
+    }
+
+    let target_canon = target
+        .canonicalize()
+        .with_context(|| format!("Failed to canonicalize {}", target.display()))?;
+    let prev_dir_canon = tmc_config.projects_dir.canonicalize().with_context(|| {
+        format!(
+            "Failed to canonicalize {}",
+            tmc_config.projects_dir.display()
+        )
+    })?;
+    if target_canon == prev_dir_canon {
+        anyhow::bail!("Attempted to move the projects-dir to the directory it's already in.")
+    }
+
+    let old_projects_dir = tmc_config.set_projects_dir(target.clone())?;
+
+    let mut lock = file_util::FileLock::new(old_projects_dir.clone())?;
+    let guard = lock.lock()?;
+
+    super::move_dir(&old_projects_dir, guard, &target)?;
+    tmc_config.save(config_path)?;
     Ok(())
 }
 
@@ -146,5 +187,43 @@ mod test {
             .exists());
 
         assert!(!exercise_path.path().exists());
+    }
+
+    #[test]
+    fn moves_projects_dir() {
+        init();
+
+        let projects_dir = tempfile::tempdir().unwrap();
+        let target_dir = tempfile::tempdir().unwrap();
+
+        let config_path = tempfile::NamedTempFile::new().unwrap();
+        let tmc_config = TmcConfig {
+            projects_dir: projects_dir.path().to_path_buf(),
+            table: Table::new(),
+        };
+
+        file_to(
+            projects_dir.path(),
+            "some course/some exercise/some file",
+            "",
+        );
+
+        assert!(!target_dir
+            .path()
+            .join("some course/some exercise/some file")
+            .exists());
+
+        move_projects_dir(
+            tmc_config,
+            config_path.path(),
+            target_dir.path().to_path_buf(),
+        )
+        .unwrap();
+
+        assert!(target_dir
+            .path()
+            .join("some course/some exercise/some file")
+            .exists());
+        assert!(!projects_dir.path().exists());
     }
 }

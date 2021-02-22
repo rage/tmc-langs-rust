@@ -38,7 +38,10 @@ use tmc_client::{
 };
 use tmc_client::{ClientError, FeedbackAnswer, TmcClient, Token};
 use tmc_langs_framework::{
-    domain::StyleValidationResult, error::CommandError, file_util, warning_reporter,
+    domain::StyleValidationResult,
+    error::CommandError,
+    file_util::{self, FileLockGuard},
+    warning_reporter,
 };
 use tmc_langs_util::{
     progress_reporter,
@@ -656,7 +659,8 @@ fn run_core(
         ("check-exercise-updates", Some(_)) => {
             let mut updated_exercises = vec![];
 
-            let projects_dir = TmcConfig::load(client_name)?.projects_dir;
+            let config_path = TmcConfig::get_location(client_name)?;
+            let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
             let config = ProjectsConfig::load(&projects_dir)?;
             let local_exercises = config
                 .courses
@@ -758,7 +762,8 @@ fn run_core(
                 .collect::<Result<_>>()?;
             let exercises_details = client.get_exercises_details(exercises)?;
 
-            let projects_dir = TmcConfig::load(client_name)?.projects_dir;
+            let config_path = TmcConfig::get_location(client_name)?;
+            let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
             let mut projects_config = ProjectsConfig::load(&projects_dir)?;
 
             // separate downloads into ones that don't need to be downloaded and ones that do
@@ -1332,7 +1337,8 @@ fn run_core(
             let mut to_be_skipped = vec![];
             let mut course_data = HashMap::<String, Vec<(String, String, usize)>>::new();
 
-            let projects_dir = TmcConfig::load(client_name)?.projects_dir;
+            let config_path = TmcConfig::get_location(client_name)?;
+            let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
             let mut projects_config = ProjectsConfig::load(&projects_dir)?;
             let local_exercises = projects_config
                 .courses
@@ -1441,7 +1447,9 @@ fn run_core(
 
 fn run_settings(matches: &ArgMatches, pretty: bool) -> Result<PrintToken> {
     let client_name = matches.value_of("client-name").unwrap();
-    let mut tmc_config = TmcConfig::load(client_name)?;
+
+    let config_path = TmcConfig::get_location(client_name)?;
+    let mut tmc_config = TmcConfig::load(client_name, &config_path)?;
 
     match matches.subcommand() {
         ("get", Some(matches)) => {
@@ -1468,8 +1476,6 @@ fn run_settings(matches: &ArgMatches, pretty: bool) -> Result<PrintToken> {
 
             let exercise_checksum = matches.value_of("exercise-checksum").unwrap();
 
-            file_util::lock!(exercise_path);
-
             config::migrate(
                 &tmc_config,
                 course_slug,
@@ -1486,33 +1492,7 @@ fn run_settings(matches: &ArgMatches, pretty: bool) -> Result<PrintToken> {
             let dir = matches.value_of("dir").unwrap();
             let target = PathBuf::from(dir);
 
-            if target.is_file() {
-                anyhow::bail!("The target path points to a file.")
-            }
-            if !target.exists() {
-                fs::create_dir_all(&target).with_context(|| {
-                    format!("Failed to create directory at {}", target.display())
-                })?;
-            }
-
-            let target_canon = target
-                .canonicalize()
-                .with_context(|| format!("Failed to canonicalize {}", target.display()))?;
-            let prev_dir_canon = tmc_config.projects_dir.canonicalize().with_context(|| {
-                format!(
-                    "Failed to canonicalize {}",
-                    tmc_config.projects_dir.display()
-                )
-            })?;
-            if target_canon == prev_dir_canon {
-                anyhow::bail!(
-                    "Attempted to move the projects-dir to the directory it's already in."
-                )
-            }
-
-            let old_projects_dir = tmc_config.set_projects_dir(target.clone())?;
-            move_dir(&old_projects_dir, &target)?;
-            tmc_config.save(client_name)?;
+            config::move_projects_dir(tmc_config, &config_path, target)?;
 
             let output = Output::finished_with_data("moved project directory", None);
             print_output(&output, pretty)
@@ -1533,7 +1513,7 @@ fn run_settings(matches: &ArgMatches, pretty: bool) -> Result<PrintToken> {
             tmc_config
                 .insert(key.to_string(), value.clone())
                 .with_context(|| format!("Failed to set {} to {}", key, value))?;
-            tmc_config.save(client_name)?;
+            tmc_config.save(&config_path)?;
 
             let output = Output::finished_with_data("set setting", None);
             print_output(&output, pretty)
@@ -1549,7 +1529,7 @@ fn run_settings(matches: &ArgMatches, pretty: bool) -> Result<PrintToken> {
             tmc_config
                 .remove(key)
                 .with_context(|| format!("Failed to unset {}", key))?;
-            tmc_config.save(client_name)?;
+            tmc_config.save(&config_path)?;
 
             let output = Output::finished_with_data("unset setting", None);
             print_output(&output, pretty)
@@ -1698,7 +1678,7 @@ fn json_to_toml(json: JsonValue) -> Result<TomlValue> {
     }
 }
 
-fn move_dir(source: &Path, target: &Path) -> anyhow::Result<()> {
+fn move_dir(source: &Path, source_lock: FileLockGuard, target: &Path) -> anyhow::Result<()> {
     let mut file_count_copied = 0;
     let mut file_count_total = 0;
     for entry in WalkDir::new(source) {
@@ -1713,7 +1693,7 @@ fn move_dir(source: &Path, target: &Path) -> anyhow::Result<()> {
         format!("Moving dir {} -> {}", source.display(), target.display()),
     );
 
-    for entry in WalkDir::new(source).contents_first(true) {
+    for entry in WalkDir::new(source).contents_first(true).min_depth(1) {
         let entry =
             entry.with_context(|| format!("Failed to read file inside {}", source.display()))?;
         let entry_path = entry.path();
@@ -1769,6 +1749,9 @@ fn move_dir(source: &Path, target: &Path) -> anyhow::Result<()> {
             })?;
         }
     }
+
+    drop(source_lock);
+    fs::remove_dir(source)?;
 
     finish_stage("Finished moving project directory");
     Ok(())
