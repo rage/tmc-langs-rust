@@ -1470,34 +1470,14 @@ fn run_settings(matches: &ArgMatches, pretty: bool) -> Result<PrintToken> {
 
             file_util::lock!(exercise_path);
 
-            let mut projects_config = ProjectsConfig::load(&tmc_config.projects_dir)?;
-            let course_config = projects_config
-                .courses
-                .entry(course_slug.to_string())
-                .or_insert(CourseConfig {
-                    course: course_slug.to_string(),
-                    exercises: BTreeMap::new(),
-                });
-
-            let target_dir = ProjectsConfig::get_exercise_download_target(
-                &tmc_config.projects_dir,
+            config::migrate(
+                &tmc_config,
                 course_slug,
                 exercise_slug,
-            );
-            if target_dir.exists() {
-                anyhow::bail!("Tried to migrate exercise to {}; however, something already exists at that path.", target_dir.display());
-            }
-
-            course_config.exercises.insert(
-                exercise_slug.to_string(),
-                Exercise {
-                    id: exercise_id,
-                    checksum: exercise_checksum.to_string(),
-                },
-            );
-
-            move_dir(exercise_path, &target_dir)?;
-            course_config.save_to_projects_dir(&tmc_config.projects_dir)?;
+                exercise_id,
+                exercise_checksum,
+                exercise_path,
+            )?;
 
             let output = Output::finished_with_data("migrated exercise", None);
             print_output(&output, pretty)
