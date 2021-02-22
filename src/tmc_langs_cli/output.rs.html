@@ -277,20 +277,6 @@
 <span id="274">274</span>
 <span id="275">275</span>
 <span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Output format</span>
 
@@ -302,6 +288,7 @@
     <span class="ident">NewSubmission</span>, <span class="ident">Organization</span>, <span class="ident">Review</span>, <span class="ident">RunResult</span>, <span class="ident">StyleValidationResult</span>, <span class="ident">Submission</span>,
     <span class="ident">SubmissionFeedbackResponse</span>, <span class="ident">SubmissionFinished</span>, <span class="ident">Token</span>, <span class="ident">UpdateResult</span>,
 };
+<span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::<span class="ident">warning_reporter</span>::<span class="ident">Warning</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{
     <span class="ident">progress_reporter</span>::<span class="ident">StatusUpdate</span>, <span class="ident">task_executor</span>::<span class="ident">RefreshData</span>, <span class="ident">ExerciseDesc</span>,
     <span class="ident">ExercisePackagingConfiguration</span>,
@@ -319,7 +306,7 @@
     <span class="doccomment">/// Status update output as a command progresses.</span>
     <span class="ident">StatusUpdate</span>(<span class="ident">StatusUpdateData</span>),
     <span class="doccomment">/// Additional warnings, such as for an outdated Python dependency.</span>
-    <span class="ident">Warnings</span>(<span class="ident">Warnings</span>),
+    <span class="ident">Warning</span>(<span class="ident">Warning</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">Output</span> {
@@ -471,19 +458,6 @@
     <span class="kw">pub</span> <span class="ident">path</span>: <span class="ident">PathBuf</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Warnings</span> {
-    <span class="ident">warnings</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">Warnings</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_error_list</span>(<span class="ident">warnings</span>: <span class="kw-2">&amp;</span>[<span class="ident">anyhow</span>::<span class="ident">Error</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">warnings</span>: <span class="ident">warnings</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">to_string</span>()).<span class="ident">collect</span>(),
-        }
-    }
-}
-
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
@@ -565,7 +539,7 @@
                 <span class="ident">finished</span>: <span class="bool-val">false</span>,
                 <span class="ident">message</span>: <span class="string">&quot;doing things...&quot;</span>.<span class="ident">to_string</span>(),
                 <span class="ident">percent_done</span>: <span class="number">33.3333</span>,
-                <span class="ident">time</span>: <span class="prelude-val">Some</span>(<span class="number">2000</span>),
+                <span class="ident">time</span>: <span class="number">2000</span>,
             }));
         <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">to_string_pretty</span>(<span class="kw-2">&amp;</span><span class="ident">status_update</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">read_api_file</span>(<span class="string">&quot;status-update.json&quot;</span>);
@@ -573,10 +547,8 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">warnings</span>() {
-        <span class="kw">let</span> <span class="ident">status_update</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">Warnings</span>(<span class="ident">Warnings</span> {
-            <span class="ident">warnings</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;warning 1&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;warning 2&quot;</span>.<span class="ident">to_string</span>()],
-        });
+    <span class="kw">fn</span> <span class="ident">warning</span>() {
+        <span class="kw">let</span> <span class="ident">status_update</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">Warning</span>(<span class="ident">Warning</span>::<span class="ident">new</span>(<span class="string">&quot;some warning&quot;</span>));
         <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">to_string_pretty</span>(<span class="kw-2">&amp;</span><span class="ident">status_update</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">read_api_file</span>(<span class="string">&quot;warnings.json&quot;</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">actual</span>, <span class="ident">expected</span>);

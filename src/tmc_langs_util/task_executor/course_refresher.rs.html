@@ -556,71 +556,16 @@
 <span id="553">553</span>
 <span id="554">554</span>
 <span id="555">555</span>
-<span id="556">556</span>
-<span id="557">557</span>
-<span id="558">558</span>
-<span id="559">559</span>
-<span id="560">560</span>
-<span id="561">561</span>
-<span id="562">562</span>
-<span id="563">563</span>
-<span id="564">564</span>
-<span id="565">565</span>
-<span id="566">566</span>
-<span id="567">567</span>
-<span id="568">568</span>
-<span id="569">569</span>
-<span id="570">570</span>
-<span id="571">571</span>
-<span id="572">572</span>
-<span id="573">573</span>
-<span id="574">574</span>
-<span id="575">575</span>
-<span id="576">576</span>
-<span id="577">577</span>
-<span id="578">578</span>
-<span id="579">579</span>
-<span id="580">580</span>
-<span id="581">581</span>
-<span id="582">582</span>
-<span id="583">583</span>
-<span id="584">584</span>
-<span id="585">585</span>
-<span id="586">586</span>
-<span id="587">587</span>
-<span id="588">588</span>
-<span id="589">589</span>
-<span id="590">590</span>
-<span id="591">591</span>
-<span id="592">592</span>
-<span id="593">593</span>
-<span id="594">594</span>
-<span id="595">595</span>
-<span id="596">596</span>
-<span id="597">597</span>
-<span id="598">598</span>
-<span id="599">599</span>
-<span id="600">600</span>
-<span id="601">601</span>
-<span id="602">602</span>
-<span id="603">603</span>
-<span id="604">604</span>
-<span id="605">605</span>
-<span id="606">606</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Course refresher.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">error</span>::<span class="ident">UtilError</span>,
-    <span class="ident">progress_reporter</span>::{<span class="ident">ProgressReporter</span>, <span class="ident">StatusUpdate</span>},
-    <span class="ident">task_executor</span>,
-};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error</span>::<span class="ident">UtilError</span>, <span class="ident">progress_reporter</span>, <span class="ident">task_executor</span>};
 <span class="kw">use</span> <span class="ident">md5</span>::<span class="ident">Context</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">use</span> <span class="ident">serde_yaml</span>::<span class="ident">Mapping</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">io</span>::<span class="ident">Write</span>, <span class="ident">time</span>::<span class="ident">Duration</span>};
-<span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{<span class="ident">command</span>::<span class="ident">TmcCommand</span>, <span class="ident">file_util</span>, <span class="ident">subprocess</span>::<span class="ident">Redirection</span>};
+<span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{<span class="ident">command</span>::<span class="ident">TmcCommand</span>, <span class="ident">file_util</span>};
 <span class="kw">use</span> <span class="ident">walkdir</span>::<span class="ident">WalkDir</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
@@ -645,155 +590,103 @@
     <span class="ident">path</span>: <span class="ident">PathBuf</span>,
 }
 
-<span class="kw">struct</span> <span class="ident">CourseRefresher</span> {
-    <span class="ident">progress_reporter</span>: <span class="ident">ProgressReporter</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">CourseRefresher</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">progress_report</span>: <span class="kw">impl</span> <span class="lifetime">&#39;static</span>
-            <span class="op">+</span> <span class="ident">Sync</span>
-            <span class="op">+</span> <span class="ident">Send</span>
-            <span class="op">+</span> <span class="ident">Fn</span>(<span class="ident">StatusUpdate</span><span class="op">&lt;</span>()<span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">progress_reporter</span>: <span class="ident">ProgressReporter</span>::<span class="ident">new</span>(<span class="ident">progress_report</span>),
-        }
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">refresh_course</span>(
-        <span class="self">self</span>,
-        <span class="ident">course_name</span>: <span class="ident">String</span>,
-        <span class="ident">course_cache_path</span>: <span class="ident">PathBuf</span>,
-        <span class="ident">source_url</span>: <span class="ident">String</span>,
-        <span class="ident">git_branch</span>: <span class="ident">String</span>,
-        <span class="ident">cache_root</span>: <span class="ident">PathBuf</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RefreshData</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
-        <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;refreshing course {}&quot;</span>, <span class="ident">course_name</span>);
-        <span class="self">self</span>.<span class="ident">progress_reporter</span>.<span class="ident">start_timer</span>();
-
-        <span class="comment">// sets the total amount of progress steps properly</span>
-        <span class="self">self</span>.<span class="ident">progress_reporter</span>.<span class="ident">increment_progress_steps</span>(<span class="number">13</span>);
-
-        <span class="comment">// create new cache path</span>
-        <span class="kw">let</span> <span class="ident">old_version</span> <span class="op">=</span> <span class="ident">course_cache_path</span>
-            .<span class="ident">to_str</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">split</span>(<span class="string">&#39;-&#39;</span>).<span class="ident">last</span>())
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>().<span class="ident">ok</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">UtilError</span>::<span class="ident">InvalidCachePath</span>(<span class="ident">course_cache_path</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">new_cache_path</span> <span class="op">=</span> <span class="ident">cache_root</span>.<span class="ident">join</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}-{}&quot;</span>, <span class="ident">course_name</span>, <span class="ident">old_version</span> <span class="op">+</span> <span class="number">1</span>));
-        <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;next cache path: {}&quot;</span>, <span class="ident">new_cache_path</span>.<span class="ident">display</span>());
-
-        <span class="kw">if</span> <span class="ident">new_cache_path</span>.<span class="ident">exists</span>() {
-            <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;clearing new cache path at {}&quot;</span>, <span class="ident">new_cache_path</span>.<span class="ident">display</span>());
-            <span class="ident">file_util</span>::<span class="ident">remove_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">new_cache_path</span>)<span class="question-mark">?</span>;
-        }
-        <span class="ident">file_util</span>::<span class="ident">create_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">new_cache_path</span>)<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">progress_reporter</span>
-            .<span class="ident">finish_step</span>(<span class="string">&quot;Created new cache dir&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// initialize new clone path and verify directory names</span>
-        <span class="kw">let</span> <span class="ident">new_clone_path</span> <span class="op">=</span> <span class="ident">new_cache_path</span>.<span class="ident">join</span>(<span class="string">&quot;clone&quot;</span>);
-        <span class="kw">let</span> <span class="ident">old_clone_path</span> <span class="op">=</span> <span class="ident">course_cache_path</span>.<span class="ident">join</span>(<span class="string">&quot;clone&quot;</span>);
-        <span class="ident">initialize_new_cache_clone</span>(
-            <span class="kw-2">&amp;</span><span class="ident">new_cache_path</span>,
-            <span class="kw-2">&amp;</span><span class="ident">new_clone_path</span>,
-            <span class="kw-2">&amp;</span><span class="ident">old_clone_path</span>,
-            <span class="kw-2">&amp;</span><span class="ident">source_url</span>,
-            <span class="kw-2">&amp;</span><span class="ident">git_branch</span>,
-        )<span class="question-mark">?</span>;
-        <span class="ident">check_directory_names</span>(<span class="kw-2">&amp;</span><span class="ident">new_clone_path</span>)<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">progress_reporter</span>
-            .<span class="ident">finish_step</span>(<span class="string">&quot;Updated repository&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-
-        <span class="kw">let</span> <span class="ident">course_options</span> <span class="op">=</span> <span class="ident">get_course_options</span>(<span class="kw-2">&amp;</span><span class="ident">new_clone_path</span>, <span class="kw-2">&amp;</span><span class="ident">course_name</span>)<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">progress_reporter</span>
-            .<span class="ident">finish_step</span>(<span class="string">&quot;Fetched course options&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-
-        <span class="kw">let</span> <span class="ident">new_solution_path</span> <span class="op">=</span> <span class="ident">new_cache_path</span>.<span class="ident">join</span>(<span class="string">&quot;solution&quot;</span>);
-        <span class="kw">let</span> <span class="ident">new_stub_path</span> <span class="op">=</span> <span class="ident">new_cache_path</span>.<span class="ident">join</span>(<span class="string">&quot;stub&quot;</span>);
-
-        <span class="kw">let</span> <span class="ident">exercise_dirs</span> <span class="op">=</span> <span class="ident">task_executor</span>::<span class="ident">find_exercise_directories</span>(<span class="kw-2">&amp;</span><span class="ident">new_clone_path</span>)<span class="question-mark">?</span>
-            .<span class="ident">into_iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ed</span><span class="op">|</span> <span class="ident">ed</span>.<span class="ident">strip_prefix</span>(<span class="kw-2">&amp;</span><span class="ident">new_clone_path</span>).<span class="ident">unwrap</span>().<span class="ident">to_path_buf</span>()) <span class="comment">// safe</span>
-            .<span class="ident">collect</span>();
-
-        <span class="comment">// make_solutions</span>
-        <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;preparing solutions to {}&quot;</span>, <span class="ident">new_solution_path</span>.<span class="ident">display</span>());
-        <span class="kw">for</span> <span class="ident">exercise</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">exercise_dirs</span> {
-            <span class="ident">task_executor</span>::<span class="ident">prepare_solution</span>(
-                <span class="kw-2">&amp;</span><span class="ident">new_clone_path</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">exercise</span>),
-                <span class="kw-2">&amp;</span><span class="ident">new_solution_path</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">exercise</span>),
-            )<span class="question-mark">?</span>;
-        }
-        <span class="self">self</span>.<span class="ident">progress_reporter</span>
-            .<span class="ident">finish_step</span>(<span class="string">&quot;Prepared solutions&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// make_stubs</span>
-        <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;preparing stubs to {}&quot;</span>, <span class="ident">new_stub_path</span>.<span class="ident">display</span>());
-        <span class="kw">for</span> <span class="ident">exercise</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">exercise_dirs</span> {
-            <span class="ident">task_executor</span>::<span class="ident">prepare_stub</span>(
-                <span class="kw-2">&amp;</span><span class="ident">new_clone_path</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">exercise</span>),
-                <span class="kw-2">&amp;</span><span class="ident">new_stub_path</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">exercise</span>),
-            )<span class="question-mark">?</span>;
-        }
-        <span class="self">self</span>.<span class="ident">progress_reporter</span>
-            .<span class="ident">finish_step</span>(<span class="string">&quot;Prepared stubs&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-
-        <span class="kw">let</span> <span class="ident">exercises</span> <span class="op">=</span> <span class="ident">get_exercises</span>(<span class="ident">exercise_dirs</span>, <span class="kw-2">&amp;</span><span class="ident">new_clone_path</span>, <span class="kw-2">&amp;</span><span class="ident">new_stub_path</span>)<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">progress_reporter</span>
-            .<span class="ident">finish_step</span>(<span class="string">&quot;Located exercises&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// make_zips_of_solutions</span>
-        <span class="kw">let</span> <span class="ident">new_solution_zip_path</span> <span class="op">=</span> <span class="ident">new_cache_path</span>.<span class="ident">join</span>(<span class="string">&quot;solution_zip&quot;</span>);
-        <span class="ident">execute_zip</span>(<span class="kw-2">&amp;</span><span class="ident">exercises</span>, <span class="kw-2">&amp;</span><span class="ident">new_solution_path</span>, <span class="kw-2">&amp;</span><span class="ident">new_solution_zip_path</span>)<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">progress_reporter</span>
-            .<span class="ident">finish_step</span>(<span class="string">&quot;Compressed solutions&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// make_zips_of_stubs</span>
-        <span class="kw">let</span> <span class="ident">new_stub_zip_path</span> <span class="op">=</span> <span class="ident">new_cache_path</span>.<span class="ident">join</span>(<span class="string">&quot;stub_zip&quot;</span>);
-        <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(
-            <span class="string">&quot;compressing stubs from {} to {}&quot;</span>,
-            <span class="ident">new_stub_path</span>.<span class="ident">display</span>(),
-            <span class="ident">new_stub_zip_path</span>.<span class="ident">display</span>()
-        );
-        <span class="ident">execute_zip</span>(<span class="kw-2">&amp;</span><span class="ident">exercises</span>, <span class="kw-2">&amp;</span><span class="ident">new_stub_path</span>, <span class="kw-2">&amp;</span><span class="ident">new_stub_zip_path</span>)<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">progress_reporter</span>
-            .<span class="ident">finish_step</span>(<span class="string">&quot;Compressed stubs&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// make sure the new cache path is readable by anyone</span>
-        <span class="ident">set_permissions</span>(<span class="kw-2">&amp;</span><span class="ident">new_cache_path</span>)<span class="question-mark">?</span>;
-
-        <span class="self">self</span>.<span class="ident">progress_reporter</span>
-            .<span class="ident">finish_step</span>(<span class="string">&quot;Refreshed course&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">RefreshData</span> {
-            <span class="ident">new_cache_path</span>,
-            <span class="ident">course_options</span>,
-            <span class="ident">exercises</span>,
-        })
-    }
-}
-
-<span class="doccomment">/// Refreshes a course...</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">refresh_course</span>(
     <span class="ident">course_name</span>: <span class="ident">String</span>,
     <span class="ident">course_cache_path</span>: <span class="ident">PathBuf</span>,
     <span class="ident">source_url</span>: <span class="ident">String</span>,
     <span class="ident">git_branch</span>: <span class="ident">String</span>,
     <span class="ident">cache_root</span>: <span class="ident">PathBuf</span>,
-    <span class="ident">progress_reporter</span>: <span class="kw">impl</span> <span class="lifetime">&#39;static</span>
-        <span class="op">+</span> <span class="ident">Sync</span>
-        <span class="op">+</span> <span class="ident">Send</span>
-        <span class="op">+</span> <span class="ident">Fn</span>(<span class="ident">StatusUpdate</span><span class="op">&lt;</span>()<span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">dyn</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RefreshData</span>, <span class="ident">UtilError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">course_refresher</span> <span class="op">=</span> <span class="ident">CourseRefresher</span>::<span class="ident">new</span>(<span class="ident">progress_reporter</span>);
-    <span class="ident">course_refresher</span>.<span class="ident">refresh_course</span>(
-        <span class="ident">course_name</span>,
-        <span class="ident">course_cache_path</span>,
-        <span class="ident">source_url</span>,
-        <span class="ident">git_branch</span>,
-        <span class="ident">cache_root</span>,
-    )
+    <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;refreshing course {}&quot;</span>, <span class="ident">course_name</span>);
+    <span class="ident">start_stage</span>(<span class="number">9</span>, <span class="string">&quot;refreshing course&quot;</span>);
+
+    <span class="comment">// create new cache path</span>
+    <span class="kw">let</span> <span class="ident">old_version</span> <span class="op">=</span> <span class="ident">course_cache_path</span>
+        .<span class="ident">to_str</span>()
+        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">split</span>(<span class="string">&#39;-&#39;</span>).<span class="ident">last</span>())
+        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>().<span class="ident">ok</span>())
+        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">UtilError</span>::<span class="ident">InvalidCachePath</span>(<span class="ident">course_cache_path</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">new_cache_path</span> <span class="op">=</span> <span class="ident">cache_root</span>.<span class="ident">join</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}-{}&quot;</span>, <span class="ident">course_name</span>, <span class="ident">old_version</span> <span class="op">+</span> <span class="number">1</span>));
+    <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;next cache path: {}&quot;</span>, <span class="ident">new_cache_path</span>.<span class="ident">display</span>());
+
+    <span class="kw">if</span> <span class="ident">new_cache_path</span>.<span class="ident">exists</span>() {
+        <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;clearing new cache path at {}&quot;</span>, <span class="ident">new_cache_path</span>.<span class="ident">display</span>());
+        <span class="ident">file_util</span>::<span class="ident">remove_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">new_cache_path</span>)<span class="question-mark">?</span>;
+    }
+    <span class="ident">file_util</span>::<span class="ident">create_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">new_cache_path</span>)<span class="question-mark">?</span>;
+    <span class="ident">progress_stage</span>(<span class="string">&quot;Created new cache dir&quot;</span>);
+
+    <span class="comment">// initialize new clone path and verify directory names</span>
+    <span class="kw">let</span> <span class="ident">new_clone_path</span> <span class="op">=</span> <span class="ident">new_cache_path</span>.<span class="ident">join</span>(<span class="string">&quot;clone&quot;</span>);
+    <span class="kw">let</span> <span class="ident">old_clone_path</span> <span class="op">=</span> <span class="ident">course_cache_path</span>.<span class="ident">join</span>(<span class="string">&quot;clone&quot;</span>);
+    <span class="ident">initialize_new_cache_clone</span>(
+        <span class="kw-2">&amp;</span><span class="ident">new_cache_path</span>,
+        <span class="kw-2">&amp;</span><span class="ident">new_clone_path</span>,
+        <span class="kw-2">&amp;</span><span class="ident">old_clone_path</span>,
+        <span class="kw-2">&amp;</span><span class="ident">source_url</span>,
+        <span class="kw-2">&amp;</span><span class="ident">git_branch</span>,
+    )<span class="question-mark">?</span>;
+    <span class="ident">check_directory_names</span>(<span class="kw-2">&amp;</span><span class="ident">new_clone_path</span>)<span class="question-mark">?</span>;
+    <span class="ident">progress_stage</span>(<span class="string">&quot;Updated repository&quot;</span>);
+
+    <span class="kw">let</span> <span class="ident">course_options</span> <span class="op">=</span> <span class="ident">get_course_options</span>(<span class="kw-2">&amp;</span><span class="ident">new_clone_path</span>, <span class="kw-2">&amp;</span><span class="ident">course_name</span>)<span class="question-mark">?</span>;
+    <span class="ident">progress_stage</span>(<span class="string">&quot;Fetched course options&quot;</span>);
+
+    <span class="kw">let</span> <span class="ident">new_solution_path</span> <span class="op">=</span> <span class="ident">new_cache_path</span>.<span class="ident">join</span>(<span class="string">&quot;solution&quot;</span>);
+    <span class="kw">let</span> <span class="ident">new_stub_path</span> <span class="op">=</span> <span class="ident">new_cache_path</span>.<span class="ident">join</span>(<span class="string">&quot;stub&quot;</span>);
+
+    <span class="kw">let</span> <span class="ident">exercise_dirs</span> <span class="op">=</span> <span class="ident">task_executor</span>::<span class="ident">find_exercise_directories</span>(<span class="kw-2">&amp;</span><span class="ident">new_clone_path</span>)<span class="question-mark">?</span>
+        .<span class="ident">into_iter</span>()
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ed</span><span class="op">|</span> <span class="ident">ed</span>.<span class="ident">strip_prefix</span>(<span class="kw-2">&amp;</span><span class="ident">new_clone_path</span>).<span class="ident">unwrap</span>().<span class="ident">to_path_buf</span>()) <span class="comment">// safe</span>
+        .<span class="ident">collect</span>();
+
+    <span class="comment">// make_solutions</span>
+    <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;preparing solutions to {}&quot;</span>, <span class="ident">new_solution_path</span>.<span class="ident">display</span>());
+    <span class="kw">for</span> <span class="ident">exercise</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">exercise_dirs</span> {
+        <span class="ident">task_executor</span>::<span class="ident">prepare_solution</span>(
+            <span class="kw-2">&amp;</span><span class="ident">new_clone_path</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">exercise</span>),
+            <span class="kw-2">&amp;</span><span class="ident">new_solution_path</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">exercise</span>),
+        )<span class="question-mark">?</span>;
+    }
+    <span class="ident">progress_stage</span>(<span class="string">&quot;Prepared solutions&quot;</span>);
+
+    <span class="comment">// make_stubs</span>
+    <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;preparing stubs to {}&quot;</span>, <span class="ident">new_stub_path</span>.<span class="ident">display</span>());
+    <span class="kw">for</span> <span class="ident">exercise</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">exercise_dirs</span> {
+        <span class="ident">task_executor</span>::<span class="ident">prepare_stub</span>(
+            <span class="kw-2">&amp;</span><span class="ident">new_clone_path</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">exercise</span>),
+            <span class="kw-2">&amp;</span><span class="ident">new_stub_path</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">exercise</span>),
+        )<span class="question-mark">?</span>;
+    }
+    <span class="ident">progress_stage</span>(<span class="string">&quot;Prepared stubs&quot;</span>);
+
+    <span class="kw">let</span> <span class="ident">exercises</span> <span class="op">=</span> <span class="ident">get_exercises</span>(<span class="ident">exercise_dirs</span>, <span class="kw-2">&amp;</span><span class="ident">new_clone_path</span>, <span class="kw-2">&amp;</span><span class="ident">new_stub_path</span>)<span class="question-mark">?</span>;
+    <span class="ident">progress_stage</span>(<span class="string">&quot;Located exercises&quot;</span>);
+
+    <span class="comment">// make_zips_of_solutions</span>
+    <span class="kw">let</span> <span class="ident">new_solution_zip_path</span> <span class="op">=</span> <span class="ident">new_cache_path</span>.<span class="ident">join</span>(<span class="string">&quot;solution_zip&quot;</span>);
+    <span class="ident">execute_zip</span>(<span class="kw-2">&amp;</span><span class="ident">exercises</span>, <span class="kw-2">&amp;</span><span class="ident">new_solution_path</span>, <span class="kw-2">&amp;</span><span class="ident">new_solution_zip_path</span>)<span class="question-mark">?</span>;
+    <span class="ident">progress_stage</span>(<span class="string">&quot;Compressed solutions&quot;</span>);
+
+    <span class="comment">// make_zips_of_stubs</span>
+    <span class="kw">let</span> <span class="ident">new_stub_zip_path</span> <span class="op">=</span> <span class="ident">new_cache_path</span>.<span class="ident">join</span>(<span class="string">&quot;stub_zip&quot;</span>);
+    <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(
+        <span class="string">&quot;compressing stubs from {} to {}&quot;</span>,
+        <span class="ident">new_stub_path</span>.<span class="ident">display</span>(),
+        <span class="ident">new_stub_zip_path</span>.<span class="ident">display</span>()
+    );
+    <span class="ident">execute_zip</span>(<span class="kw-2">&amp;</span><span class="ident">exercises</span>, <span class="kw-2">&amp;</span><span class="ident">new_stub_path</span>, <span class="kw-2">&amp;</span><span class="ident">new_stub_zip_path</span>)<span class="question-mark">?</span>;
+    <span class="ident">progress_stage</span>(<span class="string">&quot;Compressed stubs&quot;</span>);
+
+    <span class="comment">// make sure the new cache path is readable by anyone</span>
+    <span class="ident">set_permissions</span>(<span class="kw-2">&amp;</span><span class="ident">new_cache_path</span>)<span class="question-mark">?</span>;
+
+    <span class="ident">finish_stage</span>(<span class="string">&quot;Refreshed course&quot;</span>);
+    <span class="prelude-val">Ok</span>(<span class="ident">RefreshData</span> {
+        <span class="ident">new_cache_path</span>,
+        <span class="ident">course_options</span>,
+        <span class="ident">exercises</span>,
+    })
 }
 
 <span class="doccomment">/// Checks old_cache_path/clone for a git repo.</span>
@@ -820,13 +713,8 @@
             <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">old_clone_path</span>, <span class="ident">new_course_root</span>)<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">run_git</span> <span class="op">=</span> <span class="op">|</span><span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]<span class="op">|</span> {
-                <span class="ident">TmcCommand</span>::<span class="ident">new</span>(<span class="string">&quot;git&quot;</span>.<span class="ident">to_string</span>())
-                    .<span class="ident">with</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                        <span class="ident">e</span>.<span class="ident">cwd</span>(<span class="ident">new_clone_path</span>)
-                            .<span class="ident">args</span>(<span class="ident">args</span>)
-                            .<span class="ident">stdout</span>(<span class="ident">Redirection</span>::<span class="ident">Pipe</span>)
-                            .<span class="ident">stderr</span>(<span class="ident">Redirection</span>::<span class="ident">Pipe</span>)
-                    })
+                <span class="ident">TmcCommand</span>::<span class="ident">piped</span>(<span class="string">&quot;git&quot;</span>.<span class="ident">to_string</span>())
+                    .<span class="ident">with</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">cwd</span>(<span class="ident">new_clone_path</span>).<span class="ident">args</span>(<span class="ident">args</span>))
                     .<span class="ident">output_with_timeout_checked</span>(<span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="number">60</span> <span class="op">*</span> <span class="number">2</span>))
             };
 
@@ -853,14 +741,12 @@
     <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;could not copy from previous cache, cloning&quot;</span>);
 
     <span class="comment">// clone_repository</span>
-    <span class="ident">TmcCommand</span>::<span class="ident">new</span>(<span class="string">&quot;git&quot;</span>.<span class="ident">to_string</span>())
+    <span class="ident">TmcCommand</span>::<span class="ident">piped</span>(<span class="string">&quot;git&quot;</span>.<span class="ident">to_string</span>())
         .<span class="ident">with</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
             <span class="ident">e</span>.<span class="ident">args</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;clone&quot;</span>, <span class="string">&quot;-q&quot;</span>, <span class="string">&quot;-b&quot;</span>])
                 .<span class="ident">arg</span>(<span class="ident">course_git_branch</span>)
                 .<span class="ident">arg</span>(<span class="ident">course_source_url</span>)
                 .<span class="ident">arg</span>(<span class="ident">new_clone_path</span>)
-                .<span class="ident">stdout</span>(<span class="ident">Redirection</span>::<span class="ident">Pipe</span>)
-                .<span class="ident">stderr</span>(<span class="ident">Redirection</span>::<span class="ident">Pipe</span>)
         })
         .<span class="ident">output_with_timeout_checked</span>(<span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="number">60</span> <span class="op">*</span> <span class="number">2</span>))<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
@@ -1022,6 +908,18 @@
     }
 
     <span class="prelude-val">Ok</span>(())
+}
+
+<span class="kw">fn</span> <span class="ident">start_stage</span>(<span class="ident">steps</span>: <span class="ident">usize</span>, <span class="ident">message</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) {
+    <span class="ident">progress_reporter</span>::<span class="ident">start_stage</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>(<span class="ident">steps</span>, <span class="ident">message</span>.<span class="ident">into</span>(), <span class="prelude-val">None</span>)
+}
+
+<span class="kw">fn</span> <span class="ident">progress_stage</span>(<span class="ident">message</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) {
+    <span class="ident">progress_reporter</span>::<span class="ident">progress_stage</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>(<span class="ident">message</span>.<span class="ident">into</span>(), <span class="prelude-val">None</span>)
+}
+
+<span class="kw">fn</span> <span class="ident">finish_stage</span>(<span class="ident">message</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) {
+    <span class="ident">progress_reporter</span>::<span class="ident">finish_stage</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>(<span class="ident">message</span>.<span class="ident">into</span>(), <span class="prelude-val">None</span>)
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>

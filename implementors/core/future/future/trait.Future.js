@@ -1,4 +1,5 @@
 (function() {var implementors = {};
+implementors["async_channel"] = [{"text":"impl&lt;'a, T&gt; Future for Send&lt;'a, T&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'a, T&gt; Future for Recv&lt;'a, T&gt;","synthetic":false,"types":[]}];
 implementors["async_io"] = [{"text":"impl Future for Timer","synthetic":false,"types":[]}];
 implementors["async_task"] = [{"text":"impl&lt;T&gt; Future for Task&lt;T&gt;","synthetic":false,"types":[]}];
 implementors["event_listener"] = [{"text":"impl Future for EventListener","synthetic":false,"types":[]}];
