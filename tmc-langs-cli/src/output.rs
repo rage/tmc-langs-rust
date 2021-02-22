@@ -8,6 +8,7 @@ use tmc_client::{
     NewSubmission, Organization, Review, RunResult, StyleValidationResult, Submission,
     SubmissionFeedbackResponse, SubmissionFinished, Token, UpdateResult,
 };
+use tmc_langs_framework::warning_reporter::Warning;
 use tmc_langs_util::{
     progress_reporter::StatusUpdate, task_executor::RefreshData, ExerciseDesc,
     ExercisePackagingConfiguration,
@@ -25,7 +26,7 @@ pub enum Output {
     /// Status update output as a command progresses.
     StatusUpdate(StatusUpdateData),
     /// Additional warnings, such as for an outdated Python dependency.
-    Warnings(Warnings),
+    Warning(Warning),
 }
 
 impl Output {
@@ -177,19 +178,6 @@ pub struct DownloadTarget {
     pub path: PathBuf,
 }
 
-#[derive(Debug, Serialize)]
-pub struct Warnings {
-    warnings: Vec<String>,
-}
-
-impl Warnings {
-    pub fn from_error_list(warnings: &[anyhow::Error]) -> Self {
-        Self {
-            warnings: warnings.iter().map(|w| w.to_string()).collect(),
-        }
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -271,7 +259,7 @@ mod test {
                 finished: false,
                 message: "doing things...".to_string(),
                 percent_done: 33.3333,
-                time: Some(2000),
+                time: 2000,
             }));
         let actual = serde_json::to_string_pretty(&status_update).unwrap();
         let expected = read_api_file("status-update.json");
@@ -279,10 +267,8 @@ mod test {
     }
 
     #[test]
-    fn warnings() {
-        let status_update = Output::Warnings(Warnings {
-            warnings: vec!["warning 1".to_string(), "warning 2".to_string()],
-        });
+    fn warning() {
+        let status_update = Output::Warning(Warning::new("some warning"));
         let actual = serde_json::to_string_pretty(&status_update).unwrap();
         let expected = read_api_file("warnings.json");
         assert_eq!(actual, expected);

@@ -20,7 +20,7 @@ use std::sync::{
 use std::thread;
 use std::time::Duration;
 use tempfile::NamedTempFile;
-use tmc_langs_util::{file_util, progress_reporter::ProgressReporter, task_executor, FileIo};
+use tmc_langs_util::{file_util, progress_reporter, task_executor, FileIo};
 use walkdir::WalkDir;
 
 pub type Token =
@@ -45,7 +45,6 @@ struct TmcCore {
     api_url: Url,
     auth_url: String,
     token: Option<Token>,
-    progress_reporter: Option<ProgressReporter<'static, ClientUpdateData>>,
     client_name: String,
     client_version: String,
 }
@@ -88,7 +87,6 @@ impl TmcClient {
             api_url,
             auth_url,
             token: None,
-            progress_reporter: None,
             client_name,
             client_version,
         })))
@@ -119,51 +117,6 @@ impl TmcClient {
             .ok_or(ClientError::ArcBorrowed)?
             .token = Some(token);
         Ok(())
-    }
-
-    pub fn set_progress_reporter(
-        &mut self,
-        progress_reporter: ProgressReporter<'static, ClientUpdateData>,
-    ) -> Result<(), ClientError> {
-        Arc::get_mut(&mut self.0)
-            .ok_or(ClientError::ArcBorrowed)?
-            .progress_reporter = Some(progress_reporter);
-        Ok(())
-    }
-
-    fn progress(
-        &self,
-        message: String,
-        step_percent_done: f64,
-        data: Option<ClientUpdateData>,
-    ) -> Result<(), ClientError> {
-        if let Some(reporter) = &self.0.progress_reporter {
-            reporter
-                .progress(message, step_percent_done, data)
-                .map_err(ClientError::ProgressReport)
-        } else {
-            Ok(())
-        }
-    }
-
-    fn step_complete(
-        &self,
-        message: String,
-        data: Option<ClientUpdateData>,
-    ) -> Result<(), ClientError> {
-        if let Some(reporter) = &self.0.progress_reporter {
-            reporter
-                .finish_step(message, data)
-                .map_err(ClientError::ProgressReport)
-        } else {
-            Ok(())
-        }
-    }
-
-    pub fn increment_progress_steps(&self) {
-        if let Some(reporter) = &self.0.progress_reporter {
-            reporter.increment_progress_steps(1);
-        }
     }
 
     /// Attempts to log in with the given credentials, returns an error if an authentication token is already present.
@@ -265,19 +218,17 @@ impl TmcClient {
     ) -> Result<(), ClientError> {
         // todo: bit of a mess, refactor
         let exercises_len = exercises.len();
-        self.progress(
+        start_stage(
+            exercises_len * 2 + 1, // each download progresses at 2 points, plus the final finishing step
             format!("Downloading {} exercises", exercises_len),
-            0.0,
             None,
-        )?;
+        );
 
         let thread_count = exercises_len.min(4); // max 4 threads
         let mut handles = vec![];
         let exercises = Arc::new(Mutex::new(exercises));
         let starting_download_counter = Arc::new(AtomicUsize::new(1));
         let downloaded_counter = Arc::new(AtomicUsize::new(1));
-        let progress_counter = Arc::new(AtomicUsize::new(1));
-        let progress_goal = (exercises_len * 2) as f64; // each download increases progress at 2 points
 
         // spawn threads
         for _thread_id in 0..thread_count {
@@ -285,7 +236,6 @@ impl TmcClient {
             let exercises = Arc::clone(&exercises);
             let starting_download_counter = Arc::clone(&starting_download_counter);
             let downloaded_counter = Arc::clone(&downloaded_counter);
-            let progress_counter = Arc::clone(&progress_counter);
 
             // each thread returns either a list of successful downloads, or a tuple of successful downloads and errors
             type ThreadErr = (Vec<usize>, Vec<(usize, Box<ClientError>)>);
@@ -311,10 +261,9 @@ impl TmcClient {
                         // TODO: do in memory without zip_file?
                         let starting_download_count =
                             starting_download_counter.fetch_add(1, Ordering::SeqCst);
-                        let progress_count = progress_counter.fetch_add(1, Ordering::SeqCst);
-                        let progress = progress_count as f64 / progress_goal;
                         let zip_file = NamedTempFile::new().map_err(ClientError::TempFile)?;
-                        client_clone.progress(
+
+                        progress_stage(
                             format!(
                                 "Downloading exercise {} to '{}'. ({} out of {})",
                                 exercise_id,
@@ -322,19 +271,16 @@ impl TmcClient {
                                 starting_download_count,
                                 exercises_len
                             ),
-                            progress,
-                            Some(ClientUpdateData::ExerciseDownload {
+                            ClientUpdateData::ExerciseDownload {
                                 id: exercise_id,
                                 path: target.clone(),
-                            }),
-                        )?;
+                            },
+                        );
 
                         client_clone.download_exercise(exercise_id, zip_file.path())?;
                         let downloaded_count = downloaded_counter.fetch_add(1, Ordering::SeqCst);
-                        let progress_count = progress_counter.fetch_add(1, Ordering::SeqCst);
-                        let progress = progress_count as f64 / progress_goal;
                         task_executor::extract_project(zip_file, &target, true)?;
-                        client_clone.progress(
+                        progress_stage(
                             format!(
                                 "Downloaded exercise {} to '{}'. ({} out of {})",
                                 exercise_id,
@@ -342,12 +288,11 @@ impl TmcClient {
                                 downloaded_count,
                                 exercises_len
                             ),
-                            progress,
-                            Some(ClientUpdateData::ExerciseDownload {
+                            ClientUpdateData::ExerciseDownload {
                                 id: exercise_id,
                                 path: target,
-                            }),
-                        )?;
+                            },
+                        );
                         Ok(())
                     }();
 
@@ -383,14 +328,14 @@ impl TmcClient {
             }
         }
 
-        self.step_complete(
+        finish_stage(
             format!(
                 "Successfully downloaded {} out of {} exercises.",
                 successful.len(),
                 exercises_len
             ),
             None,
-        )?;
+        );
         if !failed.is_empty() {
             Err(ClientError::IncompleteDownloadResult {
                 downloaded: successful,
@@ -536,25 +481,22 @@ impl TmcClient {
             return Err(ClientError::NotLoggedIn);
         }
 
-        self.progress("Compressing submission...".to_string(), 0.0, None)?;
+        start_stage(2, "Compressing submission...", None);
         let compressed = task_executor::compress_project(submission_path)?;
         let mut file = NamedTempFile::new().map_err(ClientError::TempFile)?;
         file.write_all(&compressed).map_err(|e| {
             ClientError::Tmc(FileIo::FileWrite(file.path().to_path_buf(), e).into())
         })?;
-        self.progress(
-            "Compressed submission. Posting submission...".to_string(),
-            0.5,
-            None,
-        )?;
+        progress_stage("Compressed submission. Posting submission...", None);
 
         let result = self.post_submission(submission_url, file.path(), locale)?;
-        self.progress(
-            format!("Submission running at {0}", result.show_submission_url),
-            1.0,
-            Some(ClientUpdateData::PostedSubmission(result.clone())),
-        )?;
-        self.step_complete("Submission finished!".to_string(), None)?;
+        finish_stage(
+            format!(
+                "Submission finished, running at {0}",
+                result.show_submission_url
+            ),
+            ClientUpdateData::PostedSubmission(result.clone()),
+        );
         Ok(result)
     }
 
@@ -608,20 +550,19 @@ impl TmcClient {
         &self,
         submission_url: &str,
     ) -> Result<SubmissionFinished, ClientError> {
+        start_stage(4, "Waiting for submission", None);
+
         let mut previous_status = None;
         loop {
             match self.check_submission(submission_url)? {
                 SubmissionProcessingStatus::Finished(f) => {
-                    self.step_complete("Submission finished processing!".to_string(), None)?;
+                    finish_stage("Submission finished processing!", None);
                     return Ok(*f);
                 }
                 SubmissionProcessingStatus::Processing(p) => {
                     if p.status == SubmissionStatus::Hidden {
                         // hidden status, return constructed status
-                        self.step_complete(
-                            "Submission status hidden, stopping waiting.".to_string(),
-                            None,
-                        )?;
+                        finish_stage("Submission status hidden, stopping waiting.", None);
                         let finished = SubmissionFinished {
                             api_version: 8,
                             all_tests_passed: Some(true),
@@ -662,13 +603,13 @@ impl TmcClient {
                             // new status, update progress
                             match status {
                                 SandboxStatus::Created => {
-                                    self.progress("Created on sandbox".to_string(), 0.25, None)?
+                                    progress_stage("Created on sandbox", None)
                                 }
                                 SandboxStatus::SendingToSandbox => {
-                                    self.progress("Sending to sandbox".to_string(), 0.5, None)?;
+                                    progress_stage("Sending to sandbox", None);
                                 }
                                 SandboxStatus::ProcessingOnSandbox => {
-                                    self.progress("Processing on sandbox".to_string(), 0.75, None)?;
+                                    progress_stage("Processing on sandbox", None);
                                 }
                             }
                             previous_status = Some(status);
@@ -803,6 +744,22 @@ impl AsRef<TmcCore> for TmcClient {
     fn as_ref(&self) -> &TmcCore {
         &self.0
     }
+}
+
+fn start_stage(
+    steps: usize,
+    message: impl Into<String>,
+    data: impl Into<Option<ClientUpdateData>>,
+) {
+    progress_reporter::start_stage(steps, message.into(), data.into())
+}
+
+fn progress_stage(message: impl Into<String>, data: impl Into<Option<ClientUpdateData>>) {
+    progress_reporter::progress_stage(message.into(), data.into())
+}
+
+fn finish_stage(message: impl Into<String>, data: impl Into<Option<ClientUpdateData>>) {
+    progress_reporter::finish_stage(message.into(), data.into())
 }
 
 #[cfg(test)]

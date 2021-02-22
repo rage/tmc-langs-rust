@@ -10,16 +10,16 @@ use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    anyhow,
     command::{Output, TmcCommand},
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     error::CommandError,
     file_util,
     nom::{branch, bytes, character, combinator, error::VerboseError, sequence, IResult},
     plugin::LanguagePlugin,
-    TmcError, TmcProjectYml,
+    warning_reporter, TmcError, TmcProjectYml,
 };
 use walkdir::WalkDir;
+use warning_reporter::Warning;
 
 pub struct Python3Plugin {}
 
@@ -102,7 +102,6 @@ impl Python3Plugin {
         path: &Path,
         extra_args: &[&str],
         timeout: Option<Duration>,
-        warnings: &mut Vec<anyhow::Error>,
     ) -> Result<Output, PythonError> {
         let minimum_python_version = TmcProjectYml::from(path)?
             .minimum_python_version
@@ -120,7 +119,7 @@ impl Python3Plugin {
         let (major, minor, patch) = Self::get_local_python_ver()?;
 
         if major < recommended_major || major == recommended_major && minor < recommended_minor {
-            warnings.push(anyhow::anyhow!(format!("Your Python is out of date. Minimum maintained release is {}.{}, your Python version was detected as {}.{}. Updating to a newer release is recommended.", recommended_major, recommended_minor, major, minor)));
+            warning_reporter::warn(Warning::new(format!("Your Python is out of date. Minimum maintained release is {}.{}, your Python version was detected as {}.{}. Updating to a newer release is recommended.", recommended_major, recommended_minor, major, minor)));
         }
 
         if major < minimum_major
@@ -203,7 +202,6 @@ impl LanguagePlugin for Python3Plugin {
         &self,
         exercise_directory: &Path,
         exercise_name: String,
-        warnings: &mut Vec<anyhow::Error>,
     ) -> Result<ExerciseDesc, TmcError> {
         let available_points_json = exercise_directory.join(".available_points.json");
         // remove any existing points json
@@ -211,8 +209,7 @@ impl LanguagePlugin for Python3Plugin {
             file_util::remove_file(&available_points_json)?;
         }
 
-        let run_result =
-            Self::run_tmc_command(exercise_directory, &["available_points"], None, warnings);
+        let run_result = Self::run_tmc_command(exercise_directory, &["available_points"], None);
         if let Err(error) = run_result {
             log::error!("Failed to scan exercise. {}", error);
         }
@@ -229,7 +226,6 @@ impl LanguagePlugin for Python3Plugin {
         &self,
         exercise_directory: &Path,
         timeout: Option<Duration>,
-        warnings: &mut Vec<anyhow::Error>,
     ) -> Result<RunResult, TmcError> {
         let test_results_json = exercise_directory.join(".tmc_test_results.json");
         // remove any existing results json
@@ -237,7 +233,7 @@ impl LanguagePlugin for Python3Plugin {
             file_util::remove_file(&test_results_json)?;
         }
 
-        let output = Self::run_tmc_command(exercise_directory, &[], timeout, warnings);
+        let output = Self::run_tmc_command(exercise_directory, &[], timeout);
 
         match output {
             Ok(output) => {
@@ -482,9 +478,7 @@ class TestClass(unittest.TestCase):
         );
 
         let plugin = Python3Plugin::new();
-        let ex_desc = plugin
-            .scan_exercise(temp_dir.path(), "ex".into(), &mut vec![])
-            .unwrap();
+        let ex_desc = plugin.scan_exercise(temp_dir.path(), "ex".into()).unwrap();
         assert_eq!(ex_desc.name, "ex");
         assert_eq!(&ex_desc.tests[0].name, "test.test_file.TestClass.test_func");
         assert!(ex_desc.tests[0].points.contains(&"1.1".into()));
@@ -514,7 +508,7 @@ class TestPassing(unittest.TestCase):
         );
 
         let plugin = Python3Plugin::new();
-        let run_result = plugin.run_tests(temp_dir.path(), &mut vec![]).unwrap();
+        let run_result = plugin.run_tests(temp_dir.path()).unwrap();
         assert_eq!(run_result.status, RunStatus::Passed);
         assert_eq!(run_result.test_results[0].name, "TestPassing: test_func");
         assert!(run_result.test_results[0].successful);
@@ -546,7 +540,7 @@ class TestFailing(unittest.TestCase):
         );
 
         let plugin = Python3Plugin::new();
-        let run_result = plugin.run_tests(temp_dir.path(), &mut vec![]).unwrap();
+        let run_result = plugin.run_tests(temp_dir.path()).unwrap();
         log::debug!("{:#?}", run_result);
         assert_eq!(run_result.status, RunStatus::TestsFailed);
         assert_eq!(run_result.test_results[0].name, "TestFailing: test_func");
@@ -577,7 +571,7 @@ class TestErroring(unittest.TestCase):
         );
 
         let plugin = Python3Plugin::new();
-        let run_result = plugin.run_tests(temp_dir.path(), &mut vec![]).unwrap();
+        let run_result = plugin.run_tests(temp_dir.path()).unwrap();
         log::debug!("{:#?}", run_result);
         assert_eq!(run_result.status, RunStatus::TestsFailed);
         assert_eq!(run_result.test_results[0].name, "TestErroring: test_func");
@@ -609,11 +603,7 @@ class TestErroring(unittest.TestCase):
 
         let plugin = Python3Plugin::new();
         let run_result = plugin
-            .run_tests_with_timeout(
-                temp_dir.path(),
-                Some(std::time::Duration::from_nanos(1)),
-                &mut vec![],
-            )
+            .run_tests_with_timeout(temp_dir.path(), Some(std::time::Duration::from_nanos(1)))
             .unwrap();
         assert_eq!(run_result.status, RunStatus::TestsFailed);
         assert_eq!(run_result.test_results[0].name, "Timeout test");
@@ -751,7 +741,7 @@ class TestClass(unittest.TestCase):
         );
 
         let plugin = Python3Plugin::new();
-        let results = plugin.run_tests(temp_dir.path(), &mut vec![]).unwrap();
+        let results = plugin.run_tests(temp_dir.path()).unwrap();
         assert_eq!(results.status, RunStatus::TestsFailed);
         let mut got_point = false;
         for test in results.test_results {

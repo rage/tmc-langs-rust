@@ -12,7 +12,6 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tar::Archive;
 use tmc_langs_framework::{
-    anyhow,
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, StyleValidationResult},
     file_util,
@@ -85,12 +84,7 @@ impl LanguagePlugin for MavenPlugin {
         Ok(Some(self.run_checkstyle(&locale, path)?))
     }
 
-    fn scan_exercise(
-        &self,
-        path: &Path,
-        exercise_name: String,
-        _warnings: &mut Vec<anyhow::Error>,
-    ) -> Result<ExerciseDesc, TmcError> {
+    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
         if !Self::is_exercise_type_correct(path) {
             return JavaError::InvalidExercise(path.to_path_buf()).into();
         }
@@ -103,7 +97,6 @@ impl LanguagePlugin for MavenPlugin {
         &self,
         project_root_path: &Path,
         timeout: Option<Duration>,
-        _warnings: &mut Vec<anyhow::Error>,
     ) -> Result<RunResult, TmcError> {
         Ok(self.run_java_tests(project_root_path, timeout)?)
     }
@@ -374,7 +367,7 @@ mod test {
         let temp_dir = dir_to_temp("tests/data/maven-exercise");
         let (plugin, _lock) = get_maven();
         let exercises = plugin
-            .scan_exercise(&temp_dir.path(), "test".to_string(), &mut vec![])
+            .scan_exercise(&temp_dir.path(), "test".to_string())
             .unwrap();
         assert_eq!(exercises.name, "test");
         assert_eq!(exercises.tests.len(), 1);
@@ -391,7 +384,7 @@ mod test {
 
         let temp_dir = dir_to_temp("tests/data/maven-exercise");
         let (plugin, _lock) = get_maven();
-        let res = plugin.run_tests(temp_dir.path(), &mut vec![]).unwrap();
+        let res = plugin.run_tests(temp_dir.path()).unwrap();
         log::debug!("{:#?}", res);
         assert_eq!(
             res.status,
@@ -406,11 +399,7 @@ mod test {
         let temp_dir = dir_to_temp("tests/data/maven-exercise");
         let (plugin, _lock) = get_maven();
         let test_result_err = plugin
-            .run_tests_with_timeout(
-                temp_dir.path(),
-                Some(std::time::Duration::from_nanos(1)),
-                &mut vec![],
-            )
+            .run_tests_with_timeout(temp_dir.path(), Some(std::time::Duration::from_nanos(1)))
             .unwrap_err();
         log::debug!("{:#?}", test_result_err);
 

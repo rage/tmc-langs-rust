@@ -9,7 +9,6 @@ use std::io::{Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    anyhow,
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, TestDesc},
     file_util,
@@ -33,12 +32,7 @@ impl LanguagePlugin for RPlugin {
     const BLOCK_COMMENT: Option<(&'static str, &'static str)> = None;
     type StudentFilePolicy = RStudentFilePolicy;
 
-    fn scan_exercise(
-        &self,
-        path: &Path,
-        exercise_name: String,
-        _warnings: &mut Vec<anyhow::Error>,
-    ) -> Result<ExerciseDesc, TmcError> {
+    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
         // run available points command
         let args = if cfg!(windows) {
             &["-e", "\"library('tmcRtestrunner');run_available_points()\""]
@@ -69,7 +63,6 @@ impl LanguagePlugin for RPlugin {
         &self,
         path: &Path,
         timeout: Option<Duration>,
-        _warnings: &mut Vec<anyhow::Error>,
     ) -> Result<RunResult, TmcError> {
         // delete results json
         let results_path = path.join(".results.json");
@@ -286,7 +279,7 @@ test("sample3", c("r2.1"), {
 
         let plugin = RPlugin::new();
         let desc = plugin
-            .scan_exercise(temp_dir.path(), "ex".to_string(), &mut vec![])
+            .scan_exercise(temp_dir.path(), "ex".to_string())
             .unwrap();
         assert_eq!(desc.name, "ex");
         assert_eq!(desc.tests.len(), 3);
@@ -318,7 +311,7 @@ test("sample", c("r1.1"), {
         );
 
         let plugin = RPlugin::new();
-        let run = plugin.run_tests(temp_dir.path(), &mut vec![]).unwrap();
+        let run = plugin.run_tests(temp_dir.path()).unwrap();
         assert_eq!(run.status, RunStatus::Passed);
         assert!(run.logs.is_empty());
         assert_eq!(run.test_results.len(), 1);
@@ -347,7 +340,7 @@ test("sample", c("r1.1"), {
         );
 
         let plugin = RPlugin::new();
-        let run = plugin.run_tests(temp_dir.path(), &mut vec![]).unwrap();
+        let run = plugin.run_tests(temp_dir.path()).unwrap();
         assert_eq!(run.status, RunStatus::TestsFailed);
         assert!(run.logs.is_empty());
         assert_eq!(run.test_results.len(), 1);
@@ -377,7 +370,7 @@ test("sample", c("r1.1"), {
         );
 
         let plugin = RPlugin::new();
-        let run = plugin.run_tests(temp_dir.path(), &mut vec![]).unwrap();
+        let run = plugin.run_tests(temp_dir.path()).unwrap();
         assert_eq!(run.status, RunStatus::TestsFailed);
         assert!(run.logs.is_empty());
         assert_eq!(run.test_results.len(), 1);
@@ -398,7 +391,7 @@ test("sample", c("r1.1"), {
         file_to(&temp_dir, "tests/testthat/test.R", "");
 
         let plugin = RPlugin::new();
-        let run = plugin.run_tests(temp_dir.path(), &mut vec![]).unwrap();
+        let run = plugin.run_tests(temp_dir.path()).unwrap();
         log::debug!("{:#?}", run);
         assert_eq!(run.status, RunStatus::CompileFailed);
         assert!(run
@@ -419,11 +412,7 @@ test("sample", c("r1.1"), {
 
         let plugin = RPlugin::new();
         let run = plugin
-            .run_tests_with_timeout(
-                temp_dir.path(),
-                Some(std::time::Duration::from_nanos(1)),
-                &mut vec![],
-            )
+            .run_tests_with_timeout(temp_dir.path(), Some(std::time::Duration::from_nanos(1)))
             .unwrap_err();
         use std::error::Error;
         let mut source = run.source();

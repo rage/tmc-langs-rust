@@ -6,7 +6,6 @@ use std::io::{Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    anyhow,
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     nom::{self, error::VerboseError, IResult},
     zip::ZipArchive,
@@ -38,12 +37,7 @@ impl LanguagePlugin for NoTestsPlugin {
     const BLOCK_COMMENT: Option<(&'static str, &'static str)> = None;
     type StudentFilePolicy = NoTestsStudentFilePolicy;
 
-    fn scan_exercise(
-        &self,
-        path: &Path,
-        exercise_name: String,
-        _warnings: &mut Vec<anyhow::Error>,
-    ) -> Result<ExerciseDesc, TmcError> {
+    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
         let test_name = format!("{}Test", exercise_name);
         Ok(ExerciseDesc {
             name: exercise_name,
@@ -58,7 +52,6 @@ impl LanguagePlugin for NoTestsPlugin {
         &self,
         path: &Path,
         _timeout: Option<Duration>,
-        _warnings: &mut Vec<anyhow::Error>,
     ) -> Result<RunResult, TmcError> {
         Ok(RunResult {
             status: RunStatus::Passed,
@@ -159,11 +152,7 @@ no-tests:
 
         let plugin = NoTestsPlugin::new();
         let _exercise_desc = plugin
-            .scan_exercise(
-                Path::new("/nonexistent path"),
-                "ex".to_string(),
-                &mut vec![],
-            )
+            .scan_exercise(Path::new("/nonexistent path"), "ex".to_string())
             .unwrap();
     }
 
@@ -176,7 +165,6 @@ no-tests:
             .run_tests_with_timeout(
                 Path::new("/nonexistent"),
                 Some(std::time::Duration::from_nanos(1)),
-                &mut vec![],
             )
             .unwrap();
         assert_eq!(run_result.status, RunStatus::Passed);

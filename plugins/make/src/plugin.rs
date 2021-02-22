@@ -11,7 +11,6 @@ use std::io::{self, BufRead, BufReader, Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    anyhow,
     command::{Output, TmcCommand},
     domain::{ExerciseDesc, RunResult, RunStatus, TestDesc},
     error::{CommandError, FileIo},
@@ -129,12 +128,7 @@ impl LanguagePlugin for MakePlugin {
     const BLOCK_COMMENT: Option<(&'static str, &'static str)> = Some(("/*", "*/"));
     type StudentFilePolicy = MakeStudentFilePolicy;
 
-    fn scan_exercise(
-        &self,
-        path: &Path,
-        exercise_name: String,
-        _warnings: &mut Vec<anyhow::Error>,
-    ) -> Result<ExerciseDesc, TmcError> {
+    fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
         if !Self::is_exercise_type_correct(path) {
             return MakeError::NoExerciseFound(path.to_path_buf()).into();
         }
@@ -154,7 +148,6 @@ impl LanguagePlugin for MakePlugin {
         &self,
         path: &Path,
         _timeout: Option<Duration>,
-        _warnings: &mut Vec<anyhow::Error>,
     ) -> Result<RunResult, TmcError> {
         let output = self.build(path)?;
         if !output.status.success() {
@@ -490,7 +483,7 @@ test [invalid] point6
         let temp = dir_to_temp("tests/data/passing-exercise");
         let plugin = MakePlugin::new();
         let exercise_desc = plugin
-            .scan_exercise(temp.path(), "test".to_string(), &mut vec![])
+            .scan_exercise(temp.path(), "test".to_string())
             .unwrap();
 
         assert_eq!(exercise_desc.name, "test");
@@ -507,7 +500,7 @@ test [invalid] point6
 
         let temp = dir_to_temp("tests/data/passing-exercise");
         let plugin = MakePlugin::new();
-        let run_result = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
+        let run_result = plugin.run_tests(temp.path()).unwrap();
         assert_eq!(run_result.status, RunStatus::Passed);
         let test_results = run_result.test_results;
         assert_eq!(test_results.len(), 1);
@@ -528,7 +521,7 @@ test [invalid] point6
 
         let temp = dir_to_temp("tests/data/failing-exercise");
         let plugin = MakePlugin::new();
-        let run_result = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
+        let run_result = plugin.run_tests(temp.path()).unwrap();
         assert_eq!(run_result.status, RunStatus::TestsFailed);
         let test_results = &run_result.test_results;
         assert_eq!(test_results.len(), 1);
@@ -548,7 +541,7 @@ test [invalid] point6
 
         let temp = dir_to_temp("tests/data/valgrind-failing-exercise");
         let plugin = MakePlugin::new();
-        let run_result = plugin.run_tests(temp.path(), &mut vec![]).unwrap();
+        let run_result = plugin.run_tests(temp.path()).unwrap();
         assert_eq!(run_result.status, RunStatus::TestsFailed);
         let test_results = &run_result.test_results;
         assert_eq!(test_results.len(), 2);
