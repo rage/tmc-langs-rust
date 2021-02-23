@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use thiserror::Error;
 use tmc_langs_framework::error::FileIo;
 
+#[cfg(unix)]
 use crate::task_executor::ModeBits;
 
 #[derive(Debug, Error)]

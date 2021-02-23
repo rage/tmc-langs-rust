@@ -325,7 +325,7 @@ fn execute_zip(
 }
 
 #[cfg(not(unix))]
-fn set_permissions(path: &Path) -> Result<(), UtilError> {
+fn set_permissions(_path: &Path) -> Result<(), UtilError> {
     // NOP on non-Unix platforms
     Ok(())
 }
