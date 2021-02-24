@@ -56,7 +56,7 @@ pub fn start_stage<T: 'static + Send + Sync>(total_steps: usize, message: String
             let status_update = StatusUpdate {
                 finished: false,
                 message,
-                percent_done: reporter.current_progress * 100.0,
+                percent_done: reporter.current_progress,
                 time: reporter.start_time.elapsed().as_millis(),
                 data,
             };
@@ -92,7 +92,7 @@ pub fn progress_stage<T: 'static + Send + Sync>(message: String, data: Option<T>
                 let status_update = StatusUpdate {
                     finished: false,
                     message,
-                    percent_done: reporter.current_progress * 100.0,
+                    percent_done: reporter.current_progress,
                     time: reporter.start_time.elapsed().as_millis(),
                     data,
                 };
@@ -123,7 +123,7 @@ pub fn finish_stage<T: 'static + Send + Sync>(message: String, data: Option<T>) 
                 let status_update = StatusUpdate {
                     finished: true,
                     message,
-                    percent_done: reporter.current_progress * 100.0,
+                    percent_done: reporter.current_progress,
                     time: reporter.start_time.elapsed().as_millis(),
                     data,
                 };
@@ -196,9 +196,9 @@ mod test {
         start_stage::<usize>(2, "starting".to_string(), None);
 
         progress_stage::<usize>("hello".to_string(), None);
-        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 50.0).abs() < 0.01);
+        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 0.5000).abs() < 0.01);
         progress_stage::<usize>("hello!".to_string(), Some(2));
-        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 100.0).abs() < 0.01);
+        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 1.0000).abs() < 0.01);
     }
 
     #[test]
@@ -215,24 +215,24 @@ mod test {
 
         start_stage::<usize>(2, "starting".to_string(), None);
         progress_stage::<usize>("msg".to_string(), None);
-        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 50.0).abs() < 0.01);
+        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 0.5000).abs() < 0.01);
 
         start_stage::<usize>(2, "starting".to_string(), None);
         progress_stage::<usize>("msg".to_string(), None);
-        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 66.6666).abs() < 0.01);
+        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 0.6666).abs() < 0.01);
 
         start_stage::<usize>(2, "starting".to_string(), None);
         progress_stage::<usize>("msg".to_string(), None);
-        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 74.9992).abs() < 0.01);
+        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 0.7499).abs() < 0.01);
         progress_stage::<usize>("msg".to_string(), None);
-        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 83.3317).abs() < 0.01);
+        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 0.8333).abs() < 0.01);
         finish_stage::<usize>("msg".to_string(), None);
-        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 83.3317).abs() < 0.01);
+        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 0.8333).abs() < 0.01);
 
         finish_stage::<usize>("msg".to_string(), None);
-        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 91.6642).abs() < 0.01);
+        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 0.9166).abs() < 0.01);
 
         finish_stage::<usize>("msg".to_string(), None);
-        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 100.0).abs() < 0.01);
+        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 1.0000).abs() < 0.01);
     }
 }
