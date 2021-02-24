@@ -3,7 +3,10 @@
 use crate::error::PythonError;
 use crate::policy::Python3StudentFilePolicy;
 use crate::python_test_result::PythonTestResult;
+use hmac::{Hmac, Mac, NewMac};
 use lazy_static::lazy_static;
+use rand::Rng;
+use sha2::Sha256;
 use std::collections::{HashMap, HashSet};
 use std::env;
 use std::io::BufReader;
@@ -102,6 +105,7 @@ impl Python3Plugin {
         path: &Path,
         extra_args: &[&str],
         timeout: Option<Duration>,
+        stdin: Option<String>,
     ) -> Result<Output, PythonError> {
         let minimum_python_version = TmcProjectYml::from(path)?
             .minimum_python_version
@@ -139,6 +143,12 @@ impl Python3Plugin {
 
         let command = Self::get_local_python_command();
         let command = command.with(|e| e.args(&common_args).args(extra_args).cwd(path));
+        let command = if let Some(stdin) = stdin {
+            command.set_stdin_data(stdin)
+        } else {
+            command
+        };
+
         let output = if let Some(timeout) = timeout {
             command.output_with_timeout(timeout)?
         } else {
@@ -166,14 +176,25 @@ impl Python3Plugin {
     }
 
     /// Parse test result file
-    fn parse_test_result(
+    fn parse_and_verify_test_result(
         test_results_json: &Path,
         logs: HashMap<String, String>,
+        hmac_data: Option<(String, String)>,
     ) -> Result<RunResult, PythonError> {
-        let results_file = file_util::open_file(&test_results_json)?;
-        let test_results: Vec<PythonTestResult> =
-            serde_json::from_reader(BufReader::new(results_file))
-                .map_err(|e| PythonError::Deserialize(test_results_json.to_path_buf(), e))?;
+        let results = file_util::read_file_to_string(&test_results_json)?;
+
+        // verify test results
+        if let Some((hmac_secret, test_runner_hmac_hex)) = hmac_data {
+            let mut mac = Hmac::<Sha256>::new_varkey(hmac_secret.as_bytes())
+                .expect("HMAC can take key of any size");
+            mac.update(results.as_bytes());
+            let bytes =
+                hex::decode(&test_runner_hmac_hex).map_err(|_| PythonError::UnexpectedHmac)?;
+            mac.verify(&bytes).map_err(|_| PythonError::InvalidHmac)?;
+        }
+
+        let test_results: Vec<PythonTestResult> = serde_json::from_str(&results)
+            .map_err(|e| PythonError::Deserialize(test_results_json.to_path_buf(), e))?;
 
         let mut status = RunStatus::Passed;
         let mut failed_points = HashSet::new();
@@ -209,7 +230,8 @@ impl LanguagePlugin for Python3Plugin {
             file_util::remove_file(&available_points_json)?;
         }
 
-        let run_result = Self::run_tmc_command(exercise_directory, &["available_points"], None);
+        let run_result =
+            Self::run_tmc_command(exercise_directory, &["available_points"], None, None);
         if let Err(error) = run_result {
             log::error!("Failed to scan exercise. {}", error);
         }
@@ -233,7 +255,24 @@ impl LanguagePlugin for Python3Plugin {
             file_util::remove_file(&test_results_json)?;
         }
 
-        let output = Self::run_tmc_command(exercise_directory, &[], timeout);
+        let (output, random_string) = if exercise_directory.join("tmc/hmac_writer.py").exists() {
+            // has hmac writer
+            let random_string: String = rand::thread_rng()
+                .sample_iter(rand::distributions::Alphanumeric)
+                .take(32)
+                .map(char::from)
+                .collect();
+            let output = Self::run_tmc_command(
+                exercise_directory,
+                &["--wait-for-secret"],
+                timeout,
+                Some(random_string.clone()),
+            );
+            (output, Some(random_string))
+        } else {
+            let output = Self::run_tmc_command(exercise_directory, &[], timeout, None);
+            (output, None)
+        };
 
         match output {
             Ok(output) => {
@@ -246,7 +285,17 @@ impl LanguagePlugin for Python3Plugin {
                     "stderr".to_string(),
                     String::from_utf8_lossy(&output.stderr).into_owned(),
                 );
-                let parse_res = Self::parse_test_result(&test_results_json, logs);
+
+                let hmac_data = if let Some(random_string) = random_string {
+                    let hmac_result_path = exercise_directory.join(".tmc_test_results.hmac.sha256");
+                    let test_runner_hmac = file_util::read_file_to_string(hmac_result_path)?;
+                    Some((random_string, test_runner_hmac))
+                } else {
+                    None
+                };
+
+                let parse_res =
+                    Self::parse_and_verify_test_result(&test_results_json, logs, hmac_data);
                 // remove file regardless of parse success
                 if test_results_json.exists() {
                     file_util::remove_file(&test_results_json)?;
@@ -366,7 +415,10 @@ impl LanguagePlugin for Python3Plugin {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::path::{Path, PathBuf};
+    use std::{
+        io::Write,
+        path::{Path, PathBuf},
+    };
     use tmc_langs_framework::zip::ZipArchive;
     use tmc_langs_framework::{domain::RunStatus, plugin::LanguagePlugin};
 
@@ -751,5 +803,41 @@ class TestClass(unittest.TestCase):
             assert!(!test.points.contains(&"1.2".to_string()));
         }
         assert!(got_point);
+    }
+
+    #[test]
+    fn verifies_test_results_success() {
+        init();
+
+        let mut temp = tempfile::NamedTempFile::new().unwrap();
+        temp.write_all(br#"[{"name": "test.test_hello_world.HelloWorld.test_first", "status": "passed", "message": "", "passed": true, "points": ["p01-01.1"], "backtrace": []}]"#).unwrap();
+
+        let hmac_secret = "047QzQx8RAYLR3lf0UfB75WX5EFnx7AV".to_string();
+        let test_runner_hmac =
+            "b379817c66cc7b1610d03ac263f02fa11f7b0153e6aeff3262ecc0598bf0be21".to_string();
+        Python3Plugin::parse_and_verify_test_result(
+            temp.path(),
+            HashMap::new(),
+            Some((hmac_secret, test_runner_hmac)),
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn verifies_test_results_failure() {
+        init();
+
+        let mut temp = tempfile::NamedTempFile::new().unwrap();
+        temp.write_all(br#"[{"name": "test.test_hello_world.HelloWorld.test_first", "status": "passed", "message": "", "passed": true, "points": ["p01-01.1"], "backtrace": []}]"#).unwrap();
+
+        let hmac_secret = "047QzQx8RAYLR3lf0UfB75WX5EFnx7AV".to_string();
+        let test_runner_hmac =
+            "b379817c66cc7b1610d03ac263f02fa11f7b0153e6aeff3262ecc0598bf0be22".to_string();
+        let res = Python3Plugin::parse_and_verify_test_result(
+            temp.path(),
+            HashMap::new(),
+            Some((hmac_secret, test_runner_hmac)),
+        );
+        assert!(res.is_err());
     }
 }

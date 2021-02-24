@@ -1,16 +1,17 @@
 //! Custom wrapper for Command that supports timeouts and contains custom error handling.
 
 use crate::{error::CommandError, TmcError};
-use std::fs::File;
 use std::io::Read;
 use std::time::Duration;
 use std::{ffi::OsStr, thread::JoinHandle};
+use std::{fs::File, io::Write};
 use subprocess::{Exec, ExitStatus, PopenError, Redirection};
 
 /// Wrapper around subprocess::Exec
 #[must_use]
 pub struct TmcCommand {
     exec: Exec,
+    stdin: Option<String>,
 }
 
 impl TmcCommand {
@@ -18,6 +19,7 @@ impl TmcCommand {
     pub fn new(cmd: impl AsRef<OsStr>) -> Self {
         Self {
             exec: Exec::cmd(cmd).env("LANG", "en_US.UTF-8"),
+            stdin: None,
         }
     }
 
@@ -28,12 +30,23 @@ impl TmcCommand {
                 .stdout(Redirection::Pipe)
                 .stderr(Redirection::Pipe)
                 .env("LANG", "en_US.UTF-8"),
+            stdin: None,
         }
     }
 
     /// Allows modification of the internal command without providing access to it.
     pub fn with(self, f: impl FnOnce(Exec) -> Exec) -> Self {
-        Self { exec: f(self.exec) }
+        Self {
+            exec: f(self.exec),
+            ..self
+        }
+    }
+
+    pub fn set_stdin_data(self, data: String) -> Self {
+        Self {
+            exec: self.exec.stdin(Redirection::Pipe),
+            stdin: Some(data),
+        }
     }
 
     // executes the given command and collects its output
@@ -41,10 +54,12 @@ impl TmcCommand {
         let cmd = self.exec.to_cmdline_lossy();
         log::info!("executing {}", cmd);
 
-        let Self { exec } = self;
+        let Self { exec, stdin } = self;
 
         // starts executing the command
         let mut popen = exec.popen().map_err(|e| popen_to_tmc_err(cmd.clone(), e))?;
+        log::debug!("here {:?} {:?}", popen.stdin, stdin);
+        let stdin_handle = spawn_writer(popen.stdin.take(), stdin);
         let stdout_handle = spawn_reader(popen.stdout.take());
         let stderr_handle = spawn_reader(popen.stderr.take());
 
@@ -81,6 +96,9 @@ impl TmcCommand {
         };
 
         log::info!("finished executing {}", cmd);
+        stdin_handle
+            .join()
+            .expect("the thread should not be able to panic");
         let stdout = stdout_handle
             .join()
             .expect("the thread should not be able to panic");
@@ -145,11 +163,27 @@ impl TmcCommand {
 }
 
 // it's assumed the thread will never panic
+fn spawn_writer(file: Option<File>, data: Option<String>) -> JoinHandle<()> {
+    std::thread::spawn(move || {
+        if let Some(mut file) = file {
+            if let Some(data) = data {
+                log::debug!("writing data");
+                if let Err(err) = file.write_all(data.as_bytes()) {
+                    log::error!("failed to write data in writer thread: {}", err);
+                }
+            }
+        }
+    })
+}
+
+// it's assumed the thread will never panic
 fn spawn_reader(file: Option<File>) -> JoinHandle<Vec<u8>> {
     std::thread::spawn(move || {
         if let Some(mut file) = file {
             let mut buf = vec![];
-            let _ = file.read_to_end(&mut buf);
+            if let Err(err) = file.read_to_end(&mut buf) {
+                log::error!("failed to read data in reader thread: {}", err);
+            }
             buf
         } else {
             vec![]

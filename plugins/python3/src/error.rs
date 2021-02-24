@@ -19,6 +19,10 @@ pub enum PythonError {
         found: String,
         minimum_required: String,
     },
+    #[error("Failed to decode the test runner's HMAC as hex")]
+    UnexpectedHmac,
+    #[error("Failed to verify the test results")]
+    InvalidHmac,
 
     #[error("File IO error")]
     FileIo(#[from] FileIo),
