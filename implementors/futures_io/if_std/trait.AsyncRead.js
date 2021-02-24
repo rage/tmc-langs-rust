@@ -1,6 +1,6 @@
 (function() {var implementors = {};
 implementors["async_fs"] = [{"text":"impl AsyncRead for File","synthetic":false,"types":[]}];
-implementors["async_io"] = [{"text":"impl&lt;T:&nbsp;Read&gt; AsyncRead for Async&lt;T&gt;","synthetic":false,"types":[]},{"text":"impl&lt;T, '_&gt; AsyncRead for &amp;'_ Async&lt;T&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;'a T: Read,&nbsp;</span>","synthetic":false,"types":[]}];
+implementors["async_io"] = [{"text":"impl&lt;T:&nbsp;Read&gt; AsyncRead for Async&lt;T&gt;","synthetic":false,"types":[]},{"text":"impl&lt;T&gt; AsyncRead for &amp;Async&lt;T&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;'a T: Read,&nbsp;</span>","synthetic":false,"types":[]}];
 implementors["async_net"] = [{"text":"impl AsyncRead for UnixStream","synthetic":false,"types":[]},{"text":"impl AsyncRead for TcpStream","synthetic":false,"types":[]}];
 implementors["async_process"] = [{"text":"impl AsyncRead for ChildStdout","synthetic":false,"types":[]},{"text":"impl AsyncRead for ChildStderr","synthetic":false,"types":[]}];
 implementors["blocking"] = [{"text":"impl&lt;T:&nbsp;Read + Send + 'static&gt; AsyncRead for Unblock&lt;T&gt;","synthetic":false,"types":[]}];

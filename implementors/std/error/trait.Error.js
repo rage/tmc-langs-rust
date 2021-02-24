@@ -18,6 +18,7 @@ implementors["getrandom"] = [{"text":"impl Error for Error","synthetic":false,"t
 implementors["glob"] = [{"text":"impl Error for GlobError","synthetic":false,"types":[]},{"text":"impl Error for PatternError","synthetic":false,"types":[]}];
 implementors["h2"] = [{"text":"impl Error for Error","synthetic":false,"types":[]}];
 implementors["heim_common"] = [{"text":"impl Error for Error","synthetic":false,"types":[]}];
+implementors["hex"] = [{"text":"impl Error for FromHexError","synthetic":false,"types":[]}];
 implementors["http"] = [{"text":"impl Error for InvalidHeaderName","synthetic":false,"types":[]},{"text":"impl Error for InvalidHeaderValue","synthetic":false,"types":[]},{"text":"impl Error for ToStrError","synthetic":false,"types":[]},{"text":"impl Error for InvalidMethod","synthetic":false,"types":[]},{"text":"impl Error for InvalidStatusCode","synthetic":false,"types":[]},{"text":"impl Error for InvalidUri","synthetic":false,"types":[]},{"text":"impl Error for InvalidUriParts","synthetic":false,"types":[]},{"text":"impl Error for Error","synthetic":false,"types":[]}];
 implementors["httparse"] = [{"text":"impl Error for Error","synthetic":false,"types":[]}];
 implementors["httpdate"] = [{"text":"impl Error for Error","synthetic":false,"types":[]}];
