@@ -39,7 +39,7 @@ pub fn refresh_course(
     cache_root: PathBuf,
 ) -> Result<RefreshData, UtilError> {
     log::info!("refreshing course {}", course_name);
-    start_stage(9, "refreshing course");
+    start_stage(9, "Refreshing course");
 
     // create new cache path
     let old_version = course_cache_path
