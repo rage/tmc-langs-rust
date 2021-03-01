@@ -52,7 +52,49 @@ use toml::{map::Map as TomlMap, Value as TomlValue};
 use url::Url;
 use walkdir::WalkDir;
 
+// wraps the run_inner function that actually does the work and handles any panics that occur
+// any langs library should never panic by itself, but other libraries used may in some rare circumstances
 pub fn run() {
+    // run the inner function and catch any panics
+    match std::panic::catch_unwind(run_inner) {
+        Ok(res) => {
+            // no panic, output was printed properly
+            match res {
+                Ok(_) => {
+                    // inner returned Ok, exit with 0
+                    quit::with_code(0);
+                }
+                Err(_) => {
+                    // inner returned Err, exit with 1
+                    quit::with_code(1);
+                }
+            }
+        }
+        Err(err) => {
+            // panicked, likely before any output was printed
+            // currently only prints a message if the panic is called with str or String; this should be good enough
+            let error_message = if let Some(string) = err.downcast_ref::<&str>() {
+                format!("Process panicked unexpectedly with message: {}", string)
+            } else if let Some(string) = err.downcast_ref::<String>() {
+                format!("Process panicked unexpectedly with message: {}", string)
+            } else {
+                "Process panicked unexpectedly without an error message".to_string()
+            };
+            let output = Output::OutputData(OutputData {
+                status: Status::Crashed,
+                message: error_message,
+                result: OutputResult::Error,
+                data: None,
+            });
+            print_output(&output, false).expect("this should never fail");
+            quit::with_code(1);
+        }
+    }
+}
+
+// sets up warning and progress reporting and calls run_app and does error handling for its result
+// returns Ok if we should exit with code 0, Err if we should exit with 1
+fn run_inner() -> Result<(), ()> {
     let matches = app::create_app().get_matches();
     let pretty = matches.is_present("pretty");
 
@@ -90,18 +132,11 @@ pub fn run() {
                 trace: causes,
             }),
         });
-        if let Err(err) = print_output_with_file(&error_output, pretty, sandbox_path) {
-            // the above function shouldn't fail ever, but in theory some data could
-            // have a flawed Serialize implementation, so better safe than sorry
-            let output = Output::OutputData(OutputData {
-                status: Status::Crashed,
-                message: err.to_string(),
-                result: OutputResult::Error,
-                data: None,
-            });
-            print_output(&output, pretty).expect("this should never fail");
-        }
-        quit::with_code(1);
+        print_output_with_file(&error_output, pretty, sandbox_path)
+            .expect("failed to print output");
+        Err(())
+    } else {
+        Ok(())
     }
 }
 
