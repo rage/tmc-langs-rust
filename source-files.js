@@ -191,7 +191,6 @@ sourcesIndex["toml"] = {"name":"","files":["datetime.rs","de.rs","lib.rs","macro
 sourcesIndex["tower_service"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["tracing"] = {"name":"","files":["dispatcher.rs","field.rs","instrument.rs","level_filters.rs","lib.rs","macros.rs","span.rs","stdlib.rs","subscriber.rs"]};
 sourcesIndex["tracing_core"] = {"name":"","files":["callsite.rs","dispatcher.rs","event.rs","field.rs","lib.rs","metadata.rs","parent.rs","span.rs","stdlib.rs","subscriber.rs"]};
-sourcesIndex["tracing_futures"] = {"name":"","dirs":[{"name":"executor","files":["mod.rs"]}],"files":["lib.rs","stdlib.rs"]};
 sourcesIndex["try_lock"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["type_map"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["typenum"] = {"name":"","files":["array.rs","bit.rs","int.rs","lib.rs","marker_traits.rs","operator_aliases.rs","private.rs","type_operators.rs","uint.rs"]};

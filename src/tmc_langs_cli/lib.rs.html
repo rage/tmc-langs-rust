@@ -1773,6 +1773,41 @@
 <span id="1770">1770</span>
 <span id="1771">1771</span>
 <span id="1772">1772</span>
+<span id="1773">1773</span>
+<span id="1774">1774</span>
+<span id="1775">1775</span>
+<span id="1776">1776</span>
+<span id="1777">1777</span>
+<span id="1778">1778</span>
+<span id="1779">1779</span>
+<span id="1780">1780</span>
+<span id="1781">1781</span>
+<span id="1782">1782</span>
+<span id="1783">1783</span>
+<span id="1784">1784</span>
+<span id="1785">1785</span>
+<span id="1786">1786</span>
+<span id="1787">1787</span>
+<span id="1788">1788</span>
+<span id="1789">1789</span>
+<span id="1790">1790</span>
+<span id="1791">1791</span>
+<span id="1792">1792</span>
+<span id="1793">1793</span>
+<span id="1794">1794</span>
+<span id="1795">1795</span>
+<span id="1796">1796</span>
+<span id="1797">1797</span>
+<span id="1798">1798</span>
+<span id="1799">1799</span>
+<span id="1800">1800</span>
+<span id="1801">1801</span>
+<span id="1802">1802</span>
+<span id="1803">1803</span>
+<span id="1804">1804</span>
+<span id="1805">1805</span>
+<span id="1806">1806</span>
+<span id="1807">1807</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! CLI client for TMC</span>
 
@@ -1828,7 +1863,49 @@
 <span class="kw">use</span> <span class="ident">url</span>::<span class="ident">Url</span>;
 <span class="kw">use</span> <span class="ident">walkdir</span>::<span class="ident">WalkDir</span>;
 
+<span class="comment">// wraps the run_inner function that actually does the work and handles any panics that occur</span>
+<span class="comment">// any langs library should never panic by itself, but other libraries used may in some rare circumstances</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>() {
+    <span class="comment">// run the inner function and catch any panics</span>
+    <span class="kw">match</span> <span class="ident">std</span>::<span class="ident">panic</span>::<span class="ident">catch_unwind</span>(<span class="ident">run_inner</span>) {
+        <span class="prelude-val">Ok</span>(<span class="ident">res</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="comment">// no panic, output was printed properly</span>
+            <span class="kw">match</span> <span class="ident">res</span> {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="comment">// inner returned Ok, exit with 0</span>
+                    <span class="ident">quit</span>::<span class="ident">with_code</span>(<span class="number">0</span>);
+                }
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="comment">// inner returned Err, exit with 1</span>
+                    <span class="ident">quit</span>::<span class="ident">with_code</span>(<span class="number">1</span>);
+                }
+            }
+        }
+        <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="comment">// panicked, likely before any output was printed</span>
+            <span class="comment">// currently only prints a message if the panic is called with str or String; this should be good enough</span>
+            <span class="kw">let</span> <span class="ident">error_message</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">string</span>) <span class="op">=</span> <span class="ident">err</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>() {
+                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Process panicked unexpectedly with message: {}&quot;</span>, <span class="ident">string</span>)
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">string</span>) <span class="op">=</span> <span class="ident">err</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>() {
+                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Process panicked unexpectedly with message: {}&quot;</span>, <span class="ident">string</span>)
+            } <span class="kw">else</span> {
+                <span class="string">&quot;Process panicked unexpectedly without an error message&quot;</span>.<span class="ident">to_string</span>()
+            };
+            <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">OutputData</span>(<span class="ident">OutputData</span> {
+                <span class="ident">status</span>: <span class="ident">Status</span>::<span class="ident">Crashed</span>,
+                <span class="ident">message</span>: <span class="ident">error_message</span>,
+                <span class="ident">result</span>: <span class="ident">OutputResult</span>::<span class="ident">Error</span>,
+                <span class="ident">data</span>: <span class="prelude-val">None</span>,
+            });
+            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="bool-val">false</span>).<span class="ident">expect</span>(<span class="string">&quot;this should never fail&quot;</span>);
+            <span class="ident">quit</span>::<span class="ident">with_code</span>(<span class="number">1</span>);
+        }
+    }
+}
+
+<span class="comment">// sets up warning and progress reporting and calls run_app and does error handling for its result</span>
+<span class="comment">// returns Ok if we should exit with code 0, Err if we should exit with 1</span>
+<span class="kw">fn</span> <span class="ident">run_inner</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">app</span>::<span class="ident">create_app</span>().<span class="ident">get_matches</span>();
     <span class="kw">let</span> <span class="ident">pretty</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">is_present</span>(<span class="string">&quot;pretty&quot;</span>);
 
@@ -1866,18 +1943,11 @@
                 <span class="ident">trace</span>: <span class="ident">causes</span>,
             }),
         });
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">print_output_with_file</span>(<span class="kw-2">&amp;</span><span class="ident">error_output</span>, <span class="ident">pretty</span>, <span class="ident">sandbox_path</span>) {
-            <span class="comment">// the above function shouldn&#39;t fail ever, but in theory some data could</span>
-            <span class="comment">// have a flawed Serialize implementation, so better safe than sorry</span>
-            <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">OutputData</span>(<span class="ident">OutputData</span> {
-                <span class="ident">status</span>: <span class="ident">Status</span>::<span class="ident">Crashed</span>,
-                <span class="ident">message</span>: <span class="ident">err</span>.<span class="ident">to_string</span>(),
-                <span class="ident">result</span>: <span class="ident">OutputResult</span>::<span class="ident">Error</span>,
-                <span class="ident">data</span>: <span class="prelude-val">None</span>,
-            });
-            <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>).<span class="ident">expect</span>(<span class="string">&quot;this should never fail&quot;</span>);
-        }
-        <span class="ident">quit</span>::<span class="ident">with_code</span>(<span class="number">1</span>);
+        <span class="ident">print_output_with_file</span>(<span class="kw-2">&amp;</span><span class="ident">error_output</span>, <span class="ident">pretty</span>, <span class="ident">sandbox_path</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;failed to print output&quot;</span>);
+        <span class="prelude-val">Err</span>(())
+    } <span class="kw">else</span> {
+        <span class="prelude-val">Ok</span>(())
     }
 }
 
