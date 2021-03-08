@@ -442,8 +442,6 @@ mod test {
     }
 
     fn dir_to_zip(source_dir: impl AsRef<std::path::Path>) -> Vec<u8> {
-        use std::io::Write;
-
         let mut target = vec![];
         let mut zip = zip::ZipWriter::new(std::io::Cursor::new(&mut target));
 
