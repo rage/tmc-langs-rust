@@ -2,7 +2,7 @@
 
 use std::path::PathBuf;
 use thiserror::Error;
-use tmc_langs_framework::{ TmcError};
+use tmc_langs_framework::TmcError;
 use tmc_langs_util::FileIo;
 
 #[derive(Debug, Error)]

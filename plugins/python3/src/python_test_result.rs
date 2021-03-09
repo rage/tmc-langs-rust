@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-use tmc_langs_framework::domain::TestResult;
+use tmc_langs_framework::TestResult;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct PythonTestResult {

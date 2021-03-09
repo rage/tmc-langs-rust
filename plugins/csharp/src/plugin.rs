@@ -9,19 +9,13 @@ use std::io::{BufReader, Cursor, Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    command::TmcCommand,
-    domain::{
-        ExerciseDesc, RunResult, RunStatus, StyleValidationResult, StyleValidationStrategy,
-        TestDesc, TestResult,
-    },
-    error::{CommandError},
     nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
-    plugin::Language,
-    zip::ZipArchive,
-    LanguagePlugin, TmcError,
+    CommandError, ExerciseDesc, Language, LanguagePlugin, RunResult, RunStatus,
+    StyleValidationResult, StyleValidationStrategy, TestDesc, TestResult, TmcCommand, TmcError,
 };
+use tmc_langs_util::{file_util, FileIo};
 use walkdir::WalkDir;
-use tmc_langs_util::{FileIo, file_util};
+use zip::ZipArchive;
 
 const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../deps/tmc-csharp-runner-1.1.1.zip");
 

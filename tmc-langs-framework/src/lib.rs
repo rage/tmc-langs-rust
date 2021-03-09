@@ -1,18 +1,23 @@
 //! Contains functionality for dealing with projects.
 
-pub mod command;
-pub mod domain;
-pub mod error;
-pub mod meta_syntax;
-pub mod plugin;
-pub mod policy;
-pub mod tmc_project_yml;
+mod command;
+mod domain;
+mod error;
+mod meta_syntax;
+mod plugin;
+mod policy;
+mod tmc_project_yml;
 
-pub use self::error::TmcError;
-pub use self::plugin::LanguagePlugin;
-pub use self::policy::StudentFilePolicy;
-pub use self::tmc_project_yml::TmcProjectYml;
-pub use anyhow;
+pub use self::command::{ExitStatus, Output, TmcCommand};
+pub use self::domain::{
+    ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, StyleValidationError,
+    StyleValidationResult, StyleValidationStrategy, TestDesc, TestResult,
+};
+pub use self::error::{CommandError, PopenError, TmcError};
+pub use self::meta_syntax::{MetaString, MetaSyntaxParser};
+pub use self::plugin::{Language, LanguagePlugin};
+pub use self::policy::{
+    EverythingIsStudentFilePolicy, NothingIsStudentFilePolicy, StudentFilePolicy,
+};
+pub use self::tmc_project_yml::{PythonVer, TmcProjectYml};
 pub use nom;
-pub use subprocess;
-pub use zip;

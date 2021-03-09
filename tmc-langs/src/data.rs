@@ -1,6 +1,5 @@
 use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use serde_yaml::Mapping;
+use serde::Serialize;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::{collections::HashMap, path::PathBuf};
 

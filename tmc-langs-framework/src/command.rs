@@ -5,7 +5,8 @@ use std::io::Read;
 use std::time::Duration;
 use std::{ffi::OsStr, thread::JoinHandle};
 use std::{fs::File, io::Write};
-use subprocess::{Exec, ExitStatus, PopenError, Redirection};
+pub use subprocess::ExitStatus;
+use subprocess::{Exec, PopenError, Redirection};
 
 /// Wrapper around subprocess::Exec
 #[must_use]

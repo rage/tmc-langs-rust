@@ -6,11 +6,11 @@ use std::io::{Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
     nom::{self, error::VerboseError, IResult},
-    zip::ZipArchive,
-    LanguagePlugin, StudentFilePolicy, TmcError,
+    ExerciseDesc, LanguagePlugin, RunResult, RunStatus, StudentFilePolicy, TestDesc, TestResult,
+    TmcError,
 };
+use zip::ZipArchive;
 
 #[derive(Default)]
 pub struct NoTestsPlugin {}

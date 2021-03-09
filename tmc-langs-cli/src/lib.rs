@@ -31,9 +31,8 @@ use std::{
 use std::{env, io::Cursor};
 use tempfile::NamedTempFile;
 use tmc_langs::{
-    domain::StyleValidationResult,
     file_util::{self, FileLockGuard},
-    warning_reporter, CommandError,
+    warning_reporter, CommandError, StyleValidationResult,
 };
 use tmc_langs::{
     oauth2::{

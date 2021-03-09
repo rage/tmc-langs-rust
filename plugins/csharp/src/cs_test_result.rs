@@ -2,7 +2,7 @@
 
 use serde::Deserialize;
 use std::collections::HashSet;
-use tmc_langs_framework::domain::TestResult;
+use tmc_langs_framework::TestResult;
 
 /// Test result from the C# test runner.
 #[derive(Debug, Deserialize)]

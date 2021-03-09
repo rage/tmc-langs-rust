@@ -1,6 +1,12 @@
+pub use nom::error::VerboseError;
+pub use serde_yaml::Error as YamlError;
+pub use subprocess::{ExitStatus, PopenError};
+pub use tmc_langs_util::FileIo;
+pub use walkdir::Error as WalkDirError;
+pub use zip::result::ZipError;
+
 use std::path::PathBuf;
 use std::time::Duration;
-use subprocess::ExitStatus;
 use thiserror::Error;
 
 // todo: make util error type and move variants there
@@ -8,7 +14,7 @@ use thiserror::Error;
 pub enum TmcError {
     // IO
     #[error("File IO error")]
-    FileIo(#[from] tmc_langs_util::FileIo),
+    FileIo(#[from] FileIo),
 
     #[error("Failed to read file inside zip archive with path {0}")]
     ZipRead(PathBuf, #[source] std::io::Error),
@@ -28,7 +34,7 @@ pub enum TmcError {
     #[error("File {0} not in given project root {1}")]
     FileNotInProject(PathBuf, PathBuf),
     #[error("Error while parsing available points from {0}")]
-    PointParse(PathBuf, #[source] nom::error::VerboseError<String>),
+    PointParse(PathBuf, #[source] VerboseError<String>),
 
     #[error("Path {0} contained no file name")]
     NoFileName(PathBuf),
@@ -47,11 +53,11 @@ pub enum TmcError {
     Command(#[from] CommandError),
 
     #[error(transparent)]
-    YamlDeserialization(#[from] serde_yaml::Error),
+    YamlDeserialization(#[from] YamlError),
     #[error(transparent)]
-    ZipError(#[from] zip::result::ZipError),
+    ZipError(#[from] ZipError),
     #[error(transparent)]
-    WalkDir(#[from] walkdir::Error),
+    WalkDir(#[from] WalkDirError),
 }
 
 // == Collection of errors likely to be useful in multiple plugins which can be special cased without needing a plugin's specific error type ==
@@ -59,14 +65,11 @@ pub enum TmcError {
 #[derive(Error, Debug)]
 pub enum CommandError {
     #[error("Failed to execute command: {0}")]
-    Popen(String, #[source] subprocess::PopenError),
+    Popen(String, #[source] PopenError),
     #[error("The executable for command {cmd} could not be found. Please make sure you have installed it correctly.")]
-    NotFound {
-        cmd: String,
-        source: subprocess::PopenError,
-    },
+    NotFound { cmd: String, source: PopenError },
     #[error("Failed to run command {0}")]
-    FailedToRun(String, #[source] subprocess::PopenError),
+    FailedToRun(String, #[source] PopenError),
     #[error("Command {command} exited with status {status:?}")]
     Failed {
         command: String,

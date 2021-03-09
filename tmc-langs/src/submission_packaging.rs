@@ -2,9 +2,7 @@
 
 use super::TmcProjectYml;
 use crate::data::{OutputFormat, TmcParams};
-use crate::error::{LangsError, ParamError};
-use std::collections::HashMap;
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use crate::error::LangsError;
 use std::io::Write;
 use std::path::Path;
 use tmc_langs_plugins::Plugin;

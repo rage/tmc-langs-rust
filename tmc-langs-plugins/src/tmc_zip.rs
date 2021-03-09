@@ -6,9 +6,8 @@ use std::collections::HashSet;
 use std::io::{Cursor, Read, Seek, Write};
 use std::path::Path;
 use std::path::PathBuf;
-use tmc_langs_framework::error::TmcError;
+use tmc_langs_framework::{StudentFilePolicy, TmcError};
 use tmc_langs_util::file_util;
-use tmc_langs_framework::policy::StudentFilePolicy;
 use walkdir::{DirEntry, WalkDir};
 use zip::{write::FileOptions, ZipArchive, ZipWriter};
 
@@ -228,7 +227,7 @@ mod test {
     use std::collections::HashSet;
     use std::fs::{self, *};
     use tempfile::tempdir;
-    use tmc_langs_framework::policy::EverythingIsStudentFilePolicy;
+    use tmc_langs_framework::EverythingIsStudentFilePolicy;
 
     fn init() {
         use log::*;

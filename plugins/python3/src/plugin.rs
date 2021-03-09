@@ -13,14 +13,14 @@ use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    command::{Output, TmcCommand},
-    domain::{ExerciseDesc, RunResult, RunStatus, TestDesc, TestResult},
-    error::CommandError,
     nom::{branch, bytes, character, combinator, error::VerboseError, sequence, IResult},
-    plugin::LanguagePlugin,
-     TmcError, TmcProjectYml,
+    CommandError, ExerciseDesc, LanguagePlugin, Output, RunResult, RunStatus, TestDesc, TestResult,
+    TmcCommand, TmcError, TmcProjectYml,
 };
-use tmc_langs_util::{file_util, warning_reporter::{self, Warning}};
+use tmc_langs_util::{
+    file_util,
+    warning_reporter::{self, Warning},
+};
 use walkdir::WalkDir;
 
 pub struct Python3Plugin {}
@@ -418,8 +418,8 @@ mod test {
         io::Write,
         path::{Path, PathBuf},
     };
-    use tmc_langs_framework::zip::ZipArchive;
-    use tmc_langs_framework::{domain::RunStatus, plugin::LanguagePlugin};
+    use tmc_langs_framework::{LanguagePlugin, RunStatus};
+    use zip::ZipArchive;
 
     fn init() {
         use log::*;

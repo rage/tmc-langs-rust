@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
 use std::path::{Path, PathBuf};
 use std::{io::Write, time::Duration};
-use tmc_langs_framework::command::TmcCommand;
+use tmc_langs_framework::TmcCommand;
 use tmc_langs_util::file_util;
 use walkdir::WalkDir;
 

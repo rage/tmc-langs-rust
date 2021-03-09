@@ -12,7 +12,9 @@ pub use tmc_client::{
     Organization, Review, RunResult, StyleValidationResult, Submission, SubmissionFeedbackResponse,
     SubmissionFinished, UpdateResult,
 };
-pub use tmc_langs_framework::{domain, error::CommandError, plugin::Language};
+pub use tmc_langs_framework::{
+    CommandError, ExerciseDesc, ExercisePackagingConfiguration, Language, LanguagePlugin,
+};
 pub use tmc_langs_util::{
     file_util::{self, FileLockGuard},
     warning_reporter,
@@ -27,12 +29,7 @@ use heim::disk;
 use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
-use tmc_langs_framework::{
-    domain::{ExerciseDesc, ExercisePackagingConfiguration},
-    plugin::LanguagePlugin,
-    policy::NothingIsStudentFilePolicy,
-    StudentFilePolicy, TmcError, TmcProjectYml,
-};
+use tmc_langs_framework::{NothingIsStudentFilePolicy, StudentFilePolicy, TmcError, TmcProjectYml};
 use tmc_langs_plugins::tmc_zip;
 use tmc_langs_util::progress_reporter;
 use walkdir::WalkDir;

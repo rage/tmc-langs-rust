@@ -4,11 +4,10 @@ use schemars::JsonSchema;
 use serde::Serialize;
 use std::path::PathBuf;
 use tmc_langs::{
-    domain::{ExerciseDesc, ExercisePackagingConfiguration},
-    warning_reporter::Warning,
-    ClientUpdateData, Course, CourseData, CourseDetails, CourseExercise, ExerciseDetails,
-    NewSubmission, Organization, Review, RunResult, StyleValidationResult, Submission,
-    SubmissionFeedbackResponse, SubmissionFinished, Token, UpdateResult,
+    warning_reporter::Warning, ClientUpdateData, Course, CourseData, CourseDetails, CourseExercise,
+    ExerciseDesc, ExerciseDetails, ExercisePackagingConfiguration, NewSubmission, Organization,
+    Review, RunResult, StyleValidationResult, Submission, SubmissionFeedbackResponse,
+    SubmissionFinished, Token, UpdateResult,
 };
 use tmc_langs_util::progress_reporter::StatusUpdate;
 

@@ -12,11 +12,8 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tar::Archive;
 use tmc_langs_framework::{
-    command::TmcCommand,
-    domain::{ExerciseDesc, RunResult, StyleValidationResult},
     nom::{error::VerboseError, IResult},
-    plugin::{Language, LanguagePlugin},
-    TmcError,
+    ExerciseDesc, Language, LanguagePlugin, RunResult, StyleValidationResult, TmcCommand, TmcError,
 };
 use tmc_langs_util::file_util;
 
@@ -229,8 +226,8 @@ mod test {
     use super::*;
     use std::fs;
     use std::sync::{Mutex, MutexGuard};
-    use tmc_langs_framework::domain::StyleValidationStrategy;
-    use tmc_langs_framework::zip::ZipArchive;
+    use tmc_langs_framework::StyleValidationStrategy;
+    use zip::ZipArchive;
 
     lazy_static::lazy_static! {
         static ref MAVEN_LOCK: Mutex<()> = Mutex::new(());
@@ -386,10 +383,7 @@ mod test {
         let (plugin, _lock) = get_maven();
         let res = plugin.run_tests(temp_dir.path()).unwrap();
         log::debug!("{:#?}", res);
-        assert_eq!(
-            res.status,
-            tmc_langs_framework::domain::RunStatus::TestsFailed
-        );
+        assert_eq!(res.status, tmc_langs_framework::RunStatus::TestsFailed);
     }
 
     #[test]
@@ -408,13 +402,8 @@ mod test {
         let mut source = test_result_err.source();
         while let Some(inner) = source {
             source = inner.source();
-            if let Some(cmd_error) =
-                inner.downcast_ref::<tmc_langs_framework::error::CommandError>()
-            {
-                if matches!(
-                    cmd_error,
-                    tmc_langs_framework::error::CommandError::TimeOut { .. }
-                ) {
+            if let Some(cmd_error) = inner.downcast_ref::<tmc_langs_framework::CommandError>() {
+                if matches!(cmd_error, tmc_langs_framework::CommandError::TimeOut { .. }) {
                     return;
                 }
             }

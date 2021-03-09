@@ -8,13 +8,12 @@ use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    command::TmcCommand,
-    domain::{ExerciseDesc, RunResult, RunStatus, StyleValidationResult, TestDesc, TestResult},
     nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
-    plugin::{Language, LanguagePlugin},
+    ExerciseDesc, Language, LanguagePlugin, RunResult, RunStatus, StyleValidationResult, TestDesc,
+    TestResult, TmcCommand,
 };
-use walkdir::WalkDir;
 use tmc_langs_util::file_util;
+use walkdir::WalkDir;
 
 pub(crate) trait JavaPlugin: LanguagePlugin {
     const TEST_DIR: &'static str;
@@ -327,7 +326,7 @@ mod test {
         const PLUGIN_NAME: &'static str = "stub";
         const LINE_COMMENT: &'static str = "//";
         const BLOCK_COMMENT: Option<(&'static str, &'static str)> = Some(("/*", "*/"));
-        type StudentFilePolicy = tmc_langs_framework::policy::EverythingIsStudentFilePolicy;
+        type StudentFilePolicy = tmc_langs_framework::EverythingIsStudentFilePolicy;
 
         fn scan_exercise(
             &self,
@@ -383,7 +382,7 @@ mod test {
 
         fn build(&self, _project_root_path: &Path) -> Result<CompileResult, JavaError> {
             Ok(CompileResult {
-                status_code: tmc_langs_framework::subprocess::ExitStatus::Exited(0),
+                status_code: tmc_langs_framework::ExitStatus::Exited(0),
                 stdout: vec![],
                 stderr: vec![],
             })
@@ -524,7 +523,7 @@ openjdk version "1.8.0_252"S
         let compile_result = CompileResult {
             stdout: vec![],
             stderr: vec![],
-            status_code: tmc_langs_framework::subprocess::ExitStatus::Exited(0),
+            status_code: tmc_langs_framework::ExitStatus::Exited(0),
         };
         let desc = plugin
             .scan_exercise_with_compile_result(temp_dir.path(), "ex".to_string(), compile_result)
@@ -538,7 +537,7 @@ openjdk version "1.8.0_252"S
 
         let plugin = Stub::new();
         let compile_result = CompileResult {
-            status_code: tmc_langs_framework::subprocess::ExitStatus::Exited(0),
+            status_code: tmc_langs_framework::ExitStatus::Exited(0),
             stdout: "hello, 世界".as_bytes().to_vec(),
             stderr: "エラー".as_bytes().to_vec(),
         };

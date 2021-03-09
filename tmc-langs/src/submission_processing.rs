@@ -3,8 +3,7 @@
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::path::Path;
-use tmc_langs_framework::meta_syntax::{MetaString, MetaSyntaxParser};
-use tmc_langs_framework::TmcError;
+use tmc_langs_framework::{MetaString, MetaSyntaxParser, TmcError};
 use tmc_langs_util::file_util;
 use walkdir::{DirEntry, WalkDir};
 

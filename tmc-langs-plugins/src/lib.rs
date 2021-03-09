@@ -2,12 +2,10 @@ mod error;
 pub mod tmc_zip;
 
 pub use error::PluginError;
-pub use tmc_langs_framework::domain::{
-    ExerciseDesc, ExercisePackagingConfiguration, RunResult, StyleValidationResult,
-    StyleValidationStrategy,
+pub use tmc_langs_framework::{
+    ExerciseDesc, ExercisePackagingConfiguration, Language, NothingIsStudentFilePolicy, RunResult,
+    StudentFilePolicy, StyleValidationResult, StyleValidationStrategy,
 };
-pub use tmc_langs_framework::plugin::Language;
-pub use tmc_langs_framework::policy::{NothingIsStudentFilePolicy, StudentFilePolicy};
 
 use std::path::Path;
 use tmc_langs_csharp::CSharpPlugin;
