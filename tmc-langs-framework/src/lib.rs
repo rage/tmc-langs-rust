@@ -3,12 +3,10 @@
 pub mod command;
 pub mod domain;
 pub mod error;
-pub mod file_util;
 pub mod meta_syntax;
 pub mod plugin;
 pub mod policy;
 pub mod tmc_project_yml;
-pub mod warning_reporter;
 
 pub use self::error::TmcError;
 pub use self::plugin::LanguagePlugin;

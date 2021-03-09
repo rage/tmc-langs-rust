@@ -12,12 +12,12 @@ use std::time::Duration;
 use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, StyleValidationResult},
-    file_util,
     nom::{error::VerboseError, IResult},
     plugin::{Language, LanguagePlugin},
     TmcError,
 };
 use walkdir::WalkDir;
+use tmc_langs_util::file_util;
 
 pub struct AntPlugin {
     jvm: Jvm,

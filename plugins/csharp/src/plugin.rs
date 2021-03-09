@@ -14,14 +14,14 @@ use tmc_langs_framework::{
         ExerciseDesc, RunResult, RunStatus, StyleValidationResult, StyleValidationStrategy,
         TestDesc, TestResult,
     },
-    error::{CommandError, FileIo},
-    file_util,
+    error::{CommandError},
     nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
     plugin::Language,
     zip::ZipArchive,
     LanguagePlugin, TmcError,
 };
 use walkdir::WalkDir;
+use tmc_langs_util::{FileIo, file_util};
 
 const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../deps/tmc-csharp-runner-1.1.1.zip");
 

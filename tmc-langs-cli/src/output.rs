@@ -3,16 +3,14 @@
 use schemars::JsonSchema;
 use serde::Serialize;
 use std::path::PathBuf;
-use tmc_client::{
+use tmc_langs::{
+    domain::{ExerciseDesc, ExercisePackagingConfiguration},
+    warning_reporter::Warning,
     ClientUpdateData, Course, CourseData, CourseDetails, CourseExercise, ExerciseDetails,
     NewSubmission, Organization, Review, RunResult, StyleValidationResult, Submission,
     SubmissionFeedbackResponse, SubmissionFinished, Token, UpdateResult,
 };
-use tmc_langs_framework::warning_reporter::Warning;
-use tmc_langs_util::{
-    progress_reporter::StatusUpdate, task_executor::RefreshData, ExerciseDesc,
-    ExercisePackagingConfiguration,
-};
+use tmc_langs_util::progress_reporter::StatusUpdate;
 
 use crate::config::{ConfigValue, TmcConfig};
 
@@ -64,7 +62,7 @@ pub enum Data {
     Exercises(Vec<PathBuf>),
     ExercisePackagingConfiguration(ExercisePackagingConfiguration),
     LocalExercises(Vec<LocalExercise>),
-    RefreshResult(RefreshData),
+    RefreshResult(tmc_langs::course_refresher::RefreshData),
     TestResult(RunResult),
     ExerciseDesc(ExerciseDesc),
     UpdatedExercises(Vec<UpdatedExercise>),
@@ -159,12 +157,7 @@ pub struct DownloadOrUpdateCourseExercise {
     pub path: PathBuf,
 }
 
-#[derive(Debug, Serialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
-pub struct LocalExercise {
-    pub exercise_slug: String,
-    pub exercise_path: PathBuf,
-}
+pub use tmc_langs::data::LocalExercise;
 
 #[derive(Debug, Serialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]

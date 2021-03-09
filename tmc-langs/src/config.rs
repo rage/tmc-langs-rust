@@ -7,7 +7,7 @@ mod tmc_config;
 pub use self::credentials::Credentials;
 pub use self::projects_config::{CourseConfig, Exercise, ProjectsConfig};
 pub use self::tmc_config::{ConfigValue, TmcConfig};
-use crate::output::LocalExercise;
+use crate::data::LocalExercise;
 
 use anyhow::{Context, Error};
 use std::path::{Path, PathBuf};

@@ -20,7 +20,7 @@ use std::sync::{
 use std::thread;
 use std::time::Duration;
 use tempfile::NamedTempFile;
-use tmc_langs_util::{file_util, progress_reporter, task_executor, FileIo};
+use tmc_langs_util::{file_util, progress_reporter, FileIo};
 use walkdir::WalkDir;
 
 pub type Token =
@@ -279,7 +279,7 @@ impl TmcClient {
 
                         client_clone.download_exercise(exercise_id, zip_file.path())?;
                         let downloaded_count = downloaded_counter.fetch_add(1, Ordering::SeqCst);
-                        task_executor::extract_project(zip_file, &target, true)?;
+                        tmc_langs_plugins::extract_project(zip_file, &target, true)?;
                         progress_stage(
                             format!(
                                 "Downloaded exercise {} to '{}'. ({} out of {})",
@@ -445,7 +445,7 @@ impl TmcClient {
         locale: Option<Language>,
     ) -> Result<NewSubmission, ClientError> {
         // compress
-        let compressed = task_executor::compress_project(submission_path)?;
+        let compressed = tmc_langs_plugins::compress_project(submission_path)?;
         let mut file = NamedTempFile::new().map_err(ClientError::TempFile)?;
         file.write_all(&compressed).map_err(|e| {
             ClientError::Tmc(FileIo::FileWrite(file.path().to_path_buf(), e).into())
@@ -482,7 +482,7 @@ impl TmcClient {
         }
 
         start_stage(2, "Compressing submission...", None);
-        let compressed = task_executor::compress_project(submission_path)?;
+        let compressed = tmc_langs_plugins::compress_project(submission_path)?;
         let mut file = NamedTempFile::new().map_err(ClientError::TempFile)?;
         file.write_all(&compressed).map_err(|e| {
             ClientError::Tmc(FileIo::FileWrite(file.path().to_path_buf(), e).into())
@@ -695,7 +695,7 @@ impl TmcClient {
         locale: Option<Language>,
     ) -> Result<NewSubmission, ClientError> {
         // compress
-        let compressed = task_executor::compress_project(submission_path)?;
+        let compressed = tmc_langs_plugins::compress_project(submission_path)?;
         let mut file = NamedTempFile::new().map_err(ClientError::TempFile)?;
         file.write_all(&compressed).map_err(|e| {
             ClientError::Tmc(FileIo::FileWrite(file.path().to_path_buf(), e).into())
@@ -716,7 +716,7 @@ impl TmcClient {
     ) -> Result<(), ClientError> {
         let zip_file = NamedTempFile::new().map_err(ClientError::TempFile)?;
         self.download_from(solution_download_url, zip_file.path())?;
-        task_executor::extract_project(zip_file, target, false)?;
+        tmc_langs_plugins::extract_project(zip_file, target, false)?;
         Ok(())
     }
 

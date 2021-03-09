@@ -4,9 +4,10 @@ use std::io;
 use std::path::PathBuf;
 use thiserror::Error;
 use tmc_langs_framework::{
-    error::{CommandError, FileIo},
+    error::{CommandError},
     TmcError,
 };
+use tmc_langs_util::FileIo;
 
 #[derive(Error, Debug)]
 pub enum JavaError {

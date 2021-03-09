@@ -7,7 +7,7 @@ use std::io::{Cursor, Read, Seek, Write};
 use std::path::Path;
 use std::path::PathBuf;
 use tmc_langs_framework::error::TmcError;
-use tmc_langs_framework::file_util;
+use tmc_langs_util::file_util;
 use tmc_langs_framework::policy::StudentFilePolicy;
 use walkdir::{DirEntry, WalkDir};
 use zip::{write::FileOptions, ZipArchive, ZipWriter};

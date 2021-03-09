@@ -3,7 +3,8 @@
 use std::num::ParseIntError;
 use std::path::PathBuf;
 use thiserror::Error;
-use tmc_langs_framework::{error::FileIo, subprocess::ExitStatus, TmcError};
+use tmc_langs_framework::{ subprocess::ExitStatus, TmcError};
+use tmc_langs_util::FileIo;
 
 #[derive(Error, Debug)]
 pub enum MakeError {

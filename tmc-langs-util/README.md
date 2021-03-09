@@ -1,1 +1,1 @@
-Contains the task executor module.
+Contains various helpful utilities to be used throughout the tmc-langs project.

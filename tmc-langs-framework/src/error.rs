@@ -8,7 +8,7 @@ use thiserror::Error;
 pub enum TmcError {
     // IO
     #[error("File IO error")]
-    FileIo(#[from] FileIo),
+    FileIo(#[from] tmc_langs_util::FileIo),
 
     #[error("Failed to read file inside zip archive with path {0}")]
     ZipRead(PathBuf, #[source] std::io::Error),
@@ -83,71 +83,4 @@ pub enum CommandError {
     },
     #[error("Failed to terminate command {0}")]
     Terminate(String, #[source] std::io::Error),
-}
-
-/// A wrapper for std::io::Error that provides more context for the failed operations.
-#[derive(Error, Debug)]
-pub enum FileIo {
-    #[error("Failed to open file at {0}")]
-    FileOpen(PathBuf, #[source] std::io::Error),
-    #[error("Failed to read file at {0}")]
-    FileRead(PathBuf, #[source] std::io::Error),
-    #[error("Failed to write file at {0}")]
-    FileWrite(PathBuf, #[source] std::io::Error),
-    #[error("Failed to create file at {0}")]
-    FileCreate(PathBuf, #[source] std::io::Error),
-    #[error("Failed to remove file at {0}")]
-    FileRemove(PathBuf, #[source] std::io::Error),
-    #[error("Failed to copy file from {from} to {to}")]
-    FileCopy {
-        from: PathBuf,
-        to: PathBuf,
-        source: std::io::Error,
-    },
-    #[error("Failed to move file from {from} to {to}")]
-    FileMove {
-        from: PathBuf,
-        to: PathBuf,
-        source: std::io::Error,
-    },
-    #[error("Failed to create temporary file")]
-    TempFile(#[source] std::io::Error),
-    #[error("Failed to clone file handle")]
-    FileHandleClone(#[source] std::io::Error),
-
-    #[error("Failed to open directory at {0}")]
-    DirOpen(PathBuf, #[source] std::io::Error),
-    #[error("Failed to read directory at {0}")]
-    DirRead(PathBuf, #[source] std::io::Error),
-    #[error("Failed to create directory at {0}")]
-    DirCreate(PathBuf, #[source] std::io::Error),
-    #[error("Failed to remove directory at {0}")]
-    DirRemove(PathBuf, #[source] std::io::Error),
-
-    #[error("Failed to rename file {from} to {to}")]
-    Rename {
-        from: PathBuf,
-        to: PathBuf,
-        source: std::io::Error,
-    },
-
-    #[error("Failed to lock file at path {0}")]
-    FdLock(PathBuf, #[source] std::io::Error),
-
-    #[error("Path {0} has no file name")]
-    NoFileName(PathBuf),
-    #[error("Expected {0} to be a directory, but it was a file")]
-    UnexpectedFile(PathBuf),
-    #[error("Expected {0} to be a file")]
-    UnexpectedNonFile(PathBuf),
-
-    #[error("Directory walk error")]
-    Walkdir(#[from] walkdir::Error),
-
-    #[error("Failed to lock {0}: not a file or directory")]
-    InvalidLockPath(PathBuf),
-
-    // when there is no meaningful data that can be added to an error
-    #[error("transparent")]
-    Generic(#[from] std::io::Error),
 }

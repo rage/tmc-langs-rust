@@ -14,11 +14,11 @@ use tar::Archive;
 use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, StyleValidationResult},
-    file_util,
     nom::{error::VerboseError, IResult},
     plugin::{Language, LanguagePlugin},
     TmcError,
 };
+use tmc_langs_util::file_util;
 
 const MVN_ARCHIVE: &[u8] = include_bytes!("../deps/apache-maven-3.6.3-bin.tar.gz");
 

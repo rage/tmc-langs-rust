@@ -3,9 +3,10 @@
 use std::path::PathBuf;
 use thiserror::Error;
 use tmc_langs_framework::{
-    error::{CommandError, FileIo},
+    error::CommandError,
     zip, TmcError,
 };
+use tmc_langs_util::FileIo;
 
 #[derive(Debug, Error)]
 pub enum CSharpError {

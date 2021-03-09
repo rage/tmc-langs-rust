@@ -10,11 +10,11 @@ use std::time::Duration;
 use tmc_langs_framework::{
     command::TmcCommand,
     domain::{ExerciseDesc, RunResult, RunStatus, StyleValidationResult, TestDesc, TestResult},
-    file_util,
     nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
     plugin::{Language, LanguagePlugin},
 };
 use walkdir::WalkDir;
+use tmc_langs_util::file_util;
 
 pub(crate) trait JavaPlugin: LanguagePlugin {
     const TEST_DIR: &'static str;

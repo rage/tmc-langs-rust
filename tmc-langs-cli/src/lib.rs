@@ -30,24 +30,19 @@ use std::{
 };
 use std::{env, io::Cursor};
 use tempfile::NamedTempFile;
-use tmc_client::{
+use tmc_langs::{
+    domain::StyleValidationResult,
+    file_util::{self, FileLockGuard},
+    warning_reporter, CommandError,
+};
+use tmc_langs::{
     oauth2::{
         basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
     },
-    ClientUpdateData,
+    ClientUpdateData, Language,
 };
-use tmc_client::{ClientError, FeedbackAnswer, TmcClient, Token};
-use tmc_langs_framework::{
-    domain::StyleValidationResult,
-    error::CommandError,
-    file_util::{self, FileLockGuard},
-    warning_reporter,
-};
-use tmc_langs_util::{
-    progress_reporter,
-    task_executor::{self, TmcParams},
-    Language, OutputFormat,
-};
+use tmc_langs::{ClientError, FeedbackAnswer, TmcClient, Token};
+use tmc_langs_util::progress_reporter;
 use toml::{map::Map as TomlMap, Value as TomlValue};
 use url::Url;
 use walkdir::WalkDir;
@@ -244,7 +239,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
 
             file_util::lock!(exercise_path);
 
-            task_executor::clean(exercise_path)?;
+            tmc_langs::clean(exercise_path)?;
 
             let output = Output::finished_with_data(
                 format!("cleaned exercise at {}", exercise_path.display()),
@@ -261,7 +256,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
 
             file_util::lock!(exercise_path);
 
-            task_executor::compress_project_to(exercise_path, output_path)?;
+            tmc_langs::compress_project_to(exercise_path, output_path)?;
 
             let output = Output::finished_with_data(
                 format!(
@@ -320,7 +315,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
             let path = matches.value_of("path").unwrap();
             let path = Path::new(path);
 
-            let free = task_executor::free_disk_space_megabytes(path)?;
+            let free = tmc_langs::free_disk_space_megabytes(path)?;
 
             let output = Output::finished_with_data(
                 format!(
@@ -344,7 +339,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
             let mut data = vec![];
             guard.read_to_end(&mut data)?;
 
-            task_executor::extract_project(Cursor::new(data), output_path, true)?;
+            tmc_langs::extract_project(Cursor::new(data), output_path, true)?;
 
             let output = Output::finished_with_data(
                 format!(
@@ -362,7 +357,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
 
             file_util::lock!(exercise_path);
 
-            let points = task_executor::get_available_points(exercise_path)?;
+            let points = tmc_langs::get_available_points(exercise_path)?;
 
             let output = Output::finished_with_data(
                 format!("found {} available points", points.len()),
@@ -380,7 +375,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
             file_util::lock!(exercise_path);
 
             let exercises =
-                task_executor::find_exercise_directories(exercise_path).with_context(|| {
+                tmc_langs::find_exercise_directories(exercise_path).with_context(|| {
                     format!(
                         "Failed to find exercise directories in {}",
                         exercise_path.display(),
@@ -406,7 +401,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
 
             file_util::lock!(exercise_path);
 
-            let config = task_executor::get_exercise_packaging_configuration(exercise_path)
+            let config = tmc_langs::get_exercise_packaging_configuration(exercise_path)
                 .with_context(|| {
                     format!(
                         "Failed to get exercise packaging configuration for exercise at {}",
@@ -432,7 +427,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
 
             let course_slug = matches.value_of("course-slug").unwrap();
 
-            let local_exercises = config::list_local_course_exercises(client_name, course_slug)?;
+            let local_exercises = tmc_langs::list_local_course_exercises(client_name, course_slug)?;
 
             let output = Output::finished_with_data(
                 format!("listed local exercises for {}", course_slug),
@@ -449,7 +444,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
 
             file_util::lock!(exercise_path);
 
-            task_executor::prepare_solution(exercise_path, output_path).with_context(|| {
+            tmc_langs::prepare_solution(exercise_path, output_path).with_context(|| {
                 format!(
                     "Failed to prepare solutions for exercise at {}",
                     exercise_path.display(),
@@ -475,7 +470,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
 
             file_util::lock!(exercise_path);
 
-            task_executor::prepare_stub(exercise_path, output_path).with_context(|| {
+            tmc_langs::prepare_stub(exercise_path, output_path).with_context(|| {
                 format!(
                     "Failed to prepare stubs for exercise at {}",
                     exercise_path.display(),
@@ -497,9 +492,9 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
             let clone_path = Path::new(clone_path);
 
             let output_format = match matches.value_of("output-format") {
-                Some("tar") => OutputFormat::Tar,
-                Some("zip") => OutputFormat::Zip,
-                Some("zstd") => OutputFormat::TarZstd,
+                Some("tar") => tmc_langs::data::OutputFormat::Tar,
+                Some("zip") => tmc_langs::data::OutputFormat::Zip,
+                Some("zstd") => tmc_langs::data::OutputFormat::TarZstd,
                 _ => unreachable!("validation error"),
             };
 
@@ -529,7 +524,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
                 let entry = tmc_params_grouped.entry(key).or_insert_with(Vec::new);
                 entry.push(value);
             }
-            let mut tmc_params = TmcParams::new();
+            let mut tmc_params = tmc_langs::data::TmcParams::new();
             for (key, values) in tmc_params_grouped {
                 if values.len() == 1 {
                     // 1-length lists are inserted as a string
@@ -546,7 +541,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
             let top_level_dir_name = matches.value_of("top-level-dir-name");
             let top_level_dir_name = top_level_dir_name.map(str::to_string);
 
-            task_executor::prepare_submission(
+            tmc_langs::prepare_submission(
                 submission_path,
                 output_path,
                 top_level_dir_name,
@@ -573,7 +568,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
             let git_branch = matches.value_of("git-branch").unwrap();
             let source_url = matches.value_of("source-url").unwrap();
 
-            let refresh_result = task_executor::refresh_course(
+            let refresh_result = tmc_langs::refresh_course(
                 course_name.to_string(),
                 PathBuf::from(cache_path),
                 source_url.to_string(),
@@ -602,7 +597,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
 
             file_util::lock!(exercise_path);
 
-            let test_result = task_executor::run_tests(exercise_path).with_context(|| {
+            let test_result = tmc_langs::run_tests(exercise_path).with_context(|| {
                 format!(
                     "Failed to run tests for exercise at {}",
                     exercise_path.display()
@@ -661,11 +656,10 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
 
             file_util::lock!(exercise_path);
 
-            let scan_result =
-                task_executor::scan_exercise(exercise_path, exercise_name.to_string())
-                    .with_context(|| {
-                        format!("Failed to scan exercise at {}", exercise_path.display())
-                    })?;
+            let scan_result = tmc_langs::scan_exercise(exercise_path, exercise_name.to_string())
+                .with_context(|| {
+                    format!("Failed to scan exercise at {}", exercise_path.display())
+                })?;
 
             if let Some(output_path) = output_path {
                 write_result_to_file_as_json(&scan_result, output_path, pretty)?;
@@ -780,7 +774,7 @@ fn run_core(
             log::debug!("downloaded old submission to {}", temp_zip.path().display());
 
             // extract submission
-            task_executor::extract_student_files(temp_zip, &output_path)?;
+            tmc_langs::extract_student_files(temp_zip, &output_path)?;
             log::debug!("extracted project");
 
             let output = Output::finished_with_data("extracted project", None);
@@ -1657,13 +1651,12 @@ fn run_checkstyle_write_results(
     output_path: Option<&Path>,
     locale: Language,
 ) -> Result<Option<StyleValidationResult>> {
-    let check_result =
-        task_executor::run_check_code_style(exercise_path, locale).with_context(|| {
-            format!(
-                "Failed to check code style for project at {}",
-                exercise_path.display()
-            )
-        })?;
+    let check_result = tmc_langs::checkstyle(exercise_path, locale).with_context(|| {
+        format!(
+            "Failed to check code style for project at {}",
+            exercise_path.display()
+        )
+    })?;
     if let Some(output_path) = output_path {
         let output_file = File::create(output_path).with_context(|| {
             format!(

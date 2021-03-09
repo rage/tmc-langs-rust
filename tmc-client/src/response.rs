@@ -10,7 +10,7 @@ use serde::{
 use std::fmt;
 use std::str::FromStr;
 use thiserror::Error;
-use tmc_langs_util::StyleValidationResult;
+use tmc_langs_plugins::StyleValidationResult;
 
 /// Represents an error response from tmc-server
 #[derive(Debug, Error, Deserialize)]

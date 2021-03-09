@@ -64,6 +64,8 @@ pub enum ClientError {
     #[error("File IO error")]
     FileIo(#[from] FileIo),
     #[error(transparent)]
+    Plugin(#[from] tmc_langs_plugins::PluginError),
+    #[error(transparent)]
     Tmc(#[from] tmc_langs_util::error::UtilError),
 }
 

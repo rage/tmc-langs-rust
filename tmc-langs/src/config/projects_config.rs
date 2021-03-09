@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-use tmc_langs::file_util;
+use tmc_langs_util::file_util;
 
 #[derive(Debug)]
 pub struct ProjectsConfig {

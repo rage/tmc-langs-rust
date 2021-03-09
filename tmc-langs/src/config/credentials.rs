@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::ops::Deref;
 use std::path::PathBuf;
-use tmc_langs::file_util;
+use tmc_langs_util::file_util::{self, create_file_lock};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Credentials {
@@ -69,7 +69,7 @@ impl Credentials {
             fs::create_dir_all(p)
                 .with_context(|| format!("Failed to create directory {}", p.display()))?;
         }
-        let mut credentials_file = file_util::create_file_lock(&credentials_path)
+        let mut credentials_file = create_file_lock(&credentials_path)
             .with_context(|| format!("Failed to create file at {}", credentials_path.display()))?;
         let guard = credentials_file.lock()?;
 

@@ -6,7 +6,7 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-use tmc_langs_framework::{error::FileIo, file_util};
+use tmc_langs_util::{FileIo, file_util};
 
 #[derive(Debug)]
 pub struct ValgrindLog {
