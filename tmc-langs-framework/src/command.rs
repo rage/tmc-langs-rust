@@ -58,7 +58,6 @@ impl TmcCommand {
 
         // starts executing the command
         let mut popen = exec.popen().map_err(|e| popen_to_tmc_err(cmd.clone(), e))?;
-        log::debug!("here {:?} {:?}", popen.stdin, stdin);
         let stdin_handle = spawn_writer(popen.stdin.take(), stdin);
         let stdout_handle = spawn_reader(popen.stdout.take());
         let stderr_handle = spawn_reader(popen.stderr.take());
