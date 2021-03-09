@@ -424,7 +424,7 @@ pub trait LanguagePlugin {
                 let entry = entry?;
                 if entry.path().is_file() {
                     log::trace!("parsing points from {}", entry.path().display());
-                    let file_contents = file_util::read_file_to_string(entry.path())?;
+                    let file_contents = file_util::read_file_to_string_lossy(entry.path())?;
 
                     // reads any character
                     let etc_parser = combinator::value(Parse::Other, character::complete::anychar);

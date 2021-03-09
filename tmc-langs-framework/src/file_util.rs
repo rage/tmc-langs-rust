@@ -48,6 +48,13 @@ pub fn read_file_to_string<P: AsRef<Path>>(path: P) -> Result<String, FileIo> {
     Ok(s)
 }
 
+pub fn read_file_to_string_lossy<P: AsRef<Path>>(path: P) -> Result<String, FileIo> {
+    let path = path.as_ref();
+    let bytes = read_file(path)?;
+    let s = String::from_utf8_lossy(&bytes).into_owned();
+    Ok(s)
+}
+
 pub fn create_file<P: AsRef<Path>>(path: P) -> Result<File, FileIo> {
     let path = path.as_ref();
     if let Some(parent) = path.parent() {
