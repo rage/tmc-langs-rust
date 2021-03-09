@@ -1,4 +1,4 @@
-mod config;
+pub mod config;
 pub mod course_refresher;
 pub mod data;
 mod error;
