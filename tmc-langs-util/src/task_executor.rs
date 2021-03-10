@@ -34,7 +34,8 @@ pub fn prepare_stub(exercise_path: &Path, dest_path: &Path) -> Result<(), UtilEr
     submission_processing::prepare_stub(&exercise_path, dest_path)?;
 
     // The Ant plugin needs some additional files to be copied over.
-    if AntPlugin::is_exercise_type_correct(&exercise_path) {
+    let plugin = get_language_plugin(&exercise_path)?;
+    if let Plugin::Ant(..) = plugin {
         AntPlugin::copy_tmc_junit_runner(dest_path).map_err(|e| TmcError::Plugin(Box::new(e)))?;
     }
     Ok(())
