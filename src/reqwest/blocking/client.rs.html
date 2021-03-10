@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.1/src/blocking/client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.2/src/blocking/client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../reqwest/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -948,11 +948,59 @@
 <span id="945">945</span>
 <span id="946">946</span>
 <span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
+<span id="952">952</span>
+<span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
+<span id="956">956</span>
+<span id="957">957</span>
+<span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
+<span id="968">968</span>
+<span id="969">969</span>
+<span id="970">970</span>
+<span id="971">971</span>
+<span id="972">972</span>
+<span id="973">973</span>
+<span id="974">974</span>
+<span id="975">975</span>
+<span id="976">976</span>
+<span id="977">977</span>
+<span id="978">978</span>
+<span id="979">979</span>
+<span id="980">980</span>
+<span id="981">981</span>
+<span id="982">982</span>
+<span id="983">983</span>
+<span id="984">984</span>
+<span id="985">985</span>
+<span id="986">986</span>
+<span id="987">987</span>
+<span id="988">988</span>
+<span id="989">989</span>
+<span id="990">990</span>
+<span id="991">991</span>
+<span id="992">992</span>
+<span id="993">993</span>
+<span id="994">994</span>
+<span id="995">995</span>
+<span id="996">996</span>
+<span id="997">997</span>
+<span id="998">998</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>,
-    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>,
-))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>,))]</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">any</span>::<span class="ident">Any</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">TryInto</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
@@ -969,11 +1017,11 @@
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">request</span>::{<span class="ident">Request</span>, <span class="ident">RequestBuilder</span>};
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">response</span>::<span class="ident">Response</span>;
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">wait</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">async_impl</span>, <span class="ident">header</span>, <span class="ident">IntoUrl</span>, <span class="ident">Method</span>, <span class="ident">Proxy</span>, <span class="ident">redirect</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__tls&quot;</span>)]</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Certificate</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>))]</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Identity</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">async_impl</span>, <span class="ident">header</span>, <span class="ident">redirect</span>, <span class="ident">IntoUrl</span>, <span class="ident">Method</span>, <span class="ident">Proxy</span>};
 
 <span class="doccomment">/// A `Client` to make Requests with.</span>
 <span class="doccomment">///</span>
@@ -1054,9 +1102,7 @@
         <span class="ident">ClientHandle</span>::<span class="ident">new</span>(<span class="self">self</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">handle</span><span class="op">|</span> <span class="ident">Client</span> { <span class="ident">inner</span>: <span class="ident">handle</span> })
     }
 
-
     <span class="comment">// Higher-level options</span>
-
 
     <span class="doccomment">/// Sets the `User-Agent` header to be used by this client.</span>
     <span class="doccomment">///</span>
@@ -1150,6 +1196,25 @@
         <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">cookie_store</span>(<span class="ident">enable</span>))
     }
 
+    <span class="doccomment">/// Set the persistent cookie store for the client.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Cookies received in responses will be passed to this store, and</span>
+    <span class="doccomment">/// additional requests will query this store for cookies.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// By default, no cookie store is used.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Optional</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This requires the optional `cookies` feature to be enabled.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cookies&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cookies&quot;</span>)))]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cookie_provider</span><span class="op">&lt;</span><span class="ident">C</span>: <span class="kw">crate</span>::<span class="ident">cookie</span>::<span class="ident">CookieStore</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(
+        <span class="self">self</span>,
+        <span class="ident">cookie_store</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClientBuilder</span> {
+        <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">cookie_provider</span>(<span class="ident">cookie_store</span>))
+    }
+
     <span class="doccomment">/// Enable auto gzip decompression by checking the `Content-Encoding` response header.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If auto gzip decompresson is turned on:</span>
@@ -1190,7 +1255,9 @@
     <span class="doccomment">/// This requires the optional `brotli` feature to be enabled</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;brotli&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">brotli</span>(<span class="self">self</span>, <span class="ident">enable</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClientBuilder</span> { <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">brotli</span>(<span class="ident">enable</span>)) }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">brotli</span>(<span class="self">self</span>, <span class="ident">enable</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClientBuilder</span> {
+        <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">brotli</span>(<span class="ident">enable</span>))
+    }
 
     <span class="doccomment">/// Disable auto response body gzip decompression.</span>
     <span class="doccomment">///</span>
@@ -1206,7 +1273,9 @@
     <span class="doccomment">/// This method exists even if the optional `brotli` feature is not enabled.</span>
     <span class="doccomment">/// This can be used to ensure a `Client` doesn&#39;t use brotli decompression</span>
     <span class="doccomment">/// even if another dependency were to enable the optional `brotli` feature.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">no_brotli</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClientBuilder</span> { <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">no_brotli</span>()) }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">no_brotli</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClientBuilder</span> {
+        <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">no_brotli</span>())
+    }
 
     <span class="comment">// Redirect options</span>
 
@@ -1325,6 +1394,21 @@
         <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">http2_initial_connection_window_size</span>(<span class="ident">sz</span>))
     }
 
+    <span class="doccomment">/// Sets whether to use an adaptive flow control.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Enabling this will override the limits set in `http2_initial_stream_window_size` and</span>
+    <span class="doccomment">/// `http2_initial_connection_window_size`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http2_adaptive_window</span>(<span class="self">self</span>, <span class="ident">enabled</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClientBuilder</span> {
+        <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">http2_adaptive_window</span>(<span class="ident">enabled</span>))
+    }
+
+    <span class="doccomment">/// Sets the maximum frame size to use for HTTP2.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Default is currently 16,384 but may change internally to optimize for common uses.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http2_max_frame_size</span>(<span class="self">self</span>, <span class="ident">sz</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClientBuilder</span> {
+        <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">http2_max_frame_size</span>(<span class="ident">sz</span>))
+    }
+
     <span class="comment">// TCP options</span>
 
     <span class="doccomment">/// Set whether sockets have `SO_NODELAY` enabled.</span>
@@ -1356,8 +1440,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If `None`, the option will not be set.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tcp_keepalive</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">val</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClientBuilder</span>
-        <span class="kw">where</span>
-            <span class="ident">D</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">where</span>
+        <span class="ident">D</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">tcp_keepalive</span>(<span class="ident">val</span>))
     }
@@ -1396,7 +1480,14 @@
     <span class="doccomment">/// This requires the optional `default-tls`, `native-tls`, or `rustls-tls(-...)`</span>
     <span class="doccomment">/// feature to be enabled.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__tls&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-tls&quot;</span>))))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(
+        <span class="ident">docsrs</span>,
+        <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-tls&quot;</span>
+        )))
+    )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_root_certificate</span>(<span class="self">self</span>, <span class="ident">cert</span>: <span class="ident">Certificate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClientBuilder</span> {
         <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">add_root_certificate</span>(<span class="ident">cert</span>))
     }
@@ -1410,11 +1501,15 @@
     <span class="doccomment">/// This requires the optional `default-tls`, `native-tls`, or `rustls-tls(-...)`</span>
     <span class="doccomment">/// feature to be enabled.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__tls&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-tls&quot;</span>))))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tls_built_in_root_certs</span>(
-        <span class="self">self</span>,
-        <span class="ident">tls_built_in_root_certs</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClientBuilder</span> {
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(
+        <span class="ident">docsrs</span>,
+        <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-tls&quot;</span>
+        )))
+    )]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tls_built_in_root_certs</span>(<span class="self">self</span>, <span class="ident">tls_built_in_root_certs</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClientBuilder</span> {
         <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">tls_built_in_root_certs</span>(<span class="ident">tls_built_in_root_certs</span>))
     }
 
@@ -1462,7 +1557,14 @@
     <span class="doccomment">/// introduces significant vulnerabilities, and should only be used</span>
     <span class="doccomment">/// as a last resort.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__tls&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-tls&quot;</span>))))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(
+        <span class="ident">docsrs</span>,
+        <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-tls&quot;</span>
+        )))
+    )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">danger_accept_invalid_certs</span>(<span class="self">self</span>, <span class="ident">accept_invalid_certs</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClientBuilder</span> {
         <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">danger_accept_invalid_certs</span>(<span class="ident">accept_invalid_certs</span>))
     }
@@ -1513,10 +1615,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This requires one of the optional features `native-tls` or</span>
     <span class="doccomment">/// `rustls-tls(-...)` to be enabled.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
-        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>,
-        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>,
-    ))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__rustls&quot;</span>,))]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustls-tls&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">use_preconfigured_tls</span>(<span class="self">self</span>, <span class="ident">tls</span>: <span class="kw">impl</span> <span class="ident">Any</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClientBuilder</span> {
         <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">use_preconfigured_tls</span>(<span class="ident">tls</span>))
@@ -1545,7 +1644,7 @@
     }
 
     <span class="doccomment">/// Restrict the Client to be used with HTTPS only requests.</span>
-    <span class="doccomment">/// </span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// Defaults to false.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">https_only</span>(<span class="self">self</span>, <span class="ident">enabled</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClientBuilder</span> {
         <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">https_only</span>(<span class="ident">enabled</span>))
@@ -1717,7 +1816,8 @@
 
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">InnerClientHandle</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">thread</span>
+        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">thread</span>
             .<span class="ident">as_ref</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="ident">h</span>.<span class="ident">thread</span>().<span class="ident">id</span>())
             .<span class="ident">expect</span>(<span class="string">&quot;thread not dropped yet&quot;</span>);
@@ -1740,7 +1840,11 @@
             .<span class="ident">name</span>(<span class="string">&quot;reqwest-internal-sync-runtime&quot;</span>.<span class="ident">into</span>())
             .<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
                 <span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">runtime</span>;
-                <span class="kw">let</span> <span class="ident">rt</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">runtime</span>::<span class="ident">Builder</span>::<span class="ident">new_current_thread</span>().<span class="ident">enable_all</span>().<span class="ident">build</span>().<span class="ident">map_err</span>(<span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">builder</span>) {
+                <span class="kw">let</span> <span class="ident">rt</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">runtime</span>::<span class="ident">Builder</span>::<span class="ident">new_current_thread</span>()
+                    .<span class="ident">enable_all</span>()
+                    .<span class="ident">build</span>()
+                    .<span class="ident">map_err</span>(<span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">builder</span>)
+                {
                     <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">spawn_tx</span>.<span class="ident">send</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) {
                             <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Failed to communicate runtime creation failure: {:?}&quot;</span>, <span class="ident">e</span>);
@@ -1822,9 +1926,7 @@
                 };
                 <span class="ident">wait</span>::<span class="ident">timeout</span>(<span class="ident">f</span>, <span class="ident">timeout</span>)
             } <span class="kw">else</span> {
-                <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="kw">async</span> <span class="kw">move</span> {
-                    <span class="ident">rx</span>.<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">_canceled</span><span class="op">|</span> <span class="ident">event_loop_panicked</span>())
-                };
+                <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="kw">async</span> <span class="kw">move</span> { <span class="ident">rx</span>.<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">_canceled</span><span class="op">|</span> <span class="ident">event_loop_panicked</span>()) };
                 <span class="ident">wait</span>::<span class="ident">timeout</span>(<span class="ident">f</span>, <span class="ident">timeout</span>)
             };
 
