@@ -326,12 +326,7 @@ mod test {
     #[cfg(windows)]
     #[test]
     fn windows_paths_get_converted() {
-        let win_path = PathBuf::from(r"tests\data\dir");
-        let zipped = zip(
-            EverythingIsStudentFilePolicy::new(&win_path).unwrap(),
-            &win_path,
-        )
-        .unwrap();
+        let zipped = file_util::read_file("tests/data/zip/compressed.zip").unwrap();
         let mut ziparch = ZipArchive::new(Cursor::new(zipped)).unwrap();
         assert!(ziparch.len() > 0);
         for i in 0..ziparch.len() {
