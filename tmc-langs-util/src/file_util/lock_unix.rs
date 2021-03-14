@@ -1,34 +1,20 @@
 //! File locking utilities on Unix platforms.
 
-use crate::error::FileIo;
+use crate::error::FileError;
 use crate::file_util::*;
 use fd_lock::{FdLock, FdLockGuard};
 use std::fs::File;
 use std::path::PathBuf;
 
-#[macro_export]
-macro_rules! lock {
-    ( $( $path: expr ),+ ) => {
-        $(
-            let path_buf: PathBuf = $path.into();
-            let mut fl = $crate::file_util::FileLock::new(path_buf)?;
-            let _lock = fl.lock()?;
-        )*
-    };
-}
-// macros always live at the top-level, re-export here
-pub use crate::lock;
-
 /// Wrapper for fd_lock::FdLock. Used to lock files/directories to prevent concurrent access
 /// from multiple instances of tmc-langs.
-// TODO: should this be in file_util or in the frontend (CLI)?
 pub struct FileLock {
     path: PathBuf,
     fd_lock: FdLock<File>,
 }
 
 impl FileLock {
-    pub fn new(path: PathBuf) -> Result<FileLock, FileIo> {
+    pub fn new(path: PathBuf) -> Result<FileLock, FileError> {
         let file = open_file(&path)?;
         Ok(Self {
             path,
@@ -37,13 +23,13 @@ impl FileLock {
     }
 
     /// Blocks until the lock can be acquired.
-    pub fn lock(&mut self) -> Result<FileLockGuard, FileIo> {
+    pub fn lock(&mut self) -> Result<FileLockGuard, FileError> {
         log::debug!("locking {}", self.path.display());
         let path = &self.path;
         let fd_lock = &mut self.fd_lock;
         let guard = fd_lock
             .lock()
-            .map_err(|e| FileIo::FdLock(path.clone(), e))?;
+            .map_err(|e| FileError::FdLock(path.clone(), e))?;
         log::debug!("locked {}", self.path.display());
         Ok(FileLockGuard {
             path,

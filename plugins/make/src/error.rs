@@ -4,7 +4,7 @@ use std::num::ParseIntError;
 use std::path::PathBuf;
 use thiserror::Error;
 use tmc_langs_framework::{ExitStatus, TmcError};
-use tmc_langs_util::FileIo;
+use tmc_langs_util::FileError;
 
 #[derive(Error, Debug)]
 pub enum MakeError {
@@ -25,17 +25,19 @@ pub enum MakeError {
     ParseIntError(#[from] ParseIntError),
 
     #[error("File IO error")]
-    FileIo(#[from] FileIo),
+    FileError(#[from] FileError),
     #[error(transparent)]
     Tmc(#[from] TmcError),
 }
 
+// conversion from plugin error to TmcError::Plugin
 impl From<MakeError> for TmcError {
     fn from(other: MakeError) -> TmcError {
         TmcError::Plugin(Box::new(other))
     }
 }
 
+// conversion from plugin error to a tmc result
 impl<T> Into<Result<T, TmcError>> for MakeError {
     fn into(self) -> Result<T, TmcError> {
         Err(TmcError::Plugin(Box::new(self)))

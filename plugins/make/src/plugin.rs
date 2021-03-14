@@ -15,7 +15,7 @@ use tmc_langs_framework::{
     CommandError, ExerciseDesc, LanguagePlugin, Output, PopenError, RunResult, RunStatus, TestDesc,
     TmcCommand, TmcError, TmcProjectYml,
 };
-use tmc_langs_util::{file_util, FileIo};
+use tmc_langs_util::{file_util, FileError};
 use zip::ZipArchive;
 
 #[derive(Default)]
@@ -46,7 +46,7 @@ impl MakePlugin {
 
         let reader = BufReader::new(file);
         for line in reader.lines() {
-            let line = line.map_err(|e| FileIo::FileRead(available_points.to_path_buf(), e))?;
+            let line = line.map_err(|e| FileError::FileRead(available_points.to_path_buf(), e))?;
 
             if let Some(captures) = RE.captures(&line) {
                 if &captures["type"] == "test" {

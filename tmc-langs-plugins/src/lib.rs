@@ -107,7 +107,7 @@ pub enum Plugin {
 }
 
 // Get language plugin for the given path.
-pub fn get_language_plugin(path: &Path) -> Result<Plugin, TmcError> {
+pub fn get_language_plugin(path: &Path) -> Result<Plugin, PluginError> {
     if NoTestsPlugin::is_exercise_type_correct(path) {
         log::info!(
             "Detected project at {} as {}",
@@ -161,6 +161,6 @@ pub fn get_language_plugin(path: &Path) -> Result<Plugin, TmcError> {
         );
         Ok(Plugin::Ant(AntPlugin::new()?))
     } else {
-        Err(TmcError::PluginNotFound(path.to_path_buf()))
+        Err(PluginError::PluginNotFound(path.to_path_buf()))
     }
 }

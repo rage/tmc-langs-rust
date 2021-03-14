@@ -6,7 +6,7 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-use tmc_langs_util::{file_util, FileIo};
+use tmc_langs_util::{file_util, FileError};
 
 #[derive(Debug)]
 pub struct ValgrindLog {
@@ -34,7 +34,7 @@ impl ValgrindLog {
         let mut pid_info = HashMap::new();
         // parse all lines into a map of pid => ([lines of text], error count)
         for line in valgrind_log.lines() {
-            let line = line.map_err(|e| FileIo::FileRead(valgrind_log_path.to_path_buf(), e))?;
+            let line = line.map_err(|e| FileError::FileRead(valgrind_log_path.to_path_buf(), e))?;
             let pid = match PID_REGEX.captures(&line) {
                 Some(captures) => captures["pid"].to_string(),
                 None => continue, // ignore lines without a PID

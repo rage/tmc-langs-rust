@@ -72,7 +72,7 @@ A "frontend" for tmc-langs. A binary CLI client for TMC-langs for IDEs. Intended
 
 ### tmc-langs
 
-The "backend". A library that provides a convenient API for implementing different frontends.
+The "backend". A library that provides a convenient API for implementing different frontends. A frontend (such as a CLI) should only depend on this and optionally the util library.
 
 ### tmc-client
 
@@ -82,9 +82,13 @@ A library for communicating with the TMC server.
 
 A library for creating language plugins.
 
+### tmc-langs-plugins
+
+A library that provides a convenient API for using all the different plugins.
+
 ### tmc-langs-util
 
-A utility library that contains various kinds of useful functionality for the other projects.
+A utility library that contains various kinds of useful functionality for other projects.
 
 ### plugins/csharp
 

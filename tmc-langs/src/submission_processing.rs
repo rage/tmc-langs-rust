@@ -1,9 +1,10 @@
 //! Functions for processing submissions.
 
+use crate::error::LangsError;
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::path::Path;
-use tmc_langs_framework::{MetaString, MetaSyntaxParser, TmcError};
+use tmc_langs_framework::{MetaString, MetaSyntaxParser};
 use tmc_langs_util::file_util;
 use walkdir::{DirEntry, WalkDir};
 
@@ -64,7 +65,7 @@ fn copy_file(
     dest_root: &Path,
     line_filter: &mut impl Fn(&MetaString) -> bool,
     file_filter: &mut impl Fn(&[MetaString]) -> bool,
-) -> Result<(), TmcError> {
+) -> Result<(), LangsError> {
     if file.is_dir() {
         return Ok(());
     }
@@ -92,7 +93,12 @@ fn copy_file(
         let parse_result: Result<Vec<_>, _> = parser.collect();
         let parsed = match parse_result {
             Ok(parsed) => parsed,
-            Err(err) => return Err(TmcError::SubmissionParse(file.to_path_buf(), Box::new(err))),
+            Err(err) => {
+                return Err(LangsError::SubmissionParse(
+                    file.to_path_buf(),
+                    Box::new(LangsError::Tmc(err)),
+                ))
+            }
         };
 
         // files that don't pass the filter are skipped
@@ -131,7 +137,7 @@ fn process_files(
     dest_root: &Path,
     mut line_filter: impl Fn(&MetaString) -> bool,
     mut file_filter: impl Fn(&[MetaString]) -> bool,
-) -> Result<(), TmcError> {
+) -> Result<(), LangsError> {
     log::info!("Project: {:?}", source);
 
     let walker = WalkDir::new(source).into_iter();
@@ -157,7 +163,7 @@ fn process_files(
 /// files matching patterns defined in ```FILES_TO_SKIP_ALWAYS``` and directories and files named ```private```.
 ///
 /// Binary files are copied without extra processing, while text files are parsed to remove solution tags and stubs.
-pub fn prepare_solution(exercise_path: &Path, dest_root: &Path) -> Result<(), TmcError> {
+pub fn prepare_solution(exercise_path: &Path, dest_root: &Path) -> Result<(), LangsError> {
     log::debug!(
         "preparing solution from {} to {}",
         exercise_path.display(),
@@ -178,7 +184,7 @@ pub fn prepare_solution(exercise_path: &Path, dest_root: &Path) -> Result<(), Tm
 /// Binary files are copied without extra processing, while text files are parsed to remove stub tags and solutions.
 ///
 /// Additionally, copies any shared files with the corresponding language plugins.
-pub fn prepare_stub(exercise_path: &Path, dest_root: &Path) -> Result<(), TmcError> {
+pub fn prepare_stub(exercise_path: &Path, dest_root: &Path) -> Result<(), LangsError> {
     log::debug!(
         "preparing stub from {} to {}",
         exercise_path.display(),

@@ -2,8 +2,8 @@
 
 use std::path::PathBuf;
 use thiserror::Error;
-use tmc_langs_framework::{CommandError, TmcError};
-use tmc_langs_util::FileIo;
+use tmc_langs_framework::TmcError;
+use tmc_langs_util::FileError;
 
 #[derive(Debug, Error)]
 pub enum CSharpError {
@@ -18,12 +18,8 @@ pub enum CSharpError {
     MissingBootstrapDll(PathBuf),
 
     // Wrapping other error types.
-    #[error("Command not found")]
-    Command(#[from] CommandError),
     #[error("File IO error")]
-    FileIo(#[from] FileIo),
-    #[error("TMC error")]
-    Tmc(#[from] TmcError),
+    FileError(#[from] FileError),
     #[error("Zip error")]
     Zip(#[from] zip::result::ZipError),
 }
@@ -32,5 +28,12 @@ pub enum CSharpError {
 impl From<CSharpError> for TmcError {
     fn from(err: CSharpError) -> Self {
         Self::Plugin(Box::new(err))
+    }
+}
+
+// conversion from plugin error to a tmc result
+impl<T> Into<Result<T, TmcError>> for CSharpError {
+    fn into(self) -> Result<T, TmcError> {
+        Err(TmcError::Plugin(Box::new(self)))
     }
 }

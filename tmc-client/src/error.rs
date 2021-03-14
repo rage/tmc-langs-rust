@@ -3,7 +3,7 @@
 use reqwest::{Method, StatusCode};
 use std::path::PathBuf;
 use thiserror::Error;
-use tmc_langs_util::FileIo;
+use tmc_langs_util::FileError;
 use url::Url;
 
 type TokenError = oauth2::RequestTokenError<
@@ -62,11 +62,9 @@ pub enum ClientError {
     #[error(transparent)]
     WalkDir(#[from] walkdir::Error),
     #[error("File IO error")]
-    FileIo(#[from] FileIo),
+    FileError(#[from] FileError),
     #[error(transparent)]
     Plugin(#[from] tmc_langs_plugins::PluginError),
-    #[error(transparent)]
-    Tmc(#[from] tmc_langs_util::error::UtilError),
 }
 
 impl From<TokenError> for ClientError {

@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 use thiserror::Error;
 use tmc_langs_framework::TmcError;
-use tmc_langs_util::FileIo;
+use tmc_langs_util::FileError;
 
 #[derive(Debug, Error)]
 pub enum PythonError {
@@ -26,17 +26,19 @@ pub enum PythonError {
     InvalidHmac,
 
     #[error("File IO error")]
-    FileIo(#[from] FileIo),
+    FileError(#[from] FileError),
     #[error("Error")]
     Tmc(#[from] tmc_langs_framework::TmcError),
 }
 
+// conversion from plugin error to TmcError::Plugin
 impl From<PythonError> for TmcError {
     fn from(err: PythonError) -> TmcError {
         TmcError::Plugin(Box::new(err))
     }
 }
 
+// conversion from plugin error to a tmc result
 impl<T> Into<Result<T, TmcError>> for PythonError {
     fn into(self) -> Result<T, TmcError> {
         Err(TmcError::Plugin(Box::new(self)))

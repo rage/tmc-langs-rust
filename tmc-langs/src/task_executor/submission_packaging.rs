@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::io::Write;
 use std::path::Path;
-use tmc_langs_framework::error::FileIo;
+use tmc_langs_framework::error::FileError;
 use tmc_langs_framework::file_util;
 use walkdir::WalkDir;
 use zip::{read::ZipFile, write::FileOptions, ZipWriter};
@@ -213,7 +213,7 @@ pub fn prepare_submission(
             log::debug!("{}", export);
             tmc_params_file
                 .write_all(export.as_bytes())
-                .map_err(|e| FileIo::FileWrite(tmc_params_path.clone(), e))?;
+                .map_err(|e| FileError::FileWrite(tmc_params_path.clone(), e))?;
         }
     }
 
@@ -439,7 +439,7 @@ pub fn prepare_submission(
 
 use std::ffi::OsStr;
 use std::path::PathBuf;
-fn find_project_root<P: AsRef<Path>>(path: P) -> Result<Option<PathBuf>, FileIo> {
+fn find_project_root<P: AsRef<Path>>(path: P) -> Result<Option<PathBuf>, FileError> {
     for entry in WalkDir::new(&path) {
         let entry = entry?;
         if entry.path().is_dir() && entry.file_name() == OsStr::new("src") {

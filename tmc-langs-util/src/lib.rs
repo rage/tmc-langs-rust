@@ -5,4 +5,4 @@ pub mod file_util;
 pub mod progress_reporter;
 pub mod warning_reporter;
 
-pub use error::FileIo;
+pub use error::FileError;

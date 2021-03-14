@@ -6,7 +6,7 @@ use crate::error::LangsError;
 use std::io::Write;
 use std::path::Path;
 use tmc_langs_plugins::Plugin;
-use tmc_langs_util::{file_util, FileIo};
+use tmc_langs_util::{file_util, FileError};
 use walkdir::WalkDir;
 use zip::{read::ZipFile, write::FileOptions, ZipWriter};
 
@@ -77,7 +77,7 @@ pub fn prepare_submission(
             log::debug!("{}", export);
             tmc_params_file
                 .write_all(export.as_bytes())
-                .map_err(|e| FileIo::FileWrite(tmc_params_path.clone(), e))?;
+                .map_err(|e| FileError::FileWrite(tmc_params_path.clone(), e))?;
         }
     }
 
@@ -303,7 +303,7 @@ pub fn prepare_submission(
 
 use std::ffi::OsStr;
 use std::path::PathBuf;
-fn find_project_root<P: AsRef<Path>>(path: P) -> Result<Option<PathBuf>, FileIo> {
+fn find_project_root<P: AsRef<Path>>(path: P) -> Result<Option<PathBuf>, FileError> {
     for entry in WalkDir::new(&path) {
         let entry = entry?;
         if entry.path().is_dir() && entry.file_name() == OsStr::new("src") {
@@ -317,12 +317,11 @@ fn find_project_root<P: AsRef<Path>>(path: P) -> Result<Option<PathBuf>, FileIo>
     Ok(Some(path.as_ref().to_path_buf()))
 }
 
-use tmc_langs_framework::TmcError;
 pub fn unzip<P: AsRef<Path>, Q: AsRef<Path>, F>(
     zip_path: P,
     target: Q,
     filter: F,
-) -> Result<(), TmcError>
+) -> Result<(), LangsError>
 where
     F: Fn(&ZipFile) -> bool,
 {

@@ -101,14 +101,12 @@ fn run_inner() -> Result<(), ()> {
 
     progress_reporter::subscribe::<(), _>(move |update| {
         let output = Output::StatusUpdate(StatusUpdateData::None(update));
-        print_output(&output, pretty)?;
-        Ok(())
+        let _r = print_output(&output, pretty);
     });
 
     progress_reporter::subscribe::<ClientUpdateData, _>(move |update| {
         let output = Output::StatusUpdate(StatusUpdateData::ClientUpdateData(update));
-        print_output(&output, pretty)?;
-        Ok(())
+        let _r = print_output(&output, pretty);
     });
 
     if let Err(e) = run_app(matches, pretty) {

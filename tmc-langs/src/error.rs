@@ -4,7 +4,6 @@ use thiserror::Error;
 
 use crate::course_refresher::ModeBits;
 #[derive(Error, Debug)]
-#[error("error")]
 pub enum LangsError {
     #[error("Failed to create temporary file")]
     TempFile(#[source] std::io::Error),
@@ -26,6 +25,8 @@ pub enum LangsError {
     NoProjectDirInZip(PathBuf),
     #[error("Error while writing file to zip")]
     ZipWrite(#[source] std::io::Error),
+    #[error("Failed to parse file {0}")]
+    SubmissionParse(PathBuf, #[source] Box<Self>),
 
     #[error("Cache path {0} was invalid. Not a valid UTF-8 string or did not contain a cache version after a dash")]
     InvalidCachePath(PathBuf),
@@ -39,12 +40,19 @@ pub enum LangsError {
     #[error("Invalid chmod flag: {0}")]
     NixFlag(ModeBits),
 
+    #[error(transparent)]
     Tmc(#[from] tmc_langs_framework::TmcError),
+    #[error(transparent)]
     Plugin(#[from] tmc_langs_plugins::PluginError),
-    FileIo(#[from] tmc_langs_util::FileIo),
+    #[error(transparent)]
+    FileError(#[from] tmc_langs_util::FileError),
+    #[error(transparent)]
     Heim(#[from] heim::Error),
+    #[error(transparent)]
     WalkDir(#[from] walkdir::Error),
+    #[error(transparent)]
     Zip(#[from] zip::result::ZipError),
+    #[error(transparent)]
     Yaml(#[from] serde_yaml::Error),
 }
 

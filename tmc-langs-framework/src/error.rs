@@ -1,7 +1,7 @@
 pub use nom::error::VerboseError;
 pub use serde_yaml::Error as YamlError;
 pub use subprocess::{ExitStatus, PopenError};
-pub use tmc_langs_util::FileIo;
+pub use tmc_langs_util::FileError;
 pub use walkdir::Error as WalkDirError;
 pub use zip::result::ZipError;
 
@@ -12,23 +12,13 @@ use thiserror::Error;
 // todo: make util error type and move variants there
 #[derive(Error, Debug)]
 pub enum TmcError {
-    // IO
-    #[error("File IO error")]
-    FileIo(#[from] FileIo),
-
     #[error("Failed to read file inside zip archive with path {0}")]
     ZipRead(PathBuf, #[source] std::io::Error),
     #[error("Failed to write file at {0} to zip archive")]
     ZipWrite(PathBuf, #[source] std::io::Error),
 
-    #[error("Error appending to tar")]
-    TarAppend(#[source] std::io::Error),
-    #[error("Error finishing tar")]
-    TarFinish(#[source] std::io::Error),
     #[error("Failed to read line")]
     ReadLine(#[source] std::io::Error),
-    #[error("Failed to parse file {0}")]
-    SubmissionParse(PathBuf, #[source] Box<Self>),
     #[error("Failed to canonicalize path {0}")]
     Canonicalize(PathBuf, #[source] std::io::Error),
     #[error("File {0} not in given project root {1}")]
@@ -36,11 +26,6 @@ pub enum TmcError {
     #[error("Error while parsing available points from {0}")]
     PointParse(PathBuf, #[source] VerboseError<String>),
 
-    #[error("Path {0} contained no file name")]
-    NoFileName(PathBuf),
-
-    #[error("No matching plugin found for {0}")]
-    PluginNotFound(PathBuf),
     #[error("No project directory found in archive during unzip")]
     NoProjectDirInZip,
     #[error("Found project dir in zip, but its path contained invalid UTF-8: {0}")]
@@ -51,7 +36,8 @@ pub enum TmcError {
 
     #[error("Failed to run command")]
     Command(#[from] CommandError),
-
+    #[error("File IO error")]
+    FileError(#[from] FileError),
     #[error(transparent)]
     YamlDeserialization(#[from] YamlError),
     #[error(transparent)]
