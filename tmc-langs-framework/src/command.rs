@@ -5,7 +5,8 @@ use std::io::Read;
 use std::time::Duration;
 use std::{ffi::OsStr, thread::JoinHandle};
 use std::{fs::File, io::Write};
-use subprocess::{Exec, ExitStatus, PopenError, Redirection};
+pub use subprocess::ExitStatus;
+use subprocess::{Exec, PopenError, Redirection};
 
 /// Wrapper around subprocess::Exec
 #[must_use]
@@ -23,7 +24,7 @@ impl TmcCommand {
         }
     }
 
-    /// Creates a new command, defaults to piped stdout/stderr.
+    /// Creates a new command with piped stdout/stderr.
     pub fn piped(cmd: impl AsRef<OsStr>) -> Self {
         Self {
             exec: Exec::cmd(cmd)
@@ -42,6 +43,7 @@ impl TmcCommand {
         }
     }
 
+    /// Gives the command data to write into stdin.
     pub fn set_stdin_data(self, data: String) -> Self {
         Self {
             exec: self.exec.stdin(Redirection::Pipe),

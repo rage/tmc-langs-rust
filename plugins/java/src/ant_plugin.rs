@@ -10,13 +10,10 @@ use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    command::TmcCommand,
-    domain::{ExerciseDesc, RunResult, StyleValidationResult},
-    file_util,
     nom::{error::VerboseError, IResult},
-    plugin::{Language, LanguagePlugin},
-    TmcError,
+    ExerciseDesc, Language, LanguagePlugin, RunResult, StyleValidationResult, TmcCommand, TmcError,
 };
+use tmc_langs_util::file_util;
 use walkdir::WalkDir;
 
 pub struct AntPlugin {
@@ -274,8 +271,8 @@ impl JavaPlugin for AntPlugin {
 mod test {
     use super::*;
     use std::fs;
-    use tmc_langs_framework::domain::StyleValidationStrategy;
-    use tmc_langs_framework::zip::ZipArchive;
+    use tmc_langs_framework::StyleValidationStrategy;
+    use zip::ZipArchive;
 
     fn init() {
         use log::*;
@@ -534,7 +531,7 @@ mod test {
         log::debug!("{:?}", test_result);
         assert_eq!(
             test_result.status,
-            tmc_langs_framework::domain::RunStatus::TestsFailed
+            tmc_langs_framework::RunStatus::TestsFailed
         );
     }
 
@@ -554,13 +551,8 @@ mod test {
         let mut source = test_result_err.source();
         while let Some(inner) = source {
             source = inner.source();
-            if let Some(cmd_error) =
-                inner.downcast_ref::<tmc_langs_framework::error::CommandError>()
-            {
-                if matches!(
-                    cmd_error,
-                    tmc_langs_framework::error::CommandError::TimeOut { .. }
-                ) {
+            if let Some(cmd_error) = inner.downcast_ref::<tmc_langs_framework::CommandError>() {
+                if matches!(cmd_error, tmc_langs_framework::CommandError::TimeOut { .. }) {
                     return;
                 }
             }

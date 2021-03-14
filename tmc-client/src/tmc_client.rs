@@ -1,3 +1,4 @@
+//! Contains the TmcClient struct for communicating with the TMC server.
 mod api;
 
 use crate::error::ClientError;
@@ -20,7 +21,7 @@ use std::sync::{
 use std::thread;
 use std::time::Duration;
 use tempfile::NamedTempFile;
-use tmc_langs_util::{file_util, progress_reporter, task_executor, FileIo};
+use tmc_langs_util::{file_util, progress_reporter, FileError};
 use walkdir::WalkDir;
 
 pub type Token =
@@ -279,7 +280,7 @@ impl TmcClient {
 
                         client_clone.download_exercise(exercise_id, zip_file.path())?;
                         let downloaded_count = downloaded_counter.fetch_add(1, Ordering::SeqCst);
-                        task_executor::extract_project(zip_file, &target, true)?;
+                        tmc_langs_plugins::extract_project(zip_file, &target, true)?;
                         progress_stage(
                             format!(
                                 "Downloaded exercise {} to '{}'. ({} out of {})",
@@ -445,10 +446,10 @@ impl TmcClient {
         locale: Option<Language>,
     ) -> Result<NewSubmission, ClientError> {
         // compress
-        let compressed = task_executor::compress_project(submission_path)?;
+        let compressed = tmc_langs_plugins::compress_project(submission_path)?;
         let mut file = NamedTempFile::new().map_err(ClientError::TempFile)?;
         file.write_all(&compressed).map_err(|e| {
-            ClientError::Tmc(FileIo::FileWrite(file.path().to_path_buf(), e).into())
+            ClientError::FileError(FileError::FileWrite(file.path().to_path_buf(), e))
         })?;
 
         self.post_submission_to_paste(submission_url, file.path(), paste_message, locale)
@@ -482,10 +483,10 @@ impl TmcClient {
         }
 
         start_stage(2, "Compressing submission...", None);
-        let compressed = task_executor::compress_project(submission_path)?;
+        let compressed = tmc_langs_plugins::compress_project(submission_path)?;
         let mut file = NamedTempFile::new().map_err(ClientError::TempFile)?;
         file.write_all(&compressed).map_err(|e| {
-            ClientError::Tmc(FileIo::FileWrite(file.path().to_path_buf(), e).into())
+            ClientError::FileError(FileError::FileWrite(file.path().to_path_buf(), e))
         })?;
         progress_stage("Compressed submission. Posting submission...", None);
 
@@ -513,7 +514,7 @@ impl TmcClient {
                     while let Err(err) = file_util::remove_dir_all(entry.path()) {
                         tries += 1;
                         if tries > 8 {
-                            return Err(ClientError::FileIo(err));
+                            return Err(ClientError::FileError(err));
                         }
                         thread::sleep(Duration::from_secs(1));
                     }
@@ -521,7 +522,7 @@ impl TmcClient {
                     while let Err(err) = file_util::remove_file(entry.path()) {
                         tries += 1;
                         if tries > 8 {
-                            return Err(ClientError::FileIo(err));
+                            return Err(ClientError::FileError(err));
                         }
                         thread::sleep(Duration::from_secs(1));
                     }
@@ -695,10 +696,10 @@ impl TmcClient {
         locale: Option<Language>,
     ) -> Result<NewSubmission, ClientError> {
         // compress
-        let compressed = task_executor::compress_project(submission_path)?;
+        let compressed = tmc_langs_plugins::compress_project(submission_path)?;
         let mut file = NamedTempFile::new().map_err(ClientError::TempFile)?;
         file.write_all(&compressed).map_err(|e| {
-            ClientError::Tmc(FileIo::FileWrite(file.path().to_path_buf(), e).into())
+            ClientError::FileError(FileError::FileWrite(file.path().to_path_buf(), e))
         })?;
 
         self.post_submission_for_review(submission_url, file.path(), message_for_reviewer, locale)
@@ -716,7 +717,7 @@ impl TmcClient {
     ) -> Result<(), ClientError> {
         let zip_file = NamedTempFile::new().map_err(ClientError::TempFile)?;
         self.download_from(solution_download_url, zip_file.path())?;
-        task_executor::extract_project(zip_file, target, false)?;
+        tmc_langs_plugins::extract_project(zip_file, target, false)?;
         Ok(())
     }
 

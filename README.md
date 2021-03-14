@@ -68,7 +68,11 @@ Documentation and binaries for the supported targets are built and the binaries 
 
 ### tmc-langs-cli
 
-A binary CLI interface for TMC-langs for IDEs.
+A "frontend" for tmc-langs. A binary CLI client for TMC-langs for IDEs. Intended to be used programmatically, for a CLI meant for manual use see [tmc-cli-rust](https://github.com/rage/tmc-cli-rust).
+
+### tmc-langs
+
+The "backend". A library that provides a convenient API for implementing different frontends. A frontend (such as a CLI) should only depend on this and optionally the util library.
 
 ### tmc-client
 
@@ -78,9 +82,13 @@ A library for communicating with the TMC server.
 
 A library for creating language plugins.
 
+### tmc-langs-plugins
+
+A library that provides a convenient API for using all the different plugins.
+
 ### tmc-langs-util
 
-A library that provides a convenient interface abstracting over all available language plugins.
+A utility library that contains various kinds of useful functionality for other projects.
 
 ### plugins/csharp
 

@@ -12,7 +12,7 @@ use crate::output::LocalExercise;
 use anyhow::{Context, Error};
 use std::path::{Path, PathBuf};
 use std::{collections::BTreeMap, env, fs};
-use tmc_langs_framework::file_util;
+use tmc_langs_util::file_util;
 
 // base directory for a given plugin's settings files
 fn get_tmc_dir(client_name: &str) -> Result<PathBuf, Error> {

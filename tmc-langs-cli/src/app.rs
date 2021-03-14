@@ -6,8 +6,12 @@ use crate::output::{
 use clap::{App, AppSettings, Arg, SubCommand};
 use schemars::JsonSchema;
 use std::path::PathBuf;
-use tmc_client::*;
-use tmc_langs_framework::domain::*;
+use tmc_langs::{
+    CourseData, CourseDetails, CourseExercise, ExerciseDesc, ExerciseDetails,
+    ExercisePackagingConfiguration, NewSubmission, Organization, Review, RunResult,
+    StyleValidationResult, Submission, SubmissionFeedbackResponse, SubmissionFinished,
+    UpdateResult,
+};
 // use tmc_langs_util::task_executor::RefreshData;
 
 /// Constructs the CLI root.

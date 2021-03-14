@@ -6,9 +6,8 @@ use std::collections::HashSet;
 use std::io::{Cursor, Read, Seek, Write};
 use std::path::Path;
 use std::path::PathBuf;
-use tmc_langs_framework::error::TmcError;
-use tmc_langs_framework::file_util;
-use tmc_langs_framework::policy::StudentFilePolicy;
+use tmc_langs_framework::{StudentFilePolicy, TmcError};
+use tmc_langs_util::file_util;
 use walkdir::{DirEntry, WalkDir};
 use zip::{write::FileOptions, ZipArchive, ZipWriter};
 
@@ -228,7 +227,7 @@ mod test {
     use std::collections::HashSet;
     use std::fs::{self, *};
     use tempfile::tempdir;
-    use tmc_langs_framework::policy::EverythingIsStudentFilePolicy;
+    use tmc_langs_framework::EverythingIsStudentFilePolicy;
 
     fn init() {
         use log::*;
@@ -327,12 +326,7 @@ mod test {
     #[cfg(windows)]
     #[test]
     fn windows_paths_get_converted() {
-        let win_path = PathBuf::from(r"tests\data\dir");
-        let zipped = zip(
-            EverythingIsStudentFilePolicy::new(&win_path).unwrap(),
-            &win_path,
-        )
-        .unwrap();
+        let zipped = file_util::read_file("tests/data/zip/compressed.zip").unwrap();
         let mut ziparch = ZipArchive::new(Cursor::new(zipped)).unwrap();
         assert!(ziparch.len() > 0);
         for i in 0..ziparch.len() {

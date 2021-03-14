@@ -7,7 +7,6 @@ use crate::domain::{
     TestResult,
 };
 use crate::error::TmcError;
-use crate::file_util;
 use crate::policy::StudentFilePolicy;
 use crate::TmcProjectYml;
 use nom::{branch, bytes, character, combinator, error::VerboseError, multi, sequence, IResult};
@@ -15,6 +14,7 @@ use std::collections::HashSet;
 use std::io::{Read, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
+use tmc_langs_util::file_util;
 use walkdir::WalkDir;
 use zip::ZipArchive;
 

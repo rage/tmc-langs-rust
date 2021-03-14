@@ -2,9 +2,9 @@
 
 mod course_refresher;
 mod submission_packaging;
-mod submission_processing;
+pub mod submission_processing;
 mod tar_helper;
-mod tmc_zip;
+pub mod tmc_zip;
 
 pub use self::course_refresher::{refresh_course, ModeBits, RefreshData, RefreshExercise};
 pub use self::submission_packaging::{prepare_submission, OutputFormat, TmcParams};

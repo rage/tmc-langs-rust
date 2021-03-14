@@ -3,7 +3,7 @@
 //! Windows directories can't be locked with fd-lock, so a different solution is needed.
 //! Currently, regular files are locked with fd-lock, but for directories a .tmc.lock file is created.
 
-use crate::error::FileIo;
+use crate::error::FileError;
 use crate::file_util::*;
 use fd_lock::{FdLock, FdLockGuard};
 use std::os::windows::fs::OpenOptionsExt;
@@ -18,22 +18,8 @@ use winapi::um::{
     winnt::{FILE_ATTRIBUTE_HIDDEN, FILE_ATTRIBUTE_TEMPORARY},
 };
 
-#[macro_export]
-macro_rules! lock {
-    ( $( $path: expr ),+ ) => {
-        $(
-            let path_buf: PathBuf = $path.into();
-            let mut fl = $crate::file_util::FileLock::new(path_buf)?;
-            let _lock = fl.lock()?;
-        )*
-    };
-}
-// macros always live at the top-level, re-export here
-pub use crate::lock;
-
 /// Wrapper for fd_lock::FdLock. Used to lock files/directories to prevent concurrent access
 /// from multiple instances of tmc-langs.
-// TODO: should this be in file_util or in the frontend (CLI)?
 pub struct FileLock {
     path: PathBuf,
     // this is re-set in every lock command if the target is a file
@@ -42,13 +28,13 @@ pub struct FileLock {
 }
 
 impl FileLock {
-    pub fn new(path: PathBuf) -> Result<FileLock, FileIo> {
+    pub fn new(path: PathBuf) -> Result<FileLock, FileError> {
         Ok(Self { path, lock: None })
     }
 
     /// Blocks until the lock can be acquired.
     /// On Windows, directories cannot be locked, so we use a lock file instead.
-    pub fn lock(&mut self) -> Result<FileLockGuard, FileIo> {
+    pub fn lock(&mut self) -> Result<FileLockGuard, FileError> {
         log::debug!("locking {}", self.path.display());
         let start_time = Instant::now();
         let mut warning_timer = Instant::now();
@@ -119,13 +105,13 @@ impl FileLock {
                             std::thread::sleep(Duration::from_millis(500));
                         } else {
                             // something else went wrong, propagate error
-                            return Err(FileIo::FileCreate(lock_path, err));
+                            return Err(FileError::FileCreate(lock_path, err));
                         }
                     }
                 }
             }
         } else {
-            Err(FileIo::InvalidLockPath(self.path.to_path_buf()))
+            Err(FileError::InvalidLockPath(self.path.to_path_buf()))
         }
     }
 }

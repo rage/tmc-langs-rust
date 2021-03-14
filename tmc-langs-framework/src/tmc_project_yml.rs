@@ -1,6 +1,5 @@
 //! Contains a struct that models the .tmcproject.yml file.
 
-use crate::file_util;
 use crate::TmcError;
 use serde::{
     de::{Error, Visitor},
@@ -8,6 +7,7 @@ use serde::{
 };
 use std::fmt;
 use std::path::{Path, PathBuf};
+use tmc_langs_util::file_util;
 
 /// Extra data from a `.tmcproject.yml` file.
 #[derive(Debug, Deserialize, Default)]

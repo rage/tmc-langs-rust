@@ -1,7 +1,7 @@
 //! Contains the language policy for the plugin.
 
 use std::path::Path;
-use tmc_langs_framework::{policy::StudentFilePolicy, TmcProjectYml};
+use tmc_langs_framework::{StudentFilePolicy, TmcProjectYml};
 
 pub struct MakeStudentFilePolicy {
     project_config: TmcProjectYml,

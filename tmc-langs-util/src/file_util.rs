@@ -1,11 +1,26 @@
 //! Various utility functions, primarily wrapping the standard library's IO and filesystem functions
 
-use crate::error::FileIo;
+use crate::error::FileError;
 use fd_lock::FdLock;
 use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::Path;
 use walkdir::WalkDir;
+
+/// Convenience macro for locking a path.
+#[macro_export]
+macro_rules! lock {
+    ( $( $path: expr ),+ ) => {
+        $(
+            let path_buf: PathBuf = $path.into();
+            let mut fl = $crate::file_util::FileLock::new(path_buf)?;
+            let _lock = fl.lock()?;
+        )*
+    };
+}
+
+// macros always live at the top-level, re-export here
+pub use crate::lock;
 
 #[cfg(unix)]
 mod lock_unix;
@@ -17,55 +32,58 @@ mod lock_windows;
 #[cfg(windows)]
 pub use lock_windows::*;
 
-pub fn temp_file() -> Result<File, FileIo> {
-    tempfile::tempfile().map_err(FileIo::TempFile)
+pub fn temp_file() -> Result<File, FileError> {
+    tempfile::tempfile().map_err(FileError::TempFile)
 }
 
-pub fn open_file<P: AsRef<Path>>(path: P) -> Result<File, FileIo> {
+pub fn open_file<P: AsRef<Path>>(path: P) -> Result<File, FileError> {
     let path = path.as_ref();
-    File::open(path).map_err(|e| FileIo::FileOpen(path.to_path_buf(), e))
+    File::open(path).map_err(|e| FileError::FileOpen(path.to_path_buf(), e))
 }
 
-/// Does not work on directories on Windows.
-pub fn open_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLock<File>, FileIo> {
+/// Opens and locks the given file. Note: Does not work on directories on Windows.
+pub fn open_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLock<File>, FileError> {
     let file = open_file(path)?;
     let lock = FdLock::new(file);
     Ok(lock)
 }
 
-pub fn read_file<P: AsRef<Path>>(path: P) -> Result<Vec<u8>, FileIo> {
+pub fn read_file<P: AsRef<Path>>(path: P) -> Result<Vec<u8>, FileError> {
     let path = path.as_ref();
     let mut file = open_file(path)?;
     let mut bytes = vec![];
     file.read_to_end(&mut bytes)
-        .map_err(|e| FileIo::FileRead(path.to_path_buf(), e))?;
+        .map_err(|e| FileError::FileRead(path.to_path_buf(), e))?;
     Ok(bytes)
 }
 
-pub fn read_file_to_string<P: AsRef<Path>>(path: P) -> Result<String, FileIo> {
+pub fn read_file_to_string<P: AsRef<Path>>(path: P) -> Result<String, FileError> {
     let path = path.as_ref();
-    let s = fs::read_to_string(path).map_err(|e| FileIo::FileRead(path.to_path_buf(), e))?;
+    let s = fs::read_to_string(path).map_err(|e| FileError::FileRead(path.to_path_buf(), e))?;
     Ok(s)
 }
 
-pub fn read_file_to_string_lossy<P: AsRef<Path>>(path: P) -> Result<String, FileIo> {
+pub fn read_file_to_string_lossy<P: AsRef<Path>>(path: P) -> Result<String, FileError> {
     let path = path.as_ref();
     let bytes = read_file(path)?;
     let s = String::from_utf8_lossy(&bytes).into_owned();
     Ok(s)
 }
 
-pub fn create_file<P: AsRef<Path>>(path: P) -> Result<File, FileIo> {
+/// Note: creates all intermediary directories if needed.
+pub fn create_file<P: AsRef<Path>>(path: P) -> Result<File, FileError> {
     let path = path.as_ref();
     if let Some(parent) = path.parent() {
         if !parent.exists() {
             create_dir_all(parent)?;
         }
     }
-    File::create(path).map_err(|e| FileIo::FileCreate(path.to_path_buf(), e))
+    File::create(path).map_err(|e| FileError::FileCreate(path.to_path_buf(), e))
 }
 
-pub fn create_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLock<File>, FileIo> {
+/// Creates a file and immediately locks it. If a file already exists at the path, it acquires a lock on it first and then recreates it.
+/// Note: creates all intermediary directories if needed.
+pub fn create_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLock<File>, FileError> {
     if let Ok(existing) = open_file(&path) {
         // wait for an existing process to be done with the file before rewriting
         let mut lock = FdLock::new(existing);
@@ -76,49 +94,52 @@ pub fn create_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLock<File>, FileIo>
     Ok(lock)
 }
 
-pub fn remove_file<P: AsRef<Path>>(path: P) -> Result<(), FileIo> {
+pub fn remove_file<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
     let path = path.as_ref();
-    fs::remove_file(path).map_err(|e| FileIo::FileRemove(path.to_path_buf(), e))
+    fs::remove_file(path).map_err(|e| FileError::FileRemove(path.to_path_buf(), e))
 }
 
-pub fn write_to_file<S: AsRef<[u8]>, P: AsRef<Path>>(source: S, target: P) -> Result<File, FileIo> {
+pub fn write_to_file<S: AsRef<[u8]>, P: AsRef<Path>>(
+    source: S,
+    target: P,
+) -> Result<File, FileError> {
     let target = target.as_ref();
     let mut target_file = create_file(target)?;
     target_file
         .write_all(source.as_ref())
-        .map_err(|e| FileIo::FileWrite(target.to_path_buf(), e))?;
+        .map_err(|e| FileError::FileWrite(target.to_path_buf(), e))?;
     Ok(target_file)
 }
 
 /// Reads all of the data from source and writes it into a new file at target.
-pub fn read_to_file<R: Read, P: AsRef<Path>>(source: &mut R, target: P) -> Result<File, FileIo> {
+pub fn read_to_file<R: Read, P: AsRef<Path>>(source: &mut R, target: P) -> Result<File, FileError> {
     let target = target.as_ref();
     let mut target_file = create_file(target)?;
     std::io::copy(source, &mut target_file)
-        .map_err(|e| FileIo::FileWrite(target.to_path_buf(), e))?;
+        .map_err(|e| FileError::FileWrite(target.to_path_buf(), e))?;
     Ok(target_file)
 }
 
-pub fn create_dir<P: AsRef<Path>>(path: P) -> Result<(), FileIo> {
-    fs::create_dir(&path).map_err(|e| FileIo::DirCreate(path.as_ref().to_path_buf(), e))
+pub fn create_dir<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
+    fs::create_dir(&path).map_err(|e| FileError::DirCreate(path.as_ref().to_path_buf(), e))
 }
 
-pub fn create_dir_all<P: AsRef<Path>>(path: P) -> Result<(), FileIo> {
-    fs::create_dir_all(&path).map_err(|e| FileIo::DirCreate(path.as_ref().to_path_buf(), e))
+pub fn create_dir_all<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
+    fs::create_dir_all(&path).map_err(|e| FileError::DirCreate(path.as_ref().to_path_buf(), e))
 }
 
-pub fn remove_dir_empty<P: AsRef<Path>>(path: P) -> Result<(), FileIo> {
-    fs::remove_dir(&path).map_err(|e| FileIo::DirRemove(path.as_ref().to_path_buf(), e))
+pub fn remove_dir_empty<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
+    fs::remove_dir(&path).map_err(|e| FileError::DirRemove(path.as_ref().to_path_buf(), e))
 }
 
-pub fn remove_dir_all<P: AsRef<Path>>(path: P) -> Result<(), FileIo> {
-    fs::remove_dir_all(&path).map_err(|e| FileIo::DirRemove(path.as_ref().to_path_buf(), e))
+pub fn remove_dir_all<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
+    fs::remove_dir_all(&path).map_err(|e| FileError::DirRemove(path.as_ref().to_path_buf(), e))
 }
 
-pub fn rename<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> Result<(), FileIo> {
+pub fn rename<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> Result<(), FileError> {
     let from = from.as_ref();
     let to = to.as_ref();
-    fs::rename(from, to).map_err(|e| FileIo::Rename {
+    fs::rename(from, to).map_err(|e| FileError::Rename {
         from: from.to_path_buf(),
         to: to.to_path_buf(),
         source: e,
@@ -130,7 +151,7 @@ pub fn rename<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> Result<(), File
 /// If the source is a file and the target is a directory, the source file is copied into the target directory.
 /// If the source is a directory and the target is not a file, the source directory and all files in it are copied recursively into the target directory. For example, with source=dir1 and target=dir2, dir1/file would be copied to dir2/dir1/file.
 /// If the source is a directory and the target is a file, an error is returned.
-pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), FileIo> {
+pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), FileError> {
     let source = source.as_ref();
     let target = target.as_ref();
 
@@ -144,10 +165,10 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
             let file_name = if let Some(file_name) = source.file_name() {
                 file_name
             } else {
-                return Err(FileIo::NoFileName(source.to_path_buf()));
+                return Err(FileError::NoFileName(source.to_path_buf()));
             };
             let path_in_target = target.join(file_name);
-            std::fs::copy(source, path_in_target).map_err(|e| FileIo::FileCopy {
+            std::fs::copy(source, path_in_target).map_err(|e| FileError::FileCopy {
                 from: source.to_path_buf(),
                 to: target.to_path_buf(),
                 source: e,
@@ -159,7 +180,7 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
                     create_dir_all(parent)?;
                 }
             }
-            std::fs::copy(source, target).map_err(|e| FileIo::FileCopy {
+            std::fs::copy(source, target).map_err(|e| FileError::FileCopy {
                 from: source.to_path_buf(),
                 to: target.to_path_buf(),
                 source: e,
@@ -172,7 +193,7 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
             target.display()
         );
         if target.is_file() {
-            return Err(FileIo::UnexpectedFile(target.to_path_buf()));
+            return Err(FileError::UnexpectedFile(target.to_path_buf()));
         } else {
             let prefix = source.parent().unwrap_or_else(|| Path::new(""));
             for entry in WalkDir::new(source) {
@@ -187,7 +208,7 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
                     if let Some(parent) = target.parent() {
                         create_dir_all(parent)?;
                     }
-                    std::fs::copy(entry_path, &target).map_err(|e| FileIo::FileCopy {
+                    std::fs::copy(entry_path, &target).map_err(|e| FileError::FileCopy {
                         from: entry_path.to_path_buf(),
                         to: target.clone(),
                         source: e,

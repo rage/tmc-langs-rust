@@ -9,19 +9,13 @@ use std::io::{BufReader, Cursor, Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    command::TmcCommand,
-    domain::{
-        ExerciseDesc, RunResult, RunStatus, StyleValidationResult, StyleValidationStrategy,
-        TestDesc, TestResult,
-    },
-    error::{CommandError, FileIo},
-    file_util,
     nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
-    plugin::Language,
-    zip::ZipArchive,
-    LanguagePlugin, TmcError,
+    CommandError, ExerciseDesc, Language, LanguagePlugin, RunResult, RunStatus,
+    StyleValidationResult, StyleValidationStrategy, TestDesc, TestResult, TmcCommand, TmcError,
 };
+use tmc_langs_util::{file_util, FileError};
 use walkdir::WalkDir;
+use zip::ZipArchive;
 
 const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../deps/tmc-csharp-runner-1.1.1.zip");
 
@@ -57,7 +51,7 @@ impl CSharpPlugin {
                 let zip_bytes: Vec<u8> = file
                     .bytes()
                     .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| FileIo::FileRead(zip_file_path, e))?;
+                    .map_err(|e| FileError::FileRead(zip_file_path, e))?;
 
                 if target_bytes != zip_bytes {
                     return Ok(true); // bytes changed, need to extract
@@ -84,7 +78,7 @@ impl CSharpPlugin {
                 let bytes: Vec<u8> = file
                     .bytes()
                     .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| FileIo::FileRead(file_path, e))?;
+                    .map_err(|e| FileError::FileRead(file_path, e))?;
                 file_util::write_to_file(&mut bytes.as_slice(), target_file_path)?;
             }
         }

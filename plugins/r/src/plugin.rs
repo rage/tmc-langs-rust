@@ -9,13 +9,11 @@ use std::io::{Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    command::TmcCommand,
-    domain::{ExerciseDesc, RunResult, TestDesc},
-    file_util,
     nom::{branch, bytes, character, combinator, error::VerboseError, sequence, IResult},
-    zip::ZipArchive,
-    LanguagePlugin, TmcError,
+    LanguagePlugin, TmcCommand, TmcError, {ExerciseDesc, RunResult, TestDesc},
 };
+use tmc_langs_util::file_util;
+use zip::ZipArchive;
 
 #[derive(Default)]
 pub struct RPlugin {}
@@ -192,7 +190,7 @@ impl LanguagePlugin for RPlugin {
 mod test {
     use super::*;
     use std::path::PathBuf;
-    use tmc_langs_framework::domain::RunStatus;
+    use tmc_langs_framework::RunStatus;
 
     fn init() {
         use log::*;
@@ -418,13 +416,8 @@ test("sample", c("r1.1"), {
         let mut source = run.source();
         while let Some(inner) = source {
             source = inner.source();
-            if let Some(cmd_error) =
-                inner.downcast_ref::<tmc_langs_framework::error::CommandError>()
-            {
-                if matches!(
-                    cmd_error,
-                    tmc_langs_framework::error::CommandError::TimeOut { .. }
-                ) {
+            if let Some(cmd_error) = inner.downcast_ref::<tmc_langs_framework::CommandError>() {
+                if matches!(cmd_error, tmc_langs_framework::CommandError::TimeOut { .. }) {
                     return;
                 }
             }

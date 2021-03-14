@@ -2,7 +2,7 @@
 
 use serde::Deserialize;
 use std::collections::HashMap;
-use tmc_langs_framework::domain::{RunResult, RunStatus, TestResult};
+use tmc_langs_framework::{RunResult, RunStatus, TestResult};
 
 #[derive(Debug, Deserialize)]
 pub struct CheckLog {

@@ -17,7 +17,8 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::path::Path;
 use std::time::SystemTime;
-use tmc_langs_util::{file_util, FileIo, Language};
+use tmc_langs_plugins::Language;
+use tmc_langs_util::{file_util, FileError};
 use url::Url;
 
 /// Provides a wrapper for reqwest Response's json that deserializes into Response<T> and converts it into a result
@@ -761,7 +762,9 @@ impl TmcClient {
                 SystemTime::UNIX_EPOCH.elapsed()?.as_nanos().to_string(),
             )
             .file("submission[file]", submission)
-            .map_err(|e| ClientError::FileIo(FileIo::FileOpen(submission.to_path_buf(), e)))?;
+            .map_err(|e| {
+                ClientError::FileError(FileError::FileOpen(submission.to_path_buf(), e))
+            })?;
 
         if let Some(params) = params {
             for (key, val) in params {

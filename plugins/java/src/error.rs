@@ -3,10 +3,8 @@
 use std::io;
 use std::path::PathBuf;
 use thiserror::Error;
-use tmc_langs_framework::{
-    error::{CommandError, FileIo},
-    TmcError,
-};
+use tmc_langs_framework::TmcError;
+use tmc_langs_util::FileError;
 
 #[derive(Error, Debug)]
 pub enum JavaError {
@@ -35,24 +33,20 @@ pub enum JavaError {
     WalkDir(#[from] walkdir::Error),
     #[error("JSON error")]
     Json(#[from] serde_json::Error),
-    #[error("Failed to run command")]
-    Command(#[from] CommandError),
+    #[error("File IO error")]
+    FileError(#[from] FileError),
     #[error("Error")]
     Tmc(#[from] TmcError),
 }
 
+// conversion from plugin error to TmcError::Plugin
 impl From<JavaError> for TmcError {
     fn from(err: JavaError) -> TmcError {
         TmcError::Plugin(Box::new(err))
     }
 }
 
-impl From<FileIo> for JavaError {
-    fn from(err: FileIo) -> JavaError {
-        JavaError::Tmc(TmcError::FileIo(err))
-    }
-}
-
+// conversion from plugin error to a tmc result
 impl<T> Into<Result<T, TmcError>> for JavaError {
     fn into(self) -> Result<T, TmcError> {
         Err(TmcError::Plugin(Box::new(self)))

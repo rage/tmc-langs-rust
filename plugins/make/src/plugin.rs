@@ -11,16 +11,12 @@ use std::io::{self, BufRead, BufReader, Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    command::{Output, TmcCommand},
-    domain::{ExerciseDesc, RunResult, RunStatus, TestDesc},
-    error::{CommandError, FileIo},
-    file_util,
     nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
-    plugin::LanguagePlugin,
-    subprocess::PopenError,
-    zip::ZipArchive,
-    TmcError, TmcProjectYml,
+    CommandError, ExerciseDesc, LanguagePlugin, Output, PopenError, RunResult, RunStatus, TestDesc,
+    TmcCommand, TmcError, TmcProjectYml,
 };
+use tmc_langs_util::{file_util, FileError};
+use zip::ZipArchive;
 
 #[derive(Default)]
 pub struct MakePlugin {}
@@ -50,7 +46,7 @@ impl MakePlugin {
 
         let reader = BufReader::new(file);
         for line in reader.lines() {
-            let line = line.map_err(|e| FileIo::FileRead(available_points.to_path_buf(), e))?;
+            let line = line.map_err(|e| FileError::FileRead(available_points.to_path_buf(), e))?;
 
             if let Some(captures) = RE.captures(&line) {
                 if &captures["type"] == "test" {
@@ -369,7 +365,7 @@ impl LanguagePlugin for MakePlugin {
 #[cfg(target_os = "linux")] // check not installed on other CI platforms
 mod test {
     use super::*;
-    use tmc_langs_framework::zip::ZipArchive;
+    use zip::ZipArchive;
 
     fn init() {
         use log::*;

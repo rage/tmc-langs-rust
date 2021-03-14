@@ -2,12 +2,31 @@
 
 use once_cell::sync::OnceCell;
 use serde::Serialize;
-use std::error::Error;
 use std::time::Instant;
 use std::{ops::DerefMut, sync::RwLock};
 use type_map::concurrent::TypeMap;
 
-pub struct ProgressReporter2 {
+/// The format for all status updates. May contain some data.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct StatusUpdate<T> {
+    pub finished: bool,
+    pub message: String,
+    pub percent_done: f64,
+    pub time: u128,
+    pub data: Option<T>,
+}
+
+// the closure called to report progress, could for example print the report as JSON
+type UpdateClosure<T> = dyn 'static + Sync + Send + Fn(StatusUpdate<T>);
+
+/// The struct that keeps track of progress for a given progress update type T and contains a closure for reporting whenever progress is made.
+struct ProgressReporter<T> {
+    progress_report: Box<UpdateClosure<T>>,
+}
+
+/// Contains all the different progress reporters and keeps track of the overall progress.
+struct ProgressReporterContainer {
     reporters: TypeMap,
     current_progress: f64,
     total_steps_left: usize,
@@ -15,17 +34,16 @@ pub struct ProgressReporter2 {
     stage_steps: Vec<usize>, // steps left
 }
 
-pub static PROGRESS_REPORTERS: OnceCell<RwLock<ProgressReporter2>> = OnceCell::new();
+static PROGRESS_REPORTERS: OnceCell<RwLock<ProgressReporterContainer>> = OnceCell::new();
 
-/// Subscribes to progress reports of type T with callback of type F.
-/// Initializes progress reporters if necessary.
+/// Subscribes to progress reports of type T with callback of type F called every time progress is made with type T.
 pub fn subscribe<T, F>(progress_report: F)
 where
     T: 'static + Send + Sync,
-    F: 'static + Sync + Send + Fn(StatusUpdate<T>) -> Result<(), DynError>,
+    F: 'static + Sync + Send + Fn(StatusUpdate<T>),
 {
     let lock = PROGRESS_REPORTERS.get_or_init(|| {
-        RwLock::new(ProgressReporter2 {
+        RwLock::new(ProgressReporterContainer {
             reporters: TypeMap::new(),
             current_progress: 0.0,
             total_steps_left: 0,
@@ -40,18 +58,17 @@ where
     guard.reporters.insert(reporter);
 }
 
-/// Starts a new stage for the reporter associated with type T.
+/// Starts a new stage.
 pub fn start_stage<T: 'static + Send + Sync>(total_steps: usize, message: String, data: Option<T>) {
     // check for init
     if let Some(lock) = PROGRESS_REPORTERS.get() {
         let mut reporter = lock.write().unwrap();
         let reporter = reporter.deref_mut();
+        reporter.total_steps_left += total_steps;
+        reporter.stage_steps.push(total_steps);
 
         // check for subscriber
-        if let Some(progress_reporter) = reporter.reporters.get::<ProgressReporter<'static, T>>() {
-            reporter.total_steps_left += total_steps;
-            reporter.stage_steps.push(total_steps);
-
+        if let Some(progress_reporter) = reporter.reporters.get::<ProgressReporter<T>>() {
             // report status
             let status_update = StatusUpdate {
                 finished: false,
@@ -60,35 +77,33 @@ pub fn start_stage<T: 'static + Send + Sync>(total_steps: usize, message: String
                 time: reporter.start_time.elapsed().as_millis(),
                 data,
             };
-            let _r = progress_reporter.progress_report.as_ref()(status_update);
+            progress_reporter.progress_report.as_ref()(status_update);
         }
     }
 }
 
-/// Progresses the reporter associated with type T.
+/// Progresses the current stage.
 pub fn progress_stage<T: 'static + Send + Sync>(message: String, data: Option<T>) {
     // check for init
     if let Some(lock) = PROGRESS_REPORTERS.get() {
         let mut reporter = lock.write().unwrap();
         let reporter = reporter.deref_mut();
 
-        // check for subscriber
-        if let Some(progress_reporter) =
-            reporter.reporters.get_mut::<ProgressReporter<'static, T>>()
-        {
-            // check for stage
-            if let Some(stage_steps_left) = reporter.stage_steps.last_mut() {
-                // check if steps left in stage
-                if *stage_steps_left > 0 {
-                    let step_progress =
-                        (1.0 - reporter.current_progress) / reporter.total_steps_left as f64;
-                    *stage_steps_left -= 1;
-                    reporter.total_steps_left -= 1;
-                    reporter.current_progress =
-                        f64::min(reporter.current_progress + step_progress, 1.0);
-                    // guard against going over 1.0
-                }
+        // check for stage
+        if let Some(stage_steps_left) = reporter.stage_steps.last_mut() {
+            // check if steps left in stage
+            if *stage_steps_left > 0 {
+                let step_progress =
+                    (1.0 - reporter.current_progress) / reporter.total_steps_left as f64;
+                *stage_steps_left -= 1;
+                reporter.total_steps_left -= 1;
+                reporter.current_progress =
+                    f64::min(reporter.current_progress + step_progress, 1.0);
+                // guard against going over 1.0
+            }
 
+            // check for subscriber
+            if let Some(progress_reporter) = reporter.reporters.get_mut::<ProgressReporter<T>>() {
                 let status_update = StatusUpdate {
                     finished: false,
                     message,
@@ -102,24 +117,25 @@ pub fn progress_stage<T: 'static + Send + Sync>(message: String, data: Option<T>
     }
 }
 
+/// Finishes the current stage.
 pub fn finish_stage<T: 'static + Send + Sync>(message: String, data: Option<T>) {
     // check for init
     if let Some(lock) = PROGRESS_REPORTERS.get() {
         let mut reporter = lock.write().unwrap();
         let reporter = reporter.deref_mut();
 
-        // check for subscriber
-        if let Some(progress_reporter) = reporter.reporters.get::<ProgressReporter<'static, T>>() {
-            // check for stage
-            if let Some(stage_steps_left) = reporter.stage_steps.pop() {
-                let step_progress =
-                    (1.0 - reporter.current_progress) / reporter.total_steps_left as f64;
-                reporter.total_steps_left -= stage_steps_left;
-                reporter.current_progress = f64::min(
-                    reporter.current_progress + stage_steps_left as f64 * step_progress,
-                    1.0,
-                ); // guard against going over 1.0
+        // check for stage
+        if let Some(stage_steps_left) = reporter.stage_steps.pop() {
+            let step_progress =
+                (1.0 - reporter.current_progress) / reporter.total_steps_left as f64;
+            reporter.total_steps_left -= stage_steps_left;
+            reporter.current_progress = f64::min(
+                reporter.current_progress + stage_steps_left as f64 * step_progress,
+                1.0,
+            ); // guard against going over 1.0
 
+            // check for subscriber
+            if let Some(progress_reporter) = reporter.reporters.get::<ProgressReporter<T>>() {
                 let status_update = StatusUpdate {
                     finished: true,
                     message,
@@ -131,26 +147,6 @@ pub fn finish_stage<T: 'static + Send + Sync>(message: String, data: Option<T>) 
             }
         }
     }
-}
-
-/// The format for all status updates. May contain some data.
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "kebab-case")]
-pub struct StatusUpdate<T> {
-    pub finished: bool,
-    pub message: String,
-    pub percent_done: f64,
-    pub time: u128,
-    pub data: Option<T>,
-}
-
-// compatible with anyhow
-type DynError = Box<dyn Error + Send + Sync + 'static>;
-type UpdateClosure<'a, T> = dyn 'a + Sync + Send + Fn(StatusUpdate<T>) -> Result<(), DynError>;
-
-/// The struct that keeps track of progress and contains a closure for reporting whenever progress is made.
-struct ProgressReporter<'a, T> {
-    progress_report: Box<UpdateClosure<'a, T>>,
 }
 
 #[cfg(test)]
@@ -170,7 +166,7 @@ mod test {
         let guard = mutex.lock().unwrap();
         if let Some(reporters) = PROGRESS_REPORTERS.get() {
             let mut reporters = reporters.write().unwrap();
-            *reporters = ProgressReporter2 {
+            *reporters = ProgressReporterContainer {
                 reporters: TypeMap::new(),
                 current_progress: 0.0,
                 total_steps_left: 0,
@@ -190,7 +186,6 @@ mod test {
         subscribe::<usize, _>(move |s| {
             log::debug!("got {:#?}", s);
             *suc.lock().unwrap() = Some(s);
-            Ok(())
         });
 
         start_stage::<usize>(2, "starting".to_string(), None);
@@ -210,7 +205,6 @@ mod test {
         subscribe::<usize, _>(move |s| {
             log::debug!("got {:#?}", s);
             *suc.lock().unwrap() = Some(s);
-            Ok(())
         });
 
         start_stage::<usize>(2, "starting".to_string(), None);
