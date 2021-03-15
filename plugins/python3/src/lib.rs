@@ -1,3 +1,5 @@
+#![deny(clippy::print_stdout, clippy::print_stderr)]
+
 //! Implementation of LanguagePlugin for Python 3.
 
 mod error;

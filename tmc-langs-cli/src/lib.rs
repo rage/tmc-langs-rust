@@ -1,12 +1,11 @@
+#![deny(clippy::print_stdout, clippy::print_stderr)]
+
 //! CLI client for TMC
 
 mod app;
-mod config;
 mod error;
 mod output;
 
-use self::config::ProjectsConfig;
-use self::config::{CourseConfig, Credentials, Exercise, TmcConfig};
 use self::error::{DownloadsFailedError, InvalidTokenError, SandboxTestError};
 use self::output::{
     CombinedCourseData, Data, DownloadOrUpdateCourseExercise,
@@ -1568,6 +1567,7 @@ fn print_output(output: &Output, pretty: bool) -> Result<PrintToken> {
     print_output_with_file(output, pretty, None)
 }
 
+#[allow(clippy::clippy::print_stdout)] // this is the only function that should output to stdout/stderr across tmc-langs
 fn print_output_with_file(
     output: &Output,
     pretty: bool,

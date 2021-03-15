@@ -201,7 +201,9 @@ fn check_directory_names(path: &Path) -> Result<(), LangsError> {
 
     // exercise directories in canonicalized form
     for exercise_dir in super::find_exercise_directories(path)? {
-        let relative = exercise_dir.strip_prefix(path).unwrap(); // safe
+        let relative = exercise_dir
+            .strip_prefix(path)
+            .expect("the exercise dirs are all inside the path");
         if relative.to_string_lossy().contains('-') {
             return Err(LangsError::InvalidDirectory(exercise_dir));
         }
@@ -270,7 +272,10 @@ fn calculate_checksum(exercise_dir: &Path) -> Result<String, LangsError> {
         .sort_by(|a, b| a.file_name().cmp(b.file_name()))
     {
         let entry = entry?;
-        let relative = entry.path().strip_prefix(exercise_dir).unwrap(); // safe
+        let relative = entry
+            .path()
+            .strip_prefix(exercise_dir)
+            .expect("the entry is inside the exercise dir");
         let string = relative.as_os_str().to_string_lossy();
         digest.consume(string.as_ref());
         if entry.path().is_file() {
@@ -313,6 +318,13 @@ fn execute_zip(
             let relative_path = entry.path().strip_prefix(&root_path).unwrap(); // safe
 
             if entry.path().is_file() {
+<<<<<<< HEAD
+=======
+                let relative_path = entry
+                    .path()
+                    .strip_prefix(&root_path)
+                    .expect("the entry is inside the root path");
+>>>>>>> added clippy lints
                 writer.start_file(
                     relative_path.to_string_lossy(),
                     zip::write::FileOptions::default(),

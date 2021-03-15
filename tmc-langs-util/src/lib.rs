@@ -1,3 +1,5 @@
+#![deny(clippy::print_stdout, clippy::print_stderr)]
+
 //! Contains various helpful utilities to be used throughout the tmc-langs project.
 
 pub mod error;

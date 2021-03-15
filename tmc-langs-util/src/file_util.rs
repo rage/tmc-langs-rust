@@ -87,7 +87,7 @@ pub fn create_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLock<File>, FileErr
     if let Ok(existing) = open_file(&path) {
         // wait for an existing process to be done with the file before rewriting
         let mut lock = FdLock::new(existing);
-        lock.lock().unwrap();
+        lock.lock().expect("\"On Unix this may return an error if the operation was interrupted by a signal handler.\"; sounds unlikely to ever actually cause problems");
     }
     let file = create_file(path)?;
     let lock = FdLock::new(file);

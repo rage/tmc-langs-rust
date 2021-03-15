@@ -1,3 +1,7 @@
+#![deny(clippy::print_stdout, clippy::print_stderr)]
+
+//! The main tmc-langs library.
+
 pub mod config;
 pub mod course_refresher;
 pub mod data;
@@ -228,7 +232,9 @@ fn move_dir(source: &Path, source_lock: FileLockGuard, target: &Path) -> Result<
         }
 
         if entry_path.is_file() {
-            let relative = entry_path.strip_prefix(source).unwrap();
+            let relative = entry_path
+                .strip_prefix(source)
+                .expect("the entry is inside the source");
             let target_path = target.join(relative);
             log::debug!(
                 "Moving {} -> {}",

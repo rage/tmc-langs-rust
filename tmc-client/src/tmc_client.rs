@@ -248,7 +248,7 @@ impl TmcClient {
                 // repeat until out of exercises
                 loop {
                     // acquiring mutex
-                    let mut exercises = exercises.lock().unwrap(); // the threads should never panic
+                    let mut exercises = exercises.lock().expect("the threads should never panic");
                     let (exercise_id, target) = if let Some((id, path)) = exercises.pop() {
                         (id, path)
                     } else {
@@ -319,8 +319,7 @@ impl TmcClient {
         let mut successful = vec![];
         let mut failed = vec![];
         for handle in handles {
-            // the threads should never panic
-            match handle.join().unwrap() {
+            match handle.join().expect("the threads should never panic") {
                 Ok(s) => successful.extend(s),
                 Err((s, f)) => {
                     successful.extend(s);
