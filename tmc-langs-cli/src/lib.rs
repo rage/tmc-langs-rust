@@ -15,35 +15,30 @@ use self::output::{
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
 use config::ConfigValue;
-use file_util::open_file_lock;
 use serde::Serialize;
 use serde_json::Value as JsonValue;
+use std::collections::{BTreeMap, HashMap};
 use std::error::Error as StdError;
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::{Read, Write};
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
-use std::{
-    collections::{BTreeMap, HashMap},
-    ffi::OsStr,
-};
 use std::{env, io::Cursor};
 use tempfile::NamedTempFile;
 use tmc_langs::{
-    file_util::{self, FileLockGuard},
-    warning_reporter, CommandError, StyleValidationResult,
+    config::{self, CourseConfig, Credentials, Exercise, ProjectsConfig, TmcConfig},
+    ClientError, FeedbackAnswer, TmcClient,
 };
+use tmc_langs::{file_util, warning_reporter, CommandError, StyleValidationResult};
 use tmc_langs::{
     oauth2::{
         basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
     },
     ClientUpdateData, Language,
 };
-use tmc_langs::{ClientError, FeedbackAnswer, TmcClient, Token};
 use tmc_langs_util::progress_reporter;
 use toml::{map::Map as TomlMap, Value as TomlValue};
 use url::Url;
-use walkdir::WalkDir;
 
 // wraps the run_inner function that actually does the work and handles any panics that occur
 // any langs library should never panic by itself, but other libraries used may in some rare circumstances
@@ -271,18 +266,9 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
 
             let root_url = env::var("TMC_LANGS_ROOT_URL")
                 .unwrap_or_else(|_| "https://tmc.mooc.fi".to_string());
-            let mut client = TmcClient::new_in_config(
-                root_url,
-                client_name.to_string(),
-                client_version.to_string(),
-            )
-            .context("Failed to create TmcClient")?;
 
-            // set token from the credentials file if one exists
-            let mut credentials = Credentials::load(client_name)?;
-            if let Some(credentials) = &credentials {
-                client.set_token(credentials.token())?;
-            }
+            let (client, mut credentials) =
+                tmc_langs::init_tmc_client_with_credentials(root_url, client_name, client_version)?;
 
             match run_core(client, client_name, &mut credentials, matches, pretty) {
                 Ok(token) => token,
@@ -329,7 +315,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
             let output_path = matches.value_of("output-path").unwrap();
             let output_path = Path::new(output_path);
 
-            let mut archive = open_file_lock(archive_path)?;
+            let mut archive = file_util::open_file_lock(archive_path)?;
             let mut guard = archive.lock()?;
 
             let mut data = vec![];
@@ -682,42 +668,11 @@ fn run_core(
     // proof of having printed the output
     let printed: PrintToken = match matches.subcommand() {
         ("check-exercise-updates", Some(_)) => {
-            let mut updated_exercises = vec![];
-
-            let config_path = TmcConfig::get_location(client_name)?;
-            let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
-            let config = ProjectsConfig::load(&projects_dir)?;
-            let local_exercises = config
-                .courses
+            let updated_exercises = tmc_langs::check_exercise_updates(&client, client_name)
+                .context("Failed to check exercise updates")?
                 .into_iter()
-                .map(|c| c.1.exercises)
-                .flatten()
-                .map(|e| e.1)
-                .collect::<Vec<_>>();
-
-            if !local_exercises.is_empty() {
-                let exercise_ids = local_exercises.iter().map(|e| e.id).collect::<Vec<_>>();
-                let server_exercises = client
-                    .get_exercises_details(exercise_ids)?
-                    .into_iter()
-                    .map(|e| (e.id, e))
-                    .collect::<HashMap<_, _>>();
-                for local_exercise in local_exercises {
-                    let server_exercise =
-                        server_exercises.get(&local_exercise.id).with_context(|| {
-                            format!(
-                                "Server did not return details for local exercise with id {}",
-                                local_exercise.id
-                            )
-                        })?;
-                    if server_exercise.checksum != local_exercise.checksum {
-                        // server has an updated exercise
-                        updated_exercises.push(UpdatedExercise {
-                            id: local_exercise.id,
-                        });
-                    }
-                }
-            }
+                .map(|id| UpdatedExercise { id })
+                .collect();
 
             let output = Output::finished_with_data(
                 "updated exercises",
@@ -1703,95 +1658,4 @@ fn json_to_toml(json: JsonValue) -> Result<TomlValue> {
     }
 }
 
-fn move_dir(source: &Path, source_lock: FileLockGuard, target: &Path) -> anyhow::Result<()> {
-    let mut file_count_copied = 0;
-    let mut file_count_total = 0;
-    for entry in WalkDir::new(source) {
-        let entry =
-            entry.with_context(|| format!("Failed to read file inside {}", source.display()))?;
-        if entry.path().is_file() {
-            file_count_total += 1;
-        }
-    }
-    start_stage(
-        file_count_total + 1,
-        format!("Moving dir {} -> {}", source.display(), target.display()),
-    );
-
-    for entry in WalkDir::new(source).contents_first(true).min_depth(1) {
-        let entry =
-            entry.with_context(|| format!("Failed to read file inside {}", source.display()))?;
-        let entry_path = entry.path();
-
-        if entry_path.file_name() == Some(OsStr::new(".tmc.lock")) {
-            log::info!("skipping lock file");
-            file_count_copied += 1;
-            progress_stage(format!(
-                "Skipped moving file {} / {}",
-                file_count_copied, file_count_total
-            ));
-            continue;
-        }
-
-        if entry_path.is_file() {
-            let relative = entry_path.strip_prefix(source).unwrap();
-            let target_path = target.join(relative);
-            log::debug!(
-                "Moving {} -> {}",
-                entry_path.display(),
-                target_path.display()
-            );
-
-            // create parent dir for target and copy it, remove source file after
-            if let Some(parent) = target_path.parent() {
-                fs::create_dir_all(parent).with_context(|| {
-                    format!("Failed to create directory at {}", parent.display())
-                })?;
-            }
-            fs::copy(entry_path, &target_path).with_context(|| {
-                format!(
-                    "Failed to copy file from {} to {}",
-                    entry_path.display(),
-                    target_path.display()
-                )
-            })?;
-            fs::remove_file(entry_path).with_context(|| {
-                format!(
-                    "Failed to remove file at {} after copying it",
-                    entry_path.display()
-                )
-            })?;
-
-            file_count_copied += 1;
-            progress_stage(format!(
-                "Moved file {} / {}",
-                file_count_copied, file_count_total
-            ));
-        } else if entry_path.is_dir() {
-            log::debug!("Deleting {}", entry_path.display());
-            fs::remove_dir(entry_path).with_context(|| {
-                format!("Failed to remove directory at {}", entry_path.display())
-            })?;
-        }
-    }
-
-    drop(source_lock);
-    fs::remove_dir(source)?;
-
-    finish_stage("Finished moving project directory");
-    Ok(())
-}
-
 struct PrintToken;
-
-fn start_stage(steps: usize, message: impl Into<String>) {
-    progress_reporter::start_stage::<()>(steps, message.into(), None)
-}
-
-fn progress_stage(message: impl Into<String>) {
-    progress_reporter::progress_stage::<()>(message.into(), None)
-}
-
-fn finish_stage(message: impl Into<String>) {
-    progress_reporter::finish_stage::<()>(message.into(), None)
-}

@@ -34,18 +34,55 @@ pub use crate::submission_packaging::prepare_submission;
 pub use crate::submission_processing::prepare_solution;
 
 use heim::disk;
-use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
+use std::{collections::HashMap, ffi::OsStr};
 use tmc_langs_framework::{NothingIsStudentFilePolicy, StudentFilePolicy, TmcError, TmcProjectYml};
 use tmc_langs_plugins::tmc_zip;
 use tmc_langs_util::progress_reporter;
 use walkdir::WalkDir;
 
+pub fn check_exercise_updates(
+    client: &TmcClient,
+    client_name: &str,
+) -> Result<Vec<usize>, LangsError> {
+    let mut updated_exercises = vec![];
+
+    let config_path = TmcConfig::get_location(client_name)?;
+    let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
+    let config = ProjectsConfig::load(&projects_dir)?;
+    let local_exercises = config
+        .courses
+        .into_iter()
+        .map(|c| c.1.exercises)
+        .flatten()
+        .map(|e| e.1)
+        .collect::<Vec<_>>();
+
+    if !local_exercises.is_empty() {
+        let exercise_ids = local_exercises.iter().map(|e| e.id).collect::<Vec<_>>();
+        let server_exercises = client
+            .get_exercises_details(exercise_ids)?
+            .into_iter()
+            .map(|e| (e.id, e))
+            .collect::<HashMap<_, _>>();
+        for local_exercise in local_exercises {
+            let server_exercise = server_exercises
+                .get(&local_exercise.id)
+                .ok_or_else(|| LangsError::ExerciseMissingOnServer(local_exercise.id))?;
+            if server_exercise.checksum != local_exercise.checksum {
+                // server has an updated exercise
+                updated_exercises.push(local_exercise.id);
+            }
+        }
+    }
+    Ok(updated_exercises)
+}
+
 pub fn init_tmc_client_with_credentials(
     root_url: String,
     client_name: &str,
     client_version: &str,
-) -> Result<TmcClient, LangsError> {
+) -> Result<(TmcClient, Option<Credentials>), LangsError> {
     // create client
     let mut client = TmcClient::new_in_config(
         root_url,
@@ -59,7 +96,7 @@ pub fn init_tmc_client_with_credentials(
         client.set_token(credentials.token())?;
     }
 
-    Ok(client)
+    Ok((client, credentials))
 }
 
 pub fn checkstyle(
