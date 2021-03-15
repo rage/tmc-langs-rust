@@ -5,6 +5,7 @@ mod error;
 mod submission_packaging;
 mod submission_processing;
 
+use config::Credentials;
 pub use tmc_client::{oauth2, ClientUpdateData};
 pub use tmc_client::{ClientError, FeedbackAnswer, TmcClient, Token};
 pub use tmc_client::{
@@ -24,15 +25,38 @@ use crate::config::{ProjectsConfig, TmcConfig};
 use crate::data::LocalExercise;
 use crate::error::LangsError;
 
-use anyhow::Context;
+pub use crate::course_refresher::refresh_course;
+pub use crate::submission_packaging::prepare_submission;
+pub use crate::submission_processing::prepare_solution;
+
 use heim::disk;
 use std::ffi::OsStr;
-use std::fs;
 use std::path::{Path, PathBuf};
 use tmc_langs_framework::{NothingIsStudentFilePolicy, StudentFilePolicy, TmcError, TmcProjectYml};
 use tmc_langs_plugins::tmc_zip;
 use tmc_langs_util::progress_reporter;
 use walkdir::WalkDir;
+
+pub fn init_tmc_client_with_credentials(
+    root_url: String,
+    client_name: &str,
+    client_version: &str,
+) -> Result<TmcClient, LangsError> {
+    // create client
+    let mut client = TmcClient::new_in_config(
+        root_url,
+        client_name.to_string(),
+        client_version.to_string(),
+    )?;
+
+    // set token from the credentials file if one exists
+    let credentials = Credentials::load(client_name)?;
+    if let Some(credentials) = &credentials {
+        client.set_token(credentials.token())?;
+    }
+
+    Ok(client)
+}
 
 pub fn checkstyle(
     exercise_path: &Path,
@@ -101,7 +125,8 @@ pub fn find_exercise_directories(exercise_path: &Path) -> Result<Vec<PathBuf>, L
             && !submission_processing::contains_tmcignore(e)
     }) {
         let entry = entry?;
-        if is_exercise_root_directory(entry.path()) {
+        // check if the path contains a valid exercise for some plugin
+        if tmc_langs_plugins::get_language_plugin(entry.path()).is_ok() {
             paths.push(entry.into_path())
         }
     }
@@ -119,7 +144,7 @@ pub fn get_exercise_packaging_configuration(
 pub fn list_local_course_exercises(
     client_name: &str,
     course_slug: &str,
-) -> Result<Vec<LocalExercise>, anyhow::Error> {
+) -> Result<Vec<LocalExercise>, LangsError> {
     let config_path = TmcConfig::get_location(client_name)?;
     let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
     let mut projects_config = ProjectsConfig::load(&projects_dir)?;
@@ -139,8 +164,6 @@ pub fn list_local_course_exercises(
     Ok(local_exercises)
 }
 
-pub use crate::submission_processing::prepare_solution;
-
 pub fn prepare_stub(exercise_path: &Path, dest_path: &Path) -> Result<(), LangsError> {
     submission_processing::prepare_stub(&exercise_path, dest_path)?;
 
@@ -151,10 +174,6 @@ pub fn prepare_stub(exercise_path: &Path, dest_path: &Path) -> Result<(), LangsE
     }
     Ok(())
 }
-
-pub use crate::submission_packaging::prepare_submission;
-
-pub use crate::course_refresher::refresh_course;
 
 pub fn run_tests(path: &Path) -> Result<RunResult, LangsError> {
     Ok(tmc_langs_plugins::get_language_plugin(path)?.run_tests(path)?)
@@ -180,12 +199,11 @@ pub fn extract_student_files(
     Ok(())
 }
 
-fn move_dir(source: &Path, source_lock: FileLockGuard, target: &Path) -> anyhow::Result<()> {
+fn move_dir(source: &Path, source_lock: FileLockGuard, target: &Path) -> Result<(), LangsError> {
     let mut file_count_copied = 0;
     let mut file_count_total = 0;
     for entry in WalkDir::new(source) {
-        let entry =
-            entry.with_context(|| format!("Failed to read file inside {}", source.display()))?;
+        let entry = entry?;
         if entry.path().is_file() {
             file_count_total += 1;
         }
@@ -196,8 +214,7 @@ fn move_dir(source: &Path, source_lock: FileLockGuard, target: &Path) -> anyhow:
     );
 
     for entry in WalkDir::new(source).contents_first(true).min_depth(1) {
-        let entry =
-            entry.with_context(|| format!("Failed to read file inside {}", source.display()))?;
+        let entry = entry?;
         let entry_path = entry.path();
 
         if entry_path.file_name() == Some(OsStr::new(".tmc.lock")) {
@@ -221,23 +238,10 @@ fn move_dir(source: &Path, source_lock: FileLockGuard, target: &Path) -> anyhow:
 
             // create parent dir for target and copy it, remove source file after
             if let Some(parent) = target_path.parent() {
-                fs::create_dir_all(parent).with_context(|| {
-                    format!("Failed to create directory at {}", parent.display())
-                })?;
+                file_util::create_dir_all(parent)?;
             }
-            fs::copy(entry_path, &target_path).with_context(|| {
-                format!(
-                    "Failed to copy file from {} to {}",
-                    entry_path.display(),
-                    target_path.display()
-                )
-            })?;
-            fs::remove_file(entry_path).with_context(|| {
-                format!(
-                    "Failed to remove file at {} after copying it",
-                    entry_path.display()
-                )
-            })?;
+            file_util::copy(entry_path, &target_path)?;
+            file_util::remove_file(entry_path)?;
 
             file_count_copied += 1;
             progress_stage(format!(
@@ -246,14 +250,12 @@ fn move_dir(source: &Path, source_lock: FileLockGuard, target: &Path) -> anyhow:
             ));
         } else if entry_path.is_dir() {
             log::debug!("Deleting {}", entry_path.display());
-            fs::remove_dir(entry_path).with_context(|| {
-                format!("Failed to remove directory at {}", entry_path.display())
-            })?;
+            file_util::remove_dir_empty(entry_path)?;
         }
     }
 
     drop(source_lock);
-    fs::remove_dir(source)?;
+    file_util::remove_dir_empty(source)?;
 
     finish_stage("Finished moving project directory");
     Ok(())
@@ -269,10 +271,6 @@ fn progress_stage(message: impl Into<String>) {
 
 fn finish_stage(message: impl Into<String>) {
     progress_reporter::finish_stage::<()>(message.into(), None)
-}
-
-fn is_exercise_root_directory(path: &Path) -> bool {
-    tmc_langs_plugins::get_language_plugin(path).is_ok()
 }
 
 fn extract_project_overwrite(

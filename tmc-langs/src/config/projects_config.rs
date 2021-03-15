@@ -1,9 +1,9 @@
-use anyhow::{Context, Result};
+use crate::LangsError;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use std::fs;
 use std::path::{Path, PathBuf};
-use tmc_langs_util::file_util;
+use tmc_langs_util::{file_util, FileError};
+use walkdir::WalkDir;
 
 #[derive(Debug)]
 pub struct ProjectsConfig {
@@ -12,26 +12,20 @@ pub struct ProjectsConfig {
 }
 
 impl ProjectsConfig {
-    pub fn load(projects_dir: &Path) -> Result<ProjectsConfig> {
+    pub fn load(projects_dir: &Path) -> Result<ProjectsConfig, LangsError> {
         file_util::lock!(projects_dir);
 
         let mut course_configs = BTreeMap::new();
-        for file in fs::read_dir(projects_dir)
-            .with_context(|| format!("Failed to read directory at {}", projects_dir.display()))?
-        {
-            let file =
-                file.with_context(|| format!("Failed to read file in {}", projects_dir.display()))?;
+        for file in WalkDir::new(projects_dir) {
+            let file = file?;
             let course_config_path = file.path().join("course_config.toml");
             if course_config_path.exists() {
                 let file_name = file.file_name();
-                let course_dir_name = file_name.to_str().with_context(|| {
-                    format!(
-                        "Course directory name was not valid utf-8: {}",
-                        file.file_name().to_string_lossy()
-                    )
+                let course_dir_name = file_name.to_str().ok_or_else(|| {
+                    LangsError::FileError(FileError::NoFileName(file.path().to_path_buf()))
                 })?;
 
-                let bytes = fs::read(course_config_path)?;
+                let bytes = file_util::read_file(course_config_path)?;
                 let course_config: CourseConfig = toml::from_slice(&bytes)?;
 
                 course_configs.insert(course_dir_name.to_string(), course_config);
@@ -63,7 +57,10 @@ impl ProjectsConfig {
                 }
             }
             for deleted_exercise in &deleted_exercises {
-                course_config.exercises.remove(deleted_exercise).unwrap(); // cannot fail
+                course_config
+                    .exercises
+                    .remove(deleted_exercise)
+                    .expect("this should never fail");
             }
             if !deleted_exercises.is_empty() {
                 // if any exercises were deleted, save the course config
@@ -91,22 +88,16 @@ pub struct CourseConfig {
 }
 
 impl CourseConfig {
-    pub fn save_to_projects_dir(&self, projects_dir: &Path) -> Result<()> {
+    pub fn save_to_projects_dir(&self, projects_dir: &Path) -> Result<(), LangsError> {
         file_util::lock!(projects_dir);
 
         let course_dir = projects_dir.join(&self.course);
         if !course_dir.exists() {
-            fs::create_dir_all(&course_dir).with_context(|| {
-                format!(
-                    "Failed to create course directory at {}",
-                    course_dir.display()
-                )
-            })?;
+            file_util::create_dir_all(&course_dir)?;
         }
         let target = course_dir.join("course_config.toml");
         let s = toml::to_string_pretty(&self)?;
-        fs::write(&target, s.as_bytes())
-            .with_context(|| format!("Failed to write course config to {}", target.display()))?;
+        file_util::write_to_file(s.as_bytes(), &target)?;
         Ok(())
     }
 }

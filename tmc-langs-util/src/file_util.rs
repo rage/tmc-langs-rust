@@ -2,7 +2,7 @@
 
 use crate::error::FileError;
 use fd_lock::FdLock;
-use std::fs::{self, File};
+use std::fs::{self, File, ReadDir};
 use std::io::{Read, Write};
 use std::path::Path;
 use walkdir::WalkDir;
@@ -118,6 +118,10 @@ pub fn read_to_file<R: Read, P: AsRef<Path>>(source: &mut R, target: P) -> Resul
     std::io::copy(source, &mut target_file)
         .map_err(|e| FileError::FileWrite(target.to_path_buf(), e))?;
     Ok(target_file)
+}
+
+pub fn read_dir<P: AsRef<Path>>(path: P) -> Result<ReadDir, FileError> {
+    fs::read_dir(&path).map_err(|e| FileError::DirRead(path.as_ref().to_path_buf(), e))
 }
 
 pub fn create_dir<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
