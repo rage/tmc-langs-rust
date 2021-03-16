@@ -46,7 +46,7 @@ pub fn list_local_course_exercises(
 }
 
 pub fn migrate(
-    tmc_config: &TmcConfig,
+    tmc_config: TmcConfig,
     course_slug: &str,
     exercise_slug: &str,
     exercise_id: usize,
@@ -116,7 +116,7 @@ pub fn move_projects_dir(
     let guard = lock.lock()?;
 
     super::move_dir(&old_projects_dir, guard, &target)?;
-    tmc_config.save(config_path)?;
+    tmc_config.save(&config_path)?;
     Ok(())
 }
 
@@ -165,7 +165,7 @@ mod test {
             .exists());
 
         migrate(
-            &tmc_config,
+            tmc_config,
             "course",
             "exercise",
             0,

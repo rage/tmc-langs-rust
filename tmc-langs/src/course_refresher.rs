@@ -4,8 +4,9 @@ use crate::{error::LangsError, progress_reporter};
 use md5::Context;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
+use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::{io::Write, time::Duration};
+use std::time::Duration;
 use tmc_langs_framework::TmcCommand;
 use tmc_langs_util::file_util;
 use walkdir::WalkDir;
@@ -318,13 +319,6 @@ fn execute_zip(
             let relative_path = entry.path().strip_prefix(&root_path).unwrap(); // safe
 
             if entry.path().is_file() {
-<<<<<<< HEAD
-=======
-                let relative_path = entry
-                    .path()
-                    .strip_prefix(&root_path)
-                    .expect("the entry is inside the root path");
->>>>>>> added clippy lints
                 writer.start_file(
                     relative_path.to_string_lossy(),
                     zip::write::FileOptions::default(),

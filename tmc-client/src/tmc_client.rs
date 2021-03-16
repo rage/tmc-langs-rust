@@ -225,6 +225,12 @@ impl TmcClient {
             None,
         );
 
+        // for each exercise, check if there's already something on disk
+        // if yes, check if it needs updating
+        // if not, check if there's a previous submission
+        //   if yes, download it
+        //   if not, download the exercise template
+
         let thread_count = exercises_len.min(4); // max 4 threads
         let mut handles = vec![];
         let exercises = Arc::new(Mutex::new(exercises));
@@ -369,7 +375,7 @@ impl TmcClient {
 
     pub fn get_exercises_details(
         &self,
-        exercise_ids: Vec<usize>,
+        exercise_ids: &[usize],
     ) -> Result<Vec<ExercisesDetails>, ClientError> {
         self.core_exercise_details(exercise_ids)
     }

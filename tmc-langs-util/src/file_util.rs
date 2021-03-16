@@ -5,6 +5,7 @@ use fd_lock::FdLock;
 use std::fs::{self, File, ReadDir};
 use std::io::{Read, Write};
 use std::path::Path;
+use tempfile::NamedTempFile;
 use walkdir::WalkDir;
 
 /// Convenience macro for locking a path.
@@ -34,6 +35,10 @@ pub use lock_windows::*;
 
 pub fn temp_file() -> Result<File, FileError> {
     tempfile::tempfile().map_err(FileError::TempFile)
+}
+
+pub fn named_temp_file() -> Result<NamedTempFile, FileError> {
+    tempfile::NamedTempFile::new().map_err(FileError::TempFile)
 }
 
 pub fn open_file<P: AsRef<Path>>(path: P) -> Result<File, FileError> {

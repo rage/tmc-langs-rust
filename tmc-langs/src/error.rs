@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, string::FromUtf8Error};
 
 use thiserror::Error;
 use tmc_client::ClientError;
@@ -44,6 +44,16 @@ pub enum LangsError {
     MovingProjectsDirToItself,
     #[error("No projects-dir found")]
     NoProjectsDir,
+    #[error("Decoded password was not valid UTF-8")]
+    Base64PasswordNotUtf8(#[source] FromUtf8Error),
+    #[error("Failed to decode with base64")]
+    Base64Decode(#[from] base64::DecodeError),
+    #[error("Failed to read password")]
+    ReadPassword(#[source] std::io::Error),
+    #[error("Settings files cannot contain null values")]
+    SettingsCannotContainNull,
+    #[error("The number given was too high: {0}")]
+    SettingNumberTooHigh(serde_json::Number),
 
     #[error("Cache path {0} was invalid. Not a valid UTF-8 string or did not contain a cache version after a dash")]
     InvalidCachePath(PathBuf),
