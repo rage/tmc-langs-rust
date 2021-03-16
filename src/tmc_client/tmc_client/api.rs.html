@@ -895,6 +895,9 @@
 <span id="892">892</span>
 <span id="893">893</span>
 <span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains and additional impl for TmcClient for calling the TMC Server API.</span>
 
@@ -915,7 +918,8 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">SystemTime</span>;
-<span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{<span class="ident">file_util</span>, <span class="ident">FileIo</span>, <span class="ident">Language</span>};
+<span class="kw">use</span> <span class="ident">tmc_langs_plugins</span>::<span class="ident">Language</span>;
+<span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{<span class="ident">file_util</span>, <span class="ident">FileError</span>};
 <span class="kw">use</span> <span class="ident">url</span>::<span class="ident">Url</span>;
 
 <span class="doccomment">/// Provides a wrapper for reqwest Response&#39;s json that deserializes into Response&lt;T&gt; and converts it into a result</span>
@@ -1659,7 +1663,9 @@
                 <span class="ident">SystemTime</span>::<span class="ident">UNIX_EPOCH</span>.<span class="ident">elapsed</span>()<span class="question-mark">?</span>.<span class="ident">as_nanos</span>().<span class="ident">to_string</span>(),
             )
             .<span class="ident">file</span>(<span class="string">&quot;submission[file]&quot;</span>, <span class="ident">submission</span>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError</span>::<span class="ident">FileIo</span>(<span class="ident">FileIo</span>::<span class="ident">FileOpen</span>(<span class="ident">submission</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>)))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+                <span class="ident">ClientError</span>::<span class="ident">FileError</span>(<span class="ident">FileError</span>::<span class="ident">FileOpen</span>(<span class="ident">submission</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))
+            })<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">params</span>) <span class="op">=</span> <span class="ident">params</span> {
             <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">val</span>) <span class="kw">in</span> <span class="ident">params</span> {

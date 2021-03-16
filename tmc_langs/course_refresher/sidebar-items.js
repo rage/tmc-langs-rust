@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["refresh_course",""]],"struct":[["RefreshData",""],["RefreshExercise",""]],"type":[["ModeBits",""]]});

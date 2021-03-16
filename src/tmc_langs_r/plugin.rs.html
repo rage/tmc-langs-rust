@@ -514,13 +514,6 @@
 <span id="511">511</span>
 <span id="512">512</span>
 <span id="513">513</span>
-<span id="514">514</span>
-<span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
-<span id="520">520</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains the LanguagePlugin implementation for R.</span>
 
@@ -533,13 +526,11 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
-    <span class="ident">command</span>::<span class="ident">TmcCommand</span>,
-    <span class="ident">domain</span>::{<span class="ident">ExerciseDesc</span>, <span class="ident">RunResult</span>, <span class="ident">TestDesc</span>},
-    <span class="ident">file_util</span>,
     <span class="ident">nom</span>::{<span class="ident">branch</span>, <span class="ident">bytes</span>, <span class="ident">character</span>, <span class="ident">combinator</span>, <span class="ident">error</span>::<span class="ident">VerboseError</span>, <span class="ident">sequence</span>, <span class="ident">IResult</span>},
-    <span class="ident">zip</span>::<span class="ident">ZipArchive</span>,
-    <span class="ident">LanguagePlugin</span>, <span class="ident">TmcError</span>,
+    <span class="ident">LanguagePlugin</span>, <span class="ident">TmcCommand</span>, <span class="ident">TmcError</span>, {<span class="ident">ExerciseDesc</span>, <span class="ident">RunResult</span>, <span class="ident">TestDesc</span>},
 };
+<span class="kw">use</span> <span class="ident">tmc_langs_util</span>::<span class="ident">file_util</span>;
+<span class="kw">use</span> <span class="ident">zip</span>::<span class="ident">ZipArchive</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RPlugin</span> {}
@@ -716,7 +707,7 @@
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
-    <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::<span class="ident">domain</span>::<span class="ident">RunStatus</span>;
+    <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::<span class="ident">RunStatus</span>;
 
     <span class="kw">fn</span> <span class="ident">init</span>() {
         <span class="kw">use</span> <span class="ident">log</span>::<span class="kw-2">*</span>;
@@ -942,13 +933,8 @@ test(&quot;sample&quot;, c(&quot;r1.1&quot;), {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">run</span>.<span class="ident">source</span>();
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <span class="ident">source</span> {
             <span class="ident">source</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">source</span>();
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cmd_error</span>) <span class="op">=</span>
-                <span class="ident">inner</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">tmc_langs_framework</span>::<span class="ident">error</span>::<span class="ident">CommandError</span><span class="op">&gt;</span>()
-            {
-                <span class="kw">if</span> <span class="macro">matches</span><span class="macro">!</span>(
-                    <span class="ident">cmd_error</span>,
-                    <span class="ident">tmc_langs_framework</span>::<span class="ident">error</span>::<span class="ident">CommandError</span>::<span class="ident">TimeOut</span> { .. }
-                ) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cmd_error</span>) <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">tmc_langs_framework</span>::<span class="ident">CommandError</span><span class="op">&gt;</span>() {
+                <span class="kw">if</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="ident">cmd_error</span>, <span class="ident">tmc_langs_framework</span>::<span class="ident">CommandError</span>::<span class="ident">TimeOut</span> { .. }) {
                     <span class="kw">return</span>;
                 }
             }

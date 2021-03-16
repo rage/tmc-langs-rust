@@ -235,6 +235,8 @@
 <span id="232">232</span>
 <span id="233">233</span>
 <span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Custom wrapper for Command that supports timeouts and contains custom error handling.</span>
 
@@ -243,7 +245,8 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">ffi</span>::<span class="ident">OsStr</span>, <span class="ident">thread</span>::<span class="ident">JoinHandle</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fs</span>::<span class="ident">File</span>, <span class="ident">io</span>::<span class="ident">Write</span>};
-<span class="kw">use</span> <span class="ident">subprocess</span>::{<span class="ident">Exec</span>, <span class="ident">ExitStatus</span>, <span class="ident">PopenError</span>, <span class="ident">Redirection</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">subprocess</span>::<span class="ident">ExitStatus</span>;
+<span class="kw">use</span> <span class="ident">subprocess</span>::{<span class="ident">Exec</span>, <span class="ident">PopenError</span>, <span class="ident">Redirection</span>};
 
 <span class="doccomment">/// Wrapper around subprocess::Exec</span>
 <span class="attribute">#[<span class="ident">must_use</span>]</span>
@@ -261,7 +264,7 @@
         }
     }
 
-    <span class="doccomment">/// Creates a new command, defaults to piped stdout/stderr.</span>
+    <span class="doccomment">/// Creates a new command with piped stdout/stderr.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">piped</span>(<span class="ident">cmd</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">OsStr</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">exec</span>: <span class="ident">Exec</span>::<span class="ident">cmd</span>(<span class="ident">cmd</span>)
@@ -280,6 +283,7 @@
         }
     }
 
+    <span class="doccomment">/// Gives the command data to write into stdin.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_stdin_data</span>(<span class="self">self</span>, <span class="ident">data</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">exec</span>: <span class="self">self</span>.<span class="ident">exec</span>.<span class="ident">stdin</span>(<span class="ident">Redirection</span>::<span class="ident">Pipe</span>),

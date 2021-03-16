@@ -233,23 +233,36 @@
 <span id="230">230</span>
 <span id="231">231</span>
 <span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
-<span id="238">238</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Utility struct for printing progress reports.</span>
 
 <span class="kw">use</span> <span class="ident">once_cell</span>::<span class="ident">sync</span>::<span class="ident">OnceCell</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Serialize</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Instant</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">ops</span>::<span class="ident">DerefMut</span>, <span class="ident">sync</span>::<span class="ident">RwLock</span>};
 <span class="kw">use</span> <span class="ident">type_map</span>::<span class="ident">concurrent</span>::<span class="ident">TypeMap</span>;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ProgressReporter2</span> {
+<span class="doccomment">/// The format for all status updates. May contain some data.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StatusUpdate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="ident">finished</span>: <span class="ident">bool</span>,
+    <span class="kw">pub</span> <span class="ident">message</span>: <span class="ident">String</span>,
+    <span class="kw">pub</span> <span class="ident">percent_done</span>: <span class="ident">f64</span>,
+    <span class="kw">pub</span> <span class="ident">time</span>: <span class="ident">u128</span>,
+    <span class="kw">pub</span> <span class="ident">data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+}
+
+<span class="comment">// the closure called to report progress, could for example print the report as JSON</span>
+<span class="kw">type</span> <span class="ident">UpdateClosure</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">dyn</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="ident">StatusUpdate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+
+<span class="doccomment">/// The struct that keeps track of progress for a given progress update type T and contains a closure for reporting whenever progress is made.</span>
+<span class="kw">struct</span> <span class="ident">ProgressReporter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="ident">progress_report</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">UpdateClosure</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+}
+
+<span class="doccomment">/// Contains all the different progress reporters and keeps track of the overall progress.</span>
+<span class="kw">struct</span> <span class="ident">ProgressReporterContainer</span> {
     <span class="ident">reporters</span>: <span class="ident">TypeMap</span>,
     <span class="ident">current_progress</span>: <span class="ident">f64</span>,
     <span class="ident">total_steps_left</span>: <span class="ident">usize</span>,
@@ -257,17 +270,16 @@
     <span class="ident">stage_steps</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>, <span class="comment">// steps left</span>
 }
 
-<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">PROGRESS_REPORTERS</span>: <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">ProgressReporter2</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">OnceCell</span>::<span class="ident">new</span>();
+<span class="kw">static</span> <span class="ident">PROGRESS_REPORTERS</span>: <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">ProgressReporterContainer</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">OnceCell</span>::<span class="ident">new</span>();
 
-<span class="doccomment">/// Subscribes to progress reports of type T with callback of type F.</span>
-<span class="doccomment">/// Initializes progress reporters if necessary.</span>
+<span class="doccomment">/// Subscribes to progress reports of type T with callback of type F called every time progress is made with type T.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subscribe</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">progress_report</span>: <span class="ident">F</span>)
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>,
-    <span class="ident">F</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="ident">StatusUpdate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">DynError</span><span class="op">&gt;</span>,
+    <span class="ident">F</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="ident">StatusUpdate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),
 {
     <span class="kw">let</span> <span class="ident">lock</span> <span class="op">=</span> <span class="ident">PROGRESS_REPORTERS</span>.<span class="ident">get_or_init</span>(<span class="op">|</span><span class="op">|</span> {
-        <span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="ident">ProgressReporter2</span> {
+        <span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="ident">ProgressReporterContainer</span> {
             <span class="ident">reporters</span>: <span class="ident">TypeMap</span>::<span class="ident">new</span>(),
             <span class="ident">current_progress</span>: <span class="number">0.0</span>,
             <span class="ident">total_steps_left</span>: <span class="number">0</span>,
@@ -282,18 +294,17 @@
     <span class="ident">guard</span>.<span class="ident">reporters</span>.<span class="ident">insert</span>(<span class="ident">reporter</span>);
 }
 
-<span class="doccomment">/// Starts a new stage for the reporter associated with type T.</span>
+<span class="doccomment">/// Starts a new stage.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_stage</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>(<span class="ident">total_steps</span>: <span class="ident">usize</span>, <span class="ident">message</span>: <span class="ident">String</span>, <span class="ident">data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
     <span class="comment">// check for init</span>
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">lock</span>) <span class="op">=</span> <span class="ident">PROGRESS_REPORTERS</span>.<span class="ident">get</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reporter</span> <span class="op">=</span> <span class="ident">lock</span>.<span class="ident">write</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">reporter</span> <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">deref_mut</span>();
+        <span class="ident">reporter</span>.<span class="ident">total_steps_left</span> <span class="op">+</span><span class="op">=</span> <span class="ident">total_steps</span>;
+        <span class="ident">reporter</span>.<span class="ident">stage_steps</span>.<span class="ident">push</span>(<span class="ident">total_steps</span>);
 
         <span class="comment">// check for subscriber</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">progress_reporter</span>) <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">reporters</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="ident">ProgressReporter</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>() {
-            <span class="ident">reporter</span>.<span class="ident">total_steps_left</span> <span class="op">+</span><span class="op">=</span> <span class="ident">total_steps</span>;
-            <span class="ident">reporter</span>.<span class="ident">stage_steps</span>.<span class="ident">push</span>(<span class="ident">total_steps</span>);
-
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">progress_reporter</span>) <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">reporters</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="ident">ProgressReporter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>() {
             <span class="comment">// report status</span>
             <span class="kw">let</span> <span class="ident">status_update</span> <span class="op">=</span> <span class="ident">StatusUpdate</span> {
                 <span class="ident">finished</span>: <span class="bool-val">false</span>,
@@ -302,35 +313,33 @@
                 <span class="ident">time</span>: <span class="ident">reporter</span>.<span class="ident">start_time</span>.<span class="ident">elapsed</span>().<span class="ident">as_millis</span>(),
                 <span class="ident">data</span>,
             };
-            <span class="kw">let</span> <span class="ident">_r</span> <span class="op">=</span> <span class="ident">progress_reporter</span>.<span class="ident">progress_report</span>.<span class="ident">as_ref</span>()(<span class="ident">status_update</span>);
+            <span class="ident">progress_reporter</span>.<span class="ident">progress_report</span>.<span class="ident">as_ref</span>()(<span class="ident">status_update</span>);
         }
     }
 }
 
-<span class="doccomment">/// Progresses the reporter associated with type T.</span>
+<span class="doccomment">/// Progresses the current stage.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">progress_stage</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>(<span class="ident">message</span>: <span class="ident">String</span>, <span class="ident">data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
     <span class="comment">// check for init</span>
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">lock</span>) <span class="op">=</span> <span class="ident">PROGRESS_REPORTERS</span>.<span class="ident">get</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reporter</span> <span class="op">=</span> <span class="ident">lock</span>.<span class="ident">write</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">reporter</span> <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">deref_mut</span>();
 
-        <span class="comment">// check for subscriber</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">progress_reporter</span>) <span class="op">=</span>
-            <span class="ident">reporter</span>.<span class="ident">reporters</span>.<span class="ident">get_mut</span>::<span class="op">&lt;</span><span class="ident">ProgressReporter</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-        {
-            <span class="comment">// check for stage</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stage_steps_left</span>) <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">stage_steps</span>.<span class="ident">last_mut</span>() {
-                <span class="comment">// check if steps left in stage</span>
-                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">stage_steps_left</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                    <span class="kw">let</span> <span class="ident">step_progress</span> <span class="op">=</span>
-                        (<span class="number">1.0</span> <span class="op">-</span> <span class="ident">reporter</span>.<span class="ident">current_progress</span>) <span class="op">/</span> <span class="ident">reporter</span>.<span class="ident">total_steps_left</span> <span class="kw">as</span> <span class="ident">f64</span>;
-                    <span class="kw-2">*</span><span class="ident">stage_steps_left</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-                    <span class="ident">reporter</span>.<span class="ident">total_steps_left</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-                    <span class="ident">reporter</span>.<span class="ident">current_progress</span> <span class="op">=</span>
-                        <span class="ident">f64</span>::<span class="ident">min</span>(<span class="ident">reporter</span>.<span class="ident">current_progress</span> <span class="op">+</span> <span class="ident">step_progress</span>, <span class="number">1.0</span>);
-                    <span class="comment">// guard against going over 1.0</span>
-                }
+        <span class="comment">// check for stage</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stage_steps_left</span>) <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">stage_steps</span>.<span class="ident">last_mut</span>() {
+            <span class="comment">// check if steps left in stage</span>
+            <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">stage_steps_left</span> <span class="op">&gt;</span> <span class="number">0</span> {
+                <span class="kw">let</span> <span class="ident">step_progress</span> <span class="op">=</span>
+                    (<span class="number">1.0</span> <span class="op">-</span> <span class="ident">reporter</span>.<span class="ident">current_progress</span>) <span class="op">/</span> <span class="ident">reporter</span>.<span class="ident">total_steps_left</span> <span class="kw">as</span> <span class="ident">f64</span>;
+                <span class="kw-2">*</span><span class="ident">stage_steps_left</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+                <span class="ident">reporter</span>.<span class="ident">total_steps_left</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+                <span class="ident">reporter</span>.<span class="ident">current_progress</span> <span class="op">=</span>
+                    <span class="ident">f64</span>::<span class="ident">min</span>(<span class="ident">reporter</span>.<span class="ident">current_progress</span> <span class="op">+</span> <span class="ident">step_progress</span>, <span class="number">1.0</span>);
+                <span class="comment">// guard against going over 1.0</span>
+            }
 
+            <span class="comment">// check for subscriber</span>
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">progress_reporter</span>) <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">reporters</span>.<span class="ident">get_mut</span>::<span class="op">&lt;</span><span class="ident">ProgressReporter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>() {
                 <span class="kw">let</span> <span class="ident">status_update</span> <span class="op">=</span> <span class="ident">StatusUpdate</span> {
                     <span class="ident">finished</span>: <span class="bool-val">false</span>,
                     <span class="ident">message</span>,
@@ -344,24 +353,25 @@
     }
 }
 
+<span class="doccomment">/// Finishes the current stage.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finish_stage</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>(<span class="ident">message</span>: <span class="ident">String</span>, <span class="ident">data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
     <span class="comment">// check for init</span>
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">lock</span>) <span class="op">=</span> <span class="ident">PROGRESS_REPORTERS</span>.<span class="ident">get</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reporter</span> <span class="op">=</span> <span class="ident">lock</span>.<span class="ident">write</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">reporter</span> <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">deref_mut</span>();
 
-        <span class="comment">// check for subscriber</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">progress_reporter</span>) <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">reporters</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="ident">ProgressReporter</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>() {
-            <span class="comment">// check for stage</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stage_steps_left</span>) <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">stage_steps</span>.<span class="ident">pop</span>() {
-                <span class="kw">let</span> <span class="ident">step_progress</span> <span class="op">=</span>
-                    (<span class="number">1.0</span> <span class="op">-</span> <span class="ident">reporter</span>.<span class="ident">current_progress</span>) <span class="op">/</span> <span class="ident">reporter</span>.<span class="ident">total_steps_left</span> <span class="kw">as</span> <span class="ident">f64</span>;
-                <span class="ident">reporter</span>.<span class="ident">total_steps_left</span> <span class="op">-</span><span class="op">=</span> <span class="ident">stage_steps_left</span>;
-                <span class="ident">reporter</span>.<span class="ident">current_progress</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">min</span>(
-                    <span class="ident">reporter</span>.<span class="ident">current_progress</span> <span class="op">+</span> <span class="ident">stage_steps_left</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">*</span> <span class="ident">step_progress</span>,
-                    <span class="number">1.0</span>,
-                ); <span class="comment">// guard against going over 1.0</span>
+        <span class="comment">// check for stage</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stage_steps_left</span>) <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">stage_steps</span>.<span class="ident">pop</span>() {
+            <span class="kw">let</span> <span class="ident">step_progress</span> <span class="op">=</span>
+                (<span class="number">1.0</span> <span class="op">-</span> <span class="ident">reporter</span>.<span class="ident">current_progress</span>) <span class="op">/</span> <span class="ident">reporter</span>.<span class="ident">total_steps_left</span> <span class="kw">as</span> <span class="ident">f64</span>;
+            <span class="ident">reporter</span>.<span class="ident">total_steps_left</span> <span class="op">-</span><span class="op">=</span> <span class="ident">stage_steps_left</span>;
+            <span class="ident">reporter</span>.<span class="ident">current_progress</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">min</span>(
+                <span class="ident">reporter</span>.<span class="ident">current_progress</span> <span class="op">+</span> <span class="ident">stage_steps_left</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">*</span> <span class="ident">step_progress</span>,
+                <span class="number">1.0</span>,
+            ); <span class="comment">// guard against going over 1.0</span>
 
+            <span class="comment">// check for subscriber</span>
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">progress_reporter</span>) <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">reporters</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="ident">ProgressReporter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>() {
                 <span class="kw">let</span> <span class="ident">status_update</span> <span class="op">=</span> <span class="ident">StatusUpdate</span> {
                     <span class="ident">finished</span>: <span class="bool-val">true</span>,
                     <span class="ident">message</span>,
@@ -373,26 +383,6 @@
             }
         }
     }
-}
-
-<span class="doccomment">/// The format for all status updates. May contain some data.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StatusUpdate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">finished</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span> <span class="ident">message</span>: <span class="ident">String</span>,
-    <span class="kw">pub</span> <span class="ident">percent_done</span>: <span class="ident">f64</span>,
-    <span class="kw">pub</span> <span class="ident">time</span>: <span class="ident">u128</span>,
-    <span class="kw">pub</span> <span class="ident">data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-}
-
-<span class="comment">// compatible with anyhow</span>
-<span class="kw">type</span> <span class="ident">DynError</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>;
-<span class="kw">type</span> <span class="ident">UpdateClosure</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">dyn</span> <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="ident">StatusUpdate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">DynError</span><span class="op">&gt;</span>;
-
-<span class="doccomment">/// The struct that keeps track of progress and contains a closure for reporting whenever progress is made.</span>
-<span class="kw">struct</span> <span class="ident">ProgressReporter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">progress_report</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">UpdateClosure</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -412,7 +402,7 @@
         <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">mutex</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">reporters</span>) <span class="op">=</span> <span class="ident">PROGRESS_REPORTERS</span>.<span class="ident">get</span>() {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reporters</span> <span class="op">=</span> <span class="ident">reporters</span>.<span class="ident">write</span>().<span class="ident">unwrap</span>();
-            <span class="kw-2">*</span><span class="ident">reporters</span> <span class="op">=</span> <span class="ident">ProgressReporter2</span> {
+            <span class="kw-2">*</span><span class="ident">reporters</span> <span class="op">=</span> <span class="ident">ProgressReporterContainer</span> {
                 <span class="ident">reporters</span>: <span class="ident">TypeMap</span>::<span class="ident">new</span>(),
                 <span class="ident">current_progress</span>: <span class="number">0.0</span>,
                 <span class="ident">total_steps_left</span>: <span class="number">0</span>,
@@ -432,7 +422,6 @@
         <span class="ident">subscribe</span>::<span class="op">&lt;</span><span class="ident">usize</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
             <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;got {:#?}&quot;</span>, <span class="ident">s</span>);
             <span class="kw-2">*</span><span class="ident">suc</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>);
-            <span class="prelude-val">Ok</span>(())
         });
 
         <span class="ident">start_stage</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>(<span class="number">2</span>, <span class="string">&quot;starting&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>);
@@ -452,7 +441,6 @@
         <span class="ident">subscribe</span>::<span class="op">&lt;</span><span class="ident">usize</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
             <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;got {:#?}&quot;</span>, <span class="ident">s</span>);
             <span class="kw-2">*</span><span class="ident">suc</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>);
-            <span class="prelude-val">Ok</span>(())
         });
 
         <span class="ident">start_stage</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>(<span class="number">2</span>, <span class="string">&quot;starting&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>);

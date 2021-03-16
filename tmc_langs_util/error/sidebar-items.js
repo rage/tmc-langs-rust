@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ParamError",""],["UtilError",""]]});
+initSidebarItems({"enum":[["FileError","A wrapper for std::io::Error that provides more context for the failed operations."]]});

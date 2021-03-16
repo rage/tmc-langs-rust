@@ -69,14 +69,13 @@ implementors["syn"] = [{"text":"impl Default for Underscore","synthetic":false,"
 implementors["tar"] = [{"text":"impl Default for GnuExtSparseHeader","synthetic":false,"types":[]}];
 implementors["tempfile"] = [{"text":"impl&lt;'a, 'b&gt; Default for Builder&lt;'a, 'b&gt;","synthetic":false,"types":[]}];
 implementors["termcolor"] = [{"text":"impl Default for ColorSpec","synthetic":false,"types":[]}];
-implementors["thread_local"] = [{"text":"impl&lt;T:&nbsp;Send&gt; Default for CachedThreadLocal&lt;T&gt;","synthetic":false,"types":[]},{"text":"impl&lt;T:&nbsp;Send&gt; Default for ThreadLocal&lt;T&gt;","synthetic":false,"types":[]}];
 implementors["tinyvec"] = [{"text":"impl&lt;A:&nbsp;Array&gt; Default for ArrayVec&lt;A&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'s, T&gt; Default for SliceVec&lt;'s, T&gt;","synthetic":false,"types":[]},{"text":"impl&lt;A:&nbsp;Array&gt; Default for TinyVec&lt;A&gt;","synthetic":false,"types":[]}];
+implementors["tmc_langs"] = [{"text":"impl Default for TmcParams","synthetic":false,"types":[]}];
 implementors["tmc_langs_csharp"] = [{"text":"impl Default for CSharpPlugin","synthetic":false,"types":[]}];
 implementors["tmc_langs_framework"] = [{"text":"impl Default for EverythingIsStudentFilePolicy","synthetic":false,"types":[]},{"text":"impl Default for TmcProjectYml","synthetic":false,"types":[]},{"text":"impl Default for PythonVer","synthetic":false,"types":[]}];
 implementors["tmc_langs_make"] = [{"text":"impl Default for MakePlugin","synthetic":false,"types":[]}];
 implementors["tmc_langs_notests"] = [{"text":"impl Default for NoTestsPlugin","synthetic":false,"types":[]}];
 implementors["tmc_langs_r"] = [{"text":"impl Default for RPlugin","synthetic":false,"types":[]}];
-implementors["tmc_langs_util"] = [{"text":"impl Default for TmcParams","synthetic":false,"types":[]}];
 implementors["tokio"] = [{"text":"impl&lt;T&gt; Default for Mutex&lt;T&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;T: Default,&nbsp;</span>","synthetic":false,"types":[]},{"text":"impl Default for Notify","synthetic":false,"types":[]},{"text":"impl&lt;T:&nbsp;?Sized&gt; Default for RwLock&lt;T&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;T: Default,&nbsp;</span>","synthetic":false,"types":[]},{"text":"impl Default for LocalSet","synthetic":false,"types":[]}];
 implementors["tokio_util"] = [{"text":"impl Default for BytesCodec","synthetic":false,"types":[]},{"text":"impl Default for LengthDelimitedCodec","synthetic":false,"types":[]},{"text":"impl Default for Builder","synthetic":false,"types":[]},{"text":"impl Default for LinesCodec","synthetic":false,"types":[]},{"text":"impl Default for AnyDelimiterCodec","synthetic":false,"types":[]},{"text":"impl Default for CancellationToken","synthetic":false,"types":[]}];
 implementors["toml"] = [{"text":"impl Default for Map&lt;String, Value&gt;","synthetic":false,"types":[]}];

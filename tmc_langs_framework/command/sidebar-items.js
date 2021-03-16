@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["Output",""],["TmcCommand","Wrapper around subprocess::Exec"]]});
