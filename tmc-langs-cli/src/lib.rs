@@ -711,6 +711,8 @@ fn run_core(
             print_output(&output, pretty)?
         }
         ("download-or-update-course-exercises", Some(matches)) => {
+            let download_from_template = matches.is_present("download-from-template");
+
             let exercise_ids = matches.values_of("exercise-id").unwrap();
             let exercise_ids = exercise_ids
                 .into_iter()
@@ -721,6 +723,7 @@ fn run_core(
                 &client,
                 client_name,
                 &exercise_ids,
+                download_from_template,
             )? {
                 DownloadResult::Success {
                     downloaded,

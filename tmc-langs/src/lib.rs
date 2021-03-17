@@ -119,6 +119,7 @@ pub fn download_or_update_course_exercises(
     client: &TmcClient,
     client_name: &str,
     exercises: &[usize],
+    download_from_template: bool,
 ) -> Result<DownloadResult, LangsError> {
     let exercises_details = client.get_exercises_details(exercises)?;
 
@@ -126,9 +127,11 @@ pub fn download_or_update_course_exercises(
     let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
     let mut projects_config = ProjectsConfig::load(&projects_dir)?;
 
-    // separate downloads into ones that don't need to be downloaded and ones that do
-    let mut to_be_downloaded = HashMap::new();
+    // separate exercises into fresh downloads, submission downloads and skipped
+    let mut to_be_downloaded_fresh = HashMap::new();
+    let mut to_be_downloaded_submission = HashMap::new();
     let mut to_be_skipped = vec![];
+
     for exercise_detail in exercises_details {
         let target = ProjectsConfig::get_exercise_download_target(
             &projects_dir,
@@ -136,9 +139,10 @@ pub fn download_or_update_course_exercises(
             &exercise_detail.exercise_name,
         );
 
-        // check if the checksum is different from what's already on disk
+        // check if the exercise is already on disk
         if let Some(course_config) = projects_config.courses.get(&exercise_detail.course_name) {
             if let Some(exercise) = course_config.exercises.get(&exercise_detail.exercise_name) {
+                // exercise is on disk, check if the checksum is identical
                 if exercise_detail.checksum == exercise.checksum {
                     // skip this exercise
                     log::info!(
@@ -153,6 +157,23 @@ pub fn download_or_update_course_exercises(
                         path: target,
                     });
                     continue;
+                } else if !download_from_template {
+                    // different checksum, if flag isn't set check if there are any previous submissions
+                    if let Some(latest_submission) = client
+                        .get_exercise_submissions_for_current_user(exercise.id)?
+                        .first()
+                    {
+                        // previous submission found
+                        to_be_downloaded_submission.insert(
+                            exercise_detail.id,
+                            ExerciseDownload {
+                                course_slug: exercise_detail.exercise_name.clone(),
+                                exercise_slug: exercise_detail.exercise_name.clone(),
+                                path: target,
+                            },
+                        );
+                        continue;
+                    }
                 }
             }
         }
