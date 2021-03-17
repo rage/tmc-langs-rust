@@ -1,12 +1,11 @@
 //! Create clap app
 
-use crate::output::{
-    CombinedCourseData, DownloadOrUpdateCourseExercisesResult, LocalExercise, UpdatedExercise,
-};
+use crate::output::{LocalExercise, UpdatedExercise};
 use clap::{App, AppSettings, Arg, SubCommand};
 use schemars::JsonSchema;
 use std::path::PathBuf;
 use tmc_langs::{
+    data::{CombinedCourseData, DownloadOrUpdateCourseExercisesResult},
     CourseData, CourseDetails, CourseExercise, ExerciseDesc, ExerciseDetails,
     ExercisePackagingConfiguration, NewSubmission, Organization, Review, RunResult,
     StyleValidationResult, Submission, SubmissionFeedbackResponse, SubmissionFinished,
@@ -311,7 +310,7 @@ fn create_core_app() -> App<'static, 'static> {
         .subcommand(SubCommand::with_name("download-old-submission")
             .about("Downloads an old submission. Resets the exercise at output-path if any, downloading the exercise base from the server. The old submission is then downloaded and extracted on top of the base, using the student file policy to retain student files")
             .long_about(SCHEMA_NULL)
-            .arg(Arg::with_name("save-old-state")
+            .arg(Arg::with_name("save-old-state") // TODO: unnecessary, remove (submission-url is enough, but probaly needs a rename if the flag is removed)
                 .help("If set, the exercise is submitted to the server before resetting it.")
                 .long("save-old-state")
                 .requires("submission-url"))

@@ -1,50 +1,33 @@
+#![deny(clippy::print_stdout, clippy::print_stderr)]
+
 //! CLI client for TMC
 
 mod app;
-mod config;
 mod error;
 mod output;
 
-use self::config::ProjectsConfig;
-use self::config::{CourseConfig, Credentials, Exercise, TmcConfig};
 use self::error::{DownloadsFailedError, InvalidTokenError, SandboxTestError};
 use self::output::{
-    CombinedCourseData, Data, DownloadOrUpdateCourseExercise,
-    DownloadOrUpdateCourseExercisesResult, Kind, Output, OutputData, OutputResult, Status,
-    StatusUpdateData, UpdatedExercise,
+    Data, Kind, Output, OutputData, OutputResult, Status, StatusUpdateData, UpdatedExercise,
 };
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
-use config::ConfigValue;
-use file_util::open_file_lock;
 use serde::Serialize;
-use serde_json::Value as JsonValue;
-use std::error::Error as StdError;
-use std::fs::{self, File};
+use std::collections::HashMap;
+use std::fs::File;
 use std::io::{Read, Write};
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
-use std::{
-    collections::{BTreeMap, HashMap},
-    ffi::OsStr,
-};
 use std::{env, io::Cursor};
-use tempfile::NamedTempFile;
 use tmc_langs::{
-    file_util::{self, FileLockGuard},
-    warning_reporter, CommandError, StyleValidationResult,
+    config::{self, Credentials, TmcConfig},
+    data::DownloadOrUpdateCourseExercisesResult,
+    ClientError, DownloadResult, FeedbackAnswer, TmcClient,
 };
-use tmc_langs::{
-    oauth2::{
-        basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
-    },
-    ClientUpdateData, Language,
-};
-use tmc_langs::{ClientError, FeedbackAnswer, TmcClient, Token};
+use tmc_langs::{file_util, warning_reporter, CommandError, StyleValidationResult};
+use tmc_langs::{ClientUpdateData, Language};
 use tmc_langs_util::progress_reporter;
-use toml::{map::Map as TomlMap, Value as TomlValue};
 use url::Url;
-use walkdir::WalkDir;
 
 // wraps the run_inner function that actually does the work and handles any panics that occur
 // any langs library should never panic by itself, but other libraries used may in some rare circumstances
@@ -272,18 +255,9 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
 
             let root_url = env::var("TMC_LANGS_ROOT_URL")
                 .unwrap_or_else(|_| "https://tmc.mooc.fi".to_string());
-            let mut client = TmcClient::new_in_config(
-                root_url,
-                client_name.to_string(),
-                client_version.to_string(),
-            )
-            .context("Failed to create TmcClient")?;
 
-            // set token from the credentials file if one exists
-            let mut credentials = Credentials::load(client_name)?;
-            if let Some(credentials) = &credentials {
-                client.set_token(credentials.token())?;
-            }
+            let (client, mut credentials) =
+                tmc_langs::init_tmc_client_with_credentials(root_url, client_name, client_version)?;
 
             match run_core(client, client_name, &mut credentials, matches, pretty) {
                 Ok(token) => token,
@@ -330,7 +304,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
             let output_path = matches.value_of("output-path").unwrap();
             let output_path = Path::new(output_path);
 
-            let mut archive = open_file_lock(archive_path)?;
+            let mut archive = file_util::open_file_lock(archive_path)?;
             let mut guard = archive.lock()?;
 
             let mut data = vec![];
@@ -683,42 +657,11 @@ fn run_core(
     // proof of having printed the output
     let printed: PrintToken = match matches.subcommand() {
         ("check-exercise-updates", Some(_)) => {
-            let mut updated_exercises = vec![];
-
-            let config_path = TmcConfig::get_location(client_name)?;
-            let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
-            let config = ProjectsConfig::load(&projects_dir)?;
-            let local_exercises = config
-                .courses
+            let updated_exercises = tmc_langs::check_exercise_updates(&client, client_name)
+                .context("Failed to check exercise updates")?
                 .into_iter()
-                .map(|c| c.1.exercises)
-                .flatten()
-                .map(|e| e.1)
-                .collect::<Vec<_>>();
-
-            if !local_exercises.is_empty() {
-                let exercise_ids = local_exercises.iter().map(|e| e.id).collect::<Vec<_>>();
-                let server_exercises = client
-                    .get_exercises_details(exercise_ids)?
-                    .into_iter()
-                    .map(|e| (e.id, e))
-                    .collect::<HashMap<_, _>>();
-                for local_exercise in local_exercises {
-                    let server_exercise =
-                        server_exercises.get(&local_exercise.id).with_context(|| {
-                            format!(
-                                "Server did not return details for local exercise with id {}",
-                                local_exercise.id
-                            )
-                        })?;
-                    if server_exercise.checksum != local_exercise.checksum {
-                        // server has an updated exercise
-                        updated_exercises.push(UpdatedExercise {
-                            id: local_exercise.id,
-                        });
-                    }
-                }
-            }
+                .map(|id| UpdatedExercise { id })
+                .collect();
 
             let output = Output::finished_with_data(
                 "updated exercises",
@@ -741,8 +684,6 @@ fn run_core(
             print_output(&output, pretty)?
         }
         ("download-old-submission", Some(matches)) => {
-            let save_old_state = matches.is_present("save-old-state");
-
             let exercise_id = matches.value_of("exercise-id").unwrap();
             let exercise_id = into_usize(exercise_id)?;
 
@@ -753,192 +694,60 @@ fn run_core(
             let submission_id = into_usize(submission_id)?;
 
             let submission_url = matches.value_of("submission-url");
+            let submission_url = match submission_url {
+                Some(url) => Some(into_url(url)?),
+                None => None,
+            };
 
-            if save_old_state {
-                // submit old exercise
-                let submission_url = into_url(submission_url.unwrap())?;
-                client.submit(submission_url, &output_path, None)?;
-                log::debug!("finished submission");
-            }
-
-            // reset old exercise
-            client.reset(exercise_id, output_path.clone())?;
-            log::debug!("reset exercise");
-
-            // dl submission
-            let temp_zip = NamedTempFile::new().context("Failed to create a temporary archive")?;
-            client.download_old_submission(submission_id, temp_zip.path())?;
-            log::debug!("downloaded old submission to {}", temp_zip.path().display());
-
-            // extract submission
-            tmc_langs::extract_student_files(temp_zip, &output_path)?;
-            log::debug!("extracted project");
+            tmc_langs::download_old_submission(
+                &client,
+                exercise_id,
+                output_path,
+                submission_id,
+                submission_url,
+            )?;
 
             let output = Output::finished_with_data("extracted project", None);
             print_output(&output, pretty)?
         }
         ("download-or-update-course-exercises", Some(matches)) => {
-            // todo: bit of a mess, refactor
             let exercise_ids = matches.values_of("exercise-id").unwrap();
-
-            // collect exercise into (id, path) pairs
-            let exercises = exercise_ids
+            let exercise_ids = exercise_ids
                 .into_iter()
                 .map(into_usize)
-                .collect::<Result<_>>()?;
-            let exercises_details = client.get_exercises_details(exercises)?;
+                .collect::<Result<Vec<_>>>()?;
 
-            let config_path = TmcConfig::get_location(client_name)?;
-            let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
-            let mut projects_config = ProjectsConfig::load(&projects_dir)?;
-
-            // separate downloads into ones that don't need to be downloaded and ones that do
-            let mut to_be_downloaded = HashMap::new();
-            let mut to_be_skipped = vec![];
-            for exercise_detail in exercises_details {
-                let target = ProjectsConfig::get_exercise_download_target(
-                    &projects_dir,
-                    &exercise_detail.course_name,
-                    &exercise_detail.exercise_name,
-                );
-
-                // check if the checksum is different from what's already on disk
-                if let Some(course_config) =
-                    projects_config.courses.get(&exercise_detail.course_name)
-                {
-                    if let Some(exercise) =
-                        course_config.exercises.get(&exercise_detail.exercise_name)
-                    {
-                        if exercise_detail.checksum == exercise.checksum {
-                            // skip this exercise
-                            log::info!(
-                                "Skipping exercise {} ({} in {}) due to identical checksum",
-                                exercise_detail.id,
-                                exercise_detail.course_name,
-                                exercise_detail.exercise_name
-                            );
-                            to_be_skipped.push(DownloadOrUpdateCourseExercise {
-                                course_slug: exercise_detail.course_name,
-                                exercise_slug: exercise_detail.exercise_name,
-                                path: target,
-                            });
-                            continue;
-                        }
-                    }
-                }
-                // not skipped, should be downloaded
-                // also store id and checksum to be used later
-                to_be_downloaded.insert(
-                    exercise_detail.id,
-                    (
-                        DownloadOrUpdateCourseExercise {
-                            course_slug: exercise_detail.course_name.clone(),
-                            exercise_slug: exercise_detail.exercise_name.clone(),
-                            path: target,
-                        },
-                        exercise_detail.id,
-                        exercise_detail.checksum,
-                    ),
-                );
-            }
-
-            // download and divide the results into successful and failed downloads
-            let exercises_and_paths = to_be_downloaded
-                .iter()
-                .map(|(id, (ex, ..))| (*id, ex.path.clone()))
-                .collect();
-            let download_result = client.download_or_update_exercises(exercises_and_paths);
-            let (downloaded, failed) = match download_result {
-                Ok(_) => {
-                    let downloaded = to_be_downloaded.into_iter().map(|(_, v)| v).collect();
-                    let failed = vec![];
-                    (downloaded, failed)
-                }
-                Err(ClientError::IncompleteDownloadResult { downloaded, failed }) => {
-                    let downloaded = downloaded
-                        .iter()
-                        .map(|id| to_be_downloaded.remove(id).unwrap())
-                        .collect::<Vec<_>>();
-                    let failed = failed
-                        .into_iter()
-                        .map(|(id, e)| (to_be_downloaded.remove(&id).unwrap(), e))
-                        .collect::<Vec<_>>();
-                    (downloaded, failed)
-                }
-                Err(error) => {
-                    anyhow::bail!(error)
-                }
-            };
-
-            /*
-            let entry = course_data.entry(exercise_detail.course_name);
-            let course_exercises = entry.or_default();
-            course_exercises.push((
-                exercise_detail.exercise_name,
-                exercise_detail.checksum,
-                exercise_detail.id,
-            ));
-
-            exercises_and_paths.push((exercise_detail.id, target));
-            */
-
-            // turn the downloaded exercises into a hashmap with the course as key
-            let mut course_data = HashMap::<String, Vec<(String, String, usize)>>::new();
-            for (download, id, checksum) in &downloaded {
-                let entry = course_data.entry(download.course_slug.clone());
-                let course_exercises = entry.or_default();
-                course_exercises.push((download.exercise_slug.clone(), checksum.clone(), *id));
-            }
-            // update/create the course configs that contain downloaded or updated exercises
-            for (course_name, exercise_names) in course_data {
-                let exercises = exercise_names
-                    .into_iter()
-                    .map(|(name, checksum, id)| (name, Exercise { id, checksum }))
-                    .collect();
-                if let Some(course_config) = projects_config.courses.get_mut(&course_name) {
-                    course_config.exercises.extend(exercises);
-                    course_config.save_to_projects_dir(&projects_dir)?;
-                } else {
-                    let course_config = CourseConfig {
-                        course: course_name,
-                        exercises,
+            match tmc_langs::download_or_update_course_exercises(
+                &client,
+                client_name,
+                &exercise_ids,
+            )? {
+                DownloadResult::Success {
+                    downloaded,
+                    skipped,
+                } => {
+                    let data = DownloadOrUpdateCourseExercisesResult {
+                        downloaded,
+                        skipped,
                     };
-                    course_config.save_to_projects_dir(&projects_dir)?;
-                };
-            }
-
-            let completed = downloaded.into_iter().map(|d| d.0).collect();
-            // return an error if any downloads failed
-            if !failed.is_empty() {
-                // add an error trace to each failed download
-                let failed = failed
-                    .into_iter()
-                    .map(|((ex, ..), err)| {
-                        let mut error = &err as &dyn StdError;
-                        let mut chain = vec![error.to_string()];
-                        while let Some(source) = error.source() {
-                            chain.push(source.to_string());
-                            error = source;
-                        }
-                        (ex, chain)
-                    })
-                    .collect();
-                anyhow::bail!(DownloadsFailedError {
-                    downloaded: completed,
-                    skipped: to_be_skipped,
+                    let output = Output::finished_with_data(
+                        "downloaded or updated exercises",
+                        Data::ExerciseDownload(data),
+                    );
+                    print_output(&output, pretty)?
+                }
+                DownloadResult::Failure {
+                    downloaded,
+                    skipped,
                     failed,
-                })
+                } => {
+                    anyhow::bail!(DownloadsFailedError {
+                        downloaded,
+                        skipped,
+                        failed,
+                    })
+                }
             }
-
-            let data = DownloadOrUpdateCourseExercisesResult {
-                downloaded: completed,
-                skipped: to_be_skipped,
-            };
-            let output = Output::finished_with_data(
-                "downloaded or updated exercises",
-                Data::ExerciseDownload(data),
-            );
-            print_output(&output, pretty)?
         }
         ("download-or-update-exercises", Some(matches)) => {
             let mut exercise_args = matches.values_of("exercise").unwrap();
@@ -963,20 +772,8 @@ fn run_core(
             let course_id = matches.value_of("course-id").unwrap();
             let course_id = into_usize(course_id)?;
 
-            let details = client
-                .get_course_details(course_id)
-                .context("Failed to get course details")?;
-            let exercises = client
-                .get_course_exercises(course_id)
-                .context("Failed to get course")?;
-            let settings = client
-                .get_course(course_id)
-                .context("Failed to get course")?;
-            let data = CombinedCourseData {
-                details,
-                exercises,
-                settings,
-            };
+            let data = tmc_langs::get_course_data(&client, course_id)
+                .context("Failed to get course data")?;
 
             let output = Output::finished_with_data(
                 "fetched course data",
@@ -1142,26 +939,9 @@ fn run_core(
 
             // get token from argument or server
             let token = if let Some(token) = set_access_token {
-                let mut token_response = StandardTokenResponse::new(
-                    AccessToken::new(token.to_string()),
-                    BasicTokenType::Bearer,
-                    EmptyExtraTokenFields {},
-                );
-                token_response.set_scopes(Some(vec![Scope::new("public".to_string())]));
-                token_response
+                tmc_langs::login_with_token(token.to_string())
             } else if let Some(email) = email {
-                // TODO: print "Please enter password" and add "quiet"  flag
-                let password = rpassword::read_password().context("Failed to read password")?;
-                let decoded = if base64 {
-                    let bytes = base64::decode(password).context("Password was invalid base64")?;
-                    String::from_utf8(bytes)
-                        .context("Base64 password decoded into invalid UTF-8")?
-                } else {
-                    password
-                };
-                client
-                    .authenticate(client_name, email.to_string(), decoded)
-                    .context("Failed to authenticate with TMC")?
+                tmc_langs::login_with_password(&mut client, base64, client_name, email.to_string())?
             } else {
                 unreachable!("validation error");
             };
@@ -1358,94 +1138,7 @@ fn run_core(
             }
         }
         ("update-exercises", Some(_)) => {
-            let exercises_to_update = vec![];
-            let mut to_be_downloaded = vec![];
-            let mut to_be_skipped = vec![];
-            let mut course_data = HashMap::<String, Vec<(String, String, usize)>>::new();
-
-            let config_path = TmcConfig::get_location(client_name)?;
-            let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
-            let mut projects_config = ProjectsConfig::load(&projects_dir)?;
-            let local_exercises = projects_config
-                .courses
-                .iter()
-                .map(|c| &c.1.exercises)
-                .flatten()
-                .map(|e| e.1)
-                .collect::<Vec<_>>();
-            let exercise_ids = local_exercises.iter().map(|e| e.id).collect::<Vec<_>>();
-
-            // request would error with 0 exercise ids
-            if !exercise_ids.is_empty() {
-                let server_exercises = client
-                    .get_exercises_details(exercise_ids)?
-                    .into_iter()
-                    .map(|e| (e.id, e))
-                    .collect::<HashMap<_, _>>();
-                for local_exercise in local_exercises {
-                    let server_exercise =
-                        server_exercises.get(&local_exercise.id).with_context(|| {
-                            format!(
-                                "Server did not return details for local exercise with id {}",
-                                local_exercise.id
-                            )
-                        })?;
-                    let target = ProjectsConfig::get_exercise_download_target(
-                        &projects_dir,
-                        &server_exercise.course_name,
-                        &server_exercise.exercise_name,
-                    );
-                    if server_exercise.checksum != local_exercise.checksum {
-                        // server has an updated exercise
-                        let exercise_list = course_data
-                            .entry(server_exercise.course_name.clone())
-                            .or_default();
-                        exercise_list.push((
-                            server_exercise.exercise_name.clone(),
-                            server_exercise.checksum.clone(),
-                            server_exercise.id,
-                        ));
-                        to_be_downloaded.push(DownloadOrUpdateCourseExercise {
-                            course_slug: server_exercise.course_name.clone(),
-                            exercise_slug: server_exercise.exercise_name.clone(),
-                            path: target,
-                        });
-                    } else {
-                        to_be_skipped.push(DownloadOrUpdateCourseExercise {
-                            course_slug: server_exercise.course_name.clone(),
-                            exercise_slug: server_exercise.exercise_name.clone(),
-                            path: target,
-                        });
-                    }
-                }
-
-                if !exercises_to_update.is_empty() {
-                    client.download_or_update_exercises(exercises_to_update)?;
-
-                    for (course_name, exercise_names) in course_data {
-                        let mut exercises = BTreeMap::new();
-                        for (exercise_name, checksum, id) in exercise_names {
-                            exercises.insert(exercise_name, Exercise { id, checksum });
-                        }
-
-                        if let Some(course_config) = projects_config.courses.get_mut(&course_name) {
-                            course_config.exercises.extend(exercises);
-                            course_config.save_to_projects_dir(&projects_dir)?;
-                        } else {
-                            let course_config = CourseConfig {
-                                course: course_name,
-                                exercises,
-                            };
-                            course_config.save_to_projects_dir(&projects_dir)?;
-                        };
-                    }
-                }
-            }
-
-            let data = DownloadOrUpdateCourseExercisesResult {
-                downloaded: to_be_downloaded,
-                skipped: to_be_skipped,
-            };
+            let data = tmc_langs::update_exercises(&client, client_name)?;
             let output = Output::finished_with_data(
                 "downloaded or updated exercises",
                 Data::ExerciseDownload(data),
@@ -1474,17 +1167,15 @@ fn run_core(
 fn run_settings(matches: &ArgMatches, pretty: bool) -> Result<PrintToken> {
     let client_name = matches.value_of("client-name").unwrap();
 
-    let config_path = TmcConfig::get_location(client_name)?;
-    let mut tmc_config = TmcConfig::load(client_name, &config_path)?;
-
     match matches.subcommand() {
         ("get", Some(matches)) => {
             let key = matches.value_of("setting").unwrap();
-            let value: ConfigValue<'static> = tmc_config.get(key).into_owned();
+            let value = tmc_langs::get_setting(client_name, key)?;
             let output = Output::finished_with_data("retrieved value", Data::ConfigValue(value));
             print_output(&output, pretty)
         }
         ("list", Some(_)) => {
+            let tmc_config = tmc_langs::get_settings(client_name)?;
             let output =
                 Output::finished_with_data("retrieved settings", Data::TmcConfig(tmc_config));
             print_output(&output, pretty)
@@ -1502,8 +1193,11 @@ fn run_settings(matches: &ArgMatches, pretty: bool) -> Result<PrintToken> {
 
             let exercise_checksum = matches.value_of("exercise-checksum").unwrap();
 
+            let config_path = TmcConfig::get_location(client_name)?;
+            let tmc_config = TmcConfig::load(client_name, &config_path)?;
+
             config::migrate(
-                &tmc_config,
+                tmc_config,
                 course_slug,
                 exercise_slug,
                 exercise_id,
@@ -1518,6 +1212,9 @@ fn run_settings(matches: &ArgMatches, pretty: bool) -> Result<PrintToken> {
             let dir = matches.value_of("dir").unwrap();
             let target = PathBuf::from(dir);
 
+            let config_path = TmcConfig::get_location(client_name)?;
+            let tmc_config = TmcConfig::load(client_name, &config_path)?;
+
             config::move_projects_dir(tmc_config, &config_path, target)?;
 
             let output = Output::finished_with_data("moved project directory", None);
@@ -1527,35 +1224,21 @@ fn run_settings(matches: &ArgMatches, pretty: bool) -> Result<PrintToken> {
             let key = matches.value_of("key").unwrap();
             let value = matches.value_of("json").unwrap();
 
-            let value = match serde_json::from_str(value) {
-                Ok(json) => json,
-                Err(_) => {
-                    // interpret as string
-                    JsonValue::String(value.to_string())
-                }
-            };
-            let value = json_to_toml(value)?;
-
-            tmc_config
-                .insert(key.to_string(), value.clone())
-                .with_context(|| format!("Failed to set {} to {}", key, value))?;
-            tmc_config.save(&config_path)?;
+            tmc_langs::set_setting(client_name, key, value)?;
 
             let output = Output::finished_with_data("set setting", None);
             print_output(&output, pretty)
         }
         ("reset", Some(_)) => {
-            TmcConfig::reset(client_name)?;
+            tmc_langs::reset_settings(client_name)?;
 
             let output = Output::finished_with_data("reset settings", None);
             print_output(&output, pretty)
         }
         ("unset", Some(matches)) => {
             let key = matches.value_of("setting").unwrap();
-            tmc_config
-                .remove(key)
-                .with_context(|| format!("Failed to unset {}", key))?;
-            tmc_config.save(&config_path)?;
+
+            tmc_langs::unset_setting(client_name, key)?;
 
             let output = Output::finished_with_data("unset setting", None);
             print_output(&output, pretty)
@@ -1568,6 +1251,7 @@ fn print_output(output: &Output, pretty: bool) -> Result<PrintToken> {
     print_output_with_file(output, pretty, None)
 }
 
+#[allow(clippy::clippy::print_stdout)] // this is the only function that should output to stdout/stderr across tmc-langs
 fn print_output_with_file(
     output: &Output,
     pretty: bool,
@@ -1671,127 +1355,4 @@ fn run_checkstyle_write_results(
     Ok(check_result)
 }
 
-fn json_to_toml(json: JsonValue) -> Result<TomlValue> {
-    match json {
-        JsonValue::Array(arr) => {
-            let mut v = vec![];
-            for value in arr {
-                v.push(json_to_toml(value)?);
-            }
-            Ok(TomlValue::Array(v))
-        }
-        JsonValue::Bool(b) => Ok(TomlValue::Boolean(b)),
-        JsonValue::Null => anyhow::bail!("The settings file cannot contain null values"),
-        JsonValue::Number(num) => {
-            if let Some(int) = num.as_i64() {
-                Ok(TomlValue::Integer(int))
-            } else if let Some(float) = num.as_f64() {
-                Ok(TomlValue::Float(float))
-            } else {
-                // this error can occur because serde_json supports u64 ints but toml doesn't
-                anyhow::bail!("The given number was too high: {}", num)
-            }
-        }
-        JsonValue::Object(obj) => {
-            let mut map = TomlMap::new();
-            for (key, value) in obj {
-                map.insert(key, json_to_toml(value)?);
-            }
-            Ok(TomlValue::Table(map))
-        }
-        JsonValue::String(s) => Ok(TomlValue::String(s)),
-    }
-}
-
-fn move_dir(source: &Path, source_lock: FileLockGuard, target: &Path) -> anyhow::Result<()> {
-    let mut file_count_copied = 0;
-    let mut file_count_total = 0;
-    for entry in WalkDir::new(source) {
-        let entry =
-            entry.with_context(|| format!("Failed to read file inside {}", source.display()))?;
-        if entry.path().is_file() {
-            file_count_total += 1;
-        }
-    }
-    start_stage(
-        file_count_total + 1,
-        format!("Moving dir {} -> {}", source.display(), target.display()),
-    );
-
-    for entry in WalkDir::new(source).contents_first(true).min_depth(1) {
-        let entry =
-            entry.with_context(|| format!("Failed to read file inside {}", source.display()))?;
-        let entry_path = entry.path();
-
-        if entry_path.file_name() == Some(OsStr::new(".tmc.lock")) {
-            log::info!("skipping lock file");
-            file_count_copied += 1;
-            progress_stage(format!(
-                "Skipped moving file {} / {}",
-                file_count_copied, file_count_total
-            ));
-            continue;
-        }
-
-        if entry_path.is_file() {
-            let relative = entry_path.strip_prefix(source).unwrap();
-            let target_path = target.join(relative);
-            log::debug!(
-                "Moving {} -> {}",
-                entry_path.display(),
-                target_path.display()
-            );
-
-            // create parent dir for target and copy it, remove source file after
-            if let Some(parent) = target_path.parent() {
-                fs::create_dir_all(parent).with_context(|| {
-                    format!("Failed to create directory at {}", parent.display())
-                })?;
-            }
-            fs::copy(entry_path, &target_path).with_context(|| {
-                format!(
-                    "Failed to copy file from {} to {}",
-                    entry_path.display(),
-                    target_path.display()
-                )
-            })?;
-            fs::remove_file(entry_path).with_context(|| {
-                format!(
-                    "Failed to remove file at {} after copying it",
-                    entry_path.display()
-                )
-            })?;
-
-            file_count_copied += 1;
-            progress_stage(format!(
-                "Moved file {} / {}",
-                file_count_copied, file_count_total
-            ));
-        } else if entry_path.is_dir() {
-            log::debug!("Deleting {}", entry_path.display());
-            fs::remove_dir(entry_path).with_context(|| {
-                format!("Failed to remove directory at {}", entry_path.display())
-            })?;
-        }
-    }
-
-    drop(source_lock);
-    fs::remove_dir(source)?;
-
-    finish_stage("Finished moving project directory");
-    Ok(())
-}
-
 struct PrintToken;
-
-fn start_stage(steps: usize, message: impl Into<String>) {
-    progress_reporter::start_stage::<()>(steps, message.into(), None)
-}
-
-fn progress_stage(message: impl Into<String>) {
-    progress_reporter::progress_stage::<()>(message.into(), None)
-}
-
-fn finish_stage(message: impl Into<String>) {
-    progress_reporter::finish_stage::<()>(message.into(), None)
-}

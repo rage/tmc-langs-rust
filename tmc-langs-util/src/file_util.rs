@@ -2,9 +2,10 @@
 
 use crate::error::FileError;
 use fd_lock::FdLock;
-use std::fs::{self, File};
+use std::fs::{self, File, ReadDir};
 use std::io::{Read, Write};
 use std::path::Path;
+use tempfile::NamedTempFile;
 use walkdir::WalkDir;
 
 /// Convenience macro for locking a path.
@@ -34,6 +35,10 @@ pub use lock_windows::*;
 
 pub fn temp_file() -> Result<File, FileError> {
     tempfile::tempfile().map_err(FileError::TempFile)
+}
+
+pub fn named_temp_file() -> Result<NamedTempFile, FileError> {
+    tempfile::NamedTempFile::new().map_err(FileError::TempFile)
 }
 
 pub fn open_file<P: AsRef<Path>>(path: P) -> Result<File, FileError> {
@@ -87,7 +92,7 @@ pub fn create_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLock<File>, FileErr
     if let Ok(existing) = open_file(&path) {
         // wait for an existing process to be done with the file before rewriting
         let mut lock = FdLock::new(existing);
-        lock.lock().unwrap();
+        lock.lock().expect("\"On Unix this may return an error if the operation was interrupted by a signal handler.\"; sounds unlikely to ever actually cause problems");
     }
     let file = create_file(path)?;
     let lock = FdLock::new(file);
@@ -118,6 +123,10 @@ pub fn read_to_file<R: Read, P: AsRef<Path>>(source: &mut R, target: P) -> Resul
     std::io::copy(source, &mut target_file)
         .map_err(|e| FileError::FileWrite(target.to_path_buf(), e))?;
     Ok(target_file)
+}
+
+pub fn read_dir<P: AsRef<Path>>(path: P) -> Result<ReadDir, FileError> {
+    fs::read_dir(&path).map_err(|e| FileError::DirRead(path.as_ref().to_path_buf(), e))
 }
 
 pub fn create_dir<P: AsRef<Path>>(path: P) -> Result<(), FileError> {

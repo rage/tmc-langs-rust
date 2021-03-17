@@ -7,18 +7,17 @@ mod tmc_config;
 pub use self::credentials::Credentials;
 pub use self::projects_config::{CourseConfig, Exercise, ProjectsConfig};
 pub use self::tmc_config::{ConfigValue, TmcConfig};
-use crate::data::LocalExercise;
+use crate::{data::LocalExercise, error::LangsError};
 
-use anyhow::{Context, Error};
 use std::path::{Path, PathBuf};
-use std::{collections::BTreeMap, env, fs};
-use tmc_langs_util::file_util;
+use std::{collections::BTreeMap, env};
+use tmc_langs_util::{file_util, FileError};
 
 // base directory for a given plugin's settings files
-fn get_tmc_dir(client_name: &str) -> Result<PathBuf, Error> {
+fn get_tmc_dir(client_name: &str) -> Result<PathBuf, LangsError> {
     let config_dir = match env::var("TMC_LANGS_CONFIG_DIR") {
         Ok(v) => PathBuf::from(v),
-        Err(_) => dirs::config_dir().context("Failed to find config directory")?,
+        Err(_) => dirs::config_dir().ok_or(LangsError::NoConfigDir)?,
     };
     Ok(config_dir.join(format!("tmc-{}", client_name)))
 }
@@ -26,7 +25,7 @@ fn get_tmc_dir(client_name: &str) -> Result<PathBuf, Error> {
 pub fn list_local_course_exercises(
     client_name: &str,
     course_slug: &str,
-) -> Result<Vec<LocalExercise>, anyhow::Error> {
+) -> Result<Vec<LocalExercise>, LangsError> {
     let config_path = TmcConfig::get_location(client_name)?;
     let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
     let mut projects_config = ProjectsConfig::load(&projects_dir)?;
@@ -47,13 +46,13 @@ pub fn list_local_course_exercises(
 }
 
 pub fn migrate(
-    tmc_config: &TmcConfig,
+    tmc_config: TmcConfig,
     course_slug: &str,
     exercise_slug: &str,
     exercise_id: usize,
     exercise_checksum: &str,
     exercise_path: &Path,
-) -> anyhow::Result<()> {
+) -> Result<(), LangsError> {
     let mut lock = file_util::FileLock::new(exercise_path.to_path_buf())?;
     let guard = lock.lock()?;
 
@@ -72,10 +71,7 @@ pub fn migrate(
         exercise_slug,
     );
     if target_dir.exists() {
-        anyhow::bail!(
-            "Tried to migrate exercise to {}; however, something already exists at that path.",
-            target_dir.display()
-        );
+        return Err(LangsError::DirectoryExists(target_dir));
     }
 
     course_config.exercises.insert(
@@ -95,26 +91,23 @@ pub fn move_projects_dir(
     mut tmc_config: TmcConfig,
     config_path: &Path,
     target: PathBuf,
-) -> anyhow::Result<()> {
+) -> Result<(), LangsError> {
     if target.is_file() {
-        anyhow::bail!("The target path points to a file.")
+        return Err(FileError::UnexpectedFile(target).into());
     }
     if !target.exists() {
-        fs::create_dir_all(&target)
-            .with_context(|| format!("Failed to create directory at {}", target.display()))?;
+        file_util::create_dir_all(&target)?;
     }
 
     let target_canon = target
         .canonicalize()
-        .with_context(|| format!("Failed to canonicalize {}", target.display()))?;
-    let prev_dir_canon = tmc_config.projects_dir.canonicalize().with_context(|| {
-        format!(
-            "Failed to canonicalize {}",
-            tmc_config.projects_dir.display()
-        )
-    })?;
+        .map_err(|e| LangsError::Canonicalize(target.clone(), e))?;
+    let prev_dir_canon = tmc_config
+        .projects_dir
+        .canonicalize()
+        .map_err(|e| LangsError::Canonicalize(target.clone(), e))?;
     if target_canon == prev_dir_canon {
-        anyhow::bail!("Attempted to move the projects-dir to the directory it's already in.")
+        return Err(LangsError::MovingProjectsDirToItself);
     }
 
     let old_projects_dir = tmc_config.set_projects_dir(target.clone())?;
@@ -123,7 +116,7 @@ pub fn move_projects_dir(
     let guard = lock.lock()?;
 
     super::move_dir(&old_projects_dir, guard, &target)?;
-    tmc_config.save(config_path)?;
+    tmc_config.save(&config_path)?;
     Ok(())
 }
 
@@ -172,7 +165,7 @@ mod test {
             .exists());
 
         migrate(
-            &tmc_config,
+            tmc_config,
             "course",
             "exercise",
             0,

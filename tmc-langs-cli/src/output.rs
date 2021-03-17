@@ -4,8 +4,10 @@ use schemars::JsonSchema;
 use serde::Serialize;
 use std::path::PathBuf;
 use tmc_langs::{
-    warning_reporter::Warning, ClientUpdateData, Course, CourseData, CourseDetails, CourseExercise,
-    ExerciseDesc, ExerciseDetails, ExercisePackagingConfiguration, NewSubmission, Organization,
+    data::{CombinedCourseData, DownloadOrUpdateCourseExercisesResult},
+    warning_reporter::Warning,
+    ClientUpdateData, Course, CourseData, CourseDetails, CourseExercise, ExerciseDesc,
+    ExerciseDetails, ExerciseDownload, ExercisePackagingConfiguration, NewSubmission, Organization,
     Review, RunResult, StyleValidationResult, Submission, SubmissionFeedbackResponse,
     SubmissionFinished, Token, UpdateResult,
 };
@@ -129,31 +131,10 @@ pub enum Kind {
     InvalidToken,
     /// Failed to download some or all exercises
     FailedExerciseDownload {
-        completed: Vec<DownloadOrUpdateCourseExercise>,
-        skipped: Vec<DownloadOrUpdateCourseExercise>,
-        failed: Vec<(DownloadOrUpdateCourseExercise, Vec<String>)>,
+        completed: Vec<ExerciseDownload>,
+        skipped: Vec<ExerciseDownload>,
+        failed: Vec<(ExerciseDownload, Vec<String>)>,
     },
-}
-
-#[derive(Debug, Serialize, JsonSchema)]
-pub struct CombinedCourseData {
-    pub details: CourseDetails,
-    pub exercises: Vec<CourseExercise>,
-    pub settings: CourseData,
-}
-
-#[derive(Debug, Serialize, JsonSchema)]
-pub struct DownloadOrUpdateCourseExercisesResult {
-    pub downloaded: Vec<DownloadOrUpdateCourseExercise>,
-    pub skipped: Vec<DownloadOrUpdateCourseExercise>,
-}
-
-#[derive(Debug, Clone, Serialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
-pub struct DownloadOrUpdateCourseExercise {
-    pub course_slug: String,
-    pub exercise_slug: String,
-    pub path: PathBuf,
 }
 
 pub use tmc_langs::data::LocalExercise;
@@ -216,18 +197,18 @@ mod test {
             data: Some(Data::ExerciseDownload(
                 DownloadOrUpdateCourseExercisesResult {
                     downloaded: vec![
-                        DownloadOrUpdateCourseExercise {
+                        ExerciseDownload {
                             course_slug: "some course".to_string(),
                             exercise_slug: "some exercise".to_string(),
                             path: PathBuf::from("some path"),
                         },
-                        DownloadOrUpdateCourseExercise {
+                        ExerciseDownload {
                             course_slug: "some course".to_string(),
                             exercise_slug: "another exercise".to_string(),
                             path: PathBuf::from("another path"),
                         },
                     ],
-                    skipped: vec![DownloadOrUpdateCourseExercise {
+                    skipped: vec![ExerciseDownload {
                         course_slug: "another course".to_string(),
                         exercise_slug: "some skipped exercise".to_string(),
                         path: PathBuf::from("third path"),

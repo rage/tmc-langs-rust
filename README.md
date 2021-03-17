@@ -38,7 +38,7 @@ cargo run -p tmc-langs-cli help
 
 ## Development
 
-Format using `cargo fmt`, use `cargo clippy` for linting.
+Format using `cargo fmt`, use `cargo clippy` for linting. All crates should have the clippy lints `print_stdout` and `print_stderr` set to deny. The CLI has one function where writing to stdout is allowed.
 
 If using vscode and rust-analyzer, be sure to turn on the setting `loadOutDirsFromCheck` to avoid a spurious unresolved import error from `isolang`.
 

@@ -1,3 +1,5 @@
+#![deny(clippy::print_stdout, clippy::print_stderr)]
+
 //! Contains functionality for dealing with projects.
 
 mod command;

@@ -1,3 +1,5 @@
+#![deny(clippy::print_stdout, clippy::print_stderr)]
+
 //! Used to communicate with the TMC server. See the TmcClient struct for more details.
 //!
 //! ```rust,no_run

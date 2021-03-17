@@ -1,3 +1,5 @@
+#![deny(clippy::print_stdout, clippy::print_stderr)]
+
 //! Java plugins for ant and maven
 
 mod ant_plugin;

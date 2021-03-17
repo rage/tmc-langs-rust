@@ -1,12 +1,13 @@
 //! Handles the CLI's configuration file.
 
-use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
-use std::{borrow::Cow, fs};
-use tmc_langs_util::file_util;
+use tmc_langs_util::{file_util, FileError};
 use toml::{value::Table, Value};
+
+use crate::error::LangsError;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -24,14 +25,14 @@ impl TmcConfig {
         }
     }
 
-    pub fn insert(&mut self, key: String, value: Value) -> Result<()> {
+    pub fn insert(&mut self, key: String, value: Value) -> Result<(), LangsError> {
         match key.as_str() {
             "projects-dir" => {
                 if let Value::String(value) = value {
                     let path = PathBuf::from(value);
                     self.set_projects_dir(path)?;
                 } else {
-                    anyhow::bail!("The value for projects-dir must be a string.")
+                    return Err(LangsError::ProjectsDirNotString);
                 }
             }
             _ => {
@@ -41,54 +42,56 @@ impl TmcConfig {
         Ok(())
     }
 
-    pub fn remove(&mut self, key: &str) -> Result<Option<Value>> {
+    pub fn remove(&mut self, key: &str) -> Result<Option<Value>, LangsError> {
         match key {
-            "projects-dir" => anyhow::bail!("projects-dir must always be defined"),
+            "projects-dir" => Err(LangsError::NoProjectsDir),
             _ => Ok(self.table.remove(key)),
         }
     }
 
-    pub fn set_projects_dir(&mut self, mut target: PathBuf) -> Result<PathBuf> {
+    pub fn set_projects_dir(&mut self, mut target: PathBuf) -> Result<PathBuf, LangsError> {
         // check if the directory is empty or not
-        if fs::read_dir(&target)
-            .with_context(|| format!("Failed to read directory at {}", target.display()))?
-            .next()
-            .is_some()
-        {
-            anyhow::bail!("Cannot set projects-dir to a non-empty directory.");
+        if file_util::read_dir(&target)?.next().is_some() {
+            return Err(LangsError::NonEmptyDir(target));
         }
         std::mem::swap(&mut self.projects_dir, &mut target);
         Ok(target)
     }
 
-    pub fn save(self, path: &Path) -> Result<()> {
+    pub fn save(self, path: &Path) -> Result<(), LangsError> {
         if let Some(parent) = path.parent() {
             file_util::create_dir_all(parent)?;
         }
         let mut lock = file_util::create_file_lock(&path)?;
-        let mut guard = lock.lock()?;
+        let mut guard = lock
+            .lock()
+            .map_err(|e| FileError::FdLock(path.to_path_buf(), e))?;
 
-        let toml = toml::to_string_pretty(&self).context("Failed to serialize HashMap")?;
+        let toml = toml::to_string_pretty(&self)?;
         guard
             .write_all(toml.as_bytes())
-            .with_context(|| format!("Failed to write TOML to {}", path.display()))?;
+            .map_err(|e| FileError::FileWrite(path.to_path_buf(), e))?;
         Ok(())
     }
 
-    pub fn reset(client_name: &str) -> Result<()> {
+    pub fn reset(client_name: &str) -> Result<(), LangsError> {
         let path = Self::get_location(client_name)?;
         Self::init_at(client_name, &path)?; // init locks the file
         Ok(())
     }
 
-    pub fn load(client_name: &str, path: &Path) -> Result<TmcConfig> {
+    pub fn load(client_name: &str, path: &Path) -> Result<TmcConfig, LangsError> {
         // try to open config file
-        let config = match file_util::open_file_lock(&path) {
+        let config = match file_util::open_file_lock(path) {
             Ok(mut lock) => {
                 // found config file, lock and read
-                let mut guard = lock.lock()?;
+                let mut guard = lock
+                    .lock()
+                    .map_err(|e| FileError::FdLock(path.to_path_buf(), e))?;
                 let mut buf = vec![];
-                let _bytes = guard.read_to_end(&mut buf)?;
+                let _bytes = guard
+                    .read_to_end(&mut buf)
+                    .map_err(|e| FileError::FileRead(path.to_path_buf(), e))?;
                 match toml::from_slice(&buf) {
                     // successfully read file, try to deserialize
                     Ok(config) => config, // successfully read and deserialized the config
@@ -114,51 +117,42 @@ impl TmcConfig {
         };
 
         if !config.projects_dir.exists() {
-            fs::create_dir_all(&config.projects_dir).with_context(|| {
-                format!(
-                    "Failed to create projects-dir at {}",
-                    config.projects_dir.display()
-                )
-            })?;
+            file_util::create_dir_all(&config.projects_dir)?;
         }
         Ok(config)
     }
 
     // initializes the default configuration file at the given path
-    fn init_at(client_name: &str, path: &Path) -> Result<TmcConfig> {
+    fn init_at(client_name: &str, path: &Path) -> Result<TmcConfig, LangsError> {
         if let Some(parent) = path.parent() {
             file_util::create_dir_all(parent)?;
         }
 
-        let mut lock = file_util::create_file_lock(path)
-            .with_context(|| format!("Failed to create new config file at {}", path.display()))?;
-        let mut guard = lock.lock()?;
+        let mut lock = file_util::create_file_lock(path)?;
+        let mut guard = lock
+            .lock()
+            .map_err(|e| FileError::FdLock(path.to_path_buf(), e))?;
 
         let default_project_dir = dirs::data_local_dir()
-            .context("Failed to find local data directory")?
+            .ok_or(LangsError::NoLocalDataDir)?
             .join("tmc")
             .join(Self::get_client_stub(client_name));
-        fs::create_dir_all(&default_project_dir).with_context(|| {
-            format!(
-                "Failed to create the TMC default project directory in {}",
-                default_project_dir.display()
-            )
-        })?;
+        file_util::create_dir_all(&default_project_dir)?;
 
         let config = TmcConfig {
             projects_dir: default_project_dir,
             table: Table::new(),
         };
 
-        let toml = toml::to_string_pretty(&config).context("Failed to serialize config")?;
+        let toml = toml::to_string_pretty(&config).expect("this should never fail");
         guard
             .write_all(toml.as_bytes())
-            .with_context(|| format!("Failed to write default config to {}", path.display()))?;
+            .map_err(|e| FileError::FileWrite(path.to_path_buf(), e))?;
         Ok(config)
     }
 
     // path to the configuration file
-    pub fn get_location(client_name: &str) -> Result<PathBuf> {
+    pub fn get_location(client_name: &str) -> Result<PathBuf, LangsError> {
         super::get_tmc_dir(client_name).map(|dir| dir.join("config.toml"))
     }
 

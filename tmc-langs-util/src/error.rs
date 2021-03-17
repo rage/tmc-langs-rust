@@ -25,6 +25,8 @@ pub enum FileError {
     },
     #[error("Failed to create temporary file")]
     TempFile(#[source] std::io::Error),
+    #[error("Failed to read directory at {0}")]
+    DirRead(PathBuf, #[source] std::io::Error),
     #[error("Failed to create directory at {0}")]
     DirCreate(PathBuf, #[source] std::io::Error),
     #[error("Failed to remove directory at {0}")]

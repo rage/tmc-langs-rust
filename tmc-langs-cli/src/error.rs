@@ -1,7 +1,6 @@
 use std::path::PathBuf;
 use thiserror::Error;
-
-use crate::output::DownloadOrUpdateCourseExercise;
+use tmc_langs::ExerciseDownload;
 
 #[derive(Debug, Error)]
 #[error("Invalid token. Deleted credentials file")]
@@ -19,7 +18,7 @@ pub struct SandboxTestError {
 #[derive(Debug, Error)]
 #[error("Failed to download one or more exercises")]
 pub struct DownloadsFailedError {
-    pub downloaded: Vec<DownloadOrUpdateCourseExercise>,
-    pub skipped: Vec<DownloadOrUpdateCourseExercise>,
-    pub failed: Vec<(DownloadOrUpdateCourseExercise, Vec<String>)>,
+    pub downloaded: Vec<ExerciseDownload>,
+    pub skipped: Vec<ExerciseDownload>,
+    pub failed: Vec<(ExerciseDownload, Vec<String>)>,
 }

@@ -658,7 +658,7 @@ impl TmcClient {
 
     pub(super) fn core_exercise_details(
         &self,
-        exercise_ids: Vec<usize>,
+        exercise_ids: &[usize],
     ) -> Result<Vec<ExercisesDetails>, ClientError> {
         if self.0.token.is_none() {
             return Err(ClientError::NotLoggedIn);

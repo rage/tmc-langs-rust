@@ -4,8 +4,9 @@ use crate::{error::LangsError, progress_reporter};
 use md5::Context;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
+use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::{io::Write, time::Duration};
+use std::time::Duration;
 use tmc_langs_framework::TmcCommand;
 use tmc_langs_util::file_util;
 use walkdir::WalkDir;
@@ -201,7 +202,9 @@ fn check_directory_names(path: &Path) -> Result<(), LangsError> {
 
     // exercise directories in canonicalized form
     for exercise_dir in super::find_exercise_directories(path)? {
-        let relative = exercise_dir.strip_prefix(path).unwrap(); // safe
+        let relative = exercise_dir
+            .strip_prefix(path)
+            .expect("the exercise dirs are all inside the path");
         if relative.to_string_lossy().contains('-') {
             return Err(LangsError::InvalidDirectory(exercise_dir));
         }
@@ -270,7 +273,10 @@ fn calculate_checksum(exercise_dir: &Path) -> Result<String, LangsError> {
         .sort_by(|a, b| a.file_name().cmp(b.file_name()))
     {
         let entry = entry?;
-        let relative = entry.path().strip_prefix(exercise_dir).unwrap(); // safe
+        let relative = entry
+            .path()
+            .strip_prefix(exercise_dir)
+            .expect("the entry is inside the exercise dir");
         let string = relative.as_os_str().to_string_lossy();
         digest.consume(string.as_ref());
         if entry.path().is_file() {

@@ -51,7 +51,9 @@ where
             stage_steps: Vec::new(),
         })
     });
-    let mut guard = lock.write().unwrap();
+    let mut guard = lock
+        .write()
+        .expect("only fails if the lock is poisoned; we should never panic while holding the lock");
     let reporter = ProgressReporter {
         progress_report: Box::new(progress_report),
     };
@@ -62,7 +64,9 @@ where
 pub fn start_stage<T: 'static + Send + Sync>(total_steps: usize, message: String, data: Option<T>) {
     // check for init
     if let Some(lock) = PROGRESS_REPORTERS.get() {
-        let mut reporter = lock.write().unwrap();
+        let mut reporter = lock.write().expect(
+            "only fails if the lock is poisoned; we should never panic while holding the lock",
+        );
         let reporter = reporter.deref_mut();
         reporter.total_steps_left += total_steps;
         reporter.stage_steps.push(total_steps);
@@ -86,7 +90,9 @@ pub fn start_stage<T: 'static + Send + Sync>(total_steps: usize, message: String
 pub fn progress_stage<T: 'static + Send + Sync>(message: String, data: Option<T>) {
     // check for init
     if let Some(lock) = PROGRESS_REPORTERS.get() {
-        let mut reporter = lock.write().unwrap();
+        let mut reporter = lock.write().expect(
+            "only fails if the lock is poisoned; we should never panic while holding the lock",
+        );
         let reporter = reporter.deref_mut();
 
         // check for stage
@@ -121,7 +127,9 @@ pub fn progress_stage<T: 'static + Send + Sync>(message: String, data: Option<T>
 pub fn finish_stage<T: 'static + Send + Sync>(message: String, data: Option<T>) {
     // check for init
     if let Some(lock) = PROGRESS_REPORTERS.get() {
-        let mut reporter = lock.write().unwrap();
+        let mut reporter = lock.write().expect(
+            "only fails if the lock is poisoned; we should never panic while holding the lock",
+        );
         let reporter = reporter.deref_mut();
 
         // check for stage

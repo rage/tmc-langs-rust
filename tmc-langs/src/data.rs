@@ -2,6 +2,7 @@ use schemars::JsonSchema;
 use serde::Serialize;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::{collections::HashMap, path::PathBuf};
+use tmc_client::{CourseData, CourseDetails, CourseExercise};
 
 use crate::error::{LangsError, ParamError};
 
@@ -145,4 +146,37 @@ pub enum OutputFormat {
     Tar,
     Zip,
     TarZstd,
+}
+
+pub enum DownloadResult {
+    Success {
+        downloaded: Vec<ExerciseDownload>,
+        skipped: Vec<ExerciseDownload>,
+    },
+    Failure {
+        downloaded: Vec<ExerciseDownload>,
+        skipped: Vec<ExerciseDownload>,
+        failed: Vec<(ExerciseDownload, Vec<String>)>,
+    },
+}
+
+#[derive(Debug, Clone, Serialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub struct ExerciseDownload {
+    pub course_slug: String,
+    pub exercise_slug: String,
+    pub path: PathBuf,
+}
+
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct CombinedCourseData {
+    pub details: CourseDetails,
+    pub exercises: Vec<CourseExercise>,
+    pub settings: CourseData,
+}
+
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct DownloadOrUpdateCourseExercisesResult {
+    pub downloaded: Vec<ExerciseDownload>,
+    pub skipped: Vec<ExerciseDownload>,
 }

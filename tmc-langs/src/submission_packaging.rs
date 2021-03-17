@@ -163,7 +163,10 @@ pub fn prepare_submission(
                 .filter_entry(|e| e.path().is_file())
             {
                 let entry = entry?;
-                let stripped = entry.path().strip_prefix(clone_path).unwrap();
+                let stripped = entry
+                    .path()
+                    .strip_prefix(clone_path)
+                    .expect("the entry is inside the clone path");
                 file_util::copy(entry.path(), dest.join(stripped))?;
             }
         }
@@ -261,7 +264,11 @@ pub fn prepare_submission(
             for entry in WalkDir::new(&dest).into_iter().skip(1) {
                 let entry = entry?;
                 let entry_path = entry.path();
-                let stripped = prefix.join(entry_path.strip_prefix(&dest).unwrap());
+                let stripped = prefix.join(
+                    entry_path
+                        .strip_prefix(&dest)
+                        .expect("the entry is inside dest"),
+                );
                 log::debug!(
                     "adding {} to zip at {}",
                     entry_path.display(),
