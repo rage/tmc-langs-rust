@@ -9,8 +9,7 @@ use tmc_langs_util::file_util;
 use walkdir::{DirEntry, WalkDir};
 
 lazy_static! {
-    static ref FILES_TO_SKIP_ALWAYS: Regex =
-        Regex::new(r"\.tmcrc|^metadata\.yml$|(.*)Hidden(.*)").unwrap();
+    static ref FILES_TO_SKIP_ALWAYS: Regex = Regex::new(r"\.tmcrc|^metadata\.yml$").unwrap();
     static ref NON_TEXT_TYPES: Regex =
         Regex::new("class|jar|exe|jpg|jpeg|gif|png|zip|tar|gz|db|bin|csv|tsv|sqlite3|^$").unwrap();
 }
@@ -29,13 +28,29 @@ pub fn is_hidden_dir(entry: &DirEntry) -> bool {
     skip
 }
 
-// Filter for skipping directories on `FILES_TO_SKIP_ALWAYS` or named 'private'
+// Filter for skipping directories on `FILES_TO_SKIP_ALWAYS` or named 'private', and files in a 'test' directory that contain 'Hidden' in their name.
 fn on_skip_list(entry: &DirEntry) -> bool {
-    let skip = entry
-        .file_name()
-        .to_str()
+    // check if entry's filename matchees the skip list or is 'private'
+    let entry_file_name = entry.file_name().to_str();
+    let on_skip_list = entry_file_name
         .map(|s| FILES_TO_SKIP_ALWAYS.is_match(s) || s == "private")
         .unwrap_or_default();
+
+    // check if the current entry is a file in a "test" directory that contains "Hidden" in its name
+    let hidden_in_test = if entry.path().is_file() {
+        if let Some(parent) = entry.path().parent().and_then(|p| p.file_name()) {
+            parent == "test"
+                && entry_file_name
+                    .map(|n| n.contains("Hidden"))
+                    .unwrap_or_default()
+        } else {
+            false
+        }
+    } else {
+        false
+    };
+
+    let skip = on_skip_list || hidden_in_test;
     if skip {
         log::debug!("on skip list: {:?}", entry.path());
     }
@@ -387,5 +402,18 @@ extra_student_files:
         let conf = TmcProjectYml::from(&temp.path()).unwrap();
         assert!(conf.extra_student_files[0] == PathBuf::from("test/StudentTest.java"));
         assert!(conf.extra_student_files[1] == PathBuf::from("test/OtherTest.java"));
+    }
+
+    #[test]
+    fn hides_test_hidden_files() {
+        init();
+
+        let temp = tempdir().unwrap();
+        let temp_path = temp.path();
+
+        prepare_solution(Path::new("tests/data/dir"), temp_path).unwrap();
+
+        assert!(dbg!(temp_path.join("NotHidden.java")).exists());
+        assert!(!dbg!(temp_path.join("ActuallyHidden.java")).exists());
     }
 }
