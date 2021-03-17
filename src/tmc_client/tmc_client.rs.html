@@ -1369,6 +1369,11 @@
 <span id="1366">1366</span>
 <span id="1367">1367</span>
 <span id="1368">1368</span>
+<span id="1369">1369</span>
+<span id="1370">1370</span>
+<span id="1371">1371</span>
+<span id="1372">1372</span>
+<span id="1373">1373</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains the TmcClient struct for communicating with the TMC server.</span>
 <span class="kw">mod</span> <span class="ident">api</span>;
@@ -1597,6 +1602,12 @@
             <span class="prelude-val">None</span>,
         );
 
+        <span class="comment">// for each exercise, check if there&#39;s already something on disk</span>
+        <span class="comment">// if yes, check if it needs updating</span>
+        <span class="comment">// if not, check if there&#39;s a previous submission</span>
+        <span class="comment">//   if yes, download it</span>
+        <span class="comment">//   if not, download the exercise template</span>
+
         <span class="kw">let</span> <span class="ident">thread_count</span> <span class="op">=</span> <span class="ident">exercises_len</span>.<span class="ident">min</span>(<span class="number">4</span>); <span class="comment">// max 4 threads</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handles</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
         <span class="kw">let</span> <span class="ident">exercises</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">exercises</span>));
@@ -1620,7 +1631,7 @@
                 <span class="comment">// repeat until out of exercises</span>
                 <span class="kw">loop</span> {
                     <span class="comment">// acquiring mutex</span>
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercises</span> <span class="op">=</span> <span class="ident">exercises</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>(); <span class="comment">// the threads should never panic</span>
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercises</span> <span class="op">=</span> <span class="ident">exercises</span>.<span class="ident">lock</span>().<span class="ident">expect</span>(<span class="string">&quot;the threads should never panic&quot;</span>);
                     <span class="kw">let</span> (<span class="ident">exercise_id</span>, <span class="ident">target</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="ident">path</span>)) <span class="op">=</span> <span class="ident">exercises</span>.<span class="ident">pop</span>() {
                         (<span class="ident">id</span>, <span class="ident">path</span>)
                     } <span class="kw">else</span> {
@@ -1691,8 +1702,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">successful</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">failed</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
         <span class="kw">for</span> <span class="ident">handle</span> <span class="kw">in</span> <span class="ident">handles</span> {
-            <span class="comment">// the threads should never panic</span>
-            <span class="kw">match</span> <span class="ident">handle</span>.<span class="ident">join</span>().<span class="ident">unwrap</span>() {
+            <span class="kw">match</span> <span class="ident">handle</span>.<span class="ident">join</span>().<span class="ident">expect</span>(<span class="string">&quot;the threads should never panic&quot;</span>) {
                 <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">successful</span>.<span class="ident">extend</span>(<span class="ident">s</span>),
                 <span class="prelude-val">Err</span>((<span class="ident">s</span>, <span class="ident">f</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">successful</span>.<span class="ident">extend</span>(<span class="ident">s</span>);
@@ -1742,7 +1752,7 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_exercises_details</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">exercise_ids</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+        <span class="ident">exercise_ids</span>: <span class="kw-2">&amp;</span>[<span class="ident">usize</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ExercisesDetails</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">core_exercise_details</span>(<span class="ident">exercise_ids</span>)
     }

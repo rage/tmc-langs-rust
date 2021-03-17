@@ -1229,17 +1229,15 @@
 <span id="1226">1226</span>
 <span id="1227">1227</span>
 <span id="1228">1228</span>
-<span id="1229">1229</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Create clap app</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">output</span>::{
-    <span class="ident">CombinedCourseData</span>, <span class="ident">DownloadOrUpdateCourseExercisesResult</span>, <span class="ident">LocalExercise</span>, <span class="ident">UpdatedExercise</span>,
-};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">output</span>::{<span class="ident">LocalExercise</span>, <span class="ident">UpdatedExercise</span>};
 <span class="kw">use</span> <span class="ident">clap</span>::{<span class="ident">App</span>, <span class="ident">AppSettings</span>, <span class="ident">Arg</span>, <span class="ident">SubCommand</span>};
 <span class="kw">use</span> <span class="ident">schemars</span>::<span class="ident">JsonSchema</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs</span>::{
+    <span class="ident">data</span>::{<span class="ident">CombinedCourseData</span>, <span class="ident">DownloadOrUpdateCourseExercisesResult</span>},
     <span class="ident">CourseData</span>, <span class="ident">CourseDetails</span>, <span class="ident">CourseExercise</span>, <span class="ident">ExerciseDesc</span>, <span class="ident">ExerciseDetails</span>,
     <span class="ident">ExercisePackagingConfiguration</span>, <span class="ident">NewSubmission</span>, <span class="ident">Organization</span>, <span class="ident">Review</span>, <span class="ident">RunResult</span>,
     <span class="ident">StyleValidationResult</span>, <span class="ident">Submission</span>, <span class="ident">SubmissionFeedbackResponse</span>, <span class="ident">SubmissionFinished</span>,
@@ -1544,7 +1542,7 @@
         .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;download-old-submission&quot;</span>)
             .<span class="ident">about</span>(<span class="string">&quot;Downloads an old submission. Resets the exercise at output-path if any, downloading the exercise base from the server. The old submission is then downloaded and extracted on top of the base, using the student file policy to retain student files&quot;</span>)
             .<span class="ident">long_about</span>(<span class="ident">SCHEMA_NULL</span>)
-            .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;save-old-state&quot;</span>)
+            .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;save-old-state&quot;</span>) <span class="comment">// TODO: unnecessary, remove (submission-url is enough, but probaly needs a rename if the flag is removed)</span>
                 .<span class="ident">help</span>(<span class="string">&quot;If set, the exercise is submitted to the server before resetting it.&quot;</span>)
                 .<span class="ident">long</span>(<span class="string">&quot;save-old-state&quot;</span>)
                 .<span class="ident">requires</span>(<span class="string">&quot;submission-url&quot;</span>))
