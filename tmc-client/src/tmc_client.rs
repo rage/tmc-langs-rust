@@ -14,16 +14,14 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::sync::{
-    atomic::{AtomicUsize, Ordering},
-    Arc, Mutex,
-};
+use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 use tempfile::NamedTempFile;
 use tmc_langs_util::{file_util, progress_reporter, FileError};
 use walkdir::WalkDir;
 
+/// Authentication token.
 pub type Token =
     oauth2::StandardTokenResponse<oauth2::EmptyExtraTokenFields, oauth2::basic::BasicTokenType>;
 
@@ -37,6 +35,7 @@ pub enum ClientUpdateData {
 }
 
 /// A struct for interacting with the TestMyCode service, including authentication.
+#[derive(Clone)]
 pub struct TmcClient(Arc<TmcCore>);
 
 struct TmcCore {
@@ -192,164 +191,6 @@ impl TmcClient {
     /// Returns an error if there's some problem reaching the API, or if the API returns an error.
     pub fn get_organization(&self, organization_slug: &str) -> Result<Organization, ClientError> {
         self.organization(organization_slug)
-    }
-
-    /// Downloads the given exercises. Overwrites existing exercises if they exist.
-    ///
-    /// # Errors
-    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
-    /// The method extracts zip archives, which may fail.
-    ///
-    ///
-    /// # Examples
-    /// ```rust,no_run
-    /// use tmc_client::TmcClient;
-    /// use std::path::PathBuf;
-    ///
-    /// let client = TmcClient::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
-    /// // authenticate
-    /// client.download_or_update_exercises(vec![
-    ///     (1234, PathBuf::from("./exercises/1234")),
-    ///     (2345, PathBuf::from("./exercises/2345")),
-    /// ]);
-    /// ```
-    pub fn download_or_update_exercises(
-        &self,
-        exercises: Vec<(usize, PathBuf)>,
-    ) -> Result<(), ClientError> {
-        // todo: bit of a mess, refactor
-        let exercises_len = exercises.len();
-        start_stage(
-            exercises_len * 2 + 1, // each download progresses at 2 points, plus the final finishing step
-            format!("Downloading {} exercises", exercises_len),
-            None,
-        );
-
-        // for each exercise, check if there's already something on disk
-        // if yes, check if it needs updating
-        // if not, check if there's a previous submission
-        //   if yes, download it
-        //   if not, download the exercise template
-
-        let thread_count = exercises_len.min(4); // max 4 threads
-        let mut handles = vec![];
-        let exercises = Arc::new(Mutex::new(exercises));
-        let starting_download_counter = Arc::new(AtomicUsize::new(1));
-        let downloaded_counter = Arc::new(AtomicUsize::new(1));
-
-        // spawn threads
-        for _thread_id in 0..thread_count {
-            let client = Arc::clone(&self.0);
-            let exercises = Arc::clone(&exercises);
-            let starting_download_counter = Arc::clone(&starting_download_counter);
-            let downloaded_counter = Arc::clone(&downloaded_counter);
-
-            // each thread returns either a list of successful downloads, or a tuple of successful downloads and errors
-            type ThreadErr = (Vec<usize>, Vec<(usize, Box<ClientError>)>);
-            let handle = std::thread::spawn(move || -> Result<Vec<usize>, ThreadErr> {
-                let client_clone = TmcClient(client);
-                let mut downloaded = vec![];
-                let mut errors = vec![];
-
-                // repeat until out of exercises
-                loop {
-                    // acquiring mutex
-                    let mut exercises = exercises.lock().expect("the threads should never panic");
-                    let (exercise_id, target) = if let Some((id, path)) = exercises.pop() {
-                        (id, path)
-                    } else {
-                        // no exercises left, break loop and exit thread
-                        break;
-                    };
-                    drop(exercises);
-                    // dropped mutex
-
-                    let exercise_download_result = || -> Result<(), ClientError> {
-                        // TODO: do in memory without zip_file?
-                        let starting_download_count =
-                            starting_download_counter.fetch_add(1, Ordering::SeqCst);
-                        let zip_file = NamedTempFile::new().map_err(ClientError::TempFile)?;
-
-                        progress_stage(
-                            format!(
-                                "Downloading exercise {} to '{}'. ({} out of {})",
-                                exercise_id,
-                                target.display(),
-                                starting_download_count,
-                                exercises_len
-                            ),
-                            ClientUpdateData::ExerciseDownload {
-                                id: exercise_id,
-                                path: target.clone(),
-                            },
-                        );
-
-                        client_clone.download_exercise(exercise_id, zip_file.path())?;
-                        let downloaded_count = downloaded_counter.fetch_add(1, Ordering::SeqCst);
-                        tmc_langs_plugins::extract_project(zip_file, &target, true)?;
-                        progress_stage(
-                            format!(
-                                "Downloaded exercise {} to '{}'. ({} out of {})",
-                                exercise_id,
-                                target.display(),
-                                downloaded_count,
-                                exercises_len
-                            ),
-                            ClientUpdateData::ExerciseDownload {
-                                id: exercise_id,
-                                path: target,
-                            },
-                        );
-                        Ok(())
-                    }();
-
-                    // return underlying error with exercise id if download failed
-                    match exercise_download_result {
-                        Ok(()) => downloaded.push(exercise_id),
-                        Err(e) => {
-                            log::error!("Failed to download exercise {}", exercise_id);
-                            errors.push((exercise_id, Box::new(e)));
-                        }
-                    }
-                }
-
-                if errors.is_empty() {
-                    Ok(downloaded)
-                } else {
-                    Err((downloaded, errors))
-                }
-            });
-            handles.push(handle);
-        }
-
-        let mut successful = vec![];
-        let mut failed = vec![];
-        for handle in handles {
-            match handle.join().expect("the threads should never panic") {
-                Ok(s) => successful.extend(s),
-                Err((s, f)) => {
-                    successful.extend(s);
-                    failed.extend(f);
-                }
-            }
-        }
-
-        finish_stage(
-            format!(
-                "Successfully downloaded {} out of {} exercises.",
-                successful.len(),
-                exercises_len
-            ),
-            None,
-        );
-        if !failed.is_empty() {
-            Err(ClientError::IncompleteDownloadResult {
-                downloaded: successful,
-                failed,
-            })
-        } else {
-            Ok(())
-        }
     }
 
     /// Fetches the course's information.
@@ -534,7 +375,7 @@ impl TmcClient {
                 }
             }
         }
-        self.download_or_update_exercises(vec![(exercise_id, exercise_path)])
+        self.download_exercise(exercise_id, &exercise_path)
     }
 
     pub fn download_old_submission(
@@ -862,7 +703,7 @@ mod test {
         let target = temp_dir.path().join("temp");
         assert!(!target.exists());
         let exercises = vec![(1234, target.clone())];
-        client.download_or_update_exercises(exercises).unwrap();
+        //client.download_or_update_exercises(exercises).unwrap();
         assert!(target.join("src/main/java/Hiekkalaatikko.java").exists());
     }
 

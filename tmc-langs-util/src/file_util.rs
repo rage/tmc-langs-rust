@@ -4,6 +4,7 @@ use crate::error::FileError;
 use fd_lock::FdLock;
 use std::fs::{self, File, ReadDir};
 use std::io::{Read, Write};
+use std::ops::{Deref, DerefMut};
 use std::path::Path;
 use tempfile::NamedTempFile;
 use walkdir::WalkDir;
@@ -22,6 +23,29 @@ macro_rules! lock {
 
 // macros always live at the top-level, re-export here
 pub use crate::lock;
+
+pub struct FdLockWrapper(FdLock<File>);
+
+impl Deref for FdLockWrapper {
+    type Target = FdLock<File>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for FdLockWrapper {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl Drop for FdLockWrapper {
+    fn drop(&mut self) {
+        // todo: print the path
+        log::debug!("unlocking file");
+    }
+}
 
 #[cfg(unix)]
 mod lock_unix;
@@ -47,9 +71,11 @@ pub fn open_file<P: AsRef<Path>>(path: P) -> Result<File, FileError> {
 }
 
 /// Opens and locks the given file. Note: Does not work on directories on Windows.
-pub fn open_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLock<File>, FileError> {
+pub fn open_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLockWrapper, FileError> {
+    log::debug!("locking file {}", path.as_ref().display());
+
     let file = open_file(path)?;
-    let lock = FdLock::new(file);
+    let lock = FdLockWrapper(FdLock::new(file));
     Ok(lock)
 }
 
@@ -88,14 +114,16 @@ pub fn create_file<P: AsRef<Path>>(path: P) -> Result<File, FileError> {
 
 /// Creates a file and immediately locks it. If a file already exists at the path, it acquires a lock on it first and then recreates it.
 /// Note: creates all intermediary directories if needed.
-pub fn create_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLock<File>, FileError> {
+pub fn create_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLockWrapper, FileError> {
+    log::debug!("locking file {}", path.as_ref().display());
+
     if let Ok(existing) = open_file(&path) {
         // wait for an existing process to be done with the file before rewriting
         let mut lock = FdLock::new(existing);
         lock.lock().expect("\"On Unix this may return an error if the operation was interrupted by a signal handler.\"; sounds unlikely to ever actually cause problems");
     }
     let file = create_file(path)?;
-    let lock = FdLock::new(file);
+    let lock = FdLockWrapper(FdLock::new(file));
     Ok(lock)
 }
 

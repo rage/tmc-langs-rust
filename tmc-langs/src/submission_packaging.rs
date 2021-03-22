@@ -14,8 +14,7 @@ lazy_static::lazy_static! {
     static ref MUTEX: std::sync::Mutex<()> = std::sync::Mutex::new(());
 }
 
-// prepares a submission for further processing on the TMC server
-// todo: the function is currently long and unfocused
+/// Note: Used by tmc-server. Prepares a submission for further processing.
 pub fn prepare_submission(
     zip_path: &Path,
     target_path: &Path,

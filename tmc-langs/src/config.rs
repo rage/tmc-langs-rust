@@ -5,7 +5,7 @@ mod projects_config;
 mod tmc_config;
 
 pub use self::credentials::Credentials;
-pub use self::projects_config::{CourseConfig, Exercise, ProjectsConfig};
+pub use self::projects_config::{CourseConfig, ProjectsConfig, ProjectsDirExercise};
 pub use self::tmc_config::{ConfigValue, TmcConfig};
 use crate::{data::LocalExercise, error::LangsError};
 
@@ -22,10 +22,17 @@ fn get_tmc_dir(client_name: &str) -> Result<PathBuf, LangsError> {
     Ok(config_dir.join(format!("tmc-{}", client_name)))
 }
 
+/// Returns all of the exercises for the given course.
 pub fn list_local_course_exercises(
     client_name: &str,
     course_slug: &str,
 ) -> Result<Vec<LocalExercise>, LangsError> {
+    log::debug!(
+        "listing local course exercises of {} for {}",
+        course_slug,
+        client_name
+    );
+
     let config_path = TmcConfig::get_location(client_name)?;
     let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
     let mut projects_config = ProjectsConfig::load(&projects_dir)?;
@@ -45,7 +52,8 @@ pub fn list_local_course_exercises(
     Ok(local_exercises)
 }
 
-pub fn migrate(
+/// Migrates an exercise from a location that's not managed by tmc-langs to the projects directory.
+pub fn migrate_exercise(
     tmc_config: TmcConfig,
     course_slug: &str,
     exercise_slug: &str,
@@ -53,6 +61,12 @@ pub fn migrate(
     exercise_checksum: &str,
     exercise_path: &Path,
 ) -> Result<(), LangsError> {
+    log::debug!(
+        "migrating exercise {} from {}",
+        exercise_id,
+        exercise_path.display()
+    );
+
     let mut lock = file_util::FileLock::new(exercise_path.to_path_buf())?;
     let guard = lock.lock()?;
 
@@ -76,7 +90,7 @@ pub fn migrate(
 
     course_config.exercises.insert(
         exercise_slug.to_string(),
-        Exercise {
+        ProjectsDirExercise {
             id: exercise_id,
             checksum: exercise_checksum.to_string(),
         },
@@ -87,11 +101,14 @@ pub fn migrate(
     Ok(())
 }
 
+/// Moves the projects directory from its current location to the target, taking all of the contained exercises with it.
 pub fn move_projects_dir(
     mut tmc_config: TmcConfig,
     config_path: &Path,
     target: PathBuf,
 ) -> Result<(), LangsError> {
+    log::debug!("moving projects dir to {}", target.display());
+
     if target.is_file() {
         return Err(FileError::UnexpectedFile(target).into());
     }
@@ -164,7 +181,7 @@ mod test {
             .join("course/exercise/some_file")
             .exists());
 
-        migrate(
+        migrate_exercise(
             tmc_config,
             "course",
             "exercise",

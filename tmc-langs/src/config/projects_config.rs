@@ -1,3 +1,5 @@
+//! Structs for managing projects directories.
+
 use crate::LangsError;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -16,7 +18,7 @@ impl ProjectsConfig {
         file_util::lock!(projects_dir);
 
         let mut course_configs = BTreeMap::new();
-        for file in WalkDir::new(projects_dir) {
+        for file in WalkDir::new(projects_dir).min_depth(1).max_depth(1) {
             let file = file?;
             let course_config_path = file.path().join("course_config.toml");
             if course_config_path.exists() {
@@ -79,18 +81,37 @@ impl ProjectsConfig {
     ) -> PathBuf {
         projects_dir.join(course_name).join(exercise_name)
     }
+
+    pub fn get_exercise(
+        &self,
+        course_name: &str,
+        exercise_name: &str,
+    ) -> Option<&ProjectsDirExercise> {
+        self.courses
+            .get(course_name)
+            .and_then(|c| c.exercises.get(exercise_name))
+    }
+
+    pub fn get_all_exercises(&self) -> impl Iterator<Item = &ProjectsDirExercise> {
+        self.courses
+            .iter()
+            .map(|c| &c.1.exercises)
+            .flatten()
+            .map(|e| e.1)
+    }
 }
 
+/// A course configuration file. Contains information of all of the exercises of this course in the projects directory.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CourseConfig {
+    /// The course's name.
     pub course: String,
-    pub exercises: BTreeMap<String, Exercise>,
+    /// The course's exercises in a map with the exercise's name as the key.
+    pub exercises: BTreeMap<String, ProjectsDirExercise>,
 }
 
 impl CourseConfig {
     pub fn save_to_projects_dir(&self, projects_dir: &Path) -> Result<(), LangsError> {
-        file_util::lock!(projects_dir);
-
         let course_dir = projects_dir.join(&self.course);
         if !course_dir.exists() {
             file_util::create_dir_all(&course_dir)?;
@@ -102,8 +123,9 @@ impl CourseConfig {
     }
 }
 
+/// An exercise in the projects directory.
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Exercise {
+pub struct ProjectsDirExercise {
     pub id: usize,
     pub checksum: String,
 }
@@ -145,7 +167,7 @@ mod test {
         let mut exercises = BTreeMap::new();
         exercises.insert(
             "ex 1".to_string(),
-            Exercise {
+            ProjectsDirExercise {
                 id: 4321,
                 checksum: "abcd1234".to_string(),
             },

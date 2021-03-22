@@ -9,6 +9,7 @@ use toml::{value::Table, Value};
 
 use crate::error::LangsError;
 
+/// The main configuration file. A separate one is used for each client.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct TmcConfig {
@@ -165,6 +166,7 @@ impl TmcConfig {
     }
 }
 
+/// A setting in a TmcConfig file.
 #[derive(Debug, Serialize, Clone)]
 #[serde(untagged)]
 pub enum ConfigValue<'a> {

@@ -16,6 +16,7 @@ pub type ModeBits = nix::sys::stat::mode_t;
 #[cfg(not(unix))]
 pub type ModeBits = u32;
 
+/// Data from a finished course refresh.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct RefreshData {
@@ -24,6 +25,7 @@ pub struct RefreshData {
     pub exercises: Vec<RefreshExercise>,
 }
 
+/// An exercise from a finished course refresh.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RefreshExercise {
     name: String,
@@ -33,6 +35,7 @@ pub struct RefreshExercise {
     path: PathBuf,
 }
 
+/// Used by tmc-server. Refreshes the course.
 pub fn refresh_course(
     course_name: String,
     course_cache_path: PathBuf,

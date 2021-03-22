@@ -19,12 +19,11 @@ use std::io::{Read, Write};
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::{env, io::Cursor};
-use tmc_langs::{
-    config::{self, Credentials, TmcConfig},
-    data::DownloadOrUpdateCourseExercisesResult,
-    ClientError, DownloadResult, FeedbackAnswer, TmcClient,
-};
 use tmc_langs::{file_util, warning_reporter, CommandError, StyleValidationResult};
+use tmc_langs::{
+    ClientError, Credentials, DownloadOrUpdateCourseExercisesResult, DownloadResult,
+    FeedbackAnswer, TmcClient, TmcConfig,
+};
 use tmc_langs::{ClientUpdateData, Language};
 use tmc_langs_util::progress_reporter;
 use url::Url;
@@ -64,6 +63,7 @@ pub fn run() {
                 data: None,
             });
             print_output(&output, false).expect("this should never fail");
+
             quit::with_code(1);
         }
     }
@@ -463,9 +463,9 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
             let clone_path = Path::new(clone_path);
 
             let output_format = match matches.value_of("output-format") {
-                Some("tar") => tmc_langs::data::OutputFormat::Tar,
-                Some("zip") => tmc_langs::data::OutputFormat::Zip,
-                Some("zstd") => tmc_langs::data::OutputFormat::TarZstd,
+                Some("tar") => tmc_langs::OutputFormat::Tar,
+                Some("zip") => tmc_langs::OutputFormat::Zip,
+                Some("zstd") => tmc_langs::OutputFormat::TarZstd,
                 _ => unreachable!("validation error"),
             };
 
@@ -495,7 +495,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
                 let entry = tmc_params_grouped.entry(key).or_insert_with(Vec::new);
                 entry.push(value);
             }
-            let mut tmc_params = tmc_langs::data::TmcParams::new();
+            let mut tmc_params = tmc_langs::TmcParams::new();
             for (key, values) in tmc_params_grouped {
                 if values.len() == 1 {
                     // 1-length lists are inserted as a string
@@ -657,7 +657,8 @@ fn run_core(
     // proof of having printed the output
     let printed: PrintToken = match matches.subcommand() {
         ("check-exercise-updates", Some(_)) => {
-            let updated_exercises = tmc_langs::check_exercise_updates(&client, client_name)
+            let projects_dir = tmc_langs::get_projects_dir(client_name)?;
+            let updated_exercises = tmc_langs::check_exercise_updates(&client, &projects_dir)
                 .context("Failed to check exercise updates")?
                 .into_iter()
                 .map(|id| UpdatedExercise { id })
@@ -711,7 +712,7 @@ fn run_core(
             print_output(&output, pretty)?
         }
         ("download-or-update-course-exercises", Some(matches)) => {
-            let download_from_template = matches.is_present("download-from-template");
+            let download_template = matches.is_present("download-template");
 
             let exercise_ids = matches.values_of("exercise-id").unwrap();
             let exercise_ids = exercise_ids
@@ -719,11 +720,12 @@ fn run_core(
                 .map(into_usize)
                 .collect::<Result<Vec<_>>>()?;
 
+            let projects_dir = tmc_langs::get_projects_dir(client_name)?;
             match tmc_langs::download_or_update_course_exercises(
                 &client,
-                client_name,
+                &projects_dir,
                 &exercise_ids,
-                download_from_template,
+                download_template,
             )? {
                 DownloadResult::Success {
                     downloaded,
@@ -751,25 +753,6 @@ fn run_core(
                     })
                 }
             }
-        }
-        ("download-or-update-exercises", Some(matches)) => {
-            let mut exercise_args = matches.values_of("exercise").unwrap();
-
-            // collect exercise into (id, path) pairs
-            let mut exercises = vec![];
-            while let Some(exercise_id) = exercise_args.next() {
-                let exercise_id = into_usize(exercise_id)?;
-                let exercise_path = exercise_args.next().unwrap(); // safe unwrap because each --exercise takes 2 arguments
-                let exercise_path = PathBuf::from(exercise_path);
-                exercises.push((exercise_id, exercise_path));
-            }
-
-            client
-                .download_or_update_exercises(exercises)
-                .context("Failed to download exercises")?;
-
-            let output = Output::finished_with_data("downloaded or updated exercises", None);
-            print_output(&output, pretty)?
         }
         ("get-course-data", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();
@@ -1199,7 +1182,7 @@ fn run_settings(matches: &ArgMatches, pretty: bool) -> Result<PrintToken> {
             let config_path = TmcConfig::get_location(client_name)?;
             let tmc_config = TmcConfig::load(client_name, &config_path)?;
 
-            config::migrate(
+            tmc_langs::migrate_exercise(
                 tmc_config,
                 course_slug,
                 exercise_slug,
@@ -1218,7 +1201,7 @@ fn run_settings(matches: &ArgMatches, pretty: bool) -> Result<PrintToken> {
             let config_path = TmcConfig::get_location(client_name)?;
             let tmc_config = TmcConfig::load(client_name, &config_path)?;
 
-            config::move_projects_dir(tmc_config, &config_path, target)?;
+            tmc_langs::move_projects_dir(tmc_config, &config_path, target)?;
 
             let output = Output::finished_with_data("moved project directory", None);
             print_output(&output, pretty)

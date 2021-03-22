@@ -4,16 +4,13 @@ use schemars::JsonSchema;
 use serde::Serialize;
 use std::path::PathBuf;
 use tmc_langs::{
-    data::{CombinedCourseData, DownloadOrUpdateCourseExercisesResult},
-    warning_reporter::Warning,
-    ClientUpdateData, Course, CourseData, CourseDetails, CourseExercise, ExerciseDesc,
-    ExerciseDetails, ExerciseDownload, ExercisePackagingConfiguration, NewSubmission, Organization,
-    Review, RunResult, StyleValidationResult, Submission, SubmissionFeedbackResponse,
-    SubmissionFinished, Token, UpdateResult,
+    warning_reporter::Warning, ClientUpdateData, CombinedCourseData, ConfigValue, Course,
+    CourseData, CourseDetails, CourseExercise, DownloadOrUpdateCourseExercisesResult, ExerciseDesc,
+    ExerciseDetails, ExerciseDownload, ExercisePackagingConfiguration, LocalExercise,
+    NewSubmission, Organization, Review, RunResult, StyleValidationResult, Submission,
+    SubmissionFeedbackResponse, SubmissionFinished, TmcConfig, Token, UpdateResult,
 };
 use tmc_langs_util::progress_reporter::StatusUpdate;
-
-use crate::config::{ConfigValue, TmcConfig};
 
 /// The format for all messages written to stdout by the CLI
 #[derive(Debug, Serialize)]
@@ -63,7 +60,7 @@ pub enum Data {
     Exercises(Vec<PathBuf>),
     ExercisePackagingConfiguration(ExercisePackagingConfiguration),
     LocalExercises(Vec<LocalExercise>),
-    RefreshResult(tmc_langs::course_refresher::RefreshData),
+    RefreshResult(tmc_langs::RefreshData),
     TestResult(RunResult),
     ExerciseDesc(ExerciseDesc),
     UpdatedExercises(Vec<UpdatedExercise>),
@@ -137,7 +134,7 @@ pub enum Kind {
     },
 }
 
-pub use tmc_langs::data::LocalExercise;
+pub use tmc_langs::ProjectsDirExercise;
 
 #[derive(Debug, Serialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]

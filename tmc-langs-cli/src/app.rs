@@ -1,13 +1,13 @@
 //! Create clap app
 
-use crate::output::{LocalExercise, UpdatedExercise};
+use crate::output::UpdatedExercise;
 use clap::{App, AppSettings, Arg, SubCommand};
 use schemars::JsonSchema;
 use std::path::PathBuf;
 use tmc_langs::{
-    data::{CombinedCourseData, DownloadOrUpdateCourseExercisesResult},
-    CourseData, CourseDetails, CourseExercise, ExerciseDesc, ExerciseDetails,
-    ExercisePackagingConfiguration, NewSubmission, Organization, Review, RunResult,
+    CombinedCourseData, CourseData, CourseDetails, CourseExercise,
+    DownloadOrUpdateCourseExercisesResult, ExerciseDesc, ExerciseDetails,
+    ExercisePackagingConfiguration, LocalExercise, NewSubmission, Organization, Review, RunResult,
     StyleValidationResult, Submission, SubmissionFeedbackResponse, SubmissionFinished,
     UpdateResult,
 };
@@ -337,26 +337,14 @@ fn create_core_app() -> App<'static, 'static> {
         .subcommand(SubCommand::with_name("download-or-update-course-exercises")
             .about("Downloads exercises. If downloading an exercise that has been downloaded before, the student file policy will be used to avoid overwriting student files, effectively just updating the exercise files")
             .long_about(schema_leaked::<DownloadOrUpdateCourseExercisesResult>())
-            .arg(Arg::with_name("download-from-template")
+            .arg(Arg::with_name("download-template")
                 .help("If set, will always download the course template instead of the latest submission, even if one exists.")
-                .long("download-from-template"))
+                .long("download-template"))
             .arg(Arg::with_name("exercise-id")
                 .help("Exercise id of an exercise that should be downloaded. Multiple ids can be given.")
                 .long("exercise-id")
                 .required(true)
                 .takes_value(true)
-                .multiple(true)))
-
-        .subcommand(SubCommand::with_name("download-or-update-exercises")
-            .about("Downloads exercises. If downloading an exercise on top of an existing one, the student file policy will be used to avoid overwriting student files, effectively just updating the exercise files")
-            .long_about(SCHEMA_NULL)
-            .arg(Arg::with_name("exercise")
-                .help("An exercise. Takes two values, an exercise id and an exercise path. Multiple exercises can be given.")
-                .long("exercise")
-                .required(true)
-                .takes_value(true)
-                .number_of_values(2)
-                .value_names(&["exercise-id", "exercise-path"])
                 .multiple(true)))
 
         .subcommand(SubCommand::with_name("get-course-data")
