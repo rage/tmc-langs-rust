@@ -195,17 +195,20 @@ mod test {
                 DownloadOrUpdateCourseExercisesResult {
                     downloaded: vec![
                         ExerciseDownload {
+                            id: 1,
                             course_slug: "some course".to_string(),
                             exercise_slug: "some exercise".to_string(),
                             path: PathBuf::from("some path"),
                         },
                         ExerciseDownload {
+                            id: 2,
                             course_slug: "some course".to_string(),
                             exercise_slug: "another exercise".to_string(),
                             path: PathBuf::from("another path"),
                         },
                     ],
                     skipped: vec![ExerciseDownload {
+                        id: 3,
                         course_slug: "another course".to_string(),
                         exercise_slug: "some skipped exercise".to_string(),
                         path: PathBuf::from("third path"),

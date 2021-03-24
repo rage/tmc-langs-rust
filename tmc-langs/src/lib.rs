@@ -881,16 +881,3 @@ fn extract_project_overwrite(
     )?;
     Ok(())
 }
-
-#[cfg(test)]
-#[ignore = "accesses the real TMC server"]
-mod server_test {
-    use super::*;
-
-    fn init() {
-        use log::*;
-        use simple_logger::*;
-
-        let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
-    }
-}

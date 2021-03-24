@@ -980,11 +980,6 @@ mod core_test {
     }
 
     #[test]
-    fn download_or_update_exercises() {
-        get_matches_core(&["download-or-update-exercises", "--exercise", "1234", "path"]);
-    }
-
-    #[test]
     fn get_course_data() {
         get_matches_core(&["get-course-data", "--course-id", "1234"]);
     }

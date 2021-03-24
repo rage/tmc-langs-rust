@@ -689,25 +689,6 @@ mod test {
     }
 
     #[test]
-    fn downloads_or_update_exercises() {
-        let (client, _addr) = init();
-        let _m = mock("GET", "/api/v8/core/exercises/1234/download")
-            .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("client".into(), "some_client".into()),
-                Matcher::UrlEncoded("client_version".into(), "some_ver".into()),
-            ]))
-            .with_body_from_file(Path::new("tests/data/81842.zip"))
-            .create();
-
-        let temp_dir = tempfile::tempdir().unwrap();
-        let target = temp_dir.path().join("temp");
-        assert!(!target.exists());
-        let exercises = vec![(1234, target.clone())];
-        //client.download_or_update_exercises(exercises).unwrap();
-        assert!(target.join("src/main/java/Hiekkalaatikko.java").exists());
-    }
-
-    #[test]
     fn gets_course_details() {
         let (client, _addr) = init();
         let _m = mock("GET", "/api/v8/core/courses/1234")
@@ -1048,8 +1029,8 @@ mod test {
                         "points_not_awarded": ["1.3"],
                         "url": "ur",
                         "update_url": "uu",
-                        "created_at": "ca",
-                        "updated_at": "ua",
+                        "created_at": "2021-03-24T11:31:55+00:00",
+                        "updated_at": "2021-03-24T11:31:55+00:00",
                     }
                 ])
                 .to_string(),
