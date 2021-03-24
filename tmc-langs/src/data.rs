@@ -1,3 +1,5 @@
+//! Various data types.
+
 use schemars::JsonSchema;
 use serde::Serialize;
 use std::fmt::{Display, Formatter, Result as FmtResult};
@@ -6,6 +8,7 @@ use tmc_client::{CourseData, CourseDetails, CourseExercise};
 
 use crate::error::{LangsError, ParamError};
 
+/// Exercise inside the projects directory.
 #[derive(Debug, Serialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub struct LocalExercise {
@@ -142,6 +145,7 @@ impl Display for ShellString {
     }
 }
 
+/// Output formats for an archive.
 pub enum OutputFormat {
     Tar,
     Zip,
@@ -160,9 +164,22 @@ pub enum DownloadResult {
     },
 }
 
+pub enum DownloadTarget {
+    Template {
+        target: ExerciseDownload,
+        checksum: String,
+    },
+    Submission {
+        target: ExerciseDownload,
+        submission_id: usize,
+        checksum: String,
+    },
+}
+
 #[derive(Debug, Clone, Serialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub struct ExerciseDownload {
+    pub id: usize,
     pub course_slug: String,
     pub exercise_slug: String,
     pub path: PathBuf,

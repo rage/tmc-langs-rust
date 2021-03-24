@@ -1,9 +1,12 @@
+//! Contains the Credentials struct for authenticating with tmc-server.
+
 use crate::{LangsError, Token};
 use serde::{Deserialize, Serialize};
 use std::ops::Deref;
 use std::path::PathBuf;
 use tmc_langs_util::{file_util, FileError};
 
+/// Credentials for authenticating with tmc-server.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Credentials {
     path: PathBuf,

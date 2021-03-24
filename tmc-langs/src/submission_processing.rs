@@ -172,6 +172,7 @@ fn process_files(
     Ok(())
 }
 
+/// Note: used by tmc-server.
 /// Walks through each given path, processing files and copying them into the destination.
 ///
 /// Skips hidden directories, directories that contain a `.tmcignore` file in their root, as well as

@@ -1,9 +1,11 @@
-use std::{path::PathBuf, string::FromUtf8Error};
+//! Contains the main error type for tmc-langs.
 
+use crate::course_refresher::ModeBits;
+use std::{path::PathBuf, string::FromUtf8Error};
 use thiserror::Error;
 use tmc_client::ClientError;
 
-use crate::course_refresher::ModeBits;
+/// Main error type of the library.
 #[derive(Error, Debug)]
 pub enum LangsError {
     #[error("Failed to create temporary file")]
@@ -97,6 +99,7 @@ pub enum LangsError {
     Json(#[from] serde_json::Error),
 }
 
+/// Error validating TMC params values.
 #[derive(Debug, Error)]
 pub enum ParamError {
     #[error("Parameter key/value was empty")]

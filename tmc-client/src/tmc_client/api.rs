@@ -639,11 +639,7 @@ impl TmcClient {
         todo!("needs admin?");
     }
 
-    pub(super) fn download_exercise(
-        &self,
-        exercise_id: usize,
-        target: &Path,
-    ) -> Result<(), ClientError> {
+    pub fn download_exercise(&self, exercise_id: usize, target: &Path) -> Result<(), ClientError> {
         let url_tail = format!("core/exercises/{}/download", exercise_id);
         self.download(&url_tail, target)
     }

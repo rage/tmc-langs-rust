@@ -38,6 +38,7 @@ impl FileLock {
     }
 }
 
+/// Guard that holds the locked file.
 #[derive(Debug)]
 pub struct FileLockGuard<'a> {
     path: &'a Path,

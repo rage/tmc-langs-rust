@@ -11,6 +11,7 @@ type TokenError = oauth2::RequestTokenError<
     oauth2::StandardErrorResponse<oauth2::basic::BasicErrorResponseType>,
 >;
 
+/// The main error type for tmc-client.
 #[derive(Debug, Error)]
 pub enum ClientError {
     // Arc

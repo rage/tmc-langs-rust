@@ -1,5 +1,6 @@
 //! Contains types which model the JSON responses from tmc-server
 
+use chrono::{DateTime, FixedOffset};
 use lazy_static::lazy_static;
 use regex::Regex;
 use schemars::JsonSchema;
@@ -39,6 +40,7 @@ pub struct User {
     pub administrator: bool,
 }
 
+/// Organization information.
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct Organization {
     pub name: String,
@@ -48,6 +50,7 @@ pub struct Organization {
     pub pinned: bool,
 }
 
+/// Information for a course.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct Course {
     pub id: usize,
@@ -61,6 +64,7 @@ pub struct Course {
     pub spyware_urls: Vec<String>,
 }
 
+/// Data for a course.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct CourseData {
     pub name: String,
@@ -69,7 +73,7 @@ pub struct CourseData {
     pub cache_version: Option<usize>,
     pub spreadsheet_key: Option<String>,
     pub hidden_if_registered_after: Option<String>,
-    pub refreshed_at: Option<String>,
+    pub refreshed_at: Option<DateTime<FixedOffset>>,
     pub locked_exercise_points_visible: bool,
     pub description: Option<String>,
     pub paste_visibility: Option<String>,
@@ -102,6 +106,7 @@ struct CourseDetailsInner {
     pub exercises: Vec<Exercise>,
 }
 
+/// Details for a course.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(from = "CourseDetailsWrapper")]
 pub struct CourseDetails {
@@ -149,6 +154,7 @@ pub struct Exercise {
     pub solution_zip_url: Option<String>,
 }
 
+/// Exercise for a course.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct CourseExercise {
     pub id: usize,
@@ -195,9 +201,10 @@ pub struct AwardedPoint {
     user_id: usize,
     submission_id: usize,
     name: String,
-    created_at: String,
+    created_at: DateTime<FixedOffset>,
 }
 
+/// Details for an exercise.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct ExerciseDetails {
     pub course_name: String,
@@ -219,22 +226,23 @@ pub struct ExercisesDetails {
     pub checksum: String,
 }
 
+/// Exercise submission.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct Submission {
     pub id: usize,
     pub user_id: usize,
     pub pretest_error: Option<String>,
-    pub created_at: String,
+    pub created_at: DateTime<FixedOffset>,
     pub exercise_name: String,
     pub course_id: usize,
     pub processed: bool,
     pub all_tests_passed: bool,
     pub points: Option<String>,
-    pub processing_tried_at: Option<String>,
-    pub processing_began_at: Option<String>,
-    pub processing_completed_at: Option<String>,
+    pub processing_tried_at: Option<DateTime<FixedOffset>>,
+    pub processing_began_at: Option<DateTime<FixedOffset>>,
+    pub processing_completed_at: Option<DateTime<FixedOffset>>,
     pub times_sent_to_sandbox: usize,
-    pub processing_attempts_started_at: String,
+    pub processing_attempts_started_at: DateTime<FixedOffset>,
     pub params_json: Option<String>,
     pub requires_review: bool,
     pub requests_review: bool,
@@ -253,7 +261,7 @@ pub struct ExerciseSubmission {
     pub id: usize,
     pub user_id: usize,
     pub course_id: usize,
-    pub created_at: String,
+    pub created_at: DateTime<FixedOffset>,
     pub all_tests_passed: bool,
     pub points: Option<String>,
     pub submitted_zip_url: String,
@@ -263,6 +271,7 @@ pub struct ExerciseSubmission {
     pub requests_review: bool,
 }
 
+/// Exercise submission.
 #[derive(Debug, Deserialize, Serialize, JsonSchema, Clone)]
 pub struct NewSubmission {
     pub show_submission_url: String,
@@ -291,6 +300,7 @@ pub enum SandboxStatus {
     ProcessingOnSandbox,
 }
 
+/// Finished submission.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 pub struct SubmissionFinished {
     pub api_version: usize,
@@ -328,6 +338,7 @@ pub enum SubmissionStatus {
     Hidden,
 }
 
+/// Response to feedback.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct SubmissionFeedbackResponse {
     pub api_version: usize,
@@ -419,6 +430,7 @@ impl<'de> Visitor<'de> for SubmissionFeedbackKindVisitor {
     }
 }
 
+/// Code review.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct Review {
     pub submission_id: String,
@@ -431,10 +443,11 @@ pub struct Review {
     pub points_not_awarded: Vec<String>,
     pub url: String,
     pub update_url: String,
-    pub created_at: String,
+    pub created_at: DateTime<FixedOffset>,
     pub updated_at: String,
 }
 
+/// Updated exercises.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct UpdateResult {
     pub created: Vec<Exercise>,
