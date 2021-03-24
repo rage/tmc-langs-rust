@@ -28,6 +28,7 @@ implementors["h2"] = [{"text":"impl Copy for Reason","synthetic":false,"types":[
 implementors["heim_disk"] = [{"text":"impl Copy for Flags","synthetic":false,"types":[]}];
 implementors["hex"] = [{"text":"impl Copy for FromHexError","synthetic":false,"types":[]}];
 implementors["http"] = [{"text":"impl Copy for StatusCode","synthetic":false,"types":[]},{"text":"impl Copy for Version","synthetic":false,"types":[]}];
+implementors["http_body"] = [{"text":"impl&lt;D&gt; Copy for Empty&lt;D&gt;","synthetic":false,"types":[]},{"text":"impl&lt;B:&nbsp;Copy, F:&nbsp;Copy&gt; Copy for MapData&lt;B, F&gt;","synthetic":false,"types":[]},{"text":"impl&lt;B:&nbsp;Copy, F:&nbsp;Copy&gt; Copy for MapErr&lt;B, F&gt;","synthetic":false,"types":[]}];
 implementors["httparse"] = [{"text":"impl Copy for Error","synthetic":false,"types":[]},{"text":"impl&lt;T:&nbsp;Copy&gt; Copy for Status&lt;T&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; Copy for Header&lt;'a&gt;","synthetic":false,"types":[]}];
 implementors["httpdate"] = [{"text":"impl Copy for HttpDate","synthetic":false,"types":[]}];
 implementors["humantime"] = [{"text":"impl Copy for Duration","synthetic":false,"types":[]},{"text":"impl Copy for Error","synthetic":false,"types":[]}];

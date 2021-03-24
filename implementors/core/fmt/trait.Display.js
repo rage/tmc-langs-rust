@@ -54,6 +54,7 @@ implementors["ring"] = [{"text":"impl Display for Unspecified","synthetic":false
 implementors["rustls"] = [{"text":"impl Display for TLSError","synthetic":false,"types":[]}];
 implementors["serde"] = [{"text":"impl Display for Error","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; Display for Unexpected&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; Display for dyn Expected + 'a","synthetic":false,"types":[]}];
 implementors["serde_json"] = [{"text":"impl Display for Error","synthetic":false,"types":[]},{"text":"impl Display for Value","synthetic":false,"types":[]},{"text":"impl Display for Number","synthetic":false,"types":[]}];
+implementors["serde_path_to_error"] = [{"text":"impl Display for Path","synthetic":false,"types":[]},{"text":"impl&lt;E:&nbsp;Display&gt; Display for Error&lt;E&gt;","synthetic":false,"types":[]}];
 implementors["serde_urlencoded"] = [{"text":"impl Display for Error","synthetic":false,"types":[]}];
 implementors["serde_xml_rs"] = [{"text":"impl Display for Error","synthetic":false,"types":[]}];
 implementors["serde_yaml"] = [{"text":"impl Display for Error","synthetic":false,"types":[]},{"text":"impl Display for Number","synthetic":false,"types":[]}];
@@ -65,7 +66,7 @@ implementors["termcolor"] = [{"text":"impl Display for ParseColorError","synthet
 implementors["time"] = [{"text":"impl&lt;'a&gt; Display for TmFmt&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl Display for Duration","synthetic":false,"types":[]},{"text":"impl Display for OutOfRangeError","synthetic":false,"types":[]},{"text":"impl Display for SteadyTime","synthetic":false,"types":[]},{"text":"impl Display for ParseError","synthetic":false,"types":[]}];
 implementors["tinyvec"] = [{"text":"impl&lt;A:&nbsp;Array&gt; Display for ArrayVec&lt;A&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;A::Item: Display,&nbsp;</span>","synthetic":false,"types":[]},{"text":"impl&lt;'s, T&gt; Display for SliceVec&lt;'s, T&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;T: Display,&nbsp;</span>","synthetic":false,"types":[]},{"text":"impl&lt;A:&nbsp;Array&gt; Display for TinyVec&lt;A&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;A::Item: Display,&nbsp;</span>","synthetic":false,"types":[]}];
 implementors["tmc_client"] = [{"text":"impl Display for ClientError","synthetic":false,"types":[]}];
-implementors["tmc_langs"] = [{"text":"impl Display for TmcParam","synthetic":false,"types":[]},{"text":"impl Display for ShellString","synthetic":false,"types":[]}];
+implementors["tmc_langs"] = [{"text":"impl Display for LangsError","synthetic":false,"types":[]},{"text":"impl Display for ParamError","synthetic":false,"types":[]}];
 implementors["tmc_langs_csharp"] = [{"text":"impl Display for CSharpError","synthetic":false,"types":[]}];
 implementors["tmc_langs_framework"] = [{"text":"impl Display for TmcError","synthetic":false,"types":[]},{"text":"impl Display for CommandError","synthetic":false,"types":[]}];
 implementors["tmc_langs_java"] = [{"text":"impl Display for JavaError","synthetic":false,"types":[]}];

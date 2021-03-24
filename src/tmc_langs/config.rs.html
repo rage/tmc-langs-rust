@@ -223,6 +223,23 @@
 <span id="220">220</span>
 <span id="221">221</span>
 <span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Handles the CLI&#39;s configuration files and credentials.</span>
 
@@ -231,7 +248,7 @@
 <span class="kw">mod</span> <span class="ident">tmc_config</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">credentials</span>::<span class="ident">Credentials</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">projects_config</span>::{<span class="ident">CourseConfig</span>, <span class="ident">Exercise</span>, <span class="ident">ProjectsConfig</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">projects_config</span>::{<span class="ident">CourseConfig</span>, <span class="ident">ProjectsConfig</span>, <span class="ident">ProjectsDirExercise</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">tmc_config</span>::{<span class="ident">ConfigValue</span>, <span class="ident">TmcConfig</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">data</span>::<span class="ident">LocalExercise</span>, <span class="ident">error</span>::<span class="ident">LangsError</span>};
 
@@ -248,10 +265,17 @@
     <span class="prelude-val">Ok</span>(<span class="ident">config_dir</span>.<span class="ident">join</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;tmc-{}&quot;</span>, <span class="ident">client_name</span>)))
 }
 
+<span class="doccomment">/// Returns all of the exercises for the given course.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">list_local_course_exercises</span>(
     <span class="ident">client_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">course_slug</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LocalExercise</span><span class="op">&gt;</span>, <span class="ident">LangsError</span><span class="op">&gt;</span> {
+    <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
+        <span class="string">&quot;listing local course exercises of {} for {}&quot;</span>,
+        <span class="ident">course_slug</span>,
+        <span class="ident">client_name</span>
+    );
+
     <span class="kw">let</span> <span class="ident">config_path</span> <span class="op">=</span> <span class="ident">TmcConfig</span>::<span class="ident">get_location</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">projects_dir</span> <span class="op">=</span> <span class="ident">TmcConfig</span>::<span class="ident">load</span>(<span class="ident">client_name</span>, <span class="kw-2">&amp;</span><span class="ident">config_path</span>)<span class="question-mark">?</span>.<span class="ident">projects_dir</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">projects_config</span> <span class="op">=</span> <span class="ident">ProjectsConfig</span>::<span class="ident">load</span>(<span class="kw-2">&amp;</span><span class="ident">projects_dir</span>)<span class="question-mark">?</span>;
@@ -271,7 +295,8 @@
     <span class="prelude-val">Ok</span>(<span class="ident">local_exercises</span>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">migrate</span>(
+<span class="doccomment">/// Migrates an exercise from a location that&#39;s not managed by tmc-langs to the projects directory.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">migrate_exercise</span>(
     <span class="ident">tmc_config</span>: <span class="ident">TmcConfig</span>,
     <span class="ident">course_slug</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">exercise_slug</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
@@ -279,6 +304,12 @@
     <span class="ident">exercise_checksum</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">exercise_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LangsError</span><span class="op">&gt;</span> {
+    <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
+        <span class="string">&quot;migrating exercise {} from {}&quot;</span>,
+        <span class="ident">exercise_id</span>,
+        <span class="ident">exercise_path</span>.<span class="ident">display</span>()
+    );
+
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lock</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">FileLock</span>::<span class="ident">new</span>(<span class="ident">exercise_path</span>.<span class="ident">to_path_buf</span>())<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">lock</span>.<span class="ident">lock</span>()<span class="question-mark">?</span>;
 
@@ -302,7 +333,7 @@
 
     <span class="ident">course_config</span>.<span class="ident">exercises</span>.<span class="ident">insert</span>(
         <span class="ident">exercise_slug</span>.<span class="ident">to_string</span>(),
-        <span class="ident">Exercise</span> {
+        <span class="ident">ProjectsDirExercise</span> {
             <span class="ident">id</span>: <span class="ident">exercise_id</span>,
             <span class="ident">checksum</span>: <span class="ident">exercise_checksum</span>.<span class="ident">to_string</span>(),
         },
@@ -313,11 +344,14 @@
     <span class="prelude-val">Ok</span>(())
 }
 
+<span class="doccomment">/// Moves the projects directory from its current location to the target, taking all of the contained exercises with it.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">move_projects_dir</span>(
     <span class="kw-2">mut</span> <span class="ident">tmc_config</span>: <span class="ident">TmcConfig</span>,
     <span class="ident">config_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">target</span>: <span class="ident">PathBuf</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LangsError</span><span class="op">&gt;</span> {
+    <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;moving projects dir to {}&quot;</span>, <span class="ident">target</span>.<span class="ident">display</span>());
+
     <span class="kw">if</span> <span class="ident">target</span>.<span class="ident">is_file</span>() {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">FileError</span>::<span class="ident">UnexpectedFile</span>(<span class="ident">target</span>).<span class="ident">into</span>());
     }
@@ -390,7 +424,7 @@
             .<span class="ident">join</span>(<span class="string">&quot;course/exercise/some_file&quot;</span>)
             .<span class="ident">exists</span>());
 
-        <span class="ident">migrate</span>(
+        <span class="ident">migrate_exercise</span>(
             <span class="ident">tmc_config</span>,
             <span class="string">&quot;course&quot;</span>,
             <span class="string">&quot;exercise&quot;</span>,

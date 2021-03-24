@@ -257,16 +257,13 @@
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Serialize</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs</span>::{
-    <span class="ident">data</span>::{<span class="ident">CombinedCourseData</span>, <span class="ident">DownloadOrUpdateCourseExercisesResult</span>},
-    <span class="ident">warning_reporter</span>::<span class="ident">Warning</span>,
-    <span class="ident">ClientUpdateData</span>, <span class="ident">Course</span>, <span class="ident">CourseData</span>, <span class="ident">CourseDetails</span>, <span class="ident">CourseExercise</span>, <span class="ident">ExerciseDesc</span>,
-    <span class="ident">ExerciseDetails</span>, <span class="ident">ExerciseDownload</span>, <span class="ident">ExercisePackagingConfiguration</span>, <span class="ident">NewSubmission</span>, <span class="ident">Organization</span>,
-    <span class="ident">Review</span>, <span class="ident">RunResult</span>, <span class="ident">StyleValidationResult</span>, <span class="ident">Submission</span>, <span class="ident">SubmissionFeedbackResponse</span>,
-    <span class="ident">SubmissionFinished</span>, <span class="ident">Token</span>, <span class="ident">UpdateResult</span>,
+    <span class="ident">warning_reporter</span>::<span class="ident">Warning</span>, <span class="ident">ClientUpdateData</span>, <span class="ident">CombinedCourseData</span>, <span class="ident">ConfigValue</span>, <span class="ident">Course</span>,
+    <span class="ident">CourseData</span>, <span class="ident">CourseDetails</span>, <span class="ident">CourseExercise</span>, <span class="ident">DownloadOrUpdateCourseExercisesResult</span>, <span class="ident">ExerciseDesc</span>,
+    <span class="ident">ExerciseDetails</span>, <span class="ident">ExerciseDownload</span>, <span class="ident">ExercisePackagingConfiguration</span>, <span class="ident">LocalExercise</span>,
+    <span class="ident">NewSubmission</span>, <span class="ident">Organization</span>, <span class="ident">Review</span>, <span class="ident">RunResult</span>, <span class="ident">StyleValidationResult</span>, <span class="ident">Submission</span>,
+    <span class="ident">SubmissionFeedbackResponse</span>, <span class="ident">SubmissionFinished</span>, <span class="ident">TmcConfig</span>, <span class="ident">Token</span>, <span class="ident">UpdateResult</span>,
 };
 <span class="kw">use</span> <span class="ident">tmc_langs_util</span>::<span class="ident">progress_reporter</span>::<span class="ident">StatusUpdate</span>;
-
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">config</span>::{<span class="ident">ConfigValue</span>, <span class="ident">TmcConfig</span>};
 
 <span class="doccomment">/// The format for all messages written to stdout by the CLI</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>)]</span>
@@ -316,7 +313,7 @@
     <span class="ident">Exercises</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>),
     <span class="ident">ExercisePackagingConfiguration</span>(<span class="ident">ExercisePackagingConfiguration</span>),
     <span class="ident">LocalExercises</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LocalExercise</span><span class="op">&gt;</span>),
-    <span class="ident">RefreshResult</span>(<span class="ident">tmc_langs</span>::<span class="ident">course_refresher</span>::<span class="ident">RefreshData</span>),
+    <span class="ident">RefreshResult</span>(<span class="ident">tmc_langs</span>::<span class="ident">RefreshData</span>),
     <span class="ident">TestResult</span>(<span class="ident">RunResult</span>),
     <span class="ident">ExerciseDesc</span>(<span class="ident">ExerciseDesc</span>),
     <span class="ident">UpdatedExercises</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">UpdatedExercise</span><span class="op">&gt;</span>),
@@ -390,7 +387,7 @@
     },
 }
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tmc_langs</span>::<span class="ident">data</span>::<span class="ident">LocalExercise</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tmc_langs</span>::<span class="ident">ProjectsDirExercise</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
@@ -451,17 +448,20 @@
                 <span class="ident">DownloadOrUpdateCourseExercisesResult</span> {
                     <span class="ident">downloaded</span>: <span class="macro">vec</span><span class="macro">!</span>[
                         <span class="ident">ExerciseDownload</span> {
+                            <span class="ident">id</span>: <span class="number">1</span>,
                             <span class="ident">course_slug</span>: <span class="string">&quot;some course&quot;</span>.<span class="ident">to_string</span>(),
                             <span class="ident">exercise_slug</span>: <span class="string">&quot;some exercise&quot;</span>.<span class="ident">to_string</span>(),
                             <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;some path&quot;</span>),
                         },
                         <span class="ident">ExerciseDownload</span> {
+                            <span class="ident">id</span>: <span class="number">2</span>,
                             <span class="ident">course_slug</span>: <span class="string">&quot;some course&quot;</span>.<span class="ident">to_string</span>(),
                             <span class="ident">exercise_slug</span>: <span class="string">&quot;another exercise&quot;</span>.<span class="ident">to_string</span>(),
                             <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;another path&quot;</span>),
                         },
                     ],
                     <span class="ident">skipped</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">ExerciseDownload</span> {
+                        <span class="ident">id</span>: <span class="number">3</span>,
                         <span class="ident">course_slug</span>: <span class="string">&quot;another course&quot;</span>.<span class="ident">to_string</span>(),
                         <span class="ident">exercise_slug</span>: <span class="string">&quot;some skipped exercise&quot;</span>.<span class="ident">to_string</span>(),
                         <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;third path&quot;</span>),

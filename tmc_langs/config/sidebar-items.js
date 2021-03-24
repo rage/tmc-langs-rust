@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["ConfigValue",""]],"fn":[["list_local_course_exercises",""],["migrate",""],["move_projects_dir",""]],"struct":[["CourseConfig",""],["Credentials",""],["Exercise",""],["ProjectsConfig",""],["TmcConfig",""]]});
