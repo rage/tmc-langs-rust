@@ -37,7 +37,7 @@ pub use tmc_langs_util::{
 
 use crate::config::ProjectsConfig;
 use crate::data::DownloadTarget;
-use heim::disk;
+// use heim::disk;
 use oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
@@ -666,6 +666,7 @@ pub fn compress_project_to(source: &Path, target: &Path) -> Result<(), LangsErro
     Ok(())
 }
 
+/*
 /// Checks how many megabytes are available on the disk containing the target path.
 pub fn free_disk_space_megabytes(path: &Path) -> Result<u64, LangsError> {
     log::debug!("checking disk usage in {}", path.display());
@@ -675,6 +676,7 @@ pub fn free_disk_space_megabytes(path: &Path) -> Result<u64, LangsError> {
         .get::<heim::units::information::megabyte>();
     Ok(usage)
 }
+*/
 
 /// Extracts the compressed project to the target location.
 pub fn extract_project(
