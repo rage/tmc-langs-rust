@@ -97,6 +97,10 @@ pub enum LangsError {
     TomlDeserialize(#[from] toml::de::Error),
     #[error(transparent)]
     Json(#[from] serde_json::Error),
+    #[error(transparent)]
+    Jwt(#[from] jwt::Error),
+    #[error(transparent)]
+    Hmac(#[from] hmac::crypto_mac::InvalidKeyLength),
 }
 
 /// Error validating TMC params values.

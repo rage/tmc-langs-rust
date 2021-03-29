@@ -21,6 +21,9 @@ pub use crate::data::{
 pub use crate::error::{LangsError, ParamError};
 pub use crate::submission_packaging::prepare_submission;
 pub use crate::submission_processing::prepare_solution;
+use hmac::{Hmac, NewMac};
+use serde::Serialize;
+use sha2::Sha256;
 pub use tmc_client::{
     ClientError, ClientUpdateData, Course, CourseData, CourseDetails, CourseExercise,
     ExerciseDetails, FeedbackAnswer, NewSubmission, Organization, Review, RunResult,
@@ -38,6 +41,7 @@ pub use tmc_langs_util::{
 use crate::config::ProjectsConfig;
 use crate::data::DownloadTarget;
 // use heim::disk;
+use jwt::SignWithKey;
 use oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
@@ -54,6 +58,12 @@ use tmc_langs_util::progress_reporter;
 use toml::{map::Map as TomlMap, Value as TomlValue};
 use url::Url;
 use walkdir::WalkDir;
+
+pub fn sign_with_jwt<T: Serialize>(value: T, secret: &[u8]) -> Result<String, LangsError> {
+    let key: Hmac<Sha256> = Hmac::new_varkey(secret)?;
+    let token = value.sign_with_key(&key)?;
+    Ok(token)
+}
 
 /// Returns the projects directory for the given client name.
 pub fn get_projects_dir(client_name: &str) -> Result<PathBuf, LangsError> {
@@ -882,4 +892,28 @@ fn extract_project_overwrite(
         target_location,
     )?;
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    fn init() {
+        use log::*;
+        use simple_logger::*;
+        let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
+    }
+
+    #[test]
+    fn signs_with_jwt() {
+        init();
+
+        let value = "some string";
+        let secret = "some secret".as_bytes();
+        let signed = sign_with_jwt(value, secret).unwrap();
+        assert_eq!(
+            signed,
+            "eyJhbGciOiJIUzI1NiJ9.InNvbWUgc3RyaW5nIg.FfWkq8BeQRe2vlrfLbJHObFAslXqK5_V_hH2TbBqggc"
+        );
+    }
 }

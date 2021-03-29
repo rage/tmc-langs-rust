@@ -257,7 +257,10 @@ pub fn create_app() -> App<'static, 'static> {
             .arg(Arg::with_name("output-path")
                 .help("If defined, the test results will be written to this path. Overwritten if it already exists.")
                 .long("output-path")
-                .takes_value(true)))
+                .takes_value(true))
+            .arg(Arg::with_name("wait-for-secret")
+                .help("If defined, the command will wait for a string to be written to stdin, used for signing the output file with jwt.")
+                .long("wait-for-secret")))
 
         .subcommand(create_settings_app()) // "settings"
 
