@@ -49,7 +49,7 @@ use std::{
 };
 use std::{collections::HashMap, ffi::OsStr};
 use tmc_langs_framework::{NothingIsStudentFilePolicy, StudentFilePolicy, TmcError, TmcProjectYml};
-use tmc_langs_plugins::{get_language_plugin, tmc_zip, AntPlugin, Plugin};
+use tmc_langs_plugins::{get_language_plugin, tmc_zip, AntPlugin, PluginType};
 use tmc_langs_util::progress_reporter;
 use toml::{map::Map as TomlMap, Value as TomlValue};
 use url::Url;
@@ -754,7 +754,7 @@ pub fn prepare_stub(exercise_path: &Path, dest_path: &Path) -> Result<(), LangsE
     submission_processing::prepare_stub(&exercise_path, dest_path)?;
 
     // The Ant plugin needs some additional files to be copied over.
-    if let Plugin::Ant(_) = tmc_langs_plugins::get_language_plugin(exercise_path)? {
+    if let PluginType::Ant = tmc_langs_plugins::get_language_plugin_type(exercise_path)? {
         AntPlugin::copy_tmc_junit_runner(dest_path).map_err(|e| TmcError::Plugin(Box::new(e)))?;
     }
     Ok(())

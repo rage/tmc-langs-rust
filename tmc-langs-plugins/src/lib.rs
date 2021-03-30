@@ -54,33 +54,32 @@ pub fn extract_project_overwrite(
 /// See `LanguagePlugin::compress_project`.
 // TODO: clean up
 pub fn compress_project(path: &Path) -> Result<Vec<u8>, PluginError> {
-    let plugin = get_language_plugin(path)?;
-    match plugin {
-        Plugin::CSharp(_) => Ok(tmc_zip::zip(
+    match get_language_plugin_type(path)? {
+        PluginType::CSharp => Ok(tmc_zip::zip(
             <CSharpPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
-        Plugin::Make(_) => Ok(tmc_zip::zip(
+        PluginType::Make => Ok(tmc_zip::zip(
             <MakePlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
-        Plugin::Maven(_) => Ok(tmc_zip::zip(
+        PluginType::Maven => Ok(tmc_zip::zip(
             <MavenPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
-        Plugin::NoTests(_) => Ok(tmc_zip::zip(
+        PluginType::NoTests => Ok(tmc_zip::zip(
             <NoTestsPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
-        Plugin::Python3(_) => Ok(tmc_zip::zip(
+        PluginType::Python3 => Ok(tmc_zip::zip(
             <Python3Plugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
-        Plugin::R(_) => Ok(tmc_zip::zip(
+        PluginType::R => Ok(tmc_zip::zip(
             <RPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
-        Plugin::Ant(_) => Ok(tmc_zip::zip(
+        PluginType::Ant => Ok(tmc_zip::zip(
             <AntPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
@@ -108,52 +107,59 @@ pub enum Plugin {
     Ant(AntPlugin),
 }
 
-// Get language plugin for the given path.
-pub fn get_language_plugin(path: &Path) -> Result<Plugin, PluginError> {
-    if NoTestsPlugin::is_exercise_type_correct(path) {
+pub enum PluginType {
+    CSharp,
+    Make,
+    Maven,
+    NoTests,
+    Python3,
+    R,
+    Ant,
+}
+
+pub fn get_language_plugin_type(path: &Path) -> Result<PluginType, PluginError> {
+    let plugin_type = if NoTestsPlugin::is_exercise_type_correct(path) {
         log::info!(
             "Detected project at {} as {}",
             path.display(),
             NoTestsPlugin::PLUGIN_NAME
         );
-        Ok(Plugin::NoTests(NoTestsPlugin::new()))
+        PluginType::NoTests
     } else if CSharpPlugin::is_exercise_type_correct(path) {
-        let csharp = CSharpPlugin::new();
         log::info!(
             "Detected project at {} as {}",
             path.display(),
             CSharpPlugin::PLUGIN_NAME
         );
-        Ok(Plugin::CSharp(csharp))
+        PluginType::CSharp
     } else if MakePlugin::is_exercise_type_correct(path) {
-        let make = MakePlugin::new();
         log::info!(
             "Detected project at {} as {}",
             path.display(),
             MakePlugin::PLUGIN_NAME
         );
-        Ok(Plugin::Make(make))
+        PluginType::Make
     } else if Python3Plugin::is_exercise_type_correct(path) {
         log::info!(
             "Detected project at {} as {}",
             path.display(),
             Python3Plugin::PLUGIN_NAME
         );
-        Ok(Plugin::Python3(Python3Plugin::new()))
+        PluginType::Python3
     } else if RPlugin::is_exercise_type_correct(path) {
         log::info!(
             "Detected project at {} as {}",
             path.display(),
             RPlugin::PLUGIN_NAME
         );
-        Ok(Plugin::R(RPlugin::new()))
+        PluginType::R
     } else if MavenPlugin::is_exercise_type_correct(path) {
         log::info!(
             "Detected project at {} as {}",
             path.display(),
             MavenPlugin::PLUGIN_NAME
         );
-        Ok(Plugin::Maven(MavenPlugin::new()?))
+        PluginType::Maven
     } else if AntPlugin::is_exercise_type_correct(path) {
         // TODO: currently, ant needs to be last because any project with src and test are recognized as ant
         log::info!(
@@ -161,8 +167,23 @@ pub fn get_language_plugin(path: &Path) -> Result<Plugin, PluginError> {
             path.display(),
             AntPlugin::PLUGIN_NAME
         );
-        Ok(Plugin::Ant(AntPlugin::new()?))
+        PluginType::Ant
     } else {
-        Err(PluginError::PluginNotFound(path.to_path_buf()))
-    }
+        return Err(PluginError::PluginNotFound(path.to_path_buf()));
+    };
+    Ok(plugin_type)
+}
+
+// Get language plugin for the given path.
+pub fn get_language_plugin(path: &Path) -> Result<Plugin, PluginError> {
+    let plugin = match get_language_plugin_type(path)? {
+        PluginType::NoTests => Plugin::NoTests(NoTestsPlugin::new()),
+        PluginType::CSharp => Plugin::CSharp(CSharpPlugin::new()),
+        PluginType::Make => Plugin::Make(MakePlugin::new()),
+        PluginType::Python3 => Plugin::Python3(Python3Plugin::new()),
+        PluginType::R => Plugin::R(RPlugin::new()),
+        PluginType::Maven => Plugin::Maven(MavenPlugin::new()?),
+        PluginType::Ant => Plugin::Ant(AntPlugin::new()?),
+    };
+    Ok(plugin)
 }
