@@ -338,26 +338,45 @@ impl LanguagePlugin for MakePlugin {
     }
 
     fn points_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
-        combinator::map(
+        fn tmc_register_test_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
             sequence::delimited(
                 sequence::tuple((
                     bytes::complete::tag("tmc_register_test"),
                     character::complete::multispace0,
                     character::complete::char('('),
-                    bytes::complete::is_not("\""),
+                    character::complete::multispace0,
+                    arg_parser,
+                    arg_parser,
                 )),
-                sequence::delimited(
-                    character::complete::char('"'),
-                    bytes::complete::is_not("\""),
-                    character::complete::char('"'),
-                ),
+                string_parser,
                 sequence::tuple((
                     character::complete::multispace0,
                     character::complete::char(')'),
                 )),
-            ),
-            str::trim,
-        )(i)
+            )(i)
+        }
+
+        // todo: currently cannot handle function calls with multiple parameters, probably not a problem
+        fn arg_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
+            combinator::value(
+                "",
+                sequence::tuple((
+                    bytes::complete::take_till(|c: char| c.is_whitespace() || c == ','),
+                    character::complete::char(','),
+                    character::complete::multispace0,
+                )),
+            )(i)
+        }
+
+        fn string_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
+            sequence::delimited(
+                character::complete::char('"'),
+                bytes::complete::is_not("\""),
+                character::complete::char('"'),
+            )(i)
+        }
+
+        tmc_register_test_parser(i)
     }
 }
 
@@ -597,5 +616,22 @@ test [invalid] point6
             .1,
             "dlink_insert"
         );
+    }
+
+    #[test]
+    fn does_not_parse_check_function() {
+        assert!(MakePlugin::points_parser(
+            r#"tmc_register_test(Suite *s, TFun tf, const char *fname, const char *points)
+{
+    // stuff
+}
+
+int tmc_run_tests(int argc, const char **argv, Suite *s)
+{
+    func("--print-available-points")
+}
+"#
+        )
+        .is_err())
     }
 }
