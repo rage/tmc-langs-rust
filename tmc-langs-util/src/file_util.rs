@@ -112,7 +112,7 @@ pub fn create_file<P: AsRef<Path>>(path: P) -> Result<File, FileError> {
     File::create(path).map_err(|e| FileError::FileCreate(path.to_path_buf(), e))
 }
 
-/// Creates a file and immediately locks it. If a file already exists at the path, it acquires a lock on it first and then recreates it.
+/// Creates a file and wraps it in a lock. If a file already exists at the path, it acquires a lock on it first and then recreates it.
 /// Note: creates all intermediary directories if needed.
 pub fn create_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLockWrapper, FileError> {
     log::debug!("locking file {}", path.as_ref().display());
