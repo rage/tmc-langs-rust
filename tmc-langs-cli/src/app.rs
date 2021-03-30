@@ -68,6 +68,7 @@ pub fn create_app() -> App<'static, 'static> {
 
         .subcommand(create_core_app()) // "core"
 
+        /*
         .subcommand(
             SubCommand::with_name("disk-space")
                 .about("Returns the amount of free disk space in megabytes left on the partition that contains the given path")
@@ -77,6 +78,7 @@ pub fn create_app() -> App<'static, 'static> {
                     .required(true)
                     .takes_value(true))
         )
+        */
 
         .subcommand(SubCommand::with_name("extract-project")
             .about("Extracts an exercise from a ZIP archive. If the output-path is a project root, the plugin's student file policy will be used to avoid overwriting student files")
@@ -775,7 +777,7 @@ mod base_test {
         ]);
     }
 
-    #[test]
+    // #[test]
     fn disk_space() {
         get_matches(&["disk-space", "--path", "path"]);
     }

@@ -55,7 +55,7 @@ pub enum Data {
     },
     Validation(StyleValidationResult),
     /// megabytes
-    FreeDiskSpace(u64),
+    // FreeDiskSpace(u64),
     AvailablePoints(Vec<String>),
     Exercises(Vec<PathBuf>),
     ExercisePackagingConfiguration(ExercisePackagingConfiguration),

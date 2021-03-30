@@ -282,6 +282,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
                 }
             }
         }
+        /*
         ("disk-space", Some(matches)) => {
             let path = matches.value_of("path").unwrap();
             let path = Path::new(path);
@@ -297,6 +298,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
             );
             print_output(&output, pretty)?
         }
+        */
         ("extract-project", Some(matches)) => {
             let archive_path = matches.value_of("archive-path").unwrap();
             let archive_path = Path::new(archive_path);

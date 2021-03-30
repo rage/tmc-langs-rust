@@ -83,8 +83,8 @@ pub enum LangsError {
     Plugin(#[from] tmc_langs_plugins::PluginError),
     #[error(transparent)]
     FileError(#[from] tmc_langs_util::FileError),
-    #[error(transparent)]
-    Heim(#[from] heim::Error),
+    // #[error(transparent)]
+    // Heim(#[from] heim::Error),
     #[error(transparent)]
     WalkDir(#[from] walkdir::Error),
     #[error(transparent)]
