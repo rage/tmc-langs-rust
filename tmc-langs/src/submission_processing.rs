@@ -400,7 +400,7 @@ extra_student_files:
             .as_bytes(),
         )
         .unwrap();
-        let conf = TmcProjectYml::from(&temp.path()).unwrap();
+        let conf = TmcProjectYml::load_or_default(&temp.path()).unwrap();
         assert!(conf.extra_student_files[0] == PathBuf::from("test/StudentTest.java"));
         assert!(conf.extra_student_files[1] == PathBuf::from("test/OtherTest.java"));
     }

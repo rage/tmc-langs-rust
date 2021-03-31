@@ -275,7 +275,7 @@ pub fn download_or_update_course_exercises(
                             extract_project(&zip_file, &target.path, false)?;
 
                             let plugin = get_language_plugin(&target.path)?;
-                            let tmc_project_yml = TmcProjectYml::from(&target.path)?;
+                            let tmc_project_yml = TmcProjectYml::load_or_default(&target.path)?;
                             let config =
                                 plugin.get_exercise_packaging_configuration(tmc_project_yml)?;
                             for student_file in config.student_file_paths {
@@ -748,7 +748,7 @@ pub fn get_exercise_packaging_configuration(
 ) -> Result<ExercisePackagingConfiguration, LangsError> {
     log::debug!("getting exercise packaging config for {}", path.display());
 
-    let config = TmcProjectYml::from(path)?;
+    let config = TmcProjectYml::load_or_default(path)?;
     Ok(tmc_langs_plugins::get_language_plugin(path)?
         .get_exercise_packaging_configuration(config)?)
 }

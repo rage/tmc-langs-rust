@@ -129,7 +129,7 @@ pub fn prepare_submission(
             }
 
             // copy files from config
-            let config = TmcProjectYml::from(clone_path)?;
+            let config = TmcProjectYml::load_or_default(clone_path)?;
             let config = plugin.get_exercise_packaging_configuration(config)?;
             for path in config.student_file_paths {
                 let student_file = project_root.join(&path);
@@ -199,7 +199,7 @@ pub fn prepare_submission(
 
             // copy files from config
             log::debug!("copying files according to packaging config");
-            let config = TmcProjectYml::from(clone_path)?;
+            let config = TmcProjectYml::load_or_default(clone_path)?;
             let config = plugin.get_exercise_packaging_configuration(config)?;
             for path in config.student_file_paths {
                 let student_file = project_root.join(&path);
@@ -229,7 +229,7 @@ pub fn prepare_submission(
     // copy extra student files
     // todo: necessary?
     log::debug!("copying extra student files");
-    let tmc_project_yml = TmcProjectYml::from(clone_path)?;
+    let tmc_project_yml = TmcProjectYml::load_or_default(clone_path)?;
     for extra_student_file in tmc_project_yml.extra_student_files {
         // todo secure path
         let source = project_root.join(&extra_student_file);

@@ -409,7 +409,7 @@ pub trait LanguagePlugin {
 
     /// Parses exercise files using Self::LINE_COMMENT and Self::BLOCK_COMMENt to filter out comments and Self::points_parser to parse points from the actual code.
     fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, TmcError> {
-        let config = TmcProjectYml::from(exercise_path)?;
+        let config = TmcProjectYml::load_or_default(exercise_path)?;
         let config = Self::get_exercise_packaging_configuration(config)?;
 
         let mut points = Vec::new();
