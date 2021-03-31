@@ -22,7 +22,9 @@ pub enum MetaString {
     String(String),
     Stub(String),
     Solution(String),
+    Hidden(String),
     SolutionFileMarker,
+    HiddenFileMarker,
 }
 
 /// Contains the needed regexes for a given comment syntax.
@@ -33,6 +35,9 @@ struct MetaSyntax {
     solution_end: Regex,
     stub_begin: Regex,
     stub_end: Regex,
+    hidden_file: Regex,
+    hidden_begin: Regex,
+    hidden_end: Regex,
 }
 
 impl MetaSyntax {
@@ -63,6 +68,21 @@ impl MetaSyntax {
         let stub_begin =
             Regex::new(&format!(r"{}STUB:[\s&&[^\n]]*", comment_start_pattern)).unwrap();
         let stub_end = Regex::new(&comment_end_pattern).unwrap();
+        let hidden_file = Regex::new(&format!(
+            r"{}HIDDEN\s+FILE{}",
+            comment_start_pattern, comment_end_pattern
+        ))
+        .unwrap();
+        let hidden_begin = Regex::new(&format!(
+            r"{}BEGIN\s+HIDDEN{}",
+            comment_start_pattern, comment_end_pattern
+        ))
+        .unwrap();
+        let hidden_end = Regex::new(&format!(
+            r"{}END\s+HIDDEN{}",
+            comment_start_pattern, comment_end_pattern
+        ))
+        .unwrap();
 
         Self {
             solution_file,
@@ -70,6 +90,9 @@ impl MetaSyntax {
             solution_end,
             stub_begin,
             stub_end,
+            hidden_file,
+            hidden_begin,
+            hidden_end,
         }
     }
 }
@@ -83,6 +106,7 @@ pub struct MetaSyntaxParser<B: BufRead> {
     // used to make sure only the appropriate terminator ends the block
     in_stub: Option<&'static MetaSyntax>,
     in_solution: bool,
+    in_hidden: bool,
 }
 
 impl<R: Read> MetaSyntaxParser<BufReader<R>> {
@@ -101,6 +125,7 @@ impl<R: Read> MetaSyntaxParser<BufReader<R>> {
             reader,
             in_stub: None,
             in_solution: false,
+            in_hidden: false,
         }
     }
 }
@@ -172,6 +197,15 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                     } else if meta_syntax.solution_end.is_match(&s) && self.in_solution {
                         self.in_solution = false;
                         return self.next();
+                    } else if meta_syntax.hidden_file.is_match(&s) {
+                        log::trace!("hidden file marker");
+                        return Some(Ok(MetaString::HiddenFileMarker));
+                    } else if meta_syntax.hidden_begin.is_match(&s) {
+                        self.in_hidden = true;
+                        return self.next();
+                    } else if meta_syntax.hidden_end.is_match(&s) {
+                        self.in_hidden = false;
+                        return self.next();
                     }
                 }
                 // after processing the line with each meta syntax,
@@ -182,6 +216,9 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                 } else if self.in_stub.is_some() {
                     log::trace!("stub: '{}'", s);
                     Some(Ok(MetaString::Stub(s)))
+                } else if self.in_hidden {
+                    log::trace!("hidden: '{}'", s);
+                    Some(Ok(MetaString::Hidden(s)))
                 } else {
                     log::trace!("string: '{}'", s);
                     Some(Ok(MetaString::String(s)))
