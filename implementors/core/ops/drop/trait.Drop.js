@@ -15,7 +15,6 @@ implementors["fd_lock"] = [{"text":"impl&lt;T:&nbsp;AsRawFd&gt; Drop for FdLockG
 implementors["flate2"] = [{"text":"impl&lt;W:&nbsp;Write&gt; Drop for GzEncoder&lt;W&gt;","synthetic":false,"types":[]}];
 implementors["futures_channel"] = [{"text":"impl&lt;T&gt; Drop for Receiver&lt;T&gt;","synthetic":false,"types":[]},{"text":"impl&lt;T&gt; Drop for UnboundedReceiver&lt;T&gt;","synthetic":false,"types":[]},{"text":"impl&lt;T&gt; Drop for Sender&lt;T&gt;","synthetic":false,"types":[]},{"text":"impl&lt;T&gt; Drop for Receiver&lt;T&gt;","synthetic":false,"types":[]}];
 implementors["futures_task"] = [{"text":"impl&lt;T&gt; Drop for LocalFutureObj&lt;'_, T&gt;","synthetic":false,"types":[]}];
-implementors["futures_timer"] = [{"text":"impl Drop for Delay","synthetic":false,"types":[]}];
 implementors["futures_util"] = [{"text":"impl&lt;Fut&gt; Drop for Shared&lt;Fut&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Fut: Future,&nbsp;</span>","synthetic":false,"types":[]},{"text":"impl&lt;Fut&gt; Drop for FuturesUnordered&lt;Fut&gt;","synthetic":false,"types":[]},{"text":"impl&lt;T:&nbsp;?Sized&gt; Drop for MutexLockFuture&lt;'_, T&gt;","synthetic":false,"types":[]},{"text":"impl&lt;T:&nbsp;?Sized&gt; Drop for MutexGuard&lt;'_, T&gt;","synthetic":false,"types":[]},{"text":"impl&lt;T:&nbsp;?Sized, U:&nbsp;?Sized&gt; Drop for MappedMutexGuard&lt;'_, T, U&gt;","synthetic":false,"types":[]}];
 implementors["generic_array"] = [{"text":"impl&lt;T, N&gt; Drop for GenericArrayIter&lt;T, N&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;N: ArrayLength&lt;T&gt;,&nbsp;</span>","synthetic":false,"types":[]}];
 implementors["h2"] = [{"text":"impl Drop for RecvStream","synthetic":false,"types":[]}];
@@ -26,6 +25,7 @@ implementors["libloading"] = [{"text":"impl Drop for Library","synthetic":false,
 implementors["linked_hash_map"] = [{"text":"impl&lt;K, V, S&gt; Drop for LinkedHashMap&lt;K, V, S&gt;","synthetic":false,"types":[]},{"text":"impl&lt;K, V&gt; Drop for IntoIter&lt;K, V&gt;","synthetic":false,"types":[]}];
 implementors["mio"] = [{"text":"impl Drop for TcpSocket","synthetic":false,"types":[]}];
 implementors["nix"] = [{"text":"impl Drop for Dir","synthetic":false,"types":[]},{"text":"impl&lt;'d&gt; Drop for Iter&lt;'d&gt;","synthetic":false,"types":[]},{"text":"impl Drop for InterfaceAddressIterator","synthetic":false,"types":[]},{"text":"impl Drop for PtyMaster","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; Drop for AioCb&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl Drop for SignalFd","synthetic":false,"types":[]}];
+implementors["once_cell"] = [{"text":"impl&lt;T&gt; Drop for OnceBox&lt;T&gt;","synthetic":false,"types":[]}];
 implementors["regex_syntax"] = [{"text":"impl Drop for Ast","synthetic":false,"types":[]},{"text":"impl Drop for ClassSet","synthetic":false,"types":[]},{"text":"impl Drop for Hir","synthetic":false,"types":[]}];
 implementors["serde_derive_internals"] = [{"text":"impl Drop for Ctxt","synthetic":false,"types":[]}];
 implementors["socket2"] = [{"text":"impl Drop for Socket","synthetic":false,"types":[]}];

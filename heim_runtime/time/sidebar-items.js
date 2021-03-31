@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["interval",""]],"struct":[["Interval","Naive interval stream implementation."]]});

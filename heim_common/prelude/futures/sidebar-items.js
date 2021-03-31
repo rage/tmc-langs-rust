@@ -1,1 +1,0 @@
-initSidebarItems({"macro":[["ready","Extracts the successful type of a `Poll<T>`."]],"mod":[["future","Asynchronous values."],["stream","Asynchronous streams."],["task","Tools for working with tasks."]]});

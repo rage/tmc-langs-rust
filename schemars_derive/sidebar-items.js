@@ -1,1 +1,1 @@
-initSidebarItems({"derive":[["JsonSchema",""]]});
+initSidebarItems({"derive":[["JsonSchema",""],["JsonSchema_repr",""]]});

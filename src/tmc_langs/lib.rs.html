@@ -884,6 +884,8 @@
 <span id="881">881</span>
 <span id="882">882</span>
 <span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The main tmc-langs library. Provides a convenient API to all of the functionality provided by the tmc-langs project.</span>
 
@@ -924,7 +926,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">config</span>::<span class="ident">ProjectsConfig</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">data</span>::<span class="ident">DownloadTarget</span>;
-<span class="kw">use</span> <span class="ident">heim</span>::<span class="ident">disk</span>;
+<span class="comment">// use heim::disk;</span>
 <span class="kw">use</span> <span class="ident">oauth2</span>::{
     <span class="ident">basic</span>::<span class="ident">BasicTokenType</span>, <span class="ident">AccessToken</span>, <span class="ident">EmptyExtraTokenFields</span>, <span class="ident">Scope</span>, <span class="ident">StandardTokenResponse</span>,
 };
@@ -936,7 +938,7 @@
 };
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">ffi</span>::<span class="ident">OsStr</span>};
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{<span class="ident">NothingIsStudentFilePolicy</span>, <span class="ident">StudentFilePolicy</span>, <span class="ident">TmcError</span>, <span class="ident">TmcProjectYml</span>};
-<span class="kw">use</span> <span class="ident">tmc_langs_plugins</span>::{<span class="ident">get_language_plugin</span>, <span class="ident">tmc_zip</span>, <span class="ident">AntPlugin</span>, <span class="ident">Plugin</span>};
+<span class="kw">use</span> <span class="ident">tmc_langs_plugins</span>::{<span class="ident">get_language_plugin</span>, <span class="ident">tmc_zip</span>, <span class="ident">AntPlugin</span>, <span class="ident">PluginType</span>};
 <span class="kw">use</span> <span class="ident">tmc_langs_util</span>::<span class="ident">progress_reporter</span>;
 <span class="kw">use</span> <span class="ident">toml</span>::{<span class="ident">map</span>::<span class="ident">Map</span> <span class="kw">as</span> <span class="ident">TomlMap</span>, <span class="ident">Value</span> <span class="kw">as</span> <span class="ident">TomlValue</span>};
 <span class="kw">use</span> <span class="ident">url</span>::<span class="ident">Url</span>;
@@ -1553,15 +1555,17 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// Checks how many megabytes are available on the disk containing the target path.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">free_disk_space_megabytes</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">LangsError</span><span class="op">&gt;</span> {
-    <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;checking disk usage in {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>());
+<span class="comment">/*
+/// Checks how many megabytes are available on the disk containing the target path.
+pub fn free_disk_space_megabytes(path: &amp;Path) -&gt; Result&lt;u64, LangsError&gt; {
+    log::debug!(&quot;checking disk usage in {}&quot;, path.display());
 
-    <span class="kw">let</span> <span class="ident">usage</span> <span class="op">=</span> <span class="ident">smol</span>::<span class="ident">block_on</span>(<span class="ident">disk</span>::<span class="ident">usage</span>(<span class="ident">path</span>))<span class="question-mark">?</span>
-        .<span class="ident">free</span>()
-        .<span class="ident">get</span>::<span class="op">&lt;</span><span class="ident">heim</span>::<span class="ident">units</span>::<span class="ident">information</span>::<span class="ident">megabyte</span><span class="op">&gt;</span>();
-    <span class="prelude-val">Ok</span>(<span class="ident">usage</span>)
+    let usage = smol::block_on(disk::usage(path))?
+        .free()
+        .get::&lt;heim::units::information::megabyte&gt;();
+    Ok(usage)
 }
+*/</span>
 
 <span class="doccomment">/// Extracts the compressed project to the target location.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extract_project</span>(
@@ -1639,7 +1643,7 @@
     <span class="ident">submission_processing</span>::<span class="ident">prepare_stub</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>, <span class="ident">dest_path</span>)<span class="question-mark">?</span>;
 
     <span class="comment">// The Ant plugin needs some additional files to be copied over.</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Plugin</span>::<span class="ident">Ant</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">tmc_langs_plugins</span>::<span class="ident">get_language_plugin</span>(<span class="ident">exercise_path</span>)<span class="question-mark">?</span> {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PluginType</span>::<span class="ident">Ant</span> <span class="op">=</span> <span class="ident">tmc_langs_plugins</span>::<span class="ident">get_language_plugin_type</span>(<span class="ident">exercise_path</span>)<span class="question-mark">?</span> {
         <span class="ident">AntPlugin</span>::<span class="ident">copy_tmc_junit_runner</span>(<span class="ident">dest_path</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">TmcError</span>::<span class="ident">Plugin</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">e</span>)))<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
