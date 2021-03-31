@@ -106,7 +106,7 @@ impl Python3Plugin {
         timeout: Option<Duration>,
         stdin: Option<String>,
     ) -> Result<Output, PythonError> {
-        let minimum_python_version = TmcProjectYml::from(path)?
+        let minimum_python_version = TmcProjectYml::load_or_default(path)?
             .minimum_python_version
             .unwrap_or_default();
         // default minimum version is 3.0.0

@@ -21,7 +21,7 @@ pub trait StudentFilePolicy {
     where
         Self: Sized,
     {
-        let project_config = TmcProjectYml::from(project_dir)?;
+        let project_config = TmcProjectYml::load_or_default(project_dir)?;
         Ok(Self::new_with_project_config(project_config))
     }
 

@@ -780,10 +780,12 @@ mod base_test {
         ]);
     }
 
-    // #[test]
+    /*
+    #[test]
     fn disk_space() {
         get_matches(&["disk-space", "--path", "path"]);
     }
+    */
 
     #[test]
     fn extract_project() {

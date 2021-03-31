@@ -27,12 +27,14 @@ pub struct RefreshData {
 
 /// An exercise from a finished course refresh.
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct RefreshExercise {
     name: String,
     checksum: String,
     points: Vec<String>,
     #[serde(skip)]
     path: PathBuf,
+    tmcproject_yml: Option<TmcProjectYml>,
 }
 
 /// Used by tmc-server. Refreshes the course.
@@ -86,15 +88,15 @@ pub fn refresh_course(
         .map(|ed| ed.strip_prefix(&new_clone_path).unwrap().to_path_buf()) // safe
         .collect::<Vec<_>>();
 
-    // merge the root config with each exercise's, if any
-    if let Ok(root_tmcproject) = TmcProjectYml::from(&course_cache_path) {
-        merge_tmcproject_configs(root_tmcproject, &exercise_dirs)?;
-    }
+    // collect .tmcproject.ymls and merge the root config with each exercise's, if any
+    let root_tmcproject_yml = TmcProjectYml::load(&course_cache_path)?;
+    let exercise_dirs_and_tmcprojects =
+        get_and_merge_tmcproject_configs(root_tmcproject_yml, &new_clone_path, exercise_dirs)?;
     progress_stage("Merged .tmcproject.yml files in exercise directories to the root file, if any");
 
     // make_solutions
     log::info!("preparing solutions to {}", new_solution_path.display());
-    for exercise in &exercise_dirs {
+    for (exercise, _) in &exercise_dirs_and_tmcprojects {
         super::prepare_solution(
             &new_clone_path.join(&exercise),
             &new_solution_path.join(&exercise),
@@ -104,7 +106,7 @@ pub fn refresh_course(
 
     // make_stubs
     log::info!("preparing stubs to {}", new_stub_path.display());
-    for exercise in &exercise_dirs {
+    for (exercise, _) in &exercise_dirs_and_tmcprojects {
         super::prepare_stub(
             &new_clone_path.join(&exercise),
             &new_stub_path.join(&exercise),
@@ -112,7 +114,11 @@ pub fn refresh_course(
     }
     progress_stage("Prepared stubs");
 
-    let exercises = get_exercises(exercise_dirs, &new_clone_path, &new_stub_path)?;
+    let exercises = get_exercises(
+        exercise_dirs_and_tmcprojects,
+        &new_clone_path,
+        &new_stub_path,
+    )?;
     progress_stage("Located exercises");
 
     // make_zips_of_solutions
@@ -221,17 +227,30 @@ fn check_directory_names(path: &Path) -> Result<(), LangsError> {
     Ok(())
 }
 
-fn merge_tmcproject_configs(
-    root_tmcproject: TmcProjectYml,
-    exercise_dirs: &[PathBuf],
-) -> Result<(), LangsError> {
+fn get_and_merge_tmcproject_configs(
+    root_tmcproject: Option<TmcProjectYml>,
+    clone_path: &Path,
+    exercise_dirs: Vec<PathBuf>,
+) -> Result<Vec<(PathBuf, Option<TmcProjectYml>)>, LangsError> {
+    let mut res = vec![];
     for exercise_dir in exercise_dirs {
-        if let Ok(mut exercise_tmcproject) = TmcProjectYml::from(exercise_dir) {
-            exercise_tmcproject.merge(root_tmcproject.clone());
-            exercise_tmcproject.save_to_dir(exercise_dir)?;
+        let target_dir = clone_path.join(&exercise_dir);
+        let exercise_tmcproject = TmcProjectYml::load(&target_dir)?;
+        match (&root_tmcproject, exercise_tmcproject) {
+            (Some(root), Some(mut exercise)) => {
+                exercise.merge(root.clone());
+                exercise.save_to_dir(&target_dir)?;
+                res.push((exercise_dir, Some(exercise)));
+            }
+            (Some(root), None) => {
+                root.save_to_dir(&target_dir)?;
+                res.push((exercise_dir, Some(root.clone())));
+            }
+            (None, Some(exercise)) => res.push((exercise_dir, Some(exercise))),
+            (None, None) => res.push((exercise_dir, None)),
         }
     }
-    Ok(())
+    Ok(res)
 }
 
 /// Checks for a course_clone_path/course_options.yml
@@ -257,15 +276,15 @@ fn get_course_options(course_clone_path: &Path, course_name: &str) -> Result<Map
 /// Finds exercise directories, and converts the directories to "exercise names" by swapping the separators for dashes.
 /// Also calculates checksums and fetches points for all
 fn get_exercises(
-    exercise_dirs: Vec<PathBuf>,
+    exercise_dirs_and_tmcprojects: Vec<(PathBuf, Option<TmcProjectYml>)>,
     course_clone_path: &Path,
     course_stub_path: &Path,
 ) -> Result<Vec<RefreshExercise>, LangsError> {
     log::info!("finding exercise checksums and points");
 
-    let exercises = exercise_dirs
+    let exercises = exercise_dirs_and_tmcprojects
         .into_iter()
-        .map(|exercise_dir| {
+        .map(|(exercise_dir, tmcproject_yml)| {
             log::debug!(
                 "processing points and checksum for {}",
                 exercise_dir.display()
@@ -280,6 +299,7 @@ fn get_exercises(
                 points,
                 checksum,
                 path: exercise_dir,
+                tmcproject_yml,
             })
         })
         .collect::<Result<_, LangsError>>()?;
@@ -475,9 +495,12 @@ mod test {
             .unwrap()
             .into_iter()
             .map(|ed| {
-                ed.strip_prefix(&temp.path().join("course"))
-                    .unwrap()
-                    .to_path_buf()
+                (
+                    ed.strip_prefix(&temp.path().join("course"))
+                        .unwrap()
+                        .to_path_buf(),
+                    None,
+                )
             })
             .collect();
         let exercises = get_exercises(
@@ -516,9 +539,12 @@ mod test {
             .unwrap()
             .into_iter()
             .map(|ed| {
-                ed.strip_prefix(&temp.path().join("clone"))
-                    .unwrap()
-                    .to_path_buf()
+                (
+                    ed.strip_prefix(&temp.path().join("clone"))
+                        .unwrap()
+                        .to_path_buf(),
+                    None,
+                )
             })
             .collect();
         let exercises = get_exercises(
@@ -604,10 +630,12 @@ mod test {
         init();
 
         let temp = tempfile::tempdir().unwrap();
-        let exap = temp.path().join("exa");
-        file_util::create_dir(&exap).unwrap();
-        let exbp = temp.path().join("exb");
-        file_util::create_dir(&exbp).unwrap();
+        let exap = PathBuf::from("exa");
+        let exap_path = temp.path().join(&exap);
+        file_util::create_dir(&exap_path).unwrap();
+        let exbp = PathBuf::from("exb");
+        let exbp_path = temp.path().join(&exbp);
+        file_util::create_dir(&exbp_path).unwrap();
 
         let root = TmcProjectYml {
             tests_timeout_ms: Some(1234),
@@ -618,21 +646,21 @@ mod test {
             tests_timeout_ms: Some(2345),
             ..Default::default()
         };
-        tpya.save_to_dir(&exap).unwrap();
+        tpya.save_to_dir(&exap_path).unwrap();
         let tpyb = TmcProjectYml {
             fail_on_valgrind_error: Some(false),
             ..Default::default()
         };
-        tpyb.save_to_dir(&exbp).unwrap();
-        let exercise_dirs = &[exap.clone(), exbp.clone()];
+        tpyb.save_to_dir(&exbp_path).unwrap();
+        let exercise_dirs = vec![exap.clone(), exbp.clone()];
 
-        merge_tmcproject_configs(root, exercise_dirs).unwrap();
+        get_and_merge_tmcproject_configs(Some(root), temp.path(), exercise_dirs).unwrap();
 
-        let tpya = TmcProjectYml::from(&exap).unwrap();
+        let tpya = TmcProjectYml::load(&exap_path).unwrap().unwrap();
         assert_eq!(tpya.tests_timeout_ms, Some(2345));
         assert_eq!(tpya.fail_on_valgrind_error, Some(true));
 
-        let tpyb = TmcProjectYml::from(&exbp).unwrap();
+        let tpyb = TmcProjectYml::load(&exbp_path).unwrap().unwrap();
         assert_eq!(tpyb.tests_timeout_ms, Some(1234));
         assert_eq!(tpyb.fail_on_valgrind_error, Some(false));
     }

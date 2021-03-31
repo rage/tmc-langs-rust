@@ -211,7 +211,7 @@ impl LanguagePlugin for MakePlugin {
         let base_test_path = path.join("test");
 
         // fails on valgrind by default
-        let fail_on_valgrind_error = match TmcProjectYml::from(&path) {
+        let fail_on_valgrind_error = match TmcProjectYml::load_or_default(&path) {
             Ok(parsed) => parsed.fail_on_valgrind_error.unwrap_or(true),
             Err(_) => true,
         };

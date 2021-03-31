@@ -15,25 +15,32 @@ use tmc_langs_util::{file_util, FileError};
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct TmcProjectYml {
     #[serde(default)]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub extra_student_files: Vec<PathBuf>,
 
     #[serde(default)]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub extra_exercise_files: Vec<PathBuf>,
 
     #[serde(default)]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub force_update: Vec<PathBuf>,
 
     #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tests_timeout_ms: Option<u64>,
 
     #[serde(default)]
     #[serde(rename = "no-tests")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub no_tests: Option<NoTests>,
 
     #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub fail_on_valgrind_error: Option<bool>,
 
     #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub minimum_python_version: Option<PythonVer>,
 }
 
@@ -42,18 +49,28 @@ impl TmcProjectYml {
         dir.join(".tmcproject.yml")
     }
 
-    pub fn from(project_dir: &Path) -> Result<Self, TmcError> {
-        let config_path = Self::path_in_dir(project_dir);
+    /// Tries to load a
+    pub fn load_or_default(project_dir: &Path) -> Result<Self, TmcError> {
+        if let Some(config) = Self::load(project_dir)? {
+            Ok(config)
+        } else {
+            Ok(Self::default())
+        }
+    }
+
+    pub fn load(project_dir: &Path) -> Result<Option<Self>, TmcError> {
+        let mut config_path = project_dir.to_owned();
+        config_path.push(".tmcproject.yml");
 
         if !config_path.exists() {
             log::trace!("no config found at {}", config_path.display());
-            return Ok(Self::default());
+            return Ok(None);
         }
         log::debug!("reading .tmcproject.yml from {}", config_path.display());
         let file = file_util::open_file(&config_path)?;
         let config = serde_yaml::from_reader(file)?;
         log::trace!("read {:#?}", config);
-        Ok(config)
+        Ok(Some(config))
     }
 
     /// Merges the contents of `with` with `self`.
@@ -286,7 +303,7 @@ mod test {
         tpy.save_to_dir(temp.path()).unwrap();
 
         assert!(path.exists());
-        let tpy = TmcProjectYml::from(temp.path()).unwrap();
+        let tpy = TmcProjectYml::load(temp.path()).unwrap().unwrap();
         assert_eq!(tpy.tests_timeout_ms, Some(1234));
     }
 }
