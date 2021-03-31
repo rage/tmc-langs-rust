@@ -144,6 +144,16 @@ pub fn write_to_file<S: AsRef<[u8]>, P: AsRef<Path>>(
     Ok(target_file)
 }
 
+pub fn write_to_writer<S: AsRef<[u8]>, W: Write>(
+    source: S,
+    mut target: W,
+) -> Result<(), FileError> {
+    target
+        .write_all(source.as_ref())
+        .map_err(|e| FileError::WriteError(e))?;
+    Ok(())
+}
+
 /// Reads all of the data from source and writes it into a new file at target.
 pub fn read_to_file<R: Read, P: AsRef<Path>>(source: &mut R, target: P) -> Result<File, FileError> {
     let target = target.as_ref();

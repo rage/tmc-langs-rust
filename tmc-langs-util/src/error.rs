@@ -41,6 +41,8 @@ pub enum FileError {
     NoFileName(PathBuf),
     #[error("Expected {0} to be a directory, but it was a file")]
     UnexpectedFile(PathBuf),
+    #[error("Failed to write data")]
+    WriteError(#[source] std::io::Error),
 
     // lock errors
     #[error("Failed to lock file at path {0}")]

@@ -13,11 +13,11 @@ use self::output::{
 use anyhow::{Context, Result};
 use clap::{ArgMatches, Error, ErrorKind};
 use serde::Serialize;
-use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
+use std::{collections::HashMap, io::stdin};
 use std::{env, io::Cursor};
 use tmc_langs::{file_util, notification_reporter, CommandError, StyleValidationResult};
 use tmc_langs::{
@@ -356,7 +356,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
                 })?;
 
             if let Some(output_path) = output_path {
-                write_result_to_file_as_json(&exercises, output_path, pretty)?;
+                write_result_to_file_as_json(&exercises, output_path, pretty, None)?;
             }
 
             let output = Output::finished_with_data(
@@ -383,7 +383,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
                 })?;
 
             if let Some(output_path) = output_path {
-                write_result_to_file_as_json(&config, output_path, pretty)?;
+                write_result_to_file_as_json(&config, output_path, pretty, None)?;
             }
 
             let output = Output::finished_with_data(
@@ -568,6 +568,16 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
             let output_path = matches.value_of("output-path");
             let output_path = output_path.map(Path::new);
 
+            let wait_for_secret = matches.is_present("wait-for-secret");
+
+            let secret = if wait_for_secret {
+                let mut s = String::new();
+                stdin().read_line(&mut s)?;
+                Some(s.trim().to_string())
+            } else {
+                None
+            };
+
             file_util::lock!(exercise_path);
 
             let test_result = tmc_langs::run_tests(exercise_path).with_context(|| {
@@ -589,7 +599,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
             };
 
             if let Some(output_path) = output_path {
-                write_result_to_file_as_json(&test_result, output_path, pretty)?;
+                write_result_to_file_as_json(&test_result, output_path, pretty, secret)?;
             }
 
             // todo: checkstyle results in stdout?
@@ -635,7 +645,7 @@ fn run_app(matches: ArgMatches, pretty: bool) -> Result<()> {
                 })?;
 
             if let Some(output_path) = output_path {
-                write_result_to_file_as_json(&scan_result, output_path, pretty)?;
+                write_result_to_file_as_json(&scan_result, output_path, pretty, None)?;
             }
 
             let output = Output::finished_with_data(
@@ -1266,6 +1276,7 @@ fn write_result_to_file_as_json<T: Serialize>(
     result: &T,
     output_path: &Path,
     pretty: bool,
+    secret: Option<String>,
 ) -> Result<()> {
     let mut output_file = file_util::create_file_lock(output_path).with_context(|| {
         format!(
@@ -1275,7 +1286,11 @@ fn write_result_to_file_as_json<T: Serialize>(
     })?;
     let guard = output_file.lock()?;
 
-    if pretty {
+    if let Some(secret) = secret {
+        let token = tmc_langs::sign_with_jwt(result, secret.as_bytes())?;
+        file_util::write_to_writer(token, guard.deref())
+            .with_context(|| format!("Failed to write result to {}", output_path.display()))?;
+    } else if pretty {
         serde_json::to_writer_pretty(guard.deref(), result).with_context(|| {
             format!(
                 "Failed to write result as JSON to {}",
