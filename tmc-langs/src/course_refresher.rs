@@ -7,7 +7,7 @@ use serde_yaml::Mapping;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
-use tmc_langs_framework::TmcCommand;
+use tmc_langs_framework::{TmcCommand, TmcProjectYml};
 use tmc_langs_util::file_util;
 use walkdir::WalkDir;
 
@@ -44,7 +44,7 @@ pub fn refresh_course(
     cache_root: PathBuf,
 ) -> Result<RefreshData, LangsError> {
     log::info!("refreshing course {}", course_name);
-    start_stage(9, "Refreshing course");
+    start_stage(10, "Refreshing course");
 
     // create new cache path
     let old_version = course_cache_path
@@ -84,7 +84,13 @@ pub fn refresh_course(
     let exercise_dirs = super::find_exercise_directories(&new_clone_path)?
         .into_iter()
         .map(|ed| ed.strip_prefix(&new_clone_path).unwrap().to_path_buf()) // safe
-        .collect();
+        .collect::<Vec<_>>();
+
+    // merge the root config with each exercise's, if any
+    if let Ok(root_tmcproject) = TmcProjectYml::from(&course_cache_path) {
+        merge_tmcproject_configs(root_tmcproject, &exercise_dirs)?;
+    }
+    progress_stage("Merged .tmcproject.yml files in exercise directories to the root file, if any");
 
     // make_solutions
     log::info!("preparing solutions to {}", new_solution_path.display());
@@ -210,6 +216,19 @@ fn check_directory_names(path: &Path) -> Result<(), LangsError> {
             .expect("the exercise dirs are all inside the path");
         if relative.to_string_lossy().contains('-') {
             return Err(LangsError::InvalidDirectory(exercise_dir));
+        }
+    }
+    Ok(())
+}
+
+fn merge_tmcproject_configs(
+    root_tmcproject: TmcProjectYml,
+    exercise_dirs: &[PathBuf],
+) -> Result<(), LangsError> {
+    for exercise_dir in exercise_dirs {
+        if let Ok(mut exercise_tmcproject) = TmcProjectYml::from(exercise_dir) {
+            exercise_tmcproject.merge(root_tmcproject.clone());
+            exercise_tmcproject.save_to_dir(exercise_dir)?;
         }
     }
     Ok(())
@@ -578,5 +597,43 @@ mod test {
             calculate_checksum(Path::new("tests/data/course_refresher/valid_exercises/ex1"))
                 .unwrap();
         assert_eq!(checksum, "6cacf02f21f9242674a876954132fb11");
+    }
+
+    #[test]
+    fn merges_tmcproject_configs() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        let exap = temp.path().join("exa");
+        file_util::create_dir(&exap).unwrap();
+        let exbp = temp.path().join("exb");
+        file_util::create_dir(&exbp).unwrap();
+
+        let root = TmcProjectYml {
+            tests_timeout_ms: Some(1234),
+            fail_on_valgrind_error: Some(true),
+            ..Default::default()
+        };
+        let tpya = TmcProjectYml {
+            tests_timeout_ms: Some(2345),
+            ..Default::default()
+        };
+        tpya.save_to_dir(&exap).unwrap();
+        let tpyb = TmcProjectYml {
+            fail_on_valgrind_error: Some(false),
+            ..Default::default()
+        };
+        tpyb.save_to_dir(&exbp).unwrap();
+        let exercise_dirs = &[exap.clone(), exbp.clone()];
+
+        merge_tmcproject_configs(root, exercise_dirs).unwrap();
+
+        let tpya = TmcProjectYml::from(&exap).unwrap();
+        assert_eq!(tpya.tests_timeout_ms, Some(2345));
+        assert_eq!(tpya.fail_on_valgrind_error, Some(true));
+
+        let tpyb = TmcProjectYml::from(&exbp).unwrap();
+        assert_eq!(tpyb.tests_timeout_ms, Some(1234));
+        assert_eq!(tpyb.fail_on_valgrind_error, Some(false));
     }
 }

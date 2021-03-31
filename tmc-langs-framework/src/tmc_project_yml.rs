@@ -3,14 +3,16 @@
 use crate::TmcError;
 use serde::{
     de::{Error, Visitor},
-    Deserialize, Deserializer,
+    Deserialize, Deserializer, Serialize,
 };
 use std::fmt;
+use std::ops::Deref;
 use std::path::{Path, PathBuf};
-use tmc_langs_util::file_util;
+use tmc_langs_util::{file_util, FileError};
 
 /// Extra data from a `.tmcproject.yml` file.
-#[derive(Debug, Deserialize, Default)]
+// NOTE: when adding fields, remember to update the merge function as well
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct TmcProjectYml {
     #[serde(default)]
     pub extra_student_files: Vec<PathBuf>,
@@ -36,9 +38,12 @@ pub struct TmcProjectYml {
 }
 
 impl TmcProjectYml {
+    fn path_in_dir(dir: &Path) -> PathBuf {
+        dir.join(".tmcproject.yml")
+    }
+
     pub fn from(project_dir: &Path) -> Result<Self, TmcError> {
-        let mut config_path = project_dir.to_owned();
-        config_path.push(".tmcproject.yml");
+        let config_path = Self::path_in_dir(project_dir);
 
         if !config_path.exists() {
             log::trace!("no config found at {}", config_path.display());
@@ -50,11 +55,47 @@ impl TmcProjectYml {
         log::trace!("read {:#?}", config);
         Ok(config)
     }
+
+    /// Merges the contents of `with` with `self`.
+    /// Empty or missing values in self are replaced with those from with. Other values are left unchanged.
+    pub fn merge(&mut self, with: Self) {
+        if self.extra_student_files.is_empty() {
+            self.extra_student_files = with.extra_student_files;
+        }
+        if self.extra_exercise_files.is_empty() {
+            self.extra_exercise_files = with.extra_exercise_files;
+        }
+        if self.force_update.is_empty() {
+            self.force_update = with.force_update;
+        }
+        if self.tests_timeout_ms.is_none() {
+            self.tests_timeout_ms = with.tests_timeout_ms;
+        }
+        if self.no_tests.is_none() {
+            self.no_tests = with.no_tests;
+        }
+        if self.fail_on_valgrind_error.is_none() {
+            self.fail_on_valgrind_error = with.fail_on_valgrind_error;
+        }
+        if self.minimum_python_version.is_none() {
+            self.minimum_python_version = with.minimum_python_version;
+        }
+    }
+
+    pub fn save_to_dir(&self, dir: &Path) -> Result<(), TmcError> {
+        let config_path = Self::path_in_dir(dir);
+        let mut file = file_util::create_file_lock(&config_path)?;
+        let guard = file
+            .lock()
+            .map_err(|e| FileError::FdLock(config_path.clone(), e))?;
+        serde_yaml::to_writer(guard.deref(), &self)?;
+        Ok(())
+    }
 }
 
 /// Minimum Python version requirement.
 /// TODO: if patch is Some minor is also guaranteed to be Some etc. encode this in the type system
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Copy, Serialize)]
 pub struct PythonVer {
     pub major: Option<usize>,
     pub minor: Option<usize>,
@@ -112,7 +153,7 @@ impl<'de> Deserialize<'de> for PythonVer {
 }
 
 /// Contents of the no-tests field.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(from = "NoTestsWrapper")]
 pub struct NoTests {
     pub flag: bool,
@@ -167,8 +208,16 @@ pub enum IntOrString {
 mod test {
     use super::*;
 
+    fn init() {
+        use log::*;
+        use simple_logger::*;
+        let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
+    }
+
     #[test]
     fn deserialize_no_tests() {
+        init();
+
         let no_tests_yml = r#"no-tests:
   points:
     - 1
@@ -183,6 +232,8 @@ mod test {
 
     #[test]
     fn deserialize_python_ver() {
+        init();
+
         let python_ver: PythonVer = serde_yaml::from_str("1.2.3").unwrap();
         assert_eq!(python_ver.major, Some(1));
         assert_eq!(python_ver.minor, Some(2));
@@ -199,5 +250,43 @@ mod test {
         assert_eq!(python_ver.patch, None);
 
         assert!(serde_yaml::from_str::<PythonVer>("asd").is_err())
+    }
+
+    #[test]
+    fn merges() {
+        init();
+
+        let tpy_root = TmcProjectYml {
+            tests_timeout_ms: Some(123),
+            fail_on_valgrind_error: Some(true),
+            ..Default::default()
+        };
+        let mut tpy_exercise = TmcProjectYml {
+            tests_timeout_ms: Some(234),
+            ..Default::default()
+        };
+        tpy_exercise.merge(tpy_root);
+        assert_eq!(tpy_exercise.tests_timeout_ms, Some(234));
+        assert_eq!(tpy_exercise.fail_on_valgrind_error, Some(true));
+    }
+
+    #[test]
+    fn saves_to_dir() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        let path = TmcProjectYml::path_in_dir(temp.path());
+
+        assert!(!path.exists());
+
+        let tpy = TmcProjectYml {
+            tests_timeout_ms: Some(1234),
+            ..Default::default()
+        };
+        tpy.save_to_dir(temp.path()).unwrap();
+
+        assert!(path.exists());
+        let tpy = TmcProjectYml::from(temp.path()).unwrap();
+        assert_eq!(tpy.tests_timeout_ms, Some(1234));
     }
 }
