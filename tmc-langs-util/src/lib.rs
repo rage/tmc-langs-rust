@@ -4,7 +4,7 @@
 
 pub mod error;
 pub mod file_util;
+pub mod notification_reporter;
 pub mod progress_reporter;
-pub mod warning_reporter;
 
 pub use error::FileError;

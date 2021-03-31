@@ -19,7 +19,7 @@ use tmc_langs_framework::{
 };
 use tmc_langs_util::{
     file_util,
-    warning_reporter::{self, Warning},
+    notification_reporter::{self, Notification},
 };
 use walkdir::WalkDir;
 
@@ -122,7 +122,7 @@ impl Python3Plugin {
         let (major, minor, patch) = Self::get_local_python_ver()?;
 
         if major < recommended_major || major == recommended_major && minor < recommended_minor {
-            warning_reporter::warn(Warning::new(format!("Your Python is out of date. Minimum maintained release is {}.{}, your Python version was detected as {}.{}. Updating to a newer release is recommended.", recommended_major, recommended_minor, major, minor)));
+            notification_reporter::notify(Notification::warning(format!("Your Python is out of date. Minimum maintained release is {}.{}, your Python version was detected as {}.{}. Updating to a newer release is recommended.", recommended_major, recommended_minor, major, minor)));
         }
 
         if major < minimum_major

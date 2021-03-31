@@ -32,7 +32,7 @@ pub use tmc_langs_framework::{
 };
 pub use tmc_langs_util::{
     file_util::{self, FileLockGuard},
-    warning_reporter,
+    notification_reporter,
 };
 
 use crate::config::ProjectsConfig;

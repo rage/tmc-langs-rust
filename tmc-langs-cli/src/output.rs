@@ -4,7 +4,7 @@ use schemars::JsonSchema;
 use serde::Serialize;
 use std::path::PathBuf;
 use tmc_langs::{
-    warning_reporter::Warning, ClientUpdateData, CombinedCourseData, ConfigValue, Course,
+    notification_reporter::Notification, ClientUpdateData, CombinedCourseData, ConfigValue, Course,
     CourseData, CourseDetails, CourseExercise, DownloadOrUpdateCourseExercisesResult, ExerciseDesc,
     ExerciseDetails, ExerciseDownload, ExercisePackagingConfiguration, LocalExercise,
     NewSubmission, Organization, Review, RunResult, StyleValidationResult, Submission,
@@ -22,7 +22,7 @@ pub enum Output {
     /// Status update output as a command progresses.
     StatusUpdate(StatusUpdateData),
     /// Additional warnings, such as for an outdated Python dependency.
-    Warning(Warning),
+    Notification(Notification),
 }
 
 impl Output {
@@ -240,8 +240,8 @@ mod test {
     }
 
     #[test]
-    fn warning() {
-        let status_update = Output::Warning(Warning::new("some warning"));
+    fn notification() {
+        let status_update = Output::Notification(Notification::warning("some warning"));
         let actual = serde_json::to_string_pretty(&status_update).unwrap();
         let expected = read_api_file("warnings.json");
         assert_eq!(actual, expected);

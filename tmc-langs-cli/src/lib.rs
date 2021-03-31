@@ -19,7 +19,7 @@ use std::io::{Read, Write};
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::{env, io::Cursor};
-use tmc_langs::{file_util, warning_reporter, CommandError, StyleValidationResult};
+use tmc_langs::{file_util, notification_reporter, CommandError, StyleValidationResult};
 use tmc_langs::{
     ClientError, Credentials, DownloadOrUpdateCourseExercisesResult, DownloadResult,
     FeedbackAnswer, TmcClient, TmcConfig,
@@ -75,8 +75,8 @@ fn run_inner() -> Result<(), ()> {
     let matches = app::create_app().get_matches();
     let pretty = matches.is_present("pretty");
 
-    warning_reporter::init(Box::new(move |warning| {
-        let warning_output = Output::Warning(warning);
+    notification_reporter::init(Box::new(move |warning| {
+        let warning_output = Output::Notification(warning);
         if let Err(err) = print_output(&warning_output, pretty) {
             log::error!("printing warning failed: {}", err);
         }
