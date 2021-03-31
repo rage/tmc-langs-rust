@@ -132,7 +132,8 @@ fn copy_file(
                 MetaString::Solution(s) | MetaString::String(s) | MetaString::Stub(s) => {
                     write_lines.extend(s.as_bytes())
                 }
-                MetaString::SolutionFileMarker => (), // write nothing for solution file markers
+                MetaString::SolutionFileMarker | MetaString::HiddenFileMarker => (), // write nothing for file markers
+                MetaString::Hidden(_) => (), // write nothing for hidden text
             }
         }
         // writes all lines
@@ -155,11 +156,12 @@ fn process_files(
 ) -> Result<(), LangsError> {
     log::info!("Project: {:?}", source);
 
-    let walker = WalkDir::new(source).into_iter();
+    let walker = WalkDir::new(source).min_depth(1).into_iter();
     // silently skips over errors, for example when there's a directory we don't have permissions for
     for entry in walker
         .filter_entry(|e| !is_hidden_dir(e) && !on_skip_list(e) && !contains_tmcignore(e))
         .filter_map(|e| e.ok())
+        .into_iter()
     {
         copy_file(
             entry.path(),
@@ -186,8 +188,15 @@ pub fn prepare_solution(exercise_path: &Path, dest_root: &Path) -> Result<(), La
         dest_root.display()
     );
 
-    let line_filter = |meta: &MetaString| !matches!(meta, MetaString::Stub(_));
-    let file_filter = |_metas: &[_]| true; // include all files in solution
+    let line_filter = |meta: &MetaString| {
+        !matches!(meta, MetaString::Stub(_)) && !matches!(meta, MetaString::Hidden(_))
+        // hide stub and hidden lines
+    };
+    let file_filter = |metas: &[MetaString]| {
+        !metas
+            .iter()
+            .any(|ms| matches!(ms, MetaString::HiddenFileMarker)) // exclude hidden files
+    };
     process_files(exercise_path, dest_root, line_filter, file_filter)?;
     Ok(())
 }
@@ -207,11 +216,15 @@ pub fn prepare_stub(exercise_path: &Path, dest_root: &Path) -> Result<(), LangsE
         dest_root.display()
     );
 
-    let line_filter = |meta: &MetaString| !matches!(meta, MetaString::Solution(_));
+    let line_filter = |meta: &MetaString| {
+        !matches!(meta, MetaString::Solution(_)) && !matches!(meta, MetaString::Hidden(_))
+        // exclude solution and hidden lines
+    };
     let file_filter = |metas: &[MetaString]| {
-        !metas
-            .iter()
-            .any(|ms| matches!(ms, MetaString::SolutionFileMarker))
+        !metas.iter().any(|ms| {
+            matches!(ms, MetaString::SolutionFileMarker) // exclude solution files
+                || matches!(ms, MetaString::HiddenFileMarker) // exclude hidden files
+        })
     };
     process_files(&exercise_path, dest_root, line_filter, file_filter)?;
     Ok(())
@@ -220,66 +233,82 @@ pub fn prepare_stub(exercise_path: &Path, dest_root: &Path) -> Result<(), LangsE
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::collections::HashSet;
     use std::fs::File;
-    use std::io::{Read, Write};
+    use std::io::Write;
     use std::path::PathBuf;
-    use tempfile::tempdir;
     use tmc_langs_framework::TmcProjectYml;
-
-    const TESTDATA_ROOT: &str = "tests/data";
-    const BINARY_REL: &str = "dir/inner/binary.bin";
 
     fn init() {
         use log::*;
         use simple_logger::*;
-        let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
+        let _ = SimpleLogger::new().with_level(LevelFilter::Trace).init();
+    }
+
+    fn file_to(
+        target_dir: impl AsRef<std::path::Path>,
+        target_relative: impl AsRef<std::path::Path>,
+        contents: impl AsRef<[u8]>,
+    ) -> PathBuf {
+        let target = target_dir.as_ref().join(target_relative);
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent).unwrap();
+        }
+        std::fs::write(&target, contents.as_ref()).unwrap();
+        target
     }
 
     #[test]
     fn prepare_solutions_preserves_structure() {
         init();
 
-        let temp = tempdir().unwrap();
-        let temp_path = temp.path();
+        let temp_source = tempfile::tempdir().unwrap();
+        file_to(&temp_source, "inner/binary.bin", "");
+        file_to(&temp_source, "File.java", "");
 
-        prepare_solution(Path::new("tests/data/dir"), temp_path).unwrap();
+        let temp_target = tempfile::tempdir().unwrap();
 
-        let mut dest_files = HashSet::new();
-        for entry in walkdir::WalkDir::new(temp_path) {
-            let entry = entry.unwrap();
-            dest_files.insert(entry.into_path());
-        }
+        prepare_solution(temp_source.path(), temp_target.path()).unwrap();
 
-        let exp = &temp_path.join("inner/binary.bin");
-        assert!(
-            dest_files.contains(exp),
-            "{:?} did not contain {:?}",
-            dest_files,
-            exp
-        );
-        let exp = &temp_path.join("nonbinary.java");
-        assert!(
-            dest_files.contains(exp),
-            "{:?} did not contain {:?}",
-            dest_files,
-            exp
-        );
+        assert!(temp_target.path().join("inner/binary.bin").exists());
+        assert!(temp_target.path().join("File.java").exists());
     }
 
     #[test]
     fn prepare_solutions_filters_text_files() {
         init();
 
-        let temp = tempdir().unwrap();
-        let temp_path = temp.path();
+        let temp_source = tempfile::tempdir().unwrap();
+        file_to(
+            &temp_source,
+            "Test.java",
+            r#"public class JavaTestCase {
+    // BEGIN SOLUTION
+    public int foo() {
+        return 3;
+    }
+    // END SOLUTION
 
-        prepare_solution(Path::new("tests/data/dir"), temp_path).unwrap();
+    public void bar() {
+        // BEGIN SOLUTION
+        System.out.println("hello");
+        // END SOLUTION
+    }
 
-        let exp = &temp_path.join("nonbinary.java");
-        let mut file = File::open(exp).unwrap();
-        let mut s = String::new();
-        file.read_to_string(&mut s).unwrap();
+    public int xoo() {
+        // BEGIN SOLUTION
+        return 3;
+        // END SOLUTION
+        // STUB: return 0;
+    }
+}
+"#,
+        );
+
+        let temp_target = tempfile::tempdir().unwrap();
+
+        prepare_solution(temp_source.path(), temp_target.path()).unwrap();
+
+        let s = file_util::read_file_to_string(temp_target.path().join("Test.java")).unwrap();
         let expected = r#"public class JavaTestCase {
     public int foo() {
         return 3;
@@ -295,11 +324,6 @@ mod test {
 }
 "#;
 
-        let expected = if cfg!(windows) {
-            expected.replace('\n', "\r\n")
-        } else {
-            expected.to_string()
-        };
         assert_eq!(s, expected, "expected:\n{:#}\nfound:\n{:#}", expected, s);
     }
 
@@ -307,54 +331,106 @@ mod test {
     fn prepare_solutions_does_not_filter_binary_files() {
         init();
 
-        let temp = tempdir().unwrap();
-        let temp_path = temp.path();
+        let temp_source = tempfile::tempdir().unwrap();
 
-        prepare_solution(Path::new("tests/data/dir"), temp_path).unwrap();
+        let contents = r#"public class JavaTestCase {
+    // BEGIN SOLUTION
+    public int foo() {
+        return 3;
+    }
+    // END SOLUTION
 
-        let original: PathBuf = [TESTDATA_ROOT, BINARY_REL].iter().collect();
-        let mut original = File::open(original).unwrap();
-        let mut original_s = String::new();
-        original.read_to_string(&mut original_s).unwrap();
+    public void bar() {
+        // BEGIN SOLUTION
+        System.out.println("hello");
+        // END SOLUTION
+    }
 
-        let copied = &temp_path.join("inner/binary.bin");
-        let mut copied = File::open(copied).unwrap();
-        let mut copied_s = String::new();
-        copied.read_to_string(&mut copied_s).unwrap();
+    public int xoo() {
+        // BEGIN SOLUTION
+        return 3;
+        // END SOLUTION
+        // STUB: return 0;
+    }
+}
+"#;
 
-        assert_eq!(
-            original_s, copied_s,
-            "expected:\n{:#}\nfound:\n{:#}",
-            copied_s, original_s
-        );
+        file_to(&temp_source, "Test.bin", contents);
+
+        let temp_target = tempfile::tempdir().unwrap();
+
+        prepare_stub(temp_source.path(), temp_target.path()).unwrap();
+
+        let s = file_util::read_file_to_string(temp_target.path().join("Test.bin")).unwrap();
+
+        assert_eq!(s, contents, "expected:\n{:#}\nfound:\n{:#}", contents, s);
     }
 
     #[test]
     fn prepare_solutions_does_not_filter_solution_files() {
         init();
 
-        let temp = tempdir().unwrap();
-        let temp_path = temp.path();
+        let temp_source = tempfile::tempdir().unwrap();
+        file_to(
+            &temp_source,
+            "Solution.java",
+            r#"// SOLUTION FILE
+class SomeClass {}
+"#,
+        );
+        file_to(
+            &temp_source,
+            "NonSolution.java",
+            r#"
+class SomeClass {}
+"#,
+        );
 
-        prepare_solution(Path::new("tests/data/dir"), temp_path).unwrap();
+        let temp_target = tempfile::tempdir().unwrap();
 
-        assert!(dbg!(temp_path.join("solution_file.java")).exists());
+        prepare_solution(temp_source.path(), temp_target.path()).unwrap();
+
+        assert!(dbg!(temp_source.path().join("Solution.java")).exists());
+        assert!(dbg!(temp_source.path().join("NonSolution.java")).exists());
     }
 
     #[test]
     fn prepares_stubs() {
         init();
 
-        let temp = tempdir().unwrap();
-        let temp_path = temp.path();
+        let temp_source = tempfile::tempdir().unwrap();
+        file_to(
+            &temp_source,
+            "Test.java",
+            r#"public class JavaTestCase {
+    // BEGIN SOLUTION
+    public int foo() {
+        return 3;
+    }
+    // END SOLUTION
 
-        prepare_stub(Path::new("tests/data/dir"), &temp_path).unwrap();
+    public void bar() {
+        // BEGIN SOLUTION
+        System.out.println("hello");
+        // END SOLUTION
+    }
 
-        let exp = &temp_path.join("nonbinary.java");
-        let mut file = File::open(exp).unwrap();
-        let mut s = String::new();
-        file.read_to_string(&mut s).unwrap();
-        let mut expected = r#"public class JavaTestCase {
+    public int xoo() {
+        // BEGIN SOLUTION
+        return 3;
+        // END SOLUTION
+        // STUB: return 0;
+    }
+}
+"#,
+        );
+
+        let temp_target = tempfile::tempdir().unwrap();
+
+        prepare_stub(temp_source.path(), temp_target.path()).unwrap();
+
+        let s = file_util::read_file_to_string(temp_target.path().join("Test.java")).unwrap();
+        let expected = r#"public class JavaTestCase {
 
     public void bar() {
     }
@@ -366,10 +442,6 @@ mod test {
 "#
         .to_string();
 
-        if cfg!(windows) {
-            expected = expected.replace("\n", "\r\n");
-        }
-
         assert_eq!(s, expected, "expected:\n{:#}\nfound:\n{:#}", expected, s);
     }
 
@@ -377,17 +449,21 @@ mod test {
     fn prepare_stubs_filters_solution_files() {
         init();
 
-        let temp = tempdir().unwrap();
-        let temp_path = temp.path();
+        let temp_source = tempfile::tempdir().unwrap();
+        file_to(&temp_source, "NonSolution.java", "something something");
+        file_to(&temp_source, "SolutionFile.java", "// SOLUTION FILE");
 
-        prepare_stub(Path::new("tests/data/dir"), temp_path).unwrap();
+        let temp_target = tempfile::tempdir().unwrap();
 
-        assert!(!temp_path.join("solution_file.java").exists());
+        prepare_stub(temp_source.path(), temp_target.path()).unwrap();
+
+        assert!(temp_target.path().join("NonSolution.java").exists());
+        assert!(!temp_target.path().join("SolutionFile.java").exists());
     }
 
     #[test]
     fn tmc_project_yml_parses() {
-        let temp = tempdir().unwrap();
+        let temp = tempfile::tempdir().unwrap();
         let mut path = temp.path().to_owned();
         path.push(".tmcproject.yml");
         let mut file = File::create(&path).unwrap();
@@ -406,15 +482,118 @@ extra_student_files:
     }
 
     #[test]
-    fn hides_test_hidden_files() {
+    fn hides_test_hidden_files_in_test() {
         init();
 
-        let temp = tempdir().unwrap();
-        let temp_path = temp.path();
+        let temp_source = tempfile::tempdir().unwrap();
+        file_to(&temp_source, "NotHidden", "");
+        file_to(&temp_source, "test/ActuallyHidden", "");
 
-        prepare_solution(Path::new("tests/data/dir"), temp_path).unwrap();
+        let temp_target = tempfile::tempdir().unwrap();
 
-        assert!(dbg!(temp_path.join("NotHidden.java")).exists());
-        assert!(!dbg!(temp_path.join("ActuallyHidden.java")).exists());
+        prepare_solution(temp_source.path(), temp_target.path()).unwrap();
+
+        assert!(dbg!(temp_source.path().join("NotHidden")).exists());
+        assert!(!dbg!(temp_source.path().join("ActuallyHidden")).exists());
+    }
+
+    #[test]
+    fn solution_filters_hidden_files() {
+        init();
+
+        let temp_source = tempfile::tempdir().unwrap();
+        file_to(
+            &temp_source,
+            "H.java",
+            r"// HIDDEN FILE
+etc etc",
+        );
+        file_to(&temp_source, "NonH.java", "etc etc");
+
+        let temp_target = tempfile::tempdir().unwrap();
+
+        prepare_solution(temp_source.path(), temp_target.path()).unwrap();
+
+        assert!(!temp_target.path().join("H.java").exists());
+        assert!(temp_target.path().join("NonH.java").exists());
+    }
+
+    #[test]
+    fn stub_filters_hidden_files() {
+        init();
+
+        let temp_source = tempfile::tempdir().unwrap();
+        file_to(
+            &temp_source,
+            "H.java",
+            r"// HIDDEN FILE
+etc etc",
+        );
+        file_to(&temp_source, "NonH.java", "etc etc");
+
+        let temp_target = tempfile::tempdir().unwrap();
+
+        prepare_stub(temp_source.path(), temp_target.path()).unwrap();
+
+        assert!(!temp_target.path().join("H.java").exists());
+        assert!(temp_target.path().join("NonH.java").exists());
+    }
+
+    #[test]
+    fn solution_filters_hidden_lines() {
+        init();
+
+        let temp_source = tempfile::tempdir().unwrap();
+        file_to(
+            &temp_source,
+            "ContainsHidden.java",
+            r"etc etc
+// BEGIN HIDDEN
+hidden!
+// END HIDDEN
+etc etc",
+        );
+
+        let temp_target = tempfile::tempdir().unwrap();
+
+        prepare_solution(temp_source.path(), temp_target.path()).unwrap();
+
+        let s =
+            file_util::read_file_to_string(temp_target.path().join("ContainsHidden.java")).unwrap();
+
+        assert_eq!(
+            s,
+            r"etc etc
+etc etc"
+        );
+    }
+
+    #[test]
+    fn stub_filters_hidden_lines() {
+        init();
+
+        let temp_source = tempfile::tempdir().unwrap();
+        file_to(
+            &temp_source,
+            "ContainsHidden.java",
+            r"etc etc
+// BEGIN HIDDEN
+hidden!
+// END HIDDEN
+etc etc",
+        );
+
+        let temp_target = tempfile::tempdir().unwrap();
+
+        prepare_stub(temp_source.path(), temp_target.path()).unwrap();
+
+        let s =
+            file_util::read_file_to_string(temp_target.path().join("ContainsHidden.java")).unwrap();
+
+        assert_eq!(
+            s,
+            r"etc etc
+etc etc"
+        );
     }
 }
