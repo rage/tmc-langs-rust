@@ -551,6 +551,7 @@ pub fn update_exercises(
     Ok(DownloadOrUpdateCourseExercisesResult {
         downloaded: exercises_to_update,
         skipped: vec![],
+        failed: None,
     })
 }
 

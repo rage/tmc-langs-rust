@@ -733,7 +733,7 @@ fn run_core(
                 .collect::<Result<Vec<_>>>()?;
 
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
-            match tmc_langs::download_or_update_course_exercises(
+            let data = match tmc_langs::download_or_update_course_exercises(
                 &client,
                 &projects_dir,
                 &exercise_ids,
@@ -742,29 +742,26 @@ fn run_core(
                 DownloadResult::Success {
                     downloaded,
                     skipped,
-                } => {
-                    let data = DownloadOrUpdateCourseExercisesResult {
-                        downloaded,
-                        skipped,
-                    };
-                    let output = Output::finished_with_data(
-                        "downloaded or updated exercises",
-                        Data::ExerciseDownload(data),
-                    );
-                    print_output(&output, pretty)?
-                }
+                } => DownloadOrUpdateCourseExercisesResult {
+                    downloaded,
+                    skipped,
+                    failed: None,
+                },
                 DownloadResult::Failure {
                     downloaded,
                     skipped,
                     failed,
-                } => {
-                    anyhow::bail!(DownloadsFailedError {
-                        downloaded,
-                        skipped,
-                        failed,
-                    })
-                }
-            }
+                } => DownloadOrUpdateCourseExercisesResult {
+                    downloaded,
+                    skipped,
+                    failed: Some(failed),
+                },
+            };
+            let output = Output::finished_with_data(
+                "downloaded or updated exercises",
+                Data::ExerciseDownload(data),
+            );
+            print_output(&output, pretty)?
         }
         ("get-course-data", Some(matches)) => {
             let course_id = matches.value_of("course-id").unwrap();

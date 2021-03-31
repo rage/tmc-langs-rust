@@ -213,6 +213,7 @@ mod test {
                         exercise_slug: "some skipped exercise".to_string(),
                         path: PathBuf::from("third path"),
                     }],
+                    failed: None,
                 },
             )),
         });
