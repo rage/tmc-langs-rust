@@ -196,4 +196,6 @@ pub struct CombinedCourseData {
 pub struct DownloadOrUpdateCourseExercisesResult {
     pub downloaded: Vec<ExerciseDownload>,
     pub skipped: Vec<ExerciseDownload>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub failed: Option<Vec<(ExerciseDownload, Vec<String>)>>,
 }
