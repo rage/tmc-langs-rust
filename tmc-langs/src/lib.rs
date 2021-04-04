@@ -161,9 +161,10 @@ pub fn download_or_update_course_exercises(
 
     let exercises_details = client.get_exercises_details(exercises)?;
     let exercises_len = exercises_details.len();
-    start_stage(
+    progress_reporter::start_stage::<()>(
         exercises_len * 2 + 1, // each download progresses at 2 points, plus the final finishing step
         format!("Downloading {} exercises", exercises_len),
+        None,
     );
 
     let mut projects_config = ProjectsConfig::load(projects_dir)?;
@@ -271,11 +272,17 @@ pub fn download_or_update_course_exercises(
                         DownloadTarget::Template { ref target, .. } => target,
                         DownloadTarget::Submission { ref target, .. } => target,
                     };
-                    progress_stage(format!(
-                        "Downloading exercise {} to '{}'",
-                        target_exercise.id,
-                        target_exercise.path.display(),
-                    ));
+                    progress_reporter::progress_stage::<ClientUpdateData>(
+                        format!(
+                            "Downloading exercise {} to '{}'",
+                            target_exercise.id,
+                            target_exercise.path.display(),
+                        ),
+                        Some(ClientUpdateData::ExerciseDownload {
+                            id: target_exercise.id,
+                            path: target_exercise.path.clone(),
+                        }),
+                    );
 
                     match &download_target {
                         DownloadTarget::Template { target, .. } => {
@@ -305,11 +312,17 @@ pub fn download_or_update_course_exercises(
                         }
                     }
 
-                    progress_stage(format!(
-                        "Downloaded exercise {} to '{}'",
-                        target_exercise.id,
-                        target_exercise.path.display(),
-                    ));
+                    progress_reporter::progress_stage::<ClientUpdateData>(
+                        format!(
+                            "Downloaded exercise {} to '{}'",
+                            target_exercise.id,
+                            target_exercise.path.display(),
+                        ),
+                        Some(ClientUpdateData::ExerciseDownload {
+                            id: target_exercise.id,
+                            path: target_exercise.path.clone(),
+                        }),
+                    );
 
                     Ok(())
                 }();
@@ -378,11 +391,14 @@ pub fn download_or_update_course_exercises(
         };
     }
 
-    finish_stage(format!(
-        "Successfully downloaded {} out of {} exercises.",
-        successful.len(),
-        exercises_len
-    ));
+    progress_reporter::finish_stage::<ClientUpdateData>(
+        format!(
+            "Successfully downloaded {} out of {} exercises.",
+            successful.len(),
+            exercises_len
+        ),
+        None,
+    );
 
     let downloaded = successful
         .into_iter()
