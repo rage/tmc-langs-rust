@@ -160,13 +160,6 @@ pub fn download_or_update_course_exercises(
     );
 
     let exercises_details = client.get_exercises_details(exercises)?;
-    let exercises_len = exercises_details.len();
-    progress_reporter::start_stage::<()>(
-        exercises_len * 2 + 1, // each download progresses at 2 points, plus the final finishing step
-        format!("Downloading {} exercises", exercises_len),
-        None,
-    );
-
     let mut projects_config = ProjectsConfig::load(projects_dir)?;
 
     // separate exercises into downloads and skipped
@@ -237,6 +230,13 @@ pub fn download_or_update_course_exercises(
             checksum: exercise_detail.checksum,
         });
     }
+
+    let exercises_len = to_be_downloaded.len();
+    progress_reporter::start_stage::<()>(
+        exercises_len * 2 + 1, // each download progresses at 2 points, plus the final finishing step
+        format!("Downloading {} exercises", exercises_len),
+        None,
+    );
 
     log::debug!("downloading exercises");
     // download and divide the results into successful and failed downloads
