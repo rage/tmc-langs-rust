@@ -160,6 +160,11 @@ pub fn download_or_update_course_exercises(
     );
 
     let exercises_details = client.get_exercises_details(exercises)?;
+    let exercises_len = exercises_details.len();
+    start_stage(
+        exercises_len * 2 + 1, // each download progresses at 2 points, plus the final finishing step
+        format!("Downloading {} exercises", exercises_len),
+    );
 
     let mut projects_config = ProjectsConfig::load(projects_dir)?;
 
@@ -261,6 +266,17 @@ pub fn download_or_update_course_exercises(
 
                 let exercise_download_result = || -> Result<(), LangsError> {
                     let zip_file = file_util::named_temp_file()?;
+
+                    let target_exercise = match download_target {
+                        DownloadTarget::Template { ref target, .. } => target,
+                        DownloadTarget::Submission { ref target, .. } => target,
+                    };
+                    progress_stage(format!(
+                        "Downloading exercise {} to '{}'",
+                        target_exercise.id,
+                        target_exercise.path.display(),
+                    ));
+
                     match &download_target {
                         DownloadTarget::Template { target, .. } => {
                             client.download_exercise(target.id, zip_file.path())?;
@@ -288,6 +304,13 @@ pub fn download_or_update_course_exercises(
                             extract_project(&zip_file, &target.path, false)?;
                         }
                     }
+
+                    progress_stage(format!(
+                        "Downloaded exercise {} to '{}'",
+                        target_exercise.id,
+                        target_exercise.path.display(),
+                    ));
+
                     Ok(())
                 }();
 
@@ -354,6 +377,12 @@ pub fn download_or_update_course_exercises(
             course_config.save_to_projects_dir(projects_dir)?;
         };
     }
+
+    finish_stage(format!(
+        "Successfully downloaded {} out of {} exercises.",
+        successful.len(),
+        exercises_len
+    ));
 
     let downloaded = successful
         .into_iter()
