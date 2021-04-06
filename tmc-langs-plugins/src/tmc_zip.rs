@@ -168,6 +168,7 @@ where
     Ok(())
 }
 
+// TODO: make more robust, use language plugins?
 fn find_project_dir<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<PathBuf, TmcError> {
     for i in 0..zip_archive.len() {
         let file = zip_archive.by_index(i)?;

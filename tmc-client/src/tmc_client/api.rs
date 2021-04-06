@@ -659,6 +659,10 @@ impl TmcClient {
         if self.0.token.is_none() {
             return Err(ClientError::NotLoggedIn);
         }
+        if exercise_ids.is_empty() {
+            return Err(ClientError::NoExercisesGiven);
+        }
+
         let url_tail = "core/exercises/details";
         let exercise_ids = (
             "ids".to_string(),

@@ -1059,7 +1059,7 @@ fn run_core(
             }
 
             // reset exercise
-            client.reset(exercise_id, exercise_path)?;
+            tmc_langs::reset(&client, exercise_id, exercise_path)?;
 
             let output = Output::finished_with_data("reset exercise", None);
             print_output(&output, pretty)?

@@ -48,6 +48,7 @@ use oauth2::{
 use serde_json::Value as JsonValue;
 use std::{
     collections::BTreeMap,
+    io::Cursor,
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
 };
@@ -59,6 +60,21 @@ use toml::{map::Map as TomlMap, Value as TomlValue};
 use url::Url;
 use walkdir::WalkDir;
 
+/// Signs the given serializable value with the given secret using JWT.
+///
+/// # Example
+/// ```
+/// #[derive(serde::Serialize)]
+/// struct TestResult {
+///     passed: bool,
+/// }
+///
+/// let token = tmc_langs::sign_with_jwt(TestResult { passed: true }, "secret".as_bytes()).unwrap();
+/// assert_eq!(token, "eyJhbGciOiJIUzI1NiJ9.eyJwYXNzZWQiOnRydWV9.y-jXHgxZ_5wRqursLTb1hJOYob6LKj0mYBPnZSGtsnU");
+/// ```
+///
+/// # Errors
+/// Should never fail, but returns an error to be safe against changes in external libraries.
 pub fn sign_with_jwt<T: Serialize>(value: T, secret: &[u8]) -> Result<String, LangsError> {
     let key: Hmac<Sha256> = Hmac::new_varkey(secret)?;
     let token = value.sign_with_key(&key)?;
@@ -66,6 +82,7 @@ pub fn sign_with_jwt<T: Serialize>(value: T, secret: &[u8]) -> Result<String, La
 }
 
 /// Returns the projects directory for the given client name.
+/// The return value for `my-client` might look something like `/home/username/.local/share/tmc/my-client` on Linux.
 pub fn get_projects_dir(client_name: &str) -> Result<PathBuf, LangsError> {
     let config_path = TmcConfig::get_location(client_name)?;
     let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
@@ -129,7 +146,7 @@ pub fn download_old_submission(
     }
 
     // reset old exercise
-    client.reset(exercise_id, output_path.clone())?;
+    reset(client, exercise_id, output_path.clone())?;
     log::debug!("reset exercise");
 
     // dl submission
@@ -302,13 +319,17 @@ pub fn download_or_update_course_exercises(
                             let config =
                                 plugin.get_exercise_packaging_configuration(tmc_project_yml)?;
                             for student_file in config.student_file_paths {
+                                let student_file = target.path.join(&student_file);
+                                log::debug!("student file {}", student_file.display());
                                 if student_file.is_file() {
                                     file_util::remove_file(&student_file)?;
+                                } else {
+                                    file_util::remove_dir_all(&student_file)?;
                                 }
                             }
 
                             client.download_old_submission(*submission_id, zip_file.path())?;
-                            extract_project(&zip_file, &target.path, false)?;
+                            plugin.extract_student_files(&zip_file, &target.path)?;
                         }
                     }
 
@@ -734,6 +755,21 @@ pub fn free_disk_space_megabytes(path: &Path) -> Result<u64, LangsError> {
 }
 */
 
+/// Resets the given exercise
+pub fn reset(
+    client: &TmcClient,
+    exercise_id: usize,
+    exercise_path: PathBuf,
+) -> Result<(), LangsError> {
+    // clear out the exercise directory
+    file_util::remove_dir_all(&exercise_path)?;
+    let temp_zip = file_util::named_temp_file()?;
+    client.download_exercise(exercise_id, temp_zip.path())?;
+    let compressed = file_util::read_file(temp_zip.path())?;
+    extract_project(Cursor::new(compressed), &exercise_path, false)?;
+    Ok(())
+}
+
 /// Extracts the compressed project to the target location.
 pub fn extract_project(
     compressed_project: impl std::io::Read + std::io::Seek,
@@ -942,12 +978,45 @@ fn extract_project_overwrite(
 
 #[cfg(test)]
 mod test {
+    use std::io::Write;
+    use tmc_client::ExercisesDetails;
+
     use super::*;
 
     fn init() {
         use log::*;
         use simple_logger::*;
         let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
+    }
+
+    fn file_to(
+        target_dir: impl AsRef<std::path::Path>,
+        target_relative: impl AsRef<std::path::Path>,
+        contents: impl AsRef<[u8]>,
+    ) -> PathBuf {
+        let target = target_dir.as_ref().join(target_relative);
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent).unwrap();
+        }
+        std::fs::write(&target, contents.as_ref()).unwrap();
+        target
+    }
+
+    fn mock_client() -> TmcClient {
+        let mut client = TmcClient::new(
+            PathBuf::from(""),
+            mockito::server_url(),
+            "client".to_string(),
+            "version".to_string(),
+        )
+        .unwrap();
+        let token = Token::new(
+            AccessToken::new("".to_string()),
+            BasicTokenType::Bearer,
+            EmptyExtraTokenFields {},
+        );
+        client.set_token(token).unwrap();
+        client
     }
 
     #[test]
@@ -961,5 +1030,360 @@ mod test {
             signed,
             "eyJhbGciOiJIUzI1NiJ9.InNvbWUgc3RyaW5nIg.FfWkq8BeQRe2vlrfLbJHObFAslXqK5_V_hH2TbBqggc"
         );
+    }
+
+    #[test]
+    fn gets_projects_dir() {
+        let projects_dir = get_projects_dir("client").unwrap();
+        assert!(projects_dir.ends_with("client"));
+        let parent = projects_dir.parent().unwrap();
+        assert!(parent.ends_with("tmc"));
+    }
+
+    #[test]
+    fn checks_exercise_updates() {
+        init();
+
+        let details = vec![
+            ExercisesDetails {
+                id: 1,
+                course_name: "some course".to_string(),
+                exercise_name: "some exercise".to_string(),
+                checksum: "new checksum".to_string(),
+            },
+            ExercisesDetails {
+                id: 2,
+                course_name: "some course".to_string(),
+                exercise_name: "another exercise".to_string(),
+                checksum: "old checksum".to_string(),
+            },
+        ];
+        let mut response = HashMap::new();
+        response.insert("exercises", details);
+        let response = serde_json::to_string(&response).unwrap();
+        let _m = mockito::mock("GET", mockito::Matcher::Any)
+            .with_body(response)
+            .create();
+
+        let projects_dir = tempfile::tempdir().unwrap();
+
+        file_to(
+            &projects_dir,
+            "some course/course_config.toml",
+            r#"
+course = 'some course'
+
+[exercises."some exercise"]
+id = 1
+checksum = 'old checksum'
+
+[exercises."another exercise"]
+id = 2
+checksum = 'old checksum'
+"#,
+        );
+        file_to(&projects_dir, "some course/some exercise/some file", "");
+
+        let client = mock_client();
+        let updates = check_exercise_updates(&client, projects_dir.path()).unwrap();
+        assert_eq!(updates.len(), 1);
+        assert_eq!(&updates[0], &1);
+    }
+
+    #[test]
+    fn downloads_old_submission() {
+        init();
+
+        let mut zw = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
+        zw.start_file("src/file", zip::write::FileOptions::default())
+            .unwrap();
+        zw.write_all(b"file contents").unwrap();
+        let z = zw.finish().unwrap();
+        let _m = mockito::mock("GET", mockito::Matcher::Any)
+            .with_body(z.into_inner())
+            .create();
+
+        let output_dir = tempfile::tempdir().unwrap();
+        let client = mock_client();
+
+        download_old_submission(&client, 1, output_dir.path().to_path_buf(), 2, None).unwrap();
+        let s = file_util::read_file_to_string(output_dir.path().join("src/file")).unwrap();
+        assert_eq!(s, "file contents");
+    }
+
+    #[test]
+    fn downloads_or_updates_course_exercises() {
+        init();
+
+        let projects_dir = tempfile::tempdir().unwrap();
+        file_to(
+            &projects_dir,
+            "some course/course_config.toml",
+            r#"
+course = 'some course'
+
+[exercises."on disk exercise with update and submission"]
+id = 1
+checksum = 'old checksum'
+
+[exercises."on disk exercise without update"]
+id = 2
+checksum = 'new checksum'
+"#,
+        );
+        file_to(
+            &projects_dir,
+            "some course/on disk exercise with update and submission/some file",
+            "",
+        );
+        file_to(
+            &projects_dir,
+            "some course/on disk exercise without update/some file",
+            "",
+        );
+
+        let client = mock_client();
+
+        let exercises = vec![1, 2, 3];
+
+        let mut body = HashMap::new();
+        body.insert(
+            "exercises",
+            vec![
+                ExercisesDetails {
+                    id: 1,
+                    checksum: "new checksum".to_string(),
+                    course_name: "some course".to_string(),
+                    exercise_name: "on disk exercise with update and submission".to_string(),
+                },
+                ExercisesDetails {
+                    id: 2,
+                    checksum: "new checksum".to_string(),
+                    course_name: "some course".to_string(),
+                    exercise_name: "on disk exercise without update".to_string(),
+                },
+                ExercisesDetails {
+                    id: 3,
+                    checksum: "new checksum".to_string(),
+                    course_name: "another course".to_string(),
+                    exercise_name: "not on disk exercise with submission".to_string(),
+                },
+                ExercisesDetails {
+                    id: 4,
+                    checksum: "new checksum".to_string(),
+                    course_name: "another course".to_string(),
+                    exercise_name: "not on disk exercise without submission".to_string(),
+                },
+            ],
+        );
+        let _m = mockito::mock(
+            "GET",
+            mockito::Matcher::Regex("exercises/details".to_string()),
+        )
+        .with_body(serde_json::to_string(&body).unwrap())
+        .create();
+
+        let sub_body = vec![Submission {
+            id: 1,
+            user_id: 1,
+            pretest_error: None,
+            created_at: chrono::Utc::now().with_timezone(&chrono::FixedOffset::east(0)),
+            exercise_name: "e1".to_string(),
+            course_id: 1,
+            processed: true,
+            all_tests_passed: true,
+            points: None,
+            processing_tried_at: None,
+            processing_began_at: None,
+            processing_completed_at: None,
+            times_sent_to_sandbox: 1,
+            processing_attempts_started_at: chrono::Utc::now()
+                .with_timezone(&chrono::FixedOffset::east(0)),
+            params_json: None,
+            requires_review: false,
+            requests_review: false,
+            reviewed: false,
+            message_for_reviewer: "".to_string(),
+            newer_submission_reviewed: false,
+            review_dismissed: false,
+            paste_available: false,
+            message_for_paste: "".to_string(),
+            paste_key: None,
+        }];
+        let _m = mockito::mock(
+            "GET",
+            mockito::Matcher::AllOf(vec![
+                mockito::Matcher::Regex("exercises/1".to_string()),
+                mockito::Matcher::Regex("submissions".to_string()),
+            ]),
+        )
+        .with_body(serde_json::to_string(&sub_body).unwrap())
+        .create();
+
+        let _m = mockito::mock(
+            "GET",
+            mockito::Matcher::AllOf(vec![
+                mockito::Matcher::Regex("exercises/2".to_string()),
+                mockito::Matcher::Regex("submissions".to_string()),
+            ]),
+        )
+        .with_body(serde_json::to_string(&[0; 0]).unwrap())
+        .create();
+
+        let _m = mockito::mock(
+            "GET",
+            mockito::Matcher::AllOf(vec![
+                mockito::Matcher::Regex("exercises/3".to_string()),
+                mockito::Matcher::Regex("submissions".to_string()),
+            ]),
+        )
+        .with_body(serde_json::to_string(&sub_body).unwrap())
+        .create();
+
+        let _m = mockito::mock(
+            "GET",
+            mockito::Matcher::AllOf(vec![
+                mockito::Matcher::Regex("exercises/4".to_string()),
+                mockito::Matcher::Regex("submissions".to_string()),
+            ]),
+        )
+        .with_body(serde_json::to_string(&[0; 0]).unwrap())
+        .create();
+
+        let mut template_zw = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
+        template_zw
+            .start_file("src/student_file.py", zip::write::FileOptions::default())
+            .unwrap();
+        template_zw.write_all(b"template").unwrap();
+        template_zw
+            .start_file(
+                "src/template_only_student_file.py",
+                zip::write::FileOptions::default(),
+            )
+            .unwrap();
+        template_zw.write_all(b"template").unwrap();
+        template_zw
+            .start_file("test/exercise_file.py", zip::write::FileOptions::default())
+            .unwrap();
+        template_zw.write_all(b"template").unwrap();
+        template_zw
+            .start_file("setup.py", zip::write::FileOptions::default())
+            .unwrap();
+        template_zw.write_all(b"template").unwrap();
+        let template_z = template_zw.finish().unwrap();
+        let template_z = template_z.into_inner();
+        let _m = mockito::mock(
+            "GET",
+            mockito::Matcher::AllOf(vec![
+                mockito::Matcher::Regex("exercises/1".to_string()),
+                mockito::Matcher::Regex("download".to_string()),
+            ]),
+        )
+        .with_body(&template_z)
+        .create();
+        let _m = mockito::mock(
+            "GET",
+            mockito::Matcher::AllOf(vec![
+                mockito::Matcher::Regex("exercises/2".to_string()),
+                mockito::Matcher::Regex("download".to_string()),
+            ]),
+        )
+        .with_body(&template_z)
+        .create();
+        let _m = mockito::mock(
+            "GET",
+            mockito::Matcher::AllOf(vec![
+                mockito::Matcher::Regex("exercises/3".to_string()),
+                mockito::Matcher::Regex("download".to_string()),
+            ]),
+        )
+        .with_body(&template_z)
+        .create();
+        let _m = mockito::mock(
+            "GET",
+            mockito::Matcher::AllOf(vec![
+                mockito::Matcher::Regex("exercises/4".to_string()),
+                mockito::Matcher::Regex("download".to_string()),
+            ]),
+        )
+        .with_body(&template_z)
+        .create();
+
+        let mut sub_zw = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
+        sub_zw
+            .start_file("src/student_file.py", zip::write::FileOptions::default())
+            .unwrap();
+        sub_zw.write_all(b"submission").unwrap();
+        sub_zw
+            .start_file("test/exercise_file.py", zip::write::FileOptions::default())
+            .unwrap();
+        sub_zw.write_all(b"submission").unwrap();
+        sub_zw
+            .start_file(
+                "test/submission_only_exercise_file.py",
+                zip::write::FileOptions::default(),
+            )
+            .unwrap();
+        sub_zw.write_all(b"submission").unwrap();
+        sub_zw
+            .start_file("setup.py", zip::write::FileOptions::default())
+            .unwrap();
+        sub_zw.write_all(b"submission").unwrap();
+        let sub_z = sub_zw.finish().unwrap();
+        let sub_z = sub_z.into_inner();
+        let _m = mockito::mock(
+            "GET",
+            mockito::Matcher::AllOf(vec![
+                mockito::Matcher::Regex("submissions/1".to_string()),
+                mockito::Matcher::Regex("download".to_string()),
+            ]),
+        )
+        .with_body(&sub_z)
+        .create();
+
+        let (downloaded, skipped) = if let DownloadResult::Success {
+            downloaded,
+            skipped,
+        } =
+            download_or_update_course_exercises(&client, projects_dir.path(), &exercises, false)
+                .unwrap()
+        {
+            (downloaded, skipped)
+        } else {
+            panic!()
+        };
+
+        assert_eq!(downloaded.len(), 3);
+        assert_eq!(skipped.len(), 1);
+
+        let e1 = downloaded.iter().find(|e| e.id == 1).unwrap();
+        let _e2 = skipped.iter().find(|e| e.id == 2).unwrap();
+        let e3 = downloaded.iter().find(|e| e.id == 3).unwrap();
+        let e4 = downloaded.iter().find(|e| e.id == 4).unwrap();
+
+        // did not download submission even though it was available because it was on disk
+        let f = file_util::read_file_to_string(e1.path.join("src/student_file.py")).unwrap();
+        assert_eq!(f, "template");
+        assert!(e1.path.join("src/template_only_student_file.py").exists());
+        let f = file_util::read_file_to_string(e1.path.join("test/exercise_file.py")).unwrap();
+        assert_eq!(f, "template");
+
+        // downloaded template, removed all student files and added all student files from submission
+        let f = file_util::read_file_to_string(e3.path.join("src/student_file.py")).unwrap();
+        assert_eq!(f, "submission");
+        assert!(!e3.path.join("src/template_only_student_file.py").exists());
+        assert!(!e3
+            .path
+            .join("test/submission_only_exercise_file.py")
+            .exists());
+        let f = file_util::read_file_to_string(e3.path.join("test/exercise_file.py")).unwrap();
+        assert_eq!(f, "template");
+
+        // did not download submission because one was not available
+        let f = file_util::read_file_to_string(e4.path.join("src/student_file.py")).unwrap();
+        assert_eq!(f, "template");
+        assert!(e1.path.join("src/template_only_student_file.py").exists());
+        let f = file_util::read_file_to_string(e4.path.join("test/exercise_file.py")).unwrap();
+        assert_eq!(f, "template");
     }
 }
