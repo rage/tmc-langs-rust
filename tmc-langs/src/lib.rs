@@ -160,7 +160,6 @@ pub fn download_or_update_course_exercises(
     );
 
     let exercises_details = client.get_exercises_details(exercises)?;
-
     let mut projects_config = ProjectsConfig::load(projects_dir)?;
 
     // separate exercises into downloads and skipped
@@ -232,6 +231,13 @@ pub fn download_or_update_course_exercises(
         });
     }
 
+    let exercises_len = to_be_downloaded.len();
+    progress_reporter::start_stage::<()>(
+        exercises_len * 2 + 1, // each download progresses at 2 points, plus the final finishing step
+        format!("Downloading {} exercises", exercises_len),
+        None,
+    );
+
     log::debug!("downloading exercises");
     // download and divide the results into successful and failed downloads
     let thread_count = to_be_downloaded.len().min(4); // max 4 threads
@@ -261,6 +267,23 @@ pub fn download_or_update_course_exercises(
 
                 let exercise_download_result = || -> Result<(), LangsError> {
                     let zip_file = file_util::named_temp_file()?;
+
+                    let target_exercise = match download_target {
+                        DownloadTarget::Template { ref target, .. } => target,
+                        DownloadTarget::Submission { ref target, .. } => target,
+                    };
+                    progress_reporter::progress_stage::<ClientUpdateData>(
+                        format!(
+                            "Downloading exercise {} to '{}'",
+                            target_exercise.id,
+                            target_exercise.path.display(),
+                        ),
+                        Some(ClientUpdateData::ExerciseDownload {
+                            id: target_exercise.id,
+                            path: target_exercise.path.clone(),
+                        }),
+                    );
+
                     match &download_target {
                         DownloadTarget::Template { target, .. } => {
                             client.download_exercise(target.id, zip_file.path())?;
@@ -288,6 +311,19 @@ pub fn download_or_update_course_exercises(
                             extract_project(&zip_file, &target.path, false)?;
                         }
                     }
+
+                    progress_reporter::progress_stage::<ClientUpdateData>(
+                        format!(
+                            "Downloaded exercise {} to '{}'",
+                            target_exercise.id,
+                            target_exercise.path.display(),
+                        ),
+                        Some(ClientUpdateData::ExerciseDownload {
+                            id: target_exercise.id,
+                            path: target_exercise.path.clone(),
+                        }),
+                    );
+
                     Ok(())
                 }();
 
@@ -354,6 +390,15 @@ pub fn download_or_update_course_exercises(
             course_config.save_to_projects_dir(projects_dir)?;
         };
     }
+
+    progress_reporter::finish_stage::<ClientUpdateData>(
+        format!(
+            "Successfully downloaded {} out of {} exercises.",
+            successful.len(),
+            exercises_len
+        ),
+        None,
+    );
 
     let downloaded = successful
         .into_iter()
