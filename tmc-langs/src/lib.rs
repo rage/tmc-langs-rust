@@ -113,7 +113,7 @@ pub fn check_exercise_updates(
         for local_exercise in local_exercises {
             let server_exercise = server_exercises
                 .get(&local_exercise.id)
-                .ok_or_else(|| LangsError::ExerciseMissingOnServer(local_exercise.id))?;
+                .ok_or(LangsError::ExerciseMissingOnServer(local_exercise.id))?;
             if server_exercise.checksum != local_exercise.checksum {
                 // server has an updated exercise
                 updated_exercises.push(local_exercise.id);
@@ -509,7 +509,7 @@ pub fn login_with_password(
     } else {
         password
     };
-    let token = client.authenticate(client_name, email.to_string(), decoded)?;
+    let token = client.authenticate(client_name, email, decoded)?;
     Ok(token)
 }
 
@@ -653,7 +653,7 @@ pub fn set_setting(client_name: &str, key: &str, value: &str) -> Result<(), Lang
     };
     let value = setting_json_to_toml(value)?;
 
-    tmc_config.insert(key.to_string(), value.clone())?;
+    tmc_config.insert(key.to_string(), value)?;
     tmc_config.save(&config_path)?;
     Ok(())
 }

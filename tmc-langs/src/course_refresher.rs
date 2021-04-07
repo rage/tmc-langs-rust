@@ -666,7 +666,7 @@ mod test {
             ..Default::default()
         };
         tpyb.save_to_dir(&exbp_path).unwrap();
-        let exercise_dirs = vec![exap.clone(), exbp.clone()];
+        let exercise_dirs = vec![exap, exbp];
 
         get_and_merge_tmcproject_configs(Some(root), temp.path(), exercise_dirs).unwrap();
 
