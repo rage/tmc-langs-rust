@@ -72,7 +72,7 @@ A "frontend" for tmc-langs. A binary CLI client for TMC-langs for IDEs. Intended
 
 ### tmc-langs
 
-The "backend". A library that provides a convenient API for implementing different frontends. A frontend (such as a CLI) should only depend on this and optionally the util library.
+The "backend". A library that provides a convenient API for implementing different frontends. A frontend (such as a CLI) should only depend on this.
 
 ### tmc-client
 

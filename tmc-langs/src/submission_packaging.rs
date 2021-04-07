@@ -3,8 +3,10 @@
 use super::TmcProjectYml;
 use crate::data::{OutputFormat, TmcParams};
 use crate::error::LangsError;
+use std::ffi::OsStr;
 use std::io::Write;
 use std::path::Path;
+use std::path::PathBuf;
 use tmc_langs_plugins::Plugin;
 use tmc_langs_util::{file_util, FileError};
 use walkdir::WalkDir;
@@ -307,8 +309,7 @@ pub fn prepare_submission(
     Ok(())
 }
 
-use std::ffi::OsStr;
-use std::path::PathBuf;
+// TODO: make more robust instead of just looking for src...
 fn find_project_root<P: AsRef<Path>>(path: P) -> Result<Option<PathBuf>, FileError> {
     for entry in WalkDir::new(&path) {
         let entry = entry?;

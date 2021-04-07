@@ -57,6 +57,8 @@ pub enum ClientError {
     CacheDir,
     #[error("No values found in exercise details map returned by server")]
     MissingDetailsValue,
+    #[error("List of exercises given was empty")]
+    NoExercisesGiven,
 
     #[error(transparent)]
     SystemTime(#[from] std::time::SystemTimeError),

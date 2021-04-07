@@ -619,9 +619,23 @@ mod test {
     fn checksum_matches_old_implementation() {
         init();
 
-        let checksum =
-            calculate_checksum(Path::new("tests/data/course_refresher/valid_exercises/ex1"))
-                .unwrap();
+        let temp = tempfile::tempdir().unwrap();
+        file_to(
+            &temp,
+            "test/test.py",
+            r#"@points("test_point")
+@points("ex_and_test_point")
+"#,
+        );
+        file_to(
+            &temp,
+            ".hidden file that should be included in the hash",
+            "",
+        );
+        file_to(&temp, "invalid-but-not-dir", "");
+        file_to(&temp, "setup.py", "");
+
+        let checksum = calculate_checksum(temp.path()).unwrap();
         assert_eq!(checksum, "6cacf02f21f9242674a876954132fb11");
     }
 
@@ -652,7 +666,7 @@ mod test {
             ..Default::default()
         };
         tpyb.save_to_dir(&exbp_path).unwrap();
-        let exercise_dirs = vec![exap.clone(), exbp.clone()];
+        let exercise_dirs = vec![exap, exbp];
 
         get_and_merge_tmcproject_configs(Some(root), temp.path(), exercise_dirs).unwrap();
 

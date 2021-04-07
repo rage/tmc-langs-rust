@@ -18,8 +18,7 @@ use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 use tempfile::NamedTempFile;
-use tmc_langs_util::{file_util, progress_reporter, FileError};
-use walkdir::WalkDir;
+use tmc_langs_util::{progress_reporter, FileError};
 
 /// Authentication token.
 pub type Token =
@@ -345,37 +344,6 @@ impl TmcClient {
             ClientUpdateData::PostedSubmission(result.clone()),
         );
         Ok(result)
-    }
-
-    pub fn reset(&self, exercise_id: usize, exercise_path: PathBuf) -> Result<(), ClientError> {
-        // clear out the exercise directory
-        if exercise_path.exists() {
-            let mut tries = 0;
-            for entry in WalkDir::new(&exercise_path).min_depth(1) {
-                let entry = entry?;
-                log::debug!("{:?}", entry);
-                // windows sometimes fails due to files being in use, retry a few times
-                // todo: handle properly
-                if entry.path().is_dir() {
-                    while let Err(err) = file_util::remove_dir_all(entry.path()) {
-                        tries += 1;
-                        if tries > 8 {
-                            return Err(ClientError::FileError(err));
-                        }
-                        thread::sleep(Duration::from_secs(1));
-                    }
-                } else {
-                    while let Err(err) = file_util::remove_file(entry.path()) {
-                        tries += 1;
-                        if tries > 8 {
-                            return Err(ClientError::FileError(err));
-                        }
-                        thread::sleep(Duration::from_secs(1));
-                    }
-                }
-            }
-        }
-        self.download_exercise(exercise_id, &exercise_path)
     }
 
     pub fn download_old_submission(
