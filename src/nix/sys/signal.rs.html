@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.19.1/src/sys/signal.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>signal.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.20.0/src/sys/signal.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>signal.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../nix/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -1068,6 +1068,31 @@
 <span id="1065">1065</span>
 <span id="1066">1066</span>
 <span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Portions of this file are Copyright 2014 The Rust Project Developers.</span>
 <span class="comment">// See http://rust-lang.org/COPYRIGHT.</span>
@@ -1110,8 +1135,10 @@
         <span class="ident">SIGPIPE</span>,
         <span class="ident">SIGALRM</span>,
         <span class="ident">SIGTERM</span>,
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>),
-                  <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc64&quot;</span>))))]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
+                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>),
+                  <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips64&quot;</span>,
+                          <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc64&quot;</span>))))]</span>
         <span class="ident">SIGSTKFLT</span>,
         <span class="ident">SIGCHLD</span>,
         <span class="ident">SIGCONT</span>,
@@ -1126,14 +1153,17 @@
         <span class="ident">SIGPROF</span>,
         <span class="ident">SIGWINCH</span>,
         <span class="ident">SIGIO</span>,
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
         <span class="ident">SIGPWR</span>,
         <span class="ident">SIGSYS</span>,
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
-                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)))]</span>
+                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)))]</span>
         <span class="ident">SIGEMT</span>,
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
-                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)))]</span>
+                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)))]</span>
         <span class="ident">SIGINFO</span>,
     }
 }
@@ -1157,8 +1187,10 @@
             <span class="string">&quot;SIGPIPE&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Signal</span>::<span class="ident">SIGPIPE</span>,
             <span class="string">&quot;SIGALRM&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Signal</span>::<span class="ident">SIGALRM</span>,
             <span class="string">&quot;SIGTERM&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Signal</span>::<span class="ident">SIGTERM</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>),
-                      <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc64&quot;</span>))))]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>),
+                      <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips64&quot;</span>,
+                              <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc64&quot;</span>))))]</span>
             <span class="string">&quot;SIGSTKFLT&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Signal</span>::<span class="ident">SIGSTKFLT</span>,
             <span class="string">&quot;SIGCHLD&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Signal</span>::<span class="ident">SIGCHLD</span>,
             <span class="string">&quot;SIGCONT&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Signal</span>::<span class="ident">SIGCONT</span>,
@@ -1173,14 +1205,17 @@
             <span class="string">&quot;SIGPROF&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Signal</span>::<span class="ident">SIGPROF</span>,
             <span class="string">&quot;SIGWINCH&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Signal</span>::<span class="ident">SIGWINCH</span>,
             <span class="string">&quot;SIGIO&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Signal</span>::<span class="ident">SIGIO</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
+                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
             <span class="string">&quot;SIGPWR&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Signal</span>::<span class="ident">SIGPWR</span>,
             <span class="string">&quot;SIGSYS&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Signal</span>::<span class="ident">SIGSYS</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
-                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)))]</span>
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)))]</span>
             <span class="string">&quot;SIGEMT&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Signal</span>::<span class="ident">SIGEMT</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
-                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)))]</span>
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)))]</span>
             <span class="string">&quot;SIGINFO&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Signal</span>::<span class="ident">SIGINFO</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">invalid_argument</span>()),
         })
@@ -1210,7 +1245,8 @@
             <span class="ident">Signal</span>::<span class="ident">SIGPIPE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SIGPIPE&quot;</span>,
             <span class="ident">Signal</span>::<span class="ident">SIGALRM</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SIGALRM&quot;</span>,
             <span class="ident">Signal</span>::<span class="ident">SIGTERM</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SIGTERM&quot;</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>),
                       <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc64&quot;</span>))))]</span>
             <span class="ident">Signal</span>::<span class="ident">SIGSTKFLT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SIGSTKFLT&quot;</span>,
             <span class="ident">Signal</span>::<span class="ident">SIGCHLD</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SIGCHLD&quot;</span>,
@@ -1226,14 +1262,17 @@
             <span class="ident">Signal</span>::<span class="ident">SIGPROF</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SIGPROF&quot;</span>,
             <span class="ident">Signal</span>::<span class="ident">SIGWINCH</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SIGWINCH&quot;</span>,
             <span class="ident">Signal</span>::<span class="ident">SIGIO</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SIGIO&quot;</span>,
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
+                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
             <span class="ident">Signal</span>::<span class="ident">SIGPWR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SIGPWR&quot;</span>,
             <span class="ident">Signal</span>::<span class="ident">SIGSYS</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SIGSYS&quot;</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
-                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)))]</span>
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)))]</span>
             <span class="ident">Signal</span>::<span class="ident">SIGEMT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SIGEMT&quot;</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
-                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)))]</span>
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)))]</span>
             <span class="ident">Signal</span>::<span class="ident">SIGINFO</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SIGINFO&quot;</span>,
         }
     }
@@ -1284,7 +1323,10 @@
     <span class="ident">SIGWINCH</span>,
     <span class="ident">SIGIO</span>,
     <span class="ident">SIGSYS</span>];
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>), <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc64&quot;</span>))))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>),
+          <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips64&quot;</span>,
+                  <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc64&quot;</span>))))]</span>
 <span class="kw">const</span> <span class="ident">SIGNALS</span>: [<span class="ident">Signal</span>; <span class="number">31</span>] <span class="op">=</span> [
     <span class="ident">SIGHUP</span>,
     <span class="ident">SIGINT</span>,
@@ -1317,7 +1359,10 @@
     <span class="ident">SIGIO</span>,
     <span class="ident">SIGPWR</span>,
     <span class="ident">SIGSYS</span>];
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>), <span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc64&quot;</span>)))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>),
+          <span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips64&quot;</span>,
+              <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc64&quot;</span>)))]</span>
 <span class="kw">const</span> <span class="ident">SIGNALS</span>: [<span class="ident">Signal</span>; <span class="number">30</span>] <span class="op">=</span> [
     <span class="ident">SIGHUP</span>,
     <span class="ident">SIGINT</span>,
@@ -1350,7 +1395,8 @@
     <span class="ident">SIGPWR</span>,
     <span class="ident">SIGSYS</span>];
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
-              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)))]</span>
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)))]</span>
 <span class="kw">const</span> <span class="ident">SIGNALS</span>: [<span class="ident">Signal</span>; <span class="number">31</span>] <span class="op">=</span> [
     <span class="ident">SIGHUP</span>,
     <span class="ident">SIGINT</span>,
@@ -1820,6 +1866,7 @@
 <span class="doccomment">/// If `pgrp` less then or equal 1, the behavior is platform-specific.</span>
 <span class="doccomment">/// If `signal` is `None`, `killpg` will only preform error checking and won&#39;t</span>
 <span class="doccomment">/// send any signal.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">killpg</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Signal</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">pgrp</span>: <span class="ident">Pid</span>, <span class="ident">signal</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc</span>::<span class="ident">killpg</span>(<span class="ident">pgrp</span>.<span class="ident">into</span>(),
                                   <span class="kw">match</span> <span class="ident">signal</span>.<span class="ident">into</span>() {
@@ -1900,7 +1947,10 @@
         <span class="doccomment">/// `SIGEV_SIGNAL`.  That field is part of a union that shares space with the</span>
         <span class="doccomment">/// more genuinely useful `sigev_notify_thread_id`</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">sigev_notify</span>: <span class="ident">SigevNotify</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SigEvent</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sev</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">mem</span>::<span class="ident">zeroed</span>::<span class="op">&lt;</span><span class="ident">libc</span>::<span class="ident">sigevent</span><span class="op">&gt;</span>()};
+            <span class="comment">// NB: This uses MaybeUninit rather than mem::zeroed because libc::sigevent contains a</span>
+            <span class="comment">// function pointer on Fuchsia as of https://github.com/rust-lang/libc/commit/2f59370,</span>
+            <span class="comment">// and function pointers must not be null.</span>
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sev</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">mem</span>::<span class="ident">MaybeUninit</span>::<span class="op">&lt;</span><span class="ident">libc</span>::<span class="ident">sigevent</span><span class="op">&gt;</span>::<span class="ident">zeroed</span>().<span class="ident">assume_init</span>() };
             <span class="ident">sev</span>.<span class="ident">sigev_notify</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">sigev_notify</span> {
                 <span class="ident">SigevNotify</span>::<span class="ident">SigevNone</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">libc</span>::<span class="ident">SIGEV_NONE</span>,
                 <span class="ident">SigevNotify</span>::<span class="ident">SigevSignal</span>{..} <span class="op">=</span><span class="op">&gt;</span> <span class="ident">libc</span>::<span class="ident">SIGEV_SIGNAL</span>,
@@ -2137,4 +2187,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "nix";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nix"></div>
+    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

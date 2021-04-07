@@ -1,8 +1,8 @@
 (function() {var implementors = {};
 implementors["serde"] = [];
-implementors["serde_json"] = [{"text":"impl Error for Error","synthetic":false,"types":[]}];
-implementors["serde_urlencoded"] = [{"text":"impl Error for Error","synthetic":false,"types":[]}];
-implementors["serde_xml_rs"] = [{"text":"impl Error for Error","synthetic":false,"types":[]}];
-implementors["serde_yaml"] = [{"text":"impl Error for Error","synthetic":false,"types":[]}];
-implementors["toml"] = [{"text":"impl Error for Error","synthetic":false,"types":[]}];
+implementors["serde_json"] = [{"text":"impl <a class=\"trait\" href=\"serde/ser/trait.Error.html\" title=\"trait serde::ser::Error\">Error</a> for <a class=\"struct\" href=\"serde_json/struct.Error.html\" title=\"struct serde_json::Error\">Error</a>","synthetic":false,"types":["serde_json::error::Error"]}];
+implementors["serde_urlencoded"] = [{"text":"impl <a class=\"trait\" href=\"serde/ser/trait.Error.html\" title=\"trait serde::ser::Error\">Error</a> for <a class=\"enum\" href=\"serde_urlencoded/ser/enum.Error.html\" title=\"enum serde_urlencoded::ser::Error\">Error</a>","synthetic":false,"types":["serde_urlencoded::ser::Error"]}];
+implementors["serde_xml_rs"] = [{"text":"impl <a class=\"trait\" href=\"serde/ser/trait.Error.html\" title=\"trait serde::ser::Error\">Error</a> for <a class=\"enum\" href=\"serde_xml_rs/enum.Error.html\" title=\"enum serde_xml_rs::Error\">Error</a>","synthetic":false,"types":["serde_xml_rs::error::Error"]}];
+implementors["serde_yaml"] = [{"text":"impl <a class=\"trait\" href=\"serde/ser/trait.Error.html\" title=\"trait serde::ser::Error\">Error</a> for <a class=\"struct\" href=\"serde_yaml/struct.Error.html\" title=\"struct serde_yaml::Error\">Error</a>","synthetic":false,"types":["serde_yaml::error::Error"]}];
+implementors["toml"] = [{"text":"impl <a class=\"trait\" href=\"serde/ser/trait.Error.html\" title=\"trait serde::ser::Error\">Error</a> for <a class=\"enum\" href=\"toml/ser/enum.Error.html\" title=\"enum toml::ser::Error\">Error</a>","synthetic":false,"types":["toml::ser::Error"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
