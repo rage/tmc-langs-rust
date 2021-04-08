@@ -96,21 +96,25 @@ pub fn refresh_course(
 
     // make_solutions
     log::info!("preparing solutions to {}", new_solution_path.display());
-    for (exercise, _) in &exercise_dirs_and_tmcprojects {
-        super::prepare_solution(
-            &new_clone_path.join(&exercise),
-            &new_solution_path.join(&exercise),
-        )?;
+    for (exercise, merged_tmcproject) in &exercise_dirs_and_tmcprojects {
+        // save merged config to solution
+        let dest_root = new_solution_path.join(&exercise);
+        super::prepare_solution(&new_clone_path.join(&exercise), &dest_root)?;
+        if let Some(merged_tmcproject) = merged_tmcproject {
+            merged_tmcproject.save_to_dir(&dest_root)?;
+        }
     }
     progress_stage("Prepared solutions");
 
     // make_stubs
     log::info!("preparing stubs to {}", new_stub_path.display());
-    for (exercise, _) in &exercise_dirs_and_tmcprojects {
-        super::prepare_stub(
-            &new_clone_path.join(&exercise),
-            &new_stub_path.join(&exercise),
-        )?;
+    for (exercise, merged_tmcproject) in &exercise_dirs_and_tmcprojects {
+        // save merged config to stub
+        let dest_root = new_stub_path.join(&exercise);
+        super::prepare_stub(&new_clone_path.join(&exercise), &dest_root)?;
+        if let Some(merged_tmcproject) = merged_tmcproject {
+            merged_tmcproject.save_to_dir(&dest_root)?;
+        }
     }
     progress_stage("Prepared stubs");
 
@@ -239,11 +243,9 @@ fn get_and_merge_tmcproject_configs(
         match (&root_tmcproject, exercise_tmcproject) {
             (Some(root), Some(mut exercise)) => {
                 exercise.merge(root.clone());
-                exercise.save_to_dir(&target_dir)?;
                 res.push((exercise_dir, Some(exercise)));
             }
             (Some(root), None) => {
-                root.save_to_dir(&target_dir)?;
                 res.push((exercise_dir, Some(root.clone())));
             }
             (None, Some(exercise)) => res.push((exercise_dir, Some(exercise))),
@@ -668,13 +670,22 @@ mod test {
         tpyb.save_to_dir(&exbp_path).unwrap();
         let exercise_dirs = vec![exap, exbp];
 
-        get_and_merge_tmcproject_configs(Some(root), temp.path(), exercise_dirs).unwrap();
+        let dirs_configs =
+            get_and_merge_tmcproject_configs(Some(root), temp.path(), exercise_dirs).unwrap();
 
-        let tpya = TmcProjectYml::load(&exap_path).unwrap().unwrap();
+        let (_, tpya) = &dirs_configs
+            .iter()
+            .find(|(p, _)| p.ends_with("exa"))
+            .unwrap();
+        let tpya = tpya.as_ref().unwrap();
         assert_eq!(tpya.tests_timeout_ms, Some(2345));
         assert_eq!(tpya.fail_on_valgrind_error, Some(true));
 
-        let tpyb = TmcProjectYml::load(&exbp_path).unwrap().unwrap();
+        let (_, tpyb) = &dirs_configs
+            .iter()
+            .find(|(p, _)| p.ends_with("exb"))
+            .unwrap();
+        let tpyb = tpyb.as_ref().unwrap();
         assert_eq!(tpyb.tests_timeout_ms, Some(1234));
         assert_eq!(tpyb.fail_on_valgrind_error, Some(false));
     }
