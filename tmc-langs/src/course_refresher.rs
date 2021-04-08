@@ -89,7 +89,7 @@ pub fn refresh_course(
         .collect::<Vec<_>>();
 
     // collect .tmcproject.ymls and merge the root config with each exercise's, if any
-    let root_tmcproject_yml = TmcProjectYml::load(&course_cache_path)?;
+    let root_tmcproject_yml = TmcProjectYml::load(&new_clone_path)?;
     let exercise_dirs_and_tmcprojects =
         get_and_merge_tmcproject_configs(root_tmcproject_yml, &new_clone_path, exercise_dirs)?;
     progress_stage("Merged .tmcproject.yml files in exercise directories to the root file, if any");
