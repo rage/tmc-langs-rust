@@ -101,6 +101,9 @@ impl TmcProjectYml {
         if self.minimum_python_version.is_none() {
             self.minimum_python_version = with.minimum_python_version;
         }
+        if self.sandbox_image.is_none() {
+            self.sandbox_image = with.sandbox_image;
+        }
     }
 
     pub fn save_to_dir(&self, dir: &Path) -> Result<(), TmcError> {
