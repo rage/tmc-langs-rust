@@ -42,6 +42,10 @@ pub struct TmcProjectYml {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub minimum_python_version: Option<PythonVer>,
+
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sandbox_image: Option<String>,
 }
 
 impl TmcProjectYml {

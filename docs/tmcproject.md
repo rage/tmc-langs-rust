@@ -13,6 +13,7 @@ All of the keys listed below are optional.
 | no-tests               | Boolean OR Map "points" -> List of string OR integer | If set to true or a map, the no-tests plugin is used for the exercise. If set to a list, the list will be used as the exercise's points.                                             |
 | fail_on_valgrind_error | Boolean                                              | If set, the C plugin will attempt to run valgrind and fail the exercise if it discovers errors.                                                                                      |
 | minimum_python_version | Python version string                                | Must be "{major}.{minor}.{patch}", "{major}.{minor}" or "{major}". If set, the Python plugin will warn the user if the Python version being used is below the given minimum version. |
+| sandbox_image | The Docker image that should be used at the sandbox. | Should be a URL. |
 
 ## Example file contents
 
@@ -32,6 +33,7 @@ no-tests:
     - point
 fail_on_valgrind_error: false
 minimum_python_version: "3.8"
+sandbox_image: "eu.gcr.io/moocfi-public/best-image"
 ```
 
 ## Default student and exercise files
