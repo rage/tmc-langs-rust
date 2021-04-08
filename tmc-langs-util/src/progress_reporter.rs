@@ -154,6 +154,11 @@ pub fn finish_stage<T: 'static + Send + Sync>(message: String, data: Option<T>) 
                 let _r = progress_reporter.progress_report.as_ref()(status_update);
             }
         }
+
+        // All of the stages have been finished, resetting progress for future events.
+        if reporter.total_steps_left == 0 && (reporter.current_progress - 1.0_f64).abs() < 0.001 {
+            reporter.current_progress = 0.0;
+        }
     }
 }
 
@@ -235,6 +240,37 @@ mod test {
         assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 0.9166).abs() < 0.01);
 
         finish_stage::<usize>("msg".to_string(), None);
+        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 1.0000).abs() < 0.01);
+    }
+
+    #[test]
+    fn consecutive_progress() {
+        let _lock = init();
+
+        let su = Arc::new(Mutex::new(None));
+        let suc = Arc::clone(&su);
+        subscribe::<usize, _>(move |s| {
+            log::debug!("got {:#?}", s);
+            *suc.lock().unwrap() = Some(s);
+        });
+
+        start_stage::<usize>(3, "starting".to_string(), None);
+        progress_stage::<usize>("hello".to_string(), None);
+        assert!(
+            (su.lock().unwrap().as_ref().unwrap().percent_done - (1.0000 / 3.0000)).abs() < 0.01
+        );
+        progress_stage::<usize>("hello!".to_string(), Some(2));
+        assert!(
+            (su.lock().unwrap().as_ref().unwrap().percent_done - (2.0000 / 3.0000)).abs() < 0.01
+        );
+        finish_stage::<usize>("finished".to_string(), None);
+        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 1.0000).abs() < 0.01);
+
+        start_stage::<usize>(2, "starting".to_string(), None);
+        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 0.0000).abs() < 0.01);
+        progress_stage::<usize>("hello".to_string(), None);
+        assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 0.5000).abs() < 0.01);
+        progress_stage::<usize>("hello!".to_string(), Some(2));
         assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 1.0000).abs() < 0.01);
     }
 }
