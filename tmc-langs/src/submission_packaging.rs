@@ -4,7 +4,7 @@ use super::TmcProjectYml;
 use crate::data::{OutputFormat, TmcParams};
 use crate::error::LangsError;
 use std::ffi::OsStr;
-use std::io::Write;
+use std::io::{Cursor, Write};
 use std::path::Path;
 use std::path::PathBuf;
 use tmc_langs_plugins::Plugin;
@@ -287,9 +287,8 @@ pub fn prepare_submission(
             archive.finish()?;
         }
         OutputFormat::TarZstd => {
-            // create temporary tar file
-            let temp = tempfile::NamedTempFile::new().map_err(LangsError::TempFile)?;
-            let mut archive = tar::Builder::new(temp);
+            let buf = Cursor::new(vec![]);
+            let mut archive = tar::Builder::new(buf);
             log::debug!(
                 "appending \"{}\" at \"{}\"",
                 dest.display(),
@@ -299,11 +298,9 @@ pub fn prepare_submission(
                 .append_dir_all(prefix, &dest)
                 .map_err(|e| LangsError::TarAppend(dest, e))?;
             archive.finish().map_err(LangsError::TarFinish)?;
-            let tar = archive.into_inner().map_err(LangsError::TarIntoInner)?;
-            // the existing file handle has been read to the end and is now empty, so we reopen it
-            let reopened = file_util::open_file(tar.path())?;
-            zstd::stream::copy_encode(reopened, archive_file, 0)
-                .map_err(|e| LangsError::Zstd(tar.path().to_path_buf(), e))?;
+            let mut tar = archive.into_inner().map_err(LangsError::TarIntoInner)?;
+            tar.set_position(0); // reset the cursor
+            zstd::stream::copy_encode(tar, archive_file, 0).map_err(LangsError::Zstd)?;
         }
     }
     Ok(())
