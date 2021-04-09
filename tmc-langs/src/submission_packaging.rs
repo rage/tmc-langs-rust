@@ -4,7 +4,7 @@ use super::TmcProjectYml;
 use crate::data::{OutputFormat, TmcParams};
 use crate::error::LangsError;
 use std::ffi::OsStr;
-use std::io::Write;
+use std::io::{Cursor, Write};
 use std::path::Path;
 use std::path::PathBuf;
 use tmc_langs_plugins::Plugin;
@@ -17,6 +17,8 @@ lazy_static::lazy_static! {
 }
 
 /// Note: Used by tmc-server. Prepares a submission for further processing.
+/// The clone path is assumed to be a directory with the exercise name as the directory name,
+/// and the course name as its parent, ex. "anything/some_course/some_exercise"
 pub fn prepare_submission(
     zip_path: &Path,
     target_path: &Path,
@@ -243,10 +245,27 @@ pub fn prepare_submission(
 
     // make archive
     log::debug!("creating submission archive");
-    let prefix = toplevel_dir_name
-        .as_ref()
-        .map(Path::new)
-        .unwrap_or_else(|| Path::new(""));
+
+    let exercise_name = clone_path.file_name();
+    let course_name = clone_path.parent().and_then(Path::file_name);
+    let prefix = match (toplevel_dir_name, course_name, exercise_name) {
+        (Some(toplevel_dir_name), Some(course_name), Some(exercise_name)) => {
+            Path::new(&toplevel_dir_name)
+                .join(course_name)
+                .join(exercise_name)
+        }
+        (None, Some(course_name), Some(exercise_name)) => {
+            Path::new(course_name).join(exercise_name)
+        }
+        _ => {
+            log::warn!(
+                "was not able to find exercise and/or course name from clone path {}",
+                clone_path.display()
+            );
+            PathBuf::from("")
+        }
+    };
+
     let archive_file = file_util::create_file(target_path)?;
     match output_format {
         OutputFormat::Tar => {
@@ -287,9 +306,8 @@ pub fn prepare_submission(
             archive.finish()?;
         }
         OutputFormat::TarZstd => {
-            // create temporary tar file
-            let temp = tempfile::NamedTempFile::new().map_err(LangsError::TempFile)?;
-            let mut archive = tar::Builder::new(temp);
+            let buf = Cursor::new(vec![]);
+            let mut archive = tar::Builder::new(buf);
             log::debug!(
                 "appending \"{}\" at \"{}\"",
                 dest.display(),
@@ -299,11 +317,9 @@ pub fn prepare_submission(
                 .append_dir_all(prefix, &dest)
                 .map_err(|e| LangsError::TarAppend(dest, e))?;
             archive.finish().map_err(LangsError::TarFinish)?;
-            let tar = archive.into_inner().map_err(LangsError::TarIntoInner)?;
-            // the existing file handle has been read to the end and is now empty, so we reopen it
-            let reopened = file_util::open_file(tar.path())?;
-            zstd::stream::copy_encode(reopened, archive_file, 0)
-                .map_err(|e| LangsError::Zstd(tar.path().to_path_buf(), e))?;
+            let mut tar = archive.into_inner().map_err(LangsError::TarIntoInner)?;
+            tar.set_position(0); // reset the cursor
+            zstd::stream::copy_encode(tar, archive_file, 0).map_err(LangsError::Zstd)?;
         }
     }
     Ok(())
@@ -365,13 +381,13 @@ mod test {
     use tempfile::TempDir;
     use walkdir::WalkDir;
 
-    const MAVEN_CLONE: &str = "tests/data/MavenExercise";
+    const MAVEN_CLONE: &str = "tests/data/some_course/MavenExercise";
     const MAVEN_ZIP: &str = "tests/data/MavenExercise.zip";
 
-    const MAKE_CLONE: &str = "tests/data/MakeExercise";
+    const MAKE_CLONE: &str = "tests/data/some_course/MakeExercise";
     const MAKE_ZIP: &str = "tests/data/MakeExercise.zip";
 
-    const PYTHON_CLONE: &str = "tests/data/PythonExercise";
+    const PYTHON_CLONE: &str = "tests/data/some_course/PythonExercise";
     const PYTHON_ZIP: &str = "tests/data/PythonExercise.zip";
 
     fn init() {
@@ -420,10 +436,16 @@ mod test {
         init();
         let (_temp, output) = generic_submission(MAVEN_CLONE, MAVEN_ZIP);
         // expected files
-        assert!(output.join("src/main/java/SimpleStuff.java").exists());
-        assert!(output.join("src/test/java/SimpleTest.java").exists());
-        assert!(output.join("src/test/java/SimpleHiddenTest.java").exists());
-        assert!(output.join("pom.xml").exists());
+        assert!(output
+            .join("some_course/MavenExercise/src/main/java/SimpleStuff.java")
+            .exists());
+        assert!(output
+            .join("some_course/MavenExercise/src/test/java/SimpleTest.java")
+            .exists());
+        assert!(output
+            .join("some_course/MavenExercise/src/test/java/SimpleHiddenTest.java")
+            .exists());
+        assert!(output.join("some_course/MavenExercise/pom.xml").exists());
     }
 
     #[test]
@@ -432,8 +454,10 @@ mod test {
         let (_temp, output) = generic_submission(MAVEN_CLONE, MAVEN_ZIP);
 
         // files that should not be included
-        assert!(!output.join("__MACOSX").exists());
-        assert!(!output.join("src/test/java/MadeUpTest.java").exists());
+        assert!(!output.join("some_course/MavenExercise/__MACOSX").exists());
+        assert!(!output
+            .join("some_course/MavenExercise/src/test/java/MadeUpTest.java")
+            .exists());
     }
 
     #[test]
@@ -452,8 +476,10 @@ mod test {
         let contents = String::from_utf8(writer).unwrap();
         assert!(contents.contains("MODIFIED"));
         // the text should not be in the package
-        let test_file =
-            fs::read_to_string(dbg!(output.join("src/test/java/SimpleTest.java"))).unwrap();
+        let test_file = fs::read_to_string(dbg!(
+            output.join("some_course/MavenExercise/src/test/java/SimpleTest.java")
+        ))
+        .unwrap();
         assert!(!test_file.contains("MODIFIED"));
     }
 
@@ -462,7 +488,7 @@ mod test {
         init();
         let (_temp, output) = generic_submission(MAVEN_CLONE, MAVEN_ZIP);
 
-        let param_file = output.join(".tmcparams");
+        let param_file = output.join("some_course/MavenExercise/.tmcparams");
         assert!(param_file.exists());
         let conts = fs::read_to_string(param_file).unwrap();
         log::debug!("tmcparams {}", conts);
@@ -500,9 +526,11 @@ mod test {
             log::debug!("{}", entry.unwrap().path().display());
         }
         assert!(output
-            .join("toplevel/src/test/java/SimpleHiddenTest.java")
+            .join("toplevel/some_course/MavenExercise/src/test/java/SimpleHiddenTest.java")
             .exists());
-        assert!(output.join("toplevel/pom.xml").exists());
+        assert!(output
+            .join("toplevel/some_course/MavenExercise/pom.xml")
+            .exists());
     }
 
     #[test]
@@ -533,8 +561,10 @@ mod test {
         for entry in WalkDir::new(temp.path()) {
             log::debug!("{}", entry.unwrap().path().display());
         }
-        assert!(output.join("src/test/java/SimpleHiddenTest.java").exists());
-        assert!(output.join("pom.xml").exists());
+        assert!(output
+            .join("some_course/MavenExercise/src/test/java/SimpleHiddenTest.java")
+            .exists());
+        assert!(output.join("some_course/MavenExercise/pom.xml").exists());
     }
 
     #[test]
@@ -560,7 +590,7 @@ mod test {
         let output = file_util::open_file(output).unwrap();
         let mut archive = zip::ZipArchive::new(output).unwrap();
         archive
-            .by_name("src/test/java/SimpleHiddenTest.java")
+            .by_name("some_course/MavenExercise/src/test/java/SimpleHiddenTest.java")
             .unwrap();
     }
 
@@ -587,9 +617,11 @@ mod test {
         let output = file_util::open_file(output).unwrap();
         let mut archive = zip::ZipArchive::new(output).unwrap();
         archive
-            .by_name("toplevel/src/test/java/SimpleHiddenTest.java")
+            .by_name("toplevel/some_course/MavenExercise/src/test/java/SimpleHiddenTest.java")
             .unwrap();
-        archive.by_name("toplevel/pom.xml").unwrap();
+        archive
+            .by_name("toplevel/some_course/MavenExercise/pom.xml")
+            .unwrap();
     }
 
     #[test]
@@ -622,10 +654,10 @@ mod test {
 
         // visible tests included, hidden test isn't
         assert!(output_extracted
-            .join("src/test/java/SimpleTest.java")
+            .join("some_course/MavenExercise/src/test/java/SimpleTest.java")
             .exists());
         assert!(!output_extracted
-            .join("src/test/java/SimpleHiddenTest.java")
+            .join("some_course/MavenExercise/src/test/java/SimpleHiddenTest.java")
             .exists());
     }
 
@@ -635,9 +667,11 @@ mod test {
         let (_temp, output) = generic_submission(MAKE_CLONE, MAKE_ZIP);
 
         // expected files
-        assert!(output.join("src/main.c").exists());
-        assert!(output.join("test/test_source.c").exists());
-        assert!(output.join("Makefile").exists());
+        assert!(output.join("some_course/MakeExercise/src/main.c").exists());
+        assert!(output
+            .join("some_course/MakeExercise/test/test_source.c")
+            .exists());
+        assert!(output.join("some_course/MakeExercise/Makefile").exists());
     }
 
     #[test]
@@ -646,9 +680,15 @@ mod test {
         let (_temp, output) = generic_submission(PYTHON_CLONE, PYTHON_ZIP);
 
         // expected files
-        assert!(output.join("src/__main__.py").exists());
-        assert!(output.join("test/test_greeter.py").exists());
+        assert!(output
+            .join("some_course/PythonExercise/src/__main__.py")
+            .exists());
+        assert!(output
+            .join("some_course/PythonExercise/test/test_greeter.py")
+            .exists());
         // assert!(output.join("tmc/points.py").exists()); // not included?
-        assert!(output.join("__init__.py").exists());
+        assert!(output
+            .join("some_course/PythonExercise/__init__.py")
+            .exists());
     }
 }

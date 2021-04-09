@@ -14,8 +14,8 @@ pub enum LangsError {
     TempDir(#[source] std::io::Error),
     #[error("Invalid parameter key/value: {0}")]
     InvalidParam(String, #[source] ParamError),
-    #[error("Error compressing file at {0} with zstd")]
-    Zstd(PathBuf, #[source] std::io::Error),
+    #[error("Error compressing data with zstd")]
+    Zstd(#[source] std::io::Error),
     #[error("Error retrieving file handle from tar builder")]
     TarIntoInner(#[source] std::io::Error),
     #[error("Error finishing tar")]
