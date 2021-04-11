@@ -411,14 +411,21 @@ pub fn download_or_update_course_exercises(
         };
     }
 
-    progress_reporter::finish_stage::<ClientUpdateData>(
+    let finish_message = if failed.is_empty() {
         format!(
             "Successfully downloaded {} out of {} exercises.",
             successful.len(),
             exercises_len
-        ),
-        None,
-    );
+        )
+    } else {
+        format!(
+            "Failed to download {} out of {} exercises",
+            failed.len(),
+            exercises_len
+        )
+    };
+
+    progress_reporter::finish_stage::<ClientUpdateData>(finish_message, None);
 
     let downloaded = successful
         .into_iter()
