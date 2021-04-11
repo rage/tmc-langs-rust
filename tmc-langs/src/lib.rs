@@ -412,11 +412,15 @@ pub fn download_or_update_course_exercises(
     }
 
     let finish_message = if failed.is_empty() {
-        format!(
-            "Successfully downloaded {} out of {} exercises.",
-            successful.len(),
-            exercises_len
-        )
+        if successful.len() == 0 && exercises_len == 0 {
+            "Exercises are already up-to-date!".to_string()
+        } else {
+            format!(
+                "Successfully downloaded {} out of {} exercises.",
+                successful.len(),
+                exercises_len
+            )
+        }
     } else {
         format!(
             "Downloaded {} out of {} exercises ({} failed)",
