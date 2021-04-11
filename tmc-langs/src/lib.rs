@@ -419,9 +419,10 @@ pub fn download_or_update_course_exercises(
         )
     } else {
         format!(
-            "Failed to download {} out of {} exercises",
+            "Downloaded {} out of {} exercises ({} failed)",
+            successful.len(),
+            exercises_len,
             failed.len(),
-            exercises_len
         )
     };
 
