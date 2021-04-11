@@ -11,7 +11,7 @@ mod submission_processing;
 
 pub use crate::config::{
     list_local_course_exercises, migrate_exercise, move_projects_dir, ConfigValue, CourseConfig,
-    Credentials, ProjectsDirExercise, TmcConfig,
+    Credentials, ProjectsConfig, ProjectsDirExercise, TmcConfig,
 };
 pub use crate::course_refresher::{refresh_course, RefreshData, RefreshExercise};
 pub use crate::data::{
@@ -38,7 +38,6 @@ pub use tmc_langs_util::{
     notification_reporter,
 };
 
-use crate::config::ProjectsConfig;
 use crate::data::DownloadTarget;
 // use heim::disk;
 use jwt::SignWithKey;
