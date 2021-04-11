@@ -291,13 +291,25 @@ impl TmcClient {
         locale: Option<Language>,
     ) -> Result<NewSubmission, ClientError> {
         // compress
+        start_stage(2, "Compressing paste submission...", None);
         let compressed = tmc_langs_plugins::compress_project(submission_path)?;
         let mut file = NamedTempFile::new().map_err(ClientError::TempFile)?;
         file.write_all(&compressed).map_err(|e| {
             ClientError::FileError(FileError::FileWrite(file.path().to_path_buf(), e))
         })?;
+        progress_stage(
+            "Compressed paste submission. Posting paste submission...",
+            None,
+        );
 
-        self.post_submission_to_paste(submission_url, file.path(), paste_message, locale)
+        let result =
+            self.post_submission_to_paste(submission_url, file.path(), paste_message, locale)?;
+
+        finish_stage(
+            format!("Paste finished, running at {0}", result.paste_url),
+            ClientUpdateData::PostedSubmission(result.clone()),
+        );
+        Ok(result)
     }
 
     /// Sends feedback.
