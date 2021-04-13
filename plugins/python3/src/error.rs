@@ -39,8 +39,8 @@ impl From<PythonError> for TmcError {
 }
 
 // conversion from plugin error to a tmc result
-impl<T> Into<Result<T, TmcError>> for PythonError {
-    fn into(self) -> Result<T, TmcError> {
-        Err(TmcError::Plugin(Box::new(self)))
+impl<T> From<PythonError> for Result<T, TmcError> {
+    fn from(from: PythonError) -> Self {
+        Err(TmcError::Plugin(Box::new(from)))
     }
 }

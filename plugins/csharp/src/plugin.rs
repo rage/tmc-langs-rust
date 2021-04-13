@@ -18,6 +18,7 @@ use walkdir::WalkDir;
 use zip::ZipArchive;
 
 const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../deps/tmc-csharp-runner-1.1.1.zip");
+const TMC_CSHARP_RUNNER_VERSION: &str = "1.1.1";
 
 #[derive(Default)]
 pub struct CSharpPlugin {}
@@ -25,40 +26,6 @@ pub struct CSharpPlugin {}
 impl CSharpPlugin {
     pub fn new() -> Self {
         Self {}
-    }
-
-    /// Verifies that the runner directory matches the contents of the zip.
-    /// Note: does not check for extra files not in the zip.
-    fn runner_needs_to_be_extracted(target: &Path) -> Result<bool, CSharpError> {
-        log::debug!("verifying C# runner integrity at {}", target.display());
-
-        // no need to check the zip contents if the directory doesn't even exist
-        if !target.exists() {
-            return Ok(true);
-        }
-
-        let mut zip = ZipArchive::new(Cursor::new(TMC_CSHARP_RUNNER))?;
-        for i in 0..zip.len() {
-            let file = zip.by_index(i)?;
-            if file.is_file() {
-                let target_file_path = target.join(Path::new(file.name()));
-                if !target_file_path.exists() {
-                    return Ok(true); // new file in zip, need to extract
-                }
-
-                let target_bytes = file_util::read_file(target_file_path)?;
-                let zip_file_path = PathBuf::from(file.name());
-                let zip_bytes: Vec<u8> = file
-                    .bytes()
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| FileError::FileRead(zip_file_path, e))?;
-
-                if target_bytes != zip_bytes {
-                    return Ok(true); // bytes changed, need to extract
-                }
-            }
-        }
-        Ok(false)
     }
 
     /// Extracts the bundled tmc-csharp-runner to the given path.
@@ -94,12 +61,23 @@ impl CSharpPlugin {
         match dirs::cache_dir() {
             Some(cache_dir) => {
                 let runner_dir = cache_dir.join("tmc").join("tmc-csharp-runner");
-                if Self::runner_needs_to_be_extracted(&runner_dir)? {
+                let version_path = runner_dir.join("VERSION");
+
+                let needs_update = if version_path.exists() {
+                    let version = file_util::read_file_to_string(&version_path)?;
+                    version != TMC_CSHARP_RUNNER_VERSION
+                } else {
+                    true
+                };
+
+                if needs_update {
+                    log::debug!("updating the cached C# runner");
                     if runner_dir.exists() {
                         // clear the directory if it exists
                         file_util::remove_dir_all(&runner_dir)?;
                     }
                     Self::extract_runner_to_dir(&runner_dir)?;
+                    file_util::write_to_file(TMC_CSHARP_RUNNER_VERSION.as_bytes(), version_path)?;
                 }
                 Ok(runner_dir)
             }
@@ -442,41 +420,6 @@ mod test {
             }
         }
         temp
-    }
-
-    #[test]
-    fn runner_needs_to_be_extracted() {
-        init();
-
-        // replace a file's content with garbage
-        let temp = tempfile::TempDir::new().unwrap();
-        CSharpPlugin::extract_runner_to_dir(temp.path()).unwrap();
-        std::fs::write(
-            temp.path().join("TestMyCode.CSharp.Bootstrap.exe"),
-            b"garbage",
-        )
-        .unwrap();
-        assert!(CSharpPlugin::runner_needs_to_be_extracted(&temp.path()).unwrap());
-
-        // remove a file
-        let temp = tempfile::TempDir::new().unwrap();
-        CSharpPlugin::extract_runner_to_dir(temp.path()).unwrap();
-        std::fs::remove_file(temp.path().join("TestMyCode.CSharp.Bootstrap.exe")).unwrap();
-        assert!(CSharpPlugin::runner_needs_to_be_extracted(&temp.path()).unwrap());
-    }
-
-    #[test]
-    fn runner_does_not_need_to_be_extracted() {
-        init();
-
-        // no changes
-        let temp = tempfile::TempDir::new().unwrap();
-        CSharpPlugin::extract_runner_to_dir(temp.path()).unwrap();
-        assert!(!CSharpPlugin::runner_needs_to_be_extracted(&temp.path()).unwrap());
-
-        // new file added
-        file_to(&temp, "new_file", "stuff");
-        assert!(!CSharpPlugin::runner_needs_to_be_extracted(&temp.path()).unwrap());
     }
 
     #[test]

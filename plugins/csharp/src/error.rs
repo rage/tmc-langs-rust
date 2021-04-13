@@ -32,8 +32,8 @@ impl From<CSharpError> for TmcError {
 }
 
 // conversion from plugin error to a tmc result
-impl<T> Into<Result<T, TmcError>> for CSharpError {
-    fn into(self) -> Result<T, TmcError> {
-        Err(TmcError::Plugin(Box::new(self)))
+impl<T> From<CSharpError> for Result<T, TmcError> {
+    fn from(from: CSharpError) -> Self {
+        Err(TmcError::Plugin(Box::new(from)))
     }
 }

@@ -47,8 +47,8 @@ impl From<JavaError> for TmcError {
 }
 
 // conversion from plugin error to a tmc result
-impl<T> Into<Result<T, TmcError>> for JavaError {
-    fn into(self) -> Result<T, TmcError> {
-        Err(TmcError::Plugin(Box::new(self)))
+impl<T> From<JavaError> for Result<T, TmcError> {
+    fn from(from: JavaError) -> Self {
+        Err(TmcError::Plugin(Box::new(from)))
     }
 }

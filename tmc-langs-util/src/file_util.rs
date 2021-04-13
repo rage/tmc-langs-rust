@@ -150,7 +150,7 @@ pub fn write_to_writer<S: AsRef<[u8]>, W: Write>(
 ) -> Result<(), FileError> {
     target
         .write_all(source.as_ref())
-        .map_err(|e| FileError::WriteError(e))?;
+        .map_err(FileError::WriteError)?;
     Ok(())
 }
 

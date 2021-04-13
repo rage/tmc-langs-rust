@@ -7,6 +7,7 @@ use tmc_langs_framework::TestResult;
 /// Test result from the C# test runner.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
+#[allow(clippy::upper_case_acronyms)]
 pub struct CSTestResult {
     pub name: String,
     pub passed: bool,
