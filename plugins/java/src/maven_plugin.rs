@@ -17,7 +17,9 @@ use tmc_langs_framework::{
 };
 use tmc_langs_util::file_util;
 
-const MVN_ARCHIVE: &[u8] = include_bytes!("../deps/apache-maven-3.6.3-bin.tar.gz");
+const MVN_ARCHIVE: &[u8] = include_bytes!("../deps/apache-maven-3.8.1-bin.tar.gz");
+const MVN_PATH_IN_ARCHIVE: &str = "apache-maven-3.8.1"; // the name of the base directory in the maven archive
+const MVN_VERSION: &str = "3.8.1";
 
 pub struct MavenPlugin {
     jvm: Jvm,
@@ -52,17 +54,40 @@ impl MavenPlugin {
         #[cfg(not(windows))]
         let mvn_exec = "mvn";
 
-        let mvn_exec_path = tmc_path
-            .join("apache-maven-3.6.3")
-            .join("bin")
-            .join(mvn_exec);
-        if !mvn_exec_path.exists() {
+        let mvn_path = tmc_path.join("apache-maven");
+        let mvn_version_path = mvn_path.join("VERSION");
+
+        let needs_update = if mvn_version_path.exists() {
+            let version_contents = file_util::read_file_to_string(&mvn_version_path)?;
+            MVN_VERSION != version_contents
+        } else {
+            true
+        };
+
+        if needs_update {
+            if mvn_path.exists() {
+                file_util::remove_dir_all(&mvn_path)?;
+            }
+            // TODO: remove this bit eventually, this is just to clean up the old maven cachce that had the version in the name
+            let old_path = tmc_path.join("apache-maven-3.6.3");
+            if old_path.exists() {
+                file_util::remove_dir_all(old_path)?;
+            }
+
             log::debug!("extracting bundled tar");
             let tar = GzDecoder::new(Cursor::new(MVN_ARCHIVE));
             let mut tar = Archive::new(tar);
             tar.unpack(&tmc_path)
-                .map_err(|e| JavaError::JarWrite(tmc_path, e))?;
+                .map_err(|e| JavaError::JarWrite(tmc_path.clone(), e))?;
+
+            log::debug!("renaming extracted archive to apache-maven");
+            file_util::rename(tmc_path.join(MVN_PATH_IN_ARCHIVE), &mvn_path)?;
+
+            log::debug!("writing bundle version data");
+            file_util::write_to_file(MVN_VERSION.as_bytes(), &mvn_version_path)?;
         }
+
+        let mvn_exec_path = mvn_path.join("bin").join(mvn_exec);
         Ok(mvn_exec_path.as_os_str().to_os_string())
     }
 }
@@ -324,7 +349,7 @@ mod test {
         std::env::set_var("PATH", "");
         let cmd = MavenPlugin::get_mvn_command().unwrap();
         let expected = format!(
-            "tmc{0}apache-maven-3.6.3{0}bin{0}mvn",
+            "tmc{0}apache-maven-3.8.1{0}bin{0}mvn",
             std::path::MAIN_SEPARATOR
         );
         assert!(cmd.to_string_lossy().ends_with(&expected))
