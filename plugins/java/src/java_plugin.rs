@@ -47,7 +47,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
             self.create_run_result_file(project_root_path, timeout, compile_result)?;
         let result = self.parse_test_result(&test_result);
         file_util::remove_file(&test_result.test_results)?;
-        Ok(result?)
+        result
     }
 
     /// Parses test results.

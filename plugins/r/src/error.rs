@@ -24,8 +24,8 @@ impl From<RError> for TmcError {
 }
 
 // conversion from plugin error to a tmc result
-impl<T> Into<Result<T, TmcError>> for RError {
-    fn into(self) -> Result<T, TmcError> {
-        Err(TmcError::Plugin(Box::new(self)))
+impl<T> From<RError> for Result<T, TmcError> {
+    fn from(from: RError) -> Self {
+        Err(TmcError::Plugin(Box::new(from)))
     }
 }
