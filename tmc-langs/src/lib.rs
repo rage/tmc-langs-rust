@@ -411,14 +411,26 @@ pub fn download_or_update_course_exercises(
         };
     }
 
-    progress_reporter::finish_stage::<ClientUpdateData>(
+    let finish_message = if failed.is_empty() {
+        if successful.len() == 0 && exercises_len == 0 {
+            "Exercises are already up-to-date!".to_string()
+        } else {
+            format!(
+                "Successfully downloaded {} out of {} exercises.",
+                successful.len(),
+                exercises_len
+            )
+        }
+    } else {
         format!(
-            "Successfully downloaded {} out of {} exercises.",
+            "Downloaded {} out of {} exercises ({} failed)",
             successful.len(),
-            exercises_len
-        ),
-        None,
-    );
+            exercises_len,
+            failed.len(),
+        )
+    };
+
+    progress_reporter::finish_stage::<ClientUpdateData>(finish_message, None);
 
     let downloaded = successful
         .into_iter()
