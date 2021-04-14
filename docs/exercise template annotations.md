@@ -1,4 +1,4 @@
-Exercise templates support several commented annotations that are processed when preparing exercise stubs and solutions. Note that the comment syntax is language dependent, `//` is used here as an example, but in Python an annotation would look like `# SOLUTION FILE`, for example.
+Exercise templates support several commented annotations that are processed when preparing exercise stubs (what students initially get when they start doing the exercise) and solutions. Note that the comment syntax is language dependent, `//` is used here as an example, but in Python an annotation would look like `# SOLUTION FILE`, for example.
 
 ### `// SOLUTION FILE`
 Files that contain this annotation are left out of the stub. For example a file like
