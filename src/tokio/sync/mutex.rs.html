@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.4.0/src/sync/mutex.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mutex.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.5.0/src/sync/mutex.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mutex.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -511,6 +511,12 @@
 <span id="508">508</span>
 <span id="509">509</span>
 <span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sync&quot;</span>), <span class="ident">allow</span>(<span class="ident">unreachable_pub</span>, <span class="ident">dead_code</span>))]</span>
 
@@ -524,23 +530,28 @@
 
 <span class="doccomment">/// An asynchronous `Mutex`-like type.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This type acts similarly to an asynchronous [`std::sync::Mutex`], with one</span>
-<span class="doccomment">/// major difference: [`lock`] does not block and the lock guard can be held</span>
-<span class="doccomment">/// across await points.</span>
+<span class="doccomment">/// This type acts similarly to [`std::sync::Mutex`], with two major</span>
+<span class="doccomment">/// differences: [`lock`] is an async method so does not block, and the lock</span>
+<span class="doccomment">/// guard is designed to be held across `.await` points.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Which kind of mutex should you use?</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Contrary to popular belief, it is ok and often preferred to use the ordinary</span>
-<span class="doccomment">/// [`Mutex`][std] from the standard library in asynchronous code. This section</span>
-<span class="doccomment">/// will help you decide on which kind of mutex you should use.</span>
+<span class="doccomment">/// [`Mutex`][std] from the standard library in asynchronous code.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// The primary use case of the async mutex is to provide shared mutable access</span>
-<span class="doccomment">/// to IO resources such as a database connection. If the data stored behind the</span>
-<span class="doccomment">/// mutex is just data, it is often better to use a blocking mutex such as the</span>
-<span class="doccomment">/// one in the standard library or [`parking_lot`]. This is because the feature</span>
-<span class="doccomment">/// that the async mutex offers over the blocking mutex is that it is possible</span>
-<span class="doccomment">/// to keep the mutex locked across an `.await` point, which is rarely necessary</span>
-<span class="doccomment">/// for data.</span>
+<span class="doccomment">/// The feature that the async mutex offers over the blocking mutex is the</span>
+<span class="doccomment">/// ability to keep it locked across an `.await` point. This makes the async</span>
+<span class="doccomment">/// mutex more expensive than the blocking mutex, so the blocking mutex should</span>
+<span class="doccomment">/// be preferred in the cases where it can be used. The primary use case for the</span>
+<span class="doccomment">/// async mutex is to provide shared mutable access to IO resources such as a</span>
+<span class="doccomment">/// database connection. If the value behind the mutex is just data, it&#39;s</span>
+<span class="doccomment">/// usually appropriate to use a blocking mutex such as the one in the standard</span>
+<span class="doccomment">/// library or [`parking_lot`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Note that, although the compiler will not prevent the std `Mutex` from holding</span>
+<span class="doccomment">/// its guard across `.await` points in situations where the task is not movable</span>
+<span class="doccomment">/// between threads, this virtually never leads to correct concurrent code in</span>
+<span class="doccomment">/// practice as it can easily lead to deadlocks.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// A common pattern is to wrap the `Arc&lt;Mutex&lt;...&gt;&gt;` in a struct that provides</span>
 <span class="doccomment">/// non-async methods for performing operations on the data within, and only</span>
@@ -637,7 +648,8 @@
     <span class="ident">c</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 }
 
-<span class="doccomment">/// A handle to a held `Mutex`.</span>
+<span class="doccomment">/// A handle to a held `Mutex`. The guard can be held across any `.await` point</span>
+<span class="doccomment">/// as it is [`Send`].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// As long as you have this guard, you have exclusive access to the underlying</span>
 <span class="doccomment">/// `T`. The guard internally borrows the `Mutex`, so the mutex will not be</span>

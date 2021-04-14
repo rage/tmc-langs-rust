@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.4.0/src/sync/rwlock/write_guard.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>write_guard.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.5.0/src/sync/rwlock/write_guard.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>write_guard.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../tokio/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -236,6 +236,11 @@
 <span id="233">233</span>
 <span id="234">234</span>
 <span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">sync</span>::<span class="ident">batch_semaphore</span>::<span class="ident">Semaphore</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">sync</span>::<span class="ident">rwlock</span>::<span class="ident">read_guard</span>::<span class="ident">RwLockReadGuard</span>;
@@ -248,12 +253,13 @@
 <span class="doccomment">/// RAII structure used to release the exclusive write access of a lock when</span>
 <span class="doccomment">/// dropped.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This structure is created by the [`write`] and method</span>
+<span class="doccomment">/// This structure is created by the [`write`] method</span>
 <span class="doccomment">/// on [`RwLock`].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`write`]: method@crate::sync::RwLock::write</span>
 <span class="doccomment">/// [`RwLock`]: struct@crate::sync::RwLock</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">permits_acquired</span>: <span class="ident">u32</span>,
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Semaphore</span>,
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span>,
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">marker</span>: <span class="ident">marker</span>::<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span>,
@@ -303,9 +309,11 @@
     {
         <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">this</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">U</span>;
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">s</span>;
+        <span class="kw">let</span> <span class="ident">permits_acquired</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">permits_acquired</span>;
         <span class="comment">// NB: Forget to avoid drop impl from being called.</span>
         <span class="ident">mem</span>::<span class="ident">forget</span>(<span class="ident">this</span>);
         <span class="ident">RwLockMappedWriteGuard</span> {
+            <span class="ident">permits_acquired</span>,
             <span class="ident">s</span>,
             <span class="ident">data</span>,
             <span class="ident">marker</span>: <span class="ident">marker</span>::<span class="ident">PhantomData</span>,
@@ -364,9 +372,11 @@
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">this</span>),
         };
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">s</span>;
+        <span class="kw">let</span> <span class="ident">permits_acquired</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">permits_acquired</span>;
         <span class="comment">// NB: Forget to avoid drop impl from being called.</span>
         <span class="ident">mem</span>::<span class="ident">forget</span>(<span class="ident">this</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">RwLockMappedWriteGuard</span> {
+            <span class="ident">permits_acquired</span>,
             <span class="ident">s</span>,
             <span class="ident">data</span>,
             <span class="ident">marker</span>: <span class="ident">marker</span>::<span class="ident">PhantomData</span>,
@@ -424,7 +434,7 @@
         <span class="kw">let</span> <span class="ident">RwLockWriteGuard</span> { <span class="ident">s</span>, <span class="ident">data</span>, .. } <span class="op">=</span> <span class="self">self</span>;
 
         <span class="comment">// Release all but one of the permits held by the write guard</span>
-        <span class="ident">s</span>.<span class="ident">release</span>(<span class="kw">super</span>::<span class="ident">MAX_READS</span> <span class="op">-</span> <span class="number">1</span>);
+        <span class="ident">s</span>.<span class="ident">release</span>((<span class="self">self</span>.<span class="ident">permits_acquired</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">usize</span>);
         <span class="comment">// NB: Forget to avoid drop impl from being called.</span>
         <span class="ident">mem</span>::<span class="ident">forget</span>(<span class="self">self</span>);
         <span class="ident">RwLockReadGuard</span> {
@@ -469,7 +479,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">release</span>(<span class="kw">super</span>::<span class="ident">MAX_READS</span>);
+        <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">release</span>(<span class="self">self</span>.<span class="ident">permits_acquired</span> <span class="kw">as</span> <span class="ident">usize</span>);
     }
 }
 </pre></div>
