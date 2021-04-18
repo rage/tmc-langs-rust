@@ -2,7 +2,7 @@
 
 use crate::LangsError;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::path::{Path, PathBuf};
 use tmc_langs_util::{file_util, FileError};
 use walkdir::WalkDir;
@@ -10,14 +10,14 @@ use walkdir::WalkDir;
 #[derive(Debug)]
 pub struct ProjectsConfig {
     // BTreeMap used so the exercises in the config file are ordered by key
-    pub courses: BTreeMap<String, CourseConfig>,
+    pub courses: HashMap<String, CourseConfig>,
 }
 
 impl ProjectsConfig {
     pub fn load(projects_dir: &Path) -> Result<ProjectsConfig, LangsError> {
         file_util::lock!(projects_dir);
 
-        let mut course_configs = BTreeMap::new();
+        let mut course_configs = HashMap::new();
         for file in WalkDir::new(projects_dir).min_depth(1).max_depth(1) {
             let file = file?;
             let course_config_path = file.path().join("course_config.toml");
@@ -99,6 +99,16 @@ impl ProjectsConfig {
             .flatten()
             .map(|e| e.1)
     }
+
+    /// Note: does not save the config on initialization.
+    pub fn get_or_init_course_config(&mut self, course_name: String) -> &mut CourseConfig {
+        self.courses
+            .entry(course_name.clone())
+            .or_insert(CourseConfig {
+                course: course_name,
+                exercises: BTreeMap::new(),
+            })
+    }
 }
 
 /// A course configuration file. Contains information of all of the exercises of this course in the projects directory.
@@ -120,6 +130,11 @@ impl CourseConfig {
         let s = toml::to_string_pretty(&self)?;
         file_util::write_to_file(s.as_bytes(), &target)?;
         Ok(())
+    }
+
+    pub fn add_exercise(&mut self, exercise_name: String, id: usize, checksum: String) {
+        let exercise = ProjectsDirExercise { id, checksum };
+        self.exercises.insert(exercise_name, exercise);
     }
 }
 
