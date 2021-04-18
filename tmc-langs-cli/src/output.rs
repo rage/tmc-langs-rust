@@ -34,6 +34,15 @@ impl Output {
             data: data.into(),
         })
     }
+
+    pub fn finished(message: impl Into<String>) -> Self {
+        Self::OutputData(OutputData {
+            status: Status::Finished,
+            message: message.into(),
+            result: OutputResult::ExecutedCommand,
+            data: None,
+        })
+    }
 }
 
 #[derive(Debug, Serialize)]

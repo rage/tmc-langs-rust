@@ -14,7 +14,7 @@ use walkdir::WalkDir;
 macro_rules! lock {
     ( $( $path: expr ),+ ) => {
         $(
-            let path_buf: PathBuf = $path.into();
+            let path_buf: PathBuf = (&$path).into();
             let mut fl = $crate::file_util::FileLock::new(path_buf)?;
             let _lock = fl.lock()?;
         )*
