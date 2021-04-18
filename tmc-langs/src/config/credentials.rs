@@ -73,7 +73,7 @@ impl Credentials {
     }
 
     pub fn remove(self) -> Result<(), LangsError> {
-        file_util::lock!(&self.path);
+        file_util::lock!(self.path);
 
         file_util::remove_file(&self.path)?;
         Ok(())

@@ -1,717 +1,586 @@
 //! Create clap app
 
 use crate::output::UpdatedExercise;
-use clap::{App, AppSettings, Arg, SubCommand};
+use anyhow::Context;
+use clap::AppSettings;
 use schemars::JsonSchema;
-use std::path::PathBuf;
+use serde_json::Value as Json;
+use std::{path::PathBuf, str::FromStr};
+use structopt::StructOpt;
 use tmc_langs::{
     CombinedCourseData, CourseData, CourseDetails, CourseExercise,
     DownloadOrUpdateCourseExercisesResult, ExerciseDesc, ExerciseDetails,
-    ExercisePackagingConfiguration, LocalExercise, NewSubmission, Organization, Review, RunResult,
-    StyleValidationResult, Submission, SubmissionFeedbackResponse, SubmissionFinished,
-    UpdateResult,
+    ExercisePackagingConfiguration, Language, LocalExercise, NewSubmission, Organization,
+    OutputFormat, Review, RunResult, StyleValidationResult, Submission, SubmissionFeedbackResponse,
+    SubmissionFinished, UpdateResult,
 };
+use url::Url;
 // use tmc_langs_util::task_executor::RefreshData;
 
-/// Constructs the CLI root.
-pub fn create_app() -> App<'static, 'static> {
-    // subcommand definitions are alphabetically ordered
-    App::new(env!("CARGO_PKG_NAME"))
-        .version(env!("CARGO_PKG_VERSION"))
-        .author(env!("CARGO_PKG_AUTHORS"))
-        .about(env!("CARGO_PKG_DESCRIPTION"))
-        .setting(AppSettings::SubcommandRequiredElseHelp)
-        .arg(Arg::with_name("pretty")
-            .help("Pretty-prints all output")
-            .long("pretty"))
-
-        .subcommand(SubCommand::with_name("checkstyle")
-            .about("Checks the code style for the given exercise")
-            .long_about(schema_leaked::<Option<StyleValidationResult>>())
-            .arg(Arg::with_name("exercise-path")
-                .help("Path to the directory where the project resides.")
-                .long("exercise-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("locale")
-                .help("Locale as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")
-                .long("locale")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("output-path")
-                .help("If defined, the check results will be written to this path. Overwritten if it already exists.")
-                .long("output-path")
-                .takes_value(true)))
-
-        .subcommand(SubCommand::with_name("clean")
-            .about("Cleans the target exercise using the appropriate language plugin")
-            .long_about(SCHEMA_NULL)
-            .arg(Arg::with_name("exercise-path")
-                .help("Path to the directory where the exercise resides.")
-                .long("exercise-path")
-                .required(true)
-                .takes_value(true)))
-
-        .subcommand(SubCommand::with_name("compress-project")
-            .about("Compresses the target exercise into a ZIP. Only includes student files using the student file policy of the exercise's plugin")
-            .long_about(SCHEMA_NULL)
-            .arg(Arg::with_name("exercise-path")
-                .help("Path to the directory where the exercise resides.")
-                .long("exercise-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("output-path")
-                .help("Path to the output ZIP archive. Overwritten if it already exists.")
-                .long("output-path")
-                .required(true)
-                .takes_value(true)))
-
-        .subcommand(create_core_app()) // "core"
-
-        /*
-        .subcommand(
-            SubCommand::with_name("disk-space")
-                .about("Returns the amount of free disk space in megabytes left on the partition that contains the given path")
-                .arg(Arg::with_name("path")
-                    .help("A path in the partition that should be inspected.")
-                    .long("path")
-                    .required(true)
-                    .takes_value(true))
-        )
-        */
-
-        .subcommand(SubCommand::with_name("extract-project")
-            .about("Extracts an exercise from a ZIP archive. If the output-path is a project root, the plugin's student file policy will be used to avoid overwriting student files")
-            .long_about(SCHEMA_NULL)
-            .arg(Arg::with_name("archive-path")
-                .help("Path to the ZIP archive.")
-                .long("archive-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("output-path")
-                .help("Path to the directory where the archive will be extracted.")
-                .long("output-path")
-                .required(true)
-                .takes_value(true)))
-
-        .subcommand(SubCommand::with_name("fast-available-points")
-            .about("Parses @Points notations from an exercise's exercise files and returns the point names found")
-            .long_about(schema_leaked::<Vec<String>>())
-            .arg(Arg::with_name("exercise-path")
-                .help("Path to the directory where the projects reside.")
-                .long("exercise-path")
-                .required(true)
-                .takes_value(true)))
-
-        .subcommand(SubCommand::with_name("find-exercises")
-            .about("Finds all exercise root directories inside the exercise-path")
-            .long_about(schema_leaked::<Vec<PathBuf>>())
-            .arg(Arg::with_name("exercise-path")
-                .help("Path to the directory where the projects reside.")
-                .long("exercise-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("output-path")
-                .help("If given, the search results will be written to this path. Overwritten if it already exists.")
-                .long("output-path")
-                .takes_value(true)))
-
-        .subcommand(SubCommand::with_name("get-exercise-packaging-configuration")
-            .about("Returns a configuration which separately lists the student files and exercise files inside the given exercise")
-            .long_about(schema_leaked::<ExercisePackagingConfiguration>())
-            .arg(Arg::with_name("exercise-path")
-                .help("Path to the directory where the exercise resides.")
-                .long("exercise-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("output-path")
-                .help("If given, the configuration will be written to this path. Overwritten if it already exists.")
-                .long("output-path")
-                .takes_value(true)))
-
-        .subcommand(SubCommand::with_name("list-local-course-exercises")
-            .about("Returns a list of local exercises for the given course")
-            .long_about(schema_leaked::<Vec<LocalExercise>>())
-            .arg(Arg::with_name("client-name")
-                .help("The client for which exercises should be listed.")
-                .long("client-name")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("course-slug")
-                .help("The course slug the local exercises of which should be listed.")
-                .long("course-slug")
-                .required(true)
-                .takes_value(true)))
-
-        .subcommand(SubCommand::with_name("prepare-solutions")
-            .about("Processes the exercise files in exercise-path, removing all code marked as stubs")
-            .long_about(SCHEMA_NULL)
-            .arg(Arg::with_name("exercise-path")
-                .help("Path to the directory where the exercise resides.")
-                .long("exercise-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("output-path")
-                .help("Path to the directory where the processed files will be written.")
-                .long("output-path")
-                .required(true)
-                .takes_value(true)))
-
-        .subcommand(SubCommand::with_name("prepare-stubs")
-            .about("Processes the exercise files in exercise-path, removing all code marked as solutions")
-            .long_about(SCHEMA_NULL)
-            .arg(Arg::with_name("exercise-path")
-                .help("Path to the directory where the exercise resides.")
-                .long("exercise-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("output-path")
-                .help("Path to the directory where the processed files will be written.")
-                .long("output-path")
-                .required(true)
-                .takes_value(true)))
-
-        .subcommand(SubCommand::with_name("prepare-submission")
-            .about("Takes a submission ZIP archive and turns it into an archive with reset test files, and tmc-params, ready for further processing")
-            .long_about(SCHEMA_NULL)
-            .arg(Arg::with_name("output-format")
-                .help("The output format of the submission archive. Defaults to tar.")
-                .long("output-format")
-                .default_value("tar")
-                .possible_values(&["tar", "zip", "zstd"]))
-            .arg(Arg::with_name("clone-path")
-                .help("Path to exercise's clone path, where the unmodified test files will be copied from.")
-                .long("clone-path")
-                .takes_value(true)
-                .required(true))
-            .arg(Arg::with_name("output-path")
-                .help("Path to the resulting archive. Overwritten if it already exists.")
-                .long("output-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("stub-zip-path")
-                .help("If given, the tests will be copied from this stub ZIP instead, effectively ignoring hidden tests.")
-                .long("stub-zip-path")
-                .takes_value(true))
-            .arg(Arg::with_name("submission-path")
-                .help("Path to the submission ZIP archive.")
-                .long("submission-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("tmc-param")
-                .help("A key-value pair in the form key=value to be written into .tmcparams. If multiple pairs with the same key are given, the values are collected into an array.")
-                .long("tmc-param")
-                .takes_value(true)
-                .multiple(true))
-            .arg(Arg::with_name("top-level-dir-name")
-                .help("If given, the contents in the resulting archive will be nested inside a directory with this name.")
-                .long("top-level-dir-name")
-                .takes_value(true)))
-
-        .subcommand(SubCommand::with_name("refresh-course")
-            .about("Refresh the given course")
-            // .long_about(schema_leaked::<RefreshData>()) // can't format YAML mapping
-            .arg(Arg::with_name("cache-path")
-                .help("Path to the cached course.")
-                .long("cache-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("cache-root")
-                .help("The cache root.")
-                .long("cache-root")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("course-name")
-                .help("The name of the course.")
-                .long("course-name")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("git-branch")
-                .help("Version control branch.")
-                .long("git-branch")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("source-url")
-                .help("Version control URL.")
-                .long("source-url")
-                .required(true)
-                .takes_value(true)))
-
-        .subcommand(SubCommand::with_name("run-tests")
-            .about("Run the tests for the exercise using the appropriate language plugin")
-            .long_about(schema_leaked::<RunResult>())
-            .arg(Arg::with_name("checkstyle-output-path")
-                .help("Runs checkstyle if given. Path to the file where the style results will be written.")
-                .long("checkstyle-output-path")
-                .takes_value(true)
-                .requires("locale"))
-            .arg(Arg::with_name("exercise-path")
-                .help("Path to the directory where the exercise resides.")
-                .long("exercise-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("locale")
-                .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'. Required if checkstyle-output-path is given.")
-                .long("locale")
-                .takes_value(true))
-            .arg(Arg::with_name("output-path")
-                .help("If defined, the test results will be written to this path. Overwritten if it already exists.")
-                .long("output-path")
-                .takes_value(true))
-            .arg(Arg::with_name("wait-for-secret")
-                .help("If defined, the command will wait for a string to be written to stdin, used for signing the output file with jwt.")
-                .long("wait-for-secret")))
-
-        .subcommand(create_settings_app()) // "settings"
-
-        .subcommand(SubCommand::with_name("scan-exercise")
-            .about("Produces a description of an exercise using the appropriate language plugin")
-            .long_about(schema_leaked::<ExerciseDesc>())
-            .arg(Arg::with_name("exercise-path")
-                .help("Path to the directory where the project resides.")
-                .long("exercise-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("output-path")
-                .help("If given, the scan results will be written to this path. Overwritten if it already exists.")
-                .long("output-path")
-                .takes_value(true)))
+#[derive(StructOpt)]
+#[structopt(
+    name = env!("CARGO_PKG_NAME"),
+    version = env!("CARGO_PKG_VERSION"),
+    author = env!("CARGO_PKG_AUTHORS"),
+    about = env!("CARGO_PKG_DESCRIPTION"),
+    setting = AppSettings::SubcommandRequiredElseHelp,
+)]
+pub struct Opt {
+    /// Pretty-prints all output
+    #[structopt(long)]
+    pub pretty: bool,
+    #[structopt(subcommand)]
+    pub cmd: Command,
 }
 
-/// Constructs the core sub-command.
-fn create_core_app() -> App<'static, 'static> {
-    App::new("core")
-        .setting(AppSettings::SubcommandRequiredElseHelp)
-        .about("Various commands that communicate with the TMC server")
-        .arg(Arg::with_name("client-name")
-            .help("Name used to differentiate between different TMC clients.")
-            .long("client-name")
-            .required(true)
-            .takes_value(true))
-        .arg(Arg::with_name("client-version")
-            .help("Client version.")
-            .long("client-version")
-            .required(true)
-            .takes_value(true))
+#[derive(StructOpt)]
+pub enum Command {
+    /// Checks the code style for the given exercise
+    #[structopt(long_about = schema_leaked::<Option<StyleValidationResult>>())]
+    Checkstyle {
+        /// Path to the directory where the project resides.
+        #[structopt(long)]
+        exercise_path: PathBuf,
+        /// Locale as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.
+        #[structopt(long)]
+        locale: Locale,
+        /// If defined, the check results will be written to this path. Overwritten if it already exists.
+        #[structopt(long)]
+        output_path: Option<PathBuf>,
+    },
 
-        .subcommand(SubCommand::with_name("check-exercise-updates")
-            .about("Checks for updates to any exercises that exist locally.")
-            .long_about(schema_leaked::<Vec<UpdatedExercise>>()))
+    /// Cleans the target exercise using the appropriate language plugin
+    #[structopt(long_about = SCHEMA_NULL)]
+    Clean {
+        /// Path to the directory where the exercise resides.
+        #[structopt(long)]
+        exercise_path: PathBuf,
+    },
 
-        .subcommand(SubCommand::with_name("download-model-solution")
-            .about("Downloads an exercise's model solution")
-            .long_about(SCHEMA_NULL)
-            .arg(Arg::with_name("solution-download-url")
-                .help("URL to the solution download.")
-                .long("solution-download-url")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("target")
-                .help("Path to where the model solution will be downloaded.")
-                .long("target")
-                .required(true)
-                .takes_value(true)))
+    /// Compresses the target exercise into a ZIP. Only includes student files using the student file policy of the exercise's plugin
+    #[structopt(long_about = SCHEMA_NULL)]
+    CompressProject {
+        /// Path to the directory where the exercise resides.
+        #[structopt(long)]
+        exercise_path: PathBuf,
+        /// Path to the output ZIP archive. Overwritten if it already exists.
+        #[structopt(long)]
+        output_path: PathBuf,
+    },
 
-        .subcommand(SubCommand::with_name("download-old-submission")
-            .about("Downloads an old submission. Resets the exercise at output-path if any, downloading the exercise base from the server. The old submission is then downloaded and extracted on top of the base, using the student file policy to retain student files")
-            .long_about(SCHEMA_NULL)
-            .arg(Arg::with_name("save-old-state") // TODO: unnecessary, remove (submission-url is enough, but probaly needs a rename if the flag is removed)
-                .help("If set, the exercise is submitted to the server before resetting it.")
-                .long("save-old-state")
-                .requires("submission-url"))
-            .arg(Arg::with_name("exercise-id")
-                .help("The ID of the exercise.")
-                .long("exercise-id")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("output-path")
-                .help("Path to where the submission should be downloaded.")
-                .long("output-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("submission-id")
-                .help("The ID of the submission.")
-                .long("submission-id")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("submission-url")
-                .help("Required if save-old-state is set. The URL where the submission should be posted.")
-                .long("submission-url")
-                .takes_value(true)))
+    Core(Core),
 
-        .subcommand(SubCommand::with_name("download-or-update-course-exercises")
-            .about("Downloads exercises. If downloading an exercise that has been downloaded before, the student file policy will be used to avoid overwriting student files, effectively just updating the exercise files")
-            .long_about(schema_leaked::<DownloadOrUpdateCourseExercisesResult>())
-            .arg(Arg::with_name("download-template")
-                .help("If set, will always download the course template instead of the latest submission, even if one exists.")
-                .long("download-template"))
-            .arg(Arg::with_name("exercise-id")
-                .help("Exercise id of an exercise that should be downloaded. Multiple ids can be given.")
-                .long("exercise-id")
-                .required(true)
-                .takes_value(true)
-                .multiple(true)))
+    /// Extracts an exercise from a ZIP archive. If the output-path is a project root, the plugin's student file policy will be used to avoid overwriting student files
+    #[structopt(long_about = SCHEMA_NULL)]
+    ExtractProject {
+        /// Path to the ZIP archive.
+        #[structopt(long)]
+        archive_path: PathBuf,
+        /// Path to the directory where the archive will be extracted.
+        #[structopt(long)]
+        output_path: PathBuf,
+    },
 
-        .subcommand(SubCommand::with_name("get-course-data")
-            .about("Fetches course data. Combines course details, course exercises and course settings")
-            .long_about(schema_leaked::<CombinedCourseData>())
-            .arg(Arg::with_name("course-id")
-                .help("The ID of the course.")
-                .long("course-id")
-                .required(true)
-                .takes_value(true)))
+    /// Parses @Points notations from an exercise's exercise files and returns the point names found
+    #[structopt(long_about = schema_leaked::<Vec<String>>())]
+    FastAvailablePoints {
+        /// Path to the directory where the projects reside.
+        #[structopt(long)]
+        exercise_path: PathBuf,
+    },
 
-        .subcommand(SubCommand::with_name("get-course-details")
-            .about("Fetches course details")
-            .long_about(schema_leaked::<CourseDetails>())
-            .arg(Arg::with_name("course-id")
-                .help("The ID of the course.")
-                .long("course-id")
-                .required(true)
-                .takes_value(true)))
+    /// Finds all exercise root directories inside the exercise-path
+    #[structopt(long_about = schema_leaked::<Vec<PathBuf>>())]
+    FindExercises {
+        /// Path to the directory where the projects reside.
+        #[structopt(long)]
+        exercise_path: PathBuf,
+        /// If given, the search results will be written to this path. Overwritten if it already exists.
+        #[structopt(long)]
+        output_path: Option<PathBuf>,
+    },
 
-        .subcommand(SubCommand::with_name("get-course-exercises")
-            .about("Lists a course's exercises")
-            .long_about(schema_leaked::<Vec<CourseExercise>>())
-            .arg(Arg::with_name("course-id")
-                .help("The ID of the course.")
-                .long("course-id")
-                .required(true)
-                .takes_value(true)))
+    /// Returns a configuration which separately lists the student files and exercise files inside the given exercise
+    #[structopt(long_about = schema_leaked::<ExercisePackagingConfiguration>())]
+    GetExercisePackagingConfiguration {
+        /// Path to the directory where the exercise resides.
+        #[structopt(long)]
+        exercise_path: PathBuf,
+        /// If given, the configuration will be written to this path. Overwritten if it already exists.
+        #[structopt(long)]
+        output_path: Option<PathBuf>,
+    },
 
-        .subcommand(SubCommand::with_name("get-course-settings")
-            .about("Fetches course settings")
-            .long_about(schema_leaked::<CourseData>())
-            .arg(Arg::with_name("course-id")
-                .help("The ID of the course.")
-                .long("course-id")
-                .required(true)
-                .takes_value(true)))
+    /// Returns a list of local exercises for the given course
+    #[structopt(long_about = schema_leaked::<Vec<LocalExercise>>())]
+    ListLocalCourseExercises {
+        /// The client for which exercises should be listed.
+        #[structopt(long)]
+        client_name: String,
+        /// The course slug the local exercises of which should be listed.
+        #[structopt(long)]
+        course_slug: String,
+    },
 
-        .subcommand(SubCommand::with_name("get-courses")
-            .about("Lists courses")
-            .long_about(schema_leaked::<Vec<CourseData>>())
-            .arg(Arg::with_name("organization")
-                .help("Organization slug (e.g. mooc, hy).")
-                .long("organization")
-                .required(true)
-                .takes_value(true)))
+    /// Processes the exercise files in exercise-path, removing all code marked as stubs
+    #[structopt(long_about = SCHEMA_NULL)]
+    PrepareSolutions {
+        /// Path to the directory where the exercise resides.
+        #[structopt(long)]
+        exercise_path: PathBuf,
+        /// Path to the directory where the processed files will be written.
+        #[structopt(long)]
+        output_path: PathBuf,
+    },
 
-        .subcommand(SubCommand::with_name("get-exercise-details")
-            .about("Fetches exercise details")
-            .long_about(schema_leaked::<ExerciseDetails>())
-            .arg(Arg::with_name("exercise-id")
-                .help("The ID of the exercise.")
-                .long("exercise-id")
-                .required(true)
-                .takes_value(true)))
+    /// Processes the exercise files in exercise-path, removing all code marked as solutions
+    #[structopt(long_about = SCHEMA_NULL)]
+    PrepareStubs {
+        /// Path to the directory where the exercise resides.
+        #[structopt(long)]
+        exercise_path: PathBuf,
+        /// Path to the directory where the processed files will be written.
+        #[structopt(long)]
+        output_path: PathBuf,
+    },
 
-        .subcommand(SubCommand::with_name("get-exercise-submissions")
-            .about("Fetches the current user's old submissions for an exercise")
-            .long_about(schema_leaked::<Vec<Submission>>())
-            .arg(Arg::with_name("exercise-id")
-                .help("The ID of the exercise.")
-                .long("exercise-id")
-                .required(true)
-                .takes_value(true)))
+    /// Takes a submission ZIP archive and turns it into an archive with reset test files, and tmc-params, ready for further processing
+    #[structopt(long_about = SCHEMA_NULL)]
+    PrepareSubmission {
+        /// The output format of the submission archive. Defaults to tar.
+        #[structopt(long, default_value = "tar")]
+        output_format: OutputFormatWrapper,
+        /// Path to exercise's clone path, where the unmodified test files will be copied from.
+        #[structopt(long)]
+        clone_path: PathBuf,
+        /// Path to the resulting archive. Overwritten if it already exists.
+        #[structopt(long)]
+        output_path: PathBuf,
+        /// If given, the tests will be copied from this stub ZIP instead, effectively ignoring hidden tests.
+        #[structopt(long)]
+        stub_zip_path: Option<PathBuf>,
+        /// Path to the submission ZIP archive.
+        #[structopt(long)]
+        submission_path: PathBuf,
+        /// A key-value pair in the form key=value to be written into .tmcparams. If multiple pairs with the same key are given, the values are collected into an array.
+        #[structopt(long)]
+        tmc_param: Vec<String>,
+        #[structopt(long)]
+        /// If given, the contents in the resulting archive will be nested inside a directory with this name.
+        top_level_dir_name: Option<String>,
+    },
 
-        .subcommand(SubCommand::with_name("get-exercise-updates")
-            .about("Checks for updates to exercises")
-            .long_about(schema_leaked::<UpdateResult>())
-            .arg(Arg::with_name("course-id")
-                .help("The ID of the course")
-                .long("course-id")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("exercise")
-                .help("An exercise. Takes two values, an exercise id and a checksum. Multiple exercises can be given.")
-                .long("exercise")
-                .required(true)
-                .takes_value(true)
-                .number_of_values(2)
-                .value_names(&["exercise-id", "checksum"])
-                .multiple(true)))
+    /// Refresh the given course
+    RefreshCourse {
+        /// Path to the cached course.
+        #[structopt(long)]
+        cache_path: PathBuf,
+        /// The cache root.
+        #[structopt(long)]
+        cache_root: PathBuf,
+        /// The name of the course.
+        #[structopt(long)]
+        course_name: String,
+        /// Version control branch.
+        #[structopt(long)]
+        git_branch: String,
+        /// Version control URL.
+        #[structopt(long)]
+        source_url: Url,
+    },
 
-        .subcommand(SubCommand::with_name("get-organization")
-            .about("Fetches an organization")
-            .long_about(schema_leaked::<Organization>())
-            .arg(Arg::with_name("organization")
-                .help("Organization slug (e.g. mooc, hy).")
-                .long("organization")
-                .required(true)
-                .takes_value(true)))
+    /// Run the tests for the exercise using the appropriate language plugin
+    #[structopt(long_about = schema_leaked::<RunResult>())]
+    RunTests {
+        /// Runs checkstyle if given. Path to the file where the style results will be written.
+        #[structopt(long, requires = "locale")]
+        checkstyle_output_path: Option<PathBuf>,
+        /// Path to the directory where the exercise resides.
+        #[structopt(long)]
+        exercise_path: PathBuf,
+        /// Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'. Required if checkstyle-output-path is given.
+        #[structopt(long)]
+        locale: Option<Locale>,
+        /// If defined, the test results will be written to this path. Overwritten if it already exists.
+        #[structopt(long)]
+        output_path: Option<PathBuf>,
+        /// If defined, the command will wait for a string to be written to stdin, used for signing the output file with jwt.
+        #[structopt(long)]
+        wait_for_secret: bool,
+    },
 
-        .subcommand(SubCommand::with_name("get-organizations")
-            .about("Fetches a list of all organizations from the TMC server")
-            .long_about(schema_leaked::<Vec<Organization>>()))
+    Settings(SettingsCommand),
 
-        .subcommand(SubCommand::with_name("get-unread-reviews")
-            .about("Fetches unread reviews")
-            .long_about(schema_leaked::<Vec<Review>>())
-            .arg(Arg::with_name("reviews-url")
-                .help("URL to the reviews API.")
-                .long("reviews-url")
-                .required(true)
-                .takes_value(true)))
-
-        .subcommand(SubCommand::with_name("logged-in")
-            .about("Checks if the CLI is authenticated. Prints the access token if so")
-            .long_about(SCHEMA_TOKEN))
-
-        .subcommand(SubCommand::with_name("login")
-            .about("Authenticates with the TMC server and stores the OAuth2 token in config. You can log in either by email and password or an access token")
-            .long_about(SCHEMA_NULL)
-            .arg(Arg::with_name("base64")
-                .help("If set, the password is expected to be a base64 encoded string. This can be useful if the password contains special characters.")
-                .long("base64"))
-            .arg(Arg::with_name("email")
-                .help("The email address of your TMC account. The password will be read through stdin.")
-                .long("email")
-                .takes_value(true)
-                .required_unless("set-access-token"))
-            .arg(Arg::with_name("set-access-token")
-                .help("The OAUTH2 access token that should be used for authentication.")
-                .long("set-access-token")
-                .takes_value(true)
-                .required_unless("email")))
-
-        .subcommand(SubCommand::with_name("logout")
-            .about("Logs out and removes the OAuth2 token from config")
-            .long_about(SCHEMA_NULL))
-
-        .subcommand(SubCommand::with_name("mark-review-as-read")
-            .about("Marks a review as read")
-            .long_about(SCHEMA_NULL)
-            .arg(Arg::with_name("review-update-url")
-                .help("URL to the review update API.")
-                .long("review-update-url")
-                .required(true)
-                .takes_value(true)))
-
-        .subcommand(SubCommand::with_name("paste")
-            .about("Sends an exercise to the TMC pastebin")
-            .long_about(schema_leaked::<NewSubmission>())
-            .arg(Arg::with_name("locale")
-                .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")
-                .long("locale")
-                .takes_value(true))
-            .arg(Arg::with_name("paste-message")
-                .help("Optional message to attach to the paste.")
-                .long("paste-message")
-                .takes_value(true))
-            .arg(Arg::with_name("submission-path")
-                .help("Path to the exercise to be submitted.")
-                .long("submission-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("submission-url")
-                .help("The URL where the submission should be posted.")
-                .long("submission-url")
-                .required(true)
-                .takes_value(true)))
-
-        .subcommand(SubCommand::with_name("request-code-review")
-            .about("Requests code review")
-            .long_about(schema_leaked::<NewSubmission>())
-            .arg(Arg::with_name("locale")
-                .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")
-                .long("locale")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("message-for-reviewer")
-                .help("Message for the review.")
-                .long("message-for-reviewer")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("submission-path")
-                .help("Path to the directory where the submission resides.")
-                .long("submission-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("submission-url")
-                .help("URL where the submission should be posted.")
-                .long("submission-url")
-                .required(true)
-                .takes_value(true)))
-
-        .subcommand(SubCommand::with_name("reset-exercise")
-            .about("Resets an exercise. Removes the contents of the exercise directory and redownloads it from the server")
-            .long_about(SCHEMA_NULL)
-            .arg(Arg::with_name("save-old-state")
-                .help("If set, the exercise is submitted to the server before resetting it.")
-                .long("save-old-state")
-                .requires("submission-url"))
-            .arg(Arg::with_name("exercise-id")
-                .help("The ID of the exercise.")
-                .long("exercise-id")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("exercise-path")
-                .help("Path to the directory where the project resides.")
-                .long("exercise-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("submission-url")
-                .help("Required if save-old-state is set. The URL where the submission should be posted.")
-                .long("submission-url")
-                .takes_value(true)))
-
-        .subcommand(SubCommand::with_name("send-feedback")
-            .about("Sends feedback for an exercise")
-            .long_about(schema_leaked::<SubmissionFeedbackResponse>())
-            .arg(Arg::with_name("feedback")
-                .help("A feedback answer. Takes two values, a feedback answer id and the answer. Multiple feedback arguments can be given.")
-                .long("feedback")
-                .required(true)
-                .takes_value(true)
-                .number_of_values(2)
-                .value_names(&["feedback-answer-id", "answer"])
-                .multiple(true))
-            .arg(Arg::with_name("feedback-url")
-                .help("URL where the feedback should be posted.")
-                .long("feedback-url")
-                .required(true)
-                .takes_value(true)))
-
-        .subcommand(SubCommand::with_name("submit")
-            .about("Submits an exercise. By default blocks until the submission results are returned")
-            .long_about(schema_leaked::<SubmissionFinished>())
-            .arg(Arg::with_name("dont-block")
-                .help("Set to avoid blocking.")
-                .long("dont-block"))
-            .arg(Arg::with_name("locale")
-                .help("Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.")
-                .long("locale")
-                .takes_value(true))
-            .arg(Arg::with_name("submission-path")
-                .help("Path to the directory where the exercise resides.")
-                .long("submission-path")
-                .required(true)
-                .takes_value(true))
-            .arg(Arg::with_name("submission-url")
-                .help("URL where the submission should be posted.")
-                .long("submission-url")
-                .required(true)
-                .takes_value(true)))
-
-        .subcommand(SubCommand::with_name("update-exercises")
-            .about("Updates all local exercises that have been updated on the server")
-            .long_about(SCHEMA_NULL))
-
-        .subcommand(SubCommand::with_name("wait-for-submission")
-            .about("Waits for a submission to finish")
-            .long_about(schema_leaked::<SubmissionFinished>())
-            .arg(Arg::with_name("submission-url")
-                .help("URL to the submission's status.")
-                .long("submission-url")
-                .required(true)
-                .takes_value(true)))
+    /// Produces a description of an exercise using the appropriate language plugin
+    #[structopt(long_about = schema_leaked::<ExerciseDesc>())]
+    ScanExercise {
+        /// Path to the directory where the project resides.
+        #[structopt(long)]
+        exercise_path: PathBuf,
+        /// If given, the scan results will be written to this path. Overwritten if it already exists.
+        #[structopt(long)]
+        output_path: Option<PathBuf>,
+    },
 }
 
-fn create_settings_app() -> App<'static, 'static> {
-    App::new("settings")
-        .setting(AppSettings::SubcommandRequiredElseHelp)
-        .about("Configure the CLI")
-        .arg(
-            Arg::with_name("client-name")
-                .help("The name of the client.")
-                .long("client-name")
-                .required(true)
-                .takes_value(true),
-        )
-        .subcommand(
-            SubCommand::with_name("get")
-                .about("Retrieves a value from the settings")
-                .arg(
-                    Arg::with_name("setting")
-                        .help("The name of the setting.")
-                        .required(true)
-                        .takes_value(true),
-                ),
-        )
-        .subcommand(
-            SubCommand::with_name("list").about("Prints every key=value pair in the settings file"),
-        )
-        .subcommand(
-            SubCommand::with_name("migrate")
-                .about("Migrates an exercise on disk into the langs project directory")
-                .arg(
-                    Arg::with_name("exercise-path")
-                        .help("Path to the directory where the project resides.")
-                        .long("exercise-path")
-                        .required(true)
-                        .takes_value(true),
-                )
-                .arg(
-                    Arg::with_name("course-slug")
-                        .help("The course slug, e.g. mooc-java-programming-i.")
-                        .long("course-slug")
-                        .required(true)
-                        .takes_value(true),
-                )
-                .arg(
-                    Arg::with_name("exercise-id")
-                        .help("The exercise id, e.g. 1234.")
-                        .long("exercise-id")
-                        .required(true)
-                        .takes_value(true),
-                )
-                .arg(
-                    Arg::with_name("exercise-slug")
-                        .help("The exercise slug, e.g. part01-Part01_01.Sandbox.")
-                        .long("exercise-slug")
-                        .required(true)
-                        .takes_value(true),
-                )
-                .arg(
-                    Arg::with_name("exercise-checksum")
-                        .help("The checksum of the exercise from the TMC server.")
-                        .long("exercise-checksum")
-                        .required(true)
-                        .takes_value(true),
-                ),
-        )
-        .subcommand(
-            SubCommand::with_name("move-projects-dir")
-                .about(
-                    "Change the projects-dir setting, moving the contents into the new directory",
-                )
-                .arg(
-                    Arg::with_name("dir")
-                        .help("The directory where the projects should be moved.")
-                        .required(true)
-                        .takes_value(true),
-                ),
-        )
-        .subcommand(
-            SubCommand::with_name("reset").about("Resets the settings file to the defaults"),
-        )
-        .subcommand(
-            SubCommand::with_name("set")
-                .about("Saves a value in the settings")
-                .arg(
-                    Arg::with_name("key")
-                        .help("The key. Parsed as JSON, assumed to be a string if parsing fails.")
-                        .required(true)
-                        .takes_value(true),
-                )
-                .arg(
-                    Arg::with_name("json")
-                        .help("The value in JSON.")
-                        .required(true)
-                        .takes_value(true),
-                ),
-        )
-        .subcommand(
-            SubCommand::with_name("unset")
-                .about("Unsets a value from the settings")
-                .arg(
-                    Arg::with_name("setting")
-                        .help("The name of the setting.")
-                        .required(true)
-                        .takes_value(true),
-                ),
-        )
+#[derive(StructOpt)]
+/// Various commands that communicate with the TMC server
+pub struct Core {
+    /// Name used to differentiate between different TMC clients.
+    #[structopt(long)]
+    pub client_name: String,
+    /// Client version.
+    #[structopt(long)]
+    pub client_version: String,
+    #[structopt(subcommand)]
+    pub command: CoreCommand,
+}
+
+#[derive(StructOpt)]
+#[structopt(setting = AppSettings::SubcommandRequiredElseHelp)]
+pub enum CoreCommand {
+    /// Checks for updates to any exercises that exist locally.
+    #[structopt(long_about = schema_leaked::<Vec<UpdatedExercise>>())]
+    CheckExerciseUpdates,
+
+    /// Downloads an exercise's model solution
+    #[structopt(long_about = SCHEMA_NULL)]
+    DownloadModelSolution {
+        /// URL to the solution download.
+        #[structopt(long)]
+        solution_download_url: Url,
+        /// Path to where the model solution will be downloaded.
+        #[structopt(long)]
+        target: PathBuf,
+    },
+
+    /// Downloads an old submission. Resets the exercise at output-path if any, downloading the exercise base from the server. The old submission is then downloaded and extracted on top of the base, using the student file policy to retain student files
+    #[structopt(long_about = SCHEMA_NULL)]
+    DownloadOldSubmission {
+        /// If set, the exercise is submitted to the server before resetting it.
+        #[structopt(long, requires = "submission-url")]
+        save_old_state: bool,
+        /// The ID of the exercise.
+        #[structopt(long)]
+        exercise_id: usize,
+        /// Path to where the submission should be downloaded.
+        #[structopt(long)]
+        output_path: PathBuf,
+        /// The ID of the submission.
+        #[structopt(long)]
+        submission_id: usize,
+        /// Required if save-old-state is set. The URL where the submission should be posted.
+        #[structopt(long)]
+        submission_url: Option<Url>,
+    },
+
+    /// Downloads exercises. If downloading an exercise that has been downloaded before, the student file policy will be used to avoid overwriting student files, effectively just updating the exercise files
+    #[structopt(long_about = schema_leaked::<DownloadOrUpdateCourseExercisesResult>())]
+    DownloadOrUpdateCourseExercises {
+        /// If set, will always download the course template instead of the latest submission, even if one exists.
+        #[structopt(long)]
+        download_template: bool,
+        /// Exercise id of an exercise that should be downloaded. Multiple ids can be given.
+        #[structopt(long, required = true)]
+        exercise_id: Vec<usize>,
+    },
+
+    ///Fetches course data. Combines course details, course exercises and course settings
+    #[structopt(long_about = schema_leaked::<CombinedCourseData>())]
+    GetCourseData {
+        /// The ID of the course.
+        #[structopt(long)]
+        course_id: usize,
+    },
+
+    /// Fetches course details
+    #[structopt(long_about = schema_leaked::<CourseDetails>())]
+    GetCourseDetails {
+        /// The ID of the course.
+        #[structopt(long)]
+        course_id: usize,
+    },
+
+    /// Lists a course's exercises
+    #[structopt(long_about = schema_leaked::<Vec<CourseExercise>>())]
+    GetCourseExercises {
+        /// The ID of the course.
+        #[structopt(long)]
+        course_id: usize,
+    },
+
+    /// Fetches course settings
+    #[structopt(long_about = schema_leaked::<CourseData>())]
+    GetCourseSettings {
+        /// The ID of the course.
+        #[structopt(long)]
+        course_id: usize,
+    },
+
+    /// Lists courses
+    #[structopt(long_about = schema_leaked::<Vec<CourseData>>())]
+    GetCourses {
+        /// Organization slug (e.g. mooc, hy).
+        #[structopt(long)]
+        organization: String,
+    },
+
+    /// Fetches exercise details
+    #[structopt(long_about = schema_leaked::<ExerciseDetails>())]
+    GetExerciseDetails {
+        /// The ID of the exercise.
+        #[structopt(long)]
+        exercise_id: usize,
+    },
+
+    /// Fetches the current user's old submissions for an exercise
+    #[structopt(long_about = schema_leaked::<Vec<Submission>>())]
+    GetExerciseSubmissions {
+        /// The ID of the exercise.
+        #[structopt(long)]
+        exercise_id: usize,
+    },
+
+    /// Checks for updates to exercises
+    #[structopt(long_about = schema_leaked::<UpdateResult>())]
+    GetExerciseUpdates {
+        /// The ID of the course.
+        #[structopt(long)]
+        course_id: usize,
+        /// An exercise. Takes two values, an exercise id and a checksum. Multiple exercises can be given.
+        #[structopt(long, required = true, number_of_values = 2, value_names = &["exercise-id", "checksum"])]
+        exercise: Vec<String>,
+    },
+
+    /// Fetches an organization
+    #[structopt(long_about = schema_leaked::<Organization>())]
+    GetOrganization {
+        /// Organization slug (e.g. mooc, hy).
+        #[structopt(long)]
+        organization: String,
+    },
+
+    /// Fetches a list of all organizations from the TMC server
+    #[structopt(long_about = schema_leaked::<Vec<Organization>>())]
+    GetOrganizations,
+
+    /// Fetches unread reviews
+    #[structopt(long_about = schema_leaked::<Vec<Review>>())]
+    GetUnreadReviews {
+        /// URL to the reviews API.
+        #[structopt(long)]
+        reviews_url: Url,
+    },
+
+    /// Checks if the CLI is authenticated. Prints the access token if so
+    #[structopt(long_about = SCHEMA_TOKEN)]
+    LoggedIn,
+
+    /// Authenticates with the TMC server and stores the OAuth2 token in config. You can log in either by email and password or an access token
+    #[structopt(long_about = SCHEMA_NULL)]
+    Login {
+        /// If set, the password is expected to be a base64 encoded string. This can be useful if the password contains special characters.
+        #[structopt(long)]
+        base64: bool,
+        /// The email address of your TMC account. The password will be read through stdin.
+        #[structopt(long, required_unless = "set-access-token")]
+        email: Option<String>,
+        /// The OAUTH2 access token that should be used for authentication.
+        #[structopt(long, required_unless = "email")]
+        set_access_token: Option<String>,
+    },
+
+    /// Logs out and removes the OAuth2 token from config
+    #[structopt(long_about = SCHEMA_NULL)]
+    Logout,
+
+    /// Marks a review as read
+    #[structopt(long_about = SCHEMA_NULL)]
+    MarkReviewAsRead {
+        /// URL to the review update API.
+        #[structopt(long)]
+        review_update_url: Url,
+    },
+
+    /// Sends an exercise to the TMC pastebin
+    #[structopt(long_about = schema_leaked::<NewSubmission>())]
+    Paste {
+        /// Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.
+        #[structopt(long)]
+        locale: Option<Locale>,
+        /// Optional message to attach to the paste.
+        #[structopt(long)]
+        paste_message: Option<String>,
+        /// Path to the exercise to be submitted.
+        #[structopt(long)]
+        submission_path: PathBuf,
+        /// The URL where the submission should be posted.
+        #[structopt(long)]
+        submission_url: Url,
+    },
+
+    /// Requests code review
+    #[structopt(long_about = schema_leaked::<NewSubmission>())]
+    RequestCodeReview {
+        /// Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.
+        #[structopt(long)]
+        locale: Locale,
+        /// Message for the review.
+        #[structopt(long)]
+        message_for_reviewer: String,
+        /// Path to the directory where the submission resides.
+        #[structopt(long)]
+        submission_path: PathBuf,
+        /// URL where the submission should be posted.
+        #[structopt(long)]
+        submission_url: Url,
+    },
+
+    /// Resets an exercise. Removes the contents of the exercise directory and redownloads it from the server
+    #[structopt(long_about = SCHEMA_NULL)]
+    ResetExercise {
+        /// If set, the exercise is submitted to the server before resetting it.
+        #[structopt(long, requires = "submission-url")]
+        save_old_state: bool,
+        /// The ID of the exercise.
+        #[structopt(long)]
+        exercise_id: usize,
+        /// Path to the directory where the project resides.
+        #[structopt(long)]
+        exercise_path: PathBuf,
+        /// Required if save-old-state is set. The URL where the submission should be posted.
+        #[structopt(long)]
+        submission_url: Option<Url>,
+    },
+
+    /// Sends feedback for an exercise
+    #[structopt(long_about = schema_leaked::<SubmissionFeedbackResponse>())]
+    SendFeedback {
+        /// A feedback answer. Takes two values, a feedback answer id and the answer. Multiple feedback arguments can be given.
+        #[structopt(long, required = true, number_of_values = 2, value_names = &["feedback-answer-id, answer"])]
+        feedback: Vec<String>,
+        /// URL where the feedback should be posted.
+        #[structopt(long)]
+        feedback_url: Url,
+    },
+
+    /// Submits an exercise. By default blocks until the submission results are returned
+    #[structopt(long_about = schema_leaked::<SubmissionFinished>())]
+    Submit {
+        /// Set to avoid blocking.
+        #[structopt(long)]
+        dont_block: bool,
+        /// Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.
+        #[structopt(long)]
+        locale: Option<Locale>,
+        /// Path to the directory where the exercise resides.
+        #[structopt(long)]
+        submission_path: PathBuf,
+        /// URL where the submission should be posted.
+        #[structopt(long)]
+        submission_url: Url,
+    },
+
+    /// Updates all local exercises that have been updated on the server
+    #[structopt(long_about = SCHEMA_NULL)]
+    UpdateExercises,
+
+    /// Waits for a submission to finish
+    #[structopt(long_about = schema_leaked::<SubmissionFinished>())]
+    WaitForSubmission {
+        /// URL to the submission's status.
+        #[structopt(long)]
+        submission_url: Url,
+    },
+}
+
+#[derive(StructOpt)]
+/// Configure the CLI
+pub struct SettingsCommand {
+    /// The name of the client.
+    #[structopt(long)]
+    pub client_name: String,
+    #[structopt(subcommand)]
+    pub command: SettingsSubCommand,
+}
+
+#[derive(StructOpt)]
+#[structopt(setting = AppSettings::SubcommandRequiredElseHelp)]
+pub enum SettingsSubCommand {
+    /// Retrieves a value from the settings
+    Get {
+        /// The name of the setting.
+        setting: String,
+    },
+    /// Prints every key=value pair in the settings file
+    List,
+    /// Migrates an exercise on disk into the langs project directory
+    Migrate {
+        /// Path to the directory where the project resides.
+        #[structopt(long)]
+        exercise_path: PathBuf,
+        /// The course slug, e.g. mooc-java-programming-i.
+        #[structopt(long)]
+        course_slug: String,
+        /// The exercise id, e.g. 1234.
+        #[structopt(long)]
+        exercise_id: usize,
+        /// The exercise slug, e.g. part01-Part01_01.Sandbox.
+        #[structopt(long)]
+        exercise_slug: String,
+        /// The checksum of the exercise from the TMC server.
+        #[structopt(long)]
+        exercise_checksum: String,
+    },
+    /// Change the projects-dir setting, moving the contents into the new directory
+    MoveProjectsDir {
+        /// The directory where the projects should be moved.
+        dir: PathBuf,
+    },
+    /// Resets the settings file to the defaults
+    Reset,
+    /// Saves a value in the settings
+    Set {
+        /// The key. Parsed as JSON, assumed to be a string if parsing fails.
+        key: String,
+        /// The value in JSON.
+        json: Json,
+    },
+    /// Unsets a value from the settings
+    Unset {
+        /// The name of the setting.
+        setting: String,
+    },
+}
+
+pub struct Locale(pub Language);
+
+impl FromStr for Locale {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let locale = Language::from_locale(s)
+            .or_else(|| Language::from_639_1(s))
+            .or_else(|| Language::from_639_3(s))
+            .with_context(|| format!("Invalid locale: {}", s))?;
+        Ok(Locale(locale))
+    }
+}
+
+pub struct OutputFormatWrapper(pub OutputFormat);
+
+impl FromStr for OutputFormatWrapper {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let format = match s {
+            "tar" => OutputFormat::Tar,
+            "zip" => OutputFormat::Zip,
+            "zstd" => OutputFormat::TarZstd,
+            _ => anyhow::bail!("invalid format"),
+        };
+        Ok(OutputFormatWrapper(format))
+    }
 }
 
 // == utilities for printing the JSON schema of the objects printed to stdout by the CLI ==
@@ -741,14 +610,14 @@ mod base_test {
     use super::*;
 
     fn get_matches(args: &[&str]) {
-        create_app().get_matches_from(&["tmc-langs-cli"].iter().chain(args).collect::<Vec<_>>());
+        Opt::from_iter(&["tmc-langs-cli"].iter().chain(args).collect::<Vec<_>>());
     }
 
     #[test]
     fn sanity() {
-        assert!(create_app()
-            .get_matches_from_safe(&["tmc-langs-cli", "checkstyle", "--non-existent-arg"])
-            .is_err());
+        assert!(
+            Opt::from_iter_safe(&["tmc-langs-cli", "checkstyle", "--non-existent-arg"]).is_err()
+        );
     }
 
     #[test]
@@ -892,7 +761,7 @@ mod base_test {
             "--git-branch",
             "main",
             "--source-url",
-            "example.com",
+            "http://example.com",
         ]);
     }
 
@@ -928,7 +797,7 @@ mod core_test {
     use super::*;
 
     fn get_matches_core(args: &[&str]) {
-        create_app().get_matches_from(
+        Opt::from_iter(
             &[
                 "tmc-langs-cli",
                 "core",
@@ -953,7 +822,7 @@ mod core_test {
         get_matches_core(&[
             "download-model-solution",
             "--solution-download-url",
-            "localhost",
+            "http://localhost",
             "--target",
             "path",
         ]);
@@ -971,7 +840,7 @@ mod core_test {
             "--submission-id",
             "2345",
             "--submission-url",
-            "localhost",
+            "http://localhost",
         ]);
     }
 
@@ -1048,7 +917,7 @@ mod core_test {
 
     #[test]
     fn get_unread_reviews() {
-        get_matches_core(&["get-unread-reviews", "--reviews-url", "localhost"]);
+        get_matches_core(&["get-unread-reviews", "--reviews-url", "http://localhost"]);
     }
 
     #[test]
@@ -1075,7 +944,11 @@ mod core_test {
 
     #[test]
     fn mark_review_as_read() {
-        get_matches_core(&["mark-review-as-read", "--review-update-url", "localhost"]);
+        get_matches_core(&[
+            "mark-review-as-read",
+            "--review-update-url",
+            "http://localhost",
+        ]);
     }
 
     #[test]
@@ -1089,7 +962,7 @@ mod core_test {
             "--submission-path",
             "path",
             "--submission-url",
-            "localhost",
+            "http://localhost",
         ]);
     }
 
@@ -1104,7 +977,7 @@ mod core_test {
             "--submission-path",
             "path",
             "--submission-url",
-            "localhost",
+            "http://localhost",
         ]);
     }
 
@@ -1118,7 +991,7 @@ mod core_test {
             "--exercise-path",
             "path",
             "--submission-url",
-            "localhost",
+            "http://localhost",
         ]);
     }
 
@@ -1130,7 +1003,7 @@ mod core_test {
             "1234",
             "answer",
             "--feedback-url",
-            "localhost",
+            "http://localhost",
         ]);
     }
 
@@ -1144,7 +1017,7 @@ mod core_test {
             "--submission-path",
             "path",
             "--submission-url",
-            "localhost",
+            "http://localhost",
         ]);
     }
 
@@ -1155,7 +1028,11 @@ mod core_test {
 
     #[test]
     fn wait_for_submission() {
-        get_matches_core(&["wait-for-submission", "--submission-url", "localhost"]);
+        get_matches_core(&[
+            "wait-for-submission",
+            "--submission-url",
+            "http://localhost",
+        ]);
     }
 }
 
@@ -1164,7 +1041,7 @@ mod settings_test {
     use super::*;
 
     fn get_matches_settings(args: &[&str]) {
-        create_app().get_matches_from(
+        Opt::from_iter(
             &["tmc-langs-cli", "settings", "--client-name", "client"]
                 .iter()
                 .chain(args)
@@ -1211,7 +1088,7 @@ mod settings_test {
 
     #[test]
     fn set() {
-        get_matches_settings(&["set", "key", "json"]);
+        get_matches_settings(&["set", "key", "\"json\""]);
     }
 
     #[test]
