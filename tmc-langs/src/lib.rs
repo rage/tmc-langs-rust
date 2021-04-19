@@ -159,6 +159,49 @@ pub fn download_old_submission(
     Ok(())
 }
 
+fn get_submission_url(client: &TmcClient, exercise_path: &Path) -> Result<Url, LangsError> {
+    let (projects_dir, course_slug, exercise_slug) =
+        ProjectsConfig::get_exercise_target_details(exercise_path)?;
+
+    let projects_config = ProjectsConfig::load(projects_dir.as_path())?;
+    let exercise = match projects_config.get_exercise(&course_slug, &exercise_slug) {
+        Some(ex) => ex,
+        None => return Err(LangsError::NoProjectExercise),
+    };
+
+    match client.get_submission_url(exercise.id) {
+        Ok(url) => Ok(url),
+        Err(err) => Err(LangsError::TmcClient(err)),
+    }
+}
+
+pub fn submit_exercise(
+    client: &TmcClient,
+    exercise_path: &Path,
+    locale: Option<Language>,
+) -> Result<NewSubmission, LangsError> {
+    let submission_url = get_submission_url(client, exercise_path)?;
+
+    match client.submit(submission_url, exercise_path, locale) {
+        Ok(new_submission) => Ok(new_submission),
+        Err(client_error) => Err(LangsError::TmcClient(client_error)),
+    }
+}
+
+pub fn paste_exercise(
+    client: &TmcClient,
+    exercise_path: &Path,
+    paste_message: Option<String>,
+    locale: Option<Language>,
+) -> Result<NewSubmission, LangsError> {
+    let submission_url = get_submission_url(client, exercise_path)?;
+
+    match client.paste(submission_url, exercise_path, paste_message, locale) {
+        Ok(new_submission) => Ok(new_submission),
+        Err(client_error) => Err(LangsError::TmcClient(client_error)),
+    }
+}
+
 /// Downloads the given exercises, by either downloading the exercise template, updating the exercise or downloading an old submission.
 /// If the exercise doesn't exist on disk yet...
 ///   if there are previous submissions and download_template is not set, the latest submission is downloaded.
@@ -412,7 +455,7 @@ pub fn download_or_update_course_exercises(
     }
 
     let finish_message = if failed.is_empty() {
-        if successful.len() == 0 && exercises_len == 0 {
+        if successful.is_empty() && exercises_len == 0 {
             "Exercises are already up-to-date!".to_string()
         } else {
             format!(

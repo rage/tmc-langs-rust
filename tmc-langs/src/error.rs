@@ -46,6 +46,10 @@ pub enum LangsError {
     MovingProjectsDirToItself,
     #[error("No projects-dir found")]
     NoProjectsDir,
+    #[error("Exercise in project-config not found")]
+    NoProjectExercise,
+    #[error("Parsing a file string from path failed")]
+    NoProjectFileString,
     #[error("Decoded password was not valid UTF-8")]
     Base64PasswordNotUtf8(#[source] FromUtf8Error),
     #[error("Failed to decode with base64")]
