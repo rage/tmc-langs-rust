@@ -160,7 +160,7 @@ pub fn download_old_submission(
     Ok(())
 }
 
-/// Reads the exercise id from course configuration file 
+/// Reads the exercise id from course configuration file
 /// and generates a submission url from it
 fn get_submission_url(client: &TmcClient, exercise_path: &Path) -> Result<Url, LangsError> {
     let (projects_dir, course_slug, exercise_slug) =
@@ -192,7 +192,7 @@ pub fn submit_exercise(
     }
 }
 
-/// Sends the paste to the server 
+/// Sends the paste to the server
 pub fn paste_exercise(
     client: &TmcClient,
     exercise_path: &Path,
