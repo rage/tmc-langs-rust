@@ -524,6 +524,21 @@ pub fn login_with_password(
     Ok(token)
 }
 
+/// Authenticates with the server, returning a login Token.
+/// Password as parameter.
+pub fn login_with_password_as_parameter(
+    client: &mut TmcClient,
+    client_name: &str,
+    email: String,
+    password: String,
+) -> Result<Token, LangsError> {
+    let token = client.authenticate(client_name, email, password);
+    match token {
+        Ok(t) => Ok(t),
+        Err(e) => Err(error::LangsError::TmcClient(e)),
+    }
+}
+
 /// Initializes a TmcClient, using and returning the stored credentials, if any.
 pub fn init_tmc_client_with_credentials(
     root_url: String,
