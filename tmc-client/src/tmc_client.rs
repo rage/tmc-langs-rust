@@ -324,6 +324,24 @@ impl TmcClient {
         self.post_feedback(feedback_url, feedback)
     }
 
+    /// Generates a submission url for an exercise
+    ///
+    /// # Errors
+    /// Returns an error if Url::join fails
+    pub fn get_submission_url(&self, exercise_id: usize) -> Result<Url, ClientError> {
+        match self
+            .0
+            .api_url
+            .join(&format!("core/exercises/{}/submissions", exercise_id))
+        {
+            Ok(url) => Ok(url),
+            Err(err) => Err(ClientError::UrlParse(
+                "Failed to make submission url".to_string(),
+                err,
+            )),
+        }
+    }
+
     /// Sends the submission to the server.
     ///
     /// # Errors
