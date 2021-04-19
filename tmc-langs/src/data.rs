@@ -164,16 +164,15 @@ pub enum DownloadResult {
     },
 }
 
-pub enum DownloadTarget {
-    Template {
-        target: ExerciseDownload,
-        checksum: String,
-    },
-    Submission {
-        target: ExerciseDownload,
-        submission_id: usize,
-        checksum: String,
-    },
+pub struct DownloadTarget {
+    pub target: ExerciseDownload,
+    pub checksum: String,
+    pub kind: DownloadTargetKind,
+}
+
+pub enum DownloadTargetKind {
+    Template,
+    Submission { submission_id: usize },
 }
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]

@@ -21,6 +21,7 @@ pub use crate::data::{
 pub use crate::error::{LangsError, ParamError};
 pub use crate::submission_packaging::prepare_submission;
 pub use crate::submission_processing::prepare_solution;
+use data::DownloadTargetKind;
 use hmac::{Hmac, NewMac};
 use serde::Serialize;
 use sha2::Sha256;
@@ -219,7 +220,7 @@ pub fn download_or_update_course_exercises(
     );
 
     let exercises_details = client.get_exercises_details(exercises)?;
-    let mut projects_config = ProjectsConfig::load(projects_dir)?;
+    let projects_config = ProjectsConfig::load(projects_dir)?;
 
     // separate exercises into downloads and skipped
     let mut to_be_downloaded = vec![];
@@ -263,15 +264,17 @@ pub fn download_or_update_course_exercises(
                     .max_by_key(|s| s.created_at)
                 {
                     // previous submission found
-                    to_be_downloaded.push(DownloadTarget::Submission {
+                    to_be_downloaded.push(DownloadTarget {
                         target: ExerciseDownload {
                             id: exercise_detail.id,
                             course_slug: exercise_detail.course_name,
                             exercise_slug: exercise_detail.exercise_name,
                             path: target,
                         },
-                        submission_id: latest_submission.id,
                         checksum: exercise_detail.checksum,
+                        kind: DownloadTargetKind::Submission {
+                            submission_id: latest_submission.id,
+                        },
                     });
                     continue;
                 }
@@ -279,7 +282,7 @@ pub fn download_or_update_course_exercises(
         }
 
         // not skipped, either not on disk or no previous submissions, downloading template
-        to_be_downloaded.push(DownloadTarget::Template {
+        to_be_downloaded.push(DownloadTarget {
             target: ExerciseDownload {
                 id: exercise_detail.id,
                 course_slug: exercise_detail.course_name.clone(),
@@ -287,6 +290,7 @@ pub fn download_or_update_course_exercises(
                 path: target,
             },
             checksum: exercise_detail.checksum,
+            kind: DownloadTargetKind::Template,
         });
     }
 
@@ -302,9 +306,12 @@ pub fn download_or_update_course_exercises(
     let thread_count = to_be_downloaded.len().min(4); // max 4 threads
     let mut handles = vec![];
     let exercises = Arc::new(Mutex::new(to_be_downloaded));
+    let projects_config = Arc::new(Mutex::new(projects_config));
     for _thread_id in 0..thread_count {
         let client = client.clone();
         let exercises = Arc::clone(&exercises);
+        let projects_config = Arc::clone(&projects_config);
+        let projects_dir = projects_dir.to_path_buf();
 
         // each thread returns either a list of successful downloads, or a tuple of successful downloads and errors
         type ThreadErr = (Vec<DownloadTarget>, Vec<(DownloadTarget, LangsError)>);
@@ -327,41 +334,35 @@ pub fn download_or_update_course_exercises(
                 let exercise_download_result = || -> Result<(), LangsError> {
                     let zip_file = file_util::named_temp_file()?;
 
-                    let target_exercise = match download_target {
-                        DownloadTarget::Template { ref target, .. } => target,
-                        DownloadTarget::Submission { ref target, .. } => target,
-                    };
                     progress_reporter::progress_stage::<ClientUpdateData>(
                         format!(
                             "Downloading exercise {} to '{}'",
-                            target_exercise.id,
-                            target_exercise.path.display(),
+                            download_target.target.id,
+                            download_target.target.path.display(),
                         ),
                         Some(ClientUpdateData::ExerciseDownload {
-                            id: target_exercise.id,
-                            path: target_exercise.path.clone(),
+                            id: download_target.target.id,
+                            path: download_target.target.path.clone(),
                         }),
                     );
 
-                    match &download_target {
-                        DownloadTarget::Template { target, .. } => {
-                            client.download_exercise(target.id, zip_file.path())?;
-                            extract_project(zip_file, &target.path, false)?;
+                    // execute download based on type
+                    match &download_target.kind {
+                        DownloadTargetKind::Template => {
+                            client.download_exercise(download_target.target.id, zip_file.path())?;
+                            extract_project(zip_file, &download_target.target.path, false)?;
                         }
-                        DownloadTarget::Submission {
-                            target,
-                            submission_id,
-                            ..
-                        } => {
-                            client.download_exercise(target.id, zip_file.path())?;
-                            extract_project(&zip_file, &target.path, false)?;
+                        DownloadTargetKind::Submission { submission_id } => {
+                            client.download_exercise(download_target.target.id, zip_file.path())?;
+                            extract_project(&zip_file, &download_target.target.path, false)?;
 
-                            let plugin = get_language_plugin(&target.path)?;
-                            let tmc_project_yml = TmcProjectYml::load_or_default(&target.path)?;
+                            let plugin = get_language_plugin(&download_target.target.path)?;
+                            let tmc_project_yml =
+                                TmcProjectYml::load_or_default(&download_target.target.path)?;
                             let config =
                                 plugin.get_exercise_packaging_configuration(tmc_project_yml)?;
                             for student_file in config.student_file_paths {
-                                let student_file = target.path.join(&student_file);
+                                let student_file = download_target.target.path.join(&student_file);
                                 log::debug!("student file {}", student_file.display());
                                 if student_file.is_file() {
                                     file_util::remove_file(&student_file)?;
@@ -371,19 +372,32 @@ pub fn download_or_update_course_exercises(
                             }
 
                             client.download_old_submission(*submission_id, zip_file.path())?;
-                            plugin.extract_student_files(&zip_file, &target.path)?;
+                            plugin
+                                .extract_student_files(&zip_file, &download_target.target.path)?;
                         }
                     }
+                    // download successful, save to course config
+                    let mut projects_config =
+                        projects_config.lock().map_err(|_| LangsError::MutexError)?; // lock mutex
+                    let course_config = projects_config
+                        .get_or_init_course_config(download_target.target.course_slug.clone());
+                    course_config.add_exercise(
+                        download_target.target.exercise_slug.clone(),
+                        download_target.target.id,
+                        download_target.checksum.clone(),
+                    );
+                    course_config.save_to_projects_dir(&projects_dir)?;
+                    drop(projects_config); // drop mutex
 
                     progress_reporter::progress_stage::<ClientUpdateData>(
                         format!(
                             "Downloaded exercise {} to '{}'",
-                            target_exercise.id,
-                            target_exercise.path.display(),
+                            download_target.target.id,
+                            download_target.target.path.display(),
                         ),
                         Some(ClientUpdateData::ExerciseDownload {
-                            id: target_exercise.id,
-                            path: target_exercise.path.clone(),
+                            id: download_target.target.id,
+                            path: download_target.target.path.clone(),
                         }),
                     );
 
@@ -408,6 +422,7 @@ pub fn download_or_update_course_exercises(
         handles.push(handle);
     }
 
+    // gather results from each thread
     let mut successful = vec![];
     let mut failed = vec![];
     for handle in handles {
@@ -420,40 +435,7 @@ pub fn download_or_update_course_exercises(
         }
     }
 
-    log::debug!("save updated information to the course config");
-    // turn the downloaded exercises into a hashmap with the course as key
-    let mut course_data = HashMap::<String, Vec<(String, String, usize)>>::new();
-    for download_target in &successful {
-        let (target, checksum) = match download_target {
-            DownloadTarget::Submission {
-                target, checksum, ..
-            }
-            | DownloadTarget::Template {
-                target, checksum, ..
-            } => (target, checksum),
-        };
-        let entry = course_data.entry(target.course_slug.clone());
-        let course_exercises = entry.or_default();
-        course_exercises.push((target.exercise_slug.clone(), checksum.clone(), target.id));
-    }
-    // update/create the course configs that contain downloaded or updated exercises
-    for (course_name, exercise_names) in course_data {
-        let exercises = exercise_names
-            .into_iter()
-            .map(|(name, checksum, id)| (name, ProjectsDirExercise { id, checksum }))
-            .collect();
-        if let Some(course_config) = projects_config.courses.get_mut(&course_name) {
-            course_config.exercises.extend(exercises);
-            course_config.save_to_projects_dir(projects_dir)?;
-        } else {
-            let course_config = CourseConfig {
-                course: course_name,
-                exercises,
-            };
-            course_config.save_to_projects_dir(projects_dir)?;
-        };
-    }
-
+    // report
     let finish_message = if failed.is_empty() {
         if successful.is_empty() && exercises_len == 0 {
             "Exercises are already up-to-date!".to_string()
@@ -472,18 +454,10 @@ pub fn download_or_update_course_exercises(
             failed.len(),
         )
     };
-
     progress_reporter::finish_stage::<ClientUpdateData>(finish_message, None);
 
-    let downloaded = successful
-        .into_iter()
-        .map(|t| match t {
-            DownloadTarget::Submission { target, .. } => target,
-            DownloadTarget::Template { target, .. } => target,
-        })
-        .collect();
-
-    // return an error if any downloads failed
+    // return information about the downloads
+    let downloaded = successful.into_iter().map(|t| t.target).collect();
     if !failed.is_empty() {
         // add an error trace to each failed download
         let failed = failed
@@ -495,11 +469,7 @@ pub fn download_or_update_course_exercises(
                     chain.push(source.to_string());
                     error = source;
                 }
-                let target = match target {
-                    DownloadTarget::Submission { target, .. }
-                    | DownloadTarget::Template { target, .. } => target,
-                };
-                (target, chain)
+                (target.target, chain)
             })
             .collect();
         return Ok(DownloadResult::Failure {
