@@ -520,15 +520,13 @@ pub fn init_tmc_client_with_credentials(
 // TODO: parallel downloads
 pub fn update_exercises(
     client: &TmcClient,
-    client_name: &str,
+    projects_dir: &Path,
 ) -> Result<DownloadOrUpdateCourseExercisesResult, LangsError> {
-    log::debug!("updating exercises for {}", client_name);
+    log::debug!("updating exercises in {}", &projects_dir.display());
 
     let mut exercises_to_update = vec![];
     let course_data = HashMap::<String, Vec<(String, String, usize)>>::new();
 
-    let config_path = TmcConfig::get_location(client_name)?;
-    let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
     let mut projects_config = ProjectsConfig::load(&projects_dir)?;
     let local_exercises = projects_config
         .courses
