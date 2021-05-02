@@ -583,7 +583,7 @@ pub fn update_exercises(
         if !exercises_to_update.is_empty() {
             println!("update 7");
             for exercise in &exercises_to_update {
-                client.download_exercise(exercise.id, &exercise.path)?;
+                client.download_exercise(exercise.id, &exercise.path).unwrap();
             }
             println!("update 8");
             for (course_name, exercise_names) in course_data {
