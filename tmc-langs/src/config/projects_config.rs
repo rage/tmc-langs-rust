@@ -16,21 +16,29 @@ pub struct ProjectsConfig {
 impl ProjectsConfig {
     pub fn load(projects_dir: &Path) -> Result<ProjectsConfig, LangsError> {
         file_util::lock!(projects_dir);
-
+        println!("1");
         let mut course_configs = HashMap::new();
         for file in WalkDir::new(projects_dir).min_depth(1).max_depth(1) {
+            println!("2");
             let file = file?;
+            println!("3");
             let course_config_path = file.path().join("course_config.toml");
+            println!("4");
             if course_config_path.exists() {
+                println!("5");
                 let file_name = file.file_name();
+                println!("6");
                 let course_dir_name = file_name.to_str().ok_or_else(|| {
                     LangsError::FileError(FileError::NoFileName(file.path().to_path_buf()))
                 })?;
-
+                println!("7");
                 let bytes = file_util::read_file(course_config_path)?;
+                println!("8");
                 let course_config: CourseConfig = toml::from_slice(&bytes)?;
+                println!("9");
 
                 course_configs.insert(course_dir_name.to_string(), course_config);
+                println!("10");
             } else {
                 log::warn!(
                     "File or directory {} with no config file found while loading projects from {}",
@@ -39,11 +47,13 @@ impl ProjectsConfig {
                 );
             }
         }
-
+        println!("tämän jälkeen");
         // maintenance: check that the exercises in the config actually exist on disk
         // if any are found that do not, update the course config file accordingly
         for (_, course_config) in course_configs.iter_mut() {
+            println!("11");
             let mut deleted_exercises = vec![];
+            println!("12");
             for exercise_name in course_config.exercises.keys() {
                 let expected_dir = Self::get_exercise_download_target(
                     projects_dir,
@@ -58,16 +68,19 @@ impl ProjectsConfig {
                     deleted_exercises.push(exercise_name.clone());
                 }
             }
+            println!("13");
             for deleted_exercise in &deleted_exercises {
                 course_config
                     .exercises
                     .remove(deleted_exercise)
                     .expect("this should never fail");
             }
+            println!("14");
             if !deleted_exercises.is_empty() {
                 // if any exercises were deleted, save the course config
                 course_config.save_to_projects_dir(projects_dir)?;
             }
+            println!("15");
         }
         Ok(Self {
             courses: course_configs,
