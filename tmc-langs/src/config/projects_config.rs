@@ -82,6 +82,7 @@ impl ProjectsConfig {
             }
             println!("15");
         }
+        println!("16");
         Ok(Self {
             courses: course_configs,
         })

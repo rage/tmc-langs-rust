@@ -528,6 +528,9 @@ pub fn update_exercises(
     let course_data = HashMap::<String, Vec<(String, String, usize)>>::new();
 
     let mut projects_config = ProjectsConfig::load(&projects_dir)?;
+
+    println!("update 1");
+
     let local_exercises = projects_config
         .courses
         .iter_mut()
@@ -535,15 +538,24 @@ pub fn update_exercises(
         .flatten()
         .map(|e| e.1)
         .collect::<Vec<_>>();
+
+    println!("update 2");
     let exercise_ids = local_exercises.iter().map(|e| e.id).collect::<Vec<_>>();
+
+    println!("update 3");
+
+    println!("Exercise_ids size: {}", exercise_ids.len());
 
     // request would error with 0 exercise ids
     if !exercise_ids.is_empty() {
+        println!("update 4");
         let mut server_exercises = client
             .get_exercises_details(&exercise_ids)?
             .into_iter()
             .map(|e| (e.id, e))
             .collect::<HashMap<_, _>>();
+            
+        println!("update 5");
         for local_exercise in local_exercises {
             let server_exercise = server_exercises
                 .remove(&local_exercise.id)
@@ -567,12 +579,13 @@ pub fn update_exercises(
                 };
             }
         }
-
+        println!("update 6");
         if !exercises_to_update.is_empty() {
+            println!("update 7");
             for exercise in &exercises_to_update {
                 client.download_exercise(exercise.id, &exercise.path)?;
             }
-
+            println!("update 8");
             for (course_name, exercise_names) in course_data {
                 let mut exercises = BTreeMap::new();
                 for (exercise_name, checksum, id) in exercise_names {
@@ -592,7 +605,7 @@ pub fn update_exercises(
             }
         }
     }
-
+    println!("update 9");
     Ok(DownloadOrUpdateCourseExercisesResult {
         downloaded: exercises_to_update,
         skipped: vec![],
