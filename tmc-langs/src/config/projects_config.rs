@@ -37,7 +37,6 @@ impl ProjectsConfig {
                 );
             }
         }
-        println!("tämän jälkeen");
         // maintenance: check that the exercises in the config actually exist on disk
         // if any are found that do not, update the course config file accordingly
         for (_, course_config) in course_configs.iter_mut() {
