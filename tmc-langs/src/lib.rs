@@ -522,7 +522,7 @@ pub fn update_exercises(
     client: &TmcClient,
     projects_dir: &Path,
 ) -> Result<DownloadOrUpdateCourseExercisesResult, LangsError> {
-    log::debug!("updating exercises in {}", &projects_dir.display());
+    log::debug!("updating exercises in {}", projects_dir.display());
 
     let mut exercises_to_update = vec![];
     let course_data = HashMap::<String, Vec<(String, String, usize)>>::new();
