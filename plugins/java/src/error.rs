@@ -27,8 +27,10 @@ pub enum JavaError {
     #[error("Failed to compile")]
     Compilation { stdout: String, stderr: String },
 
-    #[error("J4RS error")]
+    #[error("J4rs error")]
     J4rs(#[from] j4rs::errors::J4RsError),
+    #[error("J4rs panicked: {0}")]
+    J4rsPanic(String),
     #[error(transparent)]
     WalkDir(#[from] walkdir::Error),
     #[error("JSON error")]

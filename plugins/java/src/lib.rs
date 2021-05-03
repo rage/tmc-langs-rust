@@ -112,17 +112,34 @@ fn instantiate_jvm() -> Result<Jvm, JavaError> {
 
     let tmc_dir = tmc_dir()?;
 
-    let jvm = JvmBuilder::new()
-        .with_base_path(
-            tmc_dir
-                .to_str()
-                .ok_or_else(|| JavaError::InvalidUtf8Path(tmc_dir.clone()))?,
-        )
-        .classpath_entry(junit_runner)
-        .classpath_entry(checkstyle_runner)
-        .skip_setting_native_lib()
-        .java_opt(j4rs::JavaOpt::new("-Dfile.encoding=UTF-8"))
-        .build()?;
+    // j4rs may panic
+    let jvm = match std::panic::catch_unwind(|| -> Result<Jvm, JavaError> {
+        let jvm = JvmBuilder::new()
+            .with_base_path(
+                tmc_dir
+                    .to_str()
+                    .ok_or_else(|| JavaError::InvalidUtf8Path(tmc_dir.clone()))?,
+            )
+            .classpath_entry(junit_runner)
+            .classpath_entry(checkstyle_runner)
+            .skip_setting_native_lib()
+            .java_opt(j4rs::JavaOpt::new("-Dfile.encoding=UTF-8"))
+            .build()?;
+        Ok(jvm)
+    }) {
+        Ok(jvm_result) => jvm_result?,
+        Err(jvm_panic) => {
+            // try to extract error message from panic, if any
+            let error_message = if let Some(string) = jvm_panic.downcast_ref::<&str>() {
+                string.to_string()
+            } else if let Ok(string) = jvm_panic.downcast::<String>() {
+                *string
+            } else {
+                "J4rs panicked without an error message".to_string()
+            };
+            return Err(JavaError::J4rsPanic(error_message));
+        }
+    };
 
     Ok(jvm)
 }
