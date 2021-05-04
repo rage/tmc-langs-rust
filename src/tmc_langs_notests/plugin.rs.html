@@ -243,6 +243,7 @@
 <span id="240">240</span>
 <span id="241">241</span>
 <span id="242">242</span>
+<span id="243">243</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The language plugin for no-tests projects.</span>
 
@@ -341,9 +342,10 @@
         <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;test&quot;</span>)]
     }
 
-    <span class="kw">fn</span> <span class="ident">points_parser</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">points_parser</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// does not match any characters</span>
         <span class="ident">nom</span>::<span class="ident">combinator</span>::<span class="ident">value</span>(<span class="string">&quot;&quot;</span>, <span class="ident">nom</span>::<span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">one_of</span>(<span class="string">&quot;&quot;</span>))(<span class="ident">i</span>)
+            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">a</span>, <span class="ident">b</span>)<span class="op">|</span> (<span class="ident">a</span>, <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">b</span>]))
     }
 }
 
