@@ -407,7 +407,7 @@ pub trait LanguagePlugin {
 
     fn get_default_exercise_file_paths() -> Vec<PathBuf>;
 
-    /// Parses exercise files using Self::LINE_COMMENT and Self::BLOCK_COMMENt to filter out comments and Self::points_parser to parse points from the actual code.
+    /// Parses exercise files using Self::LINE_COMMENT and Self::BLOCK_COMMENT to filter out comments and Self::points_parser to parse points from the actual code.
     fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, TmcError> {
         let config = TmcProjectYml::load_or_default(exercise_path)?;
         let config = Self::get_exercise_packaging_configuration(config)?;
@@ -458,8 +458,9 @@ pub trait LanguagePlugin {
                         };
 
                     // reads a points annotation
-                    let points_parser =
-                        combinator::map(Self::points_parser, |p| Parse::Points(p.to_string()));
+                    let points_parser = combinator::map(Self::points_parser, |p| {
+                        Parse::Points(p.into_iter().map(|s| s.to_string()).collect())
+                    });
 
                     // try to apply the interesting parsers, else read a character with the etc parser. repeat until the input ends
                     let mut parser = multi::many0(branch::alt((
@@ -474,10 +475,12 @@ pub trait LanguagePlugin {
                         Ok((_, parsed)) => {
                             for parse in parsed {
                                 if let Parse::Points(parsed) = parse {
-                                    // a single points annotation can contain multiple whitespace separated points
-                                    let split_points =
-                                        parsed.split_whitespace().map(str::to_string);
-                                    points.extend(split_points);
+                                    for point in parsed {
+                                        // a single points annotation can contain multiple whitespace separated points
+                                        let split_points =
+                                            point.split_whitespace().map(str::to_string);
+                                        points.extend(split_points);
+                                    }
                                 }
                             }
                         }
@@ -501,17 +504,17 @@ pub trait LanguagePlugin {
         Ok(points)
     }
 
-    /// A nom parser that recognizes a points annotation and returns the inner points value.
+    /// A nom parser that recognizes a points annotation and returns the inner points value(s).
     ///
     /// For example implementations, see the existing language plugins.
-    fn points_parser(i: &str) -> IResult<&str, &str, nom::error::VerboseError<&str>>;
+    fn points_parser(i: &str) -> IResult<&str, Vec<&str>, nom::error::VerboseError<&str>>;
 }
 
 #[derive(Debug, Clone)]
 enum Parse {
     LineComment,
     BlockComment,
-    Points(String),
+    Points(Vec<String>),
     Other,
 }
 
@@ -634,7 +637,7 @@ mod test {
             Ok(())
         }
 
-        fn points_parser(i: &str) -> IResult<&str, &str, nom::error::VerboseError<&str>> {
+        fn points_parser(i: &str) -> IResult<&str, Vec<&str>, nom::error::VerboseError<&str>> {
             combinator::map(
                 sequence::delimited(
                     sequence::tuple((
@@ -662,7 +665,7 @@ mod test {
                         character::complete::char(')'),
                     )),
                 ),
-                str::trim,
+                |s: &str| vec![s.trim()],
             )(i)
         }
 
