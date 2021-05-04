@@ -123,8 +123,8 @@ impl LanguagePlugin for MavenPlugin {
         vec![PathBuf::from("src/test")]
     }
 
-    fn points_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
-        Self::java_points_parser(i)
+    fn points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
+        Self::java_points_parser(i).map(|(a, b)| (a, vec![b]))
     }
 }
 

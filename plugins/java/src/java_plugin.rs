@@ -360,8 +360,8 @@ mod test {
             unimplemented!()
         }
 
-        fn points_parser(i: &str) -> IResult<&str, &str, nom::error::VerboseError<&str>> {
-            Self::java_points_parser(i)
+        fn points_parser(i: &str) -> IResult<&str, Vec<&str>, nom::error::VerboseError<&str>> {
+            Self::java_points_parser(i).map(|(a, b)| (a, vec![b]))
         }
     }
 
