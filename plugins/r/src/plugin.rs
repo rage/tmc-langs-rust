@@ -12,7 +12,7 @@ use tmc_langs_framework::{
     nom::{branch, bytes, character, combinator, error::VerboseError, multi, sequence, IResult},
     LanguagePlugin, TmcCommand, TmcError, {ExerciseDesc, RunResult, TestDesc},
 };
-use tmc_langs_util::file_util;
+use tmc_langs_util::{file_util, parse_util};
 use zip::ZipArchive;
 
 #[derive(Default)]
@@ -143,7 +143,7 @@ impl LanguagePlugin for RPlugin {
     }
 
     fn points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
-        let mut test_parser = sequence::preceded(
+        let test_parser = sequence::preceded(
             sequence::tuple((
                 bytes::complete::tag("test"),
                 character::complete::multispace0,
@@ -181,30 +181,10 @@ impl LanguagePlugin for RPlugin {
                     character::complete::char('c'),
                     character::complete::multispace0,
                     character::complete::char('('),
-                    character::complete::multispace0,
-                    multi::separated_list1(
-                        sequence::tuple((
-                            character::complete::multispace0,
-                            character::complete::char(','),
-                            character::complete::multispace0,
-                        )),
-                        string_parser,
-                    ),
-                    character::complete::multispace0,
+                    parse_util::comma_separated_strings,
                     character::complete::char(')'),
                 )),
-                |t| t.4,
-            )(i)
-        }
-
-        fn string_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
-            combinator::map(
-                sequence::tuple((
-                    character::complete::char('"'),
-                    bytes::complete::is_not("\""),
-                    character::complete::char('"'),
-                )),
-                |r| str::trim(r.1),
+                |t| t.3,
             )(i)
         }
 
