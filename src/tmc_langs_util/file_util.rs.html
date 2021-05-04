@@ -372,7 +372,7 @@
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">lock</span> {
     ( $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">path</span>: <span class="ident">expr</span> ),<span class="op">+</span> ) <span class="op">=</span><span class="op">&gt;</span> {
         $(
-            <span class="kw">let</span> <span class="ident">path_buf</span>: <span class="ident">PathBuf</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">path</span>).<span class="ident">into</span>();
+            <span class="kw">let</span> <span class="ident">path_buf</span>: <span class="ident">PathBuf</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">path</span>.<span class="ident">into</span>();
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fl</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">file_util</span>::<span class="ident">FileLock</span>::<span class="ident">new</span>(<span class="ident">path_buf</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">_lock</span> <span class="op">=</span> <span class="ident">fl</span>.<span class="ident">lock</span>()<span class="question-mark">?</span>;
         )<span class="op">*</span>
@@ -508,7 +508,7 @@
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">FileError</span><span class="op">&gt;</span> {
     <span class="ident">target</span>
         .<span class="ident">write_all</span>(<span class="ident">source</span>.<span class="ident">as_ref</span>())
-        .<span class="ident">map_err</span>(<span class="ident">FileError</span>::<span class="ident">WriteError</span>)<span class="question-mark">?</span>;
+        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FileError</span>::<span class="ident">WriteError</span>(<span class="ident">e</span>))<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
