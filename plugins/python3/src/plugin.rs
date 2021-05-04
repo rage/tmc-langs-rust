@@ -378,7 +378,7 @@ impl LanguagePlugin for Python3Plugin {
         vec![PathBuf::from("test"), PathBuf::from("tmc")]
     }
 
-    fn points_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
+    fn points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
         combinator::map(
             sequence::delimited(
                 sequence::tuple((
@@ -408,6 +408,7 @@ impl LanguagePlugin for Python3Plugin {
             ),
             str::trim,
         )(i)
+        .map(|(a, b)| (a, vec![b]))
     }
 }
 
@@ -722,17 +723,17 @@ class TestErroring(unittest.TestCase):
     #[test]
     fn parses_points() {
         assert_eq!(
-            Python3Plugin::points_parser("@points('p1')").unwrap().1,
+            Python3Plugin::points_parser("@points('p1')").unwrap().1[0],
             "p1"
         );
         assert_eq!(
             Python3Plugin::points_parser("@  pOiNtS  (  '  p2  '  )  ")
                 .unwrap()
-                .1,
+                .1[0],
             "p2"
         );
         assert_eq!(
-            Python3Plugin::points_parser(r#"@points("p3")"#).unwrap().1,
+            Python3Plugin::points_parser(r#"@points("p3")"#).unwrap().1[0],
             "p3"
         );
         assert!(Python3Plugin::points_parser(r#"@points("p3')"#).is_err());

@@ -337,8 +337,8 @@ impl LanguagePlugin for MakePlugin {
         vec![PathBuf::from("test")]
     }
 
-    fn points_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
-        fn tmc_register_test_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
+    fn points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
+        fn tmc_register_test_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
             sequence::delimited(
                 sequence::tuple((
                     bytes::complete::tag("tmc_register_test"),
@@ -354,6 +354,7 @@ impl LanguagePlugin for MakePlugin {
                     character::complete::char(')'),
                 )),
             )(i)
+            .map(|(a, b)| (a, vec![b]))
         }
 
         // todo: currently cannot handle function calls with multiple parameters, probably not a problem
@@ -613,7 +614,7 @@ test [invalid] point6
                 "tmc_register_test(s, test_insertion_empty_list, \"dlink_insert\");",
             )
             .unwrap()
-            .1,
+            .1[0],
             "dlink_insert"
         );
     }
