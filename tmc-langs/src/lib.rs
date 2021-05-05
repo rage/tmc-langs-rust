@@ -520,16 +520,15 @@ pub fn init_tmc_client_with_credentials(
 // TODO: parallel downloads
 pub fn update_exercises(
     client: &TmcClient,
-    client_name: &str,
+    projects_dir: &Path,
 ) -> Result<DownloadOrUpdateCourseExercisesResult, LangsError> {
-    log::debug!("updating exercises for {}", client_name);
+    log::debug!("updating exercises in {}", projects_dir.display());
 
     let mut exercises_to_update = vec![];
     let course_data = HashMap::<String, Vec<(String, String, usize)>>::new();
 
-    let config_path = TmcConfig::get_location(client_name)?;
-    let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
     let mut projects_config = ProjectsConfig::load(&projects_dir)?;
+
     let local_exercises = projects_config
         .courses
         .iter_mut()
@@ -537,6 +536,7 @@ pub fn update_exercises(
         .flatten()
         .map(|e| e.1)
         .collect::<Vec<_>>();
+
     let exercise_ids = local_exercises.iter().map(|e| e.id).collect::<Vec<_>>();
 
     // request would error with 0 exercise ids
@@ -546,6 +546,7 @@ pub fn update_exercises(
             .into_iter()
             .map(|e| (e.id, e))
             .collect::<HashMap<_, _>>();
+
         for local_exercise in local_exercises {
             let server_exercise = server_exercises
                 .remove(&local_exercise.id)
@@ -569,12 +570,10 @@ pub fn update_exercises(
                 };
             }
         }
-
         if !exercises_to_update.is_empty() {
             for exercise in &exercises_to_update {
                 client.download_exercise(exercise.id, &exercise.path)?;
             }
-
             for (course_name, exercise_names) in course_data {
                 let mut exercises = BTreeMap::new();
                 for (exercise_name, checksum, id) in exercise_names {
@@ -594,7 +593,6 @@ pub fn update_exercises(
             }
         }
     }
-
     Ok(DownloadOrUpdateCourseExercisesResult {
         downloaded: exercises_to_update,
         skipped: vec![],

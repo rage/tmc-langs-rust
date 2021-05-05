@@ -16,7 +16,6 @@ pub struct ProjectsConfig {
 impl ProjectsConfig {
     pub fn load(projects_dir: &Path) -> Result<ProjectsConfig, LangsError> {
         file_util::lock!(projects_dir);
-
         let mut course_configs = HashMap::new();
         for file in WalkDir::new(projects_dir).min_depth(1).max_depth(1) {
             let file = file?;
@@ -26,7 +25,6 @@ impl ProjectsConfig {
                 let course_dir_name = file_name.to_str().ok_or_else(|| {
                     LangsError::FileError(FileError::NoFileName(file.path().to_path_buf()))
                 })?;
-
                 let bytes = file_util::read_file(course_config_path)?;
                 let course_config: CourseConfig = toml::from_slice(&bytes)?;
 
@@ -39,7 +37,6 @@ impl ProjectsConfig {
                 );
             }
         }
-
         // maintenance: check that the exercises in the config actually exist on disk
         // if any are found that do not, update the course config file accordingly
         for (_, course_config) in course_configs.iter_mut() {

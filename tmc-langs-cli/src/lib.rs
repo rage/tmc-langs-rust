@@ -901,7 +901,8 @@ fn run_core_inner(
         }
 
         CoreCommand::UpdateExercises => {
-            let data = tmc_langs::update_exercises(&client, client_name)?;
+            let projects_dir = tmc_langs::get_projects_dir(client_name)?;
+            let data = tmc_langs::update_exercises(&client, &projects_dir)?;
             Output::finished_with_data(
                 "downloaded or updated exercises",
                 Data::ExerciseDownload(data),
