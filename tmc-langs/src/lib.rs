@@ -546,7 +546,7 @@ pub fn update_exercises(
             .into_iter()
             .map(|e| (e.id, e))
             .collect::<HashMap<_, _>>();
-            
+
         for local_exercise in local_exercises {
             let server_exercise = server_exercises
                 .remove(&local_exercise.id)
