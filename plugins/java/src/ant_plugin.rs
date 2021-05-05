@@ -117,7 +117,7 @@ impl LanguagePlugin for AntPlugin {
     }
 
     fn points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
-        Self::java_points_parser(i).map(|(a, b)| (a, vec![b]))
+        Self::java_points_parser(i)
     }
 
     fn get_default_student_file_paths() -> Vec<PathBuf> {

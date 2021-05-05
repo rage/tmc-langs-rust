@@ -9,10 +9,10 @@ use std::io::{Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    nom::{branch, bytes, character, combinator, error::VerboseError, multi, sequence, IResult},
+    nom::{branch, bytes, character, error::VerboseError, sequence, IResult},
     LanguagePlugin, TmcCommand, TmcError, {ExerciseDesc, RunResult, TestDesc},
 };
-use tmc_langs_util::file_util;
+use tmc_langs_util::{file_util, parse_util};
 use zip::ZipArchive;
 
 #[derive(Default)]
@@ -143,15 +143,18 @@ impl LanguagePlugin for RPlugin {
     }
 
     fn points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
-        let mut test_parser = sequence::preceded(
+        let test_parser = sequence::preceded(
             sequence::tuple((
                 bytes::complete::tag("test"),
                 character::complete::multispace0,
                 character::complete::char('('),
                 character::complete::multispace0,
-                arg_parser,
+                parse_util::string, // parses the first argument which should be a string
+                character::complete::multispace0,
+                character::complete::char(','),
+                character::complete::multispace0,
             )),
-            c_parser,
+            list_parser,
         );
         let points_for_all_tests_parser = sequence::preceded(
             sequence::tuple((
@@ -160,51 +163,22 @@ impl LanguagePlugin for RPlugin {
                 character::complete::char('('),
                 character::complete::multispace0,
             )),
-            c_parser,
+            list_parser,
         );
 
-        // todo: currently cannot handle function calls with multiple parameters, probably not a problem
-        fn arg_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
-            combinator::value(
-                "",
-                sequence::tuple((
-                    bytes::complete::take_till(|c: char| c == ','),
-                    character::complete::char(','),
-                    character::complete::multispace0,
-                )),
-            )(i)
-        }
-
-        fn c_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
-            combinator::map(
+        fn list_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
+            sequence::delimited(
                 sequence::tuple((
                     character::complete::char('c'),
                     character::complete::multispace0,
                     character::complete::char('('),
                     character::complete::multispace0,
-                    multi::separated_list1(
-                        sequence::tuple((
-                            character::complete::multispace0,
-                            character::complete::char(','),
-                            character::complete::multispace0,
-                        )),
-                        string_parser,
-                    ),
+                )),
+                parse_util::comma_separated_strings,
+                sequence::tuple((
                     character::complete::multispace0,
                     character::complete::char(')'),
                 )),
-                |t| t.4,
-            )(i)
-        }
-
-        fn string_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
-            combinator::map(
-                sequence::tuple((
-                    character::complete::char('"'),
-                    bytes::complete::is_not("\""),
-                    character::complete::char('"'),
-                )),
-                |r| str::trim(r.1),
             )(i)
         }
 
@@ -548,7 +522,26 @@ etc
             "tests/testthat/testExercise.R",
             r#"
 something
-test("some test", c("r1", "r2", "r3"))
+test("some test", c("r1", "r2", "r3", "r4 r5"))
+etc
+"#,
+        );
+
+        let points = RPlugin::get_available_points(temp.path()).unwrap();
+        assert_eq!(points, &["r1", "r2", "r3", "r4", "r5"]);
+    }
+
+    #[test]
+    fn parses_first_arg_with_comma_regression() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(
+            &temp,
+            "tests/testthat/testExercise.R",
+            r#"
+something
+test("some test, with a comma", c("r1", "r2", "r3"))
 etc
 "#,
         );

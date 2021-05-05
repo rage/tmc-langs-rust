@@ -13,7 +13,7 @@ use tmc_langs_framework::{
     CommandError, ExerciseDesc, Language, LanguagePlugin, RunResult, RunStatus,
     StyleValidationResult, StyleValidationStrategy, TestDesc, TestResult, TmcCommand, TmcError,
 };
-use tmc_langs_util::{file_util, FileError};
+use tmc_langs_util::{file_util, parse_util, FileError};
 use walkdir::WalkDir;
 use zip::ZipArchive;
 
@@ -322,26 +322,28 @@ impl LanguagePlugin for CSharpPlugin {
         combinator::map(
             sequence::delimited(
                 sequence::tuple((
-                    bytes::complete::tag("@"),
+                    character::complete::char('@'),
                     character::complete::multispace0,
                     bytes::complete::tag_no_case("points"),
                     character::complete::multispace0,
                     character::complete::char('('),
                     character::complete::multispace0,
                 )),
-                sequence::delimited(
-                    character::complete::char('"'),
-                    bytes::complete::is_not("\""),
-                    character::complete::char('"'),
-                ),
+                parse_util::comma_separated_strings,
                 sequence::tuple((
                     character::complete::multispace0,
                     character::complete::char(')'),
                 )),
             ),
-            str::trim,
+            // splits each point by whitespace
+            |points| {
+                points
+                    .into_iter()
+                    .map(|p| p.split_whitespace())
+                    .flatten()
+                    .collect()
+            },
         )(i)
-        .map(|(a, b)| (a, vec![b]))
     }
 }
 
@@ -623,10 +625,13 @@ mod test {
         assert!(res.is_err());
 
         let res = CSharpPlugin::points_parser("@Points(\"1\")").unwrap();
-        assert_eq!(res.1[0], "1");
+        assert_eq!(res.1, &["1"]);
 
         let res = CSharpPlugin::points_parser("@  pOiNtS  (  \"  1  \"  )  ").unwrap();
-        assert_eq!(res.1[0], "1");
+        assert_eq!(res.1, &["1"]);
+
+        let res = CSharpPlugin::points_parser("@Points(\"1\", \"2\"  ,  \"3\")").unwrap();
+        assert_eq!(res.1, &["1", "2", "3"]);
     }
 
     #[test]
