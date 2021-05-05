@@ -12,7 +12,7 @@ use tmc_langs_framework::{
     ExerciseDesc, Language, LanguagePlugin, RunResult, RunStatus, StyleValidationResult, TestDesc,
     TestResult, TmcCommand,
 };
-use tmc_langs_util::file_util;
+use tmc_langs_util::{file_util, parse_util};
 use walkdir::WalkDir;
 
 pub(crate) trait JavaPlugin: LanguagePlugin {
@@ -253,28 +253,31 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
     }
 
     /// Parses @Points("1.1") point annotations.
-    fn java_points_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
+    fn java_points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
         combinator::map(
             sequence::delimited(
                 sequence::tuple((
-                    bytes::complete::tag("@"),
+                    character::complete::char('@'),
                     character::complete::multispace0,
                     bytes::complete::tag_no_case("points"),
                     character::complete::multispace0,
                     character::complete::char('('),
                     character::complete::multispace0,
                 )),
-                sequence::delimited(
-                    character::complete::char('"'),
-                    bytes::complete::is_not("\""),
-                    character::complete::char('"'),
-                ),
+                parse_util::comma_separated_strings,
                 sequence::tuple((
                     character::complete::multispace0,
                     character::complete::char(')'),
                 )),
             ),
-            str::trim,
+            // splits each point by whitespace
+            |points| {
+                points
+                    .into_iter()
+                    .map(|p| p.split_whitespace())
+                    .flatten()
+                    .collect()
+            },
         )(i)
     }
 }
@@ -361,7 +364,7 @@ mod test {
         }
 
         fn points_parser(i: &str) -> IResult<&str, Vec<&str>, nom::error::VerboseError<&str>> {
-            Self::java_points_parser(i).map(|(a, b)| (a, vec![b]))
+            Self::java_points_parser(i)
         }
     }
 
@@ -569,13 +572,19 @@ openjdk version "1.8.0_252"S
 
         assert_eq!(
             Stub::java_points_parser(r#"@points("point")"#).unwrap().1,
-            "point"
+            &["point"]
         );
         assert_eq!(
             Stub::java_points_parser(r#"@  PoInTs  (  "  another point  "  )  "#)
                 .unwrap()
                 .1,
-            "another point"
+            &["another", "point"]
+        );
+        assert_eq!(
+            Stub::java_points_parser(r#"@points("point", "another point"  ,  "asd")"#)
+                .unwrap()
+                .1,
+            &["point", "another", "point", "asd"]
         );
     }
 }

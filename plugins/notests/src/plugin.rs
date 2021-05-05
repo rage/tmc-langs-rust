@@ -95,10 +95,9 @@ impl LanguagePlugin for NoTestsPlugin {
         vec![PathBuf::from("test")]
     }
 
-    fn points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
-        // does not match any characters
-        nom::combinator::value("", nom::character::complete::one_of(""))(i)
-            .map(|(a, b)| (a, vec![b]))
+    fn points_parser(_: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
+        // never parses anything
+        Err(nom::Err::Error(VerboseError { errors: vec![] }))
     }
 }
 

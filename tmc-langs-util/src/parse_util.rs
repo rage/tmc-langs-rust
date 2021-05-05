@@ -1,21 +1,27 @@
 //! Contains parse functions that may be convenient for implementing language plugins.
-use nom::{branch, bytes, character, error::VerboseError, multi, sequence, IResult};
+use nom::{branch, bytes, character, combinator, error::VerboseError, multi, sequence, IResult};
 
-/// Parses a string delimited by double quotes.
+/// Parses a string delimited by double quotes. Trims.
 pub fn string(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
-    sequence::delimited(
-        character::complete::char('"'),
-        bytes::complete::is_not("\""),
-        character::complete::char('"'),
+    combinator::map(
+        sequence::delimited(
+            character::complete::char('"'),
+            bytes::complete::is_not("\""),
+            character::complete::char('"'),
+        ),
+        str::trim,
     )(i)
 }
 
-/// Parses a string delimited by single quotes.
+/// Parses a string delimited by single quotes. Trims.
 pub fn string_single(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
-    sequence::delimited(
-        character::complete::char('\''),
-        bytes::complete::is_not("'"),
-        character::complete::char('\''),
+    combinator::map(
+        sequence::delimited(
+            character::complete::char('\''),
+            bytes::complete::is_not("'"),
+            character::complete::char('\''),
+        ),
+        str::trim,
     )(i)
 }
 
