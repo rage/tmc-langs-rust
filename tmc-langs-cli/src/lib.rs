@@ -414,7 +414,7 @@ fn run_app(matches: Opt) -> Result<()> {
             let refresh_result = tmc_langs::refresh_course(
                 course_name.clone(),
                 cache_path,
-                source_url.into_string(),
+                source_url,
                 git_branch,
                 cache_root,
             )

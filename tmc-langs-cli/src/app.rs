@@ -184,9 +184,9 @@ pub enum Command {
         /// Version control branch.
         #[structopt(long)]
         git_branch: String,
-        /// Version control URL.
+        /// Version control URL or path.
         #[structopt(long)]
-        source_url: Url,
+        source_url: String,
     },
 
     /// Run the tests for the exercise using the appropriate language plugin

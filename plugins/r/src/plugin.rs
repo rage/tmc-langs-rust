@@ -9,7 +9,7 @@ use std::io::{Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    nom::{branch, bytes, character, combinator, error::VerboseError, sequence, IResult},
+    nom::{branch, bytes, character, combinator, error::VerboseError, multi, sequence, IResult},
     LanguagePlugin, TmcCommand, TmcError, {ExerciseDesc, RunResult, TestDesc},
 };
 use tmc_langs_util::file_util;
@@ -142,46 +142,73 @@ impl LanguagePlugin for RPlugin {
         vec![PathBuf::from("tests")]
     }
 
-    fn points_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
-        let test_parser = sequence::delimited(
+    fn points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
+        let mut test_parser = sequence::preceded(
             sequence::tuple((
                 bytes::complete::tag("test"),
                 character::complete::multispace0,
                 character::complete::char('('),
-                bytes::complete::take_until(","),
-                bytes::complete::take_until("\""),
-            )),
-            sequence::delimited(
-                character::complete::char('"'),
-                bytes::complete::is_not("\""),
-                character::complete::char('"'),
-            ),
-            sequence::tuple((
                 character::complete::multispace0,
-                character::complete::char(')'),
+                arg_parser,
             )),
+            c_parser,
         );
-        let points_for_all_tests_parser = sequence::delimited(
+        let points_for_all_tests_parser = sequence::preceded(
             sequence::tuple((
                 bytes::complete::tag("points_for_all_tests"),
                 character::complete::multispace0,
                 character::complete::char('('),
-                bytes::complete::take_until("\""),
-            )),
-            sequence::delimited(
-                character::complete::char('"'),
-                bytes::complete::is_not("\""),
-                character::complete::char('"'),
-            ),
-            sequence::tuple((
                 character::complete::multispace0,
-                character::complete::char(')'),
             )),
+            c_parser,
         );
-        combinator::map(
-            branch::alt((test_parser, points_for_all_tests_parser)),
-            str::trim,
-        )(i)
+
+        // todo: currently cannot handle function calls with multiple parameters, probably not a problem
+        fn arg_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
+            combinator::value(
+                "",
+                sequence::tuple((
+                    bytes::complete::take_till(|c: char| c == ','),
+                    character::complete::char(','),
+                    character::complete::multispace0,
+                )),
+            )(i)
+        }
+
+        fn c_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
+            combinator::map(
+                sequence::tuple((
+                    character::complete::char('c'),
+                    character::complete::multispace0,
+                    character::complete::char('('),
+                    character::complete::multispace0,
+                    multi::separated_list1(
+                        sequence::tuple((
+                            character::complete::multispace0,
+                            character::complete::char(','),
+                            character::complete::multispace0,
+                        )),
+                        string_parser,
+                    ),
+                    character::complete::multispace0,
+                    character::complete::char(')'),
+                )),
+                |t| t.4,
+            )(i)
+        }
+
+        fn string_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
+            combinator::map(
+                sequence::tuple((
+                    character::complete::char('"'),
+                    bytes::complete::is_not("\""),
+                    character::complete::char('"'),
+                )),
+                |r| str::trim(r.1),
+            )(i)
+        }
+
+        branch::alt((test_parser, points_for_all_tests_parser))(i)
     }
 }
 
@@ -466,14 +493,14 @@ test("sample", c("r1.1"), {
   expect_true(areEqual(res, res_correct))
 })
 "#;
-        assert_eq!(RPlugin::points_parser(target).unwrap().1, "W1A.1.2");
+        assert_eq!(RPlugin::points_parser(target).unwrap().1[0], "W1A.1.2");
 
         let target = r#"test  (  "1d and 1e are solved correctly", c  (  "  W1A.1.2  "  )  , {
   expect_equivalent(z, z_correct, tolerance=1e-5)
   expect_true(areEqual(res, res_correct))
 })
 "#;
-        assert_eq!(RPlugin::points_parser(target).unwrap().1, "W1A.1.2");
+        assert_eq!(RPlugin::points_parser(target).unwrap().1[0], "W1A.1.2");
     }
 
     #[test]
@@ -509,5 +536,24 @@ etc
 
         let points = RPlugin::get_available_points(temp.path()).unwrap();
         assert_eq!(points, &["r1"]);
+    }
+
+    #[test]
+    fn parses_multiple_points() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(
+            &temp,
+            "tests/testthat/testExercise.R",
+            r#"
+something
+test("some test", c("r1", "r2", "r3"))
+etc
+"#,
+        );
+
+        let points = RPlugin::get_available_points(temp.path()).unwrap();
+        assert_eq!(points, &["r1", "r2", "r3"]);
     }
 }

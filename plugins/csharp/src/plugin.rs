@@ -318,7 +318,7 @@ impl LanguagePlugin for CSharpPlugin {
         vec![PathBuf::from("test")]
     }
 
-    fn points_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
+    fn points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
         combinator::map(
             sequence::delimited(
                 sequence::tuple((
@@ -341,6 +341,7 @@ impl LanguagePlugin for CSharpPlugin {
             ),
             str::trim,
         )(i)
+        .map(|(a, b)| (a, vec![b]))
     }
 }
 
@@ -622,14 +623,13 @@ mod test {
         assert!(res.is_err());
 
         let res = CSharpPlugin::points_parser("@Points(\"1\")").unwrap();
-        assert_eq!(res.1, "1");
+        assert_eq!(res.1[0], "1");
 
         let res = CSharpPlugin::points_parser("@  pOiNtS  (  \"  1  \"  )  ").unwrap();
-        assert_eq!(res.1, "1");
+        assert_eq!(res.1[0], "1");
     }
 
     #[test]
-    // #[ignore = "requires newer version of C# runner that always includes all points in the tests"]
     fn doesnt_give_points_unless_all_relevant_exercises_pass() {
         init();
 
