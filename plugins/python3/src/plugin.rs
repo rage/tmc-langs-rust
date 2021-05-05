@@ -13,13 +13,14 @@ use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    nom::{branch, bytes, character, combinator, error::VerboseError, sequence, IResult},
+    nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
     CommandError, ExerciseDesc, LanguagePlugin, Output, RunResult, RunStatus, TestDesc, TestResult,
     TmcCommand, TmcError, TmcProjectYml,
 };
 use tmc_langs_util::{
     file_util,
     notification_reporter::{self, Notification},
+    parse_util,
 };
 use walkdir::WalkDir;
 
@@ -382,33 +383,28 @@ impl LanguagePlugin for Python3Plugin {
         combinator::map(
             sequence::delimited(
                 sequence::tuple((
-                    bytes::complete::tag("@"),
+                    character::complete::char('@'),
                     character::complete::multispace0,
                     bytes::complete::tag_no_case("points"),
                     character::complete::multispace0,
                     character::complete::char('('),
                     character::complete::multispace0,
                 )),
-                branch::alt((
-                    sequence::delimited(
-                        character::complete::char('"'),
-                        bytes::complete::is_not("\""),
-                        character::complete::char('"'),
-                    ),
-                    sequence::delimited(
-                        character::complete::char('\''),
-                        bytes::complete::is_not("'"),
-                        character::complete::char('\''),
-                    ),
-                )),
+                parse_util::comma_separated_strings_either,
                 sequence::tuple((
                     character::complete::multispace0,
                     character::complete::char(')'),
                 )),
             ),
-            str::trim,
+            // splits each point by whitespace
+            |points| {
+                points
+                    .into_iter()
+                    .map(|p| p.split_whitespace())
+                    .flatten()
+                    .collect()
+            },
         )(i)
-        .map(|(a, b)| (a, vec![b]))
     }
 }
 
@@ -723,18 +719,24 @@ class TestErroring(unittest.TestCase):
     #[test]
     fn parses_points() {
         assert_eq!(
-            Python3Plugin::points_parser("@points('p1')").unwrap().1[0],
-            "p1"
+            Python3Plugin::points_parser("@points('p1')").unwrap().1,
+            &["p1"]
         );
         assert_eq!(
             Python3Plugin::points_parser("@  pOiNtS  (  '  p2  '  )  ")
                 .unwrap()
-                .1[0],
-            "p2"
+                .1,
+            &["p2"]
         );
         assert_eq!(
-            Python3Plugin::points_parser(r#"@points("p3")"#).unwrap().1[0],
-            "p3"
+            Python3Plugin::points_parser(r#"@points("p3")"#).unwrap().1,
+            &["p3"]
+        );
+        assert_eq!(
+            Python3Plugin::points_parser(r#"@points("p3", 'p4', "p5", "p6 p7")"#)
+                .unwrap()
+                .1,
+            &["p3", "p4", "p5", "p6", "p7"]
         );
         assert!(Python3Plugin::points_parser(r#"@points("p3')"#).is_err());
     }

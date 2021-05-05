@@ -154,7 +154,7 @@ impl LanguagePlugin for RPlugin {
                 character::complete::char(','),
                 character::complete::multispace0,
             )),
-            c_parser,
+            list_parser,
         );
         let points_for_all_tests_parser = sequence::preceded(
             sequence::tuple((
@@ -163,10 +163,10 @@ impl LanguagePlugin for RPlugin {
                 character::complete::char('('),
                 character::complete::multispace0,
             )),
-            c_parser,
+            list_parser,
         );
 
-        fn c_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
+        fn list_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
             sequence::delimited(
                 sequence::tuple((
                     character::complete::char('c'),
@@ -522,13 +522,13 @@ etc
             "tests/testthat/testExercise.R",
             r#"
 something
-test("some test", c("r1", "r2", "r3"))
+test("some test", c("r1", "r2", "r3", "r4 r5"))
 etc
 "#,
         );
 
         let points = RPlugin::get_available_points(temp.path()).unwrap();
-        assert_eq!(points, &["r1", "r2", "r3"]);
+        assert_eq!(points, &["r1", "r2", "r3", "r4", "r5"]);
     }
 
     #[test]
