@@ -160,51 +160,46 @@ pub fn download_old_submission(
     Ok(())
 }
 
-/// Reads the exercise id from course configuration file
-/// and generates a submission url from it
-fn get_submission_url(client: &TmcClient, exercise_path: &Path) -> Result<Url, LangsError> {
-    let (projects_dir, course_slug, exercise_slug) =
-        ProjectsConfig::get_exercise_target_details(exercise_path)?;
-
-    let projects_config = ProjectsConfig::load(projects_dir.as_path())?;
-    let exercise = match projects_config.get_exercise(&course_slug, &exercise_slug) {
-        Some(ex) => ex,
-        None => return Err(LangsError::NoProjectExercise),
-    };
-
-    match client.get_submission_url(exercise.id) {
-        Ok(url) => Ok(url),
-        Err(err) => Err(LangsError::TmcClient(err)),
-    }
-}
-
-/// Submits the exercise in given path to the server
+/// Submits the exercise to the server
 pub fn submit_exercise(
     client: &TmcClient,
-    exercise_path: &Path,
+    projects_dir: &Path,
+    course_slug: &str,
+    exercise_slug: &str,
     locale: Option<Language>,
 ) -> Result<NewSubmission, LangsError> {
-    let submission_url = get_submission_url(client, exercise_path)?;
+    let projects_config = ProjectsConfig::load(projects_dir)?;
+    let exercise = projects_config
+        .get_exercise(&course_slug, &exercise_slug)
+        .ok_or(LangsError::NoProjectExercise)?;
 
-    match client.submit(submission_url, exercise_path, locale) {
-        Ok(new_submission) => Ok(new_submission),
-        Err(client_error) => Err(LangsError::TmcClient(client_error)),
-    }
+    let exercise_path =
+        ProjectsConfig::get_exercise_download_target(projects_dir, course_slug, exercise_slug);
+
+    client
+        .submit_exercise_by_id(exercise.id, exercise_path.as_path(), locale)
+        .map_err(|e| e.into())
 }
 
 /// Sends the paste to the server
 pub fn paste_exercise(
     client: &TmcClient,
-    exercise_path: &Path,
+    projects_dir: &Path,
+    course_slug: &str,
+    exercise_slug: &str,
     paste_message: Option<String>,
     locale: Option<Language>,
 ) -> Result<NewSubmission, LangsError> {
-    let submission_url = get_submission_url(client, exercise_path)?;
+    let projects_config = ProjectsConfig::load(projects_dir)?;
+    let exercise = projects_config
+        .get_exercise(&course_slug, &exercise_slug)
+        .ok_or(LangsError::NoProjectExercise)?;
 
-    match client.paste(submission_url, exercise_path, paste_message, locale) {
-        Ok(new_submission) => Ok(new_submission),
-        Err(client_error) => Err(LangsError::TmcClient(client_error)),
-    }
+    let exercise_path =
+        ProjectsConfig::get_exercise_download_target(projects_dir, course_slug, exercise_slug);
+    client
+        .paste_exercise_by_id(exercise.id, exercise_path.as_path(), paste_message, locale)
+        .map_err(|e| e.into())
 }
 
 /// Downloads the given exercises, by either downloading the exercise template, updating the exercise or downloading an old submission.

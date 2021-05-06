@@ -1,7 +1,6 @@
 //! Structs for managing projects directories.
 
 use crate::LangsError;
-use crate::OsStr;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
 use std::path::{Path, PathBuf};
@@ -83,20 +82,6 @@ impl ProjectsConfig {
         projects_dir.join(course_name).join(exercise_name)
     }
 
-    /// Parses an exercise path into (projects_dir, course_name, exercise_name)
-    pub fn get_exercise_target_details(
-        exercise_path: &Path,
-    ) -> Result<(PathBuf, String, String), LangsError> {
-        let mut exercise_dir = PathBuf::from(exercise_path);
-        let exercise_slug = get_file_string(exercise_dir.file_name())?;
-
-        exercise_dir.pop();
-        let course_slug = get_file_string(exercise_dir.file_name())?;
-
-        exercise_dir.pop();
-        Ok((exercise_dir, course_slug, exercise_slug))
-    }
-
     pub fn get_exercise(
         &self,
         course_name: &str,
@@ -123,16 +108,6 @@ impl ProjectsConfig {
                 course: course_name,
                 exercises: BTreeMap::new(),
             })
-    }
-}
-
-fn get_file_string(file_name: Option<&OsStr>) -> Result<String, LangsError> {
-    match file_name {
-        None => Err(LangsError::NoProjectFileString),
-        Some(slug) => match slug.to_str() {
-            None => Err(LangsError::NoProjectFileString),
-            Some(slug_str) => Ok(slug_str.to_string()),
-        },
     }
 }
 

@@ -312,6 +312,17 @@ impl TmcClient {
         Ok(result)
     }
 
+    pub fn paste_exercise_by_id(
+        &self,
+        exercise_id: usize,
+        exercise_path: &Path,
+        paste_message: Option<String>,
+        locale: Option<Language>,
+    ) -> Result<NewSubmission, ClientError> {
+        let submission_url = self.get_submission_url(exercise_id)?;
+        self.paste(submission_url, exercise_path, paste_message, locale)
+    }
+
     /// Sends feedback.
     ///
     /// # Errors
@@ -328,8 +339,13 @@ impl TmcClient {
     ///
     /// # Errors
     /// Returns an error if Url::join fails
-    pub fn get_submission_url(&self, exercise_id: usize) -> Result<Url, ClientError> {
-        match self
+    fn get_submission_url(&self, exercise_id: usize) -> Result<Url, ClientError> {
+        self.0
+            .api_url
+            .join(&format!("core/exercises/{}/submissions", exercise_id))
+            .map_err(|e| ClientError::UrlParse("Failed to make submission url".to_string(), e))
+
+        /*match self
             .0
             .api_url
             .join(&format!("core/exercises/{}/submissions", exercise_id))
@@ -339,7 +355,7 @@ impl TmcClient {
                 "Failed to make submission url".to_string(),
                 err,
             )),
-        }
+        }*/
     }
 
     /// Sends the submission to the server.
@@ -374,6 +390,22 @@ impl TmcClient {
             ClientUpdateData::PostedSubmission(result.clone()),
         );
         Ok(result)
+    }
+
+    /// Sends the submission to the server.
+    /// Wrapper around submit() function
+    ///
+    /// # Errors
+    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
+    /// The method compresses the submission and writes it into a temporary archive, which may fail.
+    pub fn submit_exercise_by_id(
+        &self,
+        exercise_id: usize,
+        exercise_path: &Path,
+        locale: Option<Language>,
+    ) -> Result<NewSubmission, ClientError> {
+        let submission_url = self.get_submission_url(exercise_id)?;
+        self.submit(submission_url, exercise_path, locale)
     }
 
     pub fn download_old_submission(
