@@ -160,6 +160,49 @@ pub fn download_old_submission(
     Ok(())
 }
 
+/// Submits the exercise to the server
+pub fn submit_exercise(
+    client: &TmcClient,
+    projects_dir: &Path,
+    course_slug: &str,
+    exercise_slug: &str,
+    locale: Option<Language>,
+) -> Result<NewSubmission, LangsError> {
+    let projects_config = ProjectsConfig::load(projects_dir)?;
+    let exercise = projects_config
+        .get_exercise(&course_slug, &exercise_slug)
+        .ok_or(LangsError::NoProjectExercise)?;
+
+    let exercise_path =
+        ProjectsConfig::get_exercise_download_target(projects_dir, course_slug, exercise_slug);
+
+    client
+        .submit_exercise_by_id(exercise.id, exercise_path.as_path(), locale)
+        .map_err(|e| e.into())
+}
+
+/// Sends the paste to the server
+pub fn paste_exercise(
+    client: &TmcClient,
+    projects_dir: &Path,
+    course_slug: &str,
+    exercise_slug: &str,
+    paste_message: Option<String>,
+    locale: Option<Language>,
+) -> Result<NewSubmission, LangsError> {
+    let projects_config = ProjectsConfig::load(projects_dir)?;
+    let exercise = projects_config
+        .get_exercise(&course_slug, &exercise_slug)
+        .ok_or(LangsError::NoProjectExercise)?;
+
+    let exercise_path =
+        ProjectsConfig::get_exercise_download_target(projects_dir, course_slug, exercise_slug);
+
+    client
+        .paste_exercise_by_id(exercise.id, exercise_path.as_path(), paste_message, locale)
+        .map_err(|e| e.into())
+}
+
 /// Downloads the given exercises, by either downloading the exercise template, updating the exercise or downloading an old submission.
 /// If the exercise doesn't exist on disk yet...
 ///   if there are previous submissions and download_template is not set, the latest submission is downloaded.
