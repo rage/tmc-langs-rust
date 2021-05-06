@@ -386,7 +386,7 @@ impl TmcClient {
     }
 
     /// Sends the submission to the server.
-    /// Wrapper around submit() function
+    /// Wraps around submit() function
     ///
     /// # Errors
     /// Returns an error if there's some problem reaching the API, or if the API returns an error.

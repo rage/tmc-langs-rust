@@ -197,6 +197,7 @@ pub fn paste_exercise(
 
     let exercise_path =
         ProjectsConfig::get_exercise_download_target(projects_dir, course_slug, exercise_slug);
+
     client
         .paste_exercise_by_id(exercise.id, exercise_path.as_path(), paste_message, locale)
         .map_err(|e| e.into())
