@@ -568,9 +568,15 @@ pub fn update_exercises(
     log::debug!("updating exercises in {}", projects_dir.display());
 
     let mut exercises_to_update = vec![];
-    let course_data = HashMap::<String, Vec<(String, String, usize)>>::new();
+    let mut course_data = HashMap::<String, Vec<(String, String, usize)>>::new();
 
     let mut projects_config = ProjectsConfig::load(&projects_dir)?;
+
+    for c in &projects_config.courses {
+        course_data.insert(c.1.course.clone(), vec![]);
+    }
+
+    println!("{:#?}", course_data);
 
     let local_exercises = projects_config
         .courses
@@ -612,6 +618,12 @@ pub fn update_exercises(
                     checksum: server_exercise.checksum,
                 };
             }
+            // course_data.get(server_exercise.course_name.clone())
+            //     .push(
+            //         server_exercise.exercise_name.clone(),
+            //         local_exercise.checksum.clone(),
+            //         local_exercise.id
+            //     );
         }
         if !exercises_to_update.is_empty() {
             for exercise in &exercises_to_update {
