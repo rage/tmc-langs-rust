@@ -627,7 +627,9 @@ pub fn update_exercises(
         }
         if !exercises_to_update.is_empty() {
             for exercise in &exercises_to_update {
-                client.download_exercise(exercise.id, &exercise.path)?;
+                let zip_file = file_util::named_temp_file()?;
+                client.download_exercise(exercise.id, zip_file.path())?;
+                extract_project(zip_file, &exercise.path, false)?;
             }
             for (course_name, exercise_names) in course_data {
                 let mut exercises = BTreeMap::new();
