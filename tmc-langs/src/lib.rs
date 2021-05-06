@@ -576,8 +576,6 @@ pub fn update_exercises(
         course_data.insert(c.1.course.clone(), vec![]);
     }
 
-    println!("{:#?}", course_data);
-
     let local_exercises = projects_config
         .courses
         .iter_mut()
@@ -618,12 +616,14 @@ pub fn update_exercises(
                     checksum: server_exercise.checksum,
                 };
             }
-            // course_data.get(server_exercise.course_name.clone())
-            //     .push(
-            //         server_exercise.exercise_name.clone(),
-            //         local_exercise.checksum.clone(),
-            //         local_exercise.id
-            //     );
+            course_data
+                .get_mut(&server_exercise.course_name)
+                .unwrap()
+                .push((
+                    server_exercise.exercise_name,
+                    local_exercise.checksum.clone(),
+                    local_exercise.id,
+                ));
         }
         if !exercises_to_update.is_empty() {
             for exercise in &exercises_to_update {
