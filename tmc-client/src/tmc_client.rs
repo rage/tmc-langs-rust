@@ -344,18 +344,6 @@ impl TmcClient {
             .api_url
             .join(&format!("core/exercises/{}/submissions", exercise_id))
             .map_err(|e| ClientError::UrlParse("Failed to make submission url".to_string(), e))
-
-        /*match self
-            .0
-            .api_url
-            .join(&format!("core/exercises/{}/submissions", exercise_id))
-        {
-            Ok(url) => Ok(url),
-            Err(err) => Err(ClientError::UrlParse(
-                "Failed to make submission url".to_string(),
-                err,
-            )),
-        }*/
     }
 
     /// Sends the submission to the server.
