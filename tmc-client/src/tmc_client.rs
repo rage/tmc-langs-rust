@@ -312,6 +312,11 @@ impl TmcClient {
         Ok(result)
     }
 
+    /// Sends the given submission as a paste.
+    /// Wraps around paste() function
+    /// 
+    /// # Errors
+    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
     pub fn paste_exercise_by_id(
         &self,
         exercise_id: usize,
