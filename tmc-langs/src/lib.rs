@@ -519,21 +519,12 @@ pub fn login_with_token(token: String) -> Token {
 /// Reads the password from stdin.
 pub fn login_with_password(
     client: &mut TmcClient,
-    base64: bool,
     client_name: &str,
     email: String,
+    password: String,
 ) -> Result<Token, LangsError> {
     log::debug!("logging in with password");
-
-    // TODO: print "Please enter password" and add "quiet"  flag
-    let password = rpassword::read_password().map_err(LangsError::ReadPassword)?;
-    let decoded = if base64 {
-        let bytes = base64::decode(password)?;
-        String::from_utf8(bytes).map_err(LangsError::Base64PasswordNotUtf8)?
-    } else {
-        password
-    };
-    let token = client.authenticate(client_name, email, decoded)?;
+    let token = client.authenticate(client_name, email, password)?;
     Ok(token)
 }
 

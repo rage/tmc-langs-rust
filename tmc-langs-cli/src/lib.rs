@@ -764,7 +764,15 @@ fn run_core_inner(
             let token = if let Some(token) = set_access_token {
                 tmc_langs::login_with_token(token)
             } else if let Some(email) = email {
-                tmc_langs::login_with_password(&mut client, base64, client_name, email)?
+                // TODO: print "Please enter password" and add "quiet"  flag
+                let password = rpassword::read_password().context("Failed to read password")?;
+                let decoded = if base64 {
+                    let bytes = base64::decode(password)?;
+                    String::from_utf8(bytes).context("Failed to decode password with base64")?
+                } else {
+                    password
+                };
+                tmc_langs::login_with_password(&mut client, client_name, email, decoded)?
             } else {
                 unreachable!("validation error");
             };
