@@ -2,7 +2,6 @@
 
 pub use zip::result::ZipError;
 
-use std::collections::HashSet;
 use std::io::{Cursor, Read, Seek, Write};
 use std::path::Path;
 use std::path::PathBuf;
@@ -12,7 +11,10 @@ use walkdir::{DirEntry, WalkDir};
 use zip::{write::FileOptions, ZipArchive, ZipWriter};
 
 /// Zips the given directory, only including student files according to the given policy.
-pub fn zip<P: StudentFilePolicy>(policy: P, root_directory: &Path) -> Result<Vec<u8>, TmcError> {
+pub fn zip_student_files<P: StudentFilePolicy>(
+    policy: P,
+    root_directory: &Path,
+) -> Result<Vec<u8>, TmcError> {
     let mut writer = ZipWriter::new(Cursor::new(vec![]));
 
     for entry in WalkDir::new(root_directory)
@@ -56,29 +58,14 @@ fn path_to_zip_compatible_string(path: &Path) -> String {
     string
 }
 
-// todo: remove
 /// Finds a project directory in the given zip and unzips it according to the given student policy. Also cleans unnecessary non-student files.
-///
-/// First a project directory is found within the directory. Only files within the project directory are unzipped.
-///
-pub fn unzip<P>(
-    policy: P,
-    zip: impl std::io::Read + std::io::Seek,
-    target: &Path,
-) -> Result<(), TmcError>
-where
-    P: StudentFilePolicy,
-{
+pub fn unzip(zip: impl std::io::Read + std::io::Seek, target: &Path) -> Result<(), TmcError> {
     log::debug!("Unzipping to {}", target.display());
 
     let mut zip_archive = ZipArchive::new(zip)?;
 
     let project_dir = find_project_dir(&mut zip_archive)?;
     log::debug!("Project dir in zip: {}", project_dir.display());
-
-    // for each file in the zip, contains its path if unzipped
-    // used to clean non-student files not in the zip later
-    let mut unzip_paths = HashSet::new();
 
     for i in 0..zip_archive.len() {
         let mut file = zip_archive.by_index(i)?;
@@ -96,72 +83,12 @@ where
         if file.is_dir() {
             log::trace!("creating {:?}", path_in_target);
             file_util::create_dir_all(&path_in_target)?;
-            unzip_paths.insert(
-                path_in_target
-                    .canonicalize()
-                    .map_err(|e| TmcError::Canonicalize(path_in_target.clone(), e))?,
-            );
         } else {
-            let mut write = true;
-            let mut file_contents = vec![];
-            file.read_to_end(&mut file_contents)
-                .map_err(|e| TmcError::ZipRead(file_path.clone(), e))?;
-            // always overwrite .tmcproject.yml
-            if path_in_target.exists()
-                && !path_in_target
-                    .file_name()
-                    .map(|o| o == ".tmcproject.yml")
-                    .unwrap_or_default()
-            {
-                let target_file_contents = file_util::read_file(&path_in_target)?;
-                if file_contents == target_file_contents
-                    || (policy.is_student_file(&path_in_target, &target)?
-                        && !policy.is_updating_forced(&relative)?)
-                {
-                    write = false;
-                }
+            log::trace!("writing to {}", path_in_target.display());
+            if let Some(parent) = path_in_target.parent() {
+                file_util::create_dir_all(parent)?;
             }
-            if write {
-                log::trace!("writing to {}", path_in_target.display());
-                if let Some(parent) = path_in_target.parent() {
-                    file_util::create_dir_all(parent)?;
-                }
-                let mut overwrite_target = file_util::create_file(&path_in_target)?;
-                overwrite_target
-                    .write_all(&file_contents)
-                    .map_err(|e| TmcError::ZipWrite(path_in_target.clone(), e))?;
-            }
-        }
-        unzip_paths.insert(
-            path_in_target
-                .canonicalize()
-                .map_err(|e| TmcError::Canonicalize(path_in_target.clone(), e))?,
-        );
-    }
-
-    // delete non-student files that were not in zip
-    log::debug!("deleting non-student files not in zip");
-    log::debug!("{:?}", unzip_paths);
-    for entry in WalkDir::new(target).into_iter().filter_map(|e| e.ok()) {
-        if !unzip_paths.contains(
-            &entry
-                .path()
-                .canonicalize()
-                .map_err(|e| TmcError::Canonicalize(entry.path().to_path_buf(), e))?,
-        ) && (policy.is_updating_forced(entry.path())?
-            || !policy.is_student_file(entry.path(), &target)?)
-        {
-            log::debug!("rm {} {}", entry.path().display(), target.display());
-            if entry.path().is_dir() {
-                // delete if empty
-                if WalkDir::new(entry.path()).max_depth(1).into_iter().count() == 1 {
-                    log::debug!("deleting empty directory {}", entry.path().display());
-                    file_util::remove_dir_empty(entry.path())?;
-                }
-            } else {
-                log::debug!("removing file {}", entry.path().display());
-                file_util::remove_file(entry.path())?;
-            }
+            file_util::read_to_file(&mut file, path_in_target)?;
         }
     }
 
@@ -261,7 +188,8 @@ mod test {
         File::create(missing_file_path).unwrap();
 
         let path = temp.path().join("exercise-name");
-        let zipped = zip(EverythingIsStudentFilePolicy::new(&path).unwrap(), &path).unwrap();
+        let zipped =
+            zip_student_files(EverythingIsStudentFilePolicy::new(&path).unwrap(), &path).unwrap();
         let mut archive = ZipArchive::new(Cursor::new(zipped)).unwrap();
         assert!(!archive.is_empty());
         for i in 0..archive.len() {
@@ -279,12 +207,7 @@ mod test {
 
         let temp = tempdir().unwrap();
         let zip = file_util::open_file("tests/data/zip/module-trivial.zip").unwrap();
-        unzip(
-            EverythingIsStudentFilePolicy::new(temp.path()).unwrap(),
-            zip,
-            temp.path(),
-        )
-        .unwrap();
+        unzip(zip, temp.path()).unwrap();
 
         let expected = get_relative_file_paths(Path::new("tests/data/zip/module-trivial"));
         let actual = get_relative_file_paths(temp.path());
@@ -297,12 +220,7 @@ mod test {
 
         let temp = tempdir().unwrap();
         let zip = file_util::open_file("tests/data/zip/course-module-trivial.zip").unwrap();
-        unzip(
-            EverythingIsStudentFilePolicy::new(temp.path()).unwrap(),
-            zip,
-            temp.path(),
-        )
-        .unwrap();
+        unzip(zip, temp.path()).unwrap();
 
         let expected = get_relative_file_paths(Path::new("tests/data/zip/module-trivial"));
         let actual = get_relative_file_paths(temp.path());
@@ -315,12 +233,7 @@ mod test {
 
         let temp = tempdir().unwrap();
         let zip = file_util::open_file("tests/data/zip/no-src-entry.zip").unwrap();
-        unzip(
-            EverythingIsStudentFilePolicy::new(temp.path()).unwrap(),
-            zip,
-            temp.path(),
-        )
-        .unwrap();
+        unzip(zip, temp.path()).unwrap();
         assert!(temp.path().join("src").exists());
     }
 

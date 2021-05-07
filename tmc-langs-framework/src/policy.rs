@@ -49,28 +49,32 @@ pub trait StudentFilePolicy {
         file_path: &Path,
         project_root_path: &Path,
     ) -> Result<bool, TmcError> {
-        // non-existent files and .tmcproject.yml should never be considered student files
-        if !file_path.exists() || file_path.file_name() == Some(OsStr::new(".tmcproject.yml")) {
+        // non-existent files should never be considered student files
+        Ok(file_path.exists() && self.would_be_student_file(file_path, project_root_path)?)
+    }
+
+    /// Same as is_student_file, except allows for non-existent student files.
+    /// This can be useful for checking if a file would be a student file if extracted from an archive, for example.
+    /// The arguments should be absolute or relative from the same base.
+    fn would_be_student_file(
+        &self,
+        file_path: &Path,
+        project_root_path: &Path,
+    ) -> Result<bool, TmcError> {
+        // .tmcproject.yml should never be considered student files
+        if file_path.file_name() == Some(OsStr::new(".tmcproject.yml")) {
             return Ok(false);
         }
 
-        // make paths absolute
-        let path_canon = file_path
-            .canonicalize()
-            .map_err(|e| TmcError::Canonicalize(file_path.to_path_buf(), e))?;
-        let root_canon = project_root_path
-            .canonicalize()
-            .map_err(|e| TmcError::Canonicalize(project_root_path.to_path_buf(), e))?;
-
         // the project root path should be considered a student file
-        if path_canon == root_canon {
+        if file_path == project_root_path {
             return Ok(true);
         }
 
         // strip root directory from file path
-        let relative = path_canon
-            .strip_prefix(&root_canon)
-            .map_err(|_| TmcError::FileNotInProject(path_canon.clone(), root_canon.clone()))?;
+        let relative = file_path.strip_prefix(&project_root_path).map_err(|_| {
+            TmcError::FileNotInProject(file_path.to_path_buf(), project_root_path.to_path_buf())
+        })?;
 
         // check extra student files
         let is_extra_student_file = self

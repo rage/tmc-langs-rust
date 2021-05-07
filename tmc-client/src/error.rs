@@ -1,7 +1,6 @@
 //! The client error type.
 
 use reqwest::{Method, StatusCode};
-use std::path::PathBuf;
 use thiserror::Error;
 use tmc_langs_util::FileError;
 use url::Url;
@@ -38,8 +37,8 @@ pub enum ClientError {
     TokenParse(String, #[source] serde_json::error::Error),
     #[error("Failed to parse as URL: {0}")]
     UrlParse(String, #[source] url::ParseError),
-    #[error("Failed to write response to {0}")]
-    HttpWriteResponse(PathBuf, #[source] reqwest::Error),
+    #[error("Failed to write response")]
+    HttpWriteResponse(#[source] reqwest::Error),
     #[error("Failed to deserialize response from {0} as JSON")]
     HttpJsonResponse(Url, #[source] reqwest::Error),
 
