@@ -43,7 +43,7 @@ impl ValgrindLog {
             first_pid.get_or_insert(pid.clone());
             let info = pid_info.entry(pid).or_insert((vec![], 0));
             if let Some(captures) = ERR_REGEX.captures(&line) {
-                let errors = u32::from_str_radix(&captures["error_count"], 10)?;
+                let errors = captures["error_count"].parse::<u32>()?;
                 info.1 = errors;
             }
             info.0.push(line);
@@ -60,7 +60,7 @@ impl ValgrindLog {
         for (pid, (log, errors)) in pid_info {
             let errors = errors > 0;
             contains_errors = contains_errors || errors;
-            results.push(ValgrindResult { pid, log, errors })
+            results.push(ValgrindResult { pid, errors, log })
         }
 
         let log = ValgrindLog {

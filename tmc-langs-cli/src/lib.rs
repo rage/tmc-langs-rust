@@ -1046,7 +1046,7 @@ fn write_result_to_file_as_json<T: Serialize>(
 }
 
 fn into_usize(arg: &str) -> Result<usize> {
-    usize::from_str_radix(arg, 10).with_context(|| {
+    arg.parse::<usize>().with_context(|| {
         format!(
             "Failed to convert argument to a non-negative integer: {}",
             arg,
