@@ -705,6 +705,11 @@
 <span id="702">702</span>
 <span id="703">703</span>
 <span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
+<span id="708">708</span>
+<span id="709">709</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! An implementation of LanguagePlugin for C#.</span>
 
@@ -721,7 +726,7 @@
     <span class="ident">CommandError</span>, <span class="ident">ExerciseDesc</span>, <span class="ident">Language</span>, <span class="ident">LanguagePlugin</span>, <span class="ident">RunResult</span>, <span class="ident">RunStatus</span>,
     <span class="ident">StyleValidationResult</span>, <span class="ident">StyleValidationStrategy</span>, <span class="ident">TestDesc</span>, <span class="ident">TestResult</span>, <span class="ident">TmcCommand</span>, <span class="ident">TmcError</span>,
 };
-<span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{<span class="ident">file_util</span>, <span class="ident">FileError</span>};
+<span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{<span class="ident">file_util</span>, <span class="ident">parse_util</span>, <span class="ident">FileError</span>};
 <span class="kw">use</span> <span class="ident">walkdir</span>::<span class="ident">WalkDir</span>;
 <span class="kw">use</span> <span class="ident">zip</span>::<span class="ident">ZipArchive</span>;
 
@@ -1052,26 +1057,28 @@
         <span class="ident">combinator</span>::<span class="ident">map</span>(
             <span class="ident">sequence</span>::<span class="ident">delimited</span>(
                 <span class="ident">sequence</span>::<span class="ident">tuple</span>((
-                    <span class="ident">bytes</span>::<span class="ident">complete</span>::<span class="ident">tag</span>(<span class="string">&quot;@&quot;</span>),
+                    <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">char</span>(<span class="string">&#39;@&#39;</span>),
                     <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">multispace0</span>,
                     <span class="ident">bytes</span>::<span class="ident">complete</span>::<span class="ident">tag_no_case</span>(<span class="string">&quot;points&quot;</span>),
                     <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">multispace0</span>,
                     <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">char</span>(<span class="string">&#39;(&#39;</span>),
                     <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">multispace0</span>,
                 )),
-                <span class="ident">sequence</span>::<span class="ident">delimited</span>(
-                    <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">char</span>(<span class="string">&#39;&quot;&#39;</span>),
-                    <span class="ident">bytes</span>::<span class="ident">complete</span>::<span class="ident">is_not</span>(<span class="string">&quot;\&quot;&quot;</span>),
-                    <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">char</span>(<span class="string">&#39;&quot;&#39;</span>),
-                ),
+                <span class="ident">parse_util</span>::<span class="ident">comma_separated_strings</span>,
                 <span class="ident">sequence</span>::<span class="ident">tuple</span>((
                     <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">multispace0</span>,
                     <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">char</span>(<span class="string">&#39;)&#39;</span>),
                 )),
             ),
-            <span class="ident">str</span>::<span class="ident">trim</span>,
+            <span class="comment">// splits each point by whitespace</span>
+            <span class="op">|</span><span class="ident">points</span><span class="op">|</span> {
+                <span class="ident">points</span>
+                    .<span class="ident">into_iter</span>()
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">split_whitespace</span>())
+                    .<span class="ident">flatten</span>()
+                    .<span class="ident">collect</span>()
+            },
         )(<span class="ident">i</span>)
-        .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">a</span>, <span class="ident">b</span>)<span class="op">|</span> (<span class="ident">a</span>, <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">b</span>]))
     }
 }
 
@@ -1388,10 +1395,13 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="ident">is_err</span>());
 
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">CSharpPlugin</span>::<span class="ident">points_parser</span>(<span class="string">&quot;@Points(\&quot;1\&quot;)&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="number">1</span>[<span class="number">0</span>], <span class="string">&quot;1&quot;</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="number">1</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;1&quot;</span>]);
 
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">CSharpPlugin</span>::<span class="ident">points_parser</span>(<span class="string">&quot;@  pOiNtS  (  \&quot;  1  \&quot;  )  &quot;</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="number">1</span>[<span class="number">0</span>], <span class="string">&quot;1&quot;</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="number">1</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;1&quot;</span>]);
+
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">CSharpPlugin</span>::<span class="ident">points_parser</span>(<span class="string">&quot;@Points(\&quot;1\&quot;, \&quot;2\&quot;  ,  \&quot;3\&quot;)&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="number">1</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;1&quot;</span>, <span class="string">&quot;2&quot;</span>, <span class="string">&quot;3&quot;</span>]);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>

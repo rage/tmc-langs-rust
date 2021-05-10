@@ -553,13 +553,6 @@
 <span id="550">550</span>
 <span id="551">551</span>
 <span id="552">552</span>
-<span id="553">553</span>
-<span id="554">554</span>
-<span id="555">555</span>
-<span id="556">556</span>
-<span id="557">557</span>
-<span id="558">558</span>
-<span id="559">559</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains the LanguagePlugin implementation for R.</span>
 
@@ -572,10 +565,10 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
-    <span class="ident">nom</span>::{<span class="ident">branch</span>, <span class="ident">bytes</span>, <span class="ident">character</span>, <span class="ident">combinator</span>, <span class="ident">error</span>::<span class="ident">VerboseError</span>, <span class="ident">multi</span>, <span class="ident">sequence</span>, <span class="ident">IResult</span>},
+    <span class="ident">nom</span>::{<span class="ident">branch</span>, <span class="ident">bytes</span>, <span class="ident">character</span>, <span class="ident">error</span>::<span class="ident">VerboseError</span>, <span class="ident">sequence</span>, <span class="ident">IResult</span>},
     <span class="ident">LanguagePlugin</span>, <span class="ident">TmcCommand</span>, <span class="ident">TmcError</span>, {<span class="ident">ExerciseDesc</span>, <span class="ident">RunResult</span>, <span class="ident">TestDesc</span>},
 };
-<span class="kw">use</span> <span class="ident">tmc_langs_util</span>::<span class="ident">file_util</span>;
+<span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{<span class="ident">file_util</span>, <span class="ident">parse_util</span>};
 <span class="kw">use</span> <span class="ident">zip</span>::<span class="ident">ZipArchive</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
@@ -706,15 +699,18 @@
     }
 
     <span class="kw">fn</span> <span class="ident">points_parser</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test_parser</span> <span class="op">=</span> <span class="ident">sequence</span>::<span class="ident">preceded</span>(
+        <span class="kw">let</span> <span class="ident">test_parser</span> <span class="op">=</span> <span class="ident">sequence</span>::<span class="ident">preceded</span>(
             <span class="ident">sequence</span>::<span class="ident">tuple</span>((
                 <span class="ident">bytes</span>::<span class="ident">complete</span>::<span class="ident">tag</span>(<span class="string">&quot;test&quot;</span>),
                 <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">multispace0</span>,
                 <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">char</span>(<span class="string">&#39;(&#39;</span>),
                 <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">multispace0</span>,
-                <span class="ident">arg_parser</span>,
+                <span class="ident">parse_util</span>::<span class="ident">string</span>, <span class="comment">// parses the first argument which should be a string</span>
+                <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">multispace0</span>,
+                <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">char</span>(<span class="string">&#39;,&#39;</span>),
+                <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">multispace0</span>,
             )),
-            <span class="ident">c_parser</span>,
+            <span class="ident">list_parser</span>,
         );
         <span class="kw">let</span> <span class="ident">points_for_all_tests_parser</span> <span class="op">=</span> <span class="ident">sequence</span>::<span class="ident">preceded</span>(
             <span class="ident">sequence</span>::<span class="ident">tuple</span>((
@@ -723,51 +719,22 @@
                 <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">char</span>(<span class="string">&#39;(&#39;</span>),
                 <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">multispace0</span>,
             )),
-            <span class="ident">c_parser</span>,
+            <span class="ident">list_parser</span>,
         );
 
-        <span class="comment">// todo: currently cannot handle function calls with multiple parameters, probably not a problem</span>
-        <span class="kw">fn</span> <span class="ident">arg_parser</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="ident">combinator</span>::<span class="ident">value</span>(
-                <span class="string">&quot;&quot;</span>,
-                <span class="ident">sequence</span>::<span class="ident">tuple</span>((
-                    <span class="ident">bytes</span>::<span class="ident">complete</span>::<span class="ident">take_till</span>(<span class="op">|</span><span class="ident">c</span>: <span class="ident">char</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;,&#39;</span>),
-                    <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">char</span>(<span class="string">&#39;,&#39;</span>),
-                    <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">multispace0</span>,
-                )),
-            )(<span class="ident">i</span>)
-        }
-
-        <span class="kw">fn</span> <span class="ident">c_parser</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="ident">combinator</span>::<span class="ident">map</span>(
+        <span class="kw">fn</span> <span class="ident">list_parser</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+            <span class="ident">sequence</span>::<span class="ident">delimited</span>(
                 <span class="ident">sequence</span>::<span class="ident">tuple</span>((
                     <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">char</span>(<span class="string">&#39;c&#39;</span>),
                     <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">multispace0</span>,
                     <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">char</span>(<span class="string">&#39;(&#39;</span>),
                     <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">multispace0</span>,
-                    <span class="ident">multi</span>::<span class="ident">separated_list1</span>(
-                        <span class="ident">sequence</span>::<span class="ident">tuple</span>((
-                            <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">multispace0</span>,
-                            <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">char</span>(<span class="string">&#39;,&#39;</span>),
-                            <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">multispace0</span>,
-                        )),
-                        <span class="ident">string_parser</span>,
-                    ),
+                )),
+                <span class="ident">parse_util</span>::<span class="ident">comma_separated_strings</span>,
+                <span class="ident">sequence</span>::<span class="ident">tuple</span>((
                     <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">multispace0</span>,
                     <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">char</span>(<span class="string">&#39;)&#39;</span>),
                 )),
-                <span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="number">4</span>,
-            )(<span class="ident">i</span>)
-        }
-
-        <span class="kw">fn</span> <span class="ident">string_parser</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="ident">combinator</span>::<span class="ident">map</span>(
-                <span class="ident">sequence</span>::<span class="ident">tuple</span>((
-                    <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">char</span>(<span class="string">&#39;&quot;&#39;</span>),
-                    <span class="ident">bytes</span>::<span class="ident">complete</span>::<span class="ident">is_not</span>(<span class="string">&quot;\&quot;&quot;</span>),
-                    <span class="ident">character</span>::<span class="ident">complete</span>::<span class="ident">char</span>(<span class="string">&#39;&quot;&#39;</span>),
-                )),
-                <span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">str</span>::<span class="ident">trim</span>(<span class="ident">r</span>.<span class="number">1</span>),
             )(<span class="ident">i</span>)
         }
 
@@ -1111,7 +1078,26 @@ etc
             <span class="string">&quot;tests/testthat/testExercise.R&quot;</span>,
             <span class="string">r#&quot;
 something
-test(&quot;some test&quot;, c(&quot;r1&quot;, &quot;r2&quot;, &quot;r3&quot;))
+test(&quot;some test&quot;, c(&quot;r1&quot;, &quot;r2&quot;, &quot;r3&quot;, &quot;r4 r5&quot;))
+etc
+&quot;#</span>,
+        );
+
+        <span class="kw">let</span> <span class="ident">points</span> <span class="op">=</span> <span class="ident">RPlugin</span>::<span class="ident">get_available_points</span>(<span class="ident">temp</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">points</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;r1&quot;</span>, <span class="string">&quot;r2&quot;</span>, <span class="string">&quot;r3&quot;</span>, <span class="string">&quot;r4&quot;</span>, <span class="string">&quot;r5&quot;</span>]);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">parses_first_arg_with_comma_regression</span>() {
+        <span class="ident">init</span>();
+
+        <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile</span>::<span class="ident">tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="ident">file_to</span>(
+            <span class="kw-2">&amp;</span><span class="ident">temp</span>,
+            <span class="string">&quot;tests/testthat/testExercise.R&quot;</span>,
+            <span class="string">r#&quot;
+something
+test(&quot;some test, with a comma&quot;, c(&quot;r1&quot;, &quot;r2&quot;, &quot;r3&quot;))
 etc
 &quot;#</span>,
         );
