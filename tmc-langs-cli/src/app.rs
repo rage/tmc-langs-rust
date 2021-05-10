@@ -29,6 +29,12 @@ pub struct Opt {
     /// Pretty-prints all output
     #[structopt(long)]
     pub pretty: bool,
+    /// Name used to differentiate between different TMC clients.
+    #[structopt(long)]
+    pub client_name: Option<String>,
+    /// Client version.
+    #[structopt(long)]
+    pub client_version: Option<String>,
     #[structopt(subcommand)]
     pub cmd: Command,
 }
@@ -114,9 +120,6 @@ pub enum Command {
     /// Returns a list of local exercises for the given course
     #[structopt(long_about = schema_leaked::<Vec<LocalExercise>>())]
     ListLocalCourseExercises {
-        /// The client for which exercises should be listed.
-        #[structopt(long)]
-        client_name: String,
         /// The course slug the local exercises of which should be listed.
         #[structopt(long)]
         course_slug: String,
@@ -209,7 +212,7 @@ pub enum Command {
         wait_for_secret: bool,
     },
 
-    Settings(SettingsCommand),
+    Settings(Settings),
 
     /// Produces a description of an exercise using the appropriate language plugin
     #[structopt(long_about = schema_leaked::<ExerciseDesc>())]
@@ -223,22 +226,10 @@ pub enum Command {
     },
 }
 
-#[derive(StructOpt)]
 /// Various commands that communicate with the TMC server
-pub struct Core {
-    /// Name used to differentiate between different TMC clients.
-    #[structopt(long)]
-    pub client_name: String,
-    /// Client version.
-    #[structopt(long)]
-    pub client_version: String,
-    #[structopt(subcommand)]
-    pub command: CoreCommand,
-}
-
 #[derive(StructOpt)]
 #[structopt(setting = AppSettings::SubcommandRequiredElseHelp)]
-pub enum CoreCommand {
+pub enum Core {
     /// Checks for updates to any exercises that exist locally.
     #[structopt(long_about = schema_leaked::<Vec<UpdatedExercise>>())]
     CheckExerciseUpdates,
@@ -494,19 +485,10 @@ pub enum CoreCommand {
     },
 }
 
-#[derive(StructOpt)]
 /// Configure the CLI
-pub struct SettingsCommand {
-    /// The name of the client.
-    #[structopt(long)]
-    pub client_name: String,
-    #[structopt(subcommand)]
-    pub command: SettingsSubCommand,
-}
-
 #[derive(StructOpt)]
 #[structopt(setting = AppSettings::SubcommandRequiredElseHelp)]
-pub enum SettingsSubCommand {
+pub enum Settings {
     /// Retrieves a value from the settings
     Get {
         /// The name of the setting.
@@ -610,7 +592,18 @@ mod base_test {
     use super::*;
 
     fn get_matches(args: &[&str]) {
-        Opt::from_iter(&["tmc-langs-cli"].iter().chain(args).collect::<Vec<_>>());
+        Opt::from_iter(
+            &[
+                "tmc-langs-cli",
+                "--client-name",
+                "client",
+                "--client-version",
+                "version",
+            ]
+            .iter()
+            .chain(args)
+            .collect::<Vec<_>>(),
+        );
     }
 
     #[test]
@@ -696,13 +689,7 @@ mod base_test {
 
     #[test]
     fn list_local_course_exercises() {
-        get_matches(&[
-            "list-local-course-exercises",
-            "--client-name",
-            "client",
-            "--course-slug",
-            "slug",
-        ]);
+        get_matches(&["list-local-course-exercises", "--course-slug", "slug"]);
     }
 
     #[test]
@@ -800,11 +787,11 @@ mod core_test {
         Opt::from_iter(
             &[
                 "tmc-langs-cli",
-                "core",
                 "--client-name",
                 "client",
                 "--client-version",
                 "version",
+                "core",
             ]
             .iter()
             .chain(args)
@@ -1042,7 +1029,7 @@ mod settings_test {
 
     fn get_matches_settings(args: &[&str]) {
         Opt::from_iter(
-            &["tmc-langs-cli", "settings", "--client-name", "client"]
+            &["tmc-langs-cli", "--client-name", "client", "settings"]
                 .iter()
                 .chain(args)
                 .collect::<Vec<_>>(),

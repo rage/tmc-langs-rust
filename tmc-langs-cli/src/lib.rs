@@ -12,7 +12,7 @@ use self::output::{
 };
 use crate::app::{Locale, Opt};
 use anyhow::{Context, Result};
-use app::{Command, Core, CoreCommand, OutputFormatWrapper, SettingsCommand, SettingsSubCommand};
+use app::{Command, Core, OutputFormatWrapper, Settings};
 use clap::{Error, ErrorKind};
 use serde::Serialize;
 use std::collections::HashMap;
@@ -225,7 +225,11 @@ fn run_app(matches: Opt) -> Result<()> {
             ))
         }
 
-        Command::Core(core) => run_core(core)?,
+        Command::Core(core) => {
+            let client_name = require_client_name(&matches.client_name)?;
+            let client_version = require_client_version(&matches.client_version)?;
+            run_core(client_name, client_version, core)?
+        }
 
         Command::ExtractProject {
             archive_path,
@@ -300,12 +304,11 @@ fn run_app(matches: Opt) -> Result<()> {
             )
         }
 
-        Command::ListLocalCourseExercises {
-            client_name,
-            course_slug,
-        } => {
+        Command::ListLocalCourseExercises { course_slug } => {
+            let client_name = require_client_name(&matches.client_name)?;
+
             let local_exercises =
-                tmc_langs::list_local_course_exercises(&client_name, &course_slug)?;
+                tmc_langs::list_local_course_exercises(client_name, &course_slug)?;
 
             Output::finished_with_data(
                 format!("listed local exercises for {}", course_slug),
@@ -481,7 +484,10 @@ fn run_app(matches: Opt) -> Result<()> {
             )
         }
 
-        Command::Settings(settings) => run_settings(settings)?,
+        Command::Settings(settings) => {
+            let client_name = require_client_name(&matches.client_name)?;
+            run_settings(client_name, settings)?
+        }
 
         Command::ScanExercise {
             exercise_path,
@@ -522,16 +528,13 @@ fn run_app(matches: Opt) -> Result<()> {
     Ok(())
 }
 
-fn run_core(core: Core) -> Result<Output> {
-    let client_name = &core.client_name;
-    let client_version = &core.client_version;
-
+fn run_core(client_name: &str, client_version: &str, core: Core) -> Result<Output> {
     let root_url =
         env::var("TMC_LANGS_ROOT_URL").unwrap_or_else(|_| "https://tmc.mooc.fi".to_string());
     let (client, mut credentials) =
         tmc_langs::init_tmc_client_with_credentials(root_url, client_name, client_version)?;
 
-    match run_core_inner(core, client, &mut credentials) {
+    match run_core_inner(client_name, core, client, &mut credentials) {
         Err(error) => {
             for cause in error.chain() {
                 // check if the token was rejected and delete it if so
@@ -556,15 +559,13 @@ fn run_core(core: Core) -> Result<Output> {
 }
 
 fn run_core_inner(
+    client_name: &str,
     core: Core,
     mut client: TmcClient,
     credentials: &mut Option<Credentials>,
 ) -> Result<Output> {
-    let client_name = &core.client_name;
-    let _client_version = &core.client_version;
-
-    let output = match core.command {
-        CoreCommand::CheckExerciseUpdates => {
+    let output = match core {
+        Core::CheckExerciseUpdates => {
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
             let updated_exercises = tmc_langs::check_exercise_updates(&client, &projects_dir)
                 .context("Failed to check exercise updates")?
@@ -578,7 +579,7 @@ fn run_core_inner(
             )
         }
 
-        CoreCommand::DownloadModelSolution {
+        Core::DownloadModelSolution {
             solution_download_url,
             target,
         } => {
@@ -588,7 +589,7 @@ fn run_core_inner(
             Output::finished("downloaded model solution")
         }
 
-        CoreCommand::DownloadOldSubmission {
+        Core::DownloadOldSubmission {
             save_old_state: _,
             exercise_id,
             output_path,
@@ -605,7 +606,7 @@ fn run_core_inner(
             Output::finished("extracted project")
         }
 
-        CoreCommand::DownloadOrUpdateCourseExercises {
+        Core::DownloadOrUpdateCourseExercises {
             download_template,
             exercise_id: exercise_ids,
         } => {
@@ -640,7 +641,7 @@ fn run_core_inner(
             )
         }
 
-        CoreCommand::GetCourseData { course_id } => {
+        Core::GetCourseData { course_id } => {
             let data = tmc_langs::get_course_data(&client, course_id)
                 .context("Failed to get course data")?;
             Output::finished_with_data(
@@ -649,42 +650,42 @@ fn run_core_inner(
             )
         }
 
-        CoreCommand::GetCourseDetails { course_id } => {
+        Core::GetCourseDetails { course_id } => {
             let details = client
                 .get_course_details(course_id)
                 .context("Failed to get course details")?;
             Output::finished_with_data("fetched course details", Data::CourseDetails(details))
         }
 
-        CoreCommand::GetCourseExercises { course_id } => {
+        Core::GetCourseExercises { course_id } => {
             let exercises = client
                 .get_course_exercises(course_id)
                 .context("Failed to get course")?;
             Output::finished_with_data("fetched course exercises", Data::CourseExercises(exercises))
         }
 
-        CoreCommand::GetCourseSettings { course_id } => {
+        Core::GetCourseSettings { course_id } => {
             let settings = client
                 .get_course(course_id)
                 .context("Failed to get course")?;
             Output::finished_with_data("fetched course settings", Data::CourseData(settings))
         }
 
-        CoreCommand::GetCourses { organization } => {
+        Core::GetCourses { organization } => {
             let courses = client
                 .list_courses(&organization)
                 .context("Failed to get courses")?;
             Output::finished_with_data("fetched courses", Data::Courses(courses))
         }
 
-        CoreCommand::GetExerciseDetails { exercise_id } => {
+        Core::GetExerciseDetails { exercise_id } => {
             let course = client
                 .get_exercise_details(exercise_id)
                 .context("Failed to get course")?;
             Output::finished_with_data("fetched exercise details", Data::ExerciseDetails(course))
         }
 
-        CoreCommand::GetExerciseSubmissions { exercise_id } => {
+        Core::GetExerciseSubmissions { exercise_id } => {
             let submissions = client
                 .get_exercise_submissions_for_current_user(exercise_id)
                 .context("Failed to get submissions")?;
@@ -694,7 +695,7 @@ fn run_core_inner(
             )
         }
 
-        CoreCommand::GetExerciseUpdates {
+        Core::GetExerciseUpdates {
             course_id,
             exercise,
         } => {
@@ -716,28 +717,28 @@ fn run_core_inner(
             )
         }
 
-        CoreCommand::GetOrganization { organization } => {
+        Core::GetOrganization { organization } => {
             let org = client
                 .get_organization(&organization)
                 .context("Failed to get organization")?;
             Output::finished_with_data("fetched organization", Data::Organization(org))
         }
 
-        CoreCommand::GetOrganizations => {
+        Core::GetOrganizations => {
             let orgs = client
                 .get_organizations()
                 .context("Failed to get organizations")?;
             Output::finished_with_data("fetched organizations", Data::Organizations(orgs))
         }
 
-        CoreCommand::GetUnreadReviews { reviews_url } => {
+        Core::GetUnreadReviews { reviews_url } => {
             let reviews = client
                 .get_unread_reviews(reviews_url)
                 .context("Failed to get unread reviews")?;
             Output::finished_with_data("fetched unread reviews", Data::Reviews(reviews))
         }
 
-        CoreCommand::LoggedIn => {
+        Core::LoggedIn => {
             if let Some(credentials) = credentials {
                 Output::OutputData(OutputData {
                     status: Status::Finished,
@@ -755,7 +756,7 @@ fn run_core_inner(
             }
         }
 
-        CoreCommand::Login {
+        Core::Login {
             base64,
             email,
             set_access_token,
@@ -788,7 +789,7 @@ fn run_core_inner(
             })
         }
 
-        CoreCommand::Logout => {
+        Core::Logout => {
             if let Some(credentials) = credentials.take() {
                 credentials.remove()?;
             }
@@ -800,14 +801,14 @@ fn run_core_inner(
             })
         }
 
-        CoreCommand::MarkReviewAsRead { review_update_url } => {
+        Core::MarkReviewAsRead { review_update_url } => {
             client
                 .mark_review_as_read(review_update_url.to_string())
                 .context("Failed to mark review as read")?;
             Output::finished("marked review as read")
         }
 
-        CoreCommand::Paste {
+        Core::Paste {
             locale,
             paste_message,
             submission_path,
@@ -821,7 +822,7 @@ fn run_core_inner(
             Output::finished_with_data("sent paste", Data::NewSubmission(new_submission))
         }
 
-        CoreCommand::RequestCodeReview {
+        Core::RequestCodeReview {
             locale: Locale(locale),
             message_for_reviewer,
             submission_path,
@@ -839,7 +840,7 @@ fn run_core_inner(
             Output::finished_with_data("requested code review", Data::NewSubmission(new_submission))
         }
 
-        CoreCommand::ResetExercise {
+        Core::ResetExercise {
             save_old_state,
             exercise_id,
             exercise_path,
@@ -858,7 +859,7 @@ fn run_core_inner(
             Output::finished("reset exercise")
         }
 
-        CoreCommand::SendFeedback {
+        Core::SendFeedback {
             feedback,
             feedback_url,
         } => {
@@ -881,7 +882,7 @@ fn run_core_inner(
             Output::finished_with_data("sent feedback", Data::SubmissionFeedbackResponse(response))
         }
 
-        CoreCommand::Submit {
+        Core::Submit {
             dont_block,
             locale,
             submission_path,
@@ -908,7 +909,7 @@ fn run_core_inner(
             }
         }
 
-        CoreCommand::UpdateExercises => {
+        Core::UpdateExercises => {
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
             let data = tmc_langs::update_exercises(&client, &projects_dir)?;
             Output::finished_with_data(
@@ -917,7 +918,7 @@ fn run_core_inner(
             )
         }
 
-        CoreCommand::WaitForSubmission { submission_url } => {
+        Core::WaitForSubmission { submission_url } => {
             let submission_finished = client
                 .wait_for_submission(&submission_url.into_string())
                 .context("Failed while waiting for submissions")?;
@@ -930,21 +931,19 @@ fn run_core_inner(
     Ok(output)
 }
 
-fn run_settings(settings: SettingsCommand) -> Result<Output> {
-    let client_name = &settings.client_name;
-
-    let output = match settings.command {
-        SettingsSubCommand::Get { setting } => {
+fn run_settings(client_name: &str, settings: Settings) -> Result<Output> {
+    let output = match settings {
+        Settings::Get { setting } => {
             let value = tmc_langs::get_setting(client_name, &setting)?;
             Output::finished_with_data("retrieved value", Data::ConfigValue(value))
         }
 
-        SettingsSubCommand::List => {
+        Settings::List => {
             let tmc_config = tmc_langs::get_settings(client_name)?;
             Output::finished_with_data("retrieved settings", Data::TmcConfig(tmc_config))
         }
 
-        SettingsSubCommand::Migrate {
+        Settings::Migrate {
             exercise_path,
             course_slug,
             exercise_id,
@@ -964,24 +963,24 @@ fn run_settings(settings: SettingsCommand) -> Result<Output> {
             Output::finished("migrated exercise")
         }
 
-        SettingsSubCommand::MoveProjectsDir { dir } => {
+        Settings::MoveProjectsDir { dir } => {
             let config_path = TmcConfig::get_location(client_name)?;
             let tmc_config = TmcConfig::load(client_name, &config_path)?;
             tmc_langs::move_projects_dir(tmc_config, &config_path, dir)?;
             Output::finished("moved project directory")
         }
 
-        SettingsSubCommand::Set { key, json } => {
+        Settings::Set { key, json } => {
             tmc_langs::set_setting(client_name, &key, &json.to_string())?;
             Output::finished("set setting")
         }
 
-        SettingsSubCommand::Reset => {
+        Settings::Reset => {
             tmc_langs::reset_settings(client_name)?;
             Output::finished("reset settings")
         }
 
-        SettingsSubCommand::Unset { setting } => {
+        Settings::Unset { setting } => {
             tmc_langs::unset_setting(client_name, &setting)?;
             Output::finished("unset setting")
         }
@@ -1089,6 +1088,26 @@ fn run_checkstyle_write_results(
         })?;
     }
     Ok(check_result)
+}
+
+fn require_client_name(client_name: &Option<String>) -> Result<&str> {
+    if let Some(client_name) = client_name.as_ref() {
+        Ok(client_name)
+    } else {
+        anyhow::bail!(
+            "The following required argument was not provided: --client-name <client-name>"
+        );
+    }
+}
+
+fn require_client_version(client_version: &Option<String>) -> Result<&str> {
+    if let Some(client_version) = client_version.as_ref() {
+        Ok(client_version)
+    } else {
+        anyhow::bail!(
+            "The following required argument was not provided: --client-version <client-version>"
+        );
+    }
 }
 
 struct PrintToken;
