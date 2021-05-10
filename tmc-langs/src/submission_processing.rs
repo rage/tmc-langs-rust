@@ -36,16 +36,19 @@ fn on_skip_list(entry: &DirEntry) -> bool {
         .map(|s| FILES_TO_SKIP_ALWAYS.is_match(s) || s == "private")
         .unwrap_or_default();
 
-    // check if the current entry is a file in a "test" directory that contains "Hidden" in its name
+    // check if the current entry is a file that contains "Hidden" in its name in a directory that contains "test" in its name
     let hidden_in_test = if entry.path().is_file() {
-        if let Some(parent) = entry.path().parent().and_then(|p| p.file_name()) {
-            parent == "test"
-                && entry_file_name
-                    .map(|n| n.contains("Hidden"))
-                    .unwrap_or_default()
-        } else {
-            false
-        }
+        let in_test = entry
+            .path()
+            .parent()
+            .and_then(|p| p.file_name())
+            .and_then(|f| f.to_str())
+            .map(|f| f.contains("test"))
+            .unwrap_or_default();
+        let contains_hidden = entry_file_name
+            .map(|n| n.contains("Hidden"))
+            .unwrap_or_default();
+        in_test && contains_hidden
     } else {
         false
     };
