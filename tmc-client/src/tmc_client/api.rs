@@ -14,11 +14,11 @@ use reqwest::{
 };
 use serde::de::DeserializeOwned;
 use serde_json::Value;
-use std::collections::HashMap;
 use std::path::Path;
 use std::time::SystemTime;
+use std::{collections::HashMap, io::Write};
 use tmc_langs_plugins::Language;
-use tmc_langs_util::{file_util, FileError};
+use tmc_langs_util::FileError;
 use url::Url;
 
 /// Provides a wrapper for reqwest Response's json that deserializes into Response<T> and converts it into a result
@@ -121,7 +121,7 @@ impl TmcClient {
             .json_res()
     }
 
-    fn download(&self, url_tail: &str, target: &Path) -> Result<(), ClientError> {
+    fn download(&self, url_tail: &str, mut target: impl Write) -> Result<(), ClientError> {
         let url = self
             .0
             .api_url
@@ -129,7 +129,6 @@ impl TmcClient {
             .map_err(|e| ClientError::UrlParse(url_tail.to_string(), e))?;
 
         // download zip
-        let mut target_file = file_util::create_file(target)?;
         log::debug!("downloading {}", url);
         let mut response = self
             .0
@@ -168,15 +167,17 @@ impl TmcClient {
             }
         } else {
             response
-                .copy_to(&mut target_file)
-                .map_err(|e| ClientError::HttpWriteResponse(target.to_path_buf(), e))?;
+                .copy_to(&mut target)
+                .map_err(ClientError::HttpWriteResponse)?;
             Ok(())
         }
     }
 
-    pub(crate) fn download_from(&self, url: Url, target: &Path) -> Result<(), ClientError> {
-        // download zip
-        let mut target_file = file_util::create_file(target)?;
+    pub(crate) fn download_from(
+        &self,
+        url: Url,
+        mut target: impl Write,
+    ) -> Result<(), ClientError> {
         log::debug!("downloading {}", url);
         self.0
             .client
@@ -184,8 +185,8 @@ impl TmcClient {
             .tmc_headers(self)
             .send()
             .map_err(|e| ClientError::ConnectionError(Method::GET, url, e))?
-            .copy_to(&mut target_file)
-            .map_err(|e| ClientError::HttpWriteResponse(target.to_path_buf(), e))?;
+            .copy_to(&mut target)
+            .map_err(ClientError::HttpWriteResponse)?;
         Ok(())
     }
 
@@ -578,7 +579,7 @@ impl TmcClient {
         organization_slug: &str,
         course_name: &str,
         exercise_name: &str,
-        target: &Path,
+        target: impl Write,
     ) -> Result<(), ClientError> {
         if self.0.token.is_none() {
             return Err(ClientError::NotLoggedIn);
@@ -639,7 +640,11 @@ impl TmcClient {
         todo!("needs admin?");
     }
 
-    pub fn download_exercise(&self, exercise_id: usize, target: &Path) -> Result<(), ClientError> {
+    pub fn download_exercise(
+        &self,
+        exercise_id: usize,
+        target: impl Write,
+    ) -> Result<(), ClientError> {
         let url_tail = format!("core/exercises/{}/download", exercise_id);
         self.download(&url_tail, target)
     }
@@ -686,7 +691,7 @@ impl TmcClient {
     pub(super) fn download_solution(
         &self,
         exercise_id: usize,
-        target: &Path,
+        target: impl Write,
     ) -> Result<(), ClientError> {
         if self.0.token.is_none() {
             return Err(ClientError::NotLoggedIn);
@@ -800,7 +805,7 @@ impl TmcClient {
     pub(super) fn download_submission(
         &self,
         submission_id: usize,
-        target: &Path,
+        target: impl Write,
     ) -> Result<(), ClientError> {
         if self.0.token.is_none() {
             return Err(ClientError::NotLoggedIn);

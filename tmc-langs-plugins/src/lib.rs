@@ -43,11 +43,7 @@ pub fn extract_project_overwrite(
     compressed_project: impl std::io::Read + std::io::Seek,
     target_location: &Path,
 ) -> Result<(), PluginError> {
-    tmc_zip::unzip(
-        NothingIsStudentFilePolicy::new(target_location)?,
-        compressed_project,
-        target_location,
-    )?;
+    tmc_zip::unzip(compressed_project, target_location)?;
     Ok(())
 }
 
@@ -55,31 +51,31 @@ pub fn extract_project_overwrite(
 // TODO: clean up
 pub fn compress_project(path: &Path) -> Result<Vec<u8>, PluginError> {
     match get_language_plugin_type(path)? {
-        PluginType::CSharp => Ok(tmc_zip::zip(
+        PluginType::CSharp => Ok(tmc_zip::zip_student_files(
             <CSharpPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
-        PluginType::Make => Ok(tmc_zip::zip(
+        PluginType::Make => Ok(tmc_zip::zip_student_files(
             <MakePlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
-        PluginType::Maven => Ok(tmc_zip::zip(
+        PluginType::Maven => Ok(tmc_zip::zip_student_files(
             <MavenPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
-        PluginType::NoTests => Ok(tmc_zip::zip(
+        PluginType::NoTests => Ok(tmc_zip::zip_student_files(
             <NoTestsPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
-        PluginType::Python3 => Ok(tmc_zip::zip(
+        PluginType::Python3 => Ok(tmc_zip::zip_student_files(
             <Python3Plugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
-        PluginType::R => Ok(tmc_zip::zip(
+        PluginType::R => Ok(tmc_zip::zip_student_files(
             <RPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
-        PluginType::Ant => Ok(tmc_zip::zip(
+        PluginType::Ant => Ok(tmc_zip::zip_student_files(
             <AntPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),

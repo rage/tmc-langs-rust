@@ -11,12 +11,12 @@ use oauth2::{
 };
 use reqwest::{blocking::Client, Url};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
+use std::{collections::HashMap, io::Cursor};
 use tempfile::NamedTempFile;
 use tmc_langs_util::{progress_reporter, FileError};
 
@@ -404,9 +404,10 @@ impl TmcClient {
     pub fn download_old_submission(
         &self,
         submission_id: usize,
-        target: &Path,
+        mut target: impl Write,
     ) -> Result<(), ClientError> {
-        self.download_submission(submission_id, target)
+        log::info!("downloading old submission {}", submission_id);
+        self.download_submission(submission_id, &mut target)
     }
 
     pub fn get_exercise_submissions_for_current_user(
@@ -584,9 +585,9 @@ impl TmcClient {
         solution_download_url: Url,
         target: &Path,
     ) -> Result<(), ClientError> {
-        let zip_file = NamedTempFile::new().map_err(ClientError::TempFile)?;
-        self.download_from(solution_download_url, zip_file.path())?;
-        tmc_langs_plugins::extract_project(zip_file, target, false)?;
+        let mut buf = vec![];
+        self.download_from(solution_download_url, &mut buf)?;
+        tmc_langs_plugins::extract_project(Cursor::new(buf), target, false)?;
         Ok(())
     }
 

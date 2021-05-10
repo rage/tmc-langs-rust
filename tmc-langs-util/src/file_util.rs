@@ -127,6 +127,18 @@ pub fn create_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLockWrapper, FileEr
     Ok(lock)
 }
 
+/// Removes whatever is at the path, whether it is a directory or file. The _all suffix hopefully makes the function sound at least slightly dangerous.
+pub fn remove_all<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
+    let path = path.as_ref();
+    if path.is_file() {
+        remove_file(path)
+    } else if path.is_dir() {
+        remove_dir_all(path)
+    } else {
+        Ok(())
+    }
+}
+
 pub fn remove_file<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
     let path = path.as_ref();
     fs::remove_file(path).map_err(|e| FileError::FileRemove(path.to_path_buf(), e))

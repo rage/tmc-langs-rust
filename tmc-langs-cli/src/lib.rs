@@ -598,7 +598,7 @@ fn run_core_inner(
             tmc_langs::download_old_submission(
                 &client,
                 exercise_id,
-                output_path,
+                &output_path,
                 submission_id,
                 submission_url,
             )?;
@@ -854,7 +854,7 @@ fn run_core_inner(
                     None,
                 )?;
             }
-            tmc_langs::reset(&client, exercise_id, exercise_path)?;
+            tmc_langs::reset(&client, exercise_id, &exercise_path)?;
             Output::finished("reset exercise")
         }
 

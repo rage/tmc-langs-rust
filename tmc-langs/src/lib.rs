@@ -53,7 +53,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 use std::{collections::HashMap, ffi::OsStr};
-use tmc_langs_framework::{NothingIsStudentFilePolicy, StudentFilePolicy, TmcError, TmcProjectYml};
+use tmc_langs_framework::{TmcError, TmcProjectYml};
 use tmc_langs_plugins::{get_language_plugin, tmc_zip, AntPlugin, PluginType};
 use tmc_langs_util::progress_reporter;
 use toml::{map::Map as TomlMap, Value as TomlValue};
@@ -129,7 +129,7 @@ pub fn check_exercise_updates(
 pub fn download_old_submission(
     client: &TmcClient,
     exercise_id: usize,
-    output_path: PathBuf,
+    output_path: &Path,
     submission_id: usize,
     submission_url: Option<Url>,
 ) -> Result<(), LangsError> {
@@ -141,21 +141,21 @@ pub fn download_old_submission(
 
     if let Some(submission_url) = submission_url {
         // submit old exercise
-        client.submit(submission_url, &output_path, None)?;
+        client.submit(submission_url, output_path, None)?;
         log::debug!("finished submission");
     }
 
     // reset old exercise
-    reset(client, exercise_id, output_path.clone())?;
+    reset(client, exercise_id, output_path)?;
     log::debug!("reset exercise");
 
     // dl submission
-    let temp_zip = file_util::named_temp_file()?;
-    client.download_old_submission(submission_id, temp_zip.path())?;
-    log::debug!("downloaded old submission to {}", temp_zip.path().display());
+    let mut buf = vec![];
+    client.download_old_submission(submission_id, &mut buf)?;
+    log::debug!("downloaded old submission");
 
     // extract submission
-    extract_student_files(temp_zip, &output_path)?;
+    extract_student_files(Cursor::new(buf), output_path)?;
     log::debug!("extracted project");
     Ok(())
 }
@@ -332,8 +332,6 @@ pub fn download_or_update_course_exercises(
                 // dropped mutex
 
                 let exercise_download_result = || -> Result<(), LangsError> {
-                    let zip_file = file_util::named_temp_file()?;
-
                     progress_reporter::progress_stage::<ClientUpdateData>(
                         format!(
                             "Downloading exercise {} to '{}'",
@@ -349,12 +347,14 @@ pub fn download_or_update_course_exercises(
                     // execute download based on type
                     match &download_target.kind {
                         DownloadTargetKind::Template => {
-                            client.download_exercise(download_target.target.id, zip_file.path())?;
-                            extract_project(zip_file, &download_target.target.path, false)?;
+                            let mut buf = vec![];
+                            client.download_exercise(download_target.target.id, &mut buf)?;
+                            extract_project(Cursor::new(buf), &download_target.target.path, false)?;
                         }
                         DownloadTargetKind::Submission { submission_id } => {
-                            client.download_exercise(download_target.target.id, zip_file.path())?;
-                            extract_project(&zip_file, &download_target.target.path, false)?;
+                            let mut buf = vec![];
+                            client.download_exercise(download_target.target.id, &mut buf)?;
+                            extract_project(Cursor::new(buf), &download_target.target.path, false)?;
 
                             let plugin = get_language_plugin(&download_target.target.path)?;
                             let tmc_project_yml =
@@ -363,7 +363,6 @@ pub fn download_or_update_course_exercises(
                                 plugin.get_exercise_packaging_configuration(tmc_project_yml)?;
                             for student_file in config.student_file_paths {
                                 let student_file = download_target.target.path.join(&student_file);
-                                log::debug!("student file {}", student_file.display());
                                 if student_file.is_file() {
                                     file_util::remove_file(&student_file)?;
                                 } else {
@@ -371,9 +370,12 @@ pub fn download_or_update_course_exercises(
                                 }
                             }
 
-                            client.download_old_submission(*submission_id, zip_file.path())?;
-                            plugin
-                                .extract_student_files(&zip_file, &download_target.target.path)?;
+                            let mut buf = vec![];
+                            client.download_old_submission(*submission_id, &mut buf)?;
+                            plugin.extract_student_files(
+                                Cursor::new(buf),
+                                &download_target.target.path,
+                            )?;
                         }
                     }
                     // download successful, save to course config
@@ -618,9 +620,9 @@ pub fn update_exercises(
         }
         if !exercises_to_update.is_empty() {
             for exercise in &exercises_to_update {
-                let zip_file = file_util::named_temp_file()?;
-                client.download_exercise(exercise.id, zip_file.path())?;
-                extract_project(zip_file, &exercise.path, false)?;
+                let mut buf = vec![];
+                client.download_exercise(exercise.id, &mut buf)?;
+                extract_project(Cursor::new(buf), &exercise.path, false)?;
             }
             for (course_name, exercise_names) in course_data {
                 let mut exercises = BTreeMap::new();
@@ -786,14 +788,15 @@ pub fn free_disk_space_megabytes(path: &Path) -> Result<u64, LangsError> {
 pub fn reset(
     client: &TmcClient,
     exercise_id: usize,
-    exercise_path: PathBuf,
+    exercise_path: &Path,
 ) -> Result<(), LangsError> {
-    // clear out the exercise directory
-    file_util::remove_dir_all(&exercise_path)?;
-    let temp_zip = file_util::named_temp_file()?;
-    client.download_exercise(exercise_id, temp_zip.path())?;
-    let compressed = file_util::read_file(temp_zip.path())?;
-    extract_project(Cursor::new(compressed), &exercise_path, false)?;
+    if exercise_path.exists() {
+        // clear out the exercise directory
+        file_util::remove_dir_all(exercise_path)?;
+    }
+    let mut buf = vec![];
+    client.download_exercise(exercise_id, &mut buf)?;
+    extract_project(Cursor::new(buf), exercise_path, false)?;
     Ok(())
 }
 
@@ -995,11 +998,7 @@ fn extract_project_overwrite(
     compressed_project: impl std::io::Read + std::io::Seek,
     target_location: &Path,
 ) -> Result<(), LangsError> {
-    tmc_zip::unzip(
-        NothingIsStudentFilePolicy::new(target_location)?,
-        compressed_project,
-        target_location,
-    )?;
+    tmc_zip::unzip(compressed_project, target_location)?;
     Ok(())
 }
 
@@ -1013,7 +1012,12 @@ mod test {
     fn init() {
         use log::*;
         use simple_logger::*;
-        let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
+        let _ = SimpleLogger::new()
+            .with_level(LevelFilter::Debug)
+            .with_module_level("j4rs", LevelFilter::Warn)
+            .with_module_level("mockito", LevelFilter::Warn)
+            .with_module_level("reqwest", LevelFilter::Warn)
+            .init();
     }
 
     fn file_to(
@@ -1133,7 +1137,7 @@ checksum = 'old checksum'
         let output_dir = tempfile::tempdir().unwrap();
         let client = mock_client();
 
-        download_old_submission(&client, 1, output_dir.path().to_path_buf(), 2, None).unwrap();
+        download_old_submission(&client, 1, output_dir.path(), 2, None).unwrap();
         let s = file_util::read_file_to_string(output_dir.path().join("src/file")).unwrap();
         assert_eq!(s, "file contents");
     }
@@ -1368,16 +1372,15 @@ checksum = 'new checksum'
         .with_body(&sub_z)
         .create();
 
-        let (downloaded, skipped) = if let DownloadResult::Success {
-            downloaded,
-            skipped,
-        } =
+        let res =
             download_or_update_course_exercises(&client, projects_dir.path(), &exercises, false)
-                .unwrap()
-        {
-            (downloaded, skipped)
-        } else {
-            panic!()
+                .unwrap();
+        let (downloaded, skipped) = match res {
+            DownloadResult::Success {
+                downloaded,
+                skipped,
+            } => (downloaded, skipped),
+            other => panic!("{:?}", other),
         };
 
         assert_eq!(downloaded.len(), 3);
@@ -1412,5 +1415,94 @@ checksum = 'new checksum'
         assert!(e1.path.join("src/template_only_student_file.py").exists());
         let f = file_util::read_file_to_string(e4.path.join("test/exercise_file.py")).unwrap();
         assert_eq!(f, "template");
+    }
+
+    #[test]
+    fn download_old_submission_keeps_new_exercise_files() {
+        init();
+
+        let output_dir = tempfile::tempdir().unwrap();
+
+        // exercise template
+        let mut template_zw = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
+        template_zw
+            .start_file("pom.xml", zip::write::FileOptions::default())
+            .unwrap();
+        template_zw.write_all(b"template").unwrap();
+
+        template_zw
+            .start_file(
+                "src/main/java/File.java",
+                zip::write::FileOptions::default(),
+            )
+            .unwrap();
+        template_zw.write_all(b"template").unwrap();
+
+        template_zw
+            .start_file(
+                "src/test/java/FileTest.java",
+                zip::write::FileOptions::default(),
+            )
+            .unwrap();
+        template_zw.write_all(b"template").unwrap();
+
+        let template_z = template_zw.finish().unwrap();
+        let _m = mockito::mock(
+            "GET",
+            mockito::Matcher::AllOf(vec![
+                mockito::Matcher::Regex("exercises".to_string()),
+                mockito::Matcher::Regex("download".to_string()),
+            ]),
+        )
+        .with_body(template_z.into_inner())
+        .create();
+
+        // submission
+        let mut submission_zw = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
+        submission_zw
+            .start_file("pom.xml", zip::write::FileOptions::default())
+            .unwrap();
+        submission_zw.write_all(b"old submission").unwrap();
+
+        submission_zw
+            .start_file(
+                "src/main/java/File.java",
+                zip::write::FileOptions::default(),
+            )
+            .unwrap();
+        submission_zw.write_all(b"old submission").unwrap();
+
+        submission_zw
+            .start_file(
+                "src/test/java/FileTest.java",
+                zip::write::FileOptions::default(),
+            )
+            .unwrap();
+        submission_zw.write_all(b"old submission").unwrap();
+
+        let submission_z = submission_zw.finish().unwrap();
+        let _m = mockito::mock(
+            "GET",
+            mockito::Matcher::AllOf(vec![
+                mockito::Matcher::Regex("submission".to_string()),
+                mockito::Matcher::Regex("download".to_string()),
+            ]),
+        )
+        .with_body(submission_z.into_inner())
+        .create();
+
+        let client = mock_client();
+
+        download_old_submission(&client, 1, output_dir.path(), 2, None).unwrap();
+
+        let s = file_util::read_file_to_string(output_dir.path().join("pom.xml")).unwrap();
+        assert_eq!(s, "template");
+        let s = file_util::read_file_to_string(output_dir.path().join("src/main/java/File.java"))
+            .unwrap();
+        assert_eq!(s, "old submission");
+        let s =
+            file_util::read_file_to_string(output_dir.path().join("src/test/java/FileTest.java"))
+                .unwrap();
+        assert_eq!(s, "template");
     }
 }

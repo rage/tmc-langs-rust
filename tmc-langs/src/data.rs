@@ -152,6 +152,7 @@ pub enum OutputFormat {
     TarZstd,
 }
 
+#[derive(Debug)]
 pub enum DownloadResult {
     Success {
         downloaded: Vec<ExerciseDownload>,

@@ -11,7 +11,7 @@ use crate::policy::StudentFilePolicy;
 use crate::TmcProjectYml;
 use nom::{branch, bytes, character, combinator, error::VerboseError, multi, sequence, IResult};
 use std::collections::HashSet;
-use std::io::{Read, Seek, Write};
+use std::io::{Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_util::file_util;
@@ -93,7 +93,6 @@ pub trait LanguagePlugin {
     ///
     /// This will overwrite any existing files as long as they are not specified as student files
     /// by the language dependent student file policy.
-    // TODO: look at removing or relocating
     fn extract_project(
         compressed_project: impl std::io::Read + std::io::Seek,
         target_location: &Path,
@@ -119,15 +118,15 @@ pub trait LanguagePlugin {
         let policy = Self::StudentFilePolicy::new(target_location)?;
 
         // used to clean non-student files not in the zip later
-        let mut unzip_paths = HashSet::new();
+        let mut files_from_zip = HashSet::new();
 
         for i in 0..zip_archive.len() {
             let mut file = zip_archive.by_index(i)?;
-            let file_path = PathBuf::from(file.name());
-            if file_path == tmc_project_yml_path {
+            if file.name() == tmc_project_yml_path_s {
                 // already extracted
                 continue;
             }
+            let file_path = PathBuf::from(file.name());
 
             let relative = match file_path.strip_prefix(&project_dir) {
                 Ok(relative) => relative,
@@ -138,77 +137,27 @@ pub trait LanguagePlugin {
             };
             let path_in_target = target_location.join(&relative);
             log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
-            unzip_paths.insert(path_in_target.clone());
 
-            // not student file, or forced update
-            let overwrite = {
-                if !path_in_target.exists() {
-                    // currently policies do not consider nonexistent files to ever be student files
-                    // this is a not-so-nice hack around that, TODO: fix properly
-                    let mut created_dirs = vec![];
-                    for dir in path_in_target
-                        .ancestors()
-                        .collect::<Vec<_>>()
-                        .into_iter()
-                        .rev()
-                    {
-                        if !dir.exists() {
-                            file_util::create_dir(dir)?;
-                            created_dirs.push(dir.to_path_buf());
-                        }
-                    }
-                    let write = !policy.is_student_file(&path_in_target, &target_location)?
-                        || policy.is_updating_forced(&relative)?;
-                    for dir in created_dirs.into_iter().rev() {
-                        file_util::remove_dir_empty(&dir)?;
-                    }
-                    write
-                } else {
-                    !policy.is_student_file(&path_in_target, &target_location)?
-                        || policy.is_updating_forced(&relative)?
-                }
-            };
+            files_from_zip.insert(path_in_target.clone());
 
             if !path_in_target.exists() {
                 // just extract
                 if file.is_dir() {
                     file_util::create_dir_all(path_in_target)?;
                 } else {
-                    let mut overwrite_target = file_util::create_file(&path_in_target)?;
-                    let mut file_contents = vec![];
-                    file.read_to_end(&mut file_contents)
-                        .map_err(|e| TmcError::ZipRead(file_path.clone(), e))?;
-                    overwrite_target
-                        .write_all(&file_contents)
-                        .map_err(|e| TmcError::ZipWrite(path_in_target.clone(), e))?;
+                    file_util::read_to_file(&mut file, path_in_target)?;
                 }
-            } else if overwrite {
-                // overwrite existing
-                if file.is_dir() {
-                    // remove old and overwrite
-                    if path_in_target.is_dir() {
-                        file_util::remove_dir_all(&path_in_target)?;
-                    } else if path_in_target.is_file() {
-                        file_util::remove_file(&path_in_target)?;
-                    }
-                    log::trace!("creating {:?}", path_in_target);
-                    file_util::create_dir_all(&path_in_target)?;
-                } else {
+            } else if !policy.is_student_file(&path_in_target, &target_location)?
+                || policy.is_updating_forced(&relative)?
+            {
+                log::debug!("is not {}", path_in_target.display());
+                // not student file, or forced update
+                if file.is_file() {
                     // remove old if dir
                     if path_in_target.is_dir() {
                         file_util::remove_dir_all(&path_in_target)?;
                     }
-                    log::trace!("writing to {}", path_in_target.display());
-                    if let Some(parent) = path_in_target.parent() {
-                        file_util::create_dir_all(parent)?;
-                    }
-                    let mut overwrite_target = file_util::create_file(&path_in_target)?;
-                    let mut file_contents = vec![];
-                    file.read_to_end(&mut file_contents)
-                        .map_err(|e| TmcError::ZipRead(file_path.clone(), e))?;
-                    overwrite_target
-                        .write_all(&file_contents)
-                        .map_err(|e| TmcError::ZipWrite(path_in_target.clone(), e))?;
+                    file_util::read_to_file(&mut file, path_in_target)?;
                 }
             }
         }
@@ -216,12 +165,12 @@ pub trait LanguagePlugin {
         if clean {
             // delete non-student files that were not in zip
             log::debug!("deleting non-student files not in zip");
-            log::debug!("{:?}", unzip_paths);
+            log::debug!("{:?}", files_from_zip);
             for entry in WalkDir::new(target_location)
                 .into_iter()
                 .filter_map(|e| e.ok())
             {
-                if !unzip_paths.contains(entry.path())
+                if !files_from_zip.contains(entry.path())
                     && (policy.is_updating_forced(entry.path())?
                         || !policy.is_student_file(entry.path(), &target_location)?)
                 {
@@ -249,19 +198,18 @@ pub trait LanguagePlugin {
 
     /// Extracts student files from the compressed project.
     /// It finds the project dir from the zip and extracts the student files from there.
-    /// Overwrites all files/directories.
-    // todo: DRY, very similar to extract_project
+    /// Overwrites all files.
     fn extract_student_files(
         compressed_project: impl Read + Seek,
         target_location: &Path,
     ) -> Result<(), TmcError> {
-        log::debug!("Unzipping student files to {}", target_location.display());
+        log::debug!("Extracting student files to {}", target_location.display());
 
         let mut zip_archive = ZipArchive::new(compressed_project)?;
 
         // find the exercise root directory inside the archive
         let project_dir = Self::find_project_dir_in_zip(&mut zip_archive)?;
-        log::debug!("Project dir in zip: {}", project_dir.display());
+        log::debug!("Project directory in archive: {}", project_dir.display());
 
         // extract config file if any
         let tmc_project_yml_path = project_dir.join(".tmcproject.yml");
@@ -276,67 +224,30 @@ pub trait LanguagePlugin {
 
         for i in 0..zip_archive.len() {
             let mut file = zip_archive.by_index(i)?;
+
+            // get the path where the file should be extracted
             let file_path = PathBuf::from(file.name());
             let relative = match file_path.strip_prefix(&project_dir) {
                 Ok(relative) => relative,
                 _ => {
-                    log::trace!("skip {}, not in project dir", file.name());
+                    log::debug!("skip {}, not in project dir", file.name());
                     continue;
                 }
             };
             let path_in_target = target_location.join(&relative);
-            log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
+            log::debug!("processing {:?} -> {:?}", file_path, path_in_target);
 
-            let write = {
-                if !path_in_target.exists() {
-                    // currently policies do not consider nonexistent files to ever be student files
-                    // this is a not-so-nice hack around that, TODO: fix properly
-                    let mut created_dirs = vec![];
-                    for dir in path_in_target
-                        .ancestors()
-                        .collect::<Vec<_>>()
-                        .into_iter()
-                        .rev()
-                    {
-                        if !dir.exists() {
-                            file_util::create_dir(dir)?;
-                            created_dirs.push(dir.to_path_buf());
-                        }
-                    }
-                    let is_student_file =
-                        policy.is_student_file(&path_in_target, &target_location)?;
-                    for dir in created_dirs.into_iter().rev() {
-                        file_util::remove_dir_empty(&dir)?;
-                    }
-                    is_student_file
+            if policy.would_be_student_file(&path_in_target, &target_location)? {
+                if file.is_file() {
+                    // for files, everything should be removed out of the way
+                    file_util::remove_all(&path_in_target)?;
+                    file_util::read_to_file(&mut file, &path_in_target)?;
                 } else {
-                    policy.is_student_file(&path_in_target, &target_location)?
-                }
-            };
-
-            if write {
-                if file.is_dir() {
-                    if path_in_target.exists() {
-                        // remove old and overwrite
-                        if path_in_target.is_dir() {
-                            file_util::remove_dir_all(&path_in_target)?;
-                        } else {
-                            file_util::remove_file(&path_in_target)?;
-                        }
+                    // for directories, we should keep existing directories but delete files at the same path
+                    if path_in_target.is_file() {
+                        file_util::remove_file(&path_in_target)?;
                     }
-                    log::trace!("creating {:?}", path_in_target);
                     file_util::create_dir_all(&path_in_target)?;
-                } else if file.is_file() {
-                    let mut file_contents = vec![];
-                    file.read_to_end(&mut file_contents)
-                        .map_err(|e| TmcError::ZipRead(file_path.clone(), e))?;
-                    if let Some(parent) = path_in_target.parent() {
-                        file_util::create_dir_all(parent)?;
-                    }
-                    let mut overwrite_target = file_util::create_file(&path_in_target)?;
-                    overwrite_target
-                        .write_all(&file_contents)
-                        .map_err(|e| TmcError::ZipWrite(path_in_target.clone(), e))?;
                 }
             }
         }
@@ -522,6 +433,8 @@ enum Parse {
 mod test {
     use super::*;
     use nom::character;
+    use std::io::Write;
+    use zip::ZipWriter;
 
     fn init() {
         use log::*;
@@ -879,7 +792,6 @@ def f():
         file_to(&temp, "dir/src/file overwrites file", "new");
         file_to(&temp, "dir/src/file overwrites dir", "data");
         dir_to(&temp, "dir/src/dir overwrites file");
-        dir_to(&temp, "dir/src/dir overwrites dir");
         let zip = dir_to_zip(&temp);
         file_to(&temp, "extracted/src/file overwrites file", "old");
         file_to(
@@ -888,11 +800,6 @@ def f():
             "",
         );
         file_to(&temp, "extracted/src/dir overwrites file", "old");
-        file_to(
-            &temp,
-            "extracted/src/dir overwrites dir/another dir/another file",
-            "",
-        );
 
         MockPlugin::extract_student_files(
             std::io::Cursor::new(zip),
@@ -918,10 +825,6 @@ def f():
 
         let path = temp.path().join("extracted/src/dir overwrites file");
         assert!(path.is_dir());
-
-        let path = temp.path().join("extracted/src/dir overwrites dir");
-        assert!(path.is_dir());
-        assert!(!path.join("another dir").exists())
     }
 
     #[test]
@@ -1034,6 +937,12 @@ force_update:
         let zip = dir_to_zip(&temp);
         file_to(&temp, "extracted/test/some existing non-student file", "");
 
+        for entry in WalkDir::new(temp.path().join("extracted")) {
+            if let Ok(entry) = entry {
+                log::debug!("{}", entry.path().display());
+            }
+        }
+
         MockPlugin::extract_project(
             std::io::Cursor::new(zip),
             &temp.path().join("extracted"),
@@ -1119,5 +1028,22 @@ force_update:
 
         let points = MockPlugin::get_available_points(temp.path()).unwrap();
         assert!(points.is_empty());
+    }
+
+    #[test]
+    fn extract_student_files_does_not_clean_directories_incorrectly() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "src/file", "");
+
+        let buf = vec![];
+        let mut zw = ZipWriter::new(std::io::Cursor::new(buf));
+        zw.add_directory("src", zip::write::FileOptions::default())
+            .unwrap();
+        let buf = zw.finish().unwrap();
+
+        MockPlugin::extract_student_files(buf, temp.path()).unwrap();
+        assert!(temp.path().join("src/file").exists());
     }
 }
