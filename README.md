@@ -48,7 +48,7 @@ In addition to the dependencies listed in each crate's `Cargo.toml`, the project
 
 ## Versioning
 
-tmc-langs-rust follows Rust-style semantic versioning, but only for the CLI (tmc-langs-cli). The library crates may go through breaking changes in any release as long as they don't cause any visible changes in functionality to a user of the CLI.
+tmc-langs-rust follows Rust-style semantic versioning, but only for the `tmc-langs-cli` and `tmc-langs` crates. Other crates may go through breaking changes in any release as long as the CLI and langs are unaffected.
 
 ## CLI binary deployment and downloads
 
