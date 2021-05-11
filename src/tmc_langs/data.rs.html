@@ -357,6 +357,7 @@
     <span class="ident">TarZstd</span>,
 }
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DownloadResult</span> {
     <span class="ident">Success</span> {
         <span class="ident">downloaded</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ExerciseDownload</span><span class="op">&gt;</span>,
@@ -369,16 +370,15 @@
     },
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DownloadTarget</span> {
-    <span class="ident">Template</span> {
-        <span class="ident">target</span>: <span class="ident">ExerciseDownload</span>,
-        <span class="ident">checksum</span>: <span class="ident">String</span>,
-    },
-    <span class="ident">Submission</span> {
-        <span class="ident">target</span>: <span class="ident">ExerciseDownload</span>,
-        <span class="ident">submission_id</span>: <span class="ident">usize</span>,
-        <span class="ident">checksum</span>: <span class="ident">String</span>,
-    },
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DownloadTarget</span> {
+    <span class="kw">pub</span> <span class="ident">target</span>: <span class="ident">ExerciseDownload</span>,
+    <span class="kw">pub</span> <span class="ident">checksum</span>: <span class="ident">String</span>,
+    <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">DownloadTargetKind</span>,
+}
+
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DownloadTargetKind</span> {
+    <span class="ident">Template</span>,
+    <span class="ident">Submission</span> { <span class="ident">submission_id</span>: <span class="ident">usize</span> },
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
