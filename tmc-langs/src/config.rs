@@ -138,6 +138,7 @@ pub fn move_projects_dir(
 }
 
 #[cfg(test)]
+#[allow(clippy::clippy::unwrap_used)]
 mod test {
     use toml::value::Table;
 

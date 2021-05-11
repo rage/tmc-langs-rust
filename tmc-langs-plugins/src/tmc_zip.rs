@@ -26,7 +26,12 @@ pub fn zip_student_files<P: StudentFilePolicy>(
         if policy.is_student_file(entry.path(), &root_directory)? {
             let path = root_directory
                 .parent()
-                .map(|p| entry.path().strip_prefix(p).unwrap())
+                .map(|p| {
+                    entry
+                        .path()
+                        .strip_prefix(p)
+                        .expect("entries are inside root_directory")
+                })
                 .unwrap_or_else(|| entry.path());
             if entry.path().is_dir() {
                 log::trace!("adding directory {}", path.display());
@@ -150,6 +155,7 @@ fn contains_tmcnosubmit(entry: &DirEntry) -> bool {
 }
 
 #[cfg(test)]
+#[allow(clippy::clippy::unwrap_used)]
 mod test {
     use super::*;
     use std::collections::HashSet;

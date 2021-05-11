@@ -3,18 +3,17 @@
 use super::TmcProjectYml;
 use crate::data::{OutputFormat, TmcParams};
 use crate::error::LangsError;
-use std::ffi::OsStr;
+use once_cell::sync::Lazy;
 use std::io::{Cursor, Write};
 use std::path::Path;
 use std::path::PathBuf;
+use std::{ffi::OsStr, sync::Mutex};
 use tmc_langs_plugins::Plugin;
 use tmc_langs_util::{file_util, FileError};
 use walkdir::WalkDir;
 use zip::{read::ZipFile, write::FileOptions, ZipWriter};
 
-lazy_static::lazy_static! {
-    static ref MUTEX: std::sync::Mutex<()> = std::sync::Mutex::new(());
-}
+static MUTEX: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 
 /// Note: Used by tmc-server. Prepares a submission for further processing.
 /// The clone path is assumed to be a directory with the exercise name as the directory name,
@@ -374,6 +373,7 @@ where
 
 #[cfg(test)]
 #[cfg(target_os = "linux")] // no maven plugin on other OS
+#[allow(clippy::clippy::unwrap_used)]
 mod test {
     use super::*;
     use std::fs;

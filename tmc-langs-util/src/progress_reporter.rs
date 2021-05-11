@@ -163,6 +163,7 @@ pub fn finish_stage<T: 'static + Send + Sync>(message: String, data: Option<T>) 
 }
 
 #[cfg(test)]
+#[allow(clippy::clippy::unwrap_used)]
 mod test {
     use super::*;
     use std::sync::{Arc, Mutex, MutexGuard};

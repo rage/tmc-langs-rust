@@ -1,4 +1,4 @@
-#![deny(clippy::print_stdout, clippy::print_stderr)]
+#![deny(clippy::print_stdout, clippy::print_stderr, clippy::unwrap_used)]
 
 //! Language plugin for the R language
 

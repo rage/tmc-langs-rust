@@ -52,6 +52,7 @@ impl Drop for FileLockGuard<'_> {
 }
 
 #[cfg(test)]
+#[allow(clippy::clippy::unwrap_used)]
 mod test {
     use super::*;
     use std::sync::Arc;

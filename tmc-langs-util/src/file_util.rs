@@ -258,7 +258,9 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
             for entry in WalkDir::new(source) {
                 let entry = entry?;
                 let entry_path = entry.path();
-                let stripped = entry_path.strip_prefix(prefix).unwrap();
+                let stripped = entry_path
+                    .strip_prefix(prefix)
+                    .expect("prefix is derived from the source which entry_path is in");
 
                 let target = target.join(stripped);
                 if entry_path.is_dir() {
@@ -280,6 +282,7 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
 }
 
 #[cfg(test)]
+#[allow(clippy::clippy::unwrap_used)]
 mod test {
     use super::*;
     use std::path::PathBuf;

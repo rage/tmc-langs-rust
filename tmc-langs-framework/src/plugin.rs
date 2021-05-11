@@ -150,7 +150,6 @@ pub trait LanguagePlugin {
             } else if !policy.is_student_file(&path_in_target, &target_location)?
                 || policy.is_updating_forced(&relative)?
             {
-                log::debug!("is not {}", path_in_target.display());
                 // not student file, or forced update
                 if file.is_file() {
                     // remove old if dir
@@ -165,7 +164,6 @@ pub trait LanguagePlugin {
         if clean {
             // delete non-student files that were not in zip
             log::debug!("deleting non-student files not in zip");
-            log::debug!("{:?}", files_from_zip);
             for entry in WalkDir::new(target_location)
                 .into_iter()
                 .filter_map(|e| e.ok())
@@ -230,12 +228,12 @@ pub trait LanguagePlugin {
             let relative = match file_path.strip_prefix(&project_dir) {
                 Ok(relative) => relative,
                 _ => {
-                    log::debug!("skip {}, not in project dir", file.name());
+                    log::trace!("skip {}, not in project dir", file.name());
                     continue;
                 }
             };
             let path_in_target = target_location.join(&relative);
-            log::debug!("processing {:?} -> {:?}", file_path, path_in_target);
+            log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
 
             if policy.would_be_student_file(&path_in_target, &target_location)? {
                 if file.is_file() {
@@ -430,6 +428,7 @@ enum Parse {
 }
 
 #[cfg(test)]
+#[allow(clippy::clippy::unwrap_used)]
 mod test {
     use super::*;
     use nom::character;
@@ -744,12 +743,6 @@ def f():
         )
         .unwrap();
 
-        for entry in WalkDir::new(temp.path().join("extracted")) {
-            if let Ok(entry) = entry {
-                log::debug!("{}", entry.path().display());
-            }
-        }
-
         assert!(temp
             .path()
             .join("extracted/src/more/dirs/student file")
@@ -773,10 +766,11 @@ def f():
         )
         .unwrap();
 
-        for entry in WalkDir::new(temp.path().join("extracted")) {
-            if let Ok(entry) = entry {
-                log::debug!("{}", entry.path().display());
-            }
+        for entry in WalkDir::new(temp.path().join("extracted"))
+            .into_iter()
+            .flatten()
+        {
+            log::debug!("{}", entry.path().display());
         }
 
         assert!(temp.path().join("extracted/src").exists());
@@ -807,10 +801,11 @@ def f():
         )
         .unwrap();
 
-        for entry in WalkDir::new(temp.path().join("extracted")) {
-            if let Ok(entry) = entry {
-                log::debug!("{}", entry.path().display());
-            }
+        for entry in WalkDir::new(temp.path().join("extracted"))
+            .into_iter()
+            .flatten()
+        {
+            log::debug!("{}", entry.path().display());
         }
 
         let path = temp.path().join("extracted/src/file overwrites file");
@@ -844,10 +839,11 @@ def f():
         )
         .unwrap();
 
-        for entry in WalkDir::new(temp.path().join("extracted")) {
-            if let Ok(entry) = entry {
-                log::debug!("{}", entry.path().display());
-            }
+        for entry in WalkDir::new(temp.path().join("extracted"))
+            .into_iter()
+            .flatten()
+        {
+            log::debug!("{}", entry.path().display());
         }
 
         assert!(temp
@@ -876,10 +872,11 @@ def f():
         )
         .unwrap();
 
-        for entry in WalkDir::new(temp.path().join("extracted")) {
-            if let Ok(entry) = entry {
-                log::debug!("{}", entry.path().display());
-            }
+        for entry in WalkDir::new(temp.path().join("extracted"))
+            .into_iter()
+            .flatten()
+        {
+            log::debug!("{}", entry.path().display());
         }
 
         let s = std::fs::read_to_string(temp.path().join("extracted/src/student file")).unwrap();
@@ -916,10 +913,11 @@ force_update:
         )
         .unwrap();
 
-        for entry in WalkDir::new(temp.path().join("extracted")) {
-            if let Ok(entry) = entry {
-                log::debug!("{}", entry.path().display());
-            }
+        for entry in WalkDir::new(temp.path().join("extracted"))
+            .into_iter()
+            .flatten()
+        {
+            log::debug!("{}", entry.path().display());
         }
 
         let s = std::fs::read_to_string(temp.path().join("extracted/src/forced update")).unwrap();
@@ -937,10 +935,11 @@ force_update:
         let zip = dir_to_zip(&temp);
         file_to(&temp, "extracted/test/some existing non-student file", "");
 
-        for entry in WalkDir::new(temp.path().join("extracted")) {
-            if let Ok(entry) = entry {
-                log::debug!("{}", entry.path().display());
-            }
+        for entry in WalkDir::new(temp.path().join("extracted"))
+            .into_iter()
+            .flatten()
+        {
+            log::debug!("{}", entry.path().display());
         }
 
         MockPlugin::extract_project(
@@ -950,10 +949,11 @@ force_update:
         )
         .unwrap();
 
-        for entry in WalkDir::new(temp.path().join("extracted")) {
-            if let Ok(entry) = entry {
-                log::debug!("{}", entry.path().display());
-            }
+        for entry in WalkDir::new(temp.path().join("extracted"))
+            .into_iter()
+            .flatten()
+        {
+            log::debug!("{}", entry.path().display());
         }
 
         assert!(temp
@@ -978,10 +978,11 @@ force_update:
         )
         .unwrap();
 
-        for entry in WalkDir::new(temp.path().join("extracted")) {
-            if let Ok(entry) = entry {
-                log::debug!("{}", entry.path().display());
-            }
+        for entry in WalkDir::new(temp.path().join("extracted"))
+            .into_iter()
+            .flatten()
+        {
+            log::debug!("{}", entry.path().display());
         }
 
         assert!(!temp

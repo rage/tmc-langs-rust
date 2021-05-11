@@ -102,6 +102,7 @@ impl LanguagePlugin for NoTestsPlugin {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
 

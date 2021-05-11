@@ -1,7 +1,7 @@
 //! Contains types which model the JSON responses from tmc-server
 
 use chrono::{DateTime, FixedOffset};
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 use schemars::JsonSchema;
 use serde::{
@@ -403,9 +403,10 @@ impl<'de> Visitor<'de> for SubmissionFeedbackKindVisitor {
     where
         E: de::Error,
     {
-        lazy_static! {
-            static ref RANGE: Regex = Regex::new(r#"intrange\[(\d+)\.\.(\d+)\]"#).unwrap();
-        }
+        #[allow(clippy::clippy::unwrap_used)]
+        static RANGE: Lazy<Regex> =
+            Lazy::new(|| Regex::new(r#"intrange\[(\d+)\.\.(\d+)\]"#).unwrap());
+
         if value == "text" {
             Ok(SubmissionFeedbackKind::Text)
         } else if let Some(captures) = RANGE.captures(&value) {
@@ -455,6 +456,7 @@ pub struct UpdateResult {
 }
 
 #[cfg(test)]
+#[allow(clippy::clippy::unwrap_used)]
 mod test {
     use super::*;
 

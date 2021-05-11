@@ -283,6 +283,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
 }
 
 #[cfg(test)]
+#[allow(clippy::clippy::unwrap_used)]
 mod test {
     use crate::SEPARATOR;
 

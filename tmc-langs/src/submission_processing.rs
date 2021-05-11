@@ -1,18 +1,20 @@
 //! Functions for processing submissions.
 
 use crate::error::LangsError;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 use std::path::Path;
 use tmc_langs_framework::{MetaString, MetaSyntaxParser};
 use tmc_langs_util::file_util;
 use walkdir::{DirEntry, WalkDir};
 
-lazy_static! {
-    static ref FILES_TO_SKIP_ALWAYS: Regex = Regex::new(r"\.tmcrc|^metadata\.yml$").unwrap();
-    static ref NON_TEXT_TYPES: Regex =
-        Regex::new("class|jar|exe|jpg|jpeg|gif|png|zip|tar|gz|db|bin|csv|tsv|sqlite3|^$").unwrap();
-}
+#[allow(clippy::clippy::unwrap_used)]
+static FILES_TO_SKIP_ALWAYS: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"\.tmcrc|^metadata\.yml$").unwrap());
+#[allow(clippy::clippy::unwrap_used)]
+static NON_TEXT_TYPES: Lazy<Regex> = Lazy::new(|| {
+    Regex::new("class|jar|exe|jpg|jpeg|gif|png|zip|tar|gz|db|bin|csv|tsv|sqlite3|^$").unwrap()
+});
 
 // Filter for hidden directories (directories with names starting with '.')
 pub fn is_hidden_dir(entry: &DirEntry) -> bool {
@@ -234,6 +236,7 @@ pub fn prepare_stub(exercise_path: &Path, dest_root: &Path) -> Result<(), LangsE
 }
 
 #[cfg(test)]
+#[allow(clippy::clippy::unwrap_used)]
 mod test {
     use super::*;
     use std::fs::File;

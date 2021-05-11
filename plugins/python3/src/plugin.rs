@@ -4,7 +4,7 @@ use crate::error::PythonError;
 use crate::policy::Python3StudentFilePolicy;
 use crate::python_test_result::PythonTestResult;
 use hmac::{Hmac, Mac, NewMac};
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use rand::Rng;
 use sha2::Sha256;
 use std::collections::{HashMap, HashSet};
@@ -32,31 +32,32 @@ impl Python3Plugin {
     }
 
     fn get_local_python_command() -> TmcCommand {
-        lazy_static! {
-            // the correct python command is platform-dependent
-            static ref LOCAL_PY: LocalPy = {
-                if let Ok(python_exec) = env::var("TMC_LANGS_PYTHON_EXEC") {
-                    log::debug!("using Python from environment variable TMC_LANGS_PYTHON_EXEC={}", python_exec);
-                    return LocalPy::Custom { python_exec };
-                }
+        // the correct python command is platform-dependent
+        static LOCAL_PY: Lazy<LocalPy> = Lazy::new(|| {
+            if let Ok(python_exec) = env::var("TMC_LANGS_PYTHON_EXEC") {
+                log::debug!(
+                    "using Python from environment variable TMC_LANGS_PYTHON_EXEC={}",
+                    python_exec
+                );
+                return LocalPy::Custom { python_exec };
+            }
 
-                if cfg!(windows) {
-                    // Check for Conda
-                    let conda = env::var("CONDA_PYTHON_EXE");
-                    if let Ok(conda_path) = conda {
-                        if PathBuf::from(&conda_path).exists() {
-                            log::debug!("detected conda on windows");
-                            return LocalPy::WindowsConda { conda_path };
-                        }
+            if cfg!(windows) {
+                // Check for Conda
+                let conda = env::var("CONDA_PYTHON_EXE");
+                if let Ok(conda_path) = conda {
+                    if PathBuf::from(&conda_path).exists() {
+                        log::debug!("detected conda on windows");
+                        return LocalPy::WindowsConda { conda_path };
                     }
-                    log::debug!("detected windows");
-                    LocalPy::Windows
-                } else {
-                    log::debug!("detected unix");
-                    LocalPy::Unix
                 }
-            };
-        }
+                log::debug!("detected windows");
+                LocalPy::Windows
+            } else {
+                log::debug!("detected unix");
+                LocalPy::Unix
+            }
+        });
 
         enum LocalPy {
             Unix,
@@ -409,6 +410,7 @@ impl LanguagePlugin for Python3Plugin {
 }
 
 #[cfg(test)]
+#[allow(clippy::clippy::unwrap_used)]
 mod test {
     use super::*;
     use std::{

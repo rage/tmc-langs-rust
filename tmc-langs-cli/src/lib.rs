@@ -1,4 +1,4 @@
-#![deny(clippy::print_stdout, clippy::print_stderr)]
+#![deny(clippy::print_stdout, clippy::print_stderr, clippy::unwrap_used)]
 
 //! CLI client for TMC
 
@@ -469,7 +469,9 @@ fn run_app(matches: Opt) -> Result<()> {
 
             // todo: checkstyle results in stdout?
             if let Some(checkstyle_output_path) = checkstyle_output_path {
-                let locale = locale.unwrap().0;
+                let locale = locale
+                    .expect("locale is required if checkstyle output path is given")
+                    .0;
 
                 run_checkstyle_write_results(
                     &exercise_path,
@@ -704,7 +706,9 @@ fn run_core_inner(
             let mut checksums = HashMap::new();
             while let Some(exercise_id) = exercise_checksums.next() {
                 let exercise_id = into_usize(&exercise_id)?;
-                let checksum = exercise_checksums.next().unwrap(); // safe unwrap due to exercise taking two values
+                let checksum = exercise_checksums
+                    .next()
+                    .expect("the argument takes two values");
                 checksums.insert(exercise_id, checksum.to_string());
             }
 

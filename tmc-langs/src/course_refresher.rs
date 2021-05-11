@@ -85,7 +85,11 @@ pub fn refresh_course(
 
     let exercise_dirs = super::find_exercise_directories(&new_clone_path)?
         .into_iter()
-        .map(|ed| ed.strip_prefix(&new_clone_path).unwrap().to_path_buf()) // safe
+        .map(|ed| {
+            ed.strip_prefix(&new_clone_path)
+                .expect("exercise directories are inside new_clone_path")
+                .to_path_buf()
+        })
         .collect::<Vec<_>>();
 
     // collect .tmcproject.ymls and merge the root config with each exercise's, if any
@@ -360,7 +364,10 @@ fn execute_zip(
         // filter hidden
         {
             let entry = entry?;
-            let relative_path = entry.path().strip_prefix(&root_path).unwrap(); // safe
+            let relative_path = entry
+                .path()
+                .strip_prefix(&root_path)
+                .expect("entries are inside root_path");
 
             if entry.path().is_file() {
                 writer.start_file(
@@ -423,6 +430,7 @@ fn finish_stage(message: impl Into<String>) {
 
 #[cfg(test)]
 #[cfg(unix)] // not used on windows
+#[allow(clippy::clippy::unwrap_used)]
 mod test {
     use std::io::Read;
 

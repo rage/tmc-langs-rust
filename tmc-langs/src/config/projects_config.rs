@@ -143,6 +143,7 @@ pub struct ProjectsDirExercise {
 }
 
 #[cfg(test)]
+#[allow(clippy::clippy::unwrap_used)]
 mod test {
     use super::*;
 

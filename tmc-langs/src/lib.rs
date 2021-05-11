@@ -1,6 +1,6 @@
-//! The main tmc-langs library. Provides a convenient API to all of the functionality provided by the tmc-langs project.
+#![deny(clippy::print_stdout, clippy::print_stderr, clippy::unwrap_used)]
 
-#![deny(clippy::print_stdout, clippy::print_stderr)]
+//! The main tmc-langs library. Provides a convenient API to all of the functionality provided by the tmc-langs project.
 
 mod config;
 mod course_refresher;
@@ -1003,6 +1003,7 @@ fn extract_project_overwrite(
 }
 
 #[cfg(test)]
+#[allow(clippy::clippy::unwrap_used)]
 mod test {
     use std::io::Write;
     use tmc_client::ExercisesDetails;

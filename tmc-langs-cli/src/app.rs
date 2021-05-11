@@ -582,7 +582,7 @@ fn schema_leaked<T: JsonSchema>() -> &'static str {
     let schema = schemars::schema_for!(T);
     let json = format!(
         "Result data JSON format:\n{}",
-        serde_json::to_string_pretty(&schema).unwrap()
+        serde_json::to_string_pretty(&schema).expect("serialization should not fail")
     );
     Box::leak(Box::new(json))
 }

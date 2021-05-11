@@ -245,18 +245,18 @@ impl JavaPlugin for MavenPlugin {
 
 #[cfg(test)]
 #[cfg(not(target_os = "macos"))] // issues with maven dependencies
+#[allow(clippy::unwrap_used)]
 mod test {
 
     use super::super::{TestCase, TestCaseStatus};
     use super::*;
+    use once_cell::sync::Lazy;
     use std::fs;
     use std::sync::{Mutex, MutexGuard};
     use tmc_langs_framework::StyleValidationStrategy;
     use zip::ZipArchive;
 
-    lazy_static::lazy_static! {
-        static ref MAVEN_LOCK: Mutex<()> = Mutex::new(());
-    }
+    static MAVEN_LOCK: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 
     fn init() {
         use log::*;

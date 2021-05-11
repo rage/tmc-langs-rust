@@ -4,7 +4,7 @@ use crate::check_log::CheckLog;
 use crate::error::MakeError;
 use crate::policy::MakeStudentFilePolicy;
 use crate::valgrind_log::ValgrindLog;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 use std::collections::HashMap;
 use std::io::{self, BufRead, BufReader, Read, Seek};
@@ -33,12 +33,12 @@ impl MakePlugin {
         available_points: &Path,
         exercise_name: String,
     ) -> Result<ExerciseDesc, MakeError> {
-        lazy_static! {
-            // "[test] [test_one] 1.1 1.2 1.3" = "[type] [name] points"
-            // TODO: use parser lib
-            static ref RE: Regex =
-                Regex::new(r#"\[(?P<type>.*)\] \[(?P<name>.*)\] (?P<points>.*)"#).unwrap();
-        }
+        // "[test] [test_one] 1.1 1.2 1.3" = "[type] [name] points"
+        // TODO: use parser lib
+        #[allow(clippy::clippy::unwrap_used)]
+        static RE: Lazy<Regex> = Lazy::new(|| {
+            Regex::new(r#"\[(?P<type>.*)\] \[(?P<name>.*)\] (?P<points>.*)"#).unwrap()
+        });
 
         let mut tests = vec![];
 
@@ -383,6 +383,7 @@ impl LanguagePlugin for MakePlugin {
 
 #[cfg(test)]
 #[cfg(target_os = "linux")] // check not installed on other CI platforms
+#[allow(clippy::clippy::unwrap_used)]
 mod test {
     use super::*;
     use zip::ZipArchive;

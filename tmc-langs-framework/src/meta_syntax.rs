@@ -2,19 +2,20 @@
 //! strings, stubs and solutions so that they can be more easily filtered later.
 
 use crate::TmcError;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::{Captures, Regex};
 use std::io::{BufRead, BufReader, Read};
 
 // rules for finding comments in various languages
-lazy_static! {
-    static ref META_SYNTAXES_C: [MetaSyntax; 2] = [
+static META_SYNTAXES_C: Lazy<[MetaSyntax; 2]> = Lazy::new(|| {
+    [
         MetaSyntax::new("//", None),
-        MetaSyntax::new(r"/\*", Some(r"\*/"))
-    ];
-    static ref META_SYNTAXES_HTML: [MetaSyntax; 1] = [MetaSyntax::new("<!--", Some("-->"))];
-    static ref META_SYNTAXES_PY: [MetaSyntax; 1] = [MetaSyntax::new("#", None)];
-}
+        MetaSyntax::new(r"/\*", Some(r"\*/")),
+    ]
+});
+static META_SYNTAXES_HTML: Lazy<[MetaSyntax; 1]> =
+    Lazy::new(|| [MetaSyntax::new("<!--", Some("-->"))]);
+static META_SYNTAXES_PY: Lazy<[MetaSyntax; 1]> = Lazy::new(|| [MetaSyntax::new("#", None)]);
 
 /// Used to classify lines of code based on the annotations in the file.
 #[derive(Debug, PartialEq, Eq)]
@@ -40,6 +41,7 @@ struct MetaSyntax {
     hidden_end: Regex,
 }
 
+#[allow(clippy::unwrap_used)]
 impl MetaSyntax {
     fn new(comment_start: &'static str, comment_end: Option<&'static str>) -> Self {
         // comment patterns
@@ -230,6 +232,7 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
 

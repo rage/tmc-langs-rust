@@ -1,7 +1,7 @@
 //! Contains a struct representing valgrind's log output.
 
 use crate::error::MakeError;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader};
@@ -21,11 +21,11 @@ impl ValgrindLog {
         // TODO: use parsing lib?
         log::debug!("parsing {}", valgrind_log_path.display());
 
-        lazy_static! {
-            static ref PID_REGEX: Regex = Regex::new(r#"==(?P<pid>\d+)=="#).unwrap();
-            static ref ERR_REGEX: Regex =
-                Regex::new(r#"== ERROR SUMMARY: (?P<error_count>\d+)"#).unwrap();
-        }
+        #[allow(clippy::clippy::unwrap_used)]
+        static PID_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r#"==(?P<pid>\d+)=="#).unwrap());
+        #[allow(clippy::clippy::unwrap_used)]
+        static ERR_REGEX: Lazy<Regex> =
+            Lazy::new(|| Regex::new(r#"== ERROR SUMMARY: (?P<error_count>\d+)"#).unwrap());
 
         let valgrind_log_file = file_util::open_file(valgrind_log_path)?;
         let valgrind_log = BufReader::new(valgrind_log_file);
@@ -53,7 +53,9 @@ impl ValgrindLog {
             Some(first_pid) => first_pid,
             None => return Err(MakeError::NoPidsInValgrindLogs),
         };
-        let (header_log, _header_errors) = pid_info.remove(&first_pid).unwrap();
+        let (header_log, _header_errors) = pid_info
+            .remove(&first_pid)
+            .expect("pid_info should have info for every pid");
 
         let mut contains_errors = false;
         let mut results = vec![];
@@ -82,6 +84,7 @@ pub struct ValgrindResult {
 }
 
 #[cfg(test)]
+#[allow(clippy::clippy::unwrap_used)]
 mod test {
     use super::*;
 
