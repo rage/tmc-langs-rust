@@ -58,6 +58,8 @@ pub enum LangsError {
     SettingsCannotContainNull,
     #[error("The number given was too high: {0}")]
     SettingNumberTooHigh(serde_json::Number),
+    #[error("Failed to detect exercise language")]
+    NoPlugin,
 
     #[error("Cache path {0} was invalid. Not a valid UTF-8 string or did not contain a cache version after a dash")]
     InvalidCachePath(PathBuf),

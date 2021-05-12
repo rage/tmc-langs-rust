@@ -50,35 +50,36 @@ pub fn extract_project_overwrite(
 /// See `LanguagePlugin::compress_project`.
 // TODO: clean up
 pub fn compress_project(path: &Path) -> Result<Vec<u8>, PluginError> {
-    match get_language_plugin_type(path)? {
-        PluginType::CSharp => Ok(tmc_zip::zip_student_files(
+    match get_language_plugin_type(path) {
+        Some(PluginType::CSharp) => Ok(tmc_zip::zip_student_files(
             <CSharpPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
-        PluginType::Make => Ok(tmc_zip::zip_student_files(
+        Some(PluginType::Make) => Ok(tmc_zip::zip_student_files(
             <MakePlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
-        PluginType::Maven => Ok(tmc_zip::zip_student_files(
+        Some(PluginType::Maven) => Ok(tmc_zip::zip_student_files(
             <MavenPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
-        PluginType::NoTests => Ok(tmc_zip::zip_student_files(
+        Some(PluginType::NoTests) => Ok(tmc_zip::zip_student_files(
             <NoTestsPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
-        PluginType::Python3 => Ok(tmc_zip::zip_student_files(
+        Some(PluginType::Python3) => Ok(tmc_zip::zip_student_files(
             <Python3Plugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
-        PluginType::R => Ok(tmc_zip::zip_student_files(
+        Some(PluginType::R) => Ok(tmc_zip::zip_student_files(
             <RPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
-        PluginType::Ant => Ok(tmc_zip::zip_student_files(
+        Some(PluginType::Ant) => Ok(tmc_zip::zip_student_files(
             <AntPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
+        None => Err(PluginError::PluginNotFound(path.to_path_buf())),
     }
 }
 
@@ -113,7 +114,7 @@ pub enum PluginType {
     Ant,
 }
 
-pub fn get_language_plugin_type(path: &Path) -> Result<PluginType, PluginError> {
+pub fn get_language_plugin_type(path: &Path) -> Option<PluginType> {
     let plugin_type = if NoTestsPlugin::is_exercise_type_correct(path) {
         log::info!(
             "Detected project at {} as {}",
@@ -165,21 +166,22 @@ pub fn get_language_plugin_type(path: &Path) -> Result<PluginType, PluginError> 
         );
         PluginType::Ant
     } else {
-        return Err(PluginError::PluginNotFound(path.to_path_buf()));
+        return None;
     };
-    Ok(plugin_type)
+    Some(plugin_type)
 }
 
 // Get language plugin for the given path.
 pub fn get_language_plugin(path: &Path) -> Result<Plugin, PluginError> {
-    let plugin = match get_language_plugin_type(path)? {
-        PluginType::NoTests => Plugin::NoTests(NoTestsPlugin::new()),
-        PluginType::CSharp => Plugin::CSharp(CSharpPlugin::new()),
-        PluginType::Make => Plugin::Make(MakePlugin::new()),
-        PluginType::Python3 => Plugin::Python3(Python3Plugin::new()),
-        PluginType::R => Plugin::R(RPlugin::new()),
-        PluginType::Maven => Plugin::Maven(MavenPlugin::new()?),
-        PluginType::Ant => Plugin::Ant(AntPlugin::new()?),
+    let plugin = match get_language_plugin_type(path) {
+        Some(PluginType::NoTests) => Plugin::NoTests(NoTestsPlugin::new()),
+        Some(PluginType::CSharp) => Plugin::CSharp(CSharpPlugin::new()),
+        Some(PluginType::Make) => Plugin::Make(MakePlugin::new()),
+        Some(PluginType::Python3) => Plugin::Python3(Python3Plugin::new()),
+        Some(PluginType::R) => Plugin::R(RPlugin::new()),
+        Some(PluginType::Maven) => Plugin::Maven(MavenPlugin::new()?),
+        Some(PluginType::Ant) => Plugin::Ant(AntPlugin::new()?),
+        None => return Err(PluginError::PluginNotFound(path.to_path_buf())),
     };
     Ok(plugin)
 }
