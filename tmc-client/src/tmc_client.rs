@@ -1,5 +1,6 @@
 //! Contains the TmcClient struct for communicating with the TMC server.
 mod api;
+pub mod api_v8;
 
 use crate::error::ClientError;
 use crate::request::*;
@@ -39,10 +40,7 @@ pub struct TmcClient(Arc<TmcCore>);
 
 struct TmcCore {
     client: Client,
-    #[allow(dead_code)]
-    config_dir: PathBuf, // not used yet
-    api_url: Url,
-    auth_url: String,
+    root_url: Url,
     token: Option<Token>,
     client_name: String,
     client_version: String,
@@ -58,12 +56,10 @@ impl TmcClient {
     /// # Examples
     /// ```rust,no_run
     /// use tmc_client::TmcClient;
-    /// use std::path::PathBuf;
     ///
-    /// let client = TmcClient::new(PathBuf::from("./config"), "https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
+    /// let client = TmcClient::new("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// ```
     pub fn new(
-        config_dir: PathBuf,
         root_url: String,
         client_name: String,
         client_version: String,
@@ -75,40 +71,14 @@ impl TmcClient {
             format!("{}/", root_url)
         };
         let tmc_url = Url::parse(&root_url).map_err(|e| ClientError::UrlParse(root_url, e))?;
-        let api_url = tmc_url.join("api/v8/").expect("failed to join api/v8/");
-        let auth_url = tmc_url
-            .join("oauth/token")
-            .expect("failed to join oauth/token")
-            .to_string();
+
         Ok(TmcClient(Arc::new(TmcCore {
             client: Client::new(),
-            config_dir,
-            api_url,
-            auth_url,
+            root_url: tmc_url,
             token: None,
             client_name,
             client_version,
         })))
-    }
-
-    /// Creates a new TmcClient with the given root URL. The config directory is set according to dirs::cache_dir.
-    ///
-    /// # Errors
-    /// This function will return an error if parsing the root_url fails, or if fetching the cache directory fails (see dirs::cache_dir()).
-    ///
-    /// # Examples
-    /// ```rust,no_run
-    /// use tmc_client::TmcClient;
-    ///
-    /// let client = TmcClient::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_ver".to_string()).unwrap();
-    /// ```
-    pub fn new_in_config(
-        root_url: String,
-        client_name: String,
-        client_version: String,
-    ) -> Result<Self, ClientError> {
-        let config_dir = dirs::cache_dir().ok_or(ClientError::CacheDir)?;
-        Self::new(config_dir, root_url, client_name, client_version)
     }
 
     pub fn set_token(&mut self, token: Token) -> Result<(), ClientError> {
@@ -130,7 +100,7 @@ impl TmcClient {
     /// ```rust,no_run
     /// use tmc_client::TmcClient;
     ///
-    /// let mut client = TmcClient::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
+    /// let mut client = TmcClient::new("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// client.authenticate("client", "user".to_string(), "pass".to_string()).unwrap();
     /// ```
     pub fn authenticate(
@@ -142,25 +112,25 @@ impl TmcClient {
         if self.0.token.is_some() {
             return Err(ClientError::AlreadyAuthenticated);
         }
-
-        let tail = format!("application/{}/credentials", client_name);
+        let auth_url = self
+            .0
+            .root_url
+            .join("/oauth/token")
+            .map_err(|e| ClientError::UrlParse("oauth/token".to_string(), e))?;
+        let tail = format!("/api/v8/application/{}/credentials", client_name);
         let url = self
             .0
-            .api_url
+            .root_url
             .join(&tail)
             .map_err(|e| ClientError::UrlParse(tail, e))?;
         let credentials: Credentials = self.get_json_from_url(url, &[])?;
 
-        log::debug!("authenticating at {}", self.0.auth_url);
+        log::debug!("authenticating at {}", auth_url);
         let client = BasicClient::new(
             ClientId::new(credentials.application_id),
             Some(ClientSecret::new(credentials.secret)),
-            AuthUrl::new(self.0.auth_url.clone())
-                .map_err(|e| ClientError::UrlParse(self.0.auth_url.clone(), e))?, // not used in the Resource Owner Password Credentials Grant
-            Some(
-                TokenUrl::new(self.0.auth_url.clone())
-                    .map_err(|e| ClientError::UrlParse(self.0.auth_url.clone(), e))?,
-            ),
+            AuthUrl::from_url(auth_url.clone()),
+            Some(TokenUrl::from_url(auth_url.clone())),
         );
 
         let token = client
@@ -346,7 +316,7 @@ impl TmcClient {
     /// Returns an error if Url::join fails
     fn get_submission_url(&self, exercise_id: usize) -> Result<Url, ClientError> {
         self.0
-            .api_url
+            .root_url
             .join(&format!("core/exercises/{}/submissions", exercise_id))
             .map_err(|e| ClientError::UrlParse("Failed to make submission url".to_string(), e))
     }
@@ -676,7 +646,7 @@ mod test {
             .create();
         let local_server = mockito::server_url();
         log::debug!("local {}", local_server);
-        let mut client = TmcClient::new_in_config(
+        let mut client = TmcClient::new(
             local_server.to_string(),
             "some_client".to_string(),
             "some_ver".to_string(),
@@ -1044,7 +1014,7 @@ mod test {
             .with_body(
                 serde_json::json!([
                     {
-                        "submission_id": "5678",
+                        "submission_id": 5678,
                         "exercise_name": "en",
                         "id": 90,
                         "marked_as_read": true,
@@ -1064,7 +1034,7 @@ mod test {
 
         let reviews = client.get_unread_reviews(reviews_url).unwrap();
         assert_eq!(reviews.len(), 1);
-        assert_eq!(reviews[0].submission_id, "5678");
+        assert_eq!(reviews[0].submission_id, 5678);
     }
 
     #[test]

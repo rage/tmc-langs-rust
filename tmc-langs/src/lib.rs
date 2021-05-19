@@ -537,7 +537,7 @@ pub fn init_tmc_client_with_credentials(
     client_version: &str,
 ) -> Result<(TmcClient, Option<Credentials>), LangsError> {
     // create client
-    let mut client = TmcClient::new_in_config(
+    let mut client = TmcClient::new(
         root_url,
         client_name.to_string(),
         client_version.to_string(),
@@ -1036,7 +1036,6 @@ mod test {
 
     fn mock_client() -> TmcClient {
         let mut client = TmcClient::new(
-            PathBuf::from(""),
             mockito::server_url(),
             "client".to_string(),
             "version".to_string(),

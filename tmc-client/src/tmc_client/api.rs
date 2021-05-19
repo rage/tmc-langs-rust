@@ -86,7 +86,7 @@ impl TmcClient {
     fn get_json<T: DeserializeOwned>(&self, url_tail: &str) -> Result<T, ClientError> {
         let url = self
             .0
-            .api_url
+            .root_url
             .join(url_tail)
             .map_err(|e| ClientError::UrlParse(url_tail.to_string(), e))?;
         self.get_json_from_url(url, &[])
@@ -99,7 +99,7 @@ impl TmcClient {
     ) -> Result<T, ClientError> {
         let url = self
             .0
-            .api_url
+            .root_url
             .join(url_tail)
             .map_err(|e| ClientError::UrlParse(url_tail.to_string(), e))?;
         self.get_json_from_url(url, params)
@@ -124,7 +124,7 @@ impl TmcClient {
     fn download(&self, url_tail: &str, mut target: impl Write) -> Result<(), ClientError> {
         let url = self
             .0
-            .api_url
+            .root_url
             .join(url_tail)
             .map_err(|e| ClientError::UrlParse(url_tail.to_string(), e))?;
 
@@ -852,7 +852,7 @@ impl TmcClient {
         let url_tail = format!("core/submissions/{}/reviews", submission_id);
         let url = self
             .0
-            .api_url
+            .root_url
             .join(&url_tail)
             .map_err(|e| ClientError::UrlParse(url_tail, e))?;
 

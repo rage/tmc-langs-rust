@@ -924,7 +924,7 @@ fn run_core_inner(
 
         Core::WaitForSubmission { submission_url } => {
             let submission_finished = client
-                .wait_for_submission(&submission_url.into_string())
+                .wait_for_submission(submission_url.as_ref())
                 .context("Failed while waiting for submissions")?;
             Output::finished_with_data(
                 "finished waiting for submission",

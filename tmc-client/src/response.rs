@@ -76,7 +76,7 @@ pub struct CourseData {
     pub refreshed_at: Option<DateTime<FixedOffset>>,
     pub locked_exercise_points_visible: bool,
     pub description: Option<String>,
-    pub paste_visibility: Option<String>,
+    pub paste_visibility: Option<usize>,
     pub formal_name: Option<String>,
     pub certificate_downloadable: Option<bool>,
     pub certificate_unlock_spec: Option<String>,
@@ -434,7 +434,7 @@ impl<'de> Visitor<'de> for SubmissionFeedbackKindVisitor {
 /// Code review.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct Review {
-    pub submission_id: String,
+    pub submission_id: usize,
     pub exercise_name: String,
     pub id: usize,
     pub marked_as_read: bool,
@@ -445,7 +445,7 @@ pub struct Review {
     pub url: String,
     pub update_url: String,
     pub created_at: DateTime<FixedOffset>,
-    pub updated_at: String,
+    pub updated_at: DateTime<FixedOffset>,
 }
 
 /// Updated exercises.

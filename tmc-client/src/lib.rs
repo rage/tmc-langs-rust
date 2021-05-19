@@ -24,6 +24,6 @@ pub use self::response::{
     SubmissionFeedbackResponse, SubmissionFinished, SubmissionProcessingStatus, SubmissionStatus,
     UpdateResult, User,
 };
-pub use self::tmc_client::{ClientUpdateData, TmcClient, Token};
+pub use self::tmc_client::{api_v8, ClientUpdateData, TmcClient, Token};
 pub use oauth2;
 pub use tmc_langs_plugins::{Language, RunResult, StyleValidationResult, StyleValidationStrategy};
