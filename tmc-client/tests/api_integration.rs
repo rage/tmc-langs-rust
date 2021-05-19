@@ -1,5 +1,5 @@
 use dotenv::dotenv;
-use std::{env, io::Read, path::Path};
+use std::{env, io::Read};
 use tmc_client::{api_v8, FeedbackAnswer, TmcClient};
 
 const ORGANIZATION_SLUG: &str = "hy";
@@ -8,7 +8,7 @@ const EXERCISE_NAME: &str = "part01-Part01_01.Sandbox";
 const COURSE_ID: u32 = 714;
 const EXERCISE_ID: u32 = 104347;
 const SUBMISSION_ID: u32 = 10406006;
-const SUBMISSION_PATH: &str = "tests/data/part01-Part01_01.Sandbox.zip";
+const SUBMISSION_ZIP: &[u8] = include_bytes!("data/part01-Part01_01.Sandbox.zip");
 const REVIEW_ID: u32 = 1138;
 
 fn init_client() -> TmcClient {
@@ -21,11 +21,10 @@ fn init_client() -> TmcClient {
     let password = env::var("TMC_PASSWORD").unwrap();
 
     let mut client = TmcClient::new(
-        "https://tmc.mooc.fi".to_string(),
+        "https://tmc.mooc.fi".parse().unwrap(),
         "vscode_plugin".to_string(),
         "1.0.0".to_string(),
-    )
-    .unwrap();
+    );
     client
         .authenticate("vscode_plugin", email, password)
         .unwrap();
@@ -62,7 +61,7 @@ fn gets_basic_info_by_usernames() {
 fn gets_basic_info_by_emails() {
     let client = &init_client();
     let email = env::var("TMC_EMAIL").unwrap();
-    let res = api_v8::user::post_basic_info_by_emails(client, &[email.clone(), email]).unwrap();
+    let res = api_v8::user::get_basic_info_by_emails(client, &[email.clone(), email]).unwrap();
     assert!(!res.is_empty())
 }
 
@@ -407,9 +406,8 @@ fn downloads_exercise_solution() {
 #[ignore]
 fn submits_exercise() {
     let client = &init_client();
-    let _res =
-        api_v8::core::submit_exercise(client, EXERCISE_ID, Path::new(SUBMISSION_PATH), None, None)
-            .unwrap();
+    let _res = api_v8::core::submit_exercise(client, EXERCISE_ID, SUBMISSION_ZIP, None, None, None)
+        .unwrap();
 }
 
 #[test]
