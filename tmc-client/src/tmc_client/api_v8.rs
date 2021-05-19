@@ -102,11 +102,9 @@ fn download(client: &TmcClient, url: Url, mut target: impl Write) -> Result<(), 
     Ok(())
 }
 
+/// get /api/v8/application/{client_name}/credentials
 /// Fetches oauth2 credentials info.
-pub fn get_credentials(
-    client: &mut TmcClient,
-    client_name: &str,
-) -> Result<Credentials, ClientError> {
+pub fn get_credentials(client: &TmcClient, client_name: &str) -> Result<Credentials, ClientError> {
     let url = make_url(
         client,
         format!("/api/v8/application/{}/credentials", client_name),
@@ -1003,9 +1001,7 @@ mod test {
 
     use super::super::TmcClient;
     use super::*;
-    use crate::Token;
     use mockito::{Matcher, Mock};
-    use oauth2::{basic::BasicTokenType, AccessToken, EmptyExtraTokenFields};
 
     fn init() {
         use log::*;
@@ -1014,18 +1010,11 @@ mod test {
     }
 
     fn make_client() -> TmcClient {
-        let mut client = TmcClient::new(
+        TmcClient::new(
             mockito::server_url().parse().unwrap(),
             "client".to_string(),
             "version".to_string(),
-        );
-        let token = Token::new(
-            AccessToken::new("".to_string()),
-            BasicTokenType::Bearer,
-            EmptyExtraTokenFields {},
-        );
-        client.set_token(token);
-        client
+        )
     }
 
     fn client_matcher() -> Matcher {
@@ -1040,6 +1029,94 @@ mod test {
             .match_query(client_matcher())
             .with_body(body)
             .create()
+    }
+
+    #[test]
+    fn gets_credentials() {
+        init();
+
+        let client = make_client();
+        let _m = mock_get(
+            "/api/v8/application/client/credentials",
+            r#"
+        {
+            "application_id": "id",
+            "secret": "s"
+        }
+        "#,
+        );
+
+        let _res = get_credentials(&client, "client").unwrap();
+    }
+
+    #[test]
+    fn gets_submission_processing_status() {
+        init();
+
+        let client = make_client();
+        let _m = mockito::mock("GET", "/submission-url")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("client".into(), "client".into()),
+                Matcher::UrlEncoded("client_version".into(), "version".into()),
+            ]))
+            .with_body(serde_json::json!({
+            "api_version": 7,
+            "all_tests_passed": true,
+            "user_id": 3232,
+            "login": "014464865",
+            "course": "mooc-java-programming-i",
+            "exercise_name": "part01-Part01_01.Sandbox",
+            "status": "ok",
+            "points": [
+                "01-01"
+            ],
+            "validations": {
+                "strategy": "DISABLED",
+                "validationErrors": {}
+            },
+            "valgrind": "",
+            "submission_url": "https://tmc.mooc.fi/submissions/7402793",
+            "solution_url": "https://tmc.mooc.fi/exercises/83113/solution",
+            "submitted_at": "2020-06-15T16:05:08.105+03:00",
+            "processing_time": 13,
+            "reviewed": false,
+            "requests_review": true,
+            "paste_url": null,
+            "message_for_paste": null,
+            "missing_review_points": [],
+            "test_cases": [
+                {
+                    "name": "SandboxTest freePoints",
+                    "successful": true,
+                    "message": "",
+                    "exception": [],
+                    "detailed_message": null
+                }
+            ],
+            "feedback_questions": [
+                {
+                    "id": 389,
+                    "question": "How well did you concentrate doing this exercise? (1: not at all, 5: very well)",
+                    "kind": "intrange[1..5]"
+                },
+                {
+                    "id": 390,
+                    "question": "How much do you feel you learned doing this exercise? (1: Did not learn anything, 5: Learned a lot)",
+                    "kind": "intrange[1..5]"
+                },
+            ],
+            "feedback_answer_url": "https://tmc.mooc.fi/api/v8/core/submissions/7402793/feedback"
+        }).to_string()).create();
+
+        let sub_url = format!("{}/submission-url", mockito::server_url());
+        let submission_processing_status =
+            get_submission_processing_status(&client, sub_url.parse().unwrap()).unwrap();
+        match submission_processing_status {
+            SubmissionProcessingStatus::Finished(f) => {
+                assert_eq!(f.all_tests_passed, Some(true));
+            }
+            SubmissionProcessingStatus::Processing(_) => panic!("wrong status"),
+        }
     }
 
     #[test]

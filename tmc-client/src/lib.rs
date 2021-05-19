@@ -5,7 +5,7 @@
 //! ```rust,no_run
 //! use tmc_client::TmcClient;
 //!
-//! let mut client = TmcClient::new_in_config("https://tmc.mooc.fi".to_string(), "some_client".to_string(), "some_version".to_string()).unwrap();
+//! let mut client = TmcClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string());
 //! client.authenticate("client_name", "email".to_string(), "password".to_string());
 //! let organizations = client.get_organizations();
 //! ```
