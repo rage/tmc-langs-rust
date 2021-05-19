@@ -94,7 +94,7 @@ pub fn get_projects_dir(client_name: &str) -> Result<PathBuf, LangsError> {
 pub fn check_exercise_updates(
     client: &TmcClient,
     projects_dir: &Path,
-) -> Result<Vec<usize>, LangsError> {
+) -> Result<Vec<u32>, LangsError> {
     log::debug!("checking exercise updates in {}", projects_dir.display());
 
     let mut updated_exercises = vec![];
@@ -128,9 +128,9 @@ pub fn check_exercise_updates(
 /// If a submission_url is given, the current state of the exercise is submitted to that URL before the download.
 pub fn download_old_submission(
     client: &TmcClient,
-    exercise_id: usize,
+    exercise_id: u32,
     output_path: &Path,
-    submission_id: usize,
+    submission_id: u32,
     submission_url: Option<Url>,
 ) -> Result<(), LangsError> {
     log::debug!(
@@ -211,7 +211,7 @@ pub fn paste_exercise(
 pub fn download_or_update_course_exercises(
     client: &TmcClient,
     projects_dir: &Path,
-    exercises: &[usize],
+    exercises: &[u32],
     download_template: bool,
 ) -> Result<DownloadResult, LangsError> {
     log::debug!(
@@ -490,7 +490,7 @@ pub fn download_or_update_course_exercises(
 /// Fetches the given course's details, exercises and course data.
 pub fn get_course_data(
     client: &TmcClient,
-    course_id: usize,
+    course_id: u32,
 ) -> Result<CombinedCourseData, LangsError> {
     log::debug!("getting course data for {}", course_id);
 
@@ -561,7 +561,7 @@ pub fn update_exercises(
     log::debug!("updating exercises in {}", projects_dir.display());
 
     let mut exercises_to_update = vec![];
-    let mut course_data = HashMap::<String, Vec<(String, String, usize)>>::new();
+    let mut course_data = HashMap::<String, Vec<(String, String, u32)>>::new();
 
     let mut projects_config = ProjectsConfig::load(&projects_dir)?;
 
@@ -785,11 +785,7 @@ pub fn free_disk_space_megabytes(path: &Path) -> Result<u64, LangsError> {
 */
 
 /// Resets the given exercise
-pub fn reset(
-    client: &TmcClient,
-    exercise_id: usize,
-    exercise_path: &Path,
-) -> Result<(), LangsError> {
+pub fn reset(client: &TmcClient, exercise_id: u32, exercise_path: &Path) -> Result<(), LangsError> {
     if exercise_path.exists() {
         // clear out the exercise directory
         file_util::remove_dir_all(exercise_path)?;
@@ -982,7 +978,7 @@ fn move_dir(source: &Path, source_lock: FileLockGuard, target: &Path) -> Result<
     Ok(())
 }
 
-fn start_stage(steps: usize, message: impl Into<String>) {
+fn start_stage(steps: u32, message: impl Into<String>) {
     progress_reporter::start_stage::<()>(steps, message.into(), None)
 }
 

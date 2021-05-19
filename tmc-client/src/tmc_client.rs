@@ -30,7 +30,7 @@ pub type Token =
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "client-update-data-kind")]
 pub enum ClientUpdateData {
-    ExerciseDownload { id: usize, path: PathBuf },
+    ExerciseDownload { id: u32, path: PathBuf },
     PostedSubmission(NewSubmission),
 }
 
@@ -175,22 +175,22 @@ impl TmcClient {
     /// // authenticate
     /// let course_details = client.get_course_details(600).unwrap();
     /// ```
-    pub fn get_course_details(&self, course_id: usize) -> Result<CourseDetails, ClientError> {
+    pub fn get_course_details(&self, course_id: u32) -> Result<CourseDetails, ClientError> {
         self.core_course(course_id)
     }
 
-    pub fn get_exercise_details(&self, exercise_id: usize) -> Result<ExerciseDetails, ClientError> {
+    pub fn get_exercise_details(&self, exercise_id: u32) -> Result<ExerciseDetails, ClientError> {
         self.core_exercise(exercise_id)
     }
 
     pub fn get_exercises_details(
         &self,
-        exercise_ids: &[usize],
+        exercise_ids: &[u32],
     ) -> Result<Vec<ExercisesDetails>, ClientError> {
         self.core_exercise_details(exercise_ids)
     }
 
-    pub fn get_course_submissions(&self, course_id: usize) -> Result<Vec<Submission>, ClientError> {
+    pub fn get_course_submissions(&self, course_id: u32) -> Result<Vec<Submission>, ClientError> {
         self.course_submissions(course_id)
     }
 
@@ -214,17 +214,14 @@ impl TmcClient {
         self.organization_courses(organization_slug)
     }
 
-    pub fn get_course(&self, course_id: usize) -> Result<CourseData, ClientError> {
+    pub fn get_course(&self, course_id: u32) -> Result<CourseData, ClientError> {
         if self.0.token.is_none() {
             return Err(ClientError::NotLoggedIn);
         }
         self.course(course_id)
     }
 
-    pub fn get_course_exercises(
-        &self,
-        course_id: usize,
-    ) -> Result<Vec<CourseExercise>, ClientError> {
+    pub fn get_course_exercises(&self, course_id: u32) -> Result<Vec<CourseExercise>, ClientError> {
         if self.0.token.is_none() {
             return Err(ClientError::NotLoggedIn);
         }
@@ -289,7 +286,7 @@ impl TmcClient {
     /// Returns an error if there's some problem reaching the API, or if the API returns an error.
     pub fn paste_exercise_by_id(
         &self,
-        exercise_id: usize,
+        exercise_id: u32,
         exercise_path: &Path,
         paste_message: Option<String>,
         locale: Option<Language>,
@@ -314,7 +311,7 @@ impl TmcClient {
     ///
     /// # Errors
     /// Returns an error if Url::join fails
-    fn get_submission_url(&self, exercise_id: usize) -> Result<Url, ClientError> {
+    fn get_submission_url(&self, exercise_id: u32) -> Result<Url, ClientError> {
         self.0
             .root_url
             .join(&format!("core/exercises/{}/submissions", exercise_id))
@@ -363,7 +360,7 @@ impl TmcClient {
     /// The method compresses the submission and writes it into a temporary archive, which may fail.
     pub fn submit_exercise_by_id(
         &self,
-        exercise_id: usize,
+        exercise_id: u32,
         exercise_path: &Path,
         locale: Option<Language>,
     ) -> Result<NewSubmission, ClientError> {
@@ -373,7 +370,7 @@ impl TmcClient {
 
     pub fn download_old_submission(
         &self,
-        submission_id: usize,
+        submission_id: u32,
         mut target: impl Write,
     ) -> Result<(), ClientError> {
         log::info!("downloading old submission {}", submission_id);
@@ -382,7 +379,7 @@ impl TmcClient {
 
     pub fn get_exercise_submissions_for_current_user(
         &self,
-        exercise_id: usize,
+        exercise_id: u32,
     ) -> Result<Vec<Submission>, ClientError> {
         self.exercise_submissions_for_current_user(exercise_id)
     }
@@ -483,8 +480,8 @@ impl TmcClient {
     /// ```
     pub fn get_exercise_updates(
         &self,
-        course_id: usize,
-        checksums: HashMap<usize, String>,
+        course_id: u32,
+        checksums: HashMap<u32, String>,
     ) -> Result<UpdateResult, ClientError> {
         let mut new_exercises = vec![];
         let mut updated_exercises = vec![];
@@ -587,11 +584,7 @@ impl AsRef<TmcCore> for TmcClient {
     }
 }
 
-fn start_stage(
-    steps: usize,
-    message: impl Into<String>,
-    data: impl Into<Option<ClientUpdateData>>,
-) {
+fn start_stage(steps: u32, message: impl Into<String>, data: impl Into<Option<ClientUpdateData>>) {
     progress_reporter::start_stage(steps, message.into(), data.into())
 }
 

@@ -2,6 +2,6 @@
 
 /// Used to respond to feedback questions. See TmcClient::send_feedback.
 pub struct FeedbackAnswer {
-    pub question_id: usize,
+    pub question_id: u32,
     pub answer: String,
 }

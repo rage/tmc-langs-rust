@@ -253,13 +253,13 @@ pub enum Core {
         save_old_state: bool,
         /// The ID of the exercise.
         #[structopt(long)]
-        exercise_id: usize,
+        exercise_id: u32,
         /// Path to where the submission should be downloaded.
         #[structopt(long)]
         output_path: PathBuf,
         /// The ID of the submission.
         #[structopt(long)]
-        submission_id: usize,
+        submission_id: u32,
         /// Required if save-old-state is set. The URL where the submission should be posted.
         #[structopt(long)]
         submission_url: Option<Url>,
@@ -273,7 +273,7 @@ pub enum Core {
         download_template: bool,
         /// Exercise id of an exercise that should be downloaded. Multiple ids can be given.
         #[structopt(long, required = true)]
-        exercise_id: Vec<usize>,
+        exercise_id: Vec<u32>,
     },
 
     ///Fetches course data. Combines course details, course exercises and course settings
@@ -281,7 +281,7 @@ pub enum Core {
     GetCourseData {
         /// The ID of the course.
         #[structopt(long)]
-        course_id: usize,
+        course_id: u32,
     },
 
     /// Fetches course details
@@ -289,7 +289,7 @@ pub enum Core {
     GetCourseDetails {
         /// The ID of the course.
         #[structopt(long)]
-        course_id: usize,
+        course_id: u32,
     },
 
     /// Lists a course's exercises
@@ -297,7 +297,7 @@ pub enum Core {
     GetCourseExercises {
         /// The ID of the course.
         #[structopt(long)]
-        course_id: usize,
+        course_id: u32,
     },
 
     /// Fetches course settings
@@ -305,7 +305,7 @@ pub enum Core {
     GetCourseSettings {
         /// The ID of the course.
         #[structopt(long)]
-        course_id: usize,
+        course_id: u32,
     },
 
     /// Lists courses
@@ -321,7 +321,7 @@ pub enum Core {
     GetExerciseDetails {
         /// The ID of the exercise.
         #[structopt(long)]
-        exercise_id: usize,
+        exercise_id: u32,
     },
 
     /// Fetches the current user's old submissions for an exercise
@@ -329,7 +329,7 @@ pub enum Core {
     GetExerciseSubmissions {
         /// The ID of the exercise.
         #[structopt(long)]
-        exercise_id: usize,
+        exercise_id: u32,
     },
 
     /// Checks for updates to exercises
@@ -337,7 +337,7 @@ pub enum Core {
     GetExerciseUpdates {
         /// The ID of the course.
         #[structopt(long)]
-        course_id: usize,
+        course_id: u32,
         /// An exercise. Takes two values, an exercise id and a checksum. Multiple exercises can be given.
         #[structopt(long, required = true, number_of_values = 2, value_names = &["exercise-id", "checksum"])]
         exercise: Vec<String>,
@@ -435,7 +435,7 @@ pub enum Core {
         save_old_state: bool,
         /// The ID of the exercise.
         #[structopt(long)]
-        exercise_id: usize,
+        exercise_id: u32,
         /// Path to the directory where the project resides.
         #[structopt(long)]
         exercise_path: PathBuf,
@@ -506,7 +506,7 @@ pub enum Settings {
         course_slug: String,
         /// The exercise id, e.g. 1234.
         #[structopt(long)]
-        exercise_id: usize,
+        exercise_id: u32,
         /// The exercise slug, e.g. part01-Part01_01.Sandbox.
         #[structopt(long)]
         exercise_slug: String,

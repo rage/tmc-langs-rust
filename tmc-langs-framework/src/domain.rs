@@ -133,8 +133,8 @@ pub enum StyleValidationStrategy {
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct StyleValidationError {
-    pub column: usize,
-    pub line: usize,
+    pub column: u32,
+    pub line: u32,
     pub message: String,
     pub source_name: String,
 }

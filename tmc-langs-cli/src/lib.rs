@@ -705,7 +705,7 @@ fn run_core_inner(
             let mut exercise_checksums = exercise.into_iter();
             let mut checksums = HashMap::new();
             while let Some(exercise_id) = exercise_checksums.next() {
-                let exercise_id = into_usize(&exercise_id)?;
+                let exercise_id = into_u32(&exercise_id)?;
                 let checksum = exercise_checksums
                     .next()
                     .expect("the argument takes two values");
@@ -870,7 +870,7 @@ fn run_core_inner(
             let mut feedback_answers = feedback.into_iter();
             let mut feedback = vec![];
             while let Some(feedback_id) = feedback_answers.next() {
-                let question_id = into_usize(&feedback_id)?;
+                let question_id = into_u32(&feedback_id)?;
                 let answer = feedback_answers
                     .next()
                     .expect("validation error")
@@ -1056,8 +1056,8 @@ fn write_result_to_file_as_json<T: Serialize>(
     Ok(())
 }
 
-fn into_usize(arg: &str) -> Result<usize> {
-    arg.parse::<usize>().with_context(|| {
+fn into_u32(arg: &str) -> Result<u32> {
+    arg.parse::<u32>().with_context(|| {
         format!(
             "Failed to convert argument to a non-negative integer: {}",
             arg,

@@ -1,10 +1,13 @@
 #![allow(dead_code)]
 
-use std::io::Write;
+use std::{io::Write, sync::Arc};
 
 use crate::{request::*, response::*, ClientError, TmcClient};
 use http::{Method, StatusCode};
-use oauth2::TokenResponse;
+use oauth2::{
+    basic::BasicClient, AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword,
+    ResourceOwnerUsername, TokenResponse, TokenUrl,
+};
 use reqwest::blocking::multipart::Form;
 use reqwest::blocking::{RequestBuilder, Response};
 use serde::de::DeserializeOwned;
@@ -103,6 +106,17 @@ fn download(client: &TmcClient, url: Url, mut target: impl Write) -> Result<(), 
     } else {
         Err(handle_failure(res, url, status))
     }
+}
+
+pub fn get_credentials(
+    client: &mut TmcClient,
+    client_name: &str,
+) -> Result<Credentials, ClientError> {
+    let url = make_url(
+        client,
+        format!("/api/v8/application/{}/credentials", client_name),
+    )?;
+    get_json(client, url, &[])
 }
 
 pub mod user {

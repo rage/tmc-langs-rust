@@ -57,7 +57,7 @@ pub fn migrate_exercise(
     tmc_config: TmcConfig,
     course_slug: &str,
     exercise_slug: &str,
-    exercise_id: usize,
+    exercise_id: u32,
     exercise_checksum: &str,
     exercise_path: &Path,
 ) -> Result<(), LangsError> {

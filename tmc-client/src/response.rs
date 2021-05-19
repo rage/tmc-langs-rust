@@ -34,7 +34,7 @@ pub struct Credentials {
 
 #[derive(Debug, Deserialize)]
 pub struct User {
-    pub id: usize,
+    pub id: u32,
     pub username: String,
     pub email: String,
     pub administrator: bool,
@@ -53,7 +53,7 @@ pub struct Organization {
 /// Information for a course.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct Course {
-    pub id: usize,
+    pub id: u32,
     pub name: String,
     pub title: String,
     pub description: Option<String>,
@@ -70,21 +70,21 @@ pub struct CourseData {
     pub name: String,
     pub hide_after: Option<String>,
     pub hidden: bool,
-    pub cache_version: Option<usize>,
+    pub cache_version: Option<u32>,
     pub spreadsheet_key: Option<String>,
     pub hidden_if_registered_after: Option<String>,
     pub refreshed_at: Option<DateTime<FixedOffset>>,
     pub locked_exercise_points_visible: bool,
     pub description: Option<String>,
-    pub paste_visibility: Option<usize>,
+    pub paste_visibility: Option<u32>,
     pub formal_name: Option<String>,
     pub certificate_downloadable: Option<bool>,
     pub certificate_unlock_spec: Option<String>,
-    pub organization_id: Option<usize>,
+    pub organization_id: Option<u32>,
     pub disabled_status: Option<String>,
     pub title: Option<String>,
     pub material_url: Option<String>,
-    pub course_template_id: Option<usize>,
+    pub course_template_id: Option<u32>,
     pub hide_submission_results: bool,
     pub external_scoreboard_url: Option<String>,
     pub organization_slug: Option<String>,
@@ -128,7 +128,7 @@ impl From<CourseDetailsWrapper> for CourseDetails {
 
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct Exercise {
-    pub id: usize,
+    pub id: u32,
     pub name: String,
     pub locked: bool,
     pub deadline_description: Option<String>,
@@ -144,20 +144,20 @@ pub struct Exercise {
     pub completed: bool,
     pub reviewed: bool,
     pub all_review_points_given: bool,
-    pub memory_limit: Option<usize>,
+    pub memory_limit: Option<u32>,
     pub runtime_params: Vec<String>,
     pub valgrind_strategy: String,
     pub code_review_requests_enabled: bool,
     pub run_tests_locally_action_enabled: bool,
     pub latest_submission_url: Option<String>,
-    pub latest_submission_id: Option<usize>,
+    pub latest_submission_id: Option<u32>,
     pub solution_zip_url: Option<String>,
 }
 
 /// Exercise for a course.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct CourseExercise {
-    pub id: usize,
+    pub id: u32,
     pub available_points: Vec<ExercisePoint>,
     pub awarded_points: Vec<String>,
     pub name: String,
@@ -171,7 +171,7 @@ pub struct CourseExercise {
 
 #[derive(Debug, Deserialize)]
 pub struct CourseDataExercise {
-    pub id: usize,
+    pub id: u32,
     pub available_points: Vec<ExercisePoint>,
     pub name: String,
     pub publish_time: Option<String>,
@@ -182,8 +182,8 @@ pub struct CourseDataExercise {
 
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct ExercisePoint {
-    pub id: usize,
-    pub exercise_id: usize,
+    pub id: u32,
+    pub exercise_id: u32,
     pub name: String,
     pub requires_review: bool,
 }
@@ -191,15 +191,15 @@ pub struct ExercisePoint {
 #[derive(Debug, Deserialize)]
 pub struct CourseDataExercisePoint {
     awarded_point: AwardedPoint,
-    exercise_id: usize,
+    exercise_id: u32,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct AwardedPoint {
-    id: usize,
-    course_id: usize,
-    user_id: usize,
-    submission_id: usize,
+    id: u32,
+    course_id: u32,
+    user_id: u32,
+    submission_id: u32,
     name: String,
     created_at: DateTime<FixedOffset>,
 }
@@ -208,11 +208,11 @@ pub struct AwardedPoint {
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct ExerciseDetails {
     pub course_name: String,
-    pub course_id: usize,
+    pub course_id: u32,
     pub code_review_requests_enabled: bool,
     pub run_tests_locally_action_enabled: bool,
     pub exercise_name: String,
-    pub exercise_id: usize,
+    pub exercise_id: u32,
     pub unlocked_at: Option<String>,
     pub deadline: Option<String>,
     pub submissions: Vec<ExerciseSubmission>,
@@ -220,7 +220,7 @@ pub struct ExerciseDetails {
 
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct ExercisesDetails {
-    pub id: usize,
+    pub id: u32,
     pub course_name: String,
     pub exercise_name: String,
     pub checksum: String,
@@ -229,19 +229,19 @@ pub struct ExercisesDetails {
 /// Exercise submission.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct Submission {
-    pub id: usize,
-    pub user_id: usize,
+    pub id: u32,
+    pub user_id: u32,
     pub pretest_error: Option<String>,
     pub created_at: DateTime<FixedOffset>,
     pub exercise_name: String,
-    pub course_id: usize,
+    pub course_id: u32,
     pub processed: bool,
     pub all_tests_passed: bool,
     pub points: Option<String>,
     pub processing_tried_at: Option<DateTime<FixedOffset>>,
     pub processing_began_at: Option<DateTime<FixedOffset>>,
     pub processing_completed_at: Option<DateTime<FixedOffset>>,
-    pub times_sent_to_sandbox: usize,
+    pub times_sent_to_sandbox: u32,
     pub processing_attempts_started_at: DateTime<FixedOffset>,
     pub params_json: Option<String>,
     pub requires_review: bool,
@@ -258,15 +258,15 @@ pub struct Submission {
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct ExerciseSubmission {
     pub exercise_name: String,
-    pub id: usize,
-    pub user_id: usize,
-    pub course_id: usize,
+    pub id: u32,
+    pub user_id: u32,
+    pub course_id: u32,
     pub created_at: DateTime<FixedOffset>,
     pub all_tests_passed: bool,
     pub points: Option<String>,
     pub submitted_zip_url: String,
     pub paste_url: Option<String>,
-    pub processing_time: Option<usize>,
+    pub processing_time: Option<u32>,
     pub reviewed: bool,
     pub requests_review: bool,
 }
@@ -303,9 +303,9 @@ pub enum SandboxStatus {
 /// Finished submission.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 pub struct SubmissionFinished {
-    pub api_version: usize,
+    pub api_version: u32,
     pub all_tests_passed: Option<bool>,
-    pub user_id: usize,
+    pub user_id: u32,
     pub login: String,
     pub course: String,
     pub exercise_name: String,
@@ -315,7 +315,7 @@ pub struct SubmissionFinished {
     pub submission_url: String,
     pub solution_url: Option<String>,
     pub submitted_at: String,
-    pub processing_time: Option<usize>,
+    pub processing_time: Option<u32>,
     pub reviewed: bool,
     pub requests_review: bool,
     pub paste_url: Option<String>,
@@ -341,7 +341,7 @@ pub enum SubmissionStatus {
 /// Response to feedback.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct SubmissionFeedbackResponse {
-    pub api_version: usize,
+    pub api_version: u32,
     pub status: SubmissionStatus,
 }
 
@@ -356,7 +356,7 @@ pub struct TestCase {
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 pub struct SubmissionFeedbackQuestion {
-    pub id: usize,
+    pub id: u32,
     pub question: String,
     pub kind: SubmissionFeedbackKind,
 }
@@ -364,7 +364,7 @@ pub struct SubmissionFeedbackQuestion {
 #[derive(Debug, PartialEq, Eq, JsonSchema)]
 pub enum SubmissionFeedbackKind {
     Text,
-    IntRange { lower: usize, upper: usize },
+    IntRange { lower: u32, upper: u32 },
 }
 
 impl<'de> Deserialize<'de> for SubmissionFeedbackKind {
@@ -411,14 +411,14 @@ impl<'de> Visitor<'de> for SubmissionFeedbackKindVisitor {
             Ok(SubmissionFeedbackKind::Text)
         } else if let Some(captures) = RANGE.captures(&value) {
             let lower = &captures[1];
-            let lower = usize::from_str(lower).map_err(|e| {
+            let lower = u32::from_str(lower).map_err(|e| {
                 E::custom(format!(
                     "error parsing intrange lower bound {}: {}",
                     lower, e
                 ))
             })?;
             let upper = &captures[2];
-            let upper = usize::from_str(upper).map_err(|e| {
+            let upper = u32::from_str(upper).map_err(|e| {
                 E::custom(format!(
                     "error parsing intrange upper bound {}: {}",
                     upper, e
@@ -434,9 +434,9 @@ impl<'de> Visitor<'de> for SubmissionFeedbackKindVisitor {
 /// Code review.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct Review {
-    pub submission_id: usize,
+    pub submission_id: u32,
     pub exercise_name: String,
-    pub id: usize,
+    pub id: u32,
     pub marked_as_read: bool,
     pub reviewer_name: String,
     pub review_body: String,
