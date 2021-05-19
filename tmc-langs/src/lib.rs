@@ -132,7 +132,7 @@ pub fn download_old_submission(
     exercise_id: u32,
     output_path: &Path,
     submission_id: u32,
-    submission_url: Option<Url>,
+    save_old_state: bool,
 ) -> Result<(), LangsError> {
     log::debug!(
         "downloading old submission {} for {}",
@@ -140,7 +140,7 @@ pub fn download_old_submission(
         exercise_id
     );
 
-    if submission_url.is_some() {
+    if save_old_state {
         // submit old exercise
         client.submit(exercise_id, output_path, None)?;
         log::debug!("finished submission");
@@ -1133,7 +1133,7 @@ checksum = 'old checksum'
         let output_dir = tempfile::tempdir().unwrap();
         let client = mock_client();
 
-        download_old_submission(&client, 1, output_dir.path(), 2, None).unwrap();
+        download_old_submission(&client, 1, output_dir.path(), 2, false).unwrap();
         let s = file_util::read_file_to_string(output_dir.path().join("src/file")).unwrap();
         assert_eq!(s, "file contents");
     }
@@ -1489,7 +1489,7 @@ checksum = 'new checksum'
 
         let client = mock_client();
 
-        download_old_submission(&client, 1, output_dir.path(), 2, None).unwrap();
+        download_old_submission(&client, 1, output_dir.path(), 2, false).unwrap();
 
         let s = file_util::read_file_to_string(output_dir.path().join("pom.xml")).unwrap();
         assert_eq!(s, "template");

@@ -14,7 +14,6 @@ use tmc_langs::{
     OutputFormat, Review, RunResult, StyleValidationResult, Submission, SubmissionFeedbackResponse,
     SubmissionFinished, UpdateResult,
 };
-use url::Url;
 // use tmc_langs_util::task_executor::RefreshData;
 
 #[derive(StructOpt)]
@@ -248,6 +247,9 @@ pub enum Core {
     /// Downloads an old submission. Resets the exercise at output-path if any, downloading the exercise base from the server. The old submission is then downloaded and extracted on top of the base, using the student file policy to retain student files
     #[structopt(long_about = SCHEMA_NULL)]
     DownloadOldSubmission {
+        /// The ID of the submission.
+        #[structopt(long)]
+        submission_id: u32,
         /// If set, the exercise is submitted to the server before resetting it.
         #[structopt(long, requires = "submission-url")]
         save_old_state: bool,
@@ -257,12 +259,6 @@ pub enum Core {
         /// Path to where the submission should be downloaded.
         #[structopt(long)]
         output_path: PathBuf,
-        /// The ID of the submission.
-        #[structopt(long)]
-        submission_id: u32,
-        /// Required if save-old-state is set. The URL where the submission should be posted.
-        #[structopt(long)]
-        submission_url: Option<Url>,
     },
 
     /// Downloads exercises. If downloading an exercise that has been downloaded before, the student file policy will be used to avoid overwriting student files, effectively just updating the exercise files
@@ -479,9 +475,9 @@ pub enum Core {
     /// Waits for a submission to finish
     #[structopt(long_about = schema_leaked::<SubmissionFinished>())]
     WaitForSubmission {
-        /// URL to the submission's status.
+        /// The ID of the submission.
         #[structopt(long)]
-        submission_url: Url,
+        submission_id: u32,
     },
 }
 

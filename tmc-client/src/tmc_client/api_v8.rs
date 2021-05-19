@@ -40,8 +40,7 @@ fn prepare_tmc_request(client: &TmcClient, method: Method, url: Url) -> RequestB
     }
 }
 
-// converts a failed response into a ClientError
-// assumes the response status code is a failure
+// checks a response for failure
 fn assert_success(response: Response, url: &Url) -> Result<Response, ClientError> {
     let status = response.status();
     if status.is_success() {
@@ -71,8 +70,8 @@ fn assert_success(response: Response, url: &Url) -> Result<Response, ClientError
     }
 }
 
-// fetches JSON and deserializes it into T
-fn get_json<T: DeserializeOwned>(
+/// Fetches JSON from the given URL and deserializes it into T.
+pub fn get_json<T: DeserializeOwned>(
     client: &TmcClient,
     url: Url,
     params: &[(&str, String)],
@@ -112,11 +111,13 @@ pub fn get_credentials(client: &TmcClient, client_name: &str) -> Result<Credenti
     get_json(client, url, &[])
 }
 
+/// get /api/v8/core/submission/{submission_id}
 /// Checks the submission processing status from the given URL.
-pub fn get_submission_processing_status(
+pub fn get_submission(
     client: &TmcClient,
-    url: Url,
+    submission_id: u32,
 ) -> Result<SubmissionProcessingStatus, ClientError> {
+    let url = make_url(client, format!("/api/v8/core/submission/{}", submission_id))?;
     get_json(client, url, &[])
 }
 
@@ -1054,7 +1055,7 @@ mod test {
         init();
 
         let client = make_client();
-        let _m = mockito::mock("GET", "/submission-url")
+        let _m = mockito::mock("GET", "/api/v8/core/submission/0")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("client".into(), "client".into()),
                 Matcher::UrlEncoded("client_version".into(), "version".into()),
@@ -1108,9 +1109,7 @@ mod test {
             "feedback_answer_url": "https://tmc.mooc.fi/api/v8/core/submissions/7402793/feedback"
         }).to_string()).create();
 
-        let sub_url = format!("{}/submission-url", mockito::server_url());
-        let submission_processing_status =
-            get_submission_processing_status(&client, sub_url.parse().unwrap()).unwrap();
+        let submission_processing_status = get_submission(&client, 0).unwrap();
         match submission_processing_status {
             SubmissionProcessingStatus::Finished(f) => {
                 assert_eq!(f.all_tests_passed, Some(true));

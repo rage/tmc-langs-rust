@@ -356,19 +356,16 @@ impl TmcClient {
         api_v8::submission::get_exercise_submissions_for_current_user(self, exercise_id)
     }
 
-    /// Waits for a submission to finish. May require authentication.
-    ///
-    /// # Errors
-    /// If authentication is required but the client is not authenticated, there's some problem reaching the API, or if the API returns an error.
-    pub fn wait_for_submission(
+    // abstracts waiting for submission over different functions for getting the submission status
+    fn wait_for_submission_inner(
         &self,
-        submission_url: &str,
+        f: impl Fn() -> Result<SubmissionProcessingStatus, ClientError>,
     ) -> Result<SubmissionFinished, ClientError> {
         start_stage(4, "Waiting for submission", None);
 
         let mut previous_status = None;
         loop {
-            match self.check_submission(submission_url)? {
+            match f()? {
                 SubmissionProcessingStatus::Finished(f) => {
                     finish_stage("Submission finished processing!", None);
                     return Ok(*f);
@@ -433,6 +430,24 @@ impl TmcClient {
                 }
             }
         }
+    }
+
+    pub fn wait_for_submission_at(
+        &self,
+        submission_url: Url,
+    ) -> Result<SubmissionFinished, ClientError> {
+        self.wait_for_submission_inner(|| api_v8::get_json(self, submission_url.clone(), &[]))
+    }
+
+    /// Waits for a submission to finish. May require authentication.
+    ///
+    /// # Errors
+    /// If authentication is required but the client is not authenticated, there's some problem reaching the API, or if the API returns an error.
+    pub fn wait_for_submission(
+        &self,
+        submission_id: u32,
+    ) -> Result<SubmissionFinished, ClientError> {
+        self.wait_for_submission_inner(|| api_v8::get_submission(self, submission_id))
     }
 
     /// Fetches the course's exercises from the server,
@@ -550,11 +565,9 @@ impl TmcClient {
     /// If authentication is required but the client is not authenticated, if there's some problem reaching the API, or if the API returns an error.
     pub fn check_submission(
         &self,
-        submission_url: &str,
+        submission_id: u32,
     ) -> Result<SubmissionProcessingStatus, ClientError> {
-        let url = Url::parse(submission_url)
-            .map_err(|e| ClientError::UrlParse(submission_url.to_string(), e))?;
-        api_v8::get_submission_processing_status(self, url)
+        api_v8::get_submission(self, submission_id)
     }
 
     /// Request code review. Requires authentication.

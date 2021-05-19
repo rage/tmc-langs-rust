@@ -594,18 +594,17 @@ fn run_core_inner(
         }
 
         Core::DownloadOldSubmission {
-            save_old_state: _,
+            submission_id,
+            save_old_state,
             exercise_id,
             output_path,
-            submission_id,
-            submission_url,
         } => {
             tmc_langs::download_old_submission(
                 &client,
                 exercise_id,
                 &output_path,
                 submission_id,
-                submission_url,
+                save_old_state,
             )?;
             Output::finished("extracted project")
         }
@@ -902,9 +901,9 @@ fn run_core_inner(
                 Output::finished_with_data("submit exercise", Data::NewSubmission(new_submission))
             } else {
                 // same as wait-for-submission
-                let submission_url = new_submission.submission_url;
+                let submission_url = new_submission.submission_url.parse()?;
                 let submission_finished = client
-                    .wait_for_submission(&submission_url)
+                    .wait_for_submission_at(submission_url)
                     .context("Failed while waiting for submissions")?;
                 Output::finished_with_data(
                     "submit exercise",
@@ -922,9 +921,9 @@ fn run_core_inner(
             )
         }
 
-        Core::WaitForSubmission { submission_url } => {
+        Core::WaitForSubmission { submission_id } => {
             let submission_finished = client
-                .wait_for_submission(submission_url.as_ref())
+                .wait_for_submission(submission_id)
                 .context("Failed while waiting for submissions")?;
             Output::finished_with_data(
                 "finished waiting for submission",
