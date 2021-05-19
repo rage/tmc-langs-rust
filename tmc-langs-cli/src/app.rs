@@ -14,7 +14,6 @@ use tmc_langs::{
     OutputFormat, Review, RunResult, StyleValidationResult, Submission, SubmissionFeedbackResponse,
     SubmissionFinished, UpdateResult,
 };
-use url::Url;
 // use tmc_langs_util::task_executor::RefreshData;
 
 #[derive(StructOpt)]
@@ -237,9 +236,9 @@ pub enum Core {
     /// Downloads an exercise's model solution
     #[structopt(long_about = SCHEMA_NULL)]
     DownloadModelSolution {
-        /// URL to the solution download.
+        /// The ID of the exercise.
         #[structopt(long)]
-        solution_download_url: Url,
+        exercise_id: u32,
         /// Path to where the model solution will be downloaded.
         #[structopt(long)]
         target: PathBuf,
@@ -248,21 +247,18 @@ pub enum Core {
     /// Downloads an old submission. Resets the exercise at output-path if any, downloading the exercise base from the server. The old submission is then downloaded and extracted on top of the base, using the student file policy to retain student files
     #[structopt(long_about = SCHEMA_NULL)]
     DownloadOldSubmission {
+        /// The ID of the submission.
+        #[structopt(long)]
+        submission_id: u32,
         /// If set, the exercise is submitted to the server before resetting it.
-        #[structopt(long, requires = "submission-url")]
+        #[structopt(long)]
         save_old_state: bool,
         /// The ID of the exercise.
         #[structopt(long)]
-        exercise_id: usize,
+        exercise_id: u32,
         /// Path to where the submission should be downloaded.
         #[structopt(long)]
         output_path: PathBuf,
-        /// The ID of the submission.
-        #[structopt(long)]
-        submission_id: usize,
-        /// Required if save-old-state is set. The URL where the submission should be posted.
-        #[structopt(long)]
-        submission_url: Option<Url>,
     },
 
     /// Downloads exercises. If downloading an exercise that has been downloaded before, the student file policy will be used to avoid overwriting student files, effectively just updating the exercise files
@@ -273,7 +269,7 @@ pub enum Core {
         download_template: bool,
         /// Exercise id of an exercise that should be downloaded. Multiple ids can be given.
         #[structopt(long, required = true)]
-        exercise_id: Vec<usize>,
+        exercise_id: Vec<u32>,
     },
 
     ///Fetches course data. Combines course details, course exercises and course settings
@@ -281,7 +277,7 @@ pub enum Core {
     GetCourseData {
         /// The ID of the course.
         #[structopt(long)]
-        course_id: usize,
+        course_id: u32,
     },
 
     /// Fetches course details
@@ -289,7 +285,7 @@ pub enum Core {
     GetCourseDetails {
         /// The ID of the course.
         #[structopt(long)]
-        course_id: usize,
+        course_id: u32,
     },
 
     /// Lists a course's exercises
@@ -297,7 +293,7 @@ pub enum Core {
     GetCourseExercises {
         /// The ID of the course.
         #[structopt(long)]
-        course_id: usize,
+        course_id: u32,
     },
 
     /// Fetches course settings
@@ -305,7 +301,7 @@ pub enum Core {
     GetCourseSettings {
         /// The ID of the course.
         #[structopt(long)]
-        course_id: usize,
+        course_id: u32,
     },
 
     /// Lists courses
@@ -321,7 +317,7 @@ pub enum Core {
     GetExerciseDetails {
         /// The ID of the exercise.
         #[structopt(long)]
-        exercise_id: usize,
+        exercise_id: u32,
     },
 
     /// Fetches the current user's old submissions for an exercise
@@ -329,7 +325,7 @@ pub enum Core {
     GetExerciseSubmissions {
         /// The ID of the exercise.
         #[structopt(long)]
-        exercise_id: usize,
+        exercise_id: u32,
     },
 
     /// Checks for updates to exercises
@@ -337,7 +333,7 @@ pub enum Core {
     GetExerciseUpdates {
         /// The ID of the course.
         #[structopt(long)]
-        course_id: usize,
+        course_id: u32,
         /// An exercise. Takes two values, an exercise id and a checksum. Multiple exercises can be given.
         #[structopt(long, required = true, number_of_values = 2, value_names = &["exercise-id", "checksum"])]
         exercise: Vec<String>,
@@ -355,12 +351,12 @@ pub enum Core {
     #[structopt(long_about = schema_leaked::<Vec<Organization>>())]
     GetOrganizations,
 
-    /// Fetches unread reviews
+    /// Fetches unread reviews for a course
     #[structopt(long_about = schema_leaked::<Vec<Review>>())]
     GetUnreadReviews {
-        /// URL to the reviews API.
+        /// The ID of the course.
         #[structopt(long)]
-        reviews_url: Url,
+        course_id: u32,
     },
 
     /// Checks if the CLI is authenticated. Prints the access token if so
@@ -388,14 +384,20 @@ pub enum Core {
     /// Marks a review as read
     #[structopt(long_about = SCHEMA_NULL)]
     MarkReviewAsRead {
-        /// URL to the review update API.
+        /// The ID of the course.
         #[structopt(long)]
-        review_update_url: Url,
+        course_id: u32,
+        /// The ID of the review.
+        #[structopt(long)]
+        review_id: u32,
     },
 
     /// Sends an exercise to the TMC pastebin
     #[structopt(long_about = schema_leaked::<NewSubmission>())]
     Paste {
+        /// The ID of the exercise.
+        #[structopt(long)]
+        exercise_id: u32,
         /// Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.
         #[structopt(long)]
         locale: Option<Locale>,
@@ -405,14 +407,14 @@ pub enum Core {
         /// Path to the exercise to be submitted.
         #[structopt(long)]
         submission_path: PathBuf,
-        /// The URL where the submission should be posted.
-        #[structopt(long)]
-        submission_url: Url,
     },
 
     /// Requests code review
     #[structopt(long_about = schema_leaked::<NewSubmission>())]
     RequestCodeReview {
+        /// The ID of the exercise.
+        #[structopt(long)]
+        exercise_id: u32,
         /// Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.
         #[structopt(long)]
         locale: Locale,
@@ -422,37 +424,31 @@ pub enum Core {
         /// Path to the directory where the submission resides.
         #[structopt(long)]
         submission_path: PathBuf,
-        /// URL where the submission should be posted.
-        #[structopt(long)]
-        submission_url: Url,
     },
 
     /// Resets an exercise. Removes the contents of the exercise directory and redownloads it from the server
     #[structopt(long_about = SCHEMA_NULL)]
     ResetExercise {
         /// If set, the exercise is submitted to the server before resetting it.
-        #[structopt(long, requires = "submission-url")]
+        #[structopt(long)]
         save_old_state: bool,
         /// The ID of the exercise.
         #[structopt(long)]
-        exercise_id: usize,
+        exercise_id: u32,
         /// Path to the directory where the project resides.
         #[structopt(long)]
         exercise_path: PathBuf,
-        /// Required if save-old-state is set. The URL where the submission should be posted.
-        #[structopt(long)]
-        submission_url: Option<Url>,
     },
 
-    /// Sends feedback for an exercise
+    /// Sends feedback for an exercise submission
     #[structopt(long_about = schema_leaked::<SubmissionFeedbackResponse>())]
     SendFeedback {
+        /// The ID of the submission.
+        #[structopt(long)]
+        submission_id: u32,
         /// A feedback answer. Takes two values, a feedback answer id and the answer. Multiple feedback arguments can be given.
         #[structopt(long, required = true, number_of_values = 2, value_names = &["feedback-answer-id, answer"])]
         feedback: Vec<String>,
-        /// URL where the feedback should be posted.
-        #[structopt(long)]
-        feedback_url: Url,
     },
 
     /// Submits an exercise. By default blocks until the submission results are returned
@@ -467,9 +463,9 @@ pub enum Core {
         /// Path to the directory where the exercise resides.
         #[structopt(long)]
         submission_path: PathBuf,
-        /// URL where the submission should be posted.
+        /// The ID of the exercise.
         #[structopt(long)]
-        submission_url: Url,
+        exercise_id: u32,
     },
 
     /// Updates all local exercises that have been updated on the server
@@ -479,9 +475,9 @@ pub enum Core {
     /// Waits for a submission to finish
     #[structopt(long_about = schema_leaked::<SubmissionFinished>())]
     WaitForSubmission {
-        /// URL to the submission's status.
+        /// The ID of the submission.
         #[structopt(long)]
-        submission_url: Url,
+        submission_id: u32,
     },
 }
 
@@ -506,7 +502,7 @@ pub enum Settings {
         course_slug: String,
         /// The exercise id, e.g. 1234.
         #[structopt(long)]
-        exercise_id: usize,
+        exercise_id: u32,
         /// The exercise slug, e.g. part01-Part01_01.Sandbox.
         #[structopt(long)]
         exercise_slug: String,
@@ -808,8 +804,8 @@ mod core_test {
     fn download_model_solution() {
         get_matches_core(&[
             "download-model-solution",
-            "--solution-download-url",
-            "http://localhost",
+            "--exercise-id",
+            "0",
             "--target",
             "path",
         ]);
@@ -826,8 +822,6 @@ mod core_test {
             "path",
             "--submission-id",
             "2345",
-            "--submission-url",
-            "http://localhost",
         ]);
     }
 
@@ -904,7 +898,7 @@ mod core_test {
 
     #[test]
     fn get_unread_reviews() {
-        get_matches_core(&["get-unread-reviews", "--reviews-url", "http://localhost"]);
+        get_matches_core(&["get-unread-reviews", "--course-id", "0"]);
     }
 
     #[test]
@@ -933,8 +927,10 @@ mod core_test {
     fn mark_review_as_read() {
         get_matches_core(&[
             "mark-review-as-read",
-            "--review-update-url",
-            "http://localhost",
+            "--course-id",
+            "0",
+            "--review-id",
+            "1",
         ]);
     }
 
@@ -948,8 +944,8 @@ mod core_test {
             "msg",
             "--submission-path",
             "path",
-            "--submission-url",
-            "http://localhost",
+            "--exercise-id",
+            "0",
         ]);
     }
 
@@ -963,8 +959,8 @@ mod core_test {
             "msg",
             "--submission-path",
             "path",
-            "--submission-url",
-            "http://localhost",
+            "--exercise-id",
+            "0",
         ]);
     }
 
@@ -977,8 +973,6 @@ mod core_test {
             "1234",
             "--exercise-path",
             "path",
-            "--submission-url",
-            "http://localhost",
         ]);
     }
 
@@ -989,8 +983,8 @@ mod core_test {
             "--feedback",
             "1234",
             "answer",
-            "--feedback-url",
-            "http://localhost",
+            "--submission-id",
+            "0",
         ]);
     }
 
@@ -1003,8 +997,8 @@ mod core_test {
             "fi",
             "--submission-path",
             "path",
-            "--submission-url",
-            "http://localhost",
+            "--exercise-id",
+            "0",
         ]);
     }
 
@@ -1015,11 +1009,7 @@ mod core_test {
 
     #[test]
     fn wait_for_submission() {
-        get_matches_core(&[
-            "wait-for-submission",
-            "--submission-url",
-            "http://localhost",
-        ]);
+        get_matches_core(&["wait-for-submission", "--submission-id", "0"]);
     }
 }
 

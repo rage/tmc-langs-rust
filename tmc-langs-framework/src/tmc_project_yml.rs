@@ -121,9 +121,9 @@ impl TmcProjectYml {
 /// TODO: if patch is Some minor is also guaranteed to be Some etc. encode this in the type system
 #[derive(Debug, Default, Clone, Copy, Serialize)]
 pub struct PythonVer {
-    pub major: Option<usize>,
-    pub minor: Option<usize>,
-    pub patch: Option<usize>,
+    pub major: Option<u32>,
+    pub minor: Option<u32>,
+    pub patch: Option<u32>,
 }
 
 /// Deserializes a major.minor?.patch? version into a PythonVer.
@@ -147,19 +147,19 @@ impl<'de> Deserialize<'de> for PythonVer {
             {
                 let mut parts = v.split('.');
                 let major = if let Some(major) = parts.next() {
-                    let parsed: usize = major.parse().map_err(Error::custom)?;
+                    let parsed: u32 = major.parse().map_err(Error::custom)?;
                     Some(parsed)
                 } else {
                     None
                 };
                 let minor = if let Some(minor) = parts.next() {
-                    let parsed: usize = minor.parse().map_err(Error::custom)?;
+                    let parsed: u32 = minor.parse().map_err(Error::custom)?;
                     Some(parsed)
                 } else {
                     None
                 };
                 let patch = if let Some(patch) = parts.next() {
-                    let parsed: usize = patch.parse().map_err(Error::custom)?;
+                    let parsed: u32 = patch.parse().map_err(Error::custom)?;
                     Some(parsed)
                 } else {
                     None

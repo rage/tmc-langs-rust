@@ -74,25 +74,25 @@ impl Python3Plugin {
         }
     }
 
-    fn get_local_python_ver() -> Result<(usize, usize, usize), PythonError> {
+    fn get_local_python_ver() -> Result<(u32, u32, u32), PythonError> {
         let output = Self::get_local_python_command()
         .with(|e| e.args(&["-c", "import sys; print(sys.version_info.major); print(sys.version_info.minor); print(sys.version_info.micro);"]))
         .output_checked()?;
         let stdout = String::from_utf8_lossy(&output.stdout);
         let mut lines = stdout.lines();
-        let major: usize = lines
+        let major: u32 = lines
             .next()
             .ok_or_else(|| PythonError::VersionPrintError(stdout.clone().into_owned()))?
             .trim()
             .parse()
             .map_err(|e| PythonError::VersionParseError(stdout.clone().into_owned(), e))?;
-        let minor: usize = lines
+        let minor: u32 = lines
             .next()
             .ok_or_else(|| PythonError::VersionPrintError(stdout.clone().into_owned()))?
             .trim()
             .parse()
             .map_err(|e| PythonError::VersionParseError(stdout.clone().into_owned(), e))?;
-        let patch: usize = lines
+        let patch: u32 = lines
             .next()
             .ok_or_else(|| PythonError::VersionPrintError(stdout.clone().into_owned()))?
             .trim()

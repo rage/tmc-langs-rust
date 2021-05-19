@@ -44,8 +44,8 @@ pub enum ClientError {
 
     #[error("Failed to download some exercises")]
     IncompleteDownloadResult {
-        downloaded: Vec<usize>,
-        failed: Vec<(usize, Box<ClientError>)>,
+        downloaded: Vec<u32>,
+        failed: Vec<(u32, Box<ClientError>)>,
     },
 
     #[error("Already authenticated")]

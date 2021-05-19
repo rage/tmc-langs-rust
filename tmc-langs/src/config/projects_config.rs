@@ -129,7 +129,7 @@ impl CourseConfig {
         Ok(())
     }
 
-    pub fn add_exercise(&mut self, exercise_name: String, id: usize, checksum: String) {
+    pub fn add_exercise(&mut self, exercise_name: String, id: u32, checksum: String) {
         let exercise = ProjectsDirExercise { id, checksum };
         self.exercises.insert(exercise_name, exercise);
     }
@@ -138,7 +138,7 @@ impl CourseConfig {
 /// An exercise in the projects directory.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProjectsDirExercise {
-    pub id: usize,
+    pub id: u32,
     pub checksum: String,
 }
 
