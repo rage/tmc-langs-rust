@@ -40,8 +40,11 @@ fn prepare_tmc_request(client: &TmcClient, method: Method, url: Url) -> RequestB
 
 // converts a failed response into a ClientError
 // assumes the response status code is a failure
-fn handle_failure(response: Response, url: Url, status: StatusCode) -> ClientError {
-    if let Ok(err) = response.json::<ErrorResponse>() {
+fn assert_success(response: Response, url: &Url) -> Result<Response, ClientError> {
+    let status = response.status();
+    if status.is_success() {
+        Ok(response)
+    } else if let Ok(err) = response.json::<ErrorResponse>() {
         // failed and got an error json
         let error = match (err.error, err.errors) {
             (Some(err), Some(errs)) => format!("{}, {}", err, errs.join(",")),
@@ -49,20 +52,20 @@ fn handle_failure(response: Response, url: Url, status: StatusCode) -> ClientErr
             (None, Some(errs)) => errs.join(","),
             (None, None) => "".to_string(),
         };
-        ClientError::HttpError {
-            url,
+        Err(ClientError::HttpError {
+            url: url.clone(),
             status,
             error,
             obsolete_client: err.obsolete_client,
-        }
+        })
     } else {
         // failed and failed to parse error json, return generic HTTP error
-        ClientError::HttpError {
-            url,
+        Err(ClientError::HttpError {
+            url: url.clone(),
             status,
             error: status.to_string(),
             obsolete_client: false,
-        }
+        })
     }
 }
 
@@ -76,16 +79,12 @@ fn get_json<T: DeserializeOwned>(
         .send()
         .map_err(|e| ClientError::ConnectionError(Method::GET, url.clone(), e))?;
 
-    let status = res.status();
-    if status.is_success() {
-        // expecting successful response
-        let json = res
-            .json()
-            .map_err(|e| ClientError::HttpJsonResponse(url, e))?;
-        Ok(json)
-    } else {
-        Err(handle_failure(res, url, status))
-    }
+    let res = assert_success(res, &url)?;
+    // expecting successful response
+    let json = res
+        .json()
+        .map_err(|e| ClientError::HttpJsonResponse(url, e))?;
+    Ok(json)
 }
 
 fn download(client: &TmcClient, url: Url, mut target: impl Write) -> Result<(), ClientError> {
@@ -93,14 +92,10 @@ fn download(client: &TmcClient, url: Url, mut target: impl Write) -> Result<(), 
         .send()
         .map_err(|e| ClientError::ConnectionError(Method::GET, url.clone(), e))?;
 
-    let status = res.status();
-    if status.is_success() {
-        res.copy_to(&mut target)
-            .map_err(ClientError::HttpWriteResponse)?;
-        Ok(())
-    } else {
-        Err(handle_failure(res, url, status))
-    }
+    let res = assert_success(res, &url)?;
+    res.copy_to(&mut target)
+        .map_err(ClientError::HttpWriteResponse)?;
+    Ok(())
 }
 
 pub fn get_credentials(
@@ -150,15 +145,11 @@ pub mod user {
             .send()
             .map_err(|e| ClientError::ConnectionError(Method::POST, url.clone(), e))?;
 
-        let status = res.status();
-        if status.is_success() {
-            let res = res
-                .json()
-                .map_err(|e| ClientError::HttpJsonResponse(url, e))?;
-            Ok(res)
-        } else {
-            Err(handle_failure(res, url, status))
-        }
+        let res = assert_success(res, &url)?;
+        let res = res
+            .json()
+            .map_err(|e| ClientError::HttpJsonResponse(url, e))?;
+        Ok(res)
     }
 
     /// post /api/v8/users/basic_info_by_emails
@@ -175,15 +166,11 @@ pub mod user {
             .send()
             .map_err(|e| ClientError::ConnectionError(Method::POST, url.clone(), e))?;
 
-        let status = res.status();
-        if status.is_success() {
-            let res = res
-                .json()
-                .map_err(|e| ClientError::HttpJsonResponse(url, e))?;
-            Ok(res)
-        } else {
-            Err(handle_failure(res, url, status))
-        }
+        let res = assert_success(res, &url)?;
+        let res = res
+            .json()
+            .map_err(|e| ClientError::HttpJsonResponse(url, e))?;
+        Ok(res)
     }
 }
 
@@ -734,12 +721,9 @@ pub mod core {
             .form(&form)
             .send()
             .map_err(|e| ClientError::ConnectionError(Method::PUT, url.clone(), e))?;
-        let status = res.status();
-        if status.is_success() {
-            Ok(())
-        } else {
-            Err(handle_failure(res, url, status))
-        }
+
+        let res = assert_success(res, &url)?;
+        Ok(())
     }
 
     /// post /api/v8/core/courses/{course_id}/unlock
@@ -749,12 +733,9 @@ pub mod core {
         let res = prepare_tmc_request(client, Method::POST, url.clone())
             .send()
             .map_err(|e| ClientError::ConnectionError(Method::POST, url.clone(), e))?;
-        let status = res.status();
-        if status.is_success() {
-            Ok(())
-        } else {
-            Err(handle_failure(res, url, status))
-        }
+
+        let res = assert_success(res, &url)?;
+        Ok(())
     }
 
     /// get /api/v8/core/exercises/{exercise_id}/download
@@ -869,15 +850,11 @@ pub mod core {
             .send()
             .map_err(|e| ClientError::ConnectionError(Method::POST, url.clone(), e))?;
 
-        let status = res.status();
-        if status.is_success() {
-            let res = res
-                .json()
-                .map_err(|e| ClientError::HttpJsonResponse(url, e))?;
-            Ok(res)
-        } else {
-            Err(handle_failure(res, url, status))
-        }
+        let res = assert_success(res, &url)?;
+        let res = res
+            .json()
+            .map_err(|e| ClientError::HttpJsonResponse(url, e))?;
+        Ok(res)
     }
 
     /// get /api/v8/core/org/{organization_slug}/courses
@@ -933,15 +910,11 @@ pub mod core {
             .send()
             .map_err(|e| ClientError::ConnectionError(Method::POST, url.clone(), e))?;
 
-        let status = res.status();
-        if status.is_success() {
-            let res = res
-                .json()
-                .map_err(|e| ClientError::HttpJsonResponse(url, e))?;
-            Ok(res)
-        } else {
-            Err(handle_failure(res, url, status))
-        }
+        let res = assert_success(res, &url)?;
+        let res = res
+            .json()
+            .map_err(|e| ClientError::HttpJsonResponse(url, e))?;
+        Ok(res)
     }
 
     /// post /api/v8/core/submissions/{submission_id}/reviews
@@ -970,12 +943,8 @@ pub mod core {
             .send()
             .map_err(|e| ClientError::ConnectionError(Method::POST, url.clone(), e))?;
 
-        let status = res.status();
-        if status.is_success() {
-            Ok(())
-        } else {
-            Err(handle_failure(res, url, status))
-        }
+        let res = assert_success(res, &url)?;
+        Ok(())
     }
 }
 
