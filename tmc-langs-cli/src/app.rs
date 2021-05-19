@@ -237,9 +237,9 @@ pub enum Core {
     /// Downloads an exercise's model solution
     #[structopt(long_about = SCHEMA_NULL)]
     DownloadModelSolution {
-        /// URL to the solution download.
+        /// The ID of the exercise.
         #[structopt(long)]
-        solution_download_url: Url,
+        exercise_id: u32,
         /// Path to where the model solution will be downloaded.
         #[structopt(long)]
         target: PathBuf,
@@ -355,12 +355,12 @@ pub enum Core {
     #[structopt(long_about = schema_leaked::<Vec<Organization>>())]
     GetOrganizations,
 
-    /// Fetches unread reviews
+    /// Fetches unread reviews for a course
     #[structopt(long_about = schema_leaked::<Vec<Review>>())]
     GetUnreadReviews {
-        /// URL to the reviews API.
+        /// The ID of the course.
         #[structopt(long)]
-        reviews_url: Url,
+        course_id: u32,
     },
 
     /// Checks if the CLI is authenticated. Prints the access token if so
@@ -388,14 +388,20 @@ pub enum Core {
     /// Marks a review as read
     #[structopt(long_about = SCHEMA_NULL)]
     MarkReviewAsRead {
-        /// URL to the review update API.
+        /// The ID of the course.
         #[structopt(long)]
-        review_update_url: Url,
+        course_id: u32,
+        /// The ID of the review.
+        #[structopt(long)]
+        review_id: u32,
     },
 
     /// Sends an exercise to the TMC pastebin
     #[structopt(long_about = schema_leaked::<NewSubmission>())]
     Paste {
+        /// The ID of the exercise.
+        #[structopt(long)]
+        exercise_id: u32,
         /// Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.
         #[structopt(long)]
         locale: Option<Locale>,
@@ -405,14 +411,14 @@ pub enum Core {
         /// Path to the exercise to be submitted.
         #[structopt(long)]
         submission_path: PathBuf,
-        /// The URL where the submission should be posted.
-        #[structopt(long)]
-        submission_url: Url,
     },
 
     /// Requests code review
     #[structopt(long_about = schema_leaked::<NewSubmission>())]
     RequestCodeReview {
+        /// The ID of the exercise.
+        #[structopt(long)]
+        exercise_id: u32,
         /// Language as a three letter ISO 639-3 code, e.g. 'eng' or 'fin'.
         #[structopt(long)]
         locale: Locale,
@@ -422,9 +428,6 @@ pub enum Core {
         /// Path to the directory where the submission resides.
         #[structopt(long)]
         submission_path: PathBuf,
-        /// URL where the submission should be posted.
-        #[structopt(long)]
-        submission_url: Url,
     },
 
     /// Resets an exercise. Removes the contents of the exercise directory and redownloads it from the server
@@ -439,20 +442,17 @@ pub enum Core {
         /// Path to the directory where the project resides.
         #[structopt(long)]
         exercise_path: PathBuf,
-        /// Required if save-old-state is set. The URL where the submission should be posted.
-        #[structopt(long)]
-        submission_url: Option<Url>,
     },
 
-    /// Sends feedback for an exercise
+    /// Sends feedback for an exercise submission
     #[structopt(long_about = schema_leaked::<SubmissionFeedbackResponse>())]
     SendFeedback {
+        /// The ID of the submission.
+        #[structopt(long)]
+        submission_id: u32,
         /// A feedback answer. Takes two values, a feedback answer id and the answer. Multiple feedback arguments can be given.
         #[structopt(long, required = true, number_of_values = 2, value_names = &["feedback-answer-id, answer"])]
         feedback: Vec<String>,
-        /// URL where the feedback should be posted.
-        #[structopt(long)]
-        feedback_url: Url,
     },
 
     /// Submits an exercise. By default blocks until the submission results are returned
@@ -467,9 +467,9 @@ pub enum Core {
         /// Path to the directory where the exercise resides.
         #[structopt(long)]
         submission_path: PathBuf,
-        /// URL where the submission should be posted.
+        /// The ID of the exercise.
         #[structopt(long)]
-        submission_url: Url,
+        exercise_id: u32,
     },
 
     /// Updates all local exercises that have been updated on the server

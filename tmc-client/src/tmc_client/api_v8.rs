@@ -1,19 +1,14 @@
 #![allow(dead_code)]
 
-use std::{io::Write, sync::Arc};
-
 use crate::{request::*, response::*, ClientError, TmcClient};
 use http::{Method, StatusCode};
-use oauth2::{
-    basic::BasicClient, AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword,
-    ResourceOwnerUsername, TokenResponse, TokenUrl,
-};
+use oauth2::TokenResponse;
 use reqwest::blocking::multipart::Form;
 use reqwest::blocking::{RequestBuilder, Response};
 use serde::de::DeserializeOwned;
-use std::{collections::HashMap, path::Path, time::SystemTime};
+use std::io::Write;
+use std::{collections::HashMap, time::SystemTime};
 use tmc_langs_plugins::Language;
-use tmc_langs_util::FileError;
 use url::Url;
 
 // joins the URL "tail" with the API url root from the client
@@ -116,6 +111,13 @@ pub fn get_credentials(
         client,
         format!("/api/v8/application/{}/credentials", client_name),
     )?;
+    get_json(client, url, &[])
+}
+
+pub fn get_submission_processing_status(
+    client: &TmcClient,
+    url: Url,
+) -> Result<SubmissionProcessingStatus, ClientError> {
     get_json(client, url, &[])
 }
 
@@ -679,6 +681,10 @@ pub mod organization {
 }
 
 pub mod core {
+    use std::io::Read;
+
+    use reqwest::blocking::multipart::Part;
+
     use super::*;
 
     /// get /api/v8/core/courses/{course_id}
@@ -814,8 +820,9 @@ pub mod core {
     pub fn submit_exercise(
         client: &TmcClient,
         exercise_id: u32,
-        submission: &Path,
-        params: Option<HashMap<String, String>>,
+        submission_zip: impl Read + Send + Sync + 'static,
+        paste_message: Option<String>,
+        message_for_reviewer: Option<String>,
         locale: Option<Language>,
     ) -> Result<NewSubmission, ClientError> {
         let url = make_url(
@@ -836,15 +843,25 @@ pub mod core {
                 "client_nanotime",
                 SystemTime::UNIX_EPOCH.elapsed()?.as_nanos().to_string(),
             )
-            .file("submission[file]", submission)
-            .map_err(|e| {
-                ClientError::FileError(FileError::FileOpen(submission.to_path_buf(), e))
-            })?;
+            .part(
+                "submission[file]",
+                Part::reader(submission_zip).file_name("submission.zip"),
+            );
 
-        if let Some(params) = params {
-            for (key, val) in params {
-                form = form.text(key, val);
-            }
+        if let Some(paste_message) = paste_message {
+            form = form
+                .text("paste", "1")
+                .text("message_for_paste", paste_message);
+        }
+
+        if let Some(message_for_reviewer) = message_for_reviewer {
+            form = form
+                .text("request_review", "1")
+                .text("message_for_reviewer", message_for_reviewer);
+        }
+
+        if let Some(locale) = locale {
+            form = form.text("error_msg_locale", locale.to_string());
         }
 
         let res = prepare_tmc_request(client, Method::POST, url.clone())
@@ -979,17 +996,16 @@ mod test {
 
     fn make_client() -> TmcClient {
         let mut client = TmcClient::new(
-            mockito::server_url(),
+            mockito::server_url().parse().unwrap(),
             "client".to_string(),
             "version".to_string(),
-        )
-        .unwrap();
+        );
         let token = Token::new(
             AccessToken::new("".to_string()),
             BasicTokenType::Bearer,
             EmptyExtraTokenFields {},
         );
-        client.set_token(token).unwrap();
+        client.set_token(token);
         client
     }
 

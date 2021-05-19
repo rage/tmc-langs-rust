@@ -754,9 +754,6 @@ impl TmcClient {
 
         // send
         let mut form = Form::new();
-        if let Some(locale) = locale {
-            form = form.text("error_msg_locale", locale.to_string()) // TODO: verify server accepts 639-3
-        }
         form = form
             .text(
                 "client_time",

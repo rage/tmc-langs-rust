@@ -531,8 +531,10 @@ fn run_app(matches: Opt) -> Result<()> {
 }
 
 fn run_core(client_name: &str, client_version: &str, core: Core) -> Result<Output> {
-    let root_url =
-        env::var("TMC_LANGS_ROOT_URL").unwrap_or_else(|_| "https://tmc.mooc.fi".to_string());
+    let root_url = env::var("TMC_LANGS_ROOT_URL")
+        .unwrap_or_else(|_| "https://tmc.mooc.fi/".to_string())
+        .parse()
+        .context("Invalid TMC root url")?;
     let (client, mut credentials) =
         tmc_langs::init_tmc_client_with_credentials(root_url, client_name, client_version)?;
 
@@ -582,11 +584,11 @@ fn run_core_inner(
         }
 
         Core::DownloadModelSolution {
-            solution_download_url,
+            exercise_id,
             target,
         } => {
             client
-                .download_model_solution(solution_download_url, &target)
+                .download_model_solution(exercise_id, &target)
                 .context("Failed to download model solution")?;
             Output::finished("downloaded model solution")
         }
@@ -735,9 +737,9 @@ fn run_core_inner(
             Output::finished_with_data("fetched organizations", Data::Organizations(orgs))
         }
 
-        Core::GetUnreadReviews { reviews_url } => {
+        Core::GetUnreadReviews { course_id } => {
             let reviews = client
-                .get_unread_reviews(reviews_url)
+                .get_unread_reviews(course_id)
                 .context("Failed to get unread reviews")?;
             Output::finished_with_data("fetched unread reviews", Data::Reviews(reviews))
         }
@@ -805,37 +807,40 @@ fn run_core_inner(
             })
         }
 
-        Core::MarkReviewAsRead { review_update_url } => {
+        Core::MarkReviewAsRead {
+            course_id,
+            review_id,
+        } => {
             client
-                .mark_review_as_read(review_update_url.to_string())
+                .mark_review_as_read(course_id, review_id)
                 .context("Failed to mark review as read")?;
             Output::finished("marked review as read")
         }
 
         Core::Paste {
+            exercise_id,
             locale,
             paste_message,
             submission_path,
-            submission_url,
         } => {
             file_util::lock!(submission_path);
             let locale = locale.map(|l| l.0);
             let new_submission = client
-                .paste(submission_url, &submission_path, paste_message, locale)
+                .paste(exercise_id, &submission_path, paste_message, locale)
                 .context("Failed to get paste with comment")?;
             Output::finished_with_data("sent paste", Data::NewSubmission(new_submission))
         }
 
         Core::RequestCodeReview {
+            exercise_id,
             locale: Locale(locale),
             message_for_reviewer,
             submission_path,
-            submission_url,
         } => {
             file_util::lock!(submission_path);
             let new_submission = client
                 .request_code_review(
-                    submission_url,
+                    exercise_id,
                     &submission_path,
                     message_for_reviewer,
                     Some(locale),
@@ -845,27 +850,22 @@ fn run_core_inner(
         }
 
         Core::ResetExercise {
-            save_old_state,
             exercise_id,
+            save_old_state,
             exercise_path,
-            submission_url,
         } => {
             file_util::lock!(exercise_path);
             if save_old_state {
                 // submit current state
-                client.submit(
-                    submission_url.expect("validation error"),
-                    &exercise_path,
-                    None,
-                )?;
+                client.submit(exercise_id, &exercise_path, None)?;
             }
             tmc_langs::reset(&client, exercise_id, &exercise_path)?;
             Output::finished("reset exercise")
         }
 
         Core::SendFeedback {
+            submission_id,
             feedback,
-            feedback_url,
         } => {
             let mut feedback_answers = feedback.into_iter();
             let mut feedback = vec![];
@@ -881,7 +881,7 @@ fn run_core_inner(
                 });
             }
             let response = client
-                .send_feedback(feedback_url, feedback)
+                .send_feedback(submission_id, feedback)
                 .context("Failed to send feedback")?;
             Output::finished_with_data("sent feedback", Data::SubmissionFeedbackResponse(response))
         }
@@ -890,12 +890,12 @@ fn run_core_inner(
             dont_block,
             locale,
             submission_path,
-            submission_url,
+            exercise_id,
         } => {
             file_util::lock!(submission_path);
             let locale = locale.map(|l| l.0);
             let new_submission = client
-                .submit(submission_url, &submission_path, locale)
+                .submit(exercise_id, &submission_path, locale)
                 .context("Failed to submit")?;
 
             if dont_block {

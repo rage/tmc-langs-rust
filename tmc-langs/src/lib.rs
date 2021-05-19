@@ -48,6 +48,7 @@ use oauth2::{
 use serde_json::Value as JsonValue;
 use std::{
     collections::BTreeMap,
+    convert::TryFrom,
     io::Cursor,
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
@@ -139,9 +140,9 @@ pub fn download_old_submission(
         exercise_id
     );
 
-    if let Some(submission_url) = submission_url {
+    if submission_url.is_some() {
         // submit old exercise
-        client.submit(submission_url, output_path, None)?;
+        client.submit(exercise_id, output_path, None)?;
         log::debug!("finished submission");
     }
 
@@ -177,7 +178,7 @@ pub fn submit_exercise(
         ProjectsConfig::get_exercise_download_target(projects_dir, course_slug, exercise_slug);
 
     client
-        .submit_exercise_by_id(exercise.id, exercise_path.as_path(), locale)
+        .submit(exercise.id, exercise_path.as_path(), locale)
         .map_err(|e| e.into())
 }
 
@@ -199,7 +200,7 @@ pub fn paste_exercise(
         ProjectsConfig::get_exercise_download_target(projects_dir, course_slug, exercise_slug);
 
     client
-        .paste_exercise_by_id(exercise.id, exercise_path.as_path(), paste_message, locale)
+        .paste(exercise.id, exercise_path.as_path(), paste_message, locale)
         .map_err(|e| e.into())
 }
 
@@ -296,7 +297,7 @@ pub fn download_or_update_course_exercises(
 
     let exercises_len = to_be_downloaded.len();
     progress_reporter::start_stage::<()>(
-        exercises_len * 2 + 1, // each download progresses at 2 points, plus the final finishing step
+        u32::try_from(exercises_len).expect("should never happen") * 2 + 1, // each download progresses at 2 points, plus the final finishing step
         format!("Downloading {} exercises", exercises_len),
         None,
     );
@@ -532,7 +533,7 @@ pub fn login_with_password(
 
 /// Initializes a TmcClient, using and returning the stored credentials, if any.
 pub fn init_tmc_client_with_credentials(
-    root_url: String,
+    root_url: Url,
     client_name: &str,
     client_version: &str,
 ) -> Result<(TmcClient, Option<Credentials>), LangsError> {
@@ -541,12 +542,12 @@ pub fn init_tmc_client_with_credentials(
         root_url,
         client_name.to_string(),
         client_version.to_string(),
-    )?;
+    );
 
     // set token from the credentials file if one exists
     let credentials = Credentials::load(client_name)?;
     if let Some(credentials) = &credentials {
-        client.set_token(credentials.token())?;
+        client.set_token(credentials.token());
     }
 
     Ok((client, credentials))
@@ -763,7 +764,7 @@ pub fn clean(exercise_path: &Path) -> Result<(), LangsError> {
 pub fn compress_project_to(source: &Path, target: &Path) -> Result<(), LangsError> {
     log::debug!("compressing {} to {}", source.display(), target.display());
 
-    let data = tmc_langs_plugins::compress_project(source)?;
+    let data = tmc_langs_plugins::compress_project_to_zip(source)?;
 
     if let Some(parent) = target.parent() {
         file_util::create_dir_all(parent)?;
@@ -1032,17 +1033,16 @@ mod test {
 
     fn mock_client() -> TmcClient {
         let mut client = TmcClient::new(
-            mockito::server_url(),
+            mockito::server_url().parse().unwrap(),
             "client".to_string(),
             "version".to_string(),
-        )
-        .unwrap();
+        );
         let token = Token::new(
             AccessToken::new("".to_string()),
             BasicTokenType::Bearer,
             EmptyExtraTokenFields {},
         );
-        client.set_token(token).unwrap();
+        client.set_token(token);
         client
     }
 
