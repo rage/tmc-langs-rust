@@ -70,6 +70,19 @@ fn assert_success(response: Response, url: &Url) -> Result<Response, ClientError
     }
 }
 
+/// Fetches data from the URL and writes it into the target.
+pub fn download(client: &TmcClient, url: Url, mut target: impl Write) -> Result<(), ClientError> {
+    let res = prepare_tmc_request(client, Method::GET, url.clone())
+        .send()
+        .map_err(|e| ClientError::ConnectionError(Method::GET, url.clone(), e))?;
+
+    let mut res = assert_success(res, &url)?;
+    let _bytes = res
+        .copy_to(&mut target)
+        .map_err(ClientError::HttpWriteResponse)?;
+    Ok(())
+}
+
 /// Fetches JSON from the given URL and deserializes it into T.
 pub fn get_json<T: DeserializeOwned>(
     client: &TmcClient,
@@ -86,19 +99,6 @@ pub fn get_json<T: DeserializeOwned>(
         .json()
         .map_err(|e| ClientError::HttpJsonResponse(url, e))?;
     Ok(json)
-}
-
-// fetches data from the URL and writes it into target
-fn download(client: &TmcClient, url: Url, mut target: impl Write) -> Result<(), ClientError> {
-    let res = prepare_tmc_request(client, Method::GET, url.clone())
-        .send()
-        .map_err(|e| ClientError::ConnectionError(Method::GET, url.clone(), e))?;
-
-    let mut res = assert_success(res, &url)?;
-    let _bytes = res
-        .copy_to(&mut target)
-        .map_err(ClientError::HttpWriteResponse)?;
-    Ok(())
 }
 
 /// get /api/v8/application/{client_name}/credentials

@@ -251,7 +251,7 @@ pub enum Core {
         #[structopt(long)]
         submission_id: u32,
         /// If set, the exercise is submitted to the server before resetting it.
-        #[structopt(long, requires = "submission-url")]
+        #[structopt(long)]
         save_old_state: bool,
         /// The ID of the exercise.
         #[structopt(long)]
@@ -430,7 +430,7 @@ pub enum Core {
     #[structopt(long_about = SCHEMA_NULL)]
     ResetExercise {
         /// If set, the exercise is submitted to the server before resetting it.
-        #[structopt(long, requires = "submission-url")]
+        #[structopt(long)]
         save_old_state: bool,
         /// The ID of the exercise.
         #[structopt(long)]
@@ -804,8 +804,8 @@ mod core_test {
     fn download_model_solution() {
         get_matches_core(&[
             "download-model-solution",
-            "--solution-download-url",
-            "http://localhost",
+            "--exercise-id",
+            "0",
             "--target",
             "path",
         ]);
@@ -822,8 +822,6 @@ mod core_test {
             "path",
             "--submission-id",
             "2345",
-            "--submission-url",
-            "http://localhost",
         ]);
     }
 
@@ -900,7 +898,7 @@ mod core_test {
 
     #[test]
     fn get_unread_reviews() {
-        get_matches_core(&["get-unread-reviews", "--reviews-url", "http://localhost"]);
+        get_matches_core(&["get-unread-reviews", "--course-id", "0"]);
     }
 
     #[test]
@@ -929,8 +927,10 @@ mod core_test {
     fn mark_review_as_read() {
         get_matches_core(&[
             "mark-review-as-read",
-            "--review-update-url",
-            "http://localhost",
+            "--course-id",
+            "0",
+            "--review-id",
+            "1",
         ]);
     }
 
@@ -944,8 +944,8 @@ mod core_test {
             "msg",
             "--submission-path",
             "path",
-            "--submission-url",
-            "http://localhost",
+            "--exercise-id",
+            "0",
         ]);
     }
 
@@ -959,8 +959,8 @@ mod core_test {
             "msg",
             "--submission-path",
             "path",
-            "--submission-url",
-            "http://localhost",
+            "--exercise-id",
+            "0",
         ]);
     }
 
@@ -973,8 +973,6 @@ mod core_test {
             "1234",
             "--exercise-path",
             "path",
-            "--submission-url",
-            "http://localhost",
         ]);
     }
 
@@ -985,8 +983,8 @@ mod core_test {
             "--feedback",
             "1234",
             "answer",
-            "--feedback-url",
-            "http://localhost",
+            "--submission-id",
+            "0",
         ]);
     }
 
@@ -999,8 +997,8 @@ mod core_test {
             "fi",
             "--submission-path",
             "path",
-            "--submission-url",
-            "http://localhost",
+            "--exercise-id",
+            "0",
         ]);
     }
 
@@ -1011,11 +1009,7 @@ mod core_test {
 
     #[test]
     fn wait_for_submission() {
-        get_matches_core(&[
-            "wait-for-submission",
-            "--submission-url",
-            "http://localhost",
-        ]);
+        get_matches_core(&["wait-for-submission", "--submission-id", "0"]);
     }
 }
 
