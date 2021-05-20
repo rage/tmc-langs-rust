@@ -25,13 +25,18 @@ pub struct ErrorResponse {
     pub obsolete_client: bool,
 }
 
-/// OAuth2 credentials
+/// OAuth2 credentials.
+/// get /api/v8/application/{client_name}/credentials
 #[derive(Debug, Deserialize)]
 pub struct Credentials {
     pub application_id: String,
     pub secret: String,
 }
 
+/// get /api/v8/users/{user_id}
+/// get /api/v8/users/current
+/// post /api/v8/users/basic_info_by_usernames
+/// post /api/v8/users/basic_info_by_emails
 #[derive(Debug, Deserialize)]
 pub struct User {
     pub id: u32,
@@ -40,7 +45,8 @@ pub struct User {
     pub administrator: bool,
 }
 
-/// Organization information.
+/// get /api/v8/org.json
+/// get /api/v8/org/{organization_slug}.json
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct Organization {
     pub name: String,
@@ -50,21 +56,26 @@ pub struct Organization {
     pub pinned: bool,
 }
 
-/// Information for a course.
+/// get /api/v8/core/org/{organization_slug}/courses
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct Course {
     pub id: u32,
     pub name: String,
     pub title: String,
     pub description: Option<String>,
+    /// /api/v8/core/courses/{course_id}
     pub details_url: String,
+    /// /api/v8/core/courses/{course_id}/unlock
     pub unlock_url: String,
+    /// /api/v8/core/courses/{course_id}/reviews
     pub reviews_url: String,
+    /// Typically empty.
     pub comet_url: String,
     pub spyware_urls: Vec<String>,
 }
 
-/// Data for a course.
+/// get /api/v8/courses/{course_id}
+/// get /api/v8/org/{organization_slug}/courses/{course_name}
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct CourseData {
     pub name: String,
@@ -83,9 +94,11 @@ pub struct CourseData {
     pub organization_id: Option<u32>,
     pub disabled_status: Option<String>,
     pub title: Option<String>,
+    /// Typically empty.
     pub material_url: Option<String>,
     pub course_template_id: Option<u32>,
     pub hide_submission_results: bool,
+    /// Typically empty.
     pub external_scoreboard_url: Option<String>,
     pub organization_slug: Option<String>,
 }
@@ -106,7 +119,7 @@ struct CourseDetailsInner {
     pub exercises: Vec<Exercise>,
 }
 
-/// Details for a course.
+/// get /api/v8/core/courses/{course_id}
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(from = "CourseDetailsWrapper")]
 pub struct CourseDetails {
@@ -136,7 +149,9 @@ pub struct Exercise {
     pub soft_deadline: Option<String>,
     pub soft_deadline_description: Option<String>,
     pub checksum: String,
+    /// /api/v8/core/exercises/{exercise_id}/submissions
     pub return_url: String,
+    /// /api/v8/core/exercises/{exercise_id}/download
     pub zip_url: String,
     pub returnable: bool,
     pub requires_review: bool,
@@ -149,12 +164,14 @@ pub struct Exercise {
     pub valgrind_strategy: String,
     pub code_review_requests_enabled: bool,
     pub run_tests_locally_action_enabled: bool,
+    /// Typically null.
     pub latest_submission_url: Option<String>,
     pub latest_submission_id: Option<u32>,
+    /// /api/v8/core/exercises/{exercise_id}/solution/download
     pub solution_zip_url: Option<String>,
 }
 
-/// Exercise for a course.
+/// get /api/v8/courses/{course_id}/exercises
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct CourseExercise {
     pub id: u32,
@@ -169,6 +186,7 @@ pub struct CourseExercise {
     pub unlocked: bool,
 }
 
+/// get /api/v8/org/{organization_slug}/courses/{course_name}/exercises
 #[derive(Debug, Deserialize)]
 pub struct CourseDataExercise {
     pub id: u32,
@@ -188,6 +206,16 @@ pub struct ExercisePoint {
     pub requires_review: bool,
 }
 
+/// get /api/v8/courses/{course_id}/points
+/// get /api/v8/courses/{course_id}/exercises/{exercise_name}/points
+/// get /api/v8/courses/{course_id}/exercises/{exercise_name}/users/{user_id}/
+/// get /api/v8/courses/{course_id}/exercises/{exercise_name}/users/current/points
+/// get /api/v8/courses/{course_id}/users/{user_id}/points
+/// get /api/v8/courses/{course_id}/users/current/points
+/// get /api/v8/org/{organization_slug}/courses/{course_name}/points
+/// get /api/v8/org/{organization_slug}/courses/{course_name}/exercises/{exercise_name}/points
+/// get /api/v8/org/{organization_slug}/courses/{course_name}/users/{user_id}/points
+/// get /api/v8/org/{organization_slug}/courses/{course_name}/users/current/points
 #[derive(Debug, Deserialize)]
 pub struct CourseDataExercisePoint {
     awarded_point: AwardedPoint,
@@ -204,7 +232,7 @@ pub struct AwardedPoint {
     created_at: DateTime<FixedOffset>,
 }
 
-/// Details for an exercise.
+/// get /api/v8/core/exercises/{exercise_id}
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct ExerciseDetails {
     pub course_name: String,
@@ -218,6 +246,12 @@ pub struct ExerciseDetails {
     pub submissions: Vec<ExerciseSubmission>,
 }
 
+/// get /api/v8/core/exercises/details
+#[derive(Debug, Deserialize)]
+pub(crate) struct ExercisesDetailsWrapper {
+    pub exercises: Vec<ExercisesDetails>,
+}
+
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct ExercisesDetails {
     pub id: u32,
@@ -226,7 +260,16 @@ pub struct ExercisesDetails {
     pub checksum: String,
 }
 
-/// Exercise submission.
+/// get /api/v8/courses/{course_id}/submissions
+/// get /api/v8/courses/{course_id}/users/{user_id}/submissions
+/// get /api/v8/courses/{course_id}/users/current/submissions
+/// get api/v8/exercises/{exercise_id}/users/{user_id}/submissions
+/// get api/v8/exercises/{exercise_id}/users/current/submissions
+/// get /api/v8/org/{organization_slug}/courses/{course_name}/submissions
+/// get /api/v8/org/{organization_slug}/courses/{course_name}/users/{user_id}/submissions
+/// get /api/v8/org/{organization_slug}/courses/{course_name}/users/current/submissions
+/// get api/v8/exercises/{exercise_id}/users/{user_id}/submissions
+/// get api/v8/exercises/{exercise_id}/users/current/submissions
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct Submission {
     pub id: u32,
@@ -264,21 +307,27 @@ pub struct ExerciseSubmission {
     pub created_at: DateTime<FixedOffset>,
     pub all_tests_passed: bool,
     pub points: Option<String>,
+    /// /api/v8/core/submissions/{submission_id}/download
     pub submitted_zip_url: String,
+    /// https://tmc.mooc.fi/paste/{paste_code}
     pub paste_url: Option<String>,
     pub processing_time: Option<u32>,
     pub reviewed: bool,
     pub requests_review: bool,
 }
 
-/// Exercise submission.
+/// post /api/v8/core/exercises/{exercise_id}/submissions
 #[derive(Debug, Deserialize, Serialize, JsonSchema, Clone)]
 pub struct NewSubmission {
+    /// https://tmc.mooc.fi/api/v8/core/submissions/{submission_id}
     pub show_submission_url: String,
+    /// https://tmc.mooc.fi/paste/{paste_code}
     pub paste_url: String, // use Option and serde_with::string_empty_as_none ?
+    /// https://tmc.mooc.fi/submissions/{submission_id}
     pub submission_url: String,
 }
 
+/// get /api/v8/core/submission/{submission_id}
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(untagged)] // TODO: tag
 pub enum SubmissionProcessingStatus {
@@ -300,7 +349,6 @@ pub enum SandboxStatus {
     ProcessingOnSandbox,
 }
 
-/// Finished submission.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 pub struct SubmissionFinished {
     pub api_version: u32,
@@ -312,17 +360,21 @@ pub struct SubmissionFinished {
     pub status: SubmissionStatus,
     pub points: Vec<String>,
     pub valgrind: Option<String>,
+    /// https://tmc.mooc.fi/submissions/{submission_id}}
     pub submission_url: String,
+    /// https://tmc.mooc.fi/exercises/{exercise_id}/solution
     pub solution_url: Option<String>,
     pub submitted_at: String,
     pub processing_time: Option<u32>,
     pub reviewed: bool,
     pub requests_review: bool,
+    /// https://tmc.mooc.fi/paste/{paste_code}
     pub paste_url: Option<String>,
     pub message_for_paste: Option<String>,
     pub missing_review_points: Vec<String>,
     pub test_cases: Option<Vec<TestCase>>,
     pub feedback_questions: Option<Vec<SubmissionFeedbackQuestion>>,
+    /// /api/v8/core/submissions/{submission_id}/feedback
     pub feedback_answer_url: Option<String>,
     pub error: Option<String>,
     pub validations: Option<StyleValidationResult>,
@@ -338,7 +390,7 @@ pub enum SubmissionStatus {
     Hidden,
 }
 
-/// Response to feedback.
+/// post /api/v8/core/submissions/{submission_id}/feedback
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct SubmissionFeedbackResponse {
     pub api_version: u32,
@@ -431,7 +483,7 @@ impl<'de> Visitor<'de> for SubmissionFeedbackKindVisitor {
     }
 }
 
-/// Code review.
+/// get /api/v8/core/courses/{course_id}/reviews
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct Review {
     pub submission_id: u32,
@@ -442,17 +494,12 @@ pub struct Review {
     pub review_body: String,
     pub points: Vec<String>,
     pub points_not_awarded: Vec<String>,
+    /// https://tmc.mooc.fi/submissions/{submission_id}/reviews
     pub url: String,
+    /// /api/v8/core/courses/{course_id}/reviews/{review_id}
     pub update_url: String,
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
-}
-
-/// Updated exercises.
-#[derive(Debug, Deserialize, Serialize, JsonSchema)]
-pub struct UpdateResult {
-    pub created: Vec<Exercise>,
-    pub updated: Vec<Exercise>,
 }
 
 #[cfg(test)]

@@ -420,7 +420,7 @@ pub enum Core {
         locale: Locale,
         /// Message for the review.
         #[structopt(long)]
-        message_for_reviewer: String,
+        message_for_reviewer: Option<String>,
         /// Path to the directory where the submission resides.
         #[structopt(long)]
         submission_path: PathBuf,
