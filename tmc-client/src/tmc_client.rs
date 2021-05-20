@@ -59,7 +59,7 @@ impl TmcClient {
         if self.0.token.is_some() {
             Ok(())
         } else {
-            Err(ClientError::NotLoggedIn)
+            Err(ClientError::NotAuthenticated)
         }
     }
 

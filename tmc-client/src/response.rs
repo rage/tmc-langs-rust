@@ -247,6 +247,11 @@ pub struct ExerciseDetails {
 }
 
 /// get /api/v8/core/exercises/details
+#[derive(Debug, Deserialize)]
+pub(crate) struct ExercisesDetailsWrapper {
+    pub exercises: Vec<ExercisesDetails>,
+}
+
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct ExercisesDetails {
     pub id: u32,

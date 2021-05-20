@@ -142,7 +142,7 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
                     return Kind::NotLoggedIn;
                 }
             }
-            Some(ClientError::NotLoggedIn) => {
+            Some(ClientError::NotAuthenticated) => {
                 return Kind::NotLoggedIn;
             }
             Some(ClientError::ConnectionError(..)) => {

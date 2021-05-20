@@ -819,13 +819,8 @@ pub mod core {
                 .join(","),
         );
 
-        // returns map with result in key "exercises"
-        let res: HashMap<String, Vec<ExercisesDetails>> = get_json(client, url, &[exercise_ids])?;
-        if let Some((_, val)) = res.into_iter().next() {
-            // just return whatever value is found first
-            return Ok(val);
-        }
-        Err(ClientError::MissingDetailsValue)
+        let res: ExercisesDetailsWrapper = get_json(client, url, &[exercise_ids])?;
+        Ok(res.exercises)
     }
 
     /// get /api/v8/core/exercises/{exercise_id}/solution/download
