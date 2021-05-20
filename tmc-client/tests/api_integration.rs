@@ -1,6 +1,6 @@
 use dotenv::dotenv;
 use std::{env, io::Read};
-use tmc_client::{api_v8, FeedbackAnswer, TmcClient};
+use tmc_client::{api_v8, request::FeedbackAnswer, TmcClient};
 
 const ORGANIZATION_SLUG: &str = "hy";
 const COURSE_NAME: &str = "java-1-f2020";

@@ -26,13 +26,16 @@ use hmac::{Hmac, NewMac};
 use serde::Serialize;
 use sha2::Sha256;
 pub use tmc_client::{
-    ClientError, ClientUpdateData, Course, CourseData, CourseDetails, CourseExercise,
-    ExerciseDetails, FeedbackAnswer, NewSubmission, Organization, Review, RunResult,
-    StyleValidationResult, Submission, SubmissionFeedbackResponse, SubmissionFinished, TmcClient,
-    Token, UpdateResult,
+    request::FeedbackAnswer,
+    response::{
+        Course, CourseData, CourseDetails, CourseExercise, ExerciseDetails, NewSubmission,
+        Organization, Review, Submission, SubmissionFeedbackResponse, SubmissionFinished,
+    },
+    ClientError, ClientUpdateData, TmcClient, Token, UpdateResult,
 };
 pub use tmc_langs_framework::{
     CommandError, ExerciseDesc, ExercisePackagingConfiguration, Language, LanguagePlugin,
+    RunResult, StyleValidationResult,
 };
 pub use tmc_langs_util::{
     file_util::{self, FileLockGuard},
@@ -1003,7 +1006,7 @@ fn extract_project_overwrite(
 #[allow(clippy::clippy::unwrap_used)]
 mod test {
     use std::io::Write;
-    use tmc_client::ExercisesDetails;
+    use tmc_client::response::ExercisesDetails;
 
     use super::*;
 

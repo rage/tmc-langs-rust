@@ -5,7 +5,6 @@ use self::api_v8::{PasteData, ReviewData};
 use crate::error::ClientError;
 use crate::request::*;
 use crate::response::*;
-use crate::Language;
 use oauth2::{
     basic::BasicClient, AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword,
     ResourceOwnerUsername, TokenUrl,
@@ -19,6 +18,7 @@ use std::thread;
 use std::time::Duration;
 use std::{collections::HashMap, io::Cursor};
 use std::{io::Write, u32};
+use tmc_langs_plugins::Language;
 use tmc_langs_util::progress_reporter;
 
 /// Authentication token.
@@ -571,17 +571,6 @@ impl TmcClient {
         Ok(())
     }
 
-    /// Checks the status of a submission on the server. May require authentication.
-    ///
-    /// # Errors
-    /// If authentication is required but the client is not authenticated, if there's some problem reaching the API, or if the API returns an error.
-    pub fn check_submission(
-        &self,
-        submission_id: u32,
-    ) -> Result<SubmissionProcessingStatus, ClientError> {
-        api_v8::get_submission(self, submission_id)
-    }
-
     /// Request code review. Requires authentication.
     ///
     /// # Errors
@@ -593,12 +582,6 @@ impl TmcClient {
     ) -> Result<(), ClientError> {
         self.require_authentication()?;
         api_v8::core::download_exercise(self, exercise_id, target)
-    }
-}
-
-impl AsRef<TmcCore> for TmcClient {
-    fn as_ref(&self) -> &TmcCore {
-        &self.0
     }
 }
 
@@ -617,6 +600,9 @@ fn finish_stage(message: impl Into<String>, data: impl Into<Option<ClientUpdateD
 #[cfg(test)]
 #[allow(clippy::clippy::unwrap_used)]
 mod test {
+    use std::sync::atomic::AtomicBool;
+
+    // many of TmcClient's functions simply call already tested functions from api_v8 and don't need testing
     use super::*;
     use mockito::Matcher;
     use oauth2::{basic::BasicTokenType, AccessToken, EmptyExtraTokenFields};
@@ -759,5 +745,58 @@ mod test {
 
         assert_eq!(update_result.updated.len(), 1);
         assert_eq!(update_result.updated[0].checksum, "zz");
+    }
+
+    #[test]
+    fn waits_for_submission() {
+        init();
+
+        let client = make_client();
+        let m = mockito::mock("GET", "/api/v8/core/submission/0")
+            .match_query(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("client".into(), "some_client".into()),
+                Matcher::UrlEncoded("client_version".into(), "some_ver".into()),
+            ]))
+            .with_body_from_fn(|w| {
+                static CALLED: AtomicBool = AtomicBool::new(false);
+                if !CALLED.load(std::sync::atomic::Ordering::SeqCst) {
+                    CALLED.store(true, std::sync::atomic::Ordering::SeqCst);
+                    w.write_all(
+                        br#"
+                    {
+                        "status": "processing",
+                        "sandbox_status": "created"
+                    }
+                    "#,
+                    )
+                    .unwrap();
+                } else {
+                    w.write_all(
+                        br#"
+                    {
+                        "api_version": 0,
+                        "user_id": 1,
+                        "login": "",
+                        "course": "",
+                        "exercise_name": "",
+                        "status": "processing",
+                        "points": [],
+                        "submission_url": "",
+                        "submitted_at": "",
+                        "reviewed": false,
+                        "requests_review": false,
+                        "missing_review_points": []
+                    }
+                    "#,
+                    )
+                    .unwrap();
+                }
+                Ok(())
+            })
+            .expect(2)
+            .create();
+
+        let _res = client.wait_for_submission(0).unwrap();
+        m.assert();
     }
 }

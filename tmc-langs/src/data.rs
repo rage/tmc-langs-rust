@@ -4,7 +4,7 @@ use schemars::JsonSchema;
 use serde::Serialize;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::{collections::HashMap, path::PathBuf};
-use tmc_client::{CourseData, CourseDetails, CourseExercise};
+use tmc_client::response::{CourseData, CourseDetails, CourseExercise};
 
 use crate::error::{LangsError, ParamError};
 

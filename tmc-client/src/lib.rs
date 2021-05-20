@@ -12,18 +12,13 @@
 //!
 
 mod error;
-mod request;
-mod response;
+pub mod request;
+pub mod response;
 mod tmc_client;
 
 pub use self::error::ClientError;
-pub use self::request::FeedbackAnswer;
-pub use self::response::{
-    Course, CourseData, CourseDataExercise, CourseDataExercisePoint, CourseDetails, CourseExercise,
-    Exercise, ExerciseDetails, ExercisesDetails, NewSubmission, Organization, Review, Submission,
-    SubmissionFeedbackResponse, SubmissionFinished, SubmissionProcessingStatus, SubmissionStatus,
-    User,
-};
 pub use self::tmc_client::{api_v8, ClientUpdateData, TmcClient, Token, UpdateResult};
+
+// these types are part of tmc-client's API and thus re-exported
 pub use oauth2;
-pub use tmc_langs_plugins::{Language, RunResult, StyleValidationResult, StyleValidationStrategy};
+pub use tmc_langs_plugins::Language;
