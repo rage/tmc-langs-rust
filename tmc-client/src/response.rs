@@ -63,9 +63,13 @@ pub struct Course {
     pub name: String,
     pub title: String,
     pub description: Option<String>,
+    /// /api/v8/core/courses/{course_id}
     pub details_url: String,
+    /// /api/v8/core/courses/{course_id}/unlock
     pub unlock_url: String,
+    /// /api/v8/core/courses/{course_id}/reviews
     pub reviews_url: String,
+    /// Typically empty.
     pub comet_url: String,
     pub spyware_urls: Vec<String>,
 }
@@ -90,9 +94,11 @@ pub struct CourseData {
     pub organization_id: Option<u32>,
     pub disabled_status: Option<String>,
     pub title: Option<String>,
+    /// Typically empty.
     pub material_url: Option<String>,
     pub course_template_id: Option<u32>,
     pub hide_submission_results: bool,
+    /// Typically empty.
     pub external_scoreboard_url: Option<String>,
     pub organization_slug: Option<String>,
 }
@@ -143,7 +149,9 @@ pub struct Exercise {
     pub soft_deadline: Option<String>,
     pub soft_deadline_description: Option<String>,
     pub checksum: String,
+    /// /api/v8/core/exercises/{exercise_id}/submissions
     pub return_url: String,
+    /// /api/v8/core/exercises/{exercise_id}/download
     pub zip_url: String,
     pub returnable: bool,
     pub requires_review: bool,
@@ -156,8 +164,10 @@ pub struct Exercise {
     pub valgrind_strategy: String,
     pub code_review_requests_enabled: bool,
     pub run_tests_locally_action_enabled: bool,
+    /// Typically null.
     pub latest_submission_url: Option<String>,
     pub latest_submission_id: Option<u32>,
+    /// /api/v8/core/exercises/{exercise_id}/solution/download
     pub solution_zip_url: Option<String>,
 }
 
@@ -292,7 +302,9 @@ pub struct ExerciseSubmission {
     pub created_at: DateTime<FixedOffset>,
     pub all_tests_passed: bool,
     pub points: Option<String>,
+    /// /api/v8/core/submissions/{submission_id}/download
     pub submitted_zip_url: String,
+    /// https://tmc.mooc.fi/paste/{paste_code}
     pub paste_url: Option<String>,
     pub processing_time: Option<u32>,
     pub reviewed: bool,
@@ -302,8 +314,11 @@ pub struct ExerciseSubmission {
 /// post /api/v8/core/exercises/{exercise_id}/submissions
 #[derive(Debug, Deserialize, Serialize, JsonSchema, Clone)]
 pub struct NewSubmission {
+    /// https://tmc.mooc.fi/api/v8/core/submissions/{submission_id}
     pub show_submission_url: String,
+    /// https://tmc.mooc.fi/paste/{paste_code}
     pub paste_url: String, // use Option and serde_with::string_empty_as_none ?
+    /// https://tmc.mooc.fi/submissions/{submission_id}
     pub submission_url: String,
 }
 
@@ -340,17 +355,21 @@ pub struct SubmissionFinished {
     pub status: SubmissionStatus,
     pub points: Vec<String>,
     pub valgrind: Option<String>,
+    /// https://tmc.mooc.fi/submissions/{submission_id}}
     pub submission_url: String,
+    /// https://tmc.mooc.fi/exercises/{exercise_id}/solution
     pub solution_url: Option<String>,
     pub submitted_at: String,
     pub processing_time: Option<u32>,
     pub reviewed: bool,
     pub requests_review: bool,
+    /// https://tmc.mooc.fi/paste/{paste_code}
     pub paste_url: Option<String>,
     pub message_for_paste: Option<String>,
     pub missing_review_points: Vec<String>,
     pub test_cases: Option<Vec<TestCase>>,
     pub feedback_questions: Option<Vec<SubmissionFeedbackQuestion>>,
+    /// /api/v8/core/submissions/{submission_id}/feedback
     pub feedback_answer_url: Option<String>,
     pub error: Option<String>,
     pub validations: Option<StyleValidationResult>,
@@ -470,7 +489,9 @@ pub struct Review {
     pub review_body: String,
     pub points: Vec<String>,
     pub points_not_awarded: Vec<String>,
+    /// https://tmc.mooc.fi/submissions/{submission_id}/reviews
     pub url: String,
+    /// /api/v8/core/courses/{course_id}/reviews/{review_id}
     pub update_url: String,
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
