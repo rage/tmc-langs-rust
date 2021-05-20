@@ -438,6 +438,10 @@ impl TmcClient {
         }
     }
 
+    /// Waits for a submission to finish at the given URL. May require authentication
+    ///
+    /// # Errors
+    /// If authentication is required but the client is not authenticated, there's some problem reaching the API, or if the API returns an error.
     pub fn wait_for_submission_at(
         &self,
         submission_url: Url,
@@ -445,10 +449,10 @@ impl TmcClient {
         self.wait_for_submission_inner(|| api_v8::get_json(self, submission_url.clone(), &[]))
     }
 
-    /// Waits for a submission to finish. May require authentication.
+    /// Waits for a submission to finish. Requires authentication.
     ///
     /// # Errors
-    /// If authentication is required but the client is not authenticated, there's some problem reaching the API, or if the API returns an error.
+    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
     pub fn wait_for_submission(
         &self,
         submission_id: u32,
@@ -534,15 +538,12 @@ impl TmcClient {
     ) -> Result<NewSubmission, ClientError> {
         self.require_authentication()?;
 
-        // compress
         let compressed = tmc_langs_plugins::compress_project_to_zip(submission_path)?;
-
         let review = if let Some(message) = message_for_reviewer {
             ReviewData::WithMessage(message)
         } else {
             ReviewData::WithoutMessage
         };
-
         api_v8::core::submit_exercise(
             self,
             exercise_id,
@@ -585,6 +586,7 @@ impl TmcClient {
     }
 }
 
+// convenience functions to make sure the progress report type is correct for tmc-client
 fn start_stage(steps: u32, message: impl Into<String>, data: impl Into<Option<ClientUpdateData>>) {
     progress_reporter::start_stage(steps, message.into(), data.into())
 }
