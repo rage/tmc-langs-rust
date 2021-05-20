@@ -10,6 +10,7 @@ use oauth2::{
     ResourceOwnerUsername, TokenUrl,
 };
 use reqwest::{blocking::Client, Url};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -30,6 +31,13 @@ pub type Token =
 pub enum ClientUpdateData {
     ExerciseDownload { id: u32, path: PathBuf },
     PostedSubmission(NewSubmission),
+}
+
+/// Updated exercises.
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
+pub struct UpdateResult {
+    pub created: Vec<Exercise>,
+    pub updated: Vec<Exercise>,
 }
 
 /// A struct for interacting with the TestMyCode service, including authentication.

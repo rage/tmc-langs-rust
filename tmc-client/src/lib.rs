@@ -22,8 +22,8 @@ pub use self::response::{
     Course, CourseData, CourseDataExercise, CourseDataExercisePoint, CourseDetails, CourseExercise,
     Exercise, ExerciseDetails, ExercisesDetails, NewSubmission, Organization, Review, Submission,
     SubmissionFeedbackResponse, SubmissionFinished, SubmissionProcessingStatus, SubmissionStatus,
-    UpdateResult, User,
+    User,
 };
-pub use self::tmc_client::{api_v8, ClientUpdateData, TmcClient, Token};
+pub use self::tmc_client::{api_v8, ClientUpdateData, TmcClient, Token, UpdateResult};
 pub use oauth2;
 pub use tmc_langs_plugins::{Language, RunResult, StyleValidationResult, StyleValidationStrategy};
