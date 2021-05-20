@@ -13,6 +13,16 @@ use std::{collections::HashMap, time::SystemTime};
 use tmc_langs_plugins::Language;
 use url::Url;
 
+pub enum PasteData {
+    WithoutMessage,
+    WithMessage(String),
+}
+
+pub enum ReviewData {
+    WithoutMessage,
+    WithMessage(String),
+}
+
 // joins the URL "tail" with the API url root from the client
 fn make_url(client: &TmcClient, tail: impl AsRef<str>) -> Result<Url, ClientError> {
     client
@@ -843,8 +853,8 @@ pub mod core {
         client: &TmcClient,
         exercise_id: u32,
         submission_zip: impl Read + Send + Sync + 'static,
-        paste_message: Option<String>,
-        message_for_reviewer: Option<String>,
+        submit_paste: Option<PasteData>,
+        submit_for_review: Option<ReviewData>,
         locale: Option<Language>,
     ) -> Result<NewSubmission, ClientError> {
         let url = make_url(
@@ -867,16 +877,17 @@ pub mod core {
                 Part::reader(submission_zip).file_name("submission.zip"),
             );
 
-        if let Some(paste_message) = paste_message {
-            form = form
-                .text("paste", "1")
-                .text("message_for_paste", paste_message);
+        if let Some(submit_paste) = submit_paste {
+            form = form.text("paste", "1");
+            if let PasteData::WithMessage(message) = submit_paste {
+                form = form.text("message_for_paste", message);
+            }
         }
-
-        if let Some(message_for_reviewer) = message_for_reviewer {
-            form = form
-                .text("request_review", "1")
-                .text("message_for_reviewer", message_for_reviewer);
+        if let Some(submit_for_review) = submit_for_review {
+            form = form.text("request_review", "1");
+            if let ReviewData::WithMessage(message) = submit_for_review {
+                form = form.text("message_for_reviewer", message);
+            }
         }
 
         if let Some(locale) = locale {
@@ -2398,8 +2409,8 @@ mod test {
             client,
             0,
             Cursor::new(vec![]),
-            Some("paste".to_string()),
-            Some("message".to_string()),
+            Some(PasteData::WithMessage("paste".to_string())),
+            Some(ReviewData::WithMessage("message".to_string())),
             Some(Language::from_639_1("fi").unwrap()),
         )
         .unwrap();
