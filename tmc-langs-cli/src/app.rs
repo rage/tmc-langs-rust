@@ -1,6 +1,5 @@
 //! Create clap app
 
-use crate::output::UpdatedExercise;
 use anyhow::Context;
 use clap::AppSettings;
 use schemars::JsonSchema;
@@ -11,7 +10,7 @@ use tmc_langs::{
     DownloadOrUpdateCourseExercisesResult, ExerciseDesc, ExerciseDetails,
     ExercisePackagingConfiguration, Language, LocalExercise, NewSubmission, Organization,
     OutputFormat, Review, RunResult, StyleValidationResult, Submission, SubmissionFeedbackResponse,
-    SubmissionFinished, UpdateResult,
+    SubmissionFinished, UpdateResult, UpdatedExercise,
 };
 // use tmc_langs_util::task_executor::RefreshData;
 

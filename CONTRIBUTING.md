@@ -4,6 +4,8 @@ Install Rust according to https://www.rust-lang.org/tools/install
 
 Install [zstd](https://github.com/facebook/zstd). For example, on Ubuntu you need the package `libzstd1`. For Windows, download the appropriate archive from the [releases](https://github.com/facebook/zstd/releases), extract it and add the extracted directory to your PATH.
 
+Install [Node.js and npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
+
 ```bash
 git clone git@github.com:rage/tmc-langs-rust.git
 cd tmc-langs-rust
@@ -14,8 +16,13 @@ If you have any troubles building the project, please do make an issue!
 
 ## Testing
 
+To run tests for all included projects, run the `run-tests.sh` script.
 ```bash
-cargo test
+bash run-tests.sh
+```
+To run tests for the Node.js bindings run
+```bash
+npm --prefix bindings/tmc-langs-node/ run jest
 ```
 
 ## Formatting and linting

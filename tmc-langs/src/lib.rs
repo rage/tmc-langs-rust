@@ -28,14 +28,17 @@ use sha2::Sha256;
 pub use tmc_client::{
     request::FeedbackAnswer,
     response::{
-        Course, CourseData, CourseDetails, CourseExercise, ExerciseDetails, NewSubmission,
-        Organization, Review, Submission, SubmissionFeedbackResponse, SubmissionFinished,
+        Course, CourseData, CourseDetails, CourseExercise, Exercise, ExerciseDetails,
+        ExercisePoint, ExerciseSubmission, NewSubmission, Organization, Review, Submission,
+        SubmissionFeedbackKind, SubmissionFeedbackQuestion, SubmissionFeedbackResponse,
+        SubmissionFinished, SubmissionStatus, TestCase,
     },
     ClientError, ClientUpdateData, TmcClient, Token, UpdateResult,
 };
 pub use tmc_langs_framework::{
     CommandError, ExerciseDesc, ExercisePackagingConfiguration, Language, LanguagePlugin,
-    RunResult, StyleValidationResult,
+    PythonVer, RunResult, RunStatus, StyleValidationError, StyleValidationResult,
+    StyleValidationStrategy, TestDesc, TestResult, TmcProjectYml,
 };
 pub use tmc_langs_util::{
     file_util::{self, FileLockGuard},
@@ -48,6 +51,7 @@ use jwt::SignWithKey;
 use oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
+use schemars::JsonSchema;
 use std::{
     collections::BTreeMap,
     convert::TryFrom,
@@ -56,12 +60,21 @@ use std::{
     sync::{Arc, Mutex},
 };
 use std::{collections::HashMap, ffi::OsStr};
-use tmc_langs_framework::{TmcError, TmcProjectYml};
+use tmc_langs_framework::TmcError;
 use tmc_langs_plugins::{get_language_plugin, tmc_zip, AntPlugin, PluginType};
 use tmc_langs_util::progress_reporter;
 use toml::Value as TomlValue;
 use url::Url;
 use walkdir::WalkDir;
+
+#[cfg(feature = "ts")]
+use ts_rs::TS;
+
+#[derive(Debug, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
+pub struct UpdatedExercise {
+    pub id: u32,
+}
 
 /// Signs the given serializable value with the given secret using JWT.
 ///
@@ -87,8 +100,11 @@ pub fn sign_with_jwt<T: Serialize>(value: T, secret: &[u8]) -> Result<String, La
 /// Returns the projects directory for the given client name.
 /// The return value for `my-client` might look something like `/home/username/.local/share/tmc/my-client` on Linux.
 pub fn get_projects_dir(client_name: &str) -> Result<PathBuf, LangsError> {
+    log::trace!("getting");
     let config_path = TmcConfig::get_location(client_name)?;
+    log::trace!("loading");
     let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
+    log::trace!("loaded");
     Ok(projects_dir)
 }
 
@@ -977,7 +993,7 @@ mod test {
         use log::*;
         use simple_logger::*;
         let _ = SimpleLogger::new()
-            .with_level(LevelFilter::Debug)
+            .with_level(LevelFilter::Trace)
             .with_module_level("j4rs", LevelFilter::Warn)
             .with_module_level("mockito", LevelFilter::Warn)
             .with_module_level("reqwest", LevelFilter::Warn)
@@ -1027,6 +1043,8 @@ mod test {
 
     #[test]
     fn gets_projects_dir() {
+        init();
+
         let projects_dir = get_projects_dir("client").unwrap();
         assert!(projects_dir.ends_with("client"));
         let parent = projects_dir.parent().unwrap();

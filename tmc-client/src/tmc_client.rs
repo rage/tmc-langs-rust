@@ -21,6 +21,9 @@ use std::{io::Write, u32};
 use tmc_langs_plugins::Language;
 use tmc_langs_util::progress_reporter;
 
+#[cfg(feature = "ts")]
+use ts_rs::TS;
+
 /// Authentication token.
 pub type Token =
     oauth2::StandardTokenResponse<oauth2::EmptyExtraTokenFields, oauth2::basic::BasicTokenType>;
@@ -36,6 +39,7 @@ pub enum ClientUpdateData {
 
 /// Updated exercises.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct UpdateResult {
     pub created: Vec<Exercise>,
     pub updated: Vec<Exercise>,

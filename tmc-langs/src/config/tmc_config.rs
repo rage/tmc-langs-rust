@@ -7,14 +7,19 @@ use std::path::{Path, PathBuf};
 use tmc_langs_util::{file_util, FileError};
 use toml::{value::Table, Value};
 
+#[cfg(feature = "ts")]
+use ts_rs::TS;
+
 use crate::error::LangsError;
 
 /// The main configuration file. A separate one is used for each client.
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct TmcConfig {
+    #[serde(alias = "projects-dir")]
     pub projects_dir: PathBuf,
     #[serde(flatten)]
+    #[cfg_attr(feature = "ts", ts(skip))]
     pub table: Table,
 }
 
@@ -96,10 +101,11 @@ impl TmcConfig {
                 match toml::from_slice(&buf) {
                     // successfully read file, try to deserialize
                     Ok(config) => config, // successfully read and deserialized the config
-                    Err(_) => {
+                    Err(e) => {
                         log::error!(
-                            "Failed to deserialize config at {}, resetting",
-                            path.display()
+                            "Failed to deserialize config at {} due to {}, resetting",
+                            path.display(),
+                            e
                         );
                         drop(guard); // unlock file before recreating it
                         Self::init_at(client_name, &path)?

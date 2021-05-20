@@ -1,6 +1,5 @@
 //! Output format
 
-use schemars::JsonSchema;
 use serde::Serialize;
 use std::path::PathBuf;
 use tmc_langs::{
@@ -9,6 +8,7 @@ use tmc_langs::{
     ExerciseDetails, ExerciseDownload, ExercisePackagingConfiguration, LocalExercise,
     NewSubmission, Organization, Review, RunResult, StyleValidationResult, Submission,
     SubmissionFeedbackResponse, SubmissionFinished, TmcConfig, Token, UpdateResult,
+    UpdatedExercise,
 };
 use tmc_langs_util::progress_reporter::StatusUpdate;
 
@@ -144,12 +144,6 @@ pub enum Kind {
 }
 
 pub use tmc_langs::ProjectsDirExercise;
-
-#[derive(Debug, Serialize, JsonSchema)]
-#[serde(rename_all = "kebab-case")]
-pub struct UpdatedExercise {
-    pub id: u32,
-}
 
 #[derive(Debug, Serialize)]
 pub struct DownloadTarget {

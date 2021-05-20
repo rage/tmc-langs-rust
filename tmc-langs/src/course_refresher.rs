@@ -12,6 +12,9 @@ use tmc_langs_plugins::PluginType;
 use tmc_langs_util::file_util;
 use walkdir::WalkDir;
 
+#[cfg(feature = "ts")]
+use ts_rs::TS;
+
 #[cfg(unix)]
 pub type ModeBits = nix::sys::stat::mode_t;
 #[cfg(not(unix))]
@@ -20,8 +23,10 @@ pub type ModeBits = u32;
 /// Data from a finished course refresh.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct RefreshData {
     pub new_cache_path: PathBuf,
+    #[cfg_attr(feature = "ts", ts(type = "object"))]
     pub course_options: Mapping,
     pub exercises: Vec<RefreshExercise>,
 }
@@ -29,6 +34,7 @@ pub struct RefreshData {
 /// An exercise from a finished course refresh.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct RefreshExercise {
     name: String,
     checksum: String,
@@ -36,6 +42,7 @@ pub struct RefreshExercise {
     #[serde(skip)]
     path: PathBuf,
     sandbox_image: String,
+    #[cfg_attr(feature = "ts", ts(type = "TmcProjectYml | null"))]
     tmcproject_yml: Option<TmcProjectYml>,
 }
 
