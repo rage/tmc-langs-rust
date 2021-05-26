@@ -876,7 +876,7 @@ pub fn prepare_stub(exercise_path: &Path, dest_path: &Path) -> Result<(), LangsE
     submission_processing::prepare_stub(&exercise_path, dest_path)?;
 
     // The Ant plugin needs some additional files to be copied over.
-    if let PluginType::Ant = tmc_langs_plugins::get_language_plugin_type(exercise_path)? {
+    if let Some(PluginType::Ant) = tmc_langs_plugins::get_language_plugin_type(exercise_path) {
         AntPlugin::copy_tmc_junit_runner(dest_path).map_err(|e| TmcError::Plugin(Box::new(e)))?;
     }
     Ok(())
