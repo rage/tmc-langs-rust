@@ -49,7 +49,7 @@ pub fn extract_project_overwrite(
 
 /// See `LanguagePlugin::compress_project`.
 // TODO: clean up
-pub fn compress_project(path: &Path) -> Result<Vec<u8>, PluginError> {
+pub fn compress_project_to_zip(path: &Path) -> Result<Vec<u8>, PluginError> {
     match get_language_plugin_type(path) {
         Some(PluginType::CSharp) => Ok(tmc_zip::zip_student_files(
             <CSharpPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,

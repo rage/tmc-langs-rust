@@ -4,7 +4,7 @@ use schemars::JsonSchema;
 use serde::Serialize;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::{collections::HashMap, path::PathBuf};
-use tmc_client::{CourseData, CourseDetails, CourseExercise};
+use tmc_client::response::{CourseData, CourseDetails, CourseExercise};
 
 use crate::error::{LangsError, ParamError};
 
@@ -173,13 +173,13 @@ pub struct DownloadTarget {
 
 pub enum DownloadTargetKind {
     Template,
-    Submission { submission_id: usize },
+    Submission { submission_id: u32 },
 }
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub struct ExerciseDownload {
-    pub id: usize,
+    pub id: u32,
     pub course_slug: String,
     pub exercise_slug: String,
     pub path: PathBuf,

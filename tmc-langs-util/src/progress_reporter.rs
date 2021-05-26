@@ -29,9 +29,9 @@ struct ProgressReporter<T> {
 struct ProgressReporterContainer {
     reporters: TypeMap,
     current_progress: f64,
-    total_steps_left: usize,
+    total_steps_left: u32,
     start_time: Instant,
-    stage_steps: Vec<usize>, // steps left
+    stage_steps: Vec<u32>, // steps left
 }
 
 static PROGRESS_REPORTERS: OnceCell<RwLock<ProgressReporterContainer>> = OnceCell::new();
@@ -61,7 +61,7 @@ where
 }
 
 /// Starts a new stage.
-pub fn start_stage<T: 'static + Send + Sync>(total_steps: usize, message: String, data: Option<T>) {
+pub fn start_stage<T: 'static + Send + Sync>(total_steps: u32, message: String, data: Option<T>) {
     // check for init
     if let Some(lock) = PROGRESS_REPORTERS.get() {
         let mut reporter = lock.write().expect(
@@ -197,16 +197,16 @@ mod test {
 
         let su = Arc::new(Mutex::new(None));
         let suc = Arc::clone(&su);
-        subscribe::<usize, _>(move |s| {
+        subscribe::<u32, _>(move |s| {
             log::debug!("got {:#?}", s);
             *suc.lock().unwrap() = Some(s);
         });
 
-        start_stage::<usize>(2, "starting".to_string(), None);
+        start_stage::<u32>(2, "starting".to_string(), None);
 
-        progress_stage::<usize>("hello".to_string(), None);
+        progress_stage::<u32>("hello".to_string(), None);
         assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 0.5000).abs() < 0.01);
-        progress_stage::<usize>("hello!".to_string(), Some(2));
+        progress_stage::<u32>("hello!".to_string(), Some(2));
         assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 1.0000).abs() < 0.01);
     }
 
@@ -216,31 +216,31 @@ mod test {
 
         let su = Arc::new(Mutex::new(None));
         let suc = Arc::clone(&su);
-        subscribe::<usize, _>(move |s| {
+        subscribe::<u32, _>(move |s| {
             log::debug!("got {:#?}", s);
             *suc.lock().unwrap() = Some(s);
         });
 
-        start_stage::<usize>(2, "starting".to_string(), None);
-        progress_stage::<usize>("msg".to_string(), None);
+        start_stage::<u32>(2, "starting".to_string(), None);
+        progress_stage::<u32>("msg".to_string(), None);
         assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 0.5000).abs() < 0.01);
 
-        start_stage::<usize>(2, "starting".to_string(), None);
-        progress_stage::<usize>("msg".to_string(), None);
+        start_stage::<u32>(2, "starting".to_string(), None);
+        progress_stage::<u32>("msg".to_string(), None);
         assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 0.6666).abs() < 0.01);
 
-        start_stage::<usize>(2, "starting".to_string(), None);
-        progress_stage::<usize>("msg".to_string(), None);
+        start_stage::<u32>(2, "starting".to_string(), None);
+        progress_stage::<u32>("msg".to_string(), None);
         assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 0.7499).abs() < 0.01);
-        progress_stage::<usize>("msg".to_string(), None);
+        progress_stage::<u32>("msg".to_string(), None);
         assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 0.8333).abs() < 0.01);
-        finish_stage::<usize>("msg".to_string(), None);
+        finish_stage::<u32>("msg".to_string(), None);
         assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 0.8333).abs() < 0.01);
 
-        finish_stage::<usize>("msg".to_string(), None);
+        finish_stage::<u32>("msg".to_string(), None);
         assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 0.9166).abs() < 0.01);
 
-        finish_stage::<usize>("msg".to_string(), None);
+        finish_stage::<u32>("msg".to_string(), None);
         assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 1.0000).abs() < 0.01);
     }
 
@@ -250,28 +250,28 @@ mod test {
 
         let su = Arc::new(Mutex::new(None));
         let suc = Arc::clone(&su);
-        subscribe::<usize, _>(move |s| {
+        subscribe::<u32, _>(move |s| {
             log::debug!("got {:#?}", s);
             *suc.lock().unwrap() = Some(s);
         });
 
-        start_stage::<usize>(3, "starting".to_string(), None);
-        progress_stage::<usize>("hello".to_string(), None);
+        start_stage::<u32>(3, "starting".to_string(), None);
+        progress_stage::<u32>("hello".to_string(), None);
         assert!(
             (su.lock().unwrap().as_ref().unwrap().percent_done - (1.0000 / 3.0000)).abs() < 0.01
         );
-        progress_stage::<usize>("hello!".to_string(), Some(2));
+        progress_stage::<u32>("hello!".to_string(), Some(2));
         assert!(
             (su.lock().unwrap().as_ref().unwrap().percent_done - (2.0000 / 3.0000)).abs() < 0.01
         );
-        finish_stage::<usize>("finished".to_string(), None);
+        finish_stage::<u32>("finished".to_string(), None);
         assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 1.0000).abs() < 0.01);
 
-        start_stage::<usize>(2, "starting".to_string(), None);
+        start_stage::<u32>(2, "starting".to_string(), None);
         assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 0.0000).abs() < 0.01);
-        progress_stage::<usize>("hello".to_string(), None);
+        progress_stage::<u32>("hello".to_string(), None);
         assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 0.5000).abs() < 0.01);
-        progress_stage::<usize>("hello!".to_string(), Some(2));
+        progress_stage::<u32>("hello!".to_string(), Some(2));
         assert!((su.lock().unwrap().as_ref().unwrap().percent_done - 1.0000).abs() < 0.01);
     }
 }

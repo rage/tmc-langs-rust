@@ -443,7 +443,7 @@ fn set_permissions(path: &Path) -> Result<(), LangsError> {
     Ok(())
 }
 
-fn start_stage(steps: usize, message: impl Into<String>) {
+fn start_stage(steps: u32, message: impl Into<String>) {
     progress_reporter::start_stage::<()>(steps, message.into(), None)
 }
 

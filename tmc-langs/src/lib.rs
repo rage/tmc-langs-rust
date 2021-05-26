@@ -26,13 +26,16 @@ use hmac::{Hmac, NewMac};
 use serde::Serialize;
 use sha2::Sha256;
 pub use tmc_client::{
-    ClientError, ClientUpdateData, Course, CourseData, CourseDetails, CourseExercise,
-    ExerciseDetails, FeedbackAnswer, NewSubmission, Organization, Review, RunResult,
-    StyleValidationResult, Submission, SubmissionFeedbackResponse, SubmissionFinished, TmcClient,
-    Token, UpdateResult,
+    request::FeedbackAnswer,
+    response::{
+        Course, CourseData, CourseDetails, CourseExercise, ExerciseDetails, NewSubmission,
+        Organization, Review, Submission, SubmissionFeedbackResponse, SubmissionFinished,
+    },
+    ClientError, ClientUpdateData, TmcClient, Token, UpdateResult,
 };
 pub use tmc_langs_framework::{
     CommandError, ExerciseDesc, ExercisePackagingConfiguration, Language, LanguagePlugin,
+    RunResult, StyleValidationResult,
 };
 pub use tmc_langs_util::{
     file_util::{self, FileLockGuard},
@@ -48,6 +51,7 @@ use oauth2::{
 use serde_json::Value as JsonValue;
 use std::{
     collections::BTreeMap,
+    convert::TryFrom,
     io::Cursor,
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
@@ -94,7 +98,7 @@ pub fn get_projects_dir(client_name: &str) -> Result<PathBuf, LangsError> {
 pub fn check_exercise_updates(
     client: &TmcClient,
     projects_dir: &Path,
-) -> Result<Vec<usize>, LangsError> {
+) -> Result<Vec<u32>, LangsError> {
     log::debug!("checking exercise updates in {}", projects_dir.display());
 
     let mut updated_exercises = vec![];
@@ -128,10 +132,10 @@ pub fn check_exercise_updates(
 /// If a submission_url is given, the current state of the exercise is submitted to that URL before the download.
 pub fn download_old_submission(
     client: &TmcClient,
-    exercise_id: usize,
+    exercise_id: u32,
     output_path: &Path,
-    submission_id: usize,
-    submission_url: Option<Url>,
+    submission_id: u32,
+    save_old_state: bool,
 ) -> Result<(), LangsError> {
     log::debug!(
         "downloading old submission {} for {}",
@@ -139,9 +143,9 @@ pub fn download_old_submission(
         exercise_id
     );
 
-    if let Some(submission_url) = submission_url {
+    if save_old_state {
         // submit old exercise
-        client.submit(submission_url, output_path, None)?;
+        client.submit(exercise_id, output_path, None)?;
         log::debug!("finished submission");
     }
 
@@ -177,7 +181,7 @@ pub fn submit_exercise(
         ProjectsConfig::get_exercise_download_target(projects_dir, course_slug, exercise_slug);
 
     client
-        .submit_exercise_by_id(exercise.id, exercise_path.as_path(), locale)
+        .submit(exercise.id, exercise_path.as_path(), locale)
         .map_err(|e| e.into())
 }
 
@@ -199,7 +203,7 @@ pub fn paste_exercise(
         ProjectsConfig::get_exercise_download_target(projects_dir, course_slug, exercise_slug);
 
     client
-        .paste_exercise_by_id(exercise.id, exercise_path.as_path(), paste_message, locale)
+        .paste(exercise.id, exercise_path.as_path(), paste_message, locale)
         .map_err(|e| e.into())
 }
 
@@ -211,7 +215,7 @@ pub fn paste_exercise(
 pub fn download_or_update_course_exercises(
     client: &TmcClient,
     projects_dir: &Path,
-    exercises: &[usize],
+    exercises: &[u32],
     download_template: bool,
 ) -> Result<DownloadResult, LangsError> {
     log::debug!(
@@ -296,7 +300,7 @@ pub fn download_or_update_course_exercises(
 
     let exercises_len = to_be_downloaded.len();
     progress_reporter::start_stage::<()>(
-        exercises_len * 2 + 1, // each download progresses at 2 points, plus the final finishing step
+        u32::try_from(exercises_len).expect("should never happen") * 2 + 1, // each download progresses at 2 points, plus the final finishing step
         format!("Downloading {} exercises", exercises_len),
         None,
     );
@@ -490,7 +494,7 @@ pub fn download_or_update_course_exercises(
 /// Fetches the given course's details, exercises and course data.
 pub fn get_course_data(
     client: &TmcClient,
-    course_id: usize,
+    course_id: u32,
 ) -> Result<CombinedCourseData, LangsError> {
     log::debug!("getting course data for {}", course_id);
 
@@ -532,21 +536,21 @@ pub fn login_with_password(
 
 /// Initializes a TmcClient, using and returning the stored credentials, if any.
 pub fn init_tmc_client_with_credentials(
-    root_url: String,
+    root_url: Url,
     client_name: &str,
     client_version: &str,
 ) -> Result<(TmcClient, Option<Credentials>), LangsError> {
     // create client
-    let mut client = TmcClient::new_in_config(
+    let mut client = TmcClient::new(
         root_url,
         client_name.to_string(),
         client_version.to_string(),
-    )?;
+    );
 
     // set token from the credentials file if one exists
     let credentials = Credentials::load(client_name)?;
     if let Some(credentials) = &credentials {
-        client.set_token(credentials.token())?;
+        client.set_token(credentials.token());
     }
 
     Ok((client, credentials))
@@ -561,7 +565,7 @@ pub fn update_exercises(
     log::debug!("updating exercises in {}", projects_dir.display());
 
     let mut exercises_to_update = vec![];
-    let mut course_data = HashMap::<String, Vec<(String, String, usize)>>::new();
+    let mut course_data = HashMap::<String, Vec<(String, String, u32)>>::new();
 
     let mut projects_config = ProjectsConfig::load(&projects_dir)?;
 
@@ -763,7 +767,7 @@ pub fn clean(exercise_path: &Path) -> Result<(), LangsError> {
 pub fn compress_project_to(source: &Path, target: &Path) -> Result<(), LangsError> {
     log::debug!("compressing {} to {}", source.display(), target.display());
 
-    let data = tmc_langs_plugins::compress_project(source)?;
+    let data = tmc_langs_plugins::compress_project_to_zip(source)?;
 
     if let Some(parent) = target.parent() {
         file_util::create_dir_all(parent)?;
@@ -785,11 +789,7 @@ pub fn free_disk_space_megabytes(path: &Path) -> Result<u64, LangsError> {
 */
 
 /// Resets the given exercise
-pub fn reset(
-    client: &TmcClient,
-    exercise_id: usize,
-    exercise_path: &Path,
-) -> Result<(), LangsError> {
+pub fn reset(client: &TmcClient, exercise_id: u32, exercise_path: &Path) -> Result<(), LangsError> {
     if exercise_path.exists() {
         // clear out the exercise directory
         file_util::remove_dir_all(exercise_path)?;
@@ -982,7 +982,7 @@ fn move_dir(source: &Path, source_lock: FileLockGuard, target: &Path) -> Result<
     Ok(())
 }
 
-fn start_stage(steps: usize, message: impl Into<String>) {
+fn start_stage(steps: u32, message: impl Into<String>) {
     progress_reporter::start_stage::<()>(steps, message.into(), None)
 }
 
@@ -1006,7 +1006,7 @@ fn extract_project_overwrite(
 #[allow(clippy::clippy::unwrap_used)]
 mod test {
     use std::io::Write;
-    use tmc_client::ExercisesDetails;
+    use tmc_client::response::ExercisesDetails;
 
     use super::*;
 
@@ -1036,18 +1036,16 @@ mod test {
 
     fn mock_client() -> TmcClient {
         let mut client = TmcClient::new(
-            PathBuf::from(""),
-            mockito::server_url(),
+            mockito::server_url().parse().unwrap(),
             "client".to_string(),
             "version".to_string(),
-        )
-        .unwrap();
+        );
         let token = Token::new(
             AccessToken::new("".to_string()),
             BasicTokenType::Bearer,
             EmptyExtraTokenFields {},
         );
-        client.set_token(token).unwrap();
+        client.set_token(token);
         client
     }
 
@@ -1138,7 +1136,7 @@ checksum = 'old checksum'
         let output_dir = tempfile::tempdir().unwrap();
         let client = mock_client();
 
-        download_old_submission(&client, 1, output_dir.path(), 2, None).unwrap();
+        download_old_submission(&client, 1, output_dir.path(), 2, false).unwrap();
         let s = file_util::read_file_to_string(output_dir.path().join("src/file")).unwrap();
         assert_eq!(s, "file contents");
     }
@@ -1494,7 +1492,7 @@ checksum = 'new checksum'
 
         let client = mock_client();
 
-        download_old_submission(&client, 1, output_dir.path(), 2, None).unwrap();
+        download_old_submission(&client, 1, output_dir.path(), 2, false).unwrap();
 
         let s = file_util::read_file_to_string(output_dir.path().join("pom.xml")).unwrap();
         assert_eq!(s, "template");

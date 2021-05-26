@@ -67,7 +67,7 @@ pub enum LangsError {
     InvalidDirectory(PathBuf),
 
     #[error("Server did not return details for local exercise with id {0}")]
-    ExerciseMissingOnServer(usize),
+    ExerciseMissingOnServer(u32),
 
     #[cfg(unix)]
     #[error("Error changing permissions of {0}")]

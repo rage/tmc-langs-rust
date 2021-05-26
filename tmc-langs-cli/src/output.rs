@@ -148,12 +148,12 @@ pub use tmc_langs::ProjectsDirExercise;
 #[derive(Debug, Serialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub struct UpdatedExercise {
-    pub id: usize,
+    pub id: u32,
 }
 
 #[derive(Debug, Serialize)]
 pub struct DownloadTarget {
-    pub id: usize,
+    pub id: u32,
     pub path: PathBuf,
 }
 
