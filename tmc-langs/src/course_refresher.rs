@@ -8,6 +8,7 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{TmcCommand, TmcProjectYml};
+use tmc_langs_plugins::PluginType;
 use tmc_langs_util::file_util;
 use walkdir::WalkDir;
 
@@ -34,6 +35,7 @@ pub struct RefreshExercise {
     points: Vec<String>,
     #[serde(skip)]
     path: PathBuf,
+    sandbox_image: String,
     tmcproject_yml: Option<TmcProjectYml>,
 }
 
@@ -300,16 +302,41 @@ fn get_exercises(
             let exercise_path = course_clone_path.join(&exercise_dir);
             let points = super::get_available_points(&exercise_path)?;
 
+            let sandbox_image = if let Some(image_override) = tmcproject_yml
+                .as_ref()
+                .and_then(|y| y.sandbox_image.as_ref())
+            {
+                image_override.clone()
+            } else {
+                get_default_sandbox_image(&exercise_path)?.to_string()
+            };
+
             Ok(RefreshExercise {
                 name,
                 points,
                 checksum,
                 path: exercise_dir,
+                sandbox_image,
                 tmcproject_yml,
             })
         })
         .collect::<Result<_, LangsError>>()?;
     Ok(exercises)
+}
+
+fn get_default_sandbox_image(path: &Path) -> Result<&'static str, LangsError> {
+    let url = match tmc_langs_plugins::get_language_plugin_type(&path) {
+        Some(PluginType::CSharp) => "eu.gcr.io/moocfi-public/tmc-sandbox-csharp:latest",
+        Some(PluginType::Make) => "eu.gcr.io/moocfi-public/tmc-sandbox-make:latest",
+        Some(PluginType::Maven) | Some(PluginType::Ant) => {
+            "eu.gcr.io/moocfi-public/tmc-sandbox-java:latest"
+        }
+        Some(PluginType::NoTests) => "eu.gcr.io/moocfi-public/tmc-sandbox-python:latest", // doesn't really matter, just use Python image
+        Some(PluginType::Python3) => "eu.gcr.io/moocfi-public/tmc-sandbox-python:latest",
+        Some(PluginType::R) => "eu.gcr.io/moocfi-public/tmc-sandbox-r:latest",
+        None => return Err(LangsError::NoPlugin),
+    };
+    Ok(url)
 }
 
 fn calculate_checksum(exercise_dir: &Path) -> Result<String, LangsError> {
