@@ -308,7 +308,7 @@ fn get_exercises(
             {
                 image_override.clone()
             } else {
-                get_default_sandbox_image(&exercise_dir)?.to_string()
+                get_default_sandbox_image(&exercise_path)?.to_string()
             };
 
             Ok(RefreshExercise {
