@@ -114,7 +114,9 @@ impl<R: Read> MetaSyntaxParser<BufReader<R>> {
         let reader = BufReader::new(target);
         // assigns each supported file extension with the proper comment syntax
         let meta_syntaxes: &[MetaSyntax] = match target_extension {
-            "java" | "c" | "cpp" | "h" | "hpp" | "js" | "css" | "rs" | "qml" => &*META_SYNTAXES_C,
+            "java" | "c" | "cpp" | "h" | "hpp" | "js" | "css" | "rs" | "qml" | "cs" => {
+                &*META_SYNTAXES_C
+            }
             "xml" | "http" | "html" | "qrc" => &*META_SYNTAXES_HTML,
             "properties" | "py" | "R" | "pro" => &*META_SYNTAXES_PY,
             _ => &[],
