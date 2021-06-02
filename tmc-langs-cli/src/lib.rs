@@ -864,6 +864,7 @@ fn run_core_inner(
 
         Core::SendFeedback {
             submission_id,
+            feedback_url,
             feedback,
         } => {
             let mut feedback_answers = feedback.into_iter();
@@ -879,9 +880,17 @@ fn run_core_inner(
                     answer,
                 });
             }
-            let response = client
-                .send_feedback(submission_id, feedback)
-                .context("Failed to send feedback")?;
+
+            let response = if let Some(submission_id) = submission_id {
+                client
+                    .send_feedback(submission_id, feedback)
+                    .context("Failed to send feedback")?
+            } else if let Some(feedback_url) = feedback_url {
+                let feedback_url = feedback_url.parse()?;
+                client.send_feedback_to_url(feedback_url, feedback)?
+            } else {
+                panic!("validation error")
+            };
             Output::finished_with_data("sent feedback", Data::SubmissionFeedbackResponse(response))
         }
 

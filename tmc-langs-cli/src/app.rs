@@ -444,8 +444,11 @@ pub enum Core {
     #[structopt(long_about = schema_leaked::<SubmissionFeedbackResponse>())]
     SendFeedback {
         /// The ID of the submission.
-        #[structopt(long)]
-        submission_id: u32,
+        #[structopt(long, required_unless = "feedback-url")]
+        submission_id: Option<u32>,
+        /// The feedback answer URL.
+        #[structopt(long, required_unless = "submission-id")]
+        feedback_url: Option<String>,
         /// A feedback answer. Takes two values, a feedback answer id and the answer. Multiple feedback arguments can be given.
         #[structopt(long, required = true, number_of_values = 2, value_names = &["feedback-answer-id, answer"])]
         feedback: Vec<String>,
