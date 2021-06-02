@@ -322,7 +322,7 @@ impl LanguagePlugin for CSharpPlugin {
         combinator::map(
             sequence::delimited(
                 sequence::tuple((
-                    character::complete::char('@'),
+                    character::complete::char('['),
                     character::complete::multispace0,
                     bytes::complete::tag_no_case("points"),
                     character::complete::multispace0,
@@ -333,6 +333,8 @@ impl LanguagePlugin for CSharpPlugin {
                 sequence::tuple((
                     character::complete::multispace0,
                     character::complete::char(')'),
+                    character::complete::multispace0,
+                    character::complete::char(']'),
                 )),
             ),
             // splits each point by whitespace
@@ -634,13 +636,13 @@ mod test {
         let res = CSharpPlugin::points_parser("asd");
         assert!(res.is_err());
 
-        let res = CSharpPlugin::points_parser("@Points(\"1\")").unwrap();
+        let res = CSharpPlugin::points_parser("[Points(\"1\")]").unwrap();
         assert_eq!(res.1, &["1"]);
 
-        let res = CSharpPlugin::points_parser("@  pOiNtS  (  \"  1  \"  )  ").unwrap();
+        let res = CSharpPlugin::points_parser("[  pOiNtS  (  \"  1  \"  )  ]").unwrap();
         assert_eq!(res.1, &["1"]);
 
-        let res = CSharpPlugin::points_parser("@Points(\"1\", \"2\"  ,  \"3\")").unwrap();
+        let res = CSharpPlugin::points_parser("[Points(\"1\", \"2\"  ,  \"3\")]").unwrap();
         assert_eq!(res.1, &["1", "2", "3"]);
     }
 
