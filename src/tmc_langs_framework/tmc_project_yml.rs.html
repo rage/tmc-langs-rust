@@ -317,6 +317,7 @@
 <span id="314">314</span>
 <span id="315">315</span>
 <span id="316">316</span>
+<span id="317">317</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains a struct that models the .tmcproject.yml file.</span>
 
@@ -441,9 +442,9 @@
 <span class="doccomment">/// TODO: if patch is Some minor is also guaranteed to be Some etc. encode this in the type system</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Serialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PythonVer</span> {
-    <span class="kw">pub</span> <span class="ident">major</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">minor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">patch</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">major</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">minor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">patch</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Deserializes a major.minor?.patch? version into a PythonVer.</span>
@@ -467,19 +468,19 @@
             {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parts</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">split</span>(<span class="string">&#39;.&#39;</span>);
                 <span class="kw">let</span> <span class="ident">major</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">major</span>) <span class="op">=</span> <span class="ident">parts</span>.<span class="ident">next</span>() {
-                    <span class="kw">let</span> <span class="ident">parsed</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">major</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="ident">Error</span>::<span class="ident">custom</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">parsed</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">major</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="ident">Error</span>::<span class="ident">custom</span>)<span class="question-mark">?</span>;
                     <span class="prelude-val">Some</span>(<span class="ident">parsed</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
                 };
                 <span class="kw">let</span> <span class="ident">minor</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">minor</span>) <span class="op">=</span> <span class="ident">parts</span>.<span class="ident">next</span>() {
-                    <span class="kw">let</span> <span class="ident">parsed</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">minor</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="ident">Error</span>::<span class="ident">custom</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">parsed</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">minor</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="ident">Error</span>::<span class="ident">custom</span>)<span class="question-mark">?</span>;
                     <span class="prelude-val">Some</span>(<span class="ident">parsed</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
                 };
                 <span class="kw">let</span> <span class="ident">patch</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">patch</span>) <span class="op">=</span> <span class="ident">parts</span>.<span class="ident">next</span>() {
-                    <span class="kw">let</span> <span class="ident">parsed</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">patch</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="ident">Error</span>::<span class="ident">custom</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">parsed</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">patch</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="ident">Error</span>::<span class="ident">custom</span>)<span class="question-mark">?</span>;
                     <span class="prelude-val">Some</span>(<span class="ident">parsed</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
@@ -549,6 +550,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">clippy</span>::<span class="ident">unwrap_used</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
