@@ -101,6 +101,7 @@ impl TmcConfig {
                             "Failed to deserialize config at {}, resetting",
                             path.display()
                         );
+                        drop(guard); // unlock file before recreating it
                         Self::init_at(client_name, &path)?
                     }
                 }
