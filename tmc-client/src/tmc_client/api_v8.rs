@@ -80,6 +80,19 @@ fn assert_success(response: Response, url: &Url) -> Result<Response, ClientError
     }
 }
 
+/// Converts a list of feedback answers to the format expected by the TMC server.
+pub fn prepare_feedback_form(feedback: Vec<FeedbackAnswer>) -> HashMap<String, String> {
+    let mut form = HashMap::new();
+    for (i, answer) in feedback.into_iter().enumerate() {
+        form.insert(
+            format!("answers[{}][question_id]", i),
+            answer.question_id.to_string(),
+        );
+        form.insert(format!("answers[{}][answer]", i), answer.answer);
+    }
+    form
+}
+
 /// Fetches data from the URL and writes it into the target.
 pub fn download(client: &TmcClient, url: Url, mut target: impl Write) -> Result<(), ClientError> {
     let res = prepare_tmc_request(client, Method::GET, url.clone())
@@ -101,6 +114,24 @@ pub fn get_json<T: DeserializeOwned>(
 ) -> Result<T, ClientError> {
     let res = prepare_tmc_request(client, Method::GET, url.clone())
         .query(params)
+        .send()
+        .map_err(|e| ClientError::ConnectionError(Method::GET, url.clone(), e))?;
+
+    let res = assert_success(res, &url)?;
+    let json = res
+        .json()
+        .map_err(|e| ClientError::HttpJsonResponse(url, e))?;
+    Ok(json)
+}
+
+/// Posts the given form data to the given URL and deserializes the response to T.
+pub fn post_form<T: DeserializeOwned>(
+    client: &TmcClient,
+    url: Url,
+    form: &HashMap<String, String>,
+) -> Result<T, ClientError> {
+    let res = prepare_tmc_request(client, Method::POST, url.clone())
+        .form(form)
         .send()
         .map_err(|e| ClientError::ConnectionError(Method::GET, url.clone(), e))?;
 
@@ -948,15 +979,7 @@ pub mod core {
             format!("/api/v8/core/submissions/{}/feedback", submission_id),
         )?;
 
-        let mut form = HashMap::new();
-        for (i, answer) in feedback.into_iter().enumerate() {
-            form.insert(
-                format!("answers[{}][question_id]", i),
-                answer.question_id.to_string(),
-            );
-            form.insert(format!("answers[{}][answer]", i), answer.answer);
-        }
-
+        let form = prepare_feedback_form(feedback);
         let res = prepare_tmc_request(client, Method::POST, url.clone())
             .form(&form)
             .send()

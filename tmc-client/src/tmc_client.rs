@@ -302,6 +302,20 @@ impl TmcClient {
         api_v8::core::post_submission_feedback(self, submission_id, feedback)
     }
 
+    /// Posts feedback to the given URL. Requires authentication.
+    ///
+    /// # Errors
+    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
+    pub fn send_feedback_to_url(
+        &self,
+        feedback_url: Url,
+        feedback: Vec<FeedbackAnswer>,
+    ) -> Result<SubmissionFeedbackResponse, ClientError> {
+        self.require_authentication()?;
+        let form = api_v8::prepare_feedback_form(feedback);
+        api_v8::post_form(self, feedback_url, &form)
+    }
+
     /// Sends the submission to the server. Requires authentication.
     ///
     /// # Errors
