@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["get_organization","get /api/v8/org/{organization_slug}.json Returns a json representation of the organization"],["get_organizations","get /api/v8/org.json Returns a list of all organizations"]]});

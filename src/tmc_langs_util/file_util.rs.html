@@ -355,21 +355,6 @@
 <span id="352">352</span>
 <span id="353">353</span>
 <span id="354">354</span>
-<span id="355">355</span>
-<span id="356">356</span>
-<span id="357">357</span>
-<span id="358">358</span>
-<span id="359">359</span>
-<span id="360">360</span>
-<span id="361">361</span>
-<span id="362">362</span>
-<span id="363">363</span>
-<span id="364">364</span>
-<span id="365">365</span>
-<span id="366">366</span>
-<span id="367">367</span>
-<span id="368">368</span>
-<span id="369">369</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Various utility functions, primarily wrapping the standard library&#39;s IO and filesystem functions</span>
 
@@ -387,7 +372,7 @@
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">lock</span> {
     ( $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">path</span>: <span class="ident">expr</span> ),<span class="op">+</span> ) <span class="op">=</span><span class="op">&gt;</span> {
         $(
-            <span class="kw">let</span> <span class="ident">path_buf</span>: <span class="ident">PathBuf</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">path</span>).<span class="ident">into</span>();
+            <span class="kw">let</span> <span class="ident">path_buf</span>: <span class="ident">PathBuf</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">path</span>.<span class="ident">into</span>();
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fl</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">file_util</span>::<span class="ident">FileLock</span>::<span class="ident">new</span>(<span class="ident">path_buf</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">_lock</span> <span class="op">=</span> <span class="ident">fl</span>.<span class="ident">lock</span>()<span class="question-mark">?</span>;
         )<span class="op">*</span>
@@ -500,18 +485,6 @@
     <span class="prelude-val">Ok</span>(<span class="ident">lock</span>)
 }
 
-<span class="doccomment">/// Removes whatever is at the path, whether it is a directory or file. The _all suffix hopefully makes the function sound at least slightly dangerous.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_all</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">FileError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>();
-    <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">is_file</span>() {
-        <span class="ident">remove_file</span>(<span class="ident">path</span>)
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">is_dir</span>() {
-        <span class="ident">remove_dir_all</span>(<span class="ident">path</span>)
-    } <span class="kw">else</span> {
-        <span class="prelude-val">Ok</span>(())
-    }
-}
-
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_file</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">FileError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>();
     <span class="ident">fs</span>::<span class="ident">remove_file</span>(<span class="ident">path</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FileError</span>::<span class="ident">FileRemove</span>(<span class="ident">path</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))
@@ -535,7 +508,7 @@
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">FileError</span><span class="op">&gt;</span> {
     <span class="ident">target</span>
         .<span class="ident">write_all</span>(<span class="ident">source</span>.<span class="ident">as_ref</span>())
-        .<span class="ident">map_err</span>(<span class="ident">FileError</span>::<span class="ident">WriteError</span>)<span class="question-mark">?</span>;
+        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FileError</span>::<span class="ident">WriteError</span>(<span class="ident">e</span>))<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
@@ -631,9 +604,7 @@
             <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir</span>::<span class="ident">new</span>(<span class="ident">source</span>) {
                 <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">entry</span><span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">entry_path</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">path</span>();
-                <span class="kw">let</span> <span class="ident">stripped</span> <span class="op">=</span> <span class="ident">entry_path</span>
-                    .<span class="ident">strip_prefix</span>(<span class="ident">prefix</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;prefix is derived from the source which entry_path is in&quot;</span>);
+                <span class="kw">let</span> <span class="ident">stripped</span> <span class="op">=</span> <span class="ident">entry_path</span>.<span class="ident">strip_prefix</span>(<span class="ident">prefix</span>).<span class="ident">unwrap</span>();
 
                 <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">join</span>(<span class="ident">stripped</span>);
                 <span class="kw">if</span> <span class="ident">entry_path</span>.<span class="ident">is_dir</span>() {
@@ -655,7 +626,6 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">clippy</span>::<span class="ident">unwrap_used</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
