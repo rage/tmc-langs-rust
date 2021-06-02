@@ -15,6 +15,7 @@ use anyhow::{Context, Result};
 use app::{Command, Core, OutputFormatWrapper, Settings};
 use clap::{Error, ErrorKind};
 use serde::Serialize;
+use serde_json::Value;
 use std::collections::HashMap;
 use std::env;
 use std::fs::File;
@@ -982,8 +983,14 @@ fn run_settings(client_name: &str, settings: Settings) -> Result<Output> {
             Output::finished("moved project directory")
         }
 
-        Settings::Set { key, json } => {
-            tmc_langs::set_setting(client_name, &key, &json.to_string())?;
+        Settings::Set { key, json, base64 } => {
+            let json: Value = if base64 {
+                let json = base64::decode(&json)?;
+                serde_json::from_slice(&json)?
+            } else {
+                serde_json::from_str(&json)?
+            };
+            tmc_langs::set_setting(client_name, &key, &json)?;
             Output::finished("set setting")
         }
 

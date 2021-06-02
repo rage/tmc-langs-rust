@@ -56,7 +56,7 @@ struct TmcCore {
 // TODO: cache API results?
 impl TmcClient {
     /// Convenience function for checking authentication.
-    fn require_authentication(&self) -> Result<(), ClientError> {
+    pub fn require_authentication(&self) -> Result<(), ClientError> {
         if self.0.token.is_some() {
             Ok(())
         } else {

@@ -48,7 +48,6 @@ use jwt::SignWithKey;
 use oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
-use serde_json::Value as JsonValue;
 use std::{
     collections::BTreeMap,
     convert::TryFrom,
@@ -60,7 +59,7 @@ use std::{collections::HashMap, ffi::OsStr};
 use tmc_langs_framework::{TmcError, TmcProjectYml};
 use tmc_langs_plugins::{get_language_plugin, tmc_zip, AntPlugin, PluginType};
 use tmc_langs_util::progress_reporter;
-use toml::{map::Map as TomlMap, Value as TomlValue};
+use toml::Value as TomlValue;
 use url::Url;
 use walkdir::WalkDir;
 
@@ -208,6 +207,7 @@ pub fn paste_exercise(
 }
 
 /// Downloads the given exercises, by either downloading the exercise template, updating the exercise or downloading an old submission.
+/// Requires authentication.
 /// If the exercise doesn't exist on disk yet...
 ///   if there are previous submissions and download_template is not set, the latest submission is downloaded.
 ///   otherwise, the exercise template is downloaded.
@@ -222,6 +222,8 @@ pub fn download_or_update_course_exercises(
         "downloading or updating course exercises in {}",
         projects_dir.display()
     );
+
+    client.require_authentication()?;
 
     let exercises_details = client.get_exercises_details(exercises)?;
     let projects_config = ProjectsConfig::load(projects_dir)?;
@@ -672,19 +674,12 @@ pub fn get_settings(client_name: &str) -> Result<TmcConfig, LangsError> {
 }
 
 /// Saves a setting in the config.
-pub fn set_setting(client_name: &str, key: &str, value: &str) -> Result<(), LangsError> {
-    log::debug!("setting {}={} in {}", key, value, client_name);
+pub fn set_setting<T: Serialize>(client_name: &str, key: &str, value: T) -> Result<(), LangsError> {
+    log::debug!("setting {} in {}", key, client_name);
 
     let config_path = TmcConfig::get_location(client_name)?;
     let mut tmc_config = TmcConfig::load(client_name, &config_path)?;
-    let value = match serde_json::from_str(value) {
-        Ok(json) => json,
-        Err(_) => {
-            // interpret as string
-            JsonValue::String(value.to_string())
-        }
-    };
-    let value = setting_json_to_toml(value)?;
+    let value = TomlValue::try_from(value)?;
 
     tmc_config.insert(key.to_string(), value)?;
     tmc_config.save(&config_path)?;
@@ -709,38 +704,6 @@ pub fn unset_setting(client_name: &str, key: &str) -> Result<(), LangsError> {
     tmc_config.remove(key)?;
     tmc_config.save(&config_path)?;
     Ok(())
-}
-
-fn setting_json_to_toml(json: JsonValue) -> Result<TomlValue, LangsError> {
-    match json {
-        JsonValue::Array(arr) => {
-            let mut v = vec![];
-            for value in arr {
-                v.push(setting_json_to_toml(value)?);
-            }
-            Ok(TomlValue::Array(v))
-        }
-        JsonValue::Bool(b) => Ok(TomlValue::Boolean(b)),
-        JsonValue::Null => Err(LangsError::SettingsCannotContainNull),
-        JsonValue::Number(num) => {
-            if let Some(int) = num.as_i64() {
-                Ok(TomlValue::Integer(int))
-            } else if let Some(float) = num.as_f64() {
-                Ok(TomlValue::Float(float))
-            } else {
-                // this error can occur because serde_json supports u64 ints but toml doesn't
-                Err(LangsError::SettingNumberTooHigh(num))
-            }
-        }
-        JsonValue::Object(obj) => {
-            let mut map = TomlMap::new();
-            for (key, value) in obj {
-                map.insert(key, setting_json_to_toml(value)?);
-            }
-            Ok(TomlValue::Table(map))
-        }
-        JsonValue::String(s) => Ok(TomlValue::String(s)),
-    }
 }
 
 /// Checks the exercise's code quality.

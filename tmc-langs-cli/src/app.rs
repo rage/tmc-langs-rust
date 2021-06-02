@@ -4,7 +4,6 @@ use crate::output::UpdatedExercise;
 use anyhow::Context;
 use clap::AppSettings;
 use schemars::JsonSchema;
-use serde_json::Value as Json;
 use std::{path::PathBuf, str::FromStr};
 use structopt::StructOpt;
 use tmc_langs::{
@@ -26,13 +25,13 @@ use tmc_langs::{
 )]
 pub struct Opt {
     /// Pretty-prints all output
-    #[structopt(long)]
+    #[structopt(long, short)]
     pub pretty: bool,
     /// Name used to differentiate between different TMC clients.
-    #[structopt(long)]
+    #[structopt(long, short)]
     pub client_name: Option<String>,
     /// Client version.
-    #[structopt(long)]
+    #[structopt(long, short = "v")]
     pub client_version: Option<String>,
     #[structopt(subcommand)]
     pub cmd: Command,
@@ -525,7 +524,9 @@ pub enum Settings {
         /// The key. Parsed as JSON, assumed to be a string if parsing fails.
         key: String,
         /// The value in JSON.
-        json: Json,
+        json: String,
+        #[structopt(long)]
+        base64: bool,
     },
     /// Unsets a value from the settings
     Unset {
