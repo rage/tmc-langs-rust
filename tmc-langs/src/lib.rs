@@ -208,6 +208,7 @@ pub fn paste_exercise(
 }
 
 /// Downloads the given exercises, by either downloading the exercise template, updating the exercise or downloading an old submission.
+/// Requires authentication.
 /// If the exercise doesn't exist on disk yet...
 ///   if there are previous submissions and download_template is not set, the latest submission is downloaded.
 ///   otherwise, the exercise template is downloaded.
@@ -222,6 +223,8 @@ pub fn download_or_update_course_exercises(
         "downloading or updating course exercises in {}",
         projects_dir.display()
     );
+
+    client.require_authentication()?;
 
     let exercises_details = client.get_exercises_details(exercises)?;
     let projects_config = ProjectsConfig::load(projects_dir)?;
