@@ -44,8 +44,8 @@ impl FileLock {
             let file = open_file(&self.path)?;
             let lock = FdLock::new(file);
             self.lock = Some(lock);
-            let lock = self.lock.as_mut().unwrap();
-            let guard = lock.lock().unwrap();
+            let lock = self.lock.as_mut().expect("set to Some before this call");
+            let guard = lock.lock().expect("cannot fail on Windows");
             Ok(FileLockGuard {
                 _guard: LockInner::FdLockGuard(guard),
                 path: Cow::Borrowed(&self.path),

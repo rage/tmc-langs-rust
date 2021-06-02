@@ -17,8 +17,6 @@ use ts_rs::TS;
 
 #[cfg(unix)]
 pub type ModeBits = nix::sys::stat::mode_t;
-#[cfg(not(unix))]
-pub type ModeBits = u32;
 
 /// Data from a finished course refresh.
 #[derive(Debug, Serialize, Deserialize)]

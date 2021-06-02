@@ -14,7 +14,8 @@ pub enum Error {
     EmptyString,
     #[error("String too long to be a char expected len: 1 got len: {0}")]
     StringTooLongForChar(usize),
-    #[error("Expecting null")]ExpectingNull,
+    #[error("Expecting null")]
+    ExpectingNull,
     #[error("Invalid key type: {0}")]
     InvalidKeyType(String),
     #[error("Array index out of bounds: index: {0}, size: {1}")]
