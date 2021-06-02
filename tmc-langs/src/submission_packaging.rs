@@ -294,9 +294,15 @@ pub fn prepare_submission(
                     stripped.display()
                 );
                 if entry_path.is_dir() {
-                    archive.add_directory(stripped.to_string_lossy(), FileOptions::default())?;
+                    archive.add_directory(
+                        stripped.to_string_lossy(),
+                        FileOptions::default().unix_permissions(0o744),
+                    )?;
                 } else {
-                    archive.start_file(stripped.to_string_lossy(), FileOptions::default())?;
+                    archive.start_file(
+                        stripped.to_string_lossy(),
+                        FileOptions::default().unix_permissions(0o744),
+                    )?;
                     let mut file = file_util::open_file(entry_path)?;
                     std::io::copy(&mut file, &mut archive)
                         .map_err(|e| LangsError::TarAppend(entry_path.to_path_buf(), e))?;
