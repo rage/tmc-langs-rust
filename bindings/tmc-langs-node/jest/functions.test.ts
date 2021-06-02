@@ -120,7 +120,7 @@ test("lists local course exercises", async () => {
   const configDir = await setConfigDir();
 
   await writeFiles(configDir, [
-    ["tmc-list/config.toml", `projects_dir = "${configDir}/projects"`],
+    ["tmc-list/config.toml", `projects_dir = "${path.join(configDir, "projects").split("\\").join("\\\\")}"`],
     [
       "projects/course/course_config.toml",
       `
@@ -133,7 +133,6 @@ checksum = '2'
     ["projects/course/exercise/setup.py"],
   ]);
   const exercises = functions.listLocalCourseExercises("list", "course");
-  console.log(exercises);
   expect(exercises[0]["exercise-slug"]).toEqual("exercise");
 });
 
