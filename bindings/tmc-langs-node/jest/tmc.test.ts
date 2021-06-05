@@ -3,6 +3,7 @@ import path from "path";
 import fs, { existsSync } from "fs";
 import functions from "../ts/functions";
 import { Tmc } from "../ts/tmc";
+import { env } from "process";
 
 var initiated = false;
 function init(): Tmc {
@@ -11,7 +12,13 @@ function init(): Tmc {
     functions.initLogging();
   }
 
-  const tmc = new Tmc("mock-client", "mock-version", `http://localhost:3000`);
+  var addr;
+  if (env.TMC_LANGS_MOCK_SERVER_ADDR) {
+    addr = env.TMC_LANGS_MOCK_SERVER_ADDR;
+  } else {
+    addr = `http://localhost:3000`;
+  }
+  const tmc = new Tmc("mock-client", "mock-version", addr);
   tmc.loginWithToken("");
   return tmc;
 }
@@ -23,10 +30,17 @@ async function initWithTempDir(): Promise<Tmc> {
   }
 
   const tempDir = await tempdir();
+
+  var addr;
+  if (env.TMC_LANGS_MOCK_SERVER_ADDR) {
+    addr = env.TMC_LANGS_MOCK_SERVER_ADDR;
+  } else {
+    addr = `http://localhost:3000`;
+  }
   const tmc = new Tmc(
     "mock-client",
     "mock-version",
-    `http://localhost:3000`,
+    addr,
     path.join(tempDir, "config"),
     path.join(tempDir, "projects")
   );
@@ -300,8 +314,10 @@ test("gets exercise submissions", async () => {
 test("gets exercise updates", async () => {
   const tmc = init();
 
-  const exerciseUpdates = tmc.getExerciseUpdates(1, new Map([[1, ""]]));
+  const map: [number, string][] = [[1, "old checksum"], [9999, "old checksum"]];
+  const exerciseUpdates = tmc.getExerciseUpdates(1, map);
   expect(exerciseUpdates.created.length).toBeGreaterThan(0);
+  expect(exerciseUpdates.updated.length).toBeGreaterThan(0);
 });
 
 test("gets organizations", async () => {

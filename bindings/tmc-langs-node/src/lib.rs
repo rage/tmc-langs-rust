@@ -6,7 +6,6 @@ mod ser;
 use crate::helpers::{convert, convert_err, convert_res};
 use neon::prelude::*;
 use std::{
-    collections::HashMap,
     env,
     error::Error,
     io::{Cursor, Read},
@@ -172,7 +171,7 @@ fn prepare_submission(mut cx: FunctionContext) -> JsResult<JsValue> {
         output_path: PathBuf,
         stub_zip_path: Option<PathBuf>,
         submission_path: PathBuf,
-        tmc_param: HashMap<String, Vec<String>>,
+        tmc_param: Vec<(String, Vec<String>)>,
         top_level_dir_name: Option<String>
     );
 
@@ -441,11 +440,12 @@ fn get_exercise_updates(mut cx: FunctionContext) -> JsResult<JsValue> {
         client_name: String,
         client_version: String,
         course_id: u32,
-        exercise: HashMap<u32, String>
+        exercise: Vec<(u32, String)>
     );
 
+    let map = exercise.into_iter().collect();
     let res = with_client(client_name, client_version, |client| {
-        Ok(client.get_exercise_updates(course_id, exercise)?)
+        Ok(client.get_exercise_updates(course_id, map)?)
     });
     convert_res(&mut cx, res)
 }
@@ -914,4 +914,43 @@ ts_rs::export! {
     // listSettings
     tmc_langs::TmcConfig
          => "ts/generated.d.ts",
+}
+
+#[cfg(test)]
+mod test {
+    use std::{env, process::Command};
+
+    use once_cell::sync::OnceCell;
+    use tmc_server_mock::mockito::{server_address, Mock};
+
+    static MOCKS: OnceCell<Vec<Mock>> = OnceCell::new();
+
+    fn init() {
+        use log::*;
+        use simple_logger::*;
+        let _ = SimpleLogger::new()
+            .with_level(LevelFilter::Debug)
+            .with_module_level("mockito", LevelFilter::Info)
+            .init();
+
+        let _ = MOCKS.get_or_init(tmc_server_mock::mock_all);
+    }
+
+    #[test]
+    fn jest() {
+        init();
+        env::set_var(
+            "TMC_LANGS_MOCK_SERVER_ADDR",
+            format!("http://{}", server_address()),
+        );
+        let s = Command::new("npm")
+            .args(&["run", "jest"])
+            .output()
+            .expect("running jest failed");
+        println!("stdout: {}", String::from_utf8_lossy(&s.stdout));
+        println!("stderr: {}", String::from_utf8_lossy(&s.stderr));
+        if !s.status.success() {
+            panic!("jest test failed")
+        }
+    }
 }

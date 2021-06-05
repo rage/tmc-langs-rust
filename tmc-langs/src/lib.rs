@@ -100,11 +100,8 @@ pub fn sign_with_jwt<T: Serialize>(value: T, secret: &[u8]) -> Result<String, La
 /// Returns the projects directory for the given client name.
 /// The return value for `my-client` might look something like `/home/username/.local/share/tmc/my-client` on Linux.
 pub fn get_projects_dir(client_name: &str) -> Result<PathBuf, LangsError> {
-    log::trace!("getting");
     let config_path = TmcConfig::get_location(client_name)?;
-    log::trace!("loading");
     let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
-    log::trace!("loaded");
     Ok(projects_dir)
 }
 
@@ -587,19 +584,13 @@ pub fn update_exercises(
 
     let mut projects_config = ProjectsConfig::load(&projects_dir)?;
 
-    for c in &projects_config.courses {
-        course_data.insert(c.1.course.clone(), vec![]);
-    }
-
-    let local_exercises = projects_config
+    let exercise_ids = projects_config
         .courses
         .iter_mut()
         .map(|c| &mut c.1.exercises)
         .flatten()
-        .map(|e| e.1)
+        .map(|e| e.1.id)
         .collect::<Vec<_>>();
-
-    let exercise_ids = local_exercises.iter().map(|e| e.id).collect::<Vec<_>>();
 
     // request would error with 0 exercise ids
     if !exercise_ids.is_empty() {
@@ -609,36 +600,36 @@ pub fn update_exercises(
             .map(|e| (e.id, e))
             .collect::<HashMap<_, _>>();
 
-        for local_exercise in local_exercises {
-            let server_exercise = server_exercises
-                .remove(&local_exercise.id)
-                .ok_or(LangsError::ExerciseMissingOnServer(local_exercise.id))?;
-            if server_exercise.checksum != local_exercise.checksum {
-                // server has an updated exercise
-                let target = ProjectsConfig::get_exercise_download_target(
-                    &projects_dir,
-                    &server_exercise.course_name,
-                    &server_exercise.exercise_name,
-                );
-                exercises_to_update.push(ExerciseDownload {
-                    id: server_exercise.id,
-                    course_slug: server_exercise.course_name.clone(),
-                    exercise_slug: server_exercise.exercise_name.clone(),
-                    path: target,
-                });
-                *local_exercise = ProjectsDirExercise {
-                    id: server_exercise.id,
-                    checksum: server_exercise.checksum,
-                };
-            }
-            course_data
-                .get_mut(&server_exercise.course_name)
-                .unwrap()
-                .push((
+        for course_config in projects_config.courses.values_mut() {
+            for local_exercise in course_config.exercises.values_mut() {
+                let server_exercise = server_exercises
+                    .remove(&local_exercise.id)
+                    .ok_or(LangsError::ExerciseMissingOnServer(local_exercise.id))?;
+                if server_exercise.checksum != local_exercise.checksum {
+                    // server has an updated exercise
+                    let target = ProjectsConfig::get_exercise_download_target(
+                        &projects_dir,
+                        &server_exercise.course_name,
+                        &server_exercise.exercise_name,
+                    );
+                    exercises_to_update.push(ExerciseDownload {
+                        id: server_exercise.id,
+                        course_slug: server_exercise.course_name.clone(),
+                        exercise_slug: server_exercise.exercise_name.clone(),
+                        path: target,
+                    });
+                    *local_exercise = ProjectsDirExercise {
+                        id: server_exercise.id,
+                        checksum: server_exercise.checksum,
+                    };
+                }
+                let data = course_data.entry(course_config.course.clone()).or_default();
+                data.push((
                     server_exercise.exercise_name,
                     local_exercise.checksum.clone(),
                     local_exercise.id,
                 ));
+            }
         }
         if !exercises_to_update.is_empty() {
             for exercise in &exercises_to_update {

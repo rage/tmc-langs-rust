@@ -36,7 +36,7 @@ export function prepareSubmission(
   outputPath: string,
   stubZipPath: string | null,
   submissionPath: string,
-  tmcParam: Map<string, Array<string>>,
+  tmcParam: Array<[string, Array<string>]>,
   topLevelDirName: string | null
 ): void;
 export function refreshCourse(
@@ -111,7 +111,7 @@ export function getExerciseUpdates(
   clientName: string,
   clientVersion: string,
   courseId: number,
-  exercise: Map<number, string>
+  exercise: Array<[number, string]>
 ): types.UpdateResult;
 export function getOrganization(
   clientName: string,

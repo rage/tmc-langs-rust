@@ -17,7 +17,7 @@ macro_rules! lock {
 macro_rules! parse_arg {
     ($cx: ident, $ty: path, $i: expr) => {{
         let arg = $cx.argument::<JsValue>($i)?;
-        crate::de::from_value::<_, $ty>(&mut $cx, arg).unwrap()
+        crate::de::from_value::<_, $ty>(&mut $cx, arg).expect("failed to parse argument")
     }};
 }
 
@@ -95,8 +95,8 @@ pub fn convert_err<E: Error>(cx: &mut FunctionContext, e: E) -> Throw {
         trace.push(s.to_string());
         source = s.source();
     }
-    let err = crate::ser::to_value(cx, &trace).unwrap();
-    cx.throw::<_, ()>(err).unwrap_err()
+    let err = crate::ser::to_value(cx, &trace).expect("failed to convert error");
+    cx.throw::<_, ()>(err).expect_err("should never happen")
 }
 
 pub fn convert_res<'a, T: Serialize, E: Error>(

@@ -78,7 +78,7 @@ export class Tmc {
     outputPath: string,
     stubZipPath: string | null,
     submissionPath: string,
-    tmcParam: Map<string, Array<string>>,
+    tmcParam: Array<[string, Array<string>]>,
     topLevelDirName: string | null
   ): void {
     return tmc.prepareSubmission(
@@ -199,7 +199,7 @@ export class Tmc {
 
   getExerciseUpdates(
     courseId: number,
-    exercise: Map<number, string>
+    exercise: Array<[number, string]>
   ): types.UpdateResult {
     return tmc.getExerciseUpdates(
       this.clientName,
