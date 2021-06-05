@@ -1,21 +1,36 @@
-import * as tmc from "./functions";
-import * as langs from "./generated";
+import tmc, { Token } from "./functions";
+import types from "./generated";
 
-export { langs };
+export { types, Token };
 
 export class Tmc {
   public clientName: string;
   public clientVersion: string;
+  public rootUrl: string | null = null;
+  public configDir: string | null = null;
+  public defaultProjectsDir: string | null = null;
 
-  constructor(clientName: string, clientVersion: string) {
+  constructor(clientName: string, clientVersion: string, rootUrl?: string, configDir?: string, defaultProjectsDir?: string) {
     this.clientName = clientName;
     this.clientVersion = clientVersion;
+    if (rootUrl) {
+      this.rootUrl = rootUrl;
+      tmc.setEnv("TMC_LANGS_ROOT_URL", rootUrl);
+    }
+    if (configDir) {
+      this.configDir = configDir;
+      tmc.setEnv("TMC_LANGS_CONFIG_DIR", configDir);
+    }
+    if (defaultProjectsDir) {
+      this.defaultProjectsDir = defaultProjectsDir;
+      tmc.setEnv("TMC_LANGS_DEFAULT_PROJECTS_DIR", defaultProjectsDir);
+    }
   }
 
   checkstyle(
     exercisePath: string,
     locale: string
-  ): langs.StyleValidationResult | null {
+  ): types.StyleValidationResult | null {
     return tmc.checkstyle(exercisePath, locale);
   }
 
@@ -41,11 +56,11 @@ export class Tmc {
 
   getExercisePackagingConfiguration(
     exercisePath: string
-  ): langs.ExercisePackagingConfiguration {
+  ): types.ExercisePackagingConfiguration {
     return tmc.getExercisePackagingConfiguration(exercisePath);
   }
 
-  listLocalCourseExercises(courseSlug: string): Array<langs.LocalExercise> {
+  listLocalCourseExercises(courseSlug: string): Array<types.LocalExercise> {
     return tmc.listLocalCourseExercises(this.clientName, courseSlug);
   }
 
@@ -58,7 +73,7 @@ export class Tmc {
   }
 
   prepareSubmission(
-    outputFormat: langs.OutputFormat,
+    outputFormat: types.OutputFormat,
     clonePath: string,
     outputPath: string,
     stubZipPath: string | null,
@@ -83,7 +98,7 @@ export class Tmc {
     courseName: string,
     gitBranch: string,
     sourceUrl: string
-  ): langs.RefreshData {
+  ): types.RefreshData {
     return tmc.refreshCourse(
       cachePath,
       cacheRoot,
@@ -93,15 +108,15 @@ export class Tmc {
     );
   }
 
-  runTests(exercisePath: string): langs.RunResult {
+  runTests(exercisePath: string): types.RunResult {
     return tmc.runTests(exercisePath);
   }
 
-  scanExercise(exercisePath: string): langs.ExerciseDesc {
+  scanExercise(exercisePath: string): types.ExerciseDesc {
     return tmc.scanExercise(exercisePath);
   }
 
-  checkExerciseUpdates(): Array<langs.UpdatedExercise> {
+  checkExerciseUpdates(): Array<types.UpdatedExercise> {
     return tmc.checkExerciseUpdates(this.clientName, this.clientVersion);
   }
 
@@ -133,7 +148,7 @@ export class Tmc {
   downloadOrUpdateCourseExercises(
     downloadTemplate: boolean,
     exerciseId: Array<number>
-  ): langs.DownloadOrUpdateCourseExercisesResult {
+  ): types.DownloadOrUpdateCourseExercisesResult {
     return tmc.downloadOrUpdateCourseExercises(
       this.clientName,
       this.clientVersion,
@@ -142,15 +157,15 @@ export class Tmc {
     );
   }
 
-  getCourseData(courseId: number): langs.CombinedCourseData {
+  getCourseData(courseId: number): types.CombinedCourseData {
     return tmc.getCourseData(this.clientName, this.clientVersion, courseId);
   }
 
-  getCourseDetails(courseId: number): langs.CourseDetails {
+  getCourseDetails(courseId: number): types.CourseDetails {
     return tmc.getCourseDetails(this.clientName, this.clientVersion, courseId);
   }
 
-  getCourseExercises(courseId: number): Array<langs.CourseExercise> {
+  getCourseExercises(courseId: number): Array<types.CourseExercise> {
     return tmc.getCourseExercises(
       this.clientName,
       this.clientVersion,
@@ -158,15 +173,15 @@ export class Tmc {
     );
   }
 
-  getCourseSettings(courseId: number): langs.CourseData {
+  getCourseSettings(courseId: number): types.CourseData {
     return tmc.getCourseSettings(this.clientName, this.clientVersion, courseId);
   }
 
-  getCourses(organization: string): Array<langs.CourseData> {
+  getCourses(organization: string): Array<types.CourseData> {
     return tmc.getCourses(this.clientName, this.clientVersion, organization);
   }
 
-  getExerciseDetails(exerciseId: number): langs.ExerciseDetails {
+  getExerciseDetails(exerciseId: number): types.ExerciseDetails {
     return tmc.getExerciseDetails(
       this.clientName,
       this.clientVersion,
@@ -174,7 +189,7 @@ export class Tmc {
     );
   }
 
-  getExerciseSubmissions(exerciseId: number): Array<langs.Submission> {
+  getExerciseSubmissions(exerciseId: number): Array<types.Submission> {
     return tmc.getExerciseSubmissions(
       this.clientName,
       this.clientVersion,
@@ -185,7 +200,7 @@ export class Tmc {
   getExerciseUpdates(
     courseId: number,
     exercise: Map<number, string>
-  ): langs.UpdateResult {
+  ): types.UpdateResult {
     return tmc.getExerciseUpdates(
       this.clientName,
       this.clientVersion,
@@ -194,7 +209,7 @@ export class Tmc {
     );
   }
 
-  getOrganization(organization: string): langs.Organization {
+  getOrganization(organization: string): types.Organization {
     return tmc.getOrganization(
       this.clientName,
       this.clientVersion,
@@ -202,11 +217,11 @@ export class Tmc {
     );
   }
 
-  getOrganizations(): Array<langs.Organization> {
+  getOrganizations(): Array<types.Organization> {
     return tmc.getOrganizations(this.clientName, this.clientVersion);
   }
 
-  getUnreadReviews(courseId: number): Array<langs.Review> {
+  getUnreadReviews(courseId: number): Array<types.Review> {
     return tmc.getUnreadReviews(this.clientName, this.clientVersion, courseId);
   }
 
@@ -216,16 +231,22 @@ export class Tmc {
 
   login(
     base64: boolean,
-    email: string | null,
-    setAccessToken: string | null
+    email: string,
+    password: string,
   ): void {
     return tmc.login(
       this.clientName,
       this.clientVersion,
       base64,
       email,
-      setAccessToken
+      password
     );
+  }
+
+  loginWithToken(
+    accessToken: string,
+  ): void {
+    return tmc.loginWithToken(this.clientName, this.clientVersion, accessToken);
   }
 
   logout(): void {
@@ -246,7 +267,7 @@ export class Tmc {
     locale: string | null,
     pasteMessage: string | null,
     submissionPath: string
-  ): langs.NewSubmission {
+  ): types.NewSubmission {
     return tmc.paste(
       this.clientName,
       this.clientVersion,
@@ -262,7 +283,7 @@ export class Tmc {
     locale: string,
     messageForReviewer: string | null,
     submissionPath: string
-  ): langs.NewSubmission {
+  ): types.NewSubmission {
     return tmc.requestCodeReview(
       this.clientName,
       this.clientVersion,
@@ -290,7 +311,7 @@ export class Tmc {
   sendFeedback(
     submissionId: number,
     feedback: Array<[number, string]>
-  ): langs.SubmissionFeedbackResponse {
+  ): types.SubmissionFeedbackResponse {
     return tmc.sendFeedback(
       this.clientName,
       this.clientVersion,
@@ -304,7 +325,7 @@ export class Tmc {
     locale: string | null,
     submissionPath: string,
     exerciseId: number
-  ): langs.NewSubmission | langs.SubmissionFinished {
+  ): types.NewSubmission | types.SubmissionFinished {
     return tmc.submit(
       this.clientName,
       this.clientVersion,
@@ -315,11 +336,11 @@ export class Tmc {
     );
   }
 
-  updateExercises(): langs.DownloadOrUpdateCourseExercisesResult {
+  updateExercises(): types.DownloadOrUpdateCourseExercisesResult {
     return tmc.updateExercises(this.clientName, this.clientVersion);
   }
 
-  waitForSubmission(submissionId: number): langs.SubmissionFinished {
+  waitForSubmission(submissionId: number): types.SubmissionFinished {
     return tmc.waitForSubmission(
       this.clientName,
       this.clientVersion,
@@ -327,22 +348,22 @@ export class Tmc {
     );
   }
 
-  getSetting(setting: string): unknown {
+  getSetting(setting: string): object | string | null {
     return tmc.getSetting(this.clientName, setting);
   }
 
-  listSettings(): unknown {
+  listSettings(): Record<string, object> {
     return tmc.listSettings(this.clientName);
   }
 
-  migrateSettings(
+  migrateExercise(
     exercisePath: string,
     courseSlug: string,
     exerciseId: number,
     exerciseSlug: string,
     exerciseChecksum: string
   ): void {
-    return tmc.migrateSettings(
+    return tmc.migrateExercise(
       this.clientName,
       exercisePath,
       courseSlug,

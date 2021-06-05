@@ -2,6 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
+use std::env;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use tmc_langs_util::{file_util, FileError};
@@ -130,6 +131,16 @@ impl TmcConfig {
         Ok(config)
     }
 
+    fn get_default_projects_dir() -> Result<PathBuf, LangsError> {
+        let data_dir = match env::var("TMC_LANGS_DEFAULT_PROJECTS_DIR") {
+            Ok(v) => PathBuf::from(v),
+            Err(_) => dirs::data_local_dir()
+                .ok_or(LangsError::NoLocalDataDir)?
+                .join("tmc"),
+        };
+        Ok(data_dir)
+    }
+
     // initializes the default configuration file at the given path
     fn init_at(client_name: &str, path: &Path) -> Result<TmcConfig, LangsError> {
         if let Some(parent) = path.parent() {
@@ -141,10 +152,8 @@ impl TmcConfig {
             .lock()
             .map_err(|e| FileError::FdLock(path.to_path_buf(), e))?;
 
-        let default_project_dir = dirs::data_local_dir()
-            .ok_or(LangsError::NoLocalDataDir)?
-            .join("tmc")
-            .join(Self::get_client_stub(client_name));
+        let default_project_dir =
+            Self::get_default_projects_dir()?.join(Self::get_client_stub(client_name));
         file_util::create_dir_all(&default_project_dir)?;
 
         let config = TmcConfig {

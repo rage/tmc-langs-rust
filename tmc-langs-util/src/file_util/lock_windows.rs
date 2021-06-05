@@ -35,7 +35,7 @@ impl FileLock {
     /// Blocks until the lock can be acquired.
     /// On Windows, directories cannot be locked, so we use a lock file instead.
     pub fn lock(&mut self) -> Result<FileLockGuard, FileError> {
-        log::debug!("locking {}", self.path.display());
+        log::trace!("locking {}", self.path.display());
         let start_time = Instant::now();
         let mut warning_timer = Instant::now();
 
@@ -128,7 +128,7 @@ enum LockInner<'a> {
 
 impl Drop for FileLockGuard<'_> {
     fn drop(&mut self) {
-        log::debug!("unlocking {}", self.path.display());
+        log::trace!("unlocking {}", self.path.display());
     }
 }
 

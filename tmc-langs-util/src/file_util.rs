@@ -43,7 +43,7 @@ impl DerefMut for FdLockWrapper {
 impl Drop for FdLockWrapper {
     fn drop(&mut self) {
         // todo: print the path
-        log::debug!("unlocking file");
+        log::trace!("unlocking file");
     }
 }
 
@@ -72,7 +72,7 @@ pub fn open_file<P: AsRef<Path>>(path: P) -> Result<File, FileError> {
 
 /// Opens and locks the given file. Note: Does not work on directories on Windows.
 pub fn open_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLockWrapper, FileError> {
-    log::debug!("locking file {}", path.as_ref().display());
+    log::trace!("locking file {}", path.as_ref().display());
 
     let file = open_file(path)?;
     let lock = FdLockWrapper(FdLock::new(file));
@@ -115,7 +115,7 @@ pub fn create_file<P: AsRef<Path>>(path: P) -> Result<File, FileError> {
 /// Creates a file and wraps it in a lock. If a file already exists at the path, it acquires a lock on it first and then recreates it.
 /// Note: creates all intermediary directories if needed.
 pub fn create_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLockWrapper, FileError> {
-    log::debug!("locking file {}", path.as_ref().display());
+    log::trace!("locking file {}", path.as_ref().display());
 
     if let Ok(existing) = open_file(&path) {
         // wait for an existing process to be done with the file before rewriting

@@ -19,8 +19,9 @@ Binaries for the supported targets are built and the binaries deployed to Google
 
 ## Environment variables
 
-| var name               | usage                                                          |
-| ---------------------- | -------------------------------------------------------------- |
-| `TMC_LANGS_ROOT_URL`   | Sets the TMC server url.                                       |
-| `TMC_LANGS_CONFIG_DIR` | Sets the config directory.                                     |
-| `TMC_SANDBOX`          | If set, the CLI considers itself to be running in tmc-sandbox. |
+| var name                         | usage                                                          |
+| -------------------------------- | -------------------------------------------------------------- |
+| `TMC_LANGS_ROOT_URL`             | Sets the TMC server url.                                       |
+| `TMC_LANGS_CONFIG_DIR`           | Sets the config directory.                                     |
+| `TMC_LANGS_DEFAULT_PROJECTS_DIR` | Sets the default projects directory.                           |
+| `TMC_SANDBOX`                    | If set, the CLI considers itself to be running in tmc-sandbox. |

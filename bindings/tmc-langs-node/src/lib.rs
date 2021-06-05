@@ -63,7 +63,7 @@ fn with_client<T, F: FnOnce(&mut TmcClient) -> Result<T, LangsError>>(
                 }
                 source = s.source();
             }
-            todo!()
+            Err(NodeError::Langs(err))
         }
     }
 }
@@ -521,6 +521,23 @@ fn login(mut cx: FunctionContext) -> JsResult<JsValue> {
     Ok(cx.null().upcast())
 }
 
+fn login_with_token(mut cx: FunctionContext) -> JsResult<JsValue> {
+    parse_args!(
+        cx,
+        client_name: String,
+        client_version: String,
+        access_token: String
+    );
+
+    let token = with_client(&client_name, client_version, |_| {
+        Ok(tmc_langs::login_with_token(access_token))
+    })
+    .map_err(|e| convert_err(&mut cx, e))?;
+
+    Credentials::save(&client_name, token).expect("Failed to save credentials");
+    Ok(cx.null().upcast())
+}
+
 fn logout(mut cx: FunctionContext) -> JsResult<JsValue> {
     parse_args!(cx, client_name: String, client_version: String);
 
@@ -708,7 +725,7 @@ fn list_settings(mut cx: FunctionContext) -> JsResult<JsValue> {
     convert_res(&mut cx, res)
 }
 
-fn migrate_settings(mut cx: FunctionContext) -> JsResult<JsValue> {
+fn migrate_exercise(mut cx: FunctionContext) -> JsResult<JsValue> {
     parse_args!(
         cx,
         client_name: String,
@@ -811,6 +828,7 @@ fn main(mut cx: ModuleContext) -> NeonResult<()> {
     cx.export_function("getUnreadReviews", get_unread_reviews)?;
     cx.export_function("loggedIn", logged_in)?;
     cx.export_function("login", login)?;
+    cx.export_function("loginWithToken", login_with_token)?;
     cx.export_function("logout", logout)?;
     cx.export_function("markReviewAsRead", mark_review_as_read)?;
     cx.export_function("paste", paste)?;
@@ -822,7 +840,7 @@ fn main(mut cx: ModuleContext) -> NeonResult<()> {
     cx.export_function("waitForSubmission", wait_for_submission)?;
     cx.export_function("getSetting", get_setting)?;
     cx.export_function("listSettings", list_settings)?;
-    cx.export_function("migrateSettings", migrate_settings)?;
+    cx.export_function("migrateExercise", migrate_exercise)?;
     cx.export_function("moveProjectsDir", move_projects_dir)?;
     cx.export_function("resetSettings", reset_settings)?;
     cx.export_function("setSetting", set_setting)?;

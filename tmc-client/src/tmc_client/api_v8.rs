@@ -39,6 +39,7 @@ fn percent_encode(target: &str) -> String {
 
 // creates a request with the required TMC and authentication headers
 fn prepare_tmc_request(client: &TmcClient, method: Method, url: Url) -> RequestBuilder {
+    log::info!("{} {}", method, url);
     let req = client.0.client.request(method, url).query(&[
         ("client", &client.0.client_name),
         ("client_version", &client.0.client_version),

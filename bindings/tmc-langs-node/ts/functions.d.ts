@@ -1,4 +1,4 @@
-import * as langs from "./generated";
+import types from "./generated";
 
 export class Token {
   access_token: string;
@@ -12,7 +12,7 @@ export function setEnv(key: string, value: string);
 export function checkstyle(
   exercisePath: string,
   locale: string
-): langs.StyleValidationResult | null;
+): types.StyleValidationResult | null;
 export function clean(exercisePath: string): void;
 export function compressProject(exercisePath: string, outputPath: string): void;
 export function extractProject(archivePath: string, outputPath: string): void;
@@ -20,18 +20,18 @@ export function fastAvailablePoints(exercisePath: string): Array<string>;
 export function findExercises(exercisePath: string): Array<string>;
 export function getExercisePackagingConfiguration(
   exercisePath: string
-): langs.ExercisePackagingConfiguration;
+): types.ExercisePackagingConfiguration;
 export function listLocalCourseExercises(
   clientName: string,
   courseSlug: string
-): Array<langs.LocalExercise>;
+): Array<types.LocalExercise>;
 export function prepareSolutions(
   exercisePath: string,
   outputPath: string
 ): void;
 export function prepareStubs(exercisePath: string, outputPath: string): void;
 export function prepareSubmission(
-  outputFormat: langs.OutputFormat,
+  outputFormat: types.OutputFormat,
   clonePath: string,
   outputPath: string,
   stubZipPath: string | null,
@@ -45,13 +45,13 @@ export function refreshCourse(
   courseName: string,
   gitBranch: string,
   sourceUrl: string
-): langs.RefreshData;
-export function runTests(exercisePath: string): langs.RunResult;
-export function scanExercise(exercisePath: string): langs.ExerciseDesc;
+): types.RefreshData;
+export function runTests(exercisePath: string): types.RunResult;
+export function scanExercise(exercisePath: string): types.ExerciseDesc;
 export function checkExerciseUpdates(
   clientName: string,
   clientVersion: string
-): Array<langs.UpdatedExercise>;
+): Array<types.UpdatedExercise>;
 export function downloadModelSolution(
   clientName: string,
   clientVersion: string,
@@ -71,69 +71,74 @@ export function downloadOrUpdateCourseExercises(
   clientVersion: string,
   downloadTemplate: boolean,
   exerciseId: Array<number>
-): langs.DownloadOrUpdateCourseExercisesResult;
+): types.DownloadOrUpdateCourseExercisesResult;
 export function getCourseData(
   clientName: string,
   clientVersion: string,
   courseId: number
-): langs.CombinedCourseData;
+): types.CombinedCourseData;
 export function getCourseDetails(
   clientName: string,
   clientVersion: string,
   courseId: number
-): langs.CourseDetails;
+): types.CourseDetails;
 export function getCourseExercises(
   clientName: string,
   clientVersion: string,
   courseId: number
-): Array<langs.CourseExercise>;
+): Array<types.CourseExercise>;
 export function getCourseSettings(
   clientName: string,
   clientVersion: string,
   courseId: number
-): langs.CourseData;
+): types.CourseData;
 export function getCourses(
   clientName: string,
   clientVersion: string,
   organization: string
-): Array<langs.CourseData>;
+): Array<types.CourseData>;
 export function getExerciseDetails(
   clientName: string,
   clientVersion: string,
   exerciseId: number
-): langs.ExerciseDetails;
+): types.ExerciseDetails;
 export function getExerciseSubmissions(
   clientName: string,
   clientVersion: string,
   exerciseId: number
-): Array<langs.Submission>;
+): Array<types.Submission>;
 export function getExerciseUpdates(
   clientName: string,
   clientVersion: string,
   courseId: number,
   exercise: Map<number, string>
-): langs.UpdateResult;
+): types.UpdateResult;
 export function getOrganization(
   clientName: string,
   clientVersion: string,
   organization: string
-): langs.Organization;
+): types.Organization;
 export function getOrganizations(
   clientName: string,
   clientVersion: string
-): Array<langs.Organization>;
+): Array<types.Organization>;
 export function getUnreadReviews(
   clientName: string,
   clientVersion: string,
   courseId: number
-): Array<langs.Review>;
+): Array<types.Review>;
 export function loggedIn(clientName: string, clientVersion: string): boolean;
 export function login(
   clientName: string,
   clientVersion: string,
   base64: boolean,
-  email: string | null,
-  setAccessToken: string | null
+  email: string,
+  password: string
+): void;
+export function loginWithToken(
+  clientName: string,
+  clientVersion: string,
+  accessToken: string
 ): void;
 export function logout(clientName: string, clientVersion: string): void;
 export function markReviewAsRead(
@@ -149,7 +154,7 @@ export function paste(
   locale: string | null,
   pasteMessage: string | null,
   submissionPath: string
-): langs.NewSubmission;
+): types.NewSubmission;
 export function requestCodeReview(
   clientName: string,
   clientVersion: string,
@@ -157,7 +162,7 @@ export function requestCodeReview(
   locale: string,
   messageForReviewer: string | null,
   submissionPath: string
-): langs.NewSubmission;
+): types.NewSubmission;
 export function resetExercise(
   clientName: string,
   clientVersion: string,
@@ -170,7 +175,7 @@ export function sendFeedback(
   clientVersion: string,
   submissionId: number,
   feedback: Array<[number, string]>
-): langs.SubmissionFeedbackResponse;
+): types.SubmissionFeedbackResponse;
 export function submit(
   clientName: string,
   clientVersion: string,
@@ -178,19 +183,19 @@ export function submit(
   locale: string | null,
   submissionPath: string,
   exerciseId: number
-): langs.NewSubmission | langs.SubmissionFinished;
+): types.NewSubmission | types.SubmissionFinished;
 export function updateExercises(
   clientName: string,
   clientVersion: string
-): langs.DownloadOrUpdateCourseExercisesResult;
+): types.DownloadOrUpdateCourseExercisesResult;
 export function waitForSubmission(
   clientName: string,
   clientVersion: string,
   submissionId: number
-): langs.SubmissionFinished;
-export function getSetting(clientName: string, setting: string): unknown;
-export function listSettings(clientName: string): Map<string, unknown>;
-export function migrateSettings(
+): types.SubmissionFinished;
+export function getSetting(clientName: string, setting: string): object | string | null;
+export function listSettings(clientName: string): Record<string, object>;
+export function migrateExercise(
   clientName: string,
   exercisePath: string,
   courseSlug: string,
