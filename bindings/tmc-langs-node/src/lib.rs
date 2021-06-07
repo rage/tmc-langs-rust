@@ -943,7 +943,13 @@ mod test {
             "TMC_LANGS_MOCK_SERVER_ADDR",
             format!("http://{}", server_address()),
         );
-        let s = Command::new("npm")
+
+        #[cfg(windows)]
+        let npm = "npm.exe";
+        #[cfg(not(windows))]
+        let npm = "npm";
+
+        let s = Command::new(npm)
             .args(&["run", "jest"])
             .output()
             .expect("running jest failed");
