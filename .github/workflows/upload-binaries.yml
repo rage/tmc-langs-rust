@@ -57,8 +57,7 @@ jobs:
           rustup target add ${{ matrix.target }}
           $env:RUSTFLAGS="-C target-feature=+crt-static"
           cargo build -p tmc-langs-cli --release --verbose --target ${{ matrix.target }}
-          npm --prefix ./bindings/tmc-langs-node install
-          npm run --prefix ./bindings/tmc-langs-node build -- --release --verbose --target ${{ matrix.target }}
+          cd ./bindings/tmc-langs-node && npm install && npm run build -- --release --verbose --target ${{ matrix.target }}
       - name: Deploy
         run: |
           $env:python_version=$(python -c 'import sys; print(\".\".join(map(str, sys.version_info[:3])))')
@@ -109,7 +108,7 @@ jobs:
           cargo install cross
           cross build -p tmc-langs-cli --release --verbose --target ${{ matrix.target }}
           npm --prefix ./bindings/tmc-langs-node install
-          npm --prefix ./bindings/tmc-langs-node run cross --release --verbose --target ${{ matrix.target }}
+          npm --prefix ./bindings/tmc-langs-node run cross -- --release --verbose --target ${{ matrix.target }}
       - name: Deploy
         run: |
           gsutil cp target/${{ matrix.target }}/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG
