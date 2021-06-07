@@ -937,6 +937,7 @@ mod test {
     }
 
     #[test]
+    #[cfg(not(windows))]
     fn jest() {
         init();
         env::set_var(
