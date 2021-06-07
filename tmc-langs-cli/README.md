@@ -15,12 +15,13 @@ In general, the API is structured as follows: there is an `output-kind` field wh
 
 ## Binary deployment and downloads
 
-Documentation and binaries for the supported targets are built and the binaries deployed to Google Cloud when creating a GitHub release. The binaries are available at https://download.mooc.fi/tmc-langs-rust/, with each binary following the file name format `tmc-langs-cli-{target}-{version}(.exe)`, with the `.exe` suffix added for the Windows binaries. For a list of targets see the README at the repository root. For example, The 64-bit Linux binary for version 0.5.0 is available at https://download.mooc.fi/tmc-langs-rust/tmc-langs-cli-x86_64-unknown-linux-gnu-0.5.0.
+Binaries for the supported targets are built and the binaries deployed to Google Cloud when creating a GitHub release. The binaries are available at https://download.mooc.fi/tmc-langs-rust/, with each binary following the file name format `tmc-langs-cli-{target}-{version}(.exe)`, with the `.exe` suffix added for the Windows binaries. For a list of targets see the README at the repository root. For example, The 64-bit Linux binary for version 0.5.0 is available at https://download.mooc.fi/tmc-langs-rust/tmc-langs-cli-x86_64-unknown-linux-gnu-0.5.0.
 
 ## Environment variables
 
-| var name               | usage                                                          |
-| ---------------------- | -------------------------------------------------------------- |
-| `TMC_LANGS_ROOT_URL`   | Sets the TMC server url.                                       |
-| `TMC_LANGS_CONFIG_DIR` | Sets the config directory.                                     |
-| `TMC_SANDBOX`          | If set, the CLI considers itself to be running in tmc-sandbox. |
+| var name                         | usage                                                          |
+| -------------------------------- | -------------------------------------------------------------- |
+| `TMC_LANGS_ROOT_URL`             | Sets the TMC server url.                                       |
+| `TMC_LANGS_CONFIG_DIR`           | Sets the config directory.                                     |
+| `TMC_LANGS_DEFAULT_PROJECTS_DIR` | Sets the default projects directory.                           |
+| `TMC_SANDBOX`                    | If set, the CLI considers itself to be running in tmc-sandbox. |

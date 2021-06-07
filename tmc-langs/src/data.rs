@@ -6,11 +6,15 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::{collections::HashMap, path::PathBuf};
 use tmc_client::response::{CourseData, CourseDetails, CourseExercise};
 
+#[cfg(feature = "ts")]
+use ts_rs::TS;
+
 use crate::error::{LangsError, ParamError};
 
 /// Exercise inside the projects directory.
 #[derive(Debug, Serialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct LocalExercise {
     pub exercise_slug: String,
     pub exercise_path: PathBuf,
@@ -146,6 +150,8 @@ impl Display for ShellString {
 }
 
 /// Output formats for an archive.
+#[derive(Debug)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub enum OutputFormat {
     Tar,
     Zip,
@@ -178,6 +184,7 @@ pub enum DownloadTargetKind {
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct ExerciseDownload {
     pub id: u32,
     pub course_slug: String,
@@ -186,6 +193,7 @@ pub struct ExerciseDownload {
 }
 
 #[derive(Debug, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct CombinedCourseData {
     pub details: CourseDetails,
     pub exercises: Vec<CourseExercise>,
@@ -193,6 +201,7 @@ pub struct CombinedCourseData {
 }
 
 #[derive(Debug, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct DownloadOrUpdateCourseExercisesResult {
     pub downloaded: Vec<ExerciseDownload>,
     pub skipped: Vec<ExerciseDownload>,

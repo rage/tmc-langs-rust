@@ -4,7 +4,7 @@ TMC-langs provides an interface that encapsulates everything needed to support a
 
 ## Documentation
 
-Documentation for the latest release is available at https://rage.github.io/tmc-langs-rust
+Documentation for the latest release is available at https://rage.github.io/tmc-langs-rust. Documentation is automatically built and deployed when creating a GitHub release.
 
 Additional documentation for other aspects of TMC such as configuration file formats is included in the [docs](./docs) directory.
 
@@ -13,6 +13,10 @@ Additional documentation for other aspects of TMC such as configuration file for
 ### tmc-langs-cli
 
 A "frontend" for tmc-langs. A binary CLI client for TMC-langs for IDEs. Intended to be used programmatically, for a CLI meant for manual use see [tmc-cli-rust](https://github.com/rage/tmc-cli-rust).
+
+### bindings/tmc-langs-node
+
+Bindings for using tmc-langs from Node.js.
 
 ### tmc-langs
 
@@ -69,6 +73,7 @@ A TMC plugin for R.
 - Armv7 (armv7-unknown-linux-gnueabihf)
 
 ## Contributing
+
 See [CONTRIBUTING](CONTRIBUTING.md).
 
 ## License

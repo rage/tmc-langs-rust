@@ -16,6 +16,9 @@ jobs:
         target: [i686-unknown-linux-gnu, x86_64-unknown-linux-gnu]
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
       - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
@@ -24,12 +27,15 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y gcc-multilib # required to build for 32-bit arch
-      - name: Cargo build
+      - name: Build
         run: |
-          rustup target add i686-unknown-linux-gnu
+          rustup target add ${{ matrix.target }}
           cargo build -p tmc-langs-cli --release --verbose --target ${{ matrix.target }}
+          npm --prefix ./bindings/tmc-langs-node run build -- --release --verbose --target ${{ matrix.target }}
       - name: Deploy
-        run: gsutil cp target/${{ matrix.target }}/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG
+        run: |
+          gsutil cp target/${{ matrix.target }}/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG
+          gsutil cp bindings/tmc-langs-node/ts/functions.node         gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$TAG.node
 
   windows:
     runs-on: windows-latest
@@ -38,25 +44,33 @@ jobs:
         target: [i686-pc-windows-msvc, x86_64-pc-windows-msvc]
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
       - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
-      - name: Cargo build # crt-static is set with RUSTFLAGS to statically link MSVCRT (VCRUNTIME140.dll)
+      - name: Build # crt-static is set with RUSTFLAGS to statically link MSVCRT (VCRUNTIME140.dll)
         run: |
-          rustup target add i686-pc-windows-msvc
+          rustup target add ${{ matrix.target }}
           $env:RUSTFLAGS="-C target-feature=+crt-static"
           cargo build -p tmc-langs-cli --release --verbose --target ${{ matrix.target }}
+          npm run --prefix ./bindings/tmc-langs-node build -- --release --verbose --target ${{ matrix.target }}
       - name: Deploy
         run: |
           $env:python_version=$(python -c 'import sys; print(\".\".join(map(str, sys.version_info[:3])))')
           $env:CLOUDSDK_PYTHON="C:\hostedtoolcache\windows\Python\$env:python_version\x64\python"
           gsutil cp target/${{ matrix.target }}/release/tmc-langs-cli.exe gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$Env:TAG.exe
+          gsutil cp bindings/tmc-langs-node/ts/functions.node             gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$Env:TAG.node
 
   macos:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
       - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
@@ -66,7 +80,9 @@ jobs:
       - name: Sign
         run: codesign --force -s - target/release/tmc-langs-cli
       - name: Deploy
-        run: gsutil cp target/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-x86_64-apple-darwin-$TAG
+        run: |
+          gsutil cp target/release/tmc-langs-cli              gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-x86_64-apple-darwin-$TAG
+          gsutil cp bindings/tmc-langs-node/ts/functions.node gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-x86_64-apple-darwin-$TAG.node
 
   arm:
     runs-on: ubuntu-18.04
@@ -75,6 +91,9 @@ jobs:
         target: [aarch64-unknown-linux-gnu, armv7-unknown-linux-gnueabihf]
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
       - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
@@ -84,5 +103,8 @@ jobs:
           rustup target add ${{ matrix.target }}
           cargo install cross
           cross build -p tmc-langs-cli --release --verbose --target ${{ matrix.target }}
+          npm --prefix ./bindings/tmc-langs-node run cross --release --verbose --target ${{ matrix.target }}
       - name: Deploy
-        run: gsutil cp target/${{ matrix.target }}/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG
+        run: |
+          gsutil cp target/${{ matrix.target }}/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG
+          gsutil cp bindings/tmc-langs-node/ts/functions.node         gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$TAG.node

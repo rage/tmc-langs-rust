@@ -28,14 +28,17 @@ use sha2::Sha256;
 pub use tmc_client::{
     request::FeedbackAnswer,
     response::{
-        Course, CourseData, CourseDetails, CourseExercise, ExerciseDetails, NewSubmission,
-        Organization, Review, Submission, SubmissionFeedbackResponse, SubmissionFinished,
+        Course, CourseData, CourseDetails, CourseExercise, Exercise, ExerciseDetails,
+        ExercisePoint, ExerciseSubmission, NewSubmission, Organization, Review, Submission,
+        SubmissionFeedbackKind, SubmissionFeedbackQuestion, SubmissionFeedbackResponse,
+        SubmissionFinished, SubmissionStatus, TestCase,
     },
     ClientError, ClientUpdateData, TmcClient, Token, UpdateResult,
 };
 pub use tmc_langs_framework::{
     CommandError, ExerciseDesc, ExercisePackagingConfiguration, Language, LanguagePlugin,
-    RunResult, StyleValidationResult,
+    PythonVer, RunResult, RunStatus, StyleValidationError, StyleValidationResult,
+    StyleValidationStrategy, TestDesc, TestResult, TmcProjectYml,
 };
 pub use tmc_langs_util::{
     file_util::{self, FileLockGuard},
@@ -48,6 +51,7 @@ use jwt::SignWithKey;
 use oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
+use schemars::JsonSchema;
 use std::{
     collections::BTreeMap,
     convert::TryFrom,
@@ -56,12 +60,21 @@ use std::{
     sync::{Arc, Mutex},
 };
 use std::{collections::HashMap, ffi::OsStr};
-use tmc_langs_framework::{TmcError, TmcProjectYml};
+use tmc_langs_framework::TmcError;
 use tmc_langs_plugins::{get_language_plugin, tmc_zip, AntPlugin, PluginType};
 use tmc_langs_util::progress_reporter;
 use toml::Value as TomlValue;
 use url::Url;
 use walkdir::WalkDir;
+
+#[cfg(feature = "ts")]
+use ts_rs::TS;
+
+#[derive(Debug, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
+pub struct UpdatedExercise {
+    pub id: u32,
+}
 
 /// Signs the given serializable value with the given secret using JWT.
 ///
@@ -571,19 +584,13 @@ pub fn update_exercises(
 
     let mut projects_config = ProjectsConfig::load(&projects_dir)?;
 
-    for c in &projects_config.courses {
-        course_data.insert(c.1.course.clone(), vec![]);
-    }
-
-    let local_exercises = projects_config
+    let exercise_ids = projects_config
         .courses
         .iter_mut()
         .map(|c| &mut c.1.exercises)
         .flatten()
-        .map(|e| e.1)
+        .map(|e| e.1.id)
         .collect::<Vec<_>>();
-
-    let exercise_ids = local_exercises.iter().map(|e| e.id).collect::<Vec<_>>();
 
     // request would error with 0 exercise ids
     if !exercise_ids.is_empty() {
@@ -593,36 +600,36 @@ pub fn update_exercises(
             .map(|e| (e.id, e))
             .collect::<HashMap<_, _>>();
 
-        for local_exercise in local_exercises {
-            let server_exercise = server_exercises
-                .remove(&local_exercise.id)
-                .ok_or(LangsError::ExerciseMissingOnServer(local_exercise.id))?;
-            if server_exercise.checksum != local_exercise.checksum {
-                // server has an updated exercise
-                let target = ProjectsConfig::get_exercise_download_target(
-                    &projects_dir,
-                    &server_exercise.course_name,
-                    &server_exercise.exercise_name,
-                );
-                exercises_to_update.push(ExerciseDownload {
-                    id: server_exercise.id,
-                    course_slug: server_exercise.course_name.clone(),
-                    exercise_slug: server_exercise.exercise_name.clone(),
-                    path: target,
-                });
-                *local_exercise = ProjectsDirExercise {
-                    id: server_exercise.id,
-                    checksum: server_exercise.checksum,
-                };
-            }
-            course_data
-                .get_mut(&server_exercise.course_name)
-                .unwrap()
-                .push((
+        for course_config in projects_config.courses.values_mut() {
+            for local_exercise in course_config.exercises.values_mut() {
+                let server_exercise = server_exercises
+                    .remove(&local_exercise.id)
+                    .ok_or(LangsError::ExerciseMissingOnServer(local_exercise.id))?;
+                if server_exercise.checksum != local_exercise.checksum {
+                    // server has an updated exercise
+                    let target = ProjectsConfig::get_exercise_download_target(
+                        &projects_dir,
+                        &server_exercise.course_name,
+                        &server_exercise.exercise_name,
+                    );
+                    exercises_to_update.push(ExerciseDownload {
+                        id: server_exercise.id,
+                        course_slug: server_exercise.course_name.clone(),
+                        exercise_slug: server_exercise.exercise_name.clone(),
+                        path: target,
+                    });
+                    *local_exercise = ProjectsDirExercise {
+                        id: server_exercise.id,
+                        checksum: server_exercise.checksum,
+                    };
+                }
+                let data = course_data.entry(course_config.course.clone()).or_default();
+                data.push((
                     server_exercise.exercise_name,
                     local_exercise.checksum.clone(),
                     local_exercise.id,
                 ));
+            }
         }
         if !exercises_to_update.is_empty() {
             for exercise in &exercises_to_update {
@@ -977,7 +984,7 @@ mod test {
         use log::*;
         use simple_logger::*;
         let _ = SimpleLogger::new()
-            .with_level(LevelFilter::Debug)
+            .with_level(LevelFilter::Trace)
             .with_module_level("j4rs", LevelFilter::Warn)
             .with_module_level("mockito", LevelFilter::Warn)
             .with_module_level("reqwest", LevelFilter::Warn)
@@ -1027,6 +1034,8 @@ mod test {
 
     #[test]
     fn gets_projects_dir() {
+        init();
+
         let projects_dir = get_projects_dir("client").unwrap();
         assert!(projects_dir.ends_with("client"));
         let parent = projects_dir.parent().unwrap();

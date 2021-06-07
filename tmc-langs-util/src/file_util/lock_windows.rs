@@ -35,7 +35,7 @@ impl FileLock {
     /// Blocks until the lock can be acquired.
     /// On Windows, directories cannot be locked, so we use a lock file instead.
     pub fn lock(&mut self) -> Result<FileLockGuard, FileError> {
-        log::debug!("locking {}", self.path.display());
+        log::trace!("locking {}", self.path.display());
         let start_time = Instant::now();
         let mut warning_timer = Instant::now();
 
@@ -44,8 +44,8 @@ impl FileLock {
             let file = open_file(&self.path)?;
             let lock = FdLock::new(file);
             self.lock = Some(lock);
-            let lock = self.lock.as_mut().unwrap();
-            let guard = lock.lock().unwrap();
+            let lock = self.lock.as_mut().expect("set to Some before this call");
+            let guard = lock.lock().expect("cannot fail on Windows");
             Ok(FileLockGuard {
                 _guard: LockInner::FdLockGuard(guard),
                 path: Cow::Borrowed(&self.path),
@@ -128,7 +128,7 @@ enum LockInner<'a> {
 
 impl Drop for FileLockGuard<'_> {
     fn drop(&mut self) {
-        log::debug!("unlocking {}", self.path.display());
+        log::trace!("unlocking {}", self.path.display());
     }
 }
 

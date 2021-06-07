@@ -218,7 +218,7 @@ mod test {
 
     #[test]
     fn timeout() {
-        let cmd = TmcCommand::piped("sleep").with(|e| e.arg("1"));
+        let cmd = TmcCommand::piped("sleep").with(|e| e.arg("2"));
         assert!(matches!(
             cmd.output_with_timeout(Duration::from_nanos(1)),
             Err(TmcError::Command(CommandError::TimeOut { .. }))

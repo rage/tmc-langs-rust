@@ -13,6 +13,9 @@ use std::str::FromStr;
 use thiserror::Error;
 use tmc_langs_plugins::StyleValidationResult;
 
+#[cfg(feature = "ts")]
+use ts_rs::TS;
+
 /// Represents an error response from tmc-server
 #[derive(Debug, Error, Deserialize)]
 #[error("Response contained errors: {error:?}, {errors:#?}, obsolete client: {obsolete_client}")]
@@ -48,6 +51,7 @@ pub struct User {
 /// get /api/v8/org.json
 /// get /api/v8/org/{organization_slug}.json
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct Organization {
     pub name: String,
     pub information: String,
@@ -58,6 +62,7 @@ pub struct Organization {
 
 /// get /api/v8/core/org/{organization_slug}/courses
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct Course {
     pub id: u32,
     pub name: String,
@@ -77,6 +82,7 @@ pub struct Course {
 /// get /api/v8/courses/{course_id}
 /// get /api/v8/org/{organization_slug}/courses/{course_name}
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct CourseData {
     pub name: String,
     pub hide_after: Option<String>,
@@ -84,6 +90,7 @@ pub struct CourseData {
     pub cache_version: Option<u32>,
     pub spreadsheet_key: Option<String>,
     pub hidden_if_registered_after: Option<String>,
+    #[cfg_attr(feature = "ts", ts(type = "string | null"))]
     pub refreshed_at: Option<DateTime<FixedOffset>>,
     pub locked_exercise_points_visible: bool,
     pub description: Option<String>,
@@ -121,6 +128,7 @@ struct CourseDetailsInner {
 
 /// get /api/v8/core/courses/{course_id}
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 #[serde(from = "CourseDetailsWrapper")]
 pub struct CourseDetails {
     #[serde(flatten)]
@@ -140,6 +148,7 @@ impl From<CourseDetailsWrapper> for CourseDetails {
 }
 
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct Exercise {
     pub id: u32,
     pub name: String,
@@ -173,6 +182,7 @@ pub struct Exercise {
 
 /// get /api/v8/courses/{course_id}/exercises
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct CourseExercise {
     pub id: u32,
     pub available_points: Vec<ExercisePoint>,
@@ -199,6 +209,7 @@ pub struct CourseDataExercise {
 }
 
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct ExercisePoint {
     pub id: u32,
     pub exercise_id: u32,
@@ -234,6 +245,7 @@ pub struct AwardedPoint {
 
 /// get /api/v8/core/exercises/{exercise_id}
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct ExerciseDetails {
     pub course_name: String,
     pub course_id: u32,
@@ -271,20 +283,26 @@ pub struct ExercisesDetails {
 /// get api/v8/exercises/{exercise_id}/users/{user_id}/submissions
 /// get api/v8/exercises/{exercise_id}/users/current/submissions
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct Submission {
     pub id: u32,
     pub user_id: u32,
     pub pretest_error: Option<String>,
+    #[cfg_attr(feature = "ts", ts(type = "string"))]
     pub created_at: DateTime<FixedOffset>,
     pub exercise_name: String,
     pub course_id: u32,
     pub processed: bool,
     pub all_tests_passed: bool,
     pub points: Option<String>,
+    #[cfg_attr(feature = "ts", ts(type = "string | null"))]
     pub processing_tried_at: Option<DateTime<FixedOffset>>,
+    #[cfg_attr(feature = "ts", ts(type = "string | null"))]
     pub processing_began_at: Option<DateTime<FixedOffset>>,
+    #[cfg_attr(feature = "ts", ts(type = "string | null"))]
     pub processing_completed_at: Option<DateTime<FixedOffset>>,
     pub times_sent_to_sandbox: u32,
+    #[cfg_attr(feature = "ts", ts(type = "string"))]
     pub processing_attempts_started_at: DateTime<FixedOffset>,
     pub params_json: Option<String>,
     pub requires_review: bool,
@@ -299,11 +317,13 @@ pub struct Submission {
 }
 
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct ExerciseSubmission {
     pub exercise_name: String,
     pub id: u32,
     pub user_id: u32,
     pub course_id: u32,
+    #[cfg_attr(feature = "ts", ts(type = "string"))]
     pub created_at: DateTime<FixedOffset>,
     pub all_tests_passed: bool,
     pub points: Option<String>,
@@ -318,6 +338,7 @@ pub struct ExerciseSubmission {
 
 /// post /api/v8/core/exercises/{exercise_id}/submissions
 #[derive(Debug, Deserialize, Serialize, JsonSchema, Clone)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct NewSubmission {
     /// https://tmc.mooc.fi/api/v8/core/submissions/{submission_id}
     pub show_submission_url: String,
@@ -350,6 +371,7 @@ pub enum SandboxStatus {
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct SubmissionFinished {
     pub api_version: u32,
     pub all_tests_passed: Option<bool>,
@@ -381,6 +403,7 @@ pub struct SubmissionFinished {
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 #[serde(rename_all = "lowercase")]
 pub enum SubmissionStatus {
     Processing,
@@ -392,12 +415,14 @@ pub enum SubmissionStatus {
 
 /// post /api/v8/core/submissions/{submission_id}/feedback
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct SubmissionFeedbackResponse {
     pub api_version: u32,
     pub status: SubmissionStatus,
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct TestCase {
     pub name: String,
     pub successful: bool,
@@ -407,6 +432,7 @@ pub struct TestCase {
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct SubmissionFeedbackQuestion {
     pub id: u32,
     pub question: String,
@@ -414,6 +440,7 @@ pub struct SubmissionFeedbackQuestion {
 }
 
 #[derive(Debug, PartialEq, Eq, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub enum SubmissionFeedbackKind {
     Text,
     IntRange { lower: u32, upper: u32 },
@@ -485,6 +512,7 @@ impl<'de> Visitor<'de> for SubmissionFeedbackKindVisitor {
 
 /// get /api/v8/core/courses/{course_id}/reviews
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts", derive(TS))]
 pub struct Review {
     pub submission_id: u32,
     pub exercise_name: String,
@@ -498,7 +526,9 @@ pub struct Review {
     pub url: String,
     /// /api/v8/core/courses/{course_id}/reviews/{review_id}
     pub update_url: String,
+    #[cfg_attr(feature = "ts", ts(type = "string"))]
     pub created_at: DateTime<FixedOffset>,
+    #[cfg_attr(feature = "ts", ts(type = "string"))]
     pub updated_at: DateTime<FixedOffset>,
 }
 

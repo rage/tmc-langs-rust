@@ -1,9 +1,11 @@
 //! Contains the main error type for tmc-langs.
 
-use crate::course_refresher::ModeBits;
 use std::{path::PathBuf, string::FromUtf8Error};
 use thiserror::Error;
 use tmc_client::ClientError;
+
+#[cfg(unix)]
+use crate::course_refresher::ModeBits;
 
 /// Main error type of the library.
 #[derive(Error, Debug)]

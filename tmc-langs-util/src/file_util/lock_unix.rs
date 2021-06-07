@@ -24,13 +24,13 @@ impl FileLock {
 
     /// Blocks until the lock can be acquired.
     pub fn lock(&mut self) -> Result<FileLockGuard, FileError> {
-        log::debug!("locking {}", self.path.display());
+        log::trace!("locking {}", self.path.display());
         let path = &self.path;
         let fd_lock = &mut self.fd_lock;
         let guard = fd_lock
             .lock()
             .map_err(|e| FileError::FdLock(path.clone(), e))?;
-        log::debug!("locked {}", self.path.display());
+        log::trace!("locked {}", self.path.display());
         Ok(FileLockGuard {
             path,
             _guard: guard,
@@ -47,7 +47,7 @@ pub struct FileLockGuard<'a> {
 
 impl Drop for FileLockGuard<'_> {
     fn drop(&mut self) {
-        log::debug!("unlocking {}", self.path.display());
+        log::trace!("unlocking {}", self.path.display());
     }
 }
 

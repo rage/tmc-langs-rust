@@ -7,9 +7,7 @@ mod error;
 mod output;
 
 use self::error::{DownloadsFailedError, InvalidTokenError, SandboxTestError};
-use self::output::{
-    Data, Kind, Output, OutputData, OutputResult, Status, StatusUpdateData, UpdatedExercise,
-};
+use self::output::{Data, Kind, Output, OutputData, OutputResult, Status, StatusUpdateData};
 use crate::app::{Locale, Opt};
 use anyhow::{Context, Result};
 use app::{Command, Core, OutputFormatWrapper, Settings};
@@ -26,7 +24,7 @@ use structopt::StructOpt;
 use tmc_langs::{
     file_util, notification_reporter, ClientError, ClientUpdateData, CommandError, Credentials,
     DownloadOrUpdateCourseExercisesResult, DownloadResult, FeedbackAnswer, Language,
-    StyleValidationResult, TmcClient, TmcConfig,
+    StyleValidationResult, TmcClient, TmcConfig, UpdatedExercise,
 };
 use tmc_langs_util::progress_reporter;
 
@@ -576,7 +574,7 @@ fn run_core_inner(
                 .context("Failed to check exercise updates")?
                 .into_iter()
                 .map(|id| UpdatedExercise { id })
-                .collect();
+                .collect::<Vec<_>>();
 
             Output::finished_with_data(
                 "updated exercises",
@@ -983,6 +981,11 @@ fn run_settings(client_name: &str, settings: Settings) -> Result<Output> {
             Output::finished("moved project directory")
         }
 
+        Settings::Reset => {
+            tmc_langs::reset_settings(client_name)?;
+            Output::finished("reset settings")
+        }
+
         Settings::Set { key, json, base64 } => {
             let json: Value = if base64 {
                 let json = base64::decode(&json)?;
@@ -992,11 +995,6 @@ fn run_settings(client_name: &str, settings: Settings) -> Result<Output> {
             };
             tmc_langs::set_setting(client_name, &key, &json)?;
             Output::finished("set setting")
-        }
-
-        Settings::Reset => {
-            tmc_langs::reset_settings(client_name)?;
-            Output::finished("reset settings")
         }
 
         Settings::Unset { setting } => {
