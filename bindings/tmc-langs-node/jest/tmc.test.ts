@@ -53,8 +53,8 @@ async function writeFiles(
 ) {
   for await (const [relative, contents] of files) {
     const p = [root, relative].join("/");
-    const dir = [p, "../"].join("/");
-    await fs.promises.mkdir(dir, { recursive: true });
+    await fs.promises.mkdir(p, { recursive: true });
+    await fs.promises.rmdir(p);
     if (contents == undefined) {
       await fs.promises.writeFile(p, "");
     } else {
