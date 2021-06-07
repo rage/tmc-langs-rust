@@ -944,12 +944,7 @@ mod test {
             format!("http://{}", server_address()),
         );
 
-        #[cfg(windows)]
-        let npm = "npm.exe";
-        #[cfg(not(windows))]
-        let npm = "npm";
-
-        let s = Command::new(npm)
+        let s = Command::new("npm")
             .args(&["run", "jest"])
             .output()
             .expect("running jest failed");
