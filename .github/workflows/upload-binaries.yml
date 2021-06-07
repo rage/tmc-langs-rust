@@ -9,6 +9,45 @@ env:
   TAG: ${{ github.event.release.tag_name }} # had some issue using this directly on windows
 
 jobs:
+  linux:
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        target: [x86_64-unknown-linux-gnu, i686-unknown-linux-gnu, aarch64-unknown-linux-gnu, armv7-unknown-linux-gnueabihf]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y gcc-multilib  # required to build for 32-bit arch
+
+      - name: Install aarch64-unknown-linux-gnu linker
+        if: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
+        run: sudo apt install -y gcc-aarch64-linux-gnu
+      - name: Install armv7-unknown-linux-gnueabihf linker
+        if: ${{ matrix.target == 'armv7-unknown-linux-gnueabihf' }}
+        run: sudo apt install -y gcc-arm-linux-gnueabihf
+
+      - name: Deploy
+        run: |
+          rustup target add ${{ matrix.target }}
+
+          # build and deploy CLI
+          cargo build -p tmc-langs-cli --release --verbose --target ${{ matrix.target }}
+          gsutil cp target/${{ matrix.target }}/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG
+
+          # build and deploy Node module
+          npm --prefix ./bindings/tmc-langs-node install
+          npm --prefix ./bindings/tmc-langs-node run build -- --release --target ${{ matrix.target }}
+          gsutil cp bindings/tmc-langs-node/ts/functions.node gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$TAG.node
+
   windows:
     runs-on: windows-latest
     strategy:
@@ -23,10 +62,10 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
-      - name: Build # crt-static is set with RUSTFLAGS to statically link MSVCRT (VCRUNTIME140.dll)
+      - name: Build
         run: |
           rustup target add ${{ matrix.target }}
-          $env:RUSTFLAGS="-C target-feature=+crt-static"
+          $env:RUSTFLAGS="-C target-feature=+crt-static"  # crt-static is set with RUSTFLAGS to statically link MSVCRT (VCRUNTIME140.dll)
           cargo build -p tmc-langs-cli --release --verbose --target ${{ matrix.target }}
           cd ./bindings/tmc-langs-node && npm install && npm run build -- --release --target ${{ matrix.target }}
       - name: Deploy
@@ -58,76 +97,3 @@ jobs:
         run: |
           gsutil cp target/release/tmc-langs-cli              gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-x86_64-apple-darwin-$TAG
           gsutil cp bindings/tmc-langs-node/ts/functions.node gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-x86_64-apple-darwin-$TAG.node
-
-  ubuntu:
-    runs-on: ubuntu-18.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '16'
-      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y gcc-multilib  # required to build for 32-bit arch
-          sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf  # linkers for ARM targets
-
-      - name: x86_64-unknown-linux-gnu
-        env:
-          TARGET: x86_64-unknown-linux-gnu
-        run: |
-          # build and deploy CLI
-          rustup target add $TARGET
-          cargo build -p tmc-langs-cli --release --verbose --target $TARGET
-          gsutil cp target/$TARGET/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-$TARGET-$TAG
-
-          # build and deploy Node module
-          npm --prefix ./bindings/tmc-langs-node install
-          npm --prefix ./bindings/tmc-langs-node run build -- --release --target $TARGET
-          gsutil cp bindings/tmc-langs-node/ts/functions.node         gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-$TARGET-$TAG.node
-
-      - name: i686-unknown-linux-gnu
-        env:
-          TARGET: i686-unknown-linux-gnu
-        run: |
-          # build and deploy CLI
-          rustup target add $TARGET
-          cargo build -p tmc-langs-cli --release --verbose --target $TARGET
-          gsutil cp target/$TARGET/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-$TARGET-$TAG
-
-          # build and deploy Node module
-          npm --prefix ./bindings/tmc-langs-node install
-          npm --prefix ./bindings/tmc-langs-node run build -- --release --target $TARGET
-          gsutil cp bindings/tmc-langs-node/ts/functions.node         gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-$TARGET-$TAG.node
-
-      - name: aarch64-unknown-linux-gnu
-        env:
-          TARGET: aarch64-unknown-linux-gnu
-        run: |
-          # build and deploy CLI
-          rustup target add $TARGET
-          cargo build -p tmc-langs-cli --release --verbose --target $TARGET
-          gsutil cp target/$TARGET/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-$TARGET-$TAG
-
-          # build and deploy Node module
-          npm --prefix ./bindings/tmc-langs-node install
-          npm --prefix ./bindings/tmc-langs-node run build -- --release --target $TARGET
-          gsutil cp bindings/tmc-langs-node/ts/functions.node         gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-$TARGET-$TAG.node
-
-      - name: armv7-unknown-linux-gnueabihf
-        env:
-          TARGET: armv7-unknown-linux-gnueabihf
-        run: |
-          # build and deploy CLI
-          rustup target add $TARGET
-          cargo build -p tmc-langs-cli --release --verbose --target $TARGET
-          gsutil cp target/$TARGET/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-$TARGET-$TAG
-
-          # build and deploy Node module
-          npm --prefix ./bindings/tmc-langs-node install
-          npm --prefix ./bindings/tmc-langs-node run build -- --release --target $TARGET
-          gsutil cp bindings/tmc-langs-node/ts/functions.node         gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-$TARGET-$TAG.node
