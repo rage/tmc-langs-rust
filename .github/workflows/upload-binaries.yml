@@ -31,6 +31,7 @@ jobs:
         run: |
           rustup target add ${{ matrix.target }}
           cargo build -p tmc-langs-cli --release --verbose --target ${{ matrix.target }}
+          npm --prefix ./bindings/tmc-langs-node install
           npm --prefix ./bindings/tmc-langs-node run build -- --release --verbose --target ${{ matrix.target }}
       - name: Deploy
         run: |
@@ -56,6 +57,7 @@ jobs:
           rustup target add ${{ matrix.target }}
           $env:RUSTFLAGS="-C target-feature=+crt-static"
           cargo build -p tmc-langs-cli --release --verbose --target ${{ matrix.target }}
+          npm --prefix ./bindings/tmc-langs-node install
           npm run --prefix ./bindings/tmc-langs-node build -- --release --verbose --target ${{ matrix.target }}
       - name: Deploy
         run: |
@@ -76,7 +78,10 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
       - name: Cargo build
-        run: cargo build -p tmc-langs-cli --release --verbose
+        run: |
+          cargo build -p tmc-langs-cli --release --verbose
+          npm --prefix ./bindings/tmc-langs-node install
+          npm run --prefix ./bindings/tmc-langs-node build -- --release --verbose
       - name: Sign
         run: codesign --force -s - target/release/tmc-langs-cli
       - name: Deploy
@@ -103,6 +108,7 @@ jobs:
           rustup target add ${{ matrix.target }}
           cargo install cross
           cross build -p tmc-langs-cli --release --verbose --target ${{ matrix.target }}
+          npm --prefix ./bindings/tmc-langs-node install
           npm --prefix ./bindings/tmc-langs-node run cross --release --verbose --target ${{ matrix.target }}
       - name: Deploy
         run: |
