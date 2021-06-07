@@ -1,0 +1,68 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="The Neon crate provides bindings for writing Node.js addons (i.e., dynamically-loaded binary modules) with a safe and fast Rust API."><meta name="keywords" content="rust, rustlang, rust-lang, neon"><title>neon - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings"></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../neon/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><p class="location">Crate neon</p><div class="block version"><p>Version 0.8.3</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all neon's items</p></a><div class="block items"><ul><li><a href="#modules">Modules</a></li></ul></div><p class="location"></p><div id="sidebar-vars" data-name="neon" data-ty="mod" data-relpath="../"></div></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="">neon</a></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/neon/lib.rs.html#1-630" title="goto source code">[src]</a></span></h1><div class="docblock"><p>The <a href="https://www.neon-bindings.com/">Neon</a> crate provides bindings for writing <a href="https://nodejs.org/api/addons.html">Node.js addons</a>
+(i.e., dynamically-loaded binary modules) with a safe and fast Rust API.</p>
+<h2 id="getting-started" class="section-header"><a href="#getting-started">Getting Started</a></h2>
+<p>You can conveniently bootstrap a new Neon project with the Neon project
+generator. You don’t need to install anything special on your machine as
+long as you have a <a href="https://github.com/neon-bindings/neon#platform-support">supported version of Node and Rust</a> on
+your system.</p>
+<p>To start a new project, open a terminal in the directory where you would
+like to place the project, and run at the command prompt:</p>
+<pre><code class="language-text">% npm init neon my-project
+... answer the user prompts ...
+✨ Created Neon project `my-project`. Happy 🦀 hacking! ✨
+</code></pre>
+<p>where <code>my-project</code> can be any name you like for the project. This will
+run the Neon project generator, prompting you with a few questions and
+placing a simple but working Neon project in a subdirectory called
+<code>my-project</code> (or whatever name you chose).</p>
+<p>You can then install and build the project by changing into the project
+directory and running the standard Node installation command:</p>
+<pre><code class="language-text">% cd my-project
+% npm install
+% node
+&gt; require(&quot;.&quot;).hello()
+'hello node'
+</code></pre>
+<p>You can look in the project’s generated <code>README.md</code> for more details on
+the project structure.</p>
+<h2 id="example" class="section-header"><a href="#example">Example</a></h2>
+<p>The generated <code>src/lib.rs</code> contains a function annotated with the
+<a href="../neon/attr.main.html"><code>#[neon::main]</code></a> attribute, marking it as the module’s main entry
+point to be executed when the module is loaded. This function can have
+any name but is conventionally called <code>main</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">neon</span>::<span class="ident">main</span>]</span>
+<span class="kw">fn</span> <span class="ident">main</span>(<span class="kw-2">mut</span> <span class="ident">cx</span>: <span class="ident">ModuleContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NeonResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="ident">cx</span>.<span class="ident">export_function</span>(<span class="string">&quot;hello&quot;</span>, <span class="ident">hello</span>)<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(())
+}</pre></div>
+<p>The example code generated by <code>npm init neon</code> exports a single
+function via <a href="../neon/context/struct.ModuleContext.html#method.export_function"><code>ModuleContext::export_function</code></a>.
+The <code>hello</code> function is defined just above <code>main</code> in <code>src/lib.rs</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">fn</span> <span class="ident">hello</span>(<span class="kw-2">mut</span> <span class="ident">cx</span>: <span class="ident">FunctionContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
+    <span class="prelude-val">Ok</span>(<span class="ident">cx</span>.<span class="ident">string</span>(<span class="string">&quot;hello node&quot;</span>))
+}</pre></div>
+<p>The <code>hello</code> function takes a <a href="../neon/context/type.FunctionContext.html"><code>FunctionContext</code></a> and
+returns a JavaScript string. Because all Neon functions can potentially throw a
+JavaScript exception, the return type is wrapped in a <a href="../neon/result/type.JsResult.html"><code>JsResult</code></a>.</p>
+</div><h2 id="modules" class="section-header"><a href="#modules">Modules</a></h2>
+<table><tr class="module-item"><td><a class="mod" href="borrow/index.html" title="neon::borrow mod">borrow</a></td><td class="docblock-short"><p>Provides temporary access to JavaScript typed arrays.</p>
+</td></tr><tr class="module-item"><td><a class="mod" href="context/index.html" title="neon::context mod">context</a></td><td class="docblock-short"><p>Provides runtime access to the JavaScript engine.</p>
+</td></tr><tr class="module-item"><td><a class="mod" href="handle/index.html" title="neon::handle mod">handle</a></td><td class="docblock-short"><p>References to garbage-collected JavaScript values.</p>
+</td></tr><tr class="module-item"><td><a class="mod" href="meta/index.html" title="neon::meta mod">meta</a></td><td class="docblock-short"><p>Metadata about the Neon version and build.</p>
+</td></tr><tr class="module-item"><td><a class="mod" href="object/index.html" title="neon::object mod">object</a></td><td class="docblock-short"><p>Traits for working with JavaScript objects.</p>
+</td></tr><tr class="module-item"><td><a class="mod" href="prelude/index.html" title="neon::prelude mod">prelude</a></td><td class="docblock-short"><p>Convenience module for the most common Neon imports.</p>
+</td></tr><tr class="module-item"><td><a class="mod" href="reflect/index.html" title="neon::reflect mod">reflect</a></td><td class="docblock-short"><p>Exposes JavaScript’s reflection API to Rust.</p>
+</td></tr><tr class="module-item"><td><a class="mod" href="result/index.html" title="neon::result mod">result</a></td><td class="docblock-short"><p>Represents JavaScript exceptions as a Rust <a href="https://doc.rust-lang.org/nightly/core/result/index.html"><code>Result</code></a> type.</p>
+</td></tr><tr class="module-item"><td><a class="mod" href="types/index.html" title="neon::types mod">types</a></td><td class="docblock-short"><p>Representations of JavaScript’s core builtin types.</p>
+</td></tr></table><h2 id="attributes" class="section-header"><a href="#attributes">Attribute Macros</a></h2>
+<table><tr class="module-item"><td><a class="attr" href="attr.main.html" title="neon::main attr">main</a></td><td class="docblock-short"><p>Marks a function as the main entry point for initialization in
+a Neon module.</p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="neon" data-search-js="../search-index.js"></div>
+    <script src="../main.js"></script></body></html>

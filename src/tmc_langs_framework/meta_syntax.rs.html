@@ -402,24 +402,28 @@
 <span id="399">399</span>
 <span id="400">400</span>
 <span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains utilities for parsing annotated exercise source files, separating lines into</span>
 <span class="doccomment">//! strings, stubs and solutions so that they can be more easily filtered later.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">TmcError</span>;
-<span class="kw">use</span> <span class="ident">lazy_static</span>::<span class="ident">lazy_static</span>;
+<span class="kw">use</span> <span class="ident">once_cell</span>::<span class="ident">sync</span>::<span class="ident">Lazy</span>;
 <span class="kw">use</span> <span class="ident">regex</span>::{<span class="ident">Captures</span>, <span class="ident">Regex</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="ident">BufRead</span>, <span class="ident">BufReader</span>, <span class="ident">Read</span>};
 
 <span class="comment">// rules for finding comments in various languages</span>
-<span class="macro">lazy_static</span><span class="macro">!</span> {
-    <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">META_SYNTAXES_C</span>: [<span class="ident">MetaSyntax</span>; <span class="number">2</span>] <span class="op">=</span> [
+<span class="kw">static</span> <span class="ident">META_SYNTAXES_C</span>: <span class="ident">Lazy</span><span class="op">&lt;</span>[<span class="ident">MetaSyntax</span>; <span class="number">2</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy</span>::<span class="ident">new</span>(<span class="op">|</span><span class="op">|</span> {
+    [
         <span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;//&quot;</span>, <span class="prelude-val">None</span>),
-        <span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">r&quot;/\*&quot;</span>, <span class="prelude-val">Some</span>(<span class="string">r&quot;\*/&quot;</span>))
-    ];
-    <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">META_SYNTAXES_HTML</span>: [<span class="ident">MetaSyntax</span>; <span class="number">1</span>] <span class="op">=</span> [<span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;&lt;!--&quot;</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;--&gt;&quot;</span>))];
-    <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">META_SYNTAXES_PY</span>: [<span class="ident">MetaSyntax</span>; <span class="number">1</span>] <span class="op">=</span> [<span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;#&quot;</span>, <span class="prelude-val">None</span>)];
-}
+        <span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">r&quot;/\*&quot;</span>, <span class="prelude-val">Some</span>(<span class="string">r&quot;\*/&quot;</span>)),
+    ]
+});
+<span class="kw">static</span> <span class="ident">META_SYNTAXES_HTML</span>: <span class="ident">Lazy</span><span class="op">&lt;</span>[<span class="ident">MetaSyntax</span>; <span class="number">1</span>]<span class="op">&gt;</span> <span class="op">=</span>
+    <span class="ident">Lazy</span>::<span class="ident">new</span>(<span class="op">|</span><span class="op">|</span> [<span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;&lt;!--&quot;</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;--&gt;&quot;</span>))]);
+<span class="kw">static</span> <span class="ident">META_SYNTAXES_PY</span>: <span class="ident">Lazy</span><span class="op">&lt;</span>[<span class="ident">MetaSyntax</span>; <span class="number">1</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy</span>::<span class="ident">new</span>(<span class="op">|</span><span class="op">|</span> [<span class="ident">MetaSyntax</span>::<span class="ident">new</span>(<span class="string">&quot;#&quot;</span>, <span class="prelude-val">None</span>)]);
 
 <span class="doccomment">/// Used to classify lines of code based on the annotations in the file.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
@@ -445,6 +449,7 @@
     <span class="ident">hidden_end</span>: <span class="ident">Regex</span>,
 }
 
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">unwrap_used</span>)]</span>
 <span class="kw">impl</span> <span class="ident">MetaSyntax</span> {
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">comment_start</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">comment_end</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="comment">// comment patterns</span>
@@ -637,6 +642,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">unwrap_used</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
