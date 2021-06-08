@@ -13,6 +13,7 @@ use std::path::Path;
 use tmc_langs_csharp::CSharpPlugin;
 use tmc_langs_framework::{LanguagePlugin, TmcError, TmcProjectYml};
 pub use tmc_langs_java::{AntPlugin, MavenPlugin};
+pub use tmc_langs_jupyter_notebook::JupyterNotebookPlugin;
 pub use tmc_langs_make::MakePlugin;
 pub use tmc_langs_notests::NoTestsPlugin;
 pub use tmc_langs_python3::Python3Plugin;
@@ -53,6 +54,10 @@ pub fn compress_project_to_zip(path: &Path) -> Result<Vec<u8>, PluginError> {
     match get_language_plugin_type(path) {
         Some(PluginType::CSharp) => Ok(tmc_zip::zip_student_files(
             <CSharpPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
+            path,
+        )?),
+        Some(PluginType::JupyterNotebook) => Ok(tmc_zip::zip_student_files(
+            <JupyterNotebookPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
         )?),
         Some(PluginType::Make) => Ok(tmc_zip::zip_student_files(
@@ -96,6 +101,7 @@ pub fn compress_project_to_zip(path: &Path) -> Result<Vec<u8>, PluginError> {
 )]
 pub enum Plugin {
     CSharp(CSharpPlugin),
+    JupyterNotebook(JupyterNotebookPlugin),
     Make(MakePlugin),
     Maven(MavenPlugin),
     NoTests(NoTestsPlugin),
@@ -106,6 +112,7 @@ pub enum Plugin {
 
 pub enum PluginType {
     CSharp,
+    JupyterNotebook,
     Make,
     Maven,
     NoTests,
@@ -143,6 +150,13 @@ pub fn get_language_plugin_type(path: &Path) -> Option<PluginType> {
             Python3Plugin::PLUGIN_NAME
         );
         PluginType::Python3
+    } else if JupyterNotebookPlugin::is_exercise_type_correct(path) {
+        log::info!(
+            "Detected project at {} as {}",
+            path.display(),
+            JupyterNotebookPlugin::PLUGIN_NAME
+        );
+        PluginType::JupyterNotebook
     } else if RPlugin::is_exercise_type_correct(path) {
         log::info!(
             "Detected project at {} as {}",
@@ -174,6 +188,7 @@ pub fn get_language_plugin_type(path: &Path) -> Option<PluginType> {
 // Get language plugin for the given path.
 pub fn get_language_plugin(path: &Path) -> Result<Plugin, PluginError> {
     let plugin = match get_language_plugin_type(path) {
+        Some(PluginType::JupyterNotebook) => Plugin::JupyterNotebook(JupyterNotebookPlugin::new()),
         Some(PluginType::NoTests) => Plugin::NoTests(NoTestsPlugin::new()),
         Some(PluginType::CSharp) => Plugin::CSharp(CSharpPlugin::new()),
         Some(PluginType::Make) => Plugin::Make(MakePlugin::new()),

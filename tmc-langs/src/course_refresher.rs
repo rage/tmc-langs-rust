@@ -332,6 +332,7 @@ fn get_exercises(
 fn get_default_sandbox_image(path: &Path) -> Result<&'static str, LangsError> {
     let url = match tmc_langs_plugins::get_language_plugin_type(&path) {
         Some(PluginType::CSharp) => "eu.gcr.io/moocfi-public/tmc-sandbox-csharp:latest",
+        Some(PluginType::JupyterNotebook) => "eu.gcr.io/moocfi-public/tmc-sandbox-python:latest", // actually requires nbgrader package
         Some(PluginType::Make) => "eu.gcr.io/moocfi-public/tmc-sandbox-make:latest",
         Some(PluginType::Maven) | Some(PluginType::Ant) => {
             "eu.gcr.io/moocfi-public/tmc-sandbox-java:latest"
