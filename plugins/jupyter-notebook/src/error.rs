@@ -3,11 +3,14 @@
 use std::path::PathBuf;
 use thiserror::Error;
 use tmc_langs_framework::TmcError;
+use tmc_langs_util::FileError;
 
 #[derive(Debug, Error)]
 pub enum JupyterNotebookError {
     #[error("Failed to canonicalize path {0}")]
     Canonicalize(PathBuf, #[source] std::io::Error),
+    #[error("File IO error")]
+    FileError(#[from] FileError),
     #[error("Error")]
     Tmc(#[from] tmc_langs_framework::TmcError),
 }

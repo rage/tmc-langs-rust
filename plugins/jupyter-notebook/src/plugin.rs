@@ -11,6 +11,7 @@ use tmc_langs_framework::{
     CommandError, ExerciseDesc, LanguagePlugin, Output, RunResult, RunStatus, TestDesc, TestResult,
     TmcCommand, TmcError,
 };
+use tmc_langs_util::file_util;
 use walkdir::WalkDir;
 
 pub struct JupyterNotebookPlugin {}
@@ -33,8 +34,8 @@ impl JupyterNotebookPlugin {
         log::debug!("running tmc command at {}", path.display());
 
         let command = TmcCommand::piped("nbgrader");
-        let common_args = ["validate", "*.ipynb"];
-        let command = command.with(|e| e.args(&common_args).args(extra_args).cwd(path));
+        let common_args = ["autograde", "exercise", "--force"];
+        let command = command.with(|e| e.args(&common_args).args(extra_args).cwd(&path));
 
         let output = if let Some(timeout) = timeout {
             command.output_with_timeout(timeout)?
@@ -42,17 +43,48 @@ impl JupyterNotebookPlugin {
             command.output()?
         };
 
+        // Export results from db.
+        TmcCommand::piped("nbgrader")
+            .with(|e| e.args(&["export"]).cwd(&path))
+            .output()?;
+
         log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
         Ok(output)
     }
 
     fn parse_and_verify_test_result(
-        _test_results_json: &Path,
+        test_results_csv: &Path,
         logs: HashMap<String, String>,
     ) -> Result<RunResult, JupyterNotebookError> {
-        // TODO: Implement.
-        Ok(RunResult::new(RunStatus::Passed, vec![], logs))
+        let results = file_util::read_file_to_string(&test_results_csv)?;
+
+        let mut test_results: Vec<TestResult> = Vec::new();
+
+        let mut status = RunStatus::Passed;
+        for result in results.lines().filter_map(|r| {
+            log::debug!("asd: {:?}", r);
+            if r.starts_with("exercise") {
+                Some(r.split('.').collect::<Vec<&str>>())
+            } else {
+                None
+            }
+        }) {
+            log::debug!("asd: {:?}", result);
+            let passed = result[9] == result[10];
+            test_results.push(TestResult {
+                name: "exercise".to_string(),
+                successful: passed,
+                points: vec![],
+                message: "".to_string(),
+                exception: vec![],
+            });
+            if result[9] != result[10] {
+                status = RunStatus::TestsFailed;
+            }
+        }
+
+        Ok(RunResult::new(status, test_results, logs))
     }
 }
 
@@ -82,7 +114,7 @@ impl LanguagePlugin for JupyterNotebookPlugin {
         exercise_directory: &Path,
         timeout: Option<Duration>,
     ) -> Result<RunResult, TmcError> {
-        let test_results_json = exercise_directory.join(".tmc_test_results.json");
+        let test_results_csv = exercise_directory.join("grades.csv");
 
         let output = Self::run_tmc_command(exercise_directory, &[], timeout, None);
 
@@ -92,7 +124,7 @@ impl LanguagePlugin for JupyterNotebookPlugin {
                 logs.insert("stdout".to_string(), "".to_string());
                 logs.insert("stderr".to_string(), "".to_string());
 
-                let parse_res = Self::parse_and_verify_test_result(&test_results_json, logs)?;
+                let parse_res = Self::parse_and_verify_test_result(&test_results_csv, logs)?;
 
                 Ok(parse_res)
             }

@@ -1,5 +1,6 @@
 //! Contains the Jupyter Notebook student file policy
 
+use std::ffi::OsStr;
 use std::path::Path;
 use tmc_langs_framework::{StudentFilePolicy, TmcProjectYml};
 
@@ -23,7 +24,7 @@ impl StudentFilePolicy for JupyterNotebookStudentPolicy {
         // TODO: Expand
 
         // all .ipynb files are student source files
-        path.ends_with(".ipynb")
+        path.extension() == Some(OsStr::new("ipynb"))
     }
 }
 
@@ -32,7 +33,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn pynb_is_source_file() {
+    fn ipynb_is_source_file() {
         assert!(JupyterNotebookStudentPolicy::is_student_source_file(
             Path::new("some_file.ipynb")
         ))
