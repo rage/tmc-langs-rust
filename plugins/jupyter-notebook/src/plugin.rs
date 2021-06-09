@@ -3,6 +3,7 @@
 use crate::error::JupyterNotebookError;
 use crate::policy::JupyterNotebookStudentPolicy;
 use std::collections::HashMap;
+use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
@@ -10,6 +11,7 @@ use tmc_langs_framework::{
     CommandError, ExerciseDesc, LanguagePlugin, Output, RunResult, RunStatus, TestDesc, TestResult,
     TmcCommand, TmcError,
 };
+use walkdir::WalkDir;
 
 pub struct JupyterNotebookPlugin {}
 
@@ -31,7 +33,7 @@ impl JupyterNotebookPlugin {
         log::debug!("running tmc command at {}", path.display());
 
         let command = TmcCommand::piped("nbgrader");
-        let common_args = ["validate"];
+        let common_args = ["validate", "*.ipynb"];
         let command = command.with(|e| e.args(&common_args).args(extra_args).cwd(path));
 
         let output = if let Some(timeout) = timeout {
@@ -120,8 +122,13 @@ impl LanguagePlugin for JupyterNotebookPlugin {
         }
     }
 
-    fn is_exercise_type_correct(_path: &Path) -> bool {
-        true
+    fn is_exercise_type_correct(path: &Path) -> bool {
+        WalkDir::new(path)
+            .into_iter()
+            .filter_map(|e| e.ok())
+            .any(|entry| {
+                entry.path().is_file() && entry.path().extension() == Some(OsStr::new("ipynb"))
+            })
     }
 
     fn clean(&self, _exercise_path: &Path) -> Result<(), TmcError> {

@@ -22,8 +22,8 @@ impl StudentFilePolicy for JupyterNotebookStudentPolicy {
     fn is_student_source_file(path: &Path) -> bool {
         // TODO: Expand
 
-        // all .pynb files are student source files
-        path.ends_with(".pynb")
+        // all .ipynb files are student source files
+        path.ends_with(".ipynb")
     }
 }
 
@@ -34,7 +34,7 @@ mod test {
     #[test]
     fn pynb_is_source_file() {
         assert!(JupyterNotebookStudentPolicy::is_student_source_file(
-            Path::new("some_file.pynb")
+            Path::new("some_file.ipynb")
         ))
     }
 }
