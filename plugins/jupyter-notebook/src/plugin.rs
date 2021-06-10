@@ -63,14 +63,12 @@ impl JupyterNotebookPlugin {
 
         let mut status = RunStatus::Passed;
         for result in results.lines().filter_map(|r| {
-            log::debug!("asd: {:?}", r);
             if r.starts_with("exercise") {
-                Some(r.split('.').collect::<Vec<&str>>())
+                Some(r.split(',').collect::<Vec<&str>>())
             } else {
                 None
             }
         }) {
-            log::debug!("asd: {:?}", result);
             let passed = result[9] == result[10];
             test_results.push(TestResult {
                 name: "exercise".to_string(),
@@ -79,7 +77,7 @@ impl JupyterNotebookPlugin {
                 message: "".to_string(),
                 exception: vec![],
             });
-            if result[9] != result[10] {
+            if !passed {
                 status = RunStatus::TestsFailed;
             }
         }
