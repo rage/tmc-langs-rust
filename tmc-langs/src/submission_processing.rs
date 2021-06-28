@@ -3,18 +3,195 @@
 use crate::error::LangsError;
 use once_cell::sync::Lazy;
 use regex::Regex;
-use std::path::Path;
+use serde_json::Value;
+use std::{
+    fs::File,
+    io::{BufRead, BufReader},
+    io::{BufWriter, Write},
+    path::Path,
+};
 use tmc_langs_framework::{MetaString, MetaSyntaxParser};
-use tmc_langs_util::file_util;
+use tmc_langs_util::{file_util, FileError};
 use walkdir::{DirEntry, WalkDir};
 
 #[allow(clippy::clippy::unwrap_used)]
 static FILES_TO_SKIP_ALWAYS: Lazy<Regex> =
     Lazy::new(|| Regex::new(r"\.tmcrc|^metadata\.yml$").unwrap());
-#[allow(clippy::clippy::unwrap_used)]
-static NON_TEXT_TYPES: Lazy<Regex> = Lazy::new(|| {
-    Regex::new("class|jar|exe|jpg|jpeg|gif|png|zip|tar|gz|db|bin|csv|tsv|sqlite3|^$").unwrap()
-});
+
+/// Note: used by tmc-server.
+/// Walks through each given path, processing files and copying them into the destination.
+///
+/// Skips hidden directories, directories that contain a `.tmcignore` file in their root, as well as
+/// files matching patterns defined in ```FILES_TO_SKIP_ALWAYS``` and directories and files named ```private```.
+///
+/// Binary files are copied without extra processing, while text files are parsed to remove solution tags and stubs.
+pub fn prepare_solution(exercise_path: &Path, dest_root: &Path) -> Result<(), LangsError> {
+    log::debug!(
+        "preparing solution from {} to {}",
+        exercise_path.display(),
+        dest_root.display()
+    );
+
+    let line_filter = |meta: &MetaString| {
+        !matches!(meta, MetaString::Stub(_)) && !matches!(meta, MetaString::Hidden(_))
+        // hide stub and hidden lines
+    };
+    let file_filter = |metas: &[MetaString]| {
+        !metas
+            .iter()
+            .any(|ms| matches!(ms, MetaString::HiddenFileMarker)) // exclude hidden files
+    };
+    process_files(exercise_path, dest_root, line_filter, file_filter)?;
+    Ok(())
+}
+
+/// Walks through each given path, processing files and copying them into the destination.
+///
+/// Skips hidden directories, directories that contain a ```.tmcignore``` file in their root, as well as
+/// files matching patterns defined in ```FILES_TO_SKIP_ALWAYS``` and directories and files named ```private```.
+///
+/// Binary files are copied without extra processing, while text files are parsed to remove stub tags and solutions.
+///
+/// Additionally, copies any shared files with the corresponding language plugins.
+pub fn prepare_stub(exercise_path: &Path, dest_root: &Path) -> Result<(), LangsError> {
+    log::debug!(
+        "preparing stub from {} to {}",
+        exercise_path.display(),
+        dest_root.display()
+    );
+
+    let line_filter = |meta: &MetaString| {
+        !matches!(meta, MetaString::Solution(_)) && !matches!(meta, MetaString::Hidden(_))
+        // exclude solution and hidden lines
+    };
+    let file_filter = |metas: &[MetaString]| {
+        !metas.iter().any(|ms| {
+            matches!(ms, MetaString::SolutionFileMarker) // exclude solution files
+                || matches!(ms, MetaString::HiddenFileMarker) // exclude hidden files
+        })
+    };
+    process_files(&exercise_path, dest_root, line_filter, file_filter)?;
+    Ok(())
+}
+
+// Processes all files in path, copying files in directories that are not skipped.
+fn process_files(
+    source: &Path,
+    dest_root: &Path,
+    mut line_filter: impl Fn(&MetaString) -> bool,
+    mut file_filter: impl Fn(&[MetaString]) -> bool,
+) -> Result<(), LangsError> {
+    log::info!("Project: {:?}", source);
+
+    let walker = WalkDir::new(source).min_depth(1).into_iter();
+    // silently skips over errors, for example when there's a directory we don't have permissions for
+    for entry in walker
+        .filter_entry(|e| !is_hidden_dir(e) && !on_skip_list(e) && !contains_tmcignore(e))
+        .filter_map(|e| e.ok())
+        .into_iter()
+    {
+        if entry.path().is_dir() {
+            continue;
+        }
+
+        let relative_path = entry
+            .path()
+            .strip_prefix(source)
+            .unwrap_or_else(|_| Path::new(""));
+        let dest_path = dest_root.join(&relative_path);
+        if let Some(extension) = entry.path().extension().and_then(|o| o.to_str()) {
+            // todo: stop checking extension twice here and in meta_syntax
+            // NOTE: if you change these extensions make sure to change them in meta_syntax.rs as well
+            match extension {
+                "java" | "c" | "cpp" | "h" | "hpp" | "js" | "css" | "rs" | "qml" | "cs" | "xml"
+                | "http" | "html" | "qrc" | "properties" | "py" | "R" | "pro" => {
+                    // process line by line
+                    let source_file = file_util::open_file(entry.path())?;
+                    let iter = LossyFileIterator {
+                        file: BufReader::new(source_file),
+                    };
+                    if let Some(lines) =
+                        process_lines(iter, &mut line_filter, &mut file_filter, extension)
+                            .map_err(|e| FileError::FileRead(entry.path().to_path_buf(), e))?
+                    {
+                        // write all lines to target file
+                        if let Some(parent) = dest_path.parent() {
+                            file_util::create_dir_all(parent)?;
+                        }
+                        let mut file = BufWriter::new(file_util::create_file(&dest_path)?);
+                        for line in lines {
+                            file.write_all(line.as_bytes())
+                                .map_err(|e| FileError::FileWrite(dest_path.to_path_buf(), e))?;
+                        }
+                    }
+                }
+                "ipynb" => {
+                    // process each cell in the notebook
+                    let file = file_util::open_file(entry.path())?;
+                    let mut json: Value = serde_json::from_reader(file)?;
+                    let cells = json
+                        .get_mut("cells")
+                        .and_then(|cs| cs.as_array_mut())
+                        .ok_or_else(|| {
+                            LangsError::InvalidNotebook("Invalid or missing value for 'cells'")
+                        })?;
+
+                    for cell in cells {
+                        let is_cell_type_code = cell
+                            .get("cell_type")
+                            .and_then(|c| c.as_str())
+                            .map(|c| c == "code")
+                            .unwrap_or_default();
+
+                        if is_cell_type_code {
+                            // read the source for each code cell
+                            let cell_source = cell
+                                .get_mut("source")
+                                .and_then(|s| s.as_array_mut())
+                                .ok_or_else(|| {
+                                    LangsError::InvalidNotebook(
+                                        "Invalid or missing value for 'source'",
+                                    )
+                                })?;
+                            let source = cell_source.iter().map(|v| {
+                                v.as_str().map(String::from).ok_or_else(|| {
+                                    LangsError::InvalidNotebook("Invalid value in 'source'")
+                                })
+                            });
+
+                            let lines: Option<Vec<Value>> = process_lines(
+                                source,
+                                &mut line_filter,
+                                &mut file_filter,
+                                extension,
+                            )?
+                            .map(|i| i.map(|s| Value::String(s)).collect());
+                            if let Some(lines) = lines {
+                                // replace cell source with filtered output
+                                *cell_source = lines;
+                            } else {
+                                // file should be skipped
+                                return Ok(());
+                            }
+                        }
+                    }
+                    // writes the JSON with filtered sources to the target path
+                    file_util::write_to_file(serde_json::to_vec_pretty(&json)?, &dest_path)?;
+                    log::trace!(
+                        "filtered file {} to {}",
+                        entry.path().display(),
+                        dest_path.display()
+                    );
+                }
+                _ => {
+                    // copy other files as is
+                    file_util::copy(entry.path(), dest_path)?;
+                }
+            }
+        }
+    }
+    Ok(())
+}
 
 // Filter for hidden directories (directories with names starting with '.')
 pub fn is_hidden_dir(entry: &DirEntry) -> bool {
@@ -78,161 +255,54 @@ pub fn contains_tmcignore(entry: &DirEntry) -> bool {
     false
 }
 
-// Copies the entry to the destination. Filters files according to `file_filter`, and filters the contents of each file according to `line_filter`.
-fn copy_file(
-    file: &Path,
-    source_root: &Path,
-    dest_root: &Path,
-    line_filter: &mut impl Fn(&MetaString) -> bool,
-    file_filter: &mut impl Fn(&[MetaString]) -> bool,
-) -> Result<(), LangsError> {
-    if file.is_dir() {
-        return Ok(());
-    }
-    // get relative path
-    let relative_path = file
-        .strip_prefix(source_root)
-        .unwrap_or_else(|_| Path::new(""));
-    let dest_path = dest_root.join(&relative_path);
-    if let Some(parent) = dest_path.parent() {
-        file_util::create_dir_all(parent)?;
-    }
-    let extension = file.extension().and_then(|e| e.to_str());
-    let is_binary = extension
-        .map(|e| NON_TEXT_TYPES.is_match(e))
-        .unwrap_or(true); // paths with no extension are interpreted to be binary files
-    if is_binary {
-        // copy binary files
-        log::debug!("copying binary file from {:?} to {:?}", file, dest_path);
-        file_util::copy(file, &dest_path)?;
-    } else {
-        // filter text files
-        let source_file = file_util::open_file(file)?;
+/// Serves the same functionality as BufRead::lines, but uses lossy string conversion.
+struct LossyFileIterator {
+    file: BufReader<File>,
+}
 
-        let parser = MetaSyntaxParser::new(source_file, extension.unwrap_or_default());
-        let parse_result: Result<Vec<_>, _> = parser.collect();
-        let parsed = match parse_result {
-            Ok(parsed) => parsed,
-            Err(err) => {
-                return Err(LangsError::SubmissionParse(
-                    file.to_path_buf(),
-                    Box::new(LangsError::Tmc(err)),
-                ))
-            }
-        };
+impl Iterator for LossyFileIterator {
+    type Item = Result<String, std::io::Error>;
 
-        // files that don't pass the filter are skipped
-        if !file_filter(&parsed) {
-            log::debug!("skipping {} due to file filter", file.display());
-            return Ok(());
+    fn next(&mut self) -> Option<Self::Item> {
+        let mut buf = vec![];
+        match self.file.read_until(b'\n', &mut buf) {
+            Ok(0) => None,
+            Ok(_) => Some(Ok(String::from_utf8_lossy(&buf).into_owned())),
+            Err(e) => Some(Err(e)),
         }
+    }
+}
 
-        // todo: reduce collection?
-        // filtered metastrings
-        let filtered: Vec<MetaString> = parsed.into_iter().filter(line_filter).collect();
-        // collects the filtered lines into a byte vector
-        let mut write_lines = vec![];
-        for line in filtered {
-            match line {
-                MetaString::Solution(s) | MetaString::String(s) | MetaString::Stub(s) => {
-                    write_lines.extend(s.as_bytes())
-                }
-                MetaString::SolutionFileMarker | MetaString::HiddenFileMarker => (), // write nothing for file markers
-                MetaString::Hidden(_) => (), // write nothing for hidden text
-            }
+/// Processes the lines from the given iterator according to the filters and extension given.
+/// Returns None if the file should be skipped.
+fn process_lines<'a, 'b, I, E>(
+    line_iterator: I,
+    line_filter: &'b mut impl Fn(&MetaString) -> bool,
+    file_filter: &'b mut impl Fn(&[MetaString]) -> bool,
+    extension: &str,
+) -> Result<Option<impl Iterator<Item = String> + 'a>, E>
+where
+    I: Iterator<Item = Result<String, E>>,
+    'b: 'a,
+{
+    let parser = MetaSyntaxParser::new(line_iterator, extension);
+    let parse_result: Result<Vec<_>, _> = parser.collect();
+    let parsed = parse_result?;
+
+    // files that don't pass the filter are skipped
+    if !file_filter(&parsed) {
+        return Ok(None);
+    }
+
+    // filter into iterator of strings
+    let iter = parsed.into_iter().filter(line_filter).filter_map(|ms| {
+        match ms {
+            MetaString::Solution(s) | MetaString::String(s) | MetaString::Stub(s) => Some(s),
+            MetaString::SolutionFileMarker | MetaString::HiddenFileMarker => None, // write nothing for file markers
+            MetaString::Hidden(_) => None, // write nothing for hidden text
         }
-        // writes all lines
-        log::trace!(
-            "filtered file {} to {}",
-            file.display(),
-            dest_path.display()
-        );
-        file_util::write_to_file(&mut write_lines.as_slice(), &dest_path)?;
-    }
-    Ok(())
-}
-
-// Processes all files in path, copying files in directories that are not skipped.
-fn process_files(
-    source: &Path,
-    dest_root: &Path,
-    mut line_filter: impl Fn(&MetaString) -> bool,
-    mut file_filter: impl Fn(&[MetaString]) -> bool,
-) -> Result<(), LangsError> {
-    log::info!("Project: {:?}", source);
-
-    let walker = WalkDir::new(source).min_depth(1).into_iter();
-    // silently skips over errors, for example when there's a directory we don't have permissions for
-    for entry in walker
-        .filter_entry(|e| !is_hidden_dir(e) && !on_skip_list(e) && !contains_tmcignore(e))
-        .filter_map(|e| e.ok())
-        .into_iter()
-    {
-        copy_file(
-            entry.path(),
-            source,
-            dest_root,
-            &mut line_filter,
-            &mut file_filter,
-        )?;
-    }
-    Ok(())
-}
-
-/// Note: used by tmc-server.
-/// Walks through each given path, processing files and copying them into the destination.
-///
-/// Skips hidden directories, directories that contain a `.tmcignore` file in their root, as well as
-/// files matching patterns defined in ```FILES_TO_SKIP_ALWAYS``` and directories and files named ```private```.
-///
-/// Binary files are copied without extra processing, while text files are parsed to remove solution tags and stubs.
-pub fn prepare_solution(exercise_path: &Path, dest_root: &Path) -> Result<(), LangsError> {
-    log::debug!(
-        "preparing solution from {} to {}",
-        exercise_path.display(),
-        dest_root.display()
-    );
-
-    let line_filter = |meta: &MetaString| {
-        !matches!(meta, MetaString::Stub(_)) && !matches!(meta, MetaString::Hidden(_))
-        // hide stub and hidden lines
-    };
-    let file_filter = |metas: &[MetaString]| {
-        !metas
-            .iter()
-            .any(|ms| matches!(ms, MetaString::HiddenFileMarker)) // exclude hidden files
-    };
-    process_files(exercise_path, dest_root, line_filter, file_filter)?;
-    Ok(())
-}
-
-/// Walks through each given path, processing files and copying them into the destination.
-///
-/// Skips hidden directories, directories that contain a ```.tmcignore``` file in their root, as well as
-/// files matching patterns defined in ```FILES_TO_SKIP_ALWAYS``` and directories and files named ```private```.
-///
-/// Binary files are copied without extra processing, while text files are parsed to remove stub tags and solutions.
-///
-/// Additionally, copies any shared files with the corresponding language plugins.
-pub fn prepare_stub(exercise_path: &Path, dest_root: &Path) -> Result<(), LangsError> {
-    log::debug!(
-        "preparing stub from {} to {}",
-        exercise_path.display(),
-        dest_root.display()
-    );
-
-    let line_filter = |meta: &MetaString| {
-        !matches!(meta, MetaString::Solution(_)) && !matches!(meta, MetaString::Hidden(_))
-        // exclude solution and hidden lines
-    };
-    let file_filter = |metas: &[MetaString]| {
-        !metas.iter().any(|ms| {
-            matches!(ms, MetaString::SolutionFileMarker) // exclude solution files
-                || matches!(ms, MetaString::HiddenFileMarker) // exclude hidden files
-        })
-    };
-    process_files(&exercise_path, dest_root, line_filter, file_filter)?;
-    Ok(())
+    });
+    Ok(Some(iter))
 }
 
 #[cfg(test)]
@@ -600,6 +670,105 @@ etc etc",
             s,
             r"etc etc
 etc etc"
+        );
+    }
+
+    #[test]
+    fn filters_notebooks() {
+        init();
+
+        let temp_source = tempfile::tempdir().unwrap();
+        file_to(
+            &temp_source,
+            "hidden.ipynb",
+            serde_json::json!({
+                "cells": [
+                    {
+                        "cell_type": "code",
+                        "source": [
+                            "code"
+                        ]
+                    },
+                    {
+                        "cell_type": "code",
+                        "source": [
+                            "# HIDDEN FILE"
+                        ]
+                    },
+                ]
+            })
+            .to_string(),
+        );
+        file_to(
+            &temp_source,
+            "notebook.ipynb",
+            serde_json::json!({
+                "cells": [
+                    {
+                        "cell_type": "other",
+                        "source": [
+                            ""
+                        ]
+                    },
+                    {
+                        "cell_type": "code",
+                        "source": [
+                            "code"
+                        ]
+                    },
+                    {
+                        "cell_type": "code",
+                        "source": [
+                            "code",
+                            "# BEGIN SOLUTION",
+                            "solution code",
+                            "more code",
+                            "# END SOLUTION",
+                            "non-solution code",
+                        ]
+                    },
+                ],
+                "some other key": "some other value",
+            })
+            .to_string(),
+        );
+
+        let temp_target = tempfile::tempdir().unwrap();
+
+        prepare_stub(temp_source.path(), temp_target.path()).unwrap();
+
+        assert!(!temp_target.path().join("hidden.ipynb").exists());
+
+        let val: serde_json::Value = serde_json::from_reader(
+            file_util::open_file(temp_target.path().join("notebook.ipynb")).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            val,
+            serde_json::json!({
+                "cells": [
+                    {
+                        "cell_type": "other",
+                        "source": [
+                            ""
+                        ]
+                    },
+                    {
+                        "cell_type": "code",
+                        "source": [
+                            "code"
+                        ]
+                    },
+                    {
+                        "cell_type": "code",
+                        "source": [
+                            "code",
+                            "non-solution code",
+                        ]
+                    },
+                ],
+                "some other key": "some other value",
+            })
         );
     }
 }

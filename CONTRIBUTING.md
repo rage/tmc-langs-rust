@@ -6,6 +6,10 @@ Install [zstd](https://github.com/facebook/zstd). For example, on Ubuntu you nee
 
 Install [Node.js and npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
 
+Install [Python 3](https://www.python.org/downloads/). You may wish to use [pyenv](https://github.com/pyenv/pyenv/) to manage different Python versions conveniently.
+
+Install [OpenJDK 11](https://openjdk.java.net/install/index.html) (other versions may work as well).
+
 ```bash
 git clone git@github.com:rage/tmc-langs-rust.git
 cd tmc-langs-rust

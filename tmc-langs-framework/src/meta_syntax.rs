@@ -1,10 +1,8 @@
 //! Contains utilities for parsing annotated exercise source files, separating lines into
 //! strings, stubs and solutions so that they can be more easily filtered later.
 
-use crate::TmcError;
 use once_cell::sync::Lazy;
 use regex::{Captures, Regex};
-use std::io::{BufRead, BufReader, Read};
 
 // rules for finding comments in various languages
 static META_SYNTAXES_C: Lazy<[MetaSyntax; 2]> = Lazy::new(|| {
@@ -101,9 +99,9 @@ impl MetaSyntax {
 
 /// Parses a given text file into an iterator of `MetaString`s.
 #[derive(Debug)]
-pub struct MetaSyntaxParser<B: BufRead> {
+pub struct MetaSyntaxParser<I> {
     meta_syntaxes: &'static [MetaSyntax],
-    reader: B,
+    line_iterator: I,
     // contains the syntax that started the current stub block
     // used to make sure only the appropriate terminator ends the block
     in_stub: Option<&'static MetaSyntax>,
@@ -111,22 +109,23 @@ pub struct MetaSyntaxParser<B: BufRead> {
     in_hidden: bool,
 }
 
-impl<R: Read> MetaSyntaxParser<BufReader<R>> {
-    pub fn new(target: R, target_extension: &str) -> Self {
-        let reader = BufReader::new(target);
+impl<E, I: Iterator<Item = Result<String, E>>> MetaSyntaxParser<I> {
+    pub fn new(line_iterator: I, target_extension: &str) -> Self {
         // assigns each supported file extension with the proper comment syntax
+        // todo: stop checking extension twice here and in submission_processing
+        // NOTE: if you change these extensions make sure to change them in submission_processing.rs as well
         let meta_syntaxes: &[MetaSyntax] = match target_extension {
             "java" | "c" | "cpp" | "h" | "hpp" | "js" | "css" | "rs" | "qml" | "cs" => {
                 &*META_SYNTAXES_C
             }
             "xml" | "http" | "html" | "qrc" => &*META_SYNTAXES_HTML,
-            "properties" | "py" | "R" | "pro" => &*META_SYNTAXES_PY,
-            _ => &[],
+            "properties" | "py" | "R" | "pro" | "ipynb" => &*META_SYNTAXES_PY,
+            _ => panic!("invalid extension"),
         };
 
         Self {
             meta_syntaxes,
-            reader,
+            line_iterator,
             in_stub: None,
             in_solution: false,
             in_hidden: false,
@@ -135,17 +134,12 @@ impl<R: Read> MetaSyntaxParser<BufReader<R>> {
 }
 
 // iterates through the lines in the underlying file, parsing them to MetaStrings
-impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
-    type Item = Result<MetaString, TmcError>;
+impl<E, I: Iterator<Item = Result<String, E>>> Iterator for MetaSyntaxParser<I> {
+    type Item = Result<MetaString, E>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let mut raw_string_buffer: Vec<u8> = Vec::new();
-
-        match self.reader.read_until(b'\n', &mut raw_string_buffer) {
-            // read 0 bytes = reader empty = iterator empty
-            Ok(0) => None,
-            Ok(_) => {
-                let mut s = String::from_utf8_lossy(&raw_string_buffer).to_string();
+        match self.line_iterator.next() {
+            Some(Ok(mut s)) => {
                 // check line with each meta syntax
                 for meta_syntax in self.meta_syntaxes {
                     // check for stub
@@ -228,7 +222,8 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
                     Some(Ok(MetaString::String(s)))
                 }
             }
-            Err(err) => Some(Err(TmcError::ReadLine(err))),
+            Some(Err(e)) => Some(Err(e)),
+            None => None,
         }
     }
 }
@@ -236,6 +231,8 @@ impl<B: BufRead> Iterator for MetaSyntaxParser<B> {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod test {
+    use std::convert::Infallible;
+
     use super::*;
 
     fn init() {
@@ -280,8 +277,12 @@ public class JavaTestCase {
             MetaString::str("}\n"),
         ];
 
-        let source = JAVA_FILE.as_bytes();
-        let filter = MetaSyntaxParser::new(source, "java");
+        let filter = MetaSyntaxParser::new(
+            JAVA_FILE
+                .lines()
+                .map(|s| Ok::<_, Infallible>(String::from(s))),
+            "java",
+        );
         let actual = filter.map(|l| l.unwrap()).collect::<Vec<MetaString>>();
         assert_eq!(expected, actual);
     }
@@ -308,8 +309,12 @@ public class JavaTestCase {
             MetaString::str("}\n"),
         ];
 
-        let source = JAVA_FILE_SOLUTION.as_bytes();
-        let filter = MetaSyntaxParser::new(source, "java");
+        let filter = MetaSyntaxParser::new(
+            JAVA_FILE_SOLUTION
+                .lines()
+                .map(|s| Ok::<_, Infallible>(String::from(s))),
+            "java",
+        );
         let actual = filter.map(|l| l.unwrap()).collect::<Vec<MetaString>>();
         assert_eq!(expected, actual);
     }
@@ -343,8 +348,12 @@ public class JavaTestCase {
             MetaString::str("}\n"),
         ];
 
-        let source = JAVA_FILE_STUB.as_bytes();
-        let filter = MetaSyntaxParser::new(source, "java");
+        let filter = MetaSyntaxParser::new(
+            JAVA_FILE_STUB
+                .lines()
+                .map(|s| Ok::<_, Infallible>(String::from(s))),
+            "java",
+        );
         let actual = filter.map(|l| l.unwrap()).collect::<Vec<MetaString>>();
         assert_eq!(expected, actual);
     }
@@ -396,8 +405,12 @@ print("a")
             MetaString::stub("            return self.uotteet[n - 1][1]\n"),
         ];
 
-        let source = PYTHON_FILE_STUB.as_bytes();
-        let filter = MetaSyntaxParser::new(source, "py");
+        let filter = MetaSyntaxParser::new(
+            PYTHON_FILE_STUB
+                .lines()
+                .map(|s| Ok::<_, Infallible>(String::from(s))),
+            "py",
+        );
         let actual = filter.map(|l| l.unwrap()).collect::<Vec<MetaString>>();
         assert_eq!(expected, actual);
     }
