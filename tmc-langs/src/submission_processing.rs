@@ -90,103 +90,107 @@ fn process_files(
         .filter_map(|e| e.ok())
         .into_iter()
     {
-        if entry.path().is_dir() {
-            continue;
-        }
+        process_file(entry, source, dest_root, &mut line_filter, &mut file_filter)?;
+    }
+    Ok(())
+}
 
-        let relative_path = entry
-            .path()
-            .strip_prefix(source)
-            .unwrap_or_else(|_| Path::new(""));
-        let dest_path = dest_root.join(&relative_path);
-        if let Some(extension) = entry.path().extension().and_then(|o| o.to_str()) {
-            // todo: stop checking extension twice here and in meta_syntax
-            // NOTE: if you change these extensions make sure to change them in meta_syntax.rs as well
-            match extension {
-                "java" | "c" | "cpp" | "h" | "hpp" | "js" | "css" | "rs" | "qml" | "cs" | "xml"
-                | "http" | "html" | "qrc" | "properties" | "py" | "R" | "pro" => {
-                    // process line by line
-                    let source_file = file_util::open_file(entry.path())?;
-                    let iter = LossyFileIterator {
-                        file: BufReader::new(source_file),
-                    };
-                    if let Some(lines) =
-                        process_lines(iter, &mut line_filter, &mut file_filter, extension)
-                            .map_err(|e| FileError::FileRead(entry.path().to_path_buf(), e))?
-                    {
-                        // write all lines to target file
-                        if let Some(parent) = dest_path.parent() {
-                            file_util::create_dir_all(parent)?;
-                        }
-                        let mut file = BufWriter::new(file_util::create_file(&dest_path)?);
-                        for line in lines {
-                            file.write_all(line.as_bytes())
-                                .map_err(|e| FileError::FileWrite(dest_path.to_path_buf(), e))?;
+fn process_file(
+    entry: DirEntry,
+    source: &Path,
+    dest_root: &Path,
+    line_filter: &mut impl Fn(&MetaString) -> bool,
+    file_filter: &mut impl Fn(&[MetaString]) -> bool,
+) -> Result<(), LangsError> {
+    if entry.path().is_dir() {
+        return Ok(());
+    }
+
+    let relative_path = entry
+        .path()
+        .strip_prefix(source)
+        .unwrap_or_else(|_| Path::new(""));
+    let dest_path = dest_root.join(&relative_path);
+    if let Some(extension) = entry.path().extension().and_then(|o| o.to_str()) {
+        // todo: stop checking extension twice here and in meta_syntax
+        // NOTE: if you change these extensions make sure to change them in meta_syntax.rs as well
+        match extension {
+            "java" | "c" | "cpp" | "h" | "hpp" | "js" | "css" | "rs" | "qml" | "cs" | "xml"
+            | "http" | "html" | "qrc" | "properties" | "py" | "R" | "pro" => {
+                // process line by line
+                let source_file = file_util::open_file(entry.path())?;
+                let iter = LossyFileIterator {
+                    file: BufReader::new(source_file),
+                };
+                if let Some(lines) = process_lines(iter, line_filter, file_filter, extension)
+                    .map_err(|e| FileError::FileRead(entry.path().to_path_buf(), e))?
+                {
+                    // write all lines to target file
+                    if let Some(parent) = dest_path.parent() {
+                        file_util::create_dir_all(parent)?;
+                    }
+                    let mut file = BufWriter::new(file_util::create_file(&dest_path)?);
+                    for line in lines {
+                        file.write_all(line.as_bytes())
+                            .map_err(|e| FileError::FileWrite(dest_path.to_path_buf(), e))?;
+                    }
+                }
+            }
+            "ipynb" => {
+                // process each cell in the notebook
+                let file = file_util::open_file(entry.path())?;
+                let mut json: Value = serde_json::from_reader(file)?;
+                let cells = json
+                    .get_mut("cells")
+                    .and_then(|cs| cs.as_array_mut())
+                    .ok_or_else(|| {
+                        LangsError::InvalidNotebook("Invalid or missing value for 'cells'")
+                    })?;
+
+                for cell in cells {
+                    let is_cell_type_code = cell
+                        .get("cell_type")
+                        .and_then(|c| c.as_str())
+                        .map(|c| c == "code")
+                        .unwrap_or_default();
+
+                    if is_cell_type_code {
+                        // read the source for each code cell
+                        let cell_source = cell
+                            .get_mut("source")
+                            .and_then(|s| s.as_array_mut())
+                            .ok_or_else(|| {
+                                LangsError::InvalidNotebook("Invalid or missing value for 'source'")
+                            })?;
+                        let source = cell_source.iter().map(|v| {
+                            v.as_str().map(String::from).ok_or_else(|| {
+                                LangsError::InvalidNotebook("Invalid value in 'source'")
+                            })
+                        });
+
+                        let lines: Option<Vec<Value>> =
+                            process_lines(source, line_filter, file_filter, extension)?
+                                .map(|i| i.map(|s| Value::String(s)).collect());
+                        if let Some(lines) = lines {
+                            // replace cell source with filtered output
+                            *cell_source = lines;
+                        } else {
+                            // file should be skipped
+                            return Ok(());
                         }
                     }
                 }
-                "ipynb" => {
-                    // process each cell in the notebook
-                    let file = file_util::open_file(entry.path())?;
-                    let mut json: Value = serde_json::from_reader(file)?;
-                    let cells = json
-                        .get_mut("cells")
-                        .and_then(|cs| cs.as_array_mut())
-                        .ok_or_else(|| {
-                            LangsError::InvalidNotebook("Invalid or missing value for 'cells'")
-                        })?;
-
-                    for cell in cells {
-                        let is_cell_type_code = cell
-                            .get("cell_type")
-                            .and_then(|c| c.as_str())
-                            .map(|c| c == "code")
-                            .unwrap_or_default();
-
-                        if is_cell_type_code {
-                            // read the source for each code cell
-                            let cell_source = cell
-                                .get_mut("source")
-                                .and_then(|s| s.as_array_mut())
-                                .ok_or_else(|| {
-                                    LangsError::InvalidNotebook(
-                                        "Invalid or missing value for 'source'",
-                                    )
-                                })?;
-                            let source = cell_source.iter().map(|v| {
-                                v.as_str().map(String::from).ok_or_else(|| {
-                                    LangsError::InvalidNotebook("Invalid value in 'source'")
-                                })
-                            });
-
-                            let lines: Option<Vec<Value>> = process_lines(
-                                source,
-                                &mut line_filter,
-                                &mut file_filter,
-                                extension,
-                            )?
-                            .map(|i| i.map(|s| Value::String(s)).collect());
-                            if let Some(lines) = lines {
-                                // replace cell source with filtered output
-                                *cell_source = lines;
-                            } else {
-                                // file should be skipped
-                                return Ok(());
-                            }
-                        }
-                    }
-                    // writes the JSON with filtered sources to the target path
-                    file_util::write_to_file(serde_json::to_vec_pretty(&json)?, &dest_path)?;
-                    log::trace!(
-                        "filtered file {} to {}",
-                        entry.path().display(),
-                        dest_path.display()
-                    );
-                }
-                _ => {
-                    // copy other files as is
-                    file_util::copy(entry.path(), dest_path)?;
-                }
+                // writes the JSON with filtered sources to the target path
+                file_util::write_to_file(serde_json::to_vec_pretty(&json)?, &dest_path)?;
+                log::trace!(
+                    "filtered file {} to {}",
+                    entry.path().display(),
+                    dest_path.display()
+                );
+            }
+            _ => {
+                // copy other files as is
+                file_util::copy(entry.path(), dest_path)?;
             }
         }
     }
