@@ -280,7 +280,7 @@ public class JavaTestCase {
         let filter = MetaSyntaxParser::new(
             JAVA_FILE
                 .lines()
-                .map(|s| Ok::<_, Infallible>(String::from(s))),
+                .map(|s| Ok::<_, Infallible>(format!("{}\n", s))),
             "java",
         );
         let actual = filter.map(|l| l.unwrap()).collect::<Vec<MetaString>>();
@@ -312,7 +312,7 @@ public class JavaTestCase {
         let filter = MetaSyntaxParser::new(
             JAVA_FILE_SOLUTION
                 .lines()
-                .map(|s| Ok::<_, Infallible>(String::from(s))),
+                .map(|s| Ok::<_, Infallible>(format!("{}\n", s))),
             "java",
         );
         let actual = filter.map(|l| l.unwrap()).collect::<Vec<MetaString>>();
@@ -351,7 +351,7 @@ public class JavaTestCase {
         let filter = MetaSyntaxParser::new(
             JAVA_FILE_STUB
                 .lines()
-                .map(|s| Ok::<_, Infallible>(String::from(s))),
+                .map(|s| Ok::<_, Infallible>(format!("{}\n", s))),
             "java",
         );
         let actual = filter.map(|l| l.unwrap()).collect::<Vec<MetaString>>();
@@ -408,7 +408,7 @@ print("a")
         let filter = MetaSyntaxParser::new(
             PYTHON_FILE_STUB
                 .lines()
-                .map(|s| Ok::<_, Infallible>(String::from(s))),
+                .map(|s| Ok::<_, Infallible>(format!("{}\n", s))),
             "py",
         );
         let actual = filter.map(|l| l.unwrap()).collect::<Vec<MetaString>>();
