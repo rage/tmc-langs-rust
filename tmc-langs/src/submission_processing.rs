@@ -707,7 +707,10 @@ etc etc"
                     {
                         "cell_type": "other",
                         "source": [
-                            ""
+                            "# BEGIN SOLUTION",
+                            "solution code",
+                            "more code",
+                            "# END SOLUTION",
                         ]
                     },
                     {
@@ -750,7 +753,10 @@ etc etc"
                     {
                         "cell_type": "other",
                         "source": [
-                            ""
+                            "# BEGIN SOLUTION",
+                            "solution code",
+                            "more code",
+                            "# END SOLUTION",
                         ]
                     },
                     {
