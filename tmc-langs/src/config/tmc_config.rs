@@ -109,7 +109,7 @@ impl TmcConfig {
                             e
                         );
                         drop(guard); // unlock file before recreating it
-                        Self::init_at(client_name, &path)?
+                        Self::init_at(client_name, path)?
                     }
                 }
             }
@@ -121,7 +121,7 @@ impl TmcConfig {
                     e
                 );
                 // todo: check the cause to make sure this makes sense, might be necessary to propagate some error kinds
-                Self::init_at(client_name, &path)?
+                Self::init_at(client_name, path)?
             }
         };
 

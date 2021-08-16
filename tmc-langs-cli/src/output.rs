@@ -18,7 +18,7 @@ use tmc_langs_util::progress_reporter::StatusUpdate;
 #[serde(tag = "output-kind")]
 pub enum Output {
     /// Data that is output at the end of a command.
-    OutputData(OutputData),
+    Data(OutputData),
     /// Status update output as a command progresses.
     StatusUpdate(StatusUpdateData),
     /// Additional warnings, such as for an outdated Python dependency.
@@ -26,8 +26,11 @@ pub enum Output {
 }
 
 impl Output {
-    pub fn finished_with_data(message: impl Into<String>, data: impl Into<Option<Data>>) -> Self {
-        Self::OutputData(OutputData {
+    pub fn finished_with_data(
+        message: impl Into<String>,
+        data: impl Into<Option<DataKind>>,
+    ) -> Self {
+        Self::Data(OutputData {
             status: Status::Finished,
             message: message.into(),
             result: OutputResult::ExecutedCommand,
@@ -36,7 +39,7 @@ impl Output {
     }
 
     pub fn finished(message: impl Into<String>) -> Self {
-        Self::OutputData(OutputData {
+        Self::Data(OutputData {
             status: Status::Finished,
             message: message.into(),
             result: OutputResult::ExecutedCommand,
@@ -51,13 +54,13 @@ pub struct OutputData {
     pub status: Status,
     pub message: String,
     pub result: OutputResult,
-    pub data: Option<Data>,
+    pub data: Option<DataKind>,
 }
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "output-data-kind", content = "output-data")]
-pub enum Data {
+pub enum DataKind {
     Error {
         kind: Kind,
         trace: Vec<String>,
@@ -152,7 +155,7 @@ pub struct DownloadTarget {
 }
 
 #[cfg(test)]
-#[allow(clippy::clippy::unwrap_used)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
 
@@ -162,7 +165,7 @@ mod test {
 
     #[test]
     fn output_data_none() {
-        let output_data = Output::OutputData(OutputData {
+        let output_data = Output::Data(OutputData {
             status: Status::Finished,
             message: "output with no data".to_string(),
             result: OutputResult::ExecutedCommand,
@@ -175,11 +178,11 @@ mod test {
 
     #[test]
     fn output_data_error() {
-        let output_data = Output::OutputData(OutputData {
+        let output_data = Output::Data(OutputData {
             status: Status::Finished,
             message: "errored!".to_string(),
             result: OutputResult::Error,
-            data: Some(Data::Error {
+            data: Some(DataKind::Error {
                 kind: Kind::Generic,
                 trace: vec!["trace 1".to_string(), "trace 2".to_string()],
             }),
@@ -191,11 +194,11 @@ mod test {
 
     #[test]
     fn output_data_dl() {
-        let output_data = Output::OutputData(OutputData {
+        let output_data = Output::Data(OutputData {
             status: Status::Finished,
             message: "downloaded things".to_string(),
             result: OutputResult::ExecutedCommand,
-            data: Some(Data::ExerciseDownload(
+            data: Some(DataKind::ExerciseDownload(
                 DownloadOrUpdateCourseExercisesResult {
                     downloaded: vec![
                         ExerciseDownload {

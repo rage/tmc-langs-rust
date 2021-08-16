@@ -21,9 +21,9 @@ impl ValgrindLog {
         // TODO: use parsing lib?
         log::debug!("parsing {}", valgrind_log_path.display());
 
-        #[allow(clippy::clippy::unwrap_used)]
+        #[allow(clippy::unwrap_used)]
         static PID_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r#"==(?P<pid>\d+)=="#).unwrap());
-        #[allow(clippy::clippy::unwrap_used)]
+        #[allow(clippy::unwrap_used)]
         static ERR_REGEX: Lazy<Regex> =
             Lazy::new(|| Regex::new(r#"== ERROR SUMMARY: (?P<error_count>\d+)"#).unwrap());
 
@@ -84,7 +84,7 @@ pub struct ValgrindResult {
 }
 
 #[cfg(test)]
-#[allow(clippy::clippy::unwrap_used)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
 

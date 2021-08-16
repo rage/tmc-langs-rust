@@ -159,7 +159,7 @@ fn prepare_stubs(mut cx: FunctionContext) -> JsResult<JsValue> {
     parse_args!(cx, exercise_path: PathBuf, output_path: PathBuf);
     lock!(cx, exercise_path);
 
-    let res = tmc_langs::prepare_stub(&exercise_path, &&output_path);
+    let res = tmc_langs::prepare_stub(&exercise_path, &output_path);
     convert_res(&mut cx, res)
 }
 
@@ -250,7 +250,7 @@ fn check_exercise_updates(mut cx: FunctionContext) -> JsResult<JsValue> {
     let projects_dir =
         tmc_langs::get_projects_dir(&client_name).map_err(|e| convert_err(&mut cx, e))?;
     let res = with_client(client_name, client_version, |client| {
-        tmc_langs::check_exercise_updates(&client, &projects_dir)
+        tmc_langs::check_exercise_updates(client, &projects_dir)
     });
     convert_res(&mut cx, res)
 }

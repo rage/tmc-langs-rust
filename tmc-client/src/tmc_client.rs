@@ -618,7 +618,7 @@ fn finish_stage(message: impl Into<String>, data: impl Into<Option<ClientUpdateD
 }
 
 #[cfg(test)]
-#[allow(clippy::clippy::unwrap_used)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use std::sync::atomic::AtomicBool;
 

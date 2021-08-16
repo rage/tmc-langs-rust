@@ -482,13 +482,13 @@ impl<'de> Visitor<'de> for SubmissionFeedbackKindVisitor {
     where
         E: de::Error,
     {
-        #[allow(clippy::clippy::unwrap_used)]
+        #[allow(clippy::unwrap_used)]
         static RANGE: Lazy<Regex> =
             Lazy::new(|| Regex::new(r#"intrange\[(\d+)\.\.(\d+)\]"#).unwrap());
 
         if value == "text" {
             Ok(SubmissionFeedbackKind::Text)
-        } else if let Some(captures) = RANGE.captures(&value) {
+        } else if let Some(captures) = RANGE.captures(value) {
             let lower = &captures[1];
             let lower = u32::from_str(lower).map_err(|e| {
                 E::custom(format!(
@@ -533,7 +533,7 @@ pub struct Review {
 }
 
 #[cfg(test)]
-#[allow(clippy::clippy::unwrap_used)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
 

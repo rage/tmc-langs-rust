@@ -23,7 +23,7 @@ pub fn zip_student_files<P: StudentFilePolicy>(
         .filter_map(|e| e.ok())
     {
         log::trace!("processing {}", entry.path().display());
-        if policy.is_student_file(entry.path(), &root_directory)? {
+        if policy.is_student_file(entry.path(), root_directory)? {
             let path = root_directory
                 .parent()
                 .map(|p| {
@@ -160,7 +160,7 @@ fn contains_tmcnosubmit(entry: &DirEntry) -> bool {
 }
 
 #[cfg(test)]
-#[allow(clippy::clippy::unwrap_used)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
     use std::collections::HashSet;

@@ -410,7 +410,7 @@ impl LanguagePlugin for Python3Plugin {
 }
 
 #[cfg(test)]
-#[allow(clippy::clippy::unwrap_used)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
     use std::{

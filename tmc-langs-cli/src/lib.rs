@@ -7,7 +7,7 @@ mod error;
 mod output;
 
 use self::error::{DownloadsFailedError, InvalidTokenError, SandboxTestError};
-use self::output::{Data, Kind, Output, OutputData, OutputResult, Status, StatusUpdateData};
+use self::output::{DataKind, Kind, Output, OutputData, OutputResult, Status, StatusUpdateData};
 use crate::app::{Locale, Opt};
 use anyhow::{Context, Result};
 use app::{Command, Core, OutputFormatWrapper, Settings};
@@ -56,7 +56,7 @@ pub fn run() {
             } else {
                 "Process panicked unexpectedly without an error message".to_string()
             };
-            let output = Output::OutputData(OutputData {
+            let output = Output::Data(OutputData {
                 status: Status::Crashed,
                 message: error_message,
                 result: OutputResult::Error,
@@ -98,11 +98,11 @@ fn run_inner() -> Result<(), ()> {
         let message = error_message_special_casing(&e);
         let kind = solve_error_kind(&e);
         let sandbox_path = check_sandbox_err(&e);
-        let error_output = Output::OutputData(OutputData {
+        let error_output = Output::Data(OutputData {
             status: Status::Finished,
             message,
             result: OutputResult::Error,
-            data: Some(Data::Error {
+            data: Some(DataKind::Error {
                 kind,
                 trace: causes,
             }),
@@ -202,7 +202,7 @@ fn run_app(matches: Opt) -> Result<()> {
             file_util::lock!(exercise_path);
             let check_result =
                 run_checkstyle_write_results(&exercise_path, output_path.as_deref(), locale)?;
-            Output::finished_with_data("ran checkstyle", check_result.map(Data::Validation))
+            Output::finished_with_data("ran checkstyle", check_result.map(DataKind::Validation))
         }
 
         Command::Clean { exercise_path } => {
@@ -254,7 +254,7 @@ fn run_app(matches: Opt) -> Result<()> {
             let points = tmc_langs::get_available_points(&exercise_path)?;
             Output::finished_with_data(
                 format!("found {} available points", points.len()),
-                Data::AvailablePoints(points),
+                DataKind::AvailablePoints(points),
             )
         }
 
@@ -275,7 +275,7 @@ fn run_app(matches: Opt) -> Result<()> {
             }
             Output::finished_with_data(
                 format!("found exercises at {}", exercise_path.display()),
-                Data::Exercises(exercises),
+                DataKind::Exercises(exercises),
             )
         }
 
@@ -299,7 +299,7 @@ fn run_app(matches: Opt) -> Result<()> {
                     "created exercise packaging config from {}",
                     exercise_path.display(),
                 ),
-                Data::ExercisePackagingConfiguration(config),
+                DataKind::ExercisePackagingConfiguration(config),
             )
         }
 
@@ -311,7 +311,7 @@ fn run_app(matches: Opt) -> Result<()> {
 
             Output::finished_with_data(
                 format!("listed local exercises for {}", course_slug),
-                Data::LocalExercises(local_exercises),
+                DataKind::LocalExercises(local_exercises),
             )
         }
 
@@ -423,7 +423,7 @@ fn run_app(matches: Opt) -> Result<()> {
             .with_context(|| format!("Failed to refresh course {}", course_name))?;
             Output::finished_with_data(
                 format!("refreshed course {}", course_name),
-                Data::RefreshResult(refresh_result),
+                DataKind::RefreshResult(refresh_result),
             )
         }
 
@@ -481,7 +481,7 @@ fn run_app(matches: Opt) -> Result<()> {
 
             Output::finished_with_data(
                 format!("ran tests for {}", exercise_path.display()),
-                Data::TestResult(test_result),
+                DataKind::TestResult(test_result),
             )
         }
 
@@ -521,7 +521,7 @@ fn run_app(matches: Opt) -> Result<()> {
 
             Output::finished_with_data(
                 format!("scanned exercise at {}", exercise_path.display()),
-                Data::ExerciseDesc(scan_result),
+                DataKind::ExerciseDesc(scan_result),
             )
         }
     };
@@ -578,7 +578,7 @@ fn run_core_inner(
 
             Output::finished_with_data(
                 "updated exercises",
-                Data::UpdatedExercises(updated_exercises),
+                DataKind::UpdatedExercises(updated_exercises),
             )
         }
 
@@ -639,7 +639,7 @@ fn run_core_inner(
             };
             Output::finished_with_data(
                 "downloaded or updated exercises",
-                Data::ExerciseDownload(data),
+                DataKind::ExerciseDownload(data),
             )
         }
 
@@ -648,7 +648,7 @@ fn run_core_inner(
                 .context("Failed to get course data")?;
             Output::finished_with_data(
                 "fetched course data",
-                Data::CombinedCourseData(Box::new(data)),
+                DataKind::CombinedCourseData(Box::new(data)),
             )
         }
 
@@ -656,35 +656,41 @@ fn run_core_inner(
             let details = client
                 .get_course_details(course_id)
                 .context("Failed to get course details")?;
-            Output::finished_with_data("fetched course details", Data::CourseDetails(details))
+            Output::finished_with_data("fetched course details", DataKind::CourseDetails(details))
         }
 
         Core::GetCourseExercises { course_id } => {
             let exercises = client
                 .get_course_exercises(course_id)
                 .context("Failed to get course")?;
-            Output::finished_with_data("fetched course exercises", Data::CourseExercises(exercises))
+            Output::finished_with_data(
+                "fetched course exercises",
+                DataKind::CourseExercises(exercises),
+            )
         }
 
         Core::GetCourseSettings { course_id } => {
             let settings = client
                 .get_course(course_id)
                 .context("Failed to get course")?;
-            Output::finished_with_data("fetched course settings", Data::CourseData(settings))
+            Output::finished_with_data("fetched course settings", DataKind::CourseData(settings))
         }
 
         Core::GetCourses { organization } => {
             let courses = client
                 .list_courses(&organization)
                 .context("Failed to get courses")?;
-            Output::finished_with_data("fetched courses", Data::Courses(courses))
+            Output::finished_with_data("fetched courses", DataKind::Courses(courses))
         }
 
         Core::GetExerciseDetails { exercise_id } => {
             let course = client
                 .get_exercise_details(exercise_id)
                 .context("Failed to get course")?;
-            Output::finished_with_data("fetched exercise details", Data::ExerciseDetails(course))
+            Output::finished_with_data(
+                "fetched exercise details",
+                DataKind::ExerciseDetails(course),
+            )
         }
 
         Core::GetExerciseSubmissions { exercise_id } => {
@@ -693,7 +699,7 @@ fn run_core_inner(
                 .context("Failed to get submissions")?;
             Output::finished_with_data(
                 "fetched exercise submissions",
-                Data::Submissions(submissions),
+                DataKind::Submissions(submissions),
             )
         }
 
@@ -717,7 +723,7 @@ fn run_core_inner(
                 .context("Failed to get exercise updates")?;
             Output::finished_with_data(
                 "fetched exercise updates",
-                Data::UpdateResult(update_result),
+                DataKind::UpdateResult(update_result),
             )
         }
 
@@ -725,33 +731,33 @@ fn run_core_inner(
             let org = client
                 .get_organization(&organization)
                 .context("Failed to get organization")?;
-            Output::finished_with_data("fetched organization", Data::Organization(org))
+            Output::finished_with_data("fetched organization", DataKind::Organization(org))
         }
 
         Core::GetOrganizations => {
             let orgs = client
                 .get_organizations()
                 .context("Failed to get organizations")?;
-            Output::finished_with_data("fetched organizations", Data::Organizations(orgs))
+            Output::finished_with_data("fetched organizations", DataKind::Organizations(orgs))
         }
 
         Core::GetUnreadReviews { course_id } => {
             let reviews = client
                 .get_unread_reviews(course_id)
                 .context("Failed to get unread reviews")?;
-            Output::finished_with_data("fetched unread reviews", Data::Reviews(reviews))
+            Output::finished_with_data("fetched unread reviews", DataKind::Reviews(reviews))
         }
 
         Core::LoggedIn => {
             if let Some(credentials) = credentials {
-                Output::OutputData(OutputData {
+                Output::Data(OutputData {
                     status: Status::Finished,
                     message: "currently logged in".to_string(),
                     result: OutputResult::LoggedIn,
-                    data: Some(Data::Token(credentials.token())),
+                    data: Some(DataKind::Token(credentials.token())),
                 })
             } else {
-                Output::OutputData(OutputData {
+                Output::Data(OutputData {
                     status: Status::Finished,
                     message: "currently not logged in".to_string(),
                     result: OutputResult::NotLoggedIn,
@@ -785,7 +791,7 @@ fn run_core_inner(
             // create token file
             Credentials::save(client_name, token)?;
 
-            Output::OutputData(OutputData {
+            Output::Data(OutputData {
                 status: Status::Finished,
                 message: "logged in".to_string(),
                 result: OutputResult::LoggedIn,
@@ -797,7 +803,7 @@ fn run_core_inner(
             if let Some(credentials) = credentials.take() {
                 credentials.remove()?;
             }
-            Output::OutputData(OutputData {
+            Output::Data(OutputData {
                 status: Status::Finished,
                 message: "logged out".to_string(),
                 result: OutputResult::LoggedOut,
@@ -826,7 +832,7 @@ fn run_core_inner(
             let new_submission = client
                 .paste(exercise_id, &submission_path, paste_message, locale)
                 .context("Failed to get paste with comment")?;
-            Output::finished_with_data("sent paste", Data::NewSubmission(new_submission))
+            Output::finished_with_data("sent paste", DataKind::NewSubmission(new_submission))
         }
 
         Core::RequestCodeReview {
@@ -844,7 +850,10 @@ fn run_core_inner(
                     Some(locale),
                 )
                 .context("Failed to request code review")?;
-            Output::finished_with_data("requested code review", Data::NewSubmission(new_submission))
+            Output::finished_with_data(
+                "requested code review",
+                DataKind::NewSubmission(new_submission),
+            )
         }
 
         Core::ResetExercise {
@@ -890,7 +899,10 @@ fn run_core_inner(
             } else {
                 panic!("validation error")
             };
-            Output::finished_with_data("sent feedback", Data::SubmissionFeedbackResponse(response))
+            Output::finished_with_data(
+                "sent feedback",
+                DataKind::SubmissionFeedbackResponse(response),
+            )
         }
 
         Core::Submit {
@@ -906,7 +918,10 @@ fn run_core_inner(
                 .context("Failed to submit")?;
 
             if dont_block {
-                Output::finished_with_data("submit exercise", Data::NewSubmission(new_submission))
+                Output::finished_with_data(
+                    "submit exercise",
+                    DataKind::NewSubmission(new_submission),
+                )
             } else {
                 // same as wait-for-submission
                 let submission_url = new_submission.submission_url.parse()?;
@@ -915,7 +930,7 @@ fn run_core_inner(
                     .context("Failed while waiting for submissions")?;
                 Output::finished_with_data(
                     "submit exercise",
-                    Data::SubmissionFinished(submission_finished),
+                    DataKind::SubmissionFinished(submission_finished),
                 )
             }
         }
@@ -925,7 +940,7 @@ fn run_core_inner(
             let data = tmc_langs::update_exercises(&client, &projects_dir)?;
             Output::finished_with_data(
                 "downloaded or updated exercises",
-                Data::ExerciseDownload(data),
+                DataKind::ExerciseDownload(data),
             )
         }
 
@@ -935,7 +950,7 @@ fn run_core_inner(
                 .context("Failed while waiting for submissions")?;
             Output::finished_with_data(
                 "finished waiting for submission",
-                Data::SubmissionFinished(submission_finished),
+                DataKind::SubmissionFinished(submission_finished),
             )
         }
     };
@@ -946,12 +961,12 @@ fn run_settings(client_name: &str, settings: Settings) -> Result<Output> {
     let output = match settings {
         Settings::Get { setting } => {
             let value = tmc_langs::get_setting(client_name, &setting)?;
-            Output::finished_with_data("retrieved value", Data::ConfigValue(value))
+            Output::finished_with_data("retrieved value", DataKind::ConfigValue(value))
         }
 
         Settings::List => {
             let tmc_config = tmc_langs::get_settings(client_name)?;
-            Output::finished_with_data("retrieved settings", Data::TmcConfig(tmc_config))
+            Output::finished_with_data("retrieved settings", DataKind::TmcConfig(tmc_config))
         }
 
         Settings::Migrate {
@@ -1009,7 +1024,7 @@ fn print_output(output: &Output, pretty: bool) -> Result<PrintToken> {
     print_output_with_file(output, pretty, None)
 }
 
-#[allow(clippy::clippy::print_stdout)] // this is the only function that should output to stdout/stderr across tmc-langs
+#[allow(clippy::print_stdout)] // this is the only function that should output to stdout/stderr across tmc-langs
 fn print_output_with_file(
     output: &Output,
     pretty: bool,

@@ -35,7 +35,7 @@ impl MakePlugin {
     ) -> Result<ExerciseDesc, MakeError> {
         // "[test] [test_one] 1.1 1.2 1.3" = "[type] [name] points"
         // TODO: use parser lib
-        #[allow(clippy::clippy::unwrap_used)]
+        #[allow(clippy::unwrap_used)]
         static RE: Lazy<Regex> = Lazy::new(|| {
             Regex::new(r#"\[(?P<type>.*)\] \[(?P<name>.*)\] (?P<points>.*)"#).unwrap()
         });
@@ -211,7 +211,7 @@ impl LanguagePlugin for MakePlugin {
         let base_test_path = path.join("test");
 
         // fails on valgrind by default
-        let fail_on_valgrind_error = match TmcProjectYml::load_or_default(&path) {
+        let fail_on_valgrind_error = match TmcProjectYml::load_or_default(path) {
             Ok(parsed) => parsed.fail_on_valgrind_error.unwrap_or(true),
             Err(_) => true,
         };
@@ -383,7 +383,7 @@ impl LanguagePlugin for MakePlugin {
 
 #[cfg(test)]
 #[cfg(target_os = "linux")] // check not installed on other CI platforms
-#[allow(clippy::clippy::unwrap_used)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
     use zip::ZipArchive;

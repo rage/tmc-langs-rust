@@ -14,7 +14,7 @@ use tmc_langs_framework::{MetaString, MetaSyntaxParser};
 use tmc_langs_util::{file_util, FileError};
 use walkdir::{DirEntry, WalkDir};
 
-#[allow(clippy::clippy::unwrap_used)]
+#[allow(clippy::unwrap_used)]
 static FILES_TO_SKIP_ALWAYS: Lazy<Regex> =
     Lazy::new(|| Regex::new(r"\.tmcrc|^metadata\.yml$").unwrap());
 
@@ -70,7 +70,7 @@ pub fn prepare_stub(exercise_path: &Path, dest_root: &Path) -> Result<(), LangsE
                 || matches!(ms, MetaString::HiddenFileMarker) // exclude hidden files
         })
     };
-    process_files(&exercise_path, dest_root, line_filter, file_filter)?;
+    process_files(exercise_path, dest_root, line_filter, file_filter)?;
     Ok(())
 }
 
@@ -310,7 +310,7 @@ where
 }
 
 #[cfg(test)]
-#[allow(clippy::clippy::unwrap_used)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
     use std::fs::File;

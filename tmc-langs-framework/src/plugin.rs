@@ -147,8 +147,8 @@ pub trait LanguagePlugin {
                 } else {
                     file_util::read_to_file(&mut file, path_in_target)?;
                 }
-            } else if !policy.is_student_file(&path_in_target, &target_location)?
-                || policy.is_updating_forced(&relative)?
+            } else if !policy.is_student_file(&path_in_target, target_location)?
+                || policy.is_updating_forced(relative)?
             {
                 // not student file, or forced update
                 if file.is_file() {
@@ -170,7 +170,7 @@ pub trait LanguagePlugin {
             {
                 if !files_from_zip.contains(entry.path())
                     && (policy.is_updating_forced(entry.path())?
-                        || !policy.is_student_file(entry.path(), &target_location)?)
+                        || !policy.is_student_file(entry.path(), target_location)?)
                 {
                     log::debug!(
                         "rm {} {}",
@@ -235,7 +235,7 @@ pub trait LanguagePlugin {
             let path_in_target = target_location.join(&relative);
             log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
 
-            if policy.would_be_student_file(&path_in_target, &target_location)? {
+            if policy.would_be_student_file(&path_in_target, target_location)? {
                 if file.is_file() {
                     // for files, everything should be removed out of the way
                     file_util::remove_all(&path_in_target)?;
@@ -428,7 +428,7 @@ enum Parse {
 }
 
 #[cfg(test)]
-#[allow(clippy::clippy::unwrap_used)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
     use nom::character;

@@ -188,7 +188,7 @@ impl LanguagePlugin for RPlugin {
 
 #[cfg(test)]
 #[cfg(target_os = "linux")] // tmc-r-testrunner not installed on other CI platforms
-#[allow(clippy::clippy::unwrap_used)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
     use std::path::PathBuf;
