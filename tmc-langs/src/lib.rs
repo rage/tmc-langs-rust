@@ -186,7 +186,7 @@ pub fn submit_exercise(
 ) -> Result<NewSubmission, LangsError> {
     let projects_config = ProjectsConfig::load(projects_dir)?;
     let exercise = projects_config
-        .get_exercise(&course_slug, &exercise_slug)
+        .get_exercise(course_slug, exercise_slug)
         .ok_or(LangsError::NoProjectExercise)?;
 
     let exercise_path =
@@ -208,7 +208,7 @@ pub fn paste_exercise(
 ) -> Result<NewSubmission, LangsError> {
     let projects_config = ProjectsConfig::load(projects_dir)?;
     let exercise = projects_config
-        .get_exercise(&course_slug, &exercise_slug)
+        .get_exercise(course_slug, exercise_slug)
         .ok_or(LangsError::NoProjectExercise)?;
 
     let exercise_path =
@@ -582,7 +582,7 @@ pub fn update_exercises(
     let mut exercises_to_update = vec![];
     let mut course_data = HashMap::<String, Vec<(String, String, u32)>>::new();
 
-    let mut projects_config = ProjectsConfig::load(&projects_dir)?;
+    let mut projects_config = ProjectsConfig::load(projects_dir)?;
 
     let exercise_ids = projects_config
         .courses
@@ -608,7 +608,7 @@ pub fn update_exercises(
                 if server_exercise.checksum != local_exercise.checksum {
                     // server has an updated exercise
                     let target = ProjectsConfig::get_exercise_download_target(
-                        &projects_dir,
+                        projects_dir,
                         &server_exercise.course_name,
                         &server_exercise.exercise_name,
                     );
@@ -645,13 +645,13 @@ pub fn update_exercises(
 
                 if let Some(course_config) = projects_config.courses.get_mut(&course_name) {
                     course_config.exercises.extend(exercises);
-                    course_config.save_to_projects_dir(&projects_dir)?;
+                    course_config.save_to_projects_dir(projects_dir)?;
                 } else {
                     let course_config = CourseConfig {
                         course: course_name,
                         exercises,
                     };
-                    course_config.save_to_projects_dir(&projects_dir)?;
+                    course_config.save_to_projects_dir(projects_dir)?;
                 };
             }
         }
@@ -843,7 +843,7 @@ pub fn prepare_stub(exercise_path: &Path, dest_path: &Path) -> Result<(), LangsE
         dest_path.display()
     );
 
-    submission_processing::prepare_stub(&exercise_path, dest_path)?;
+    submission_processing::prepare_stub(exercise_path, dest_path)?;
 
     // The Ant plugin needs some additional files to be copied over.
     if let Some(PluginType::Ant) = tmc_langs_plugins::get_language_plugin_type(exercise_path) {
@@ -973,7 +973,7 @@ fn extract_project_overwrite(
 }
 
 #[cfg(test)]
-#[allow(clippy::clippy::unwrap_used)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use std::io::Write;
     use tmc_client::response::ExercisesDetails;

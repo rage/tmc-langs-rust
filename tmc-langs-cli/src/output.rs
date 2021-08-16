@@ -16,7 +16,7 @@ use tmc_langs_util::progress_reporter::StatusUpdate;
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "output-kind")]
-pub enum Output {
+pub enum OutputKind {
     /// Data that is output at the end of a command.
     OutputData(OutputData),
     /// Status update output as a command progresses.
@@ -25,8 +25,11 @@ pub enum Output {
     Notification(Notification),
 }
 
-impl Output {
-    pub fn finished_with_data(message: impl Into<String>, data: impl Into<Option<Data>>) -> Self {
+impl OutputKind {
+    pub fn finished_with_data(
+        message: impl Into<String>,
+        data: impl Into<Option<DataKind>>,
+    ) -> Self {
         Self::OutputData(OutputData {
             status: Status::Finished,
             message: message.into(),
@@ -51,13 +54,13 @@ pub struct OutputData {
     pub status: Status,
     pub message: String,
     pub result: OutputResult,
-    pub data: Option<Data>,
+    pub data: Option<DataKind>,
 }
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "output-data-kind", content = "output-data")]
-pub enum Data {
+pub enum DataKind {
     Error {
         kind: Kind,
         trace: Vec<String>,
@@ -152,7 +155,7 @@ pub struct DownloadTarget {
 }
 
 #[cfg(test)]
-#[allow(clippy::clippy::unwrap_used)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
 
@@ -162,7 +165,7 @@ mod test {
 
     #[test]
     fn output_data_none() {
-        let output_data = Output::OutputData(OutputData {
+        let output_data = OutputKind::OutputData(OutputData {
             status: Status::Finished,
             message: "output with no data".to_string(),
             result: OutputResult::ExecutedCommand,
@@ -175,11 +178,11 @@ mod test {
 
     #[test]
     fn output_data_error() {
-        let output_data = Output::OutputData(OutputData {
+        let output_data = OutputKind::OutputData(OutputData {
             status: Status::Finished,
             message: "errored!".to_string(),
             result: OutputResult::Error,
-            data: Some(Data::Error {
+            data: Some(DataKind::Error {
                 kind: Kind::Generic,
                 trace: vec!["trace 1".to_string(), "trace 2".to_string()],
             }),
@@ -191,11 +194,11 @@ mod test {
 
     #[test]
     fn output_data_dl() {
-        let output_data = Output::OutputData(OutputData {
+        let output_data = OutputKind::OutputData(OutputData {
             status: Status::Finished,
             message: "downloaded things".to_string(),
             result: OutputResult::ExecutedCommand,
-            data: Some(Data::ExerciseDownload(
+            data: Some(DataKind::ExerciseDownload(
                 DownloadOrUpdateCourseExercisesResult {
                     downloaded: vec![
                         ExerciseDownload {
@@ -229,7 +232,7 @@ mod test {
     #[test]
     fn status_update() {
         let status_update =
-            Output::StatusUpdate(StatusUpdateData::ClientUpdateData(StatusUpdate {
+            OutputKind::StatusUpdate(StatusUpdateData::ClientUpdateData(StatusUpdate {
                 data: Some(ClientUpdateData::ExerciseDownload {
                     id: 1234,
                     path: PathBuf::from("some path"),
@@ -246,7 +249,7 @@ mod test {
 
     #[test]
     fn notification() {
-        let status_update = Output::Notification(Notification::warning("some warning"));
+        let status_update = OutputKind::Notification(Notification::warning("some warning"));
         let actual = serde_json::to_string_pretty(&status_update).unwrap();
         let expected = read_api_file("warnings.json");
         assert_eq!(actual, expected);

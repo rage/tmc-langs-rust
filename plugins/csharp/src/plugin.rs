@@ -350,7 +350,7 @@ impl LanguagePlugin for CSharpPlugin {
 }
 
 #[cfg(test)]
-#[allow(clippy::clippy::unwrap_used)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
     use once_cell::sync::Lazy;

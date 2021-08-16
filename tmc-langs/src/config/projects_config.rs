@@ -45,7 +45,7 @@ impl ProjectsConfig {
                 let expected_dir = Self::get_exercise_download_target(
                     projects_dir,
                     &course_config.course,
-                    &exercise_name,
+                    exercise_name,
                 );
                 if !expected_dir.exists() {
                     log::debug!(
@@ -143,7 +143,7 @@ pub struct ProjectsDirExercise {
 }
 
 #[cfg(test)]
-#[allow(clippy::clippy::unwrap_used)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
 

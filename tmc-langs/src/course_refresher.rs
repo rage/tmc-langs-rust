@@ -330,7 +330,7 @@ fn get_exercises(
 }
 
 fn get_default_sandbox_image(path: &Path) -> Result<&'static str, LangsError> {
-    let url = match tmc_langs_plugins::get_language_plugin_type(&path) {
+    let url = match tmc_langs_plugins::get_language_plugin_type(path) {
         Some(PluginType::CSharp) => "eu.gcr.io/moocfi-public/tmc-sandbox-csharp:latest",
         Some(PluginType::Make) => "eu.gcr.io/moocfi-public/tmc-sandbox-make:latest",
         Some(PluginType::Maven) | Some(PluginType::Ant) => {
@@ -462,7 +462,7 @@ fn finish_stage(message: impl Into<String>) {
 
 #[cfg(test)]
 #[cfg(unix)] // not used on windows
-#[allow(clippy::clippy::unwrap_used)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use std::io::Read;
 

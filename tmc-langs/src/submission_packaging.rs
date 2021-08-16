@@ -57,7 +57,7 @@ pub fn prepare_submission(
     let project_root =
         project_root.ok_or_else(|| LangsError::NoProjectDirInZip(zip_path.to_path_buf()))?;
 
-    let plugin = tmc_langs_plugins::get_language_plugin(&clone_path)?;
+    let plugin = tmc_langs_plugins::get_language_plugin(clone_path)?;
     let dest = temp.path().join(
         toplevel_dir_name
             .as_ref()
@@ -379,7 +379,7 @@ where
 
 #[cfg(test)]
 #[cfg(target_os = "linux")] // no maven plugin on other OS
-#[allow(clippy::clippy::unwrap_used)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
     use std::fs;

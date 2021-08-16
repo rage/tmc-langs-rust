@@ -25,7 +25,7 @@ pub enum Error {
     #[error("JS exception")]
     Js(neon::result::Throw),
     #[error("Cast error")]
-    CastError,
+    Cast,
     #[error("Serialization error: {0}")]
     Serialization(String),
     #[error("Deserialization error: {0}")]

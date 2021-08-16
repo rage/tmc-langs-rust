@@ -133,12 +133,12 @@ pub fn move_projects_dir(
     let guard = lock.lock()?;
 
     super::move_dir(&old_projects_dir, guard, &target)?;
-    tmc_config.save(&config_path)?;
+    tmc_config.save(config_path)?;
     Ok(())
 }
 
 #[cfg(test)]
-#[allow(clippy::clippy::unwrap_used)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use toml::value::Table;
 

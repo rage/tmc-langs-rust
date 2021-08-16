@@ -62,6 +62,8 @@ pub enum LangsError {
     SettingNumberTooHigh(serde_json::Number),
     #[error("Failed to detect exercise language")]
     NoPlugin,
+    #[error("Invalid Jupyter notebook: {0}")]
+    InvalidNotebook(&'static str),
 
     #[error("Cache path {0} was invalid. Not a valid UTF-8 string or did not contain a cache version after a dash")]
     InvalidCachePath(PathBuf),
