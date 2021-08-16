@@ -12,7 +12,7 @@ Install [OpenJDK 11](https://openjdk.java.net/install/index.html) (other version
 
 Install [.NET 5.0](https://dotnet.microsoft.com/download)
 
-Install [check 0.12](https://libcheck.github.io/check/) (seems to be broken on 0.15 on Ubuntu 21.04...) and subunit (for example `libsubunit-dev` on Ubuntu).
+Install [check 0.12](https://libcheck.github.io/check/) (seems to be broken on 0.15 on Ubuntu 21.04...)
 
 ```bash
 git clone git@github.com:rage/tmc-langs-rust.git
