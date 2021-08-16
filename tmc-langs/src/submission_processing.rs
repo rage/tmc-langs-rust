@@ -143,9 +143,9 @@ fn process_file(
                 let cells = json
                     .get_mut("cells")
                     .and_then(|cs| cs.as_array_mut())
-                    .ok_or_else(|| {
-                        LangsError::InvalidNotebook("Invalid or missing value for 'cells'")
-                    })?;
+                    .ok_or(LangsError::InvalidNotebook(
+                        "Invalid or missing value for 'cells'",
+                    ))?;
 
                 for cell in cells {
                     let is_cell_type_code = cell
@@ -159,18 +159,18 @@ fn process_file(
                         let cell_source = cell
                             .get_mut("source")
                             .and_then(|s| s.as_array_mut())
-                            .ok_or_else(|| {
-                                LangsError::InvalidNotebook("Invalid or missing value for 'source'")
-                            })?;
+                            .ok_or(LangsError::InvalidNotebook(
+                                "Invalid or missing value for 'source'",
+                            ))?;
                         let source = cell_source.iter().map(|v| {
-                            v.as_str().map(String::from).ok_or_else(|| {
-                                LangsError::InvalidNotebook("Invalid value in 'source'")
-                            })
+                            v.as_str()
+                                .map(String::from)
+                                .ok_or(LangsError::InvalidNotebook("Invalid value in 'source'"))
                         });
 
                         let lines: Option<Vec<Value>> =
                             process_lines(source, line_filter, file_filter, extension)?
-                                .map(|i| i.map(|s| Value::String(s)).collect());
+                                .map(|i| i.map(Value::String).collect());
                         if let Some(lines) = lines {
                             // replace cell source with filtered output
                             *cell_source = lines;

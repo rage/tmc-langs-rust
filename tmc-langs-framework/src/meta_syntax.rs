@@ -120,7 +120,7 @@ impl<E, I: Iterator<Item = Result<String, E>>> MetaSyntaxParser<I> {
             }
             "xml" | "http" | "html" | "qrc" => &*META_SYNTAXES_HTML,
             "properties" | "py" | "R" | "pro" | "ipynb" => &*META_SYNTAXES_PY,
-            _ => panic!("invalid extension"),
+            _ => &[],
         };
 
         Self {
