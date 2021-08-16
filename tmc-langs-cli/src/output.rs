@@ -16,21 +16,21 @@ use tmc_langs_util::progress_reporter::StatusUpdate;
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "output-kind")]
-pub enum Output {
+pub enum OutputKind {
     /// Data that is output at the end of a command.
-    Data(OutputData),
+    OutputData(OutputData),
     /// Status update output as a command progresses.
     StatusUpdate(StatusUpdateData),
     /// Additional warnings, such as for an outdated Python dependency.
     Notification(Notification),
 }
 
-impl Output {
+impl OutputKind {
     pub fn finished_with_data(
         message: impl Into<String>,
         data: impl Into<Option<DataKind>>,
     ) -> Self {
-        Self::Data(OutputData {
+        Self::OutputData(OutputData {
             status: Status::Finished,
             message: message.into(),
             result: OutputResult::ExecutedCommand,
@@ -39,7 +39,7 @@ impl Output {
     }
 
     pub fn finished(message: impl Into<String>) -> Self {
-        Self::Data(OutputData {
+        Self::OutputData(OutputData {
             status: Status::Finished,
             message: message.into(),
             result: OutputResult::ExecutedCommand,
@@ -165,7 +165,7 @@ mod test {
 
     #[test]
     fn output_data_none() {
-        let output_data = Output::Data(OutputData {
+        let output_data = OutputKind::OutputData(OutputData {
             status: Status::Finished,
             message: "output with no data".to_string(),
             result: OutputResult::ExecutedCommand,
@@ -178,7 +178,7 @@ mod test {
 
     #[test]
     fn output_data_error() {
-        let output_data = Output::Data(OutputData {
+        let output_data = OutputKind::OutputData(OutputData {
             status: Status::Finished,
             message: "errored!".to_string(),
             result: OutputResult::Error,
@@ -194,7 +194,7 @@ mod test {
 
     #[test]
     fn output_data_dl() {
-        let output_data = Output::Data(OutputData {
+        let output_data = OutputKind::OutputData(OutputData {
             status: Status::Finished,
             message: "downloaded things".to_string(),
             result: OutputResult::ExecutedCommand,
@@ -232,7 +232,7 @@ mod test {
     #[test]
     fn status_update() {
         let status_update =
-            Output::StatusUpdate(StatusUpdateData::ClientUpdateData(StatusUpdate {
+            OutputKind::StatusUpdate(StatusUpdateData::ClientUpdateData(StatusUpdate {
                 data: Some(ClientUpdateData::ExerciseDownload {
                     id: 1234,
                     path: PathBuf::from("some path"),
@@ -249,7 +249,7 @@ mod test {
 
     #[test]
     fn notification() {
-        let status_update = Output::Notification(Notification::warning("some warning"));
+        let status_update = OutputKind::Notification(Notification::warning("some warning"));
         let actual = serde_json::to_string_pretty(&status_update).unwrap();
         let expected = read_api_file("warnings.json");
         assert_eq!(actual, expected);

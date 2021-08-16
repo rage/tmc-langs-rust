@@ -8,7 +8,11 @@ Install [Node.js and npm](https://docs.npmjs.com/downloading-and-installing-node
 
 Install [Python 3](https://www.python.org/downloads/). You may wish to use [pyenv](https://github.com/pyenv/pyenv/) to manage different Python versions conveniently.
 
-Install [OpenJDK 11](https://openjdk.java.net/install/index.html) (other versions may work as well).
+Install [OpenJDK 11](https://openjdk.java.net/install/index.html) (other versions may work as well) and [ant](https://ant.apache.org/).
+
+Install [.NET 5.0](https://dotnet.microsoft.com/download)
+
+Install [check 0.12](https://libcheck.github.io/check/) (seems to be broken on 0.15 on Ubuntu 21.04...) and subunit (for example `libsubunit-dev` on Ubuntu).
 
 ```bash
 git clone git@github.com:rage/tmc-langs-rust.git
