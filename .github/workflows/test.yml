@@ -20,23 +20,23 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           components: rustfmt, clippy
-      - uses: Swatinem/rust-cache@v1
+      - name: Cache
+        uses: Swatinem/rust-cache@v1
 
       - name: Diagnostics on Windows
         if: matrix.os == 'windows-latest'
         run: "gci env:"
 
       - name: Rustfmt
-        uses: actions/checkout@v2
         run: cargo fmt -- --check
-
       - name: Clippy
         uses: actions-rs/clippy-check@v1
         with:
@@ -60,11 +60,12 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: "5.0.x"
-      - name: Install tmc-r-tester
+      - name: Install R
         if: matrix.os == 'ubuntu-latest'
         uses: r-lib/actions/setup-r@v1
         with:
           r-version: "3.5.3"
+      - name: Install tmc-r-tester
         run: |
           Rscript -e 'install.packages(c("testthat", "jsonlite", "R.utils"))'
           Rscript -e 'install.packages("plugins/r/tests/tmcRtestrunner", repos=NULL, type="source")'
