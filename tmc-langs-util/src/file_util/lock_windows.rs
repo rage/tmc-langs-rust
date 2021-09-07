@@ -155,7 +155,7 @@ mod test {
         let mutex = Arc::new(Mutex::new(vec![]));
 
         // take file lock and then mutex
-        let guard = lock.write().unwrap();
+        let guard = lock.lock().unwrap();
         let mut mguard = mutex.try_lock().unwrap();
 
         let handle = {
@@ -165,7 +165,7 @@ mod test {
             std::thread::spawn(move || {
                 // if the file lock doesn't block, the mutex lock will panic and the test will fail
                 let mut lock = FileLock::new(temp_path).unwrap();
-                let _guard = lock.write().unwrap();
+                let _guard = lock.lock().unwrap();
                 mutex.try_lock().unwrap().push(1);
             })
         };
@@ -191,7 +191,7 @@ mod test {
         let mutex = Arc::new(Mutex::new(vec![]));
 
         // take file lock and mutex
-        let guard = lock.write().unwrap();
+        let guard = lock.lock().unwrap();
         let mut mguard = mutex.try_lock().unwrap();
 
         let handle = {
@@ -201,7 +201,7 @@ mod test {
             std::thread::spawn(move || {
                 // if the file lock doesn't block, the mutex lock will panic and the test will fail
                 let mut lock = FileLock::new(temp_path).unwrap();
-                let _guard = lock.write().unwrap();
+                let _guard = lock.lock().unwrap();
                 mutex.try_lock().unwrap().push(1);
             })
         };
@@ -225,7 +225,7 @@ mod test {
         let mut lock = FileLock::new(temp.path().to_path_buf()).unwrap();
         let lock_path = temp.path().join(".tmc.lock");
         assert!(!lock_path.exists());
-        let guard = lock.write().unwrap();
+        let guard = lock.lock().unwrap();
         assert!(lock_path.exists());
         drop(guard);
         assert!(!lock_path.exists());

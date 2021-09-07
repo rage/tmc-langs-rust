@@ -20,24 +20,25 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           components: rustfmt, clippy
-      - uses: Swatinem/rust-cache@v1
+      - name: Cache
+        uses: Swatinem/rust-cache@v1
 
       - name: Diagnostics on Windows
         if: matrix.os == 'windows-latest'
         run: "gci env:"
 
       - name: Rustfmt
-        uses: actions/checkout@v2
         run: cargo fmt -- --check
-
       - name: Clippy
+        if: matrix.os == 'ubuntu-latest'
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -46,25 +47,30 @@ jobs:
       - name: Build test binary
         run: cargo test --no-run
 
-      - name: Install depedencies
+      - name: Install dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt update -y
           sudo apt install -y check valgrind  # required for make plugin
           sudo apt install -y libcurl4-gnutls-dev libgit2-dev # required for R
+
       - name: Install Node
         uses: actions/setup-node@v2
         with:
           node-version: "16"
+
       - name: Install C#
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: "5.0.x"
-      - name: Install tmc-r-tester
+
+      - name: Install R
         if: matrix.os == 'ubuntu-latest'
         uses: r-lib/actions/setup-r@v1
         with:
           r-version: "3.5.3"
+      - name: Install tmc-r-tester
+        if: matrix.os == 'ubuntu-latest'
         run: |
           Rscript -e 'install.packages(c("testthat", "jsonlite", "R.utils"))'
           Rscript -e 'install.packages("plugins/r/tests/tmcRtestrunner", repos=NULL, type="source")'
