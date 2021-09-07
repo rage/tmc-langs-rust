@@ -13,3 +13,7 @@ All files inside `./R` are considered student files.
 ./root_file
 ./tests/test_file
 ```
+
+### Tests
+
+The `tmcRtestrunner` library is included in `./tests` for easy installation during CI.
