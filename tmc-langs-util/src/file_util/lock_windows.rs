@@ -5,7 +5,7 @@
 
 use crate::error::FileError;
 use crate::file_util::*;
-use fd_lock::{FdLock, FdLockGuard};
+use fd_lock::{RwLock, RwLockWriteGuard};
 use std::os::windows::fs::OpenOptionsExt;
 use std::path::PathBuf;
 use std::{borrow::Cow, io::ErrorKind};
@@ -18,13 +18,13 @@ use winapi::um::{
     winnt::{FILE_ATTRIBUTE_HIDDEN, FILE_ATTRIBUTE_TEMPORARY},
 };
 
-/// Wrapper for fd_lock::FdLock. Used to lock files/directories to prevent concurrent access
+/// Wrapper for fd_lock::RwLock. Used to lock files/directories to prevent concurrent access
 /// from multiple instances of tmc-langs.
 pub struct FileLock {
     path: PathBuf,
     // this is re-set in every lock command if the target is a file
     // ideally it would be set to none when the guard is dropped, but doing so is probably not worth the trouble
-    lock: Option<FdLock<File>>,
+    lock: Option<RwLock<File>>,
 }
 
 impl FileLock {
@@ -42,12 +42,12 @@ impl FileLock {
         if self.path.is_file() {
             // for files, just use the path
             let file = open_file(&self.path)?;
-            let lock = FdLock::new(file);
+            let lock = RwLock::new(file);
             self.lock = Some(lock);
             let lock = self.lock.as_mut().expect("set to Some before this call");
-            let guard = lock.lock().expect("cannot fail on Windows");
+            let guard = lock.write().expect("cannot fail on Windows");
             Ok(FileLockGuard {
-                _guard: LockInner::FdLockGuard(guard),
+                _guard: LockInner::RwLockWriteGuard(guard),
                 path: Cow::Borrowed(&self.path),
             })
         } else if self.path.is_dir() {
@@ -123,7 +123,7 @@ pub struct FileLockGuard<'a> {
 
 enum LockInner<'a> {
     LockFile(File),
-    FdLockGuard(FdLockGuard<'a, File>),
+    RwLockWriteGuard(RwLockWriteGuard<'a, File>),
 }
 
 impl Drop for FileLockGuard<'_> {
@@ -155,7 +155,7 @@ mod test {
         let mutex = Arc::new(Mutex::new(vec![]));
 
         // take file lock and then mutex
-        let guard = lock.lock().unwrap();
+        let guard = lock.write().unwrap();
         let mut mguard = mutex.try_lock().unwrap();
 
         let handle = {
@@ -165,7 +165,7 @@ mod test {
             std::thread::spawn(move || {
                 // if the file lock doesn't block, the mutex lock will panic and the test will fail
                 let mut lock = FileLock::new(temp_path).unwrap();
-                let _guard = lock.lock().unwrap();
+                let _guard = lock.write().unwrap();
                 mutex.try_lock().unwrap().push(1);
             })
         };
@@ -191,7 +191,7 @@ mod test {
         let mutex = Arc::new(Mutex::new(vec![]));
 
         // take file lock and mutex
-        let guard = lock.lock().unwrap();
+        let guard = lock.write().unwrap();
         let mut mguard = mutex.try_lock().unwrap();
 
         let handle = {
@@ -201,7 +201,7 @@ mod test {
             std::thread::spawn(move || {
                 // if the file lock doesn't block, the mutex lock will panic and the test will fail
                 let mut lock = FileLock::new(temp_path).unwrap();
-                let _guard = lock.lock().unwrap();
+                let _guard = lock.write().unwrap();
                 mutex.try_lock().unwrap().push(1);
             })
         };
@@ -225,7 +225,7 @@ mod test {
         let mut lock = FileLock::new(temp.path().to_path_buf()).unwrap();
         let lock_path = temp.path().join(".tmc.lock");
         assert!(!lock_path.exists());
-        let guard = lock.lock().unwrap();
+        let guard = lock.write().unwrap();
         assert!(lock_path.exists());
         drop(guard);
         assert!(!lock_path.exists());
