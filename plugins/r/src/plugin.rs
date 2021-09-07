@@ -298,9 +298,10 @@ test("sample3", c("r2.1"), {
         init();
 
         let temp_dir = tempfile::tempdir().unwrap();
+        file_to(&temp_dir, "R/thing.R", "");
         file_to(
             &temp_dir,
-            "tests/testthat/test.R",
+            "tests/testthat/testThing.R",
             r#"
 library("testthat")
 points_for_all_tests(c("r1"))
@@ -327,9 +328,10 @@ test("sample", c("r1.1"), {
         init();
 
         let temp_dir = tempfile::tempdir().unwrap();
+        file_to(&temp_dir, "R/thing.R", "");
         file_to(
             &temp_dir,
-            "tests/testthat/test.R",
+            "tests/testthat/testThing.R",
             r#"
 library("testthat")
 points_for_all_tests(c("r1"))
@@ -357,11 +359,12 @@ test("sample", c("r1.1"), {
         init();
 
         let temp_dir = tempfile::tempdir().unwrap();
+        file_to(&temp_dir, "R/thing.R", "");
         file_to(
             &temp_dir,
-            "tests/testthat/test.R",
+            "tests/testthat/testThing.R",
             r#"
-library("testthat")
+library('testthat')
 points_for_all_tests(c("r1"))
 test("sample", c("r1.1"), {
     expect_true(unexpected)
@@ -380,26 +383,6 @@ test("sample", c("r1.1"), {
         assert_eq!(res.points, &["r1", "r1.1"]);
         assert_eq!(res.message, "object 'unexpected' not found");
         assert!(res.exception.is_empty());
-    }
-
-    #[test]
-    fn run_tests_sourcing() {
-        init();
-
-        let temp_dir = tempfile::tempdir().unwrap();
-        file_to(&temp_dir, "R/main.R", r#"invalid R file"#);
-        file_to(&temp_dir, "tests/testthat/test.R", "");
-
-        let plugin = RPlugin::new();
-        let run = plugin.run_tests(temp_dir.path()).unwrap();
-        log::debug!("{:#?}", run);
-        assert_eq!(run.status, RunStatus::CompileFailed);
-        assert!(run
-            .logs
-            .get("compiler_output")
-            .unwrap()
-            .contains("unexpected symbol"));
-        assert!(run.test_results.is_empty());
     }
 
     #[test]

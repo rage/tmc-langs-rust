@@ -12,7 +12,9 @@ Install [OpenJDK 11](https://openjdk.java.net/install/index.html) (other version
 
 Install [.NET 5.0](https://dotnet.microsoft.com/download)
 
-Install [check 0.12](https://libcheck.github.io/check/) (seems to be broken on 0.15 on Ubuntu 21.04...)
+Install [check 0.12](https://libcheck.github.io/check/) (`tmc-check` seems to be broken on 0.15, which is default on Ubuntu 21.04...)
+
+Install [R](https://www.r-project.org/), [devtools](https://devtools.r-lib.org/) with `install.packages("devtools")` and [tmc-r-tester](https://github.com/testmycode/tmc-rstudio) with `devtools::install_github("testmycode/tmc-r-tester/tmcRtestrunner", build = FALSE)`
 
 ```bash
 git clone git@github.com:rage/tmc-langs-rust.git
