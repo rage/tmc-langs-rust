@@ -1,7 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/swc_ecma_parser-0.52.2/src/lexer/number.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>number.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../swc_ecma_parser/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../swc_ecma_parser/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -610,17 +609,17 @@
 <span id="607">607</span>
 <span id="608">608</span>
 <span id="609">609</span>
-</pre><div class="example-wrap"><pre class="rust ">
+</pre><pre class="rust">
 <span class="doccomment">//! Lexer methods related to reading numbers.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! See https://tc39.github.io/ecma262/#sec-literals-numeric-literals</span>
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">SyntaxError</span>;
-<span class="kw">use</span> <span class="ident">either</span>::<span class="ident">Either</span>;
-<span class="kw">use</span> <span class="ident">log</span>::<span class="ident">trace</span>;
-<span class="kw">use</span> <span class="ident">num_bigint</span>::<span class="ident">BigInt</span> <span class="kw">as</span> <span class="ident">BigIntValue</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>::<span class="ident">Write</span>, <span class="ident">iter</span>::<span class="ident">FusedIterator</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::error::SyntaxError</span>;
+<span class="kw">use</span> <span class="ident">either::Either</span>;
+<span class="kw">use</span> <span class="ident">log::trace</span>;
+<span class="kw">use</span> <span class="ident">num_bigint::BigInt</span> <span class="kw">as</span> <span class="ident">BigIntValue</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt::Write</span>, <span class="ident">iter::FusedIterator</span>};
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>: <span class="ident">Input</span><span class="op">&gt;</span> <span class="ident">Lexer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Reads an integer, octal integer, or floating-point number</span>
@@ -628,9 +627,9 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">starts_with_dot</span>: <span class="ident">bool</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LexResult</span><span class="op">&lt;</span><span class="ident">Either</span><span class="op">&lt;</span><span class="ident">f64</span>, <span class="ident">BigIntValue</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">cur</span>().<span class="ident">is_some</span>());
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">cur</span>().<span class="ident">is_some</span>());
         <span class="kw">if</span> <span class="ident">starts_with_dot</span> {
-            <span class="macro">debug_assert_eq</span><span class="macro">!</span>(
+            <span class="macro">debug_assert_eq!</span>(
                 <span class="self">self</span>.<span class="ident">cur</span>(),
                 <span class="prelude-val">Some</span>(<span class="string">&#39;.&#39;</span>),
                 <span class="string">&quot;read_number(starts_with_dot = true) expects current char to be &#39;.&#39;&quot;</span>
@@ -648,7 +647,7 @@
             <span class="kw">let</span> (<span class="ident">val</span>, <span class="ident">s</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_number_no_dot_as_str</span>(<span class="number">10</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">cur</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&#39;n&#39;</span>) {
                 <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">bump</span>();
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Either</span>::<span class="ident">Right</span>(<span class="ident">s</span>));
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Either::Right</span>(<span class="ident">s</span>));
             }
             <span class="kw">if</span> <span class="ident">starts_with_zero</span> {
                 <span class="comment">// TODO: I guess it would be okay if I don&#39;t use -ffast-math</span>
@@ -664,7 +663,7 @@
                     <span class="kw">if</span> <span class="ident">start</span>.<span class="number">0</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">last_pos</span>().<span class="number">0</span> <span class="op">-</span> <span class="number">1</span> {
                         <span class="comment">// `-1` is utf 8 length of `0`</span>
 
-                        <span class="kw">return</span> <span class="self">self</span>.<span class="ident">make_legacy_octal</span>(<span class="ident">start</span>, <span class="number">0f64</span>).<span class="ident">map</span>(<span class="ident">Either</span>::<span class="ident">Left</span>);
+                        <span class="kw">return</span> <span class="self">self</span>.<span class="ident">make_legacy_octal</span>(<span class="ident">start</span>, <span class="number">0f64</span>).<span class="ident">map</span>(<span class="ident">Either::Left</span>);
                     }
                 } <span class="kw">else</span> {
                     <span class="comment">// strict mode hates non-zero decimals starting with zero.</span>
@@ -676,16 +675,16 @@
                         <span class="comment">// if it contains &#39;8&#39; or &#39;9&#39;, it&#39;s decimal.</span>
                         <span class="kw">if</span> <span class="ident">d</span>.<span class="ident">clone</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span> <span class="op">=</span><span class="op">=</span> <span class="number">8</span> <span class="op">|</span><span class="op">|</span> <span class="ident">v</span> <span class="op">=</span><span class="op">=</span> <span class="number">9</span>) {
                             <span class="comment">// Continue parsing</span>
-                            <span class="self">self</span>.<span class="ident">emit_strict_mode_error</span>(<span class="ident">start</span>, <span class="ident">SyntaxError</span>::<span class="ident">LegacyDecimal</span>);
+                            <span class="self">self</span>.<span class="ident">emit_strict_mode_error</span>(<span class="ident">start</span>, <span class="ident">SyntaxError::LegacyDecimal</span>);
                         } <span class="kw">else</span> {
                             <span class="comment">// It&#39;s Legacy octal, and we should reinterpret value.</span>
-                            <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">u64</span>::<span class="ident">from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">val</span>.<span class="ident">to_string</span>(), <span class="number">8</span>)
+                            <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">u64::from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">val</span>.<span class="ident">to_string</span>(), <span class="number">8</span>)
                                 .<span class="ident">expect</span>(<span class="string">&quot;Does this can really happen?&quot;</span>);
                             <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">val</span>
                                 .<span class="ident">to_string</span>()
                                 .<span class="ident">parse</span>()
                                 .<span class="ident">expect</span>(<span class="string">&quot;failed to parse numeric value as f64&quot;</span>);
-                            <span class="kw">return</span> <span class="self">self</span>.<span class="ident">make_legacy_octal</span>(<span class="ident">start</span>, <span class="ident">val</span>).<span class="ident">map</span>(<span class="ident">Either</span>::<span class="ident">Left</span>);
+                            <span class="kw">return</span> <span class="self">self</span>.<span class="ident">make_legacy_octal</span>(<span class="ident">start</span>, <span class="ident">val</span>).<span class="ident">map</span>(<span class="ident">Either::Left</span>);
                         }
                     }
                 }
@@ -704,15 +703,15 @@
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cur</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&#39;.&#39;</span>) {
             <span class="self">self</span>.<span class="ident">bump</span>();
             <span class="kw">if</span> <span class="ident">starts_with_dot</span> {
-                <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">cur</span>().<span class="ident">is_some</span>());
-                <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">cur</span>().<span class="ident">unwrap</span>().<span class="ident">is_digit</span>(<span class="number">10</span>));
+                <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">cur</span>().<span class="ident">is_some</span>());
+                <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">cur</span>().<span class="ident">unwrap</span>().<span class="ident">is_digit</span>(<span class="number">10</span>));
             }
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">Raw</span>(<span class="prelude-val">Some</span>(<span class="ident">String</span>::<span class="ident">new</span>()));
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">Raw</span>(<span class="prelude-val">Some</span>(<span class="ident">String::new</span>()));
             <span class="comment">// Read numbers after dot</span>
             <span class="kw">let</span> <span class="ident">dec_val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_int</span>(<span class="number">10</span>, <span class="number">0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw</span>)<span class="question-mark">?</span>;
             <span class="ident">val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">with_buf</span>(<span class="op">|</span><span class="kw">_</span>, <span class="ident">s</span><span class="op">|</span> {
-                <span class="macro">write</span><span class="macro">!</span>(<span class="ident">s</span>, <span class="string">&quot;{}.&quot;</span>, <span class="ident">val</span>).<span class="ident">unwrap</span>();
+                <span class="macro">write!</span>(<span class="ident">s</span>, <span class="string">&quot;{}.&quot;</span>, <span class="ident">val</span>).<span class="ident">unwrap</span>();
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(..) <span class="op">=</span> <span class="ident">dec_val</span> {
                     <span class="ident">s</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">raw</span>.<span class="number">0</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>());
@@ -733,7 +732,7 @@
                 <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">next</span>,
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cur_pos</span>();
-                    <span class="self">self</span>.<span class="ident">error</span>(<span class="ident">pos</span>, <span class="ident">SyntaxError</span>::<span class="ident">NumLitTerminatedWithExp</span>)<span class="question-mark">?</span>
+                    <span class="self">self</span>.<span class="ident">error</span>(<span class="ident">pos</span>, <span class="ident">SyntaxError::NumLitTerminatedWithExp</span>)<span class="question-mark">?</span>
                 }
             };
 
@@ -747,42 +746,42 @@
             <span class="kw">let</span> <span class="ident">exp</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_number_no_dot</span>(<span class="number">10</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">flag</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">positive</span> { <span class="string">&#39;+&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> };
             <span class="comment">// TODO:</span>
-            <span class="ident">val</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}e{}{}&quot;</span>, <span class="ident">val</span>, <span class="ident">flag</span>, <span class="ident">exp</span>)
+            <span class="ident">val</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}e{}{}&quot;</span>, <span class="ident">val</span>, <span class="ident">flag</span>, <span class="ident">exp</span>)
                 .<span class="ident">parse</span>()
                 .<span class="ident">expect</span>(<span class="string">&quot;failed to parse float literal&quot;</span>);
         }
 
         <span class="self">self</span>.<span class="ident">ensure_not_ident</span>()<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Either</span>::<span class="ident">Left</span>(<span class="ident">val</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">Either::Left</span>(<span class="ident">val</span>))
     }
 
     <span class="doccomment">/// Returns `Left(value)` or `Right(BigInt)`</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">read_radix_number</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">radix</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LexResult</span><span class="op">&lt;</span><span class="ident">Either</span><span class="op">&lt;</span><span class="ident">f64</span>, <span class="ident">BigIntValue</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(
+        <span class="macro">debug_assert!</span>(
             <span class="ident">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">2</span> <span class="op">|</span><span class="op">|</span> <span class="ident">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">8</span> <span class="op">|</span><span class="op">|</span> <span class="ident">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">16</span>,
             <span class="string">&quot;radix should be one of 2, 8, 16, but got {}&quot;</span>,
             <span class="ident">radix</span>
         );
-        <span class="macro">debug_assert_eq</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">cur</span>(), <span class="prelude-val">Some</span>(<span class="string">&#39;0&#39;</span>));
+        <span class="macro">debug_assert_eq!</span>(<span class="self">self</span>.<span class="ident">cur</span>(), <span class="prelude-val">Some</span>(<span class="string">&#39;0&#39;</span>));
 
         <span class="self">self</span>.<span class="ident">bump</span>(); <span class="comment">// 0</span>
         <span class="self">self</span>.<span class="ident">bump</span>(); <span class="comment">// x</span>
 
         <span class="kw">let</span> (<span class="ident">val</span>, <span class="ident">s</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_number_no_dot_as_str</span>(<span class="ident">radix</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">eat</span>(<span class="string">b&#39;n&#39;</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Either</span>::<span class="ident">Right</span>(<span class="ident">s</span>));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Either::Right</span>(<span class="ident">s</span>));
         }
 
         <span class="self">self</span>.<span class="ident">ensure_not_ident</span>()<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Either</span>::<span class="ident">Left</span>(<span class="ident">val</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">Either::Left</span>(<span class="ident">val</span>))
     }
 
     <span class="doccomment">/// This can read long integers like</span>
     <span class="doccomment">/// &quot;13612536612375123612312312312312312312312&quot;.</span>
     <span class="kw">fn</span> <span class="ident">read_number_no_dot</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">radix</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LexResult</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(
+        <span class="macro">debug_assert!</span>(
             <span class="ident">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">2</span> <span class="op">|</span><span class="op">|</span> <span class="ident">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">8</span> <span class="op">|</span><span class="op">|</span> <span class="ident">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">10</span> <span class="op">|</span><span class="op">|</span> <span class="ident">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">16</span>,
             <span class="string">&quot;radix for read_number_no_dot should be one of 2, 8, 10, 16, but got {}&quot;</span>,
             <span class="ident">radix</span>
@@ -795,14 +794,14 @@
             <span class="ident">radix</span>,
             <span class="op">|</span><span class="ident">total</span>, <span class="ident">radix</span>, <span class="ident">v</span><span class="op">|</span> {
                 <span class="ident">read_any</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                (<span class="ident">f64</span>::<span class="ident">mul_add</span>(<span class="ident">total</span>, <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">f64</span>, <span class="ident">v</span> <span class="kw">as</span> <span class="ident">f64</span>), <span class="bool-val">true</span>)
+                (<span class="ident">f64::mul_add</span>(<span class="ident">total</span>, <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">f64</span>, <span class="ident">v</span> <span class="kw">as</span> <span class="ident">f64</span>), <span class="bool-val">true</span>)
             },
             <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Raw</span>(<span class="prelude-val">None</span>),
             <span class="bool-val">true</span>,
         );
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">read_any</span> {
-            <span class="self">self</span>.<span class="ident">error</span>(<span class="ident">start</span>, <span class="ident">SyntaxError</span>::<span class="ident">ExpectedDigit</span> { <span class="ident">radix</span> })<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">error</span>(<span class="ident">start</span>, <span class="ident">SyntaxError::ExpectedDigit</span> { <span class="ident">radix</span> })<span class="question-mark">?</span>;
         }
         <span class="ident">res</span>
     }
@@ -810,7 +809,7 @@
     <span class="doccomment">/// This can read long integers like</span>
     <span class="doccomment">/// &quot;13612536612375123612312312312312312312312&quot;.</span>
     <span class="kw">fn</span> <span class="ident">read_number_no_dot_as_str</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">radix</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LexResult</span><span class="op">&lt;</span>(<span class="ident">f64</span>, <span class="ident">BigIntValue</span>)<span class="op">&gt;</span> {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(
+        <span class="macro">debug_assert!</span>(
             <span class="ident">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">2</span> <span class="op">|</span><span class="op">|</span> <span class="ident">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">8</span> <span class="op">|</span><span class="op">|</span> <span class="ident">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">10</span> <span class="op">|</span><span class="op">|</span> <span class="ident">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">16</span>,
             <span class="string">&quot;radix for read_number_no_dot should be one of 2, 8, 10, 16, but got {}&quot;</span>,
             <span class="ident">radix</span>
@@ -819,25 +818,25 @@
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">read_any</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">Raw</span>(<span class="prelude-val">Some</span>(<span class="ident">String</span>::<span class="ident">new</span>()));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">Raw</span>(<span class="prelude-val">Some</span>(<span class="ident">String::new</span>()));
 
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_digits</span>(
             <span class="ident">radix</span>,
             <span class="op">|</span><span class="ident">total</span>, <span class="ident">radix</span>, <span class="ident">v</span><span class="op">|</span> {
                 <span class="ident">read_any</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                (<span class="ident">f64</span>::<span class="ident">mul_add</span>(<span class="ident">total</span>, <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">f64</span>, <span class="ident">v</span> <span class="kw">as</span> <span class="ident">f64</span>), <span class="bool-val">true</span>)
+                (<span class="ident">f64::mul_add</span>(<span class="ident">total</span>, <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">f64</span>, <span class="ident">v</span> <span class="kw">as</span> <span class="ident">f64</span>), <span class="bool-val">true</span>)
             },
             <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw</span>,
             <span class="bool-val">true</span>,
         )<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">read_any</span> {
-            <span class="self">self</span>.<span class="ident">error</span>(<span class="ident">start</span>, <span class="ident">SyntaxError</span>::<span class="ident">ExpectedDigit</span> { <span class="ident">radix</span> })<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">error</span>(<span class="ident">start</span>, <span class="ident">SyntaxError::ExpectedDigit</span> { <span class="ident">radix</span> })<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>((
             <span class="ident">val</span>,
-            <span class="ident">BigIntValue</span>::<span class="ident">parse_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">raw</span>.<span class="number">0</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">as_bytes</span>(), <span class="ident">radix</span> <span class="kw">as</span> <span class="kw">_</span>)
+            <span class="ident">BigIntValue::parse_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">raw</span>.<span class="number">0</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">as_bytes</span>(), <span class="ident">radix</span> <span class="kw">as</span> <span class="kw">_</span>)
                 .<span class="ident">expect</span>(<span class="string">&quot;failed to parse string as a bigint&quot;</span>),
         ))
     }
@@ -847,7 +846,7 @@
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">cur</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="kw">if</span> <span class="ident">c</span>.<span class="ident">is_ident_start</span>() <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">pos_span</span>(<span class="self">self</span>.<span class="ident">cur_pos</span>());
-                <span class="self">self</span>.<span class="ident">error_span</span>(<span class="ident">span</span>, <span class="ident">SyntaxError</span>::<span class="ident">IdentAfterNum</span>)<span class="question-mark">?</span>
+                <span class="self">self</span>.<span class="ident">error_span</span>(<span class="ident">span</span>, <span class="ident">SyntaxError::IdentAfterNum</span>)<span class="question-mark">?</span>
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
         }
@@ -912,16 +911,16 @@
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">Ret</span>, <span class="ident">u8</span>, <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Ret</span>, <span class="ident">bool</span>),
         <span class="ident">Ret</span>: <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">Default</span>,
     {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(
+        <span class="macro">debug_assert!</span>(
             <span class="ident">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">2</span> <span class="op">|</span><span class="op">|</span> <span class="ident">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">8</span> <span class="op">|</span><span class="op">|</span> <span class="ident">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">10</span> <span class="op">|</span><span class="op">|</span> <span class="ident">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">16</span>,
             <span class="string">&quot;radix for read_int should be one of 2, 8, 10, 16, but got {}&quot;</span>,
             <span class="ident">radix</span>
         );
-        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;read_digits(radix = {}), cur = {:?}&quot;</span>, <span class="ident">radix</span>, <span class="self">self</span>.<span class="ident">cur</span>());
+        <span class="macro">trace!</span>(<span class="string">&quot;read_digits(radix = {}), cur = {:?}&quot;</span>, <span class="ident">radix</span>, <span class="self">self</span>.<span class="ident">cur</span>());
 
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cur_pos</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total</span>: <span class="ident">Ret</span> <span class="op">=</span> <span class="ident">Default</span>::<span class="ident">default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total</span>: <span class="ident">Ret</span> <span class="op">=</span> <span class="ident">Default::default</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cur</span>() {
@@ -956,12 +955,12 @@
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">is_allowed</span>(<span class="ident">next</span>) {
                     <span class="self">self</span>.<span class="ident">emit_error</span>(
                         <span class="ident">start</span>,
-                        <span class="ident">SyntaxError</span>::<span class="ident">NumericSeparatorIsAllowedOnlyBetweenTwoDigits</span>,
+                        <span class="ident">SyntaxError::NumericSeparatorIsAllowedOnlyBetweenTwoDigits</span>,
                     );
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">is_forbidden</span>(<span class="ident">prev</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">is_forbidden</span>(<span class="ident">next</span>) {
                     <span class="self">self</span>.<span class="ident">emit_error</span>(
                         <span class="ident">start</span>,
-                        <span class="ident">SyntaxError</span>::<span class="ident">NumericSeparatorIsAllowedOnlyBetweenTwoDigits</span>,
+                        <span class="ident">SyntaxError::NumericSeparatorIsAllowedOnlyBetweenTwoDigits</span>,
                     );
                 }
 
@@ -994,17 +993,17 @@
     <span class="kw">fn</span> <span class="ident">make_legacy_octal</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">start</span>: <span class="ident">BytePos</span>, <span class="ident">val</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LexResult</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">ensure_not_ident</span>()<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">syntax</span>.<span class="ident">typescript</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">target</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">JscTarget</span>::<span class="ident">Es5</span> {
-            <span class="self">self</span>.<span class="ident">emit_error</span>(<span class="ident">start</span>, <span class="ident">SyntaxError</span>::<span class="ident">TS1085</span>);
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">syntax</span>.<span class="ident">typescript</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">target</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">JscTarget::Es5</span> {
+            <span class="self">self</span>.<span class="ident">emit_error</span>(<span class="ident">start</span>, <span class="ident">SyntaxError::TS1085</span>);
         }
-        <span class="self">self</span>.<span class="ident">emit_strict_mode_error</span>(<span class="ident">start</span>, <span class="ident">SyntaxError</span>::<span class="ident">LegacyOctal</span>);
+        <span class="self">self</span>.<span class="ident">emit_strict_mode_error</span>(<span class="ident">start</span>, <span class="ident">SyntaxError::LegacyOctal</span>);
 
         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">val</span>);
     }
 }
 
 <span class="kw">fn</span> <span class="ident">digits</span>(<span class="ident">value</span>: <span class="ident">u64</span>, <span class="ident">radix</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">u64</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
-    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">radix</span> <span class="op">&gt;</span> <span class="number">0</span>);
+    <span class="macro">debug_assert!</span>(<span class="ident">radix</span> <span class="op">&gt;</span> <span class="number">0</span>);
 
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
     <span class="kw">struct</span> <span class="ident">Digits</span> {
@@ -1040,31 +1039,31 @@
 
     <span class="kw">impl</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">Digits</span> {}
 
-    <span class="ident">Digits</span>::<span class="ident">new</span>(<span class="ident">value</span>, <span class="ident">radix</span>)
+    <span class="ident">Digits::new</span>(<span class="ident">value</span>, <span class="ident">radix</span>)
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">input</span>::<span class="ident">StringInput</span>, <span class="kw-2">*</span>};
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">EsConfig</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f64</span>::<span class="ident">INFINITY</span>, <span class="ident">panic</span>};
+    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">input::StringInput</span>, <span class="kw-2">*</span>};
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::EsConfig</span>;
+    <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">f64::INFINITY</span>, <span class="ident">panic</span>};
 
     <span class="kw">fn</span> <span class="ident">lex</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">Ret</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ret</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Lexer</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">StringInput</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ret</span>,
     {
-        <span class="kw">crate</span>::<span class="ident">with_test_sess</span>(<span class="ident">s</span>, <span class="op">|</span><span class="kw">_</span>, <span class="ident">fm</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">Lexer</span>::<span class="ident">new</span>(
-                <span class="ident">Syntax</span>::<span class="ident">Es</span>(<span class="ident">EsConfig</span> {
+        <span class="kw">crate</span><span class="ident">::with_test_sess</span>(<span class="ident">s</span>, <span class="op">|</span><span class="kw">_</span>, <span class="ident">fm</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">Lexer::new</span>(
+                <span class="ident">Syntax::Es</span>(<span class="ident">EsConfig</span> {
                     <span class="ident">num_sep</span>: <span class="bool-val">true</span>,
-                    ..<span class="ident">Default</span>::<span class="ident">default</span>()
+                    ..<span class="ident">Default::default</span>()
                 }),
-                <span class="ident">Default</span>::<span class="ident">default</span>(),
+                <span class="ident">Default::default</span>(),
                 <span class="ident">fm</span>.<span class="ident">into</span>(),
                 <span class="prelude-val">None</span>,
             );
             <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">l</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">l</span>.<span class="ident">input</span>.<span class="ident">cur</span>(), <span class="prelude-val">None</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">l</span>.<span class="ident">input</span>.<span class="ident">cur</span>(), <span class="prelude-val">None</span>);
             <span class="prelude-val">Ok</span>(<span class="ident">ret</span>)
         })
         .<span class="ident">unwrap</span>()
@@ -1088,19 +1087,19 @@
                         0000000000000000000000000000000000000000000000000000&quot;</span>;
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">num_inf</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">num</span>(<span class="ident">LONG</span>), <span class="ident">INFINITY</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">num</span>(<span class="ident">LONG</span>), <span class="ident">INFINITY</span>);
     }
 
     <span class="doccomment">/// Number &gt;= 2^53</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">num_big_exp</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">1e30</span>, <span class="ident">num</span>(<span class="string">&quot;1e30&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">1e30</span>, <span class="ident">num</span>(<span class="string">&quot;1e30&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">ignore</span>]</span>
     <span class="kw">fn</span> <span class="ident">num_big_many_zero</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="number">1_000_000_000_000_000_000_000_000_000_000f64</span>,
             <span class="ident">num</span>(<span class="string">&quot;1000000000000000000000000000000&quot;</span>)
         )
@@ -1108,33 +1107,33 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">big_number_with_fract</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">77777777777777777.1f64</span>, <span class="ident">num</span>(<span class="string">&quot;77777777777777777.1&quot;</span>))
+        <span class="macro">assert_eq!</span>(<span class="number">77777777777777777.1f64</span>, <span class="ident">num</span>(<span class="string">&quot;77777777777777777.1&quot;</span>))
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">issue_480</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">9.09</span>, <span class="ident">num</span>(<span class="string">&quot;9.09&quot;</span>))
+        <span class="macro">assert_eq!</span>(<span class="number">9.09</span>, <span class="ident">num</span>(<span class="string">&quot;9.09&quot;</span>))
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">num_legacy_octal</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0o12</span> <span class="kw">as</span> <span class="ident">f64</span>, <span class="ident">num</span>(<span class="string">&quot;0012&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0o12</span> <span class="kw">as</span> <span class="ident">f64</span>, <span class="ident">num</span>(<span class="string">&quot;0012&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">read_int_1</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">60</span>, <span class="ident">int</span>(<span class="number">10</span>, <span class="string">&quot;60&quot;</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0o73</span>, <span class="ident">int</span>(<span class="number">8</span>, <span class="string">&quot;73&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">60</span>, <span class="ident">int</span>(<span class="number">10</span>, <span class="string">&quot;60&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0o73</span>, <span class="ident">int</span>(<span class="number">8</span>, <span class="string">&quot;73&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">read_int_short</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">7</span>, <span class="ident">int</span>(<span class="number">10</span>, <span class="string">&quot;7&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">7</span>, <span class="ident">int</span>(<span class="number">10</span>, <span class="string">&quot;7&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">read_radix_number</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="number">0o73</span> <span class="kw">as</span> <span class="ident">f64</span>,
             <span class="ident">lex</span>(<span class="string">&quot;0o73&quot;</span>, <span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">read_radix_number</span>(<span class="number">8</span>).<span class="ident">unwrap</span>().<span class="ident">left</span>().<span class="ident">unwrap</span>())
         );
@@ -1142,15 +1141,15 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">read_num_sep</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">1_000</span>, <span class="ident">int</span>(<span class="number">10</span>, <span class="string">&quot;1_000&quot;</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0xAEBECE</span>, <span class="ident">int</span>(<span class="number">16</span>, <span class="string">&quot;AE_BE_CE&quot;</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0b1010000110000101</span>, <span class="ident">int</span>(<span class="number">2</span>, <span class="string">&quot;1010_0001_1000_0101&quot;</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0o0666</span>, <span class="ident">int</span>(<span class="number">8</span>, <span class="string">&quot;0_6_6_6&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">1_000</span>, <span class="ident">int</span>(<span class="number">10</span>, <span class="string">&quot;1_000&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0xAEBECE</span>, <span class="ident">int</span>(<span class="number">16</span>, <span class="string">&quot;AE_BE_CE&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0b1010000110000101</span>, <span class="ident">int</span>(<span class="number">2</span>, <span class="string">&quot;1010_0001_1000_0101&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0o0666</span>, <span class="ident">int</span>(<span class="number">8</span>, <span class="string">&quot;0_6_6_6&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">read_bigint</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">lex</span>(
                 <span class="string">&quot;10000000000000000000000000000000000000000000000000000n&quot;</span>,
                 <span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">read_number</span>(<span class="bool-val">false</span>).<span class="ident">unwrap</span>().<span class="ident">right</span>().<span class="ident">unwrap</span>()
@@ -1168,24 +1167,24 @@
 
     <span class="kw">fn</span> <span class="ident">test_floats</span>(<span class="ident">strict</span>: <span class="ident">bool</span>, <span class="ident">success</span>: <span class="ident">bool</span>, <span class="ident">cases</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>]) {
         <span class="kw">for</span> <span class="ident">case</span> <span class="kw">in</span> <span class="ident">cases</span> {
-            <span class="macro">println</span><span class="macro">!</span>(
+            <span class="macro">println!</span>(
                 <span class="string">&quot;Testing {} (when strict = {}); Expects success = {}&quot;</span>,
                 <span class="ident">case</span>, <span class="ident">strict</span>, <span class="ident">success</span>
             );
             <span class="comment">// lazy way to get expected values</span>
-            <span class="kw">let</span> <span class="ident">expected</span>: <span class="ident">f64</span> <span class="op">=</span> (<span class="ident">i64</span>::<span class="ident">from_str_radix</span>(<span class="ident">case</span>, <span class="number">8</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span> <span class="kw">as</span> <span class="ident">f64</span>))
+            <span class="kw">let</span> <span class="ident">expected</span>: <span class="ident">f64</span> <span class="op">=</span> (<span class="ident">i64::from_str_radix</span>(<span class="ident">case</span>, <span class="number">8</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span> <span class="kw">as</span> <span class="ident">f64</span>))
                 .<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">case</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span> <span class="kw">as</span> <span class="ident">f64</span>))
                 .<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">case</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>())
                 .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-                    <span class="macro">panic</span><span class="macro">!</span>(
+                    <span class="macro">panic!</span>(
                         <span class="string">&quot;failed to parse &#39;{}&#39; as float using str.parse(): {}&quot;</span>,
                         <span class="ident">case</span>, <span class="ident">err</span>
                     )
                 });
 
-            <span class="kw">let</span> <span class="ident">vec</span> <span class="op">=</span> <span class="ident">panic</span>::<span class="ident">catch_unwind</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="kw">crate</span>::<span class="ident">with_test_sess</span>(<span class="ident">case</span>, <span class="op">|</span><span class="kw">_</span>, <span class="ident">input</span><span class="op">|</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">Lexer</span>::<span class="ident">new</span>(<span class="ident">Syntax</span>::<span class="ident">default</span>(), <span class="ident">Default</span>::<span class="ident">default</span>(), <span class="ident">input</span>, <span class="prelude-val">None</span>);
+            <span class="kw">let</span> <span class="ident">vec</span> <span class="op">=</span> <span class="ident">panic::catch_unwind</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="kw">crate</span><span class="ident">::with_test_sess</span>(<span class="ident">case</span>, <span class="op">|</span><span class="kw">_</span>, <span class="ident">input</span><span class="op">|</span> {
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">Lexer::new</span>(<span class="ident">Syntax::default</span>(), <span class="ident">Default::default</span>(), <span class="ident">input</span>, <span class="prelude-val">None</span>);
                     <span class="ident">l</span>.<span class="ident">ctx</span>.<span class="ident">strict</span> <span class="op">=</span> <span class="ident">strict</span>;
                     <span class="prelude-val">Ok</span>(<span class="ident">l</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">ts</span><span class="op">|</span> <span class="ident">ts</span>.<span class="ident">token</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>())
                 })
@@ -1195,13 +1194,13 @@
             <span class="kw">if</span> <span class="ident">success</span> {
                 <span class="kw">let</span> <span class="ident">vec</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">vec</span> {
                     <span class="prelude-val">Ok</span>(<span class="ident">vec</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">vec</span>,
-                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">panic</span>::<span class="ident">resume_unwind</span>(<span class="ident">err</span>),
+                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">panic::resume_unwind</span>(<span class="ident">err</span>),
                 };
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">vec</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">vec</span>.<span class="ident">len</span>(), <span class="number">1</span>);
                 <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">vec</span>.<span class="ident">into_iter</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">Num</span>(<span class="ident">expected</span>), <span class="ident">token</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">Num</span>(<span class="ident">expected</span>), <span class="ident">token</span>);
             } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">vec</span>) <span class="op">=</span> <span class="ident">vec</span> {
-                <span class="macro">assert_ne</span><span class="macro">!</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Num</span>(<span class="ident">expected</span>)], <span class="ident">vec</span>)
+                <span class="macro">assert_ne!</span>(<span class="macro">vec!</span>[<span class="ident">Num</span>(<span class="ident">expected</span>)], <span class="ident">vec</span>)
             }
         }
     }
@@ -1221,5 +1220,4 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="swc_ecma_parser" data-search-js="../../../search-index.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="swc_ecma_parser" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

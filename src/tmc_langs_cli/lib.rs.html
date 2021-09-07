@@ -1,7 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tmc-langs-cli/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../tmc_langs_cli/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../tmc_langs_cli/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1131,8 +1130,31 @@
 <span id="1128">1128</span>
 <span id="1129">1129</span>
 <span id="1130">1130</span>
-</pre><div class="example-wrap"><pre class="rust ">
-<span class="attribute">#![<span class="ident">deny</span>(<span class="ident">clippy</span>::<span class="ident">print_stdout</span>, <span class="ident">clippy</span>::<span class="ident">print_stderr</span>, <span class="ident">clippy</span>::<span class="ident">unwrap_used</span>)]</span>
+<span id="1131">1131</span>
+<span id="1132">1132</span>
+<span id="1133">1133</span>
+<span id="1134">1134</span>
+<span id="1135">1135</span>
+<span id="1136">1136</span>
+<span id="1137">1137</span>
+<span id="1138">1138</span>
+<span id="1139">1139</span>
+<span id="1140">1140</span>
+<span id="1141">1141</span>
+<span id="1142">1142</span>
+<span id="1143">1143</span>
+<span id="1144">1144</span>
+<span id="1145">1145</span>
+<span id="1146">1146</span>
+<span id="1147">1147</span>
+<span id="1148">1148</span>
+<span id="1149">1149</span>
+<span id="1150">1150</span>
+<span id="1151">1151</span>
+<span id="1152">1152</span>
+<span id="1153">1153</span>
+</pre><pre class="rust">
+<span class="attribute">#![<span class="ident">deny</span>(<span class="ident">clippy::print_stdout</span>, <span class="ident">clippy::print_stderr</span>, <span class="ident">clippy::unwrap_used</span>)]</span>
 
 <span class="doccomment">//! CLI client for TMC</span>
 
@@ -1140,43 +1162,45 @@
 <span class="kw">mod</span> <span class="ident">error</span>;
 <span class="kw">mod</span> <span class="ident">output</span>;
 
-<span class="kw">use</span> <span class="self">self</span>::<span class="ident">error</span>::{<span class="ident">DownloadsFailedError</span>, <span class="ident">InvalidTokenError</span>, <span class="ident">SandboxTestError</span>};
-<span class="kw">use</span> <span class="self">self</span>::<span class="ident">output</span>::{<span class="ident">Data</span>, <span class="ident">Kind</span>, <span class="ident">Output</span>, <span class="ident">OutputData</span>, <span class="ident">OutputResult</span>, <span class="ident">Status</span>, <span class="ident">StatusUpdateData</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">app</span>::{<span class="ident">Locale</span>, <span class="ident">Opt</span>};
+<span class="kw">use</span> <span class="self">self</span><span class="ident">::error</span>::{<span class="ident">DownloadsFailedError</span>, <span class="ident">InvalidTokenError</span>, <span class="ident">SandboxTestError</span>};
+<span class="kw">use</span> <span class="self">self</span><span class="ident">::output</span>::{
+    <span class="ident">DataKind</span>, <span class="ident">Kind</span>, <span class="ident">OutputData</span>, <span class="ident">OutputKind</span>, <span class="ident">OutputResult</span>, <span class="ident">Status</span>, <span class="ident">StatusUpdateData</span>,
+};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::app</span>::{<span class="ident">Locale</span>, <span class="ident">Opt</span>};
 <span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">Context</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident">app</span>::{<span class="ident">Command</span>, <span class="ident">Core</span>, <span class="ident">OutputFormatWrapper</span>, <span class="ident">Settings</span>};
 <span class="kw">use</span> <span class="ident">clap</span>::{<span class="ident">Error</span>, <span class="ident">ErrorKind</span>};
-<span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Serialize</span>;
-<span class="kw">use</span> <span class="ident">serde_json</span>::<span class="ident">Value</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">env</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">Cursor</span>, <span class="ident">Read</span>, <span class="ident">Write</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Deref</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
-<span class="kw">use</span> <span class="ident">structopt</span>::<span class="ident">StructOpt</span>;
+<span class="kw">use</span> <span class="ident">serde::Serialize</span>;
+<span class="kw">use</span> <span class="ident">serde_json::Value</span>;
+<span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
+<span class="kw">use</span> <span class="ident">std::env</span>;
+<span class="kw">use</span> <span class="ident">std::fs::File</span>;
+<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">Cursor</span>, <span class="ident">Read</span>, <span class="ident">Write</span>};
+<span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
+<span class="kw">use</span> <span class="ident">std::path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
+<span class="kw">use</span> <span class="ident">structopt::StructOpt</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs</span>::{
     <span class="ident">file_util</span>, <span class="ident">notification_reporter</span>, <span class="ident">ClientError</span>, <span class="ident">ClientUpdateData</span>, <span class="ident">CommandError</span>, <span class="ident">Credentials</span>,
     <span class="ident">DownloadOrUpdateCourseExercisesResult</span>, <span class="ident">DownloadResult</span>, <span class="ident">FeedbackAnswer</span>, <span class="ident">Language</span>,
     <span class="ident">StyleValidationResult</span>, <span class="ident">TmcClient</span>, <span class="ident">TmcConfig</span>, <span class="ident">UpdatedExercise</span>,
 };
-<span class="kw">use</span> <span class="ident">tmc_langs_util</span>::<span class="ident">progress_reporter</span>;
+<span class="kw">use</span> <span class="ident">tmc_langs_util::progress_reporter</span>;
 
 <span class="comment">// wraps the run_inner function that actually does the work and handles any panics that occur</span>
 <span class="comment">// any langs library should never panic by itself, but other libraries used may in some rare circumstances</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>() {
     <span class="comment">// run the inner function and catch any panics</span>
-    <span class="kw">match</span> <span class="ident">std</span>::<span class="ident">panic</span>::<span class="ident">catch_unwind</span>(<span class="ident">run_inner</span>) {
+    <span class="kw">match</span> <span class="ident">std::panic::catch_unwind</span>(<span class="ident">run_inner</span>) {
         <span class="prelude-val">Ok</span>(<span class="ident">res</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// no panic, output was printed properly</span>
             <span class="kw">match</span> <span class="ident">res</span> {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// inner returned Ok, exit with 0</span>
-                    <span class="ident">quit</span>::<span class="ident">with_code</span>(<span class="number">0</span>);
+                    <span class="ident">quit::with_code</span>(<span class="number">0</span>);
                 }
                 <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// inner returned Err, exit with 1</span>
-                    <span class="ident">quit</span>::<span class="ident">with_code</span>(<span class="number">1</span>);
+                    <span class="ident">quit::with_code</span>(<span class="number">1</span>);
                 }
             }
         }
@@ -1184,21 +1208,21 @@
             <span class="comment">// panicked, likely before any output was printed</span>
             <span class="comment">// currently only prints a message if the panic is called with str or String; this should be good enough</span>
             <span class="kw">let</span> <span class="ident">error_message</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">string</span>) <span class="op">=</span> <span class="ident">err</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>() {
-                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Process panicked unexpectedly with message: {}&quot;</span>, <span class="ident">string</span>)
+                <span class="macro">format!</span>(<span class="string">&quot;Process panicked unexpectedly with message: {}&quot;</span>, <span class="ident">string</span>)
             } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">string</span>) <span class="op">=</span> <span class="ident">err</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>() {
-                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Process panicked unexpectedly with message: {}&quot;</span>, <span class="ident">string</span>)
+                <span class="macro">format!</span>(<span class="string">&quot;Process panicked unexpectedly with message: {}&quot;</span>, <span class="ident">string</span>)
             } <span class="kw">else</span> {
                 <span class="string">&quot;Process panicked unexpectedly without an error message&quot;</span>.<span class="ident">to_string</span>()
             };
-            <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">OutputData</span>(<span class="ident">OutputData</span> {
-                <span class="ident">status</span>: <span class="ident">Status</span>::<span class="ident">Crashed</span>,
+            <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">OutputKind::OutputData</span>(<span class="ident">OutputData</span> {
+                <span class="ident">status</span>: <span class="ident">Status::Crashed</span>,
                 <span class="ident">message</span>: <span class="ident">error_message</span>,
-                <span class="ident">result</span>: <span class="ident">OutputResult</span>::<span class="ident">Error</span>,
+                <span class="ident">result</span>: <span class="ident">OutputResult::Error</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             });
             <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="bool-val">false</span>).<span class="ident">expect</span>(<span class="string">&quot;this should never fail&quot;</span>);
 
-            <span class="ident">quit</span>::<span class="ident">with_code</span>(<span class="number">1</span>);
+            <span class="ident">quit::with_code</span>(<span class="number">1</span>);
         }
     }
 }
@@ -1206,37 +1230,37 @@
 <span class="comment">// sets up warning and progress reporting and calls run_app and does error handling for its result</span>
 <span class="comment">// returns Ok if we should exit with code 0, Err if we should exit with 1</span>
 <span class="kw">fn</span> <span class="ident">run_inner</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">Opt</span>::<span class="ident">from_args</span>();
+    <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">Opt::from_args</span>();
     <span class="kw">let</span> <span class="ident">pretty</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">pretty</span>;
 
-    <span class="ident">notification_reporter</span>::<span class="ident">init</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">warning</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="ident">warning_output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">Notification</span>(<span class="ident">warning</span>);
+    <span class="ident">notification_reporter::init</span>(<span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">warning</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">warning_output</span> <span class="op">=</span> <span class="ident">OutputKind::Notification</span>(<span class="ident">warning</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">warning_output</span>, <span class="ident">pretty</span>) {
-            <span class="ident">log</span>::<span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;printing warning failed: {}&quot;</span>, <span class="ident">err</span>);
+            <span class="macro">log::error!</span>(<span class="string">&quot;printing warning failed: {}&quot;</span>, <span class="ident">err</span>);
         }
     }));
 
-    <span class="ident">progress_reporter</span>::<span class="ident">subscribe</span>::<span class="op">&lt;</span>(), <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">update</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">StatusUpdate</span>(<span class="ident">StatusUpdateData</span>::<span class="prelude-val">None</span>(<span class="ident">update</span>));
+    <span class="ident">progress_reporter::subscribe</span>::<span class="op">&lt;</span>(), <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">update</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">OutputKind::StatusUpdate</span>(<span class="ident">StatusUpdateData::None</span>(<span class="ident">update</span>));
         <span class="kw">let</span> <span class="ident">_r</span> <span class="op">=</span> <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>);
     });
 
-    <span class="ident">progress_reporter</span>::<span class="ident">subscribe</span>::<span class="op">&lt;</span><span class="ident">ClientUpdateData</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">update</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">StatusUpdate</span>(<span class="ident">StatusUpdateData</span>::<span class="ident">ClientUpdateData</span>(<span class="ident">update</span>));
+    <span class="ident">progress_reporter::subscribe</span>::<span class="op">&lt;</span><span class="ident">ClientUpdateData</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">update</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">OutputKind::StatusUpdate</span>(<span class="ident">StatusUpdateData::ClientUpdateData</span>(<span class="ident">update</span>));
         <span class="kw">let</span> <span class="ident">_r</span> <span class="op">=</span> <span class="ident">print_output</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>, <span class="ident">pretty</span>);
     });
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">run_app</span>(<span class="ident">matches</span>) {
         <span class="comment">// error handling</span>
-        <span class="kw">let</span> <span class="ident">causes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">chain</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Caused by: {}&quot;</span>, <span class="ident">e</span>)).<span class="ident">collect</span>();
+        <span class="kw">let</span> <span class="ident">causes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">chain</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Caused by: {}&quot;</span>, <span class="ident">e</span>)).<span class="ident">collect</span>();
         <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">error_message_special_casing</span>(<span class="kw-2">&amp;</span><span class="ident">e</span>);
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="ident">solve_error_kind</span>(<span class="kw-2">&amp;</span><span class="ident">e</span>);
         <span class="kw">let</span> <span class="ident">sandbox_path</span> <span class="op">=</span> <span class="ident">check_sandbox_err</span>(<span class="kw-2">&amp;</span><span class="ident">e</span>);
-        <span class="kw">let</span> <span class="ident">error_output</span> <span class="op">=</span> <span class="ident">Output</span>::<span class="ident">OutputData</span>(<span class="ident">OutputData</span> {
-            <span class="ident">status</span>: <span class="ident">Status</span>::<span class="ident">Finished</span>,
+        <span class="kw">let</span> <span class="ident">error_output</span> <span class="op">=</span> <span class="ident">OutputKind::OutputData</span>(<span class="ident">OutputData</span> {
+            <span class="ident">status</span>: <span class="ident">Status::Finished</span>,
             <span class="ident">message</span>,
-            <span class="ident">result</span>: <span class="ident">OutputResult</span>::<span class="ident">Error</span>,
-            <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">Data</span>::<span class="ident">Error</span> {
+            <span class="ident">result</span>: <span class="ident">OutputResult::Error</span>,
+            <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">DataKind::Error</span> {
                 <span class="ident">kind</span>,
                 <span class="ident">trace</span>: <span class="ident">causes</span>,
             }),
@@ -1250,36 +1274,36 @@
 }
 
 <span class="doccomment">/// Goes through the error chain and checks for special error types that should be indicated by the Kind.</span>
-<span class="kw">fn</span> <span class="ident">solve_error_kind</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">anyhow</span>::<span class="ident">Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Kind</span> {
+<span class="kw">fn</span> <span class="ident">solve_error_kind</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">anyhow::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Kind</span> {
     <span class="kw">for</span> <span class="ident">cause</span> <span class="kw">in</span> <span class="ident">e</span>.<span class="ident">chain</span>() {
         <span class="comment">// check for invalid token</span>
         <span class="kw">if</span> <span class="ident">cause</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">InvalidTokenError</span><span class="op">&gt;</span>().<span class="ident">is_some</span>() {
-            <span class="kw">return</span> <span class="ident">Kind</span>::<span class="ident">InvalidToken</span>;
+            <span class="kw">return</span> <span class="ident">Kind::InvalidToken</span>;
         }
 
         <span class="comment">// check for client errors</span>
         <span class="kw">match</span> <span class="ident">cause</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">ClientError</span><span class="op">&gt;</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">ClientError</span>::<span class="ident">HttpError</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">ClientError::HttpError</span> {
                 <span class="ident">url</span>: <span class="kw">_</span>,
                 <span class="ident">status</span>,
                 <span class="ident">error</span>: <span class="kw">_</span>,
                 <span class="ident">obsolete_client</span>,
             }) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">obsolete_client</span> {
-                    <span class="kw">return</span> <span class="ident">Kind</span>::<span class="ident">ObsoleteClient</span>;
+                    <span class="kw">return</span> <span class="ident">Kind::ObsoleteClient</span>;
                 }
                 <span class="kw">if</span> <span class="ident">status</span>.<span class="ident">as_u16</span>() <span class="op">=</span><span class="op">=</span> <span class="number">403</span> {
-                    <span class="kw">return</span> <span class="ident">Kind</span>::<span class="ident">Forbidden</span>;
+                    <span class="kw">return</span> <span class="ident">Kind::Forbidden</span>;
                 }
                 <span class="kw">if</span> <span class="ident">status</span>.<span class="ident">as_u16</span>() <span class="op">=</span><span class="op">=</span> <span class="number">401</span> {
-                    <span class="kw">return</span> <span class="ident">Kind</span>::<span class="ident">NotLoggedIn</span>;
+                    <span class="kw">return</span> <span class="ident">Kind::NotLoggedIn</span>;
                 }
             }
-            <span class="prelude-val">Some</span>(<span class="ident">ClientError</span>::<span class="ident">NotAuthenticated</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">return</span> <span class="ident">Kind</span>::<span class="ident">NotLoggedIn</span>;
+            <span class="prelude-val">Some</span>(<span class="ident">ClientError::NotAuthenticated</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">return</span> <span class="ident">Kind::NotLoggedIn</span>;
             }
-            <span class="prelude-val">Some</span>(<span class="ident">ClientError</span>::<span class="ident">ConnectionError</span>(..)) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">return</span> <span class="ident">Kind</span>::<span class="ident">ConnectionError</span>;
+            <span class="prelude-val">Some</span>(<span class="ident">ClientError::ConnectionError</span>(..)) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">return</span> <span class="ident">Kind::ConnectionError</span>;
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
         }
@@ -1291,7 +1315,7 @@
             <span class="ident">failed</span>,
         }) <span class="op">=</span> <span class="ident">cause</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">DownloadsFailedError</span><span class="op">&gt;</span>()
         {
-            <span class="kw">return</span> <span class="ident">Kind</span>::<span class="ident">FailedExerciseDownload</span> {
+            <span class="kw">return</span> <span class="ident">Kind::FailedExerciseDownload</span> {
                 <span class="ident">completed</span>: <span class="ident">completed</span>.<span class="ident">clone</span>(),
                 <span class="ident">skipped</span>: <span class="ident">skipped</span>.<span class="ident">clone</span>(),
                 <span class="ident">failed</span>: <span class="ident">failed</span>.<span class="ident">clone</span>(),
@@ -1299,11 +1323,11 @@
         }
     }
 
-    <span class="ident">Kind</span>::<span class="ident">Generic</span>
+    <span class="ident">Kind::Generic</span>
 }
 
 <span class="doccomment">/// Goes through the error chain and returns the specialized error message, if any.</span>
-<span class="kw">fn</span> <span class="ident">error_message_special_casing</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">anyhow</span>::<span class="ident">Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">fn</span> <span class="ident">error_message_special_casing</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">anyhow::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
     <span class="kw">for</span> <span class="ident">cause</span> <span class="kw">in</span> <span class="ident">e</span>.<span class="ident">chain</span>() {
         <span class="comment">// command not found errors are special cased to notify the user that they may need to install additional software</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cnf</span>) <span class="op">=</span> <span class="ident">cause</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">CommandError</span><span class="op">&gt;</span>() {
@@ -1314,7 +1338,7 @@
 }
 
 <span class="doccomment">/// Goes through the error chain and returns the error output file path if a sandbox test error is found</span>
-<span class="kw">fn</span> <span class="ident">check_sandbox_err</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">anyhow</span>::<span class="ident">Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">check_sandbox_err</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">anyhow::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
     <span class="kw">for</span> <span class="ident">cause</span> <span class="kw">in</span> <span class="ident">e</span>.<span class="ident">chain</span>() {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">SandboxTestError</span> {
             <span class="ident">path</span>: <span class="prelude-val">Some</span>(<span class="ident">path</span>), ..
@@ -1328,78 +1352,78 @@
 
 <span class="kw">fn</span> <span class="ident">run_app</span>(<span class="ident">matches</span>: <span class="ident">Opt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">matches</span>.<span class="ident">cmd</span> {
-        <span class="ident">Command</span>::<span class="ident">Checkstyle</span> {
+        <span class="ident">Command::Checkstyle</span> {
             <span class="ident">exercise_path</span>,
             <span class="ident">locale</span>: <span class="ident">Locale</span>(<span class="ident">locale</span>),
             <span class="ident">output_path</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">file_util</span>::<span class="macro">lock</span><span class="macro">!</span>(<span class="ident">exercise_path</span>);
+            <span class="macro">file_util::lock!</span>(<span class="ident">exercise_path</span>);
             <span class="kw">let</span> <span class="ident">check_result</span> <span class="op">=</span>
                 <span class="ident">run_checkstyle_write_results</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>, <span class="ident">output_path</span>.<span class="ident">as_deref</span>(), <span class="ident">locale</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(<span class="string">&quot;ran checkstyle&quot;</span>, <span class="ident">check_result</span>.<span class="ident">map</span>(<span class="ident">Data</span>::<span class="ident">Validation</span>))
+            <span class="ident">OutputKind::finished_with_data</span>(<span class="string">&quot;ran checkstyle&quot;</span>, <span class="ident">check_result</span>.<span class="ident">map</span>(<span class="ident">DataKind::Validation</span>))
         }
 
-        <span class="ident">Command</span>::<span class="ident">Clean</span> { <span class="ident">exercise_path</span> } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">file_util</span>::<span class="macro">lock</span><span class="macro">!</span>(<span class="ident">exercise_path</span>);
-            <span class="ident">tmc_langs</span>::<span class="ident">clean</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;cleaned exercise at {}&quot;</span>, <span class="ident">exercise_path</span>.<span class="ident">display</span>()))
+        <span class="ident">Command::Clean</span> { <span class="ident">exercise_path</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="macro">file_util::lock!</span>(<span class="ident">exercise_path</span>);
+            <span class="ident">tmc_langs::clean</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>)<span class="question-mark">?</span>;
+            <span class="ident">OutputKind::finished</span>(<span class="macro">format!</span>(<span class="string">&quot;cleaned exercise at {}&quot;</span>, <span class="ident">exercise_path</span>.<span class="ident">display</span>()))
         }
 
-        <span class="ident">Command</span>::<span class="ident">CompressProject</span> {
+        <span class="ident">Command::CompressProject</span> {
             <span class="ident">exercise_path</span>,
             <span class="ident">output_path</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">file_util</span>::<span class="macro">lock</span><span class="macro">!</span>(<span class="ident">exercise_path</span>);
-            <span class="ident">tmc_langs</span>::<span class="ident">compress_project_to</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>, <span class="kw-2">&amp;</span><span class="ident">output_path</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished</span>(<span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">file_util::lock!</span>(<span class="ident">exercise_path</span>);
+            <span class="ident">tmc_langs::compress_project_to</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>, <span class="kw-2">&amp;</span><span class="ident">output_path</span>)<span class="question-mark">?</span>;
+            <span class="ident">OutputKind::finished</span>(<span class="macro">format!</span>(
                 <span class="string">&quot;compressed project from {} to {}&quot;</span>,
                 <span class="ident">exercise_path</span>.<span class="ident">display</span>(),
                 <span class="ident">output_path</span>.<span class="ident">display</span>()
             ))
         }
 
-        <span class="ident">Command</span>::<span class="ident">Core</span>(<span class="ident">core</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Command::Core</span>(<span class="ident">core</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">client_name</span> <span class="op">=</span> <span class="ident">require_client_name</span>(<span class="kw-2">&amp;</span><span class="ident">matches</span>.<span class="ident">client_name</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">client_version</span> <span class="op">=</span> <span class="ident">require_client_version</span>(<span class="kw-2">&amp;</span><span class="ident">matches</span>.<span class="ident">client_version</span>)<span class="question-mark">?</span>;
             <span class="ident">run_core</span>(<span class="ident">client_name</span>, <span class="ident">client_version</span>, <span class="ident">core</span>)<span class="question-mark">?</span>
         }
 
-        <span class="ident">Command</span>::<span class="ident">ExtractProject</span> {
+        <span class="ident">Command::ExtractProject</span> {
             <span class="ident">archive_path</span>,
             <span class="ident">output_path</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">open_file_lock</span>(<span class="kw-2">&amp;</span><span class="ident">archive_path</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">archive</span>.<span class="ident">lock</span>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">file_util::open_file_lock</span>(<span class="kw-2">&amp;</span><span class="ident">archive_path</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">archive</span>.<span class="ident">write</span>()<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="macro">vec!</span>[];
             <span class="ident">guard</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">data</span>)<span class="question-mark">?</span>;
 
-            <span class="ident">tmc_langs</span>::<span class="ident">extract_project</span>(<span class="ident">Cursor</span>::<span class="ident">new</span>(<span class="ident">data</span>), <span class="kw-2">&amp;</span><span class="ident">output_path</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+            <span class="ident">tmc_langs::extract_project</span>(<span class="ident">Cursor::new</span>(<span class="ident">data</span>), <span class="kw-2">&amp;</span><span class="ident">output_path</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
-            <span class="ident">Output</span>::<span class="ident">finished</span>(<span class="macro">format</span><span class="macro">!</span>(
+            <span class="ident">OutputKind::finished</span>(<span class="macro">format!</span>(
                 <span class="string">&quot;extracted project from {} to {}&quot;</span>,
                 <span class="ident">archive_path</span>.<span class="ident">display</span>(),
                 <span class="ident">output_path</span>.<span class="ident">display</span>()
             ))
         }
 
-        <span class="ident">Command</span>::<span class="ident">FastAvailablePoints</span> { <span class="ident">exercise_path</span> } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">file_util</span>::<span class="macro">lock</span><span class="macro">!</span>(<span class="ident">exercise_path</span>);
-            <span class="kw">let</span> <span class="ident">points</span> <span class="op">=</span> <span class="ident">tmc_langs</span>::<span class="ident">get_available_points</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(
-                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;found {} available points&quot;</span>, <span class="ident">points</span>.<span class="ident">len</span>()),
-                <span class="ident">Data</span>::<span class="ident">AvailablePoints</span>(<span class="ident">points</span>),
+        <span class="ident">Command::FastAvailablePoints</span> { <span class="ident">exercise_path</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="macro">file_util::lock!</span>(<span class="ident">exercise_path</span>);
+            <span class="kw">let</span> <span class="ident">points</span> <span class="op">=</span> <span class="ident">tmc_langs::get_available_points</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>)<span class="question-mark">?</span>;
+            <span class="ident">OutputKind::finished_with_data</span>(
+                <span class="macro">format!</span>(<span class="string">&quot;found {} available points&quot;</span>, <span class="ident">points</span>.<span class="ident">len</span>()),
+                <span class="ident">DataKind::AvailablePoints</span>(<span class="ident">points</span>),
             )
         }
 
-        <span class="ident">Command</span>::<span class="ident">FindExercises</span> {
+        <span class="ident">Command::FindExercises</span> {
             <span class="ident">exercise_path</span>,
             <span class="ident">output_path</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">file_util</span>::<span class="macro">lock</span><span class="macro">!</span>(<span class="ident">exercise_path</span>);
+            <span class="macro">file_util::lock!</span>(<span class="ident">exercise_path</span>);
             <span class="kw">let</span> <span class="ident">exercises</span> <span class="op">=</span>
-                <span class="ident">tmc_langs</span>::<span class="ident">find_exercise_directories</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="macro">format</span><span class="macro">!</span>(
+                <span class="ident">tmc_langs::find_exercise_directories</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
+                    <span class="macro">format!</span>(
                         <span class="string">&quot;Failed to find exercise directories in {}&quot;</span>,
                         <span class="ident">exercise_path</span>.<span class="ident">display</span>(),
                     )
@@ -1407,20 +1431,20 @@
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">output_path</span>) <span class="op">=</span> <span class="ident">output_path</span> {
                 <span class="ident">write_result_to_file_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">exercises</span>, <span class="kw-2">&amp;</span><span class="ident">output_path</span>, <span class="ident">matches</span>.<span class="ident">pretty</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(
-                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;found exercises at {}&quot;</span>, <span class="ident">exercise_path</span>.<span class="ident">display</span>()),
-                <span class="ident">Data</span>::<span class="ident">Exercises</span>(<span class="ident">exercises</span>),
+            <span class="ident">OutputKind::finished_with_data</span>(
+                <span class="macro">format!</span>(<span class="string">&quot;found exercises at {}&quot;</span>, <span class="ident">exercise_path</span>.<span class="ident">display</span>()),
+                <span class="ident">DataKind::Exercises</span>(<span class="ident">exercises</span>),
             )
         }
 
-        <span class="ident">Command</span>::<span class="ident">GetExercisePackagingConfiguration</span> {
+        <span class="ident">Command::GetExercisePackagingConfiguration</span> {
             <span class="ident">exercise_path</span>,
             <span class="ident">output_path</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">file_util</span>::<span class="macro">lock</span><span class="macro">!</span>(<span class="ident">exercise_path</span>);
-            <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">tmc_langs</span>::<span class="ident">get_exercise_packaging_configuration</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>)
+            <span class="macro">file_util::lock!</span>(<span class="ident">exercise_path</span>);
+            <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">tmc_langs::get_exercise_packaging_configuration</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>)
                 .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="macro">format</span><span class="macro">!</span>(
+                    <span class="macro">format!</span>(
                         <span class="string">&quot;Failed to get exercise packaging configuration for exercise at {}&quot;</span>,
                         <span class="ident">exercise_path</span>.<span class="ident">display</span>(),
                     )
@@ -1428,64 +1452,64 @@
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">output_path</span>) <span class="op">=</span> <span class="ident">output_path</span> {
                 <span class="ident">write_result_to_file_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="kw-2">&amp;</span><span class="ident">output_path</span>, <span class="ident">matches</span>.<span class="ident">pretty</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(
-                <span class="macro">format</span><span class="macro">!</span>(
+            <span class="ident">OutputKind::finished_with_data</span>(
+                <span class="macro">format!</span>(
                     <span class="string">&quot;created exercise packaging config from {}&quot;</span>,
                     <span class="ident">exercise_path</span>.<span class="ident">display</span>(),
                 ),
-                <span class="ident">Data</span>::<span class="ident">ExercisePackagingConfiguration</span>(<span class="ident">config</span>),
+                <span class="ident">DataKind::ExercisePackagingConfiguration</span>(<span class="ident">config</span>),
             )
         }
 
-        <span class="ident">Command</span>::<span class="ident">ListLocalCourseExercises</span> { <span class="ident">course_slug</span> } <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Command::ListLocalCourseExercises</span> { <span class="ident">course_slug</span> } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">client_name</span> <span class="op">=</span> <span class="ident">require_client_name</span>(<span class="kw-2">&amp;</span><span class="ident">matches</span>.<span class="ident">client_name</span>)<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">local_exercises</span> <span class="op">=</span>
-                <span class="ident">tmc_langs</span>::<span class="ident">list_local_course_exercises</span>(<span class="ident">client_name</span>, <span class="kw-2">&amp;</span><span class="ident">course_slug</span>)<span class="question-mark">?</span>;
+                <span class="ident">tmc_langs::list_local_course_exercises</span>(<span class="ident">client_name</span>, <span class="kw-2">&amp;</span><span class="ident">course_slug</span>)<span class="question-mark">?</span>;
 
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(
-                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;listed local exercises for {}&quot;</span>, <span class="ident">course_slug</span>),
-                <span class="ident">Data</span>::<span class="ident">LocalExercises</span>(<span class="ident">local_exercises</span>),
+            <span class="ident">OutputKind::finished_with_data</span>(
+                <span class="macro">format!</span>(<span class="string">&quot;listed local exercises for {}&quot;</span>, <span class="ident">course_slug</span>),
+                <span class="ident">DataKind::LocalExercises</span>(<span class="ident">local_exercises</span>),
             )
         }
 
-        <span class="ident">Command</span>::<span class="ident">PrepareSolutions</span> {
+        <span class="ident">Command::PrepareSolutions</span> {
             <span class="ident">exercise_path</span>,
             <span class="ident">output_path</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">file_util</span>::<span class="macro">lock</span><span class="macro">!</span>(<span class="ident">exercise_path</span>);
-            <span class="ident">tmc_langs</span>::<span class="ident">prepare_solution</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>, <span class="kw-2">&amp;</span><span class="ident">output_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">file_util::lock!</span>(<span class="ident">exercise_path</span>);
+            <span class="ident">tmc_langs::prepare_solution</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>, <span class="kw-2">&amp;</span><span class="ident">output_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="macro">format!</span>(
                     <span class="string">&quot;Failed to prepare solutions for exercise at {}&quot;</span>,
                     <span class="ident">exercise_path</span>.<span class="ident">display</span>(),
                 )
             })<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished</span>(<span class="macro">format</span><span class="macro">!</span>(
+            <span class="ident">OutputKind::finished</span>(<span class="macro">format!</span>(
                 <span class="string">&quot;prepared solutions for {} at {}&quot;</span>,
                 <span class="ident">exercise_path</span>.<span class="ident">display</span>(),
                 <span class="ident">output_path</span>.<span class="ident">display</span>()
             ))
         }
 
-        <span class="ident">Command</span>::<span class="ident">PrepareStubs</span> {
+        <span class="ident">Command::PrepareStubs</span> {
             <span class="ident">exercise_path</span>,
             <span class="ident">output_path</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">file_util</span>::<span class="macro">lock</span><span class="macro">!</span>(<span class="ident">exercise_path</span>);
-            <span class="ident">tmc_langs</span>::<span class="ident">prepare_stub</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>, <span class="kw-2">&amp;</span><span class="ident">output_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">file_util::lock!</span>(<span class="ident">exercise_path</span>);
+            <span class="ident">tmc_langs::prepare_stub</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>, <span class="kw-2">&amp;</span><span class="ident">output_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="macro">format!</span>(
                     <span class="string">&quot;Failed to prepare stubs for exercise at {}&quot;</span>,
                     <span class="ident">exercise_path</span>.<span class="ident">display</span>(),
                 )
             })<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished</span>(<span class="macro">format</span><span class="macro">!</span>(
+            <span class="ident">OutputKind::finished</span>(<span class="macro">format!</span>(
                 <span class="string">&quot;prepared stubs for {} at {}&quot;</span>,
                 <span class="ident">exercise_path</span>.<span class="ident">display</span>(),
                 <span class="ident">output_path</span>.<span class="ident">display</span>()
             ))
         }
 
-        <span class="ident">Command</span>::<span class="ident">PrepareSubmission</span> {
+        <span class="ident">Command::PrepareSubmission</span> {
             <span class="ident">clone_path</span>,
             <span class="ident">output_format</span>: <span class="ident">OutputFormatWrapper</span>(<span class="ident">output_format</span>),
             <span class="ident">output_path</span>,
@@ -1495,22 +1519,22 @@
             <span class="ident">top_level_dir_name</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// will contain for each key all the values with that key in a list</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmc_params_grouped</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmc_params_grouped</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
             <span class="kw">for</span> <span class="ident">value</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">tmc_param</span> {
                 <span class="kw">let</span> <span class="ident">params</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">split</span>(<span class="string">&#39;=&#39;</span>).<span class="ident">collect</span>();
                 <span class="kw">if</span> <span class="ident">params</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">2</span> {
-                    <span class="ident">Error</span>::<span class="ident">with_description</span>(
+                    <span class="ident">Error::with_description</span>(
                         <span class="string">&quot;tmc-param values should contain a single &#39;=&#39; as a delimiter.&quot;</span>,
-                        <span class="ident">ErrorKind</span>::<span class="ident">ValueValidation</span>,
+                        <span class="ident">ErrorKind::ValueValidation</span>,
                     )
                     .<span class="ident">exit</span>();
                 }
                 <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">params</span>[<span class="number">0</span>];
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">params</span>[<span class="number">1</span>];
-                <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">tmc_params_grouped</span>.<span class="ident">entry</span>(<span class="ident">key</span>).<span class="ident">or_insert_with</span>(<span class="ident">Vec</span>::<span class="ident">new</span>);
+                <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">tmc_params_grouped</span>.<span class="ident">entry</span>(<span class="ident">key</span>).<span class="ident">or_insert_with</span>(<span class="ident">Vec::new</span>);
                 <span class="ident">entry</span>.<span class="ident">push</span>(<span class="ident">value</span>);
             }
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmc_params</span> <span class="op">=</span> <span class="ident">tmc_langs</span>::<span class="ident">TmcParams</span>::<span class="ident">new</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmc_params</span> <span class="op">=</span> <span class="ident">tmc_langs::TmcParams::new</span>();
             <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">values</span>) <span class="kw">in</span> <span class="ident">tmc_params_grouped</span> {
                 <span class="kw">if</span> <span class="ident">values</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
                     <span class="comment">// 1-length lists are inserted as a string</span>
@@ -1524,7 +1548,7 @@
                 }
             }
 
-            <span class="ident">tmc_langs</span>::<span class="ident">prepare_submission</span>(
+            <span class="ident">tmc_langs::prepare_submission</span>(
                 <span class="kw-2">&amp;</span><span class="ident">submission_path</span>,
                 <span class="kw-2">&amp;</span><span class="ident">output_path</span>,
                 <span class="ident">top_level_dir_name</span>,
@@ -1533,59 +1557,59 @@
                 <span class="ident">stub_zip_path</span>.<span class="ident">as_deref</span>(),
                 <span class="ident">output_format</span>,
             )<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished</span>(<span class="macro">format</span><span class="macro">!</span>(
+            <span class="ident">OutputKind::finished</span>(<span class="macro">format!</span>(
                 <span class="string">&quot;prepared submission for {} at {}&quot;</span>,
                 <span class="ident">submission_path</span>.<span class="ident">display</span>(),
                 <span class="ident">output_path</span>.<span class="ident">display</span>()
             ))
         }
 
-        <span class="ident">Command</span>::<span class="ident">RefreshCourse</span> {
+        <span class="ident">Command::RefreshCourse</span> {
             <span class="ident">cache_path</span>,
             <span class="ident">cache_root</span>,
             <span class="ident">course_name</span>,
             <span class="ident">git_branch</span>,
             <span class="ident">source_url</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">refresh_result</span> <span class="op">=</span> <span class="ident">tmc_langs</span>::<span class="ident">refresh_course</span>(
+            <span class="kw">let</span> <span class="ident">refresh_result</span> <span class="op">=</span> <span class="ident">tmc_langs::refresh_course</span>(
                 <span class="ident">course_name</span>.<span class="ident">clone</span>(),
                 <span class="ident">cache_path</span>,
                 <span class="ident">source_url</span>,
                 <span class="ident">git_branch</span>,
                 <span class="ident">cache_root</span>,
             )
-            .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to refresh course {}&quot;</span>, <span class="ident">course_name</span>))<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(
-                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;refreshed course {}&quot;</span>, <span class="ident">course_name</span>),
-                <span class="ident">Data</span>::<span class="ident">RefreshResult</span>(<span class="ident">refresh_result</span>),
+            .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Failed to refresh course {}&quot;</span>, <span class="ident">course_name</span>))<span class="question-mark">?</span>;
+            <span class="ident">OutputKind::finished_with_data</span>(
+                <span class="macro">format!</span>(<span class="string">&quot;refreshed course {}&quot;</span>, <span class="ident">course_name</span>),
+                <span class="ident">DataKind::RefreshResult</span>(<span class="ident">refresh_result</span>),
             )
         }
 
-        <span class="ident">Command</span>::<span class="ident">RunTests</span> {
+        <span class="ident">Command::RunTests</span> {
             <span class="ident">checkstyle_output_path</span>,
             <span class="ident">exercise_path</span>,
             <span class="ident">locale</span>,
             <span class="ident">output_path</span>,
             <span class="ident">wait_for_secret</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">file_util</span>::<span class="macro">lock</span><span class="macro">!</span>(<span class="ident">exercise_path</span>);
+            <span class="macro">file_util::lock!</span>(<span class="ident">exercise_path</span>);
 
             <span class="kw">let</span> <span class="ident">secret</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">wait_for_secret</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
-                <span class="ident">io</span>::<span class="ident">stdin</span>().<span class="ident">read_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String::new</span>();
+                <span class="ident">io::stdin</span>().<span class="ident">read_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Some</span>(<span class="ident">s</span>.<span class="ident">trim</span>().<span class="ident">to_string</span>())
             } <span class="kw">else</span> {
                 <span class="prelude-val">None</span>
             };
 
-            <span class="kw">let</span> <span class="ident">test_result</span> <span class="op">=</span> <span class="ident">tmc_langs</span>::<span class="ident">run_tests</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="macro">format</span><span class="macro">!</span>(
+            <span class="kw">let</span> <span class="ident">test_result</span> <span class="op">=</span> <span class="ident">tmc_langs::run_tests</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="macro">format!</span>(
                     <span class="string">&quot;Failed to run tests for exercise at {}&quot;</span>,
                     <span class="ident">exercise_path</span>.<span class="ident">display</span>()
                 )
             });
 
-            <span class="kw">let</span> <span class="ident">test_result</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">env</span>::<span class="ident">var</span>(<span class="string">&quot;TMC_SANDBOX&quot;</span>).<span class="ident">is_ok</span>() {
+            <span class="kw">let</span> <span class="ident">test_result</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">env::var</span>(<span class="string">&quot;TMC_SANDBOX&quot;</span>).<span class="ident">is_ok</span>() {
                 <span class="comment">// in sandbox, wrap error to signal we want to write the output into a file</span>
                 <span class="ident">test_result</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">SandboxTestError</span> {
                     <span class="ident">path</span>: <span class="ident">output_path</span>.<span class="ident">clone</span>(),
@@ -1613,49 +1637,49 @@
                 )<span class="question-mark">?</span>;
             }
 
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(
-                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;ran tests for {}&quot;</span>, <span class="ident">exercise_path</span>.<span class="ident">display</span>()),
-                <span class="ident">Data</span>::<span class="ident">TestResult</span>(<span class="ident">test_result</span>),
+            <span class="ident">OutputKind::finished_with_data</span>(
+                <span class="macro">format!</span>(<span class="string">&quot;ran tests for {}&quot;</span>, <span class="ident">exercise_path</span>.<span class="ident">display</span>()),
+                <span class="ident">DataKind::TestResult</span>(<span class="ident">test_result</span>),
             )
         }
 
-        <span class="ident">Command</span>::<span class="ident">Settings</span>(<span class="ident">settings</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Command::Settings</span>(<span class="ident">settings</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">client_name</span> <span class="op">=</span> <span class="ident">require_client_name</span>(<span class="kw-2">&amp;</span><span class="ident">matches</span>.<span class="ident">client_name</span>)<span class="question-mark">?</span>;
             <span class="ident">run_settings</span>(<span class="ident">client_name</span>, <span class="ident">settings</span>)<span class="question-mark">?</span>
         }
 
-        <span class="ident">Command</span>::<span class="ident">ScanExercise</span> {
+        <span class="ident">Command::ScanExercise</span> {
             <span class="ident">exercise_path</span>,
             <span class="ident">output_path</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">file_util</span>::<span class="macro">lock</span><span class="macro">!</span>(<span class="ident">exercise_path</span>);
+            <span class="macro">file_util::lock!</span>(<span class="ident">exercise_path</span>);
 
             <span class="kw">let</span> <span class="ident">exercise_name</span> <span class="op">=</span> <span class="ident">exercise_path</span>.<span class="ident">file_name</span>().<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="macro">format</span><span class="macro">!</span>(
+                <span class="macro">format!</span>(
                     <span class="string">&quot;No file name found in exercise path {}&quot;</span>,
                     <span class="ident">exercise_path</span>.<span class="ident">display</span>()
                 )
             })<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">exercise_name</span> <span class="op">=</span> <span class="ident">exercise_name</span>.<span class="ident">to_str</span>().<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="macro">format</span><span class="macro">!</span>(
+                <span class="macro">format!</span>(
                     <span class="string">&quot;Exercise path&#39;s file name &#39;{:?}&#39; was not valid UTF8&quot;</span>,
                     <span class="ident">exercise_name</span>
                 )
             })<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">scan_result</span> <span class="op">=</span> <span class="ident">tmc_langs</span>::<span class="ident">scan_exercise</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>, <span class="ident">exercise_name</span>.<span class="ident">to_string</span>())
+            <span class="kw">let</span> <span class="ident">scan_result</span> <span class="op">=</span> <span class="ident">tmc_langs::scan_exercise</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_path</span>, <span class="ident">exercise_name</span>.<span class="ident">to_string</span>())
                 .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to scan exercise at {}&quot;</span>, <span class="ident">exercise_path</span>.<span class="ident">display</span>())
+                <span class="macro">format!</span>(<span class="string">&quot;Failed to scan exercise at {}&quot;</span>, <span class="ident">exercise_path</span>.<span class="ident">display</span>())
             })<span class="question-mark">?</span>;
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">output_path</span>) <span class="op">=</span> <span class="ident">output_path</span> {
                 <span class="ident">write_result_to_file_as_json</span>(<span class="kw-2">&amp;</span><span class="ident">scan_result</span>, <span class="kw-2">&amp;</span><span class="ident">output_path</span>, <span class="ident">matches</span>.<span class="ident">pretty</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
             }
 
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(
-                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;scanned exercise at {}&quot;</span>, <span class="ident">exercise_path</span>.<span class="ident">display</span>()),
-                <span class="ident">Data</span>::<span class="ident">ExerciseDesc</span>(<span class="ident">scan_result</span>),
+            <span class="ident">OutputKind::finished_with_data</span>(
+                <span class="macro">format!</span>(<span class="string">&quot;scanned exercise at {}&quot;</span>, <span class="ident">exercise_path</span>.<span class="ident">display</span>()),
+                <span class="ident">DataKind::ExerciseDesc</span>(<span class="ident">scan_result</span>),
             )
         }
     };
@@ -1663,29 +1687,29 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">run_core</span>(<span class="ident">client_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">client_version</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">core</span>: <span class="ident">Core</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Output</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">root_url</span> <span class="op">=</span> <span class="ident">env</span>::<span class="ident">var</span>(<span class="string">&quot;TMC_LANGS_ROOT_URL&quot;</span>)
+<span class="kw">fn</span> <span class="ident">run_core</span>(<span class="ident">client_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">client_version</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">core</span>: <span class="ident">Core</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OutputKind</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">root_url</span> <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;TMC_LANGS_ROOT_URL&quot;</span>)
         .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="string">&quot;https://tmc.mooc.fi/&quot;</span>.<span class="ident">to_string</span>())
         .<span class="ident">parse</span>()
         .<span class="ident">context</span>(<span class="string">&quot;Invalid TMC root url&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> (<span class="ident">client</span>, <span class="kw-2">mut</span> <span class="ident">credentials</span>) <span class="op">=</span>
-        <span class="ident">tmc_langs</span>::<span class="ident">init_tmc_client_with_credentials</span>(<span class="ident">root_url</span>, <span class="ident">client_name</span>, <span class="ident">client_version</span>)<span class="question-mark">?</span>;
+        <span class="ident">tmc_langs::init_tmc_client_with_credentials</span>(<span class="ident">root_url</span>, <span class="ident">client_name</span>, <span class="ident">client_version</span>)<span class="question-mark">?</span>;
 
     <span class="kw">match</span> <span class="ident">run_core_inner</span>(<span class="ident">client_name</span>, <span class="ident">core</span>, <span class="ident">client</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">credentials</span>) {
         <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">for</span> <span class="ident">cause</span> <span class="kw">in</span> <span class="ident">error</span>.<span class="ident">chain</span>() {
                 <span class="comment">// check if the token was rejected and delete it if so</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ClientError</span>::<span class="ident">HttpError</span> { <span class="ident">status</span>, .. }) <span class="op">=</span>
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ClientError::HttpError</span> { <span class="ident">status</span>, .. }) <span class="op">=</span>
                     <span class="ident">cause</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">ClientError</span><span class="op">&gt;</span>()
                 {
                     <span class="kw">if</span> <span class="ident">status</span>.<span class="ident">as_u16</span>() <span class="op">=</span><span class="op">=</span> <span class="number">401</span> {
-                        <span class="ident">log</span>::<span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Received HTTP 401 error, deleting credentials&quot;</span>);
+                        <span class="macro">log::error!</span>(<span class="string">&quot;Received HTTP 401 error, deleting credentials&quot;</span>);
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">credentials</span>) <span class="op">=</span> <span class="ident">credentials</span> {
                             <span class="ident">credentials</span>.<span class="ident">remove</span>()<span class="question-mark">?</span>;
                         }
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">InvalidTokenError</span> { <span class="ident">source</span>: <span class="ident">error</span> }.<span class="ident">into</span>());
                     } <span class="kw">else</span> {
-                        <span class="ident">log</span>::<span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;401 without credentials&quot;</span>);
+                        <span class="macro">log::warn!</span>(<span class="string">&quot;401 without credentials&quot;</span>);
                     }
                 }
             }
@@ -1700,60 +1724,60 @@
     <span class="ident">core</span>: <span class="ident">Core</span>,
     <span class="kw-2">mut</span> <span class="ident">client</span>: <span class="ident">TmcClient</span>,
     <span class="ident">credentials</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Credentials</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Output</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OutputKind</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">core</span> {
-        <span class="ident">Core</span>::<span class="ident">CheckExerciseUpdates</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">projects_dir</span> <span class="op">=</span> <span class="ident">tmc_langs</span>::<span class="ident">get_projects_dir</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">updated_exercises</span> <span class="op">=</span> <span class="ident">tmc_langs</span>::<span class="ident">check_exercise_updates</span>(<span class="kw-2">&amp;</span><span class="ident">client</span>, <span class="kw-2">&amp;</span><span class="ident">projects_dir</span>)
+        <span class="ident">Core::CheckExerciseUpdates</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">projects_dir</span> <span class="op">=</span> <span class="ident">tmc_langs::get_projects_dir</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">updated_exercises</span> <span class="op">=</span> <span class="ident">tmc_langs::check_exercise_updates</span>(<span class="kw-2">&amp;</span><span class="ident">client</span>, <span class="kw-2">&amp;</span><span class="ident">projects_dir</span>)
                 .<span class="ident">context</span>(<span class="string">&quot;Failed to check exercise updates&quot;</span>)<span class="question-mark">?</span>
                 .<span class="ident">into_iter</span>()
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">id</span><span class="op">|</span> <span class="ident">UpdatedExercise</span> { <span class="ident">id</span> })
                 .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(
+            <span class="ident">OutputKind::finished_with_data</span>(
                 <span class="string">&quot;updated exercises&quot;</span>,
-                <span class="ident">Data</span>::<span class="ident">UpdatedExercises</span>(<span class="ident">updated_exercises</span>),
+                <span class="ident">DataKind::UpdatedExercises</span>(<span class="ident">updated_exercises</span>),
             )
         }
 
-        <span class="ident">Core</span>::<span class="ident">DownloadModelSolution</span> {
+        <span class="ident">Core::DownloadModelSolution</span> {
             <span class="ident">exercise_id</span>,
             <span class="ident">target</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="ident">client</span>
                 .<span class="ident">download_model_solution</span>(<span class="ident">exercise_id</span>, <span class="kw-2">&amp;</span><span class="ident">target</span>)
                 .<span class="ident">context</span>(<span class="string">&quot;Failed to download model solution&quot;</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished</span>(<span class="string">&quot;downloaded model solution&quot;</span>)
+            <span class="ident">OutputKind::finished</span>(<span class="string">&quot;downloaded model solution&quot;</span>)
         }
 
-        <span class="ident">Core</span>::<span class="ident">DownloadOldSubmission</span> {
+        <span class="ident">Core::DownloadOldSubmission</span> {
             <span class="ident">submission_id</span>,
             <span class="ident">save_old_state</span>,
             <span class="ident">exercise_id</span>,
             <span class="ident">output_path</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">tmc_langs</span>::<span class="ident">download_old_submission</span>(
+            <span class="ident">tmc_langs::download_old_submission</span>(
                 <span class="kw-2">&amp;</span><span class="ident">client</span>,
                 <span class="ident">exercise_id</span>,
                 <span class="kw-2">&amp;</span><span class="ident">output_path</span>,
                 <span class="ident">submission_id</span>,
                 <span class="ident">save_old_state</span>,
             )<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished</span>(<span class="string">&quot;extracted project&quot;</span>)
+            <span class="ident">OutputKind::finished</span>(<span class="string">&quot;extracted project&quot;</span>)
         }
 
-        <span class="ident">Core</span>::<span class="ident">DownloadOrUpdateCourseExercises</span> {
+        <span class="ident">Core::DownloadOrUpdateCourseExercises</span> {
             <span class="ident">download_template</span>,
             <span class="ident">exercise_id</span>: <span class="ident">exercise_ids</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">projects_dir</span> <span class="op">=</span> <span class="ident">tmc_langs</span>::<span class="ident">get_projects_dir</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">tmc_langs</span>::<span class="ident">download_or_update_course_exercises</span>(
+            <span class="kw">let</span> <span class="ident">projects_dir</span> <span class="op">=</span> <span class="ident">tmc_langs::get_projects_dir</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">tmc_langs::download_or_update_course_exercises</span>(
                 <span class="kw-2">&amp;</span><span class="ident">client</span>,
                 <span class="kw-2">&amp;</span><span class="ident">projects_dir</span>,
                 <span class="kw-2">&amp;</span><span class="ident">exercise_ids</span>,
                 <span class="ident">download_template</span>,
             )<span class="question-mark">?</span> {
-                <span class="ident">DownloadResult</span>::<span class="ident">Success</span> {
+                <span class="ident">DownloadResult::Success</span> {
                     <span class="ident">downloaded</span>,
                     <span class="ident">skipped</span>,
                 } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DownloadOrUpdateCourseExercisesResult</span> {
@@ -1761,7 +1785,7 @@
                     <span class="ident">skipped</span>,
                     <span class="ident">failed</span>: <span class="prelude-val">None</span>,
                 },
-                <span class="ident">DownloadResult</span>::<span class="ident">Failure</span> {
+                <span class="ident">DownloadResult::Failure</span> {
                     <span class="ident">downloaded</span>,
                     <span class="ident">skipped</span>,
                     <span class="ident">failed</span>,
@@ -1771,73 +1795,85 @@
                     <span class="ident">failed</span>: <span class="prelude-val">Some</span>(<span class="ident">failed</span>),
                 },
             };
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(
+            <span class="ident">OutputKind::finished_with_data</span>(
                 <span class="string">&quot;downloaded or updated exercises&quot;</span>,
-                <span class="ident">Data</span>::<span class="ident">ExerciseDownload</span>(<span class="ident">data</span>),
+                <span class="ident">DataKind::ExerciseDownload</span>(<span class="ident">data</span>),
             )
         }
 
-        <span class="ident">Core</span>::<span class="ident">GetCourseData</span> { <span class="ident">course_id</span> } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">tmc_langs</span>::<span class="ident">get_course_data</span>(<span class="kw-2">&amp;</span><span class="ident">client</span>, <span class="ident">course_id</span>)
+        <span class="ident">Core::GetCourseData</span> { <span class="ident">course_id</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">tmc_langs::get_course_data</span>(<span class="kw-2">&amp;</span><span class="ident">client</span>, <span class="ident">course_id</span>)
                 .<span class="ident">context</span>(<span class="string">&quot;Failed to get course data&quot;</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(
+            <span class="ident">OutputKind::finished_with_data</span>(
                 <span class="string">&quot;fetched course data&quot;</span>,
-                <span class="ident">Data</span>::<span class="ident">CombinedCourseData</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">data</span>)),
+                <span class="ident">DataKind::CombinedCourseData</span>(<span class="ident">Box::new</span>(<span class="ident">data</span>)),
             )
         }
 
-        <span class="ident">Core</span>::<span class="ident">GetCourseDetails</span> { <span class="ident">course_id</span> } <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Core::GetCourseDetails</span> { <span class="ident">course_id</span> } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">details</span> <span class="op">=</span> <span class="ident">client</span>
                 .<span class="ident">get_course_details</span>(<span class="ident">course_id</span>)
                 .<span class="ident">context</span>(<span class="string">&quot;Failed to get course details&quot;</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(<span class="string">&quot;fetched course details&quot;</span>, <span class="ident">Data</span>::<span class="ident">CourseDetails</span>(<span class="ident">details</span>))
-        }
-
-        <span class="ident">Core</span>::<span class="ident">GetCourseExercises</span> { <span class="ident">course_id</span> } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">exercises</span> <span class="op">=</span> <span class="ident">client</span>
-                .<span class="ident">get_course_exercises</span>(<span class="ident">course_id</span>)
-                .<span class="ident">context</span>(<span class="string">&quot;Failed to get course&quot;</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(<span class="string">&quot;fetched course exercises&quot;</span>, <span class="ident">Data</span>::<span class="ident">CourseExercises</span>(<span class="ident">exercises</span>))
-        }
-
-        <span class="ident">Core</span>::<span class="ident">GetCourseSettings</span> { <span class="ident">course_id</span> } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">settings</span> <span class="op">=</span> <span class="ident">client</span>
-                .<span class="ident">get_course</span>(<span class="ident">course_id</span>)
-                .<span class="ident">context</span>(<span class="string">&quot;Failed to get course&quot;</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(<span class="string">&quot;fetched course settings&quot;</span>, <span class="ident">Data</span>::<span class="ident">CourseData</span>(<span class="ident">settings</span>))
-        }
-
-        <span class="ident">Core</span>::<span class="ident">GetCourses</span> { <span class="ident">organization</span> } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">courses</span> <span class="op">=</span> <span class="ident">client</span>
-                .<span class="ident">list_courses</span>(<span class="kw-2">&amp;</span><span class="ident">organization</span>)
-                .<span class="ident">context</span>(<span class="string">&quot;Failed to get courses&quot;</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(<span class="string">&quot;fetched courses&quot;</span>, <span class="ident">Data</span>::<span class="ident">Courses</span>(<span class="ident">courses</span>))
-        }
-
-        <span class="ident">Core</span>::<span class="ident">GetExerciseDetails</span> { <span class="ident">exercise_id</span> } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">course</span> <span class="op">=</span> <span class="ident">client</span>
-                .<span class="ident">get_exercise_details</span>(<span class="ident">exercise_id</span>)
-                .<span class="ident">context</span>(<span class="string">&quot;Failed to get course&quot;</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(<span class="string">&quot;fetched exercise details&quot;</span>, <span class="ident">Data</span>::<span class="ident">ExerciseDetails</span>(<span class="ident">course</span>))
-        }
-
-        <span class="ident">Core</span>::<span class="ident">GetExerciseSubmissions</span> { <span class="ident">exercise_id</span> } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">submissions</span> <span class="op">=</span> <span class="ident">client</span>
-                .<span class="ident">get_exercise_submissions_for_current_user</span>(<span class="ident">exercise_id</span>)
-                .<span class="ident">context</span>(<span class="string">&quot;Failed to get submissions&quot;</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(
-                <span class="string">&quot;fetched exercise submissions&quot;</span>,
-                <span class="ident">Data</span>::<span class="ident">Submissions</span>(<span class="ident">submissions</span>),
+            <span class="ident">OutputKind::finished_with_data</span>(
+                <span class="string">&quot;fetched course details&quot;</span>,
+                <span class="ident">DataKind::CourseDetails</span>(<span class="ident">details</span>),
             )
         }
 
-        <span class="ident">Core</span>::<span class="ident">GetExerciseUpdates</span> {
+        <span class="ident">Core::GetCourseExercises</span> { <span class="ident">course_id</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">exercises</span> <span class="op">=</span> <span class="ident">client</span>
+                .<span class="ident">get_course_exercises</span>(<span class="ident">course_id</span>)
+                .<span class="ident">context</span>(<span class="string">&quot;Failed to get course&quot;</span>)<span class="question-mark">?</span>;
+            <span class="ident">OutputKind::finished_with_data</span>(
+                <span class="string">&quot;fetched course exercises&quot;</span>,
+                <span class="ident">DataKind::CourseExercises</span>(<span class="ident">exercises</span>),
+            )
+        }
+
+        <span class="ident">Core::GetCourseSettings</span> { <span class="ident">course_id</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">settings</span> <span class="op">=</span> <span class="ident">client</span>
+                .<span class="ident">get_course</span>(<span class="ident">course_id</span>)
+                .<span class="ident">context</span>(<span class="string">&quot;Failed to get course&quot;</span>)<span class="question-mark">?</span>;
+            <span class="ident">OutputKind::finished_with_data</span>(
+                <span class="string">&quot;fetched course settings&quot;</span>,
+                <span class="ident">DataKind::CourseData</span>(<span class="ident">settings</span>),
+            )
+        }
+
+        <span class="ident">Core::GetCourses</span> { <span class="ident">organization</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">courses</span> <span class="op">=</span> <span class="ident">client</span>
+                .<span class="ident">list_courses</span>(<span class="kw-2">&amp;</span><span class="ident">organization</span>)
+                .<span class="ident">context</span>(<span class="string">&quot;Failed to get courses&quot;</span>)<span class="question-mark">?</span>;
+            <span class="ident">OutputKind::finished_with_data</span>(<span class="string">&quot;fetched courses&quot;</span>, <span class="ident">DataKind::Courses</span>(<span class="ident">courses</span>))
+        }
+
+        <span class="ident">Core::GetExerciseDetails</span> { <span class="ident">exercise_id</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">course</span> <span class="op">=</span> <span class="ident">client</span>
+                .<span class="ident">get_exercise_details</span>(<span class="ident">exercise_id</span>)
+                .<span class="ident">context</span>(<span class="string">&quot;Failed to get course&quot;</span>)<span class="question-mark">?</span>;
+            <span class="ident">OutputKind::finished_with_data</span>(
+                <span class="string">&quot;fetched exercise details&quot;</span>,
+                <span class="ident">DataKind::ExerciseDetails</span>(<span class="ident">course</span>),
+            )
+        }
+
+        <span class="ident">Core::GetExerciseSubmissions</span> { <span class="ident">exercise_id</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">submissions</span> <span class="op">=</span> <span class="ident">client</span>
+                .<span class="ident">get_exercise_submissions_for_current_user</span>(<span class="ident">exercise_id</span>)
+                .<span class="ident">context</span>(<span class="string">&quot;Failed to get submissions&quot;</span>)<span class="question-mark">?</span>;
+            <span class="ident">OutputKind::finished_with_data</span>(
+                <span class="string">&quot;fetched exercise submissions&quot;</span>,
+                <span class="ident">DataKind::Submissions</span>(<span class="ident">submissions</span>),
+            )
+        }
+
+        <span class="ident">Core::GetExerciseUpdates</span> {
             <span class="ident">course_id</span>,
             <span class="ident">exercise</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// collects exercise checksums into an {id: checksum} map</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercise_checksums</span> <span class="op">=</span> <span class="ident">exercise</span>.<span class="ident">into_iter</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">checksums</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">checksums</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
             <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">exercise_id</span>) <span class="op">=</span> <span class="ident">exercise_checksums</span>.<span class="ident">next</span>() {
                 <span class="kw">let</span> <span class="ident">exercise_id</span> <span class="op">=</span> <span class="ident">into_u32</span>(<span class="kw-2">&amp;</span><span class="ident">exercise_id</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">checksum</span> <span class="op">=</span> <span class="ident">exercise_checksums</span>
@@ -1849,127 +1885,127 @@
             <span class="kw">let</span> <span class="ident">update_result</span> <span class="op">=</span> <span class="ident">client</span>
                 .<span class="ident">get_exercise_updates</span>(<span class="ident">course_id</span>, <span class="ident">checksums</span>)
                 .<span class="ident">context</span>(<span class="string">&quot;Failed to get exercise updates&quot;</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(
+            <span class="ident">OutputKind::finished_with_data</span>(
                 <span class="string">&quot;fetched exercise updates&quot;</span>,
-                <span class="ident">Data</span>::<span class="ident">UpdateResult</span>(<span class="ident">update_result</span>),
+                <span class="ident">DataKind::UpdateResult</span>(<span class="ident">update_result</span>),
             )
         }
 
-        <span class="ident">Core</span>::<span class="ident">GetOrganization</span> { <span class="ident">organization</span> } <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Core::GetOrganization</span> { <span class="ident">organization</span> } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">org</span> <span class="op">=</span> <span class="ident">client</span>
                 .<span class="ident">get_organization</span>(<span class="kw-2">&amp;</span><span class="ident">organization</span>)
                 .<span class="ident">context</span>(<span class="string">&quot;Failed to get organization&quot;</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(<span class="string">&quot;fetched organization&quot;</span>, <span class="ident">Data</span>::<span class="ident">Organization</span>(<span class="ident">org</span>))
+            <span class="ident">OutputKind::finished_with_data</span>(<span class="string">&quot;fetched organization&quot;</span>, <span class="ident">DataKind::Organization</span>(<span class="ident">org</span>))
         }
 
-        <span class="ident">Core</span>::<span class="ident">GetOrganizations</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Core::GetOrganizations</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">orgs</span> <span class="op">=</span> <span class="ident">client</span>
                 .<span class="ident">get_organizations</span>()
                 .<span class="ident">context</span>(<span class="string">&quot;Failed to get organizations&quot;</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(<span class="string">&quot;fetched organizations&quot;</span>, <span class="ident">Data</span>::<span class="ident">Organizations</span>(<span class="ident">orgs</span>))
+            <span class="ident">OutputKind::finished_with_data</span>(<span class="string">&quot;fetched organizations&quot;</span>, <span class="ident">DataKind::Organizations</span>(<span class="ident">orgs</span>))
         }
 
-        <span class="ident">Core</span>::<span class="ident">GetUnreadReviews</span> { <span class="ident">course_id</span> } <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Core::GetUnreadReviews</span> { <span class="ident">course_id</span> } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">reviews</span> <span class="op">=</span> <span class="ident">client</span>
                 .<span class="ident">get_unread_reviews</span>(<span class="ident">course_id</span>)
                 .<span class="ident">context</span>(<span class="string">&quot;Failed to get unread reviews&quot;</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(<span class="string">&quot;fetched unread reviews&quot;</span>, <span class="ident">Data</span>::<span class="ident">Reviews</span>(<span class="ident">reviews</span>))
+            <span class="ident">OutputKind::finished_with_data</span>(<span class="string">&quot;fetched unread reviews&quot;</span>, <span class="ident">DataKind::Reviews</span>(<span class="ident">reviews</span>))
         }
 
-        <span class="ident">Core</span>::<span class="ident">LoggedIn</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Core::LoggedIn</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">credentials</span>) <span class="op">=</span> <span class="ident">credentials</span> {
-                <span class="ident">Output</span>::<span class="ident">OutputData</span>(<span class="ident">OutputData</span> {
-                    <span class="ident">status</span>: <span class="ident">Status</span>::<span class="ident">Finished</span>,
+                <span class="ident">OutputKind::OutputData</span>(<span class="ident">OutputData</span> {
+                    <span class="ident">status</span>: <span class="ident">Status::Finished</span>,
                     <span class="ident">message</span>: <span class="string">&quot;currently logged in&quot;</span>.<span class="ident">to_string</span>(),
-                    <span class="ident">result</span>: <span class="ident">OutputResult</span>::<span class="ident">LoggedIn</span>,
-                    <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">Data</span>::<span class="ident">Token</span>(<span class="ident">credentials</span>.<span class="ident">token</span>())),
+                    <span class="ident">result</span>: <span class="ident">OutputResult::LoggedIn</span>,
+                    <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">DataKind::Token</span>(<span class="ident">credentials</span>.<span class="ident">token</span>())),
                 })
             } <span class="kw">else</span> {
-                <span class="ident">Output</span>::<span class="ident">OutputData</span>(<span class="ident">OutputData</span> {
-                    <span class="ident">status</span>: <span class="ident">Status</span>::<span class="ident">Finished</span>,
+                <span class="ident">OutputKind::OutputData</span>(<span class="ident">OutputData</span> {
+                    <span class="ident">status</span>: <span class="ident">Status::Finished</span>,
                     <span class="ident">message</span>: <span class="string">&quot;currently not logged in&quot;</span>.<span class="ident">to_string</span>(),
-                    <span class="ident">result</span>: <span class="ident">OutputResult</span>::<span class="ident">NotLoggedIn</span>,
+                    <span class="ident">result</span>: <span class="ident">OutputResult::NotLoggedIn</span>,
                     <span class="ident">data</span>: <span class="prelude-val">None</span>,
                 })
             }
         }
 
-        <span class="ident">Core</span>::<span class="ident">Login</span> {
+        <span class="ident">Core::Login</span> {
             <span class="ident">base64</span>,
             <span class="ident">email</span>,
             <span class="ident">set_access_token</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// get token from argument or server</span>
             <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span> <span class="ident">set_access_token</span> {
-                <span class="ident">tmc_langs</span>::<span class="ident">login_with_token</span>(<span class="ident">token</span>)
+                <span class="ident">tmc_langs::login_with_token</span>(<span class="ident">token</span>)
             } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">email</span>) <span class="op">=</span> <span class="ident">email</span> {
                 <span class="comment">// TODO: print &quot;Please enter password&quot; and add &quot;quiet&quot;  flag</span>
-                <span class="kw">let</span> <span class="ident">password</span> <span class="op">=</span> <span class="ident">rpassword</span>::<span class="ident">read_password</span>().<span class="ident">context</span>(<span class="string">&quot;Failed to read password&quot;</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">password</span> <span class="op">=</span> <span class="ident">rpassword::read_password</span>().<span class="ident">context</span>(<span class="string">&quot;Failed to read password&quot;</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">decoded</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">base64</span> {
-                    <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">base64</span>::<span class="ident">decode</span>(<span class="ident">password</span>)<span class="question-mark">?</span>;
-                    <span class="ident">String</span>::<span class="ident">from_utf8</span>(<span class="ident">bytes</span>).<span class="ident">context</span>(<span class="string">&quot;Failed to decode password with base64&quot;</span>)<span class="question-mark">?</span>
+                    <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">base64::decode</span>(<span class="ident">password</span>)<span class="question-mark">?</span>;
+                    <span class="ident">String::from_utf8</span>(<span class="ident">bytes</span>).<span class="ident">context</span>(<span class="string">&quot;Failed to decode password with base64&quot;</span>)<span class="question-mark">?</span>
                 } <span class="kw">else</span> {
                     <span class="ident">password</span>
                 };
-                <span class="ident">tmc_langs</span>::<span class="ident">login_with_password</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">client</span>, <span class="ident">client_name</span>, <span class="ident">email</span>, <span class="ident">decoded</span>)<span class="question-mark">?</span>
+                <span class="ident">tmc_langs::login_with_password</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">client</span>, <span class="ident">client_name</span>, <span class="ident">email</span>, <span class="ident">decoded</span>)<span class="question-mark">?</span>
             } <span class="kw">else</span> {
-                <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;validation error&quot;</span>);
+                <span class="macro">unreachable!</span>(<span class="string">&quot;validation error&quot;</span>);
             };
 
             <span class="comment">// create token file</span>
-            <span class="ident">Credentials</span>::<span class="ident">save</span>(<span class="ident">client_name</span>, <span class="ident">token</span>)<span class="question-mark">?</span>;
+            <span class="ident">Credentials::save</span>(<span class="ident">client_name</span>, <span class="ident">token</span>)<span class="question-mark">?</span>;
 
-            <span class="ident">Output</span>::<span class="ident">OutputData</span>(<span class="ident">OutputData</span> {
-                <span class="ident">status</span>: <span class="ident">Status</span>::<span class="ident">Finished</span>,
+            <span class="ident">OutputKind::OutputData</span>(<span class="ident">OutputData</span> {
+                <span class="ident">status</span>: <span class="ident">Status::Finished</span>,
                 <span class="ident">message</span>: <span class="string">&quot;logged in&quot;</span>.<span class="ident">to_string</span>(),
-                <span class="ident">result</span>: <span class="ident">OutputResult</span>::<span class="ident">LoggedIn</span>,
+                <span class="ident">result</span>: <span class="ident">OutputResult::LoggedIn</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             })
         }
 
-        <span class="ident">Core</span>::<span class="ident">Logout</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Core::Logout</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">credentials</span>) <span class="op">=</span> <span class="ident">credentials</span>.<span class="ident">take</span>() {
                 <span class="ident">credentials</span>.<span class="ident">remove</span>()<span class="question-mark">?</span>;
             }
-            <span class="ident">Output</span>::<span class="ident">OutputData</span>(<span class="ident">OutputData</span> {
-                <span class="ident">status</span>: <span class="ident">Status</span>::<span class="ident">Finished</span>,
+            <span class="ident">OutputKind::OutputData</span>(<span class="ident">OutputData</span> {
+                <span class="ident">status</span>: <span class="ident">Status::Finished</span>,
                 <span class="ident">message</span>: <span class="string">&quot;logged out&quot;</span>.<span class="ident">to_string</span>(),
-                <span class="ident">result</span>: <span class="ident">OutputResult</span>::<span class="ident">LoggedOut</span>,
+                <span class="ident">result</span>: <span class="ident">OutputResult::LoggedOut</span>,
                 <span class="ident">data</span>: <span class="prelude-val">None</span>,
             })
         }
 
-        <span class="ident">Core</span>::<span class="ident">MarkReviewAsRead</span> {
+        <span class="ident">Core::MarkReviewAsRead</span> {
             <span class="ident">course_id</span>,
             <span class="ident">review_id</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="ident">client</span>
                 .<span class="ident">mark_review_as_read</span>(<span class="ident">course_id</span>, <span class="ident">review_id</span>)
                 .<span class="ident">context</span>(<span class="string">&quot;Failed to mark review as read&quot;</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished</span>(<span class="string">&quot;marked review as read&quot;</span>)
+            <span class="ident">OutputKind::finished</span>(<span class="string">&quot;marked review as read&quot;</span>)
         }
 
-        <span class="ident">Core</span>::<span class="ident">Paste</span> {
+        <span class="ident">Core::Paste</span> {
             <span class="ident">exercise_id</span>,
             <span class="ident">locale</span>,
             <span class="ident">paste_message</span>,
             <span class="ident">submission_path</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">file_util</span>::<span class="macro">lock</span><span class="macro">!</span>(<span class="ident">submission_path</span>);
+            <span class="macro">file_util::lock!</span>(<span class="ident">submission_path</span>);
             <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="number">0</span>);
             <span class="kw">let</span> <span class="ident">new_submission</span> <span class="op">=</span> <span class="ident">client</span>
                 .<span class="ident">paste</span>(<span class="ident">exercise_id</span>, <span class="kw-2">&amp;</span><span class="ident">submission_path</span>, <span class="ident">paste_message</span>, <span class="ident">locale</span>)
                 .<span class="ident">context</span>(<span class="string">&quot;Failed to get paste with comment&quot;</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(<span class="string">&quot;sent paste&quot;</span>, <span class="ident">Data</span>::<span class="ident">NewSubmission</span>(<span class="ident">new_submission</span>))
+            <span class="ident">OutputKind::finished_with_data</span>(<span class="string">&quot;sent paste&quot;</span>, <span class="ident">DataKind::NewSubmission</span>(<span class="ident">new_submission</span>))
         }
 
-        <span class="ident">Core</span>::<span class="ident">RequestCodeReview</span> {
+        <span class="ident">Core::RequestCodeReview</span> {
             <span class="ident">exercise_id</span>,
             <span class="ident">locale</span>: <span class="ident">Locale</span>(<span class="ident">locale</span>),
             <span class="ident">message_for_reviewer</span>,
             <span class="ident">submission_path</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">file_util</span>::<span class="macro">lock</span><span class="macro">!</span>(<span class="ident">submission_path</span>);
+            <span class="macro">file_util::lock!</span>(<span class="ident">submission_path</span>);
             <span class="kw">let</span> <span class="ident">new_submission</span> <span class="op">=</span> <span class="ident">client</span>
                 .<span class="ident">request_code_review</span>(
                     <span class="ident">exercise_id</span>,
@@ -1978,30 +2014,33 @@
                     <span class="prelude-val">Some</span>(<span class="ident">locale</span>),
                 )
                 .<span class="ident">context</span>(<span class="string">&quot;Failed to request code review&quot;</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(<span class="string">&quot;requested code review&quot;</span>, <span class="ident">Data</span>::<span class="ident">NewSubmission</span>(<span class="ident">new_submission</span>))
+            <span class="ident">OutputKind::finished_with_data</span>(
+                <span class="string">&quot;requested code review&quot;</span>,
+                <span class="ident">DataKind::NewSubmission</span>(<span class="ident">new_submission</span>),
+            )
         }
 
-        <span class="ident">Core</span>::<span class="ident">ResetExercise</span> {
+        <span class="ident">Core::ResetExercise</span> {
             <span class="ident">exercise_id</span>,
             <span class="ident">save_old_state</span>,
             <span class="ident">exercise_path</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">file_util</span>::<span class="macro">lock</span><span class="macro">!</span>(<span class="ident">exercise_path</span>);
+            <span class="macro">file_util::lock!</span>(<span class="ident">exercise_path</span>);
             <span class="kw">if</span> <span class="ident">save_old_state</span> {
                 <span class="comment">// submit current state</span>
                 <span class="ident">client</span>.<span class="ident">submit</span>(<span class="ident">exercise_id</span>, <span class="kw-2">&amp;</span><span class="ident">exercise_path</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">tmc_langs</span>::<span class="ident">reset</span>(<span class="kw-2">&amp;</span><span class="ident">client</span>, <span class="ident">exercise_id</span>, <span class="kw-2">&amp;</span><span class="ident">exercise_path</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished</span>(<span class="string">&quot;reset exercise&quot;</span>)
+            <span class="ident">tmc_langs::reset</span>(<span class="kw-2">&amp;</span><span class="ident">client</span>, <span class="ident">exercise_id</span>, <span class="kw-2">&amp;</span><span class="ident">exercise_path</span>)<span class="question-mark">?</span>;
+            <span class="ident">OutputKind::finished</span>(<span class="string">&quot;reset exercise&quot;</span>)
         }
 
-        <span class="ident">Core</span>::<span class="ident">SendFeedback</span> {
+        <span class="ident">Core::SendFeedback</span> {
             <span class="ident">submission_id</span>,
             <span class="ident">feedback_url</span>,
             <span class="ident">feedback</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">feedback_answers</span> <span class="op">=</span> <span class="ident">feedback</span>.<span class="ident">into_iter</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">feedback</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">feedback</span> <span class="op">=</span> <span class="macro">vec!</span>[];
             <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">feedback_id</span>) <span class="op">=</span> <span class="ident">feedback_answers</span>.<span class="ident">next</span>() {
                 <span class="kw">let</span> <span class="ident">question_id</span> <span class="op">=</span> <span class="ident">into_u32</span>(<span class="kw-2">&amp;</span><span class="ident">feedback_id</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">answer</span> <span class="op">=</span> <span class="ident">feedback_answers</span>
@@ -2022,82 +2061,88 @@
                 <span class="kw">let</span> <span class="ident">feedback_url</span> <span class="op">=</span> <span class="ident">feedback_url</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
                 <span class="ident">client</span>.<span class="ident">send_feedback_to_url</span>(<span class="ident">feedback_url</span>, <span class="ident">feedback</span>)<span class="question-mark">?</span>
             } <span class="kw">else</span> {
-                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;validation error&quot;</span>)
+                <span class="macro">panic!</span>(<span class="string">&quot;validation error&quot;</span>)
             };
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(<span class="string">&quot;sent feedback&quot;</span>, <span class="ident">Data</span>::<span class="ident">SubmissionFeedbackResponse</span>(<span class="ident">response</span>))
+            <span class="ident">OutputKind::finished_with_data</span>(
+                <span class="string">&quot;sent feedback&quot;</span>,
+                <span class="ident">DataKind::SubmissionFeedbackResponse</span>(<span class="ident">response</span>),
+            )
         }
 
-        <span class="ident">Core</span>::<span class="ident">Submit</span> {
+        <span class="ident">Core::Submit</span> {
             <span class="ident">dont_block</span>,
             <span class="ident">locale</span>,
             <span class="ident">submission_path</span>,
             <span class="ident">exercise_id</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">file_util</span>::<span class="macro">lock</span><span class="macro">!</span>(<span class="ident">submission_path</span>);
+            <span class="macro">file_util::lock!</span>(<span class="ident">submission_path</span>);
             <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="number">0</span>);
             <span class="kw">let</span> <span class="ident">new_submission</span> <span class="op">=</span> <span class="ident">client</span>
                 .<span class="ident">submit</span>(<span class="ident">exercise_id</span>, <span class="kw-2">&amp;</span><span class="ident">submission_path</span>, <span class="ident">locale</span>)
                 .<span class="ident">context</span>(<span class="string">&quot;Failed to submit&quot;</span>)<span class="question-mark">?</span>;
 
             <span class="kw">if</span> <span class="ident">dont_block</span> {
-                <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(<span class="string">&quot;submit exercise&quot;</span>, <span class="ident">Data</span>::<span class="ident">NewSubmission</span>(<span class="ident">new_submission</span>))
+                <span class="ident">OutputKind::finished_with_data</span>(
+                    <span class="string">&quot;submit exercise&quot;</span>,
+                    <span class="ident">DataKind::NewSubmission</span>(<span class="ident">new_submission</span>),
+                )
             } <span class="kw">else</span> {
                 <span class="comment">// same as wait-for-submission</span>
                 <span class="kw">let</span> <span class="ident">submission_url</span> <span class="op">=</span> <span class="ident">new_submission</span>.<span class="ident">submission_url</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">submission_finished</span> <span class="op">=</span> <span class="ident">client</span>
                     .<span class="ident">wait_for_submission_at</span>(<span class="ident">submission_url</span>)
                     .<span class="ident">context</span>(<span class="string">&quot;Failed while waiting for submissions&quot;</span>)<span class="question-mark">?</span>;
-                <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(
+                <span class="ident">OutputKind::finished_with_data</span>(
                     <span class="string">&quot;submit exercise&quot;</span>,
-                    <span class="ident">Data</span>::<span class="ident">SubmissionFinished</span>(<span class="ident">submission_finished</span>),
+                    <span class="ident">DataKind::SubmissionFinished</span>(<span class="ident">submission_finished</span>),
                 )
             }
         }
 
-        <span class="ident">Core</span>::<span class="ident">UpdateExercises</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">projects_dir</span> <span class="op">=</span> <span class="ident">tmc_langs</span>::<span class="ident">get_projects_dir</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">tmc_langs</span>::<span class="ident">update_exercises</span>(<span class="kw-2">&amp;</span><span class="ident">client</span>, <span class="kw-2">&amp;</span><span class="ident">projects_dir</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(
+        <span class="ident">Core::UpdateExercises</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">projects_dir</span> <span class="op">=</span> <span class="ident">tmc_langs::get_projects_dir</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">tmc_langs::update_exercises</span>(<span class="kw-2">&amp;</span><span class="ident">client</span>, <span class="kw-2">&amp;</span><span class="ident">projects_dir</span>)<span class="question-mark">?</span>;
+            <span class="ident">OutputKind::finished_with_data</span>(
                 <span class="string">&quot;downloaded or updated exercises&quot;</span>,
-                <span class="ident">Data</span>::<span class="ident">ExerciseDownload</span>(<span class="ident">data</span>),
+                <span class="ident">DataKind::ExerciseDownload</span>(<span class="ident">data</span>),
             )
         }
 
-        <span class="ident">Core</span>::<span class="ident">WaitForSubmission</span> { <span class="ident">submission_id</span> } <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Core::WaitForSubmission</span> { <span class="ident">submission_id</span> } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">submission_finished</span> <span class="op">=</span> <span class="ident">client</span>
                 .<span class="ident">wait_for_submission</span>(<span class="ident">submission_id</span>)
                 .<span class="ident">context</span>(<span class="string">&quot;Failed while waiting for submissions&quot;</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(
+            <span class="ident">OutputKind::finished_with_data</span>(
                 <span class="string">&quot;finished waiting for submission&quot;</span>,
-                <span class="ident">Data</span>::<span class="ident">SubmissionFinished</span>(<span class="ident">submission_finished</span>),
+                <span class="ident">DataKind::SubmissionFinished</span>(<span class="ident">submission_finished</span>),
             )
         }
     };
     <span class="prelude-val">Ok</span>(<span class="ident">output</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">run_settings</span>(<span class="ident">client_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">settings</span>: <span class="ident">Settings</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Output</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">run_settings</span>(<span class="ident">client_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">settings</span>: <span class="ident">Settings</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OutputKind</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">settings</span> {
-        <span class="ident">Settings</span>::<span class="ident">Get</span> { <span class="ident">setting</span> } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">tmc_langs</span>::<span class="ident">get_setting</span>(<span class="ident">client_name</span>, <span class="kw-2">&amp;</span><span class="ident">setting</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(<span class="string">&quot;retrieved value&quot;</span>, <span class="ident">Data</span>::<span class="ident">ConfigValue</span>(<span class="ident">value</span>))
+        <span class="ident">Settings::Get</span> { <span class="ident">setting</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">tmc_langs::get_setting</span>(<span class="ident">client_name</span>, <span class="kw-2">&amp;</span><span class="ident">setting</span>)<span class="question-mark">?</span>;
+            <span class="ident">OutputKind::finished_with_data</span>(<span class="string">&quot;retrieved value&quot;</span>, <span class="ident">DataKind::ConfigValue</span>(<span class="ident">value</span>))
         }
 
-        <span class="ident">Settings</span>::<span class="ident">List</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">tmc_config</span> <span class="op">=</span> <span class="ident">tmc_langs</span>::<span class="ident">get_settings</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished_with_data</span>(<span class="string">&quot;retrieved settings&quot;</span>, <span class="ident">Data</span>::<span class="ident">TmcConfig</span>(<span class="ident">tmc_config</span>))
+        <span class="ident">Settings::List</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">tmc_config</span> <span class="op">=</span> <span class="ident">tmc_langs::get_settings</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
+            <span class="ident">OutputKind::finished_with_data</span>(<span class="string">&quot;retrieved settings&quot;</span>, <span class="ident">DataKind::TmcConfig</span>(<span class="ident">tmc_config</span>))
         }
 
-        <span class="ident">Settings</span>::<span class="ident">Migrate</span> {
+        <span class="ident">Settings::Migrate</span> {
             <span class="ident">exercise_path</span>,
             <span class="ident">course_slug</span>,
             <span class="ident">exercise_id</span>,
             <span class="ident">exercise_slug</span>,
             <span class="ident">exercise_checksum</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">config_path</span> <span class="op">=</span> <span class="ident">TmcConfig</span>::<span class="ident">get_location</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">tmc_config</span> <span class="op">=</span> <span class="ident">TmcConfig</span>::<span class="ident">load</span>(<span class="ident">client_name</span>, <span class="kw-2">&amp;</span><span class="ident">config_path</span>)<span class="question-mark">?</span>;
-            <span class="ident">tmc_langs</span>::<span class="ident">migrate_exercise</span>(
+            <span class="kw">let</span> <span class="ident">config_path</span> <span class="op">=</span> <span class="ident">TmcConfig::get_location</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">tmc_config</span> <span class="op">=</span> <span class="ident">TmcConfig::load</span>(<span class="ident">client_name</span>, <span class="kw-2">&amp;</span><span class="ident">config_path</span>)<span class="question-mark">?</span>;
+            <span class="ident">tmc_langs::migrate_exercise</span>(
                 <span class="ident">tmc_config</span>,
                 <span class="kw-2">&amp;</span><span class="ident">course_slug</span>,
                 <span class="kw-2">&amp;</span><span class="ident">exercise_slug</span>,
@@ -2105,63 +2150,63 @@
                 <span class="kw-2">&amp;</span><span class="ident">exercise_checksum</span>,
                 <span class="kw-2">&amp;</span><span class="ident">exercise_path</span>,
             )<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished</span>(<span class="string">&quot;migrated exercise&quot;</span>)
+            <span class="ident">OutputKind::finished</span>(<span class="string">&quot;migrated exercise&quot;</span>)
         }
 
-        <span class="ident">Settings</span>::<span class="ident">MoveProjectsDir</span> { <span class="ident">dir</span> } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">config_path</span> <span class="op">=</span> <span class="ident">TmcConfig</span>::<span class="ident">get_location</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">tmc_config</span> <span class="op">=</span> <span class="ident">TmcConfig</span>::<span class="ident">load</span>(<span class="ident">client_name</span>, <span class="kw-2">&amp;</span><span class="ident">config_path</span>)<span class="question-mark">?</span>;
-            <span class="ident">tmc_langs</span>::<span class="ident">move_projects_dir</span>(<span class="ident">tmc_config</span>, <span class="kw-2">&amp;</span><span class="ident">config_path</span>, <span class="ident">dir</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished</span>(<span class="string">&quot;moved project directory&quot;</span>)
+        <span class="ident">Settings::MoveProjectsDir</span> { <span class="ident">dir</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">config_path</span> <span class="op">=</span> <span class="ident">TmcConfig::get_location</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">tmc_config</span> <span class="op">=</span> <span class="ident">TmcConfig::load</span>(<span class="ident">client_name</span>, <span class="kw-2">&amp;</span><span class="ident">config_path</span>)<span class="question-mark">?</span>;
+            <span class="ident">tmc_langs::move_projects_dir</span>(<span class="ident">tmc_config</span>, <span class="kw-2">&amp;</span><span class="ident">config_path</span>, <span class="ident">dir</span>)<span class="question-mark">?</span>;
+            <span class="ident">OutputKind::finished</span>(<span class="string">&quot;moved project directory&quot;</span>)
         }
 
-        <span class="ident">Settings</span>::<span class="ident">Reset</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">tmc_langs</span>::<span class="ident">reset_settings</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished</span>(<span class="string">&quot;reset settings&quot;</span>)
+        <span class="ident">Settings::Reset</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">tmc_langs::reset_settings</span>(<span class="ident">client_name</span>)<span class="question-mark">?</span>;
+            <span class="ident">OutputKind::finished</span>(<span class="string">&quot;reset settings&quot;</span>)
         }
 
-        <span class="ident">Settings</span>::<span class="ident">Set</span> { <span class="ident">key</span>, <span class="ident">json</span>, <span class="ident">base64</span> } <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Settings::Set</span> { <span class="ident">key</span>, <span class="ident">json</span>, <span class="ident">base64</span> } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">json</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">base64</span> {
-                <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="ident">base64</span>::<span class="ident">decode</span>(<span class="kw-2">&amp;</span><span class="ident">json</span>)<span class="question-mark">?</span>;
-                <span class="ident">serde_json</span>::<span class="ident">from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">json</span>)<span class="question-mark">?</span>
+                <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="ident">base64::decode</span>(<span class="kw-2">&amp;</span><span class="ident">json</span>)<span class="question-mark">?</span>;
+                <span class="ident">serde_json::from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">json</span>)<span class="question-mark">?</span>
             } <span class="kw">else</span> {
-                <span class="ident">serde_json</span>::<span class="ident">from_str</span>(<span class="kw-2">&amp;</span><span class="ident">json</span>)<span class="question-mark">?</span>
+                <span class="ident">serde_json::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">json</span>)<span class="question-mark">?</span>
             };
-            <span class="ident">tmc_langs</span>::<span class="ident">set_setting</span>(<span class="ident">client_name</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">json</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished</span>(<span class="string">&quot;set setting&quot;</span>)
+            <span class="ident">tmc_langs::set_setting</span>(<span class="ident">client_name</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">json</span>)<span class="question-mark">?</span>;
+            <span class="ident">OutputKind::finished</span>(<span class="string">&quot;set setting&quot;</span>)
         }
 
-        <span class="ident">Settings</span>::<span class="ident">Unset</span> { <span class="ident">setting</span> } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">tmc_langs</span>::<span class="ident">unset_setting</span>(<span class="ident">client_name</span>, <span class="kw-2">&amp;</span><span class="ident">setting</span>)<span class="question-mark">?</span>;
-            <span class="ident">Output</span>::<span class="ident">finished</span>(<span class="string">&quot;unset setting&quot;</span>)
+        <span class="ident">Settings::Unset</span> { <span class="ident">setting</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">tmc_langs::unset_setting</span>(<span class="ident">client_name</span>, <span class="kw-2">&amp;</span><span class="ident">setting</span>)<span class="question-mark">?</span>;
+            <span class="ident">OutputKind::finished</span>(<span class="string">&quot;unset setting&quot;</span>)
         }
     };
     <span class="prelude-val">Ok</span>(<span class="ident">output</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">print_output</span>(<span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">Output</span>, <span class="ident">pretty</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrintToken</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">print_output</span>(<span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">OutputKind</span>, <span class="ident">pretty</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrintToken</span><span class="op">&gt;</span> {
     <span class="ident">print_output_with_file</span>(<span class="ident">output</span>, <span class="ident">pretty</span>, <span class="prelude-val">None</span>)
 }
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">clippy</span>::<span class="ident">print_stdout</span>)]</span> <span class="comment">// this is the only function that should output to stdout/stderr across tmc-langs</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::print_stdout</span>)]</span> <span class="comment">// this is the only function that should output to stdout/stderr across tmc-langs</span>
 <span class="kw">fn</span> <span class="ident">print_output_with_file</span>(
-    <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">Output</span>,
+    <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">OutputKind</span>,
     <span class="ident">pretty</span>: <span class="ident">bool</span>,
     <span class="ident">path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PrintToken</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">pretty</span> {
-        <span class="ident">serde_json</span>::<span class="ident">to_string_pretty</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)
+        <span class="ident">serde_json::to_string_pretty</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)
     } <span class="kw">else</span> {
-        <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)
+        <span class="ident">serde_json::to_string</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)
     }
-    .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to convert {:?} to JSON&quot;</span>, <span class="ident">output</span>))<span class="question-mark">?</span>;
-    <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">result</span>);
+    .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Failed to convert {:?} to JSON&quot;</span>, <span class="ident">output</span>))<span class="question-mark">?</span>;
+    <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">result</span>);
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">path</span>) <span class="op">=</span> <span class="ident">path</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">create</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)
-            .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to open file at {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File::create</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)
+            .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Failed to open file at {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
         <span class="ident">file</span>.<span class="ident">write_all</span>(<span class="ident">result</span>.<span class="ident">as_bytes</span>())
-            .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to write result to {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
+            .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Failed to write result to {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(<span class="ident">PrintToken</span>)
 }
@@ -2172,28 +2217,28 @@
     <span class="ident">pretty</span>: <span class="ident">bool</span>,
     <span class="ident">secret</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output_file</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">create_file_lock</span>(<span class="ident">output_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-        <span class="macro">format</span><span class="macro">!</span>(
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output_file</span> <span class="op">=</span> <span class="ident">file_util::create_file_lock</span>(<span class="ident">output_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="macro">format!</span>(
             <span class="string">&quot;Failed to create results JSON file at {}&quot;</span>,
             <span class="ident">output_path</span>.<span class="ident">display</span>()
         )
     })<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">output_file</span>.<span class="ident">lock</span>()<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">output_file</span>.<span class="ident">write</span>()<span class="question-mark">?</span>;
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">secret</span>) <span class="op">=</span> <span class="ident">secret</span> {
-        <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">tmc_langs</span>::<span class="ident">sign_with_jwt</span>(<span class="ident">result</span>, <span class="ident">secret</span>.<span class="ident">as_bytes</span>())<span class="question-mark">?</span>;
-        <span class="ident">file_util</span>::<span class="ident">write_to_writer</span>(<span class="ident">token</span>, <span class="ident">guard</span>.<span class="ident">deref</span>())
-            .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to write result to {}&quot;</span>, <span class="ident">output_path</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">tmc_langs::sign_with_jwt</span>(<span class="ident">result</span>, <span class="ident">secret</span>.<span class="ident">as_bytes</span>())<span class="question-mark">?</span>;
+        <span class="ident">file_util::write_to_writer</span>(<span class="ident">token</span>, <span class="ident">guard</span>.<span class="ident">deref</span>())
+            .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Failed to write result to {}&quot;</span>, <span class="ident">output_path</span>.<span class="ident">display</span>()))<span class="question-mark">?</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">pretty</span> {
-        <span class="ident">serde_json</span>::<span class="ident">to_writer_pretty</span>(<span class="ident">guard</span>.<span class="ident">deref</span>(), <span class="ident">result</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="macro">format</span><span class="macro">!</span>(
+        <span class="ident">serde_json::to_writer_pretty</span>(<span class="ident">guard</span>.<span class="ident">deref</span>(), <span class="ident">result</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="macro">format!</span>(
                 <span class="string">&quot;Failed to write result as JSON to {}&quot;</span>,
                 <span class="ident">output_path</span>.<span class="ident">display</span>()
             )
         })<span class="question-mark">?</span>;
     } <span class="kw">else</span> {
-        <span class="ident">serde_json</span>::<span class="ident">to_writer</span>(<span class="ident">guard</span>.<span class="ident">deref</span>(), <span class="ident">result</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="macro">format</span><span class="macro">!</span>(
+        <span class="ident">serde_json::to_writer</span>(<span class="ident">guard</span>.<span class="ident">deref</span>(), <span class="ident">result</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="macro">format!</span>(
                 <span class="string">&quot;Failed to write result as JSON to {}&quot;</span>,
                 <span class="ident">output_path</span>.<span class="ident">display</span>()
             )
@@ -2205,7 +2250,7 @@
 
 <span class="kw">fn</span> <span class="ident">into_u32</span>(<span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
     <span class="ident">arg</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>().<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-        <span class="macro">format</span><span class="macro">!</span>(
+        <span class="macro">format!</span>(
             <span class="string">&quot;Failed to convert argument to a non-negative integer: {}&quot;</span>,
             <span class="ident">arg</span>,
         )
@@ -2218,21 +2263,21 @@
     <span class="ident">output_path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Path</span><span class="op">&gt;</span>,
     <span class="ident">locale</span>: <span class="ident">Language</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StyleValidationResult</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">check_result</span> <span class="op">=</span> <span class="ident">tmc_langs</span>::<span class="ident">checkstyle</span>(<span class="ident">exercise_path</span>, <span class="ident">locale</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-        <span class="macro">format</span><span class="macro">!</span>(
+    <span class="kw">let</span> <span class="ident">check_result</span> <span class="op">=</span> <span class="ident">tmc_langs::checkstyle</span>(<span class="ident">exercise_path</span>, <span class="ident">locale</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="macro">format!</span>(
             <span class="string">&quot;Failed to check code style for project at {}&quot;</span>,
             <span class="ident">exercise_path</span>.<span class="ident">display</span>()
         )
     })<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">output_path</span>) <span class="op">=</span> <span class="ident">output_path</span> {
-        <span class="kw">let</span> <span class="ident">output_file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">create</span>(<span class="ident">output_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="macro">format</span><span class="macro">!</span>(
+        <span class="kw">let</span> <span class="ident">output_file</span> <span class="op">=</span> <span class="ident">File::create</span>(<span class="ident">output_path</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="macro">format!</span>(
                 <span class="string">&quot;Failed to create code style check results file at {}&quot;</span>,
                 <span class="ident">output_path</span>.<span class="ident">display</span>()
             )
         })<span class="question-mark">?</span>;
-        <span class="ident">serde_json</span>::<span class="ident">to_writer</span>(<span class="ident">output_file</span>, <span class="kw-2">&amp;</span><span class="ident">check_result</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="macro">format</span><span class="macro">!</span>(
+        <span class="ident">serde_json::to_writer</span>(<span class="ident">output_file</span>, <span class="kw-2">&amp;</span><span class="ident">check_result</span>).<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="macro">format!</span>(
                 <span class="string">&quot;Failed to write code style check results as JSON to {}&quot;</span>,
                 <span class="ident">output_path</span>.<span class="ident">display</span>()
             )
@@ -2245,7 +2290,7 @@
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">client_name</span>) <span class="op">=</span> <span class="ident">client_name</span>.<span class="ident">as_ref</span>() {
         <span class="prelude-val">Ok</span>(<span class="ident">client_name</span>)
     } <span class="kw">else</span> {
-        <span class="ident">anyhow</span>::<span class="macro">bail</span><span class="macro">!</span>(
+        <span class="macro">anyhow::bail!</span>(
             <span class="string">&quot;The following required argument was not provided: --client-name &lt;client-name&gt;&quot;</span>
         );
     }
@@ -2255,7 +2300,7 @@
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">client_version</span>) <span class="op">=</span> <span class="ident">client_version</span>.<span class="ident">as_ref</span>() {
         <span class="prelude-val">Ok</span>(<span class="ident">client_version</span>)
     } <span class="kw">else</span> {
-        <span class="ident">anyhow</span>::<span class="macro">bail</span><span class="macro">!</span>(
+        <span class="macro">anyhow::bail!</span>(
             <span class="string">&quot;The following required argument was not provided: --client-version &lt;client-version&gt;&quot;</span>
         );
     }
@@ -2263,5 +2308,4 @@
 
 <span class="kw">struct</span> <span class="ident">PrintToken</span>;
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tmc_langs_cli" data-search-js="../../search-index.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tmc_langs_cli" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

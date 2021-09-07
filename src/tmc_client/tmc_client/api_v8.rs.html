@@ -1,7 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tmc-client/src/tmc_client/api_v8.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>api_v8.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../tmc_client/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../tmc_client/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2537,21 +2536,21 @@
 <span id="2534">2534</span>
 <span id="2535">2535</span>
 <span id="2536">2536</span>
-</pre><div class="example-wrap"><pre class="rust ">
+</pre><pre class="rust">
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">request</span>::<span class="kw-2">*</span>, <span class="ident">response</span>::<span class="kw-2">*</span>, <span class="ident">ClientError</span>, <span class="ident">TmcClient</span>};
-<span class="kw">use</span> <span class="ident">http</span>::<span class="ident">Method</span>;
-<span class="kw">use</span> <span class="ident">oauth2</span>::<span class="ident">TokenResponse</span>;
-<span class="kw">use</span> <span class="ident">reqwest</span>::<span class="ident">blocking</span>::<span class="ident">multipart</span>::<span class="ident">Form</span>;
-<span class="kw">use</span> <span class="ident">reqwest</span>::<span class="ident">blocking</span>::<span class="ident">multipart</span>::<span class="ident">Part</span>;
-<span class="kw">use</span> <span class="ident">reqwest</span>::<span class="ident">blocking</span>::{<span class="ident">RequestBuilder</span>, <span class="ident">Response</span>};
-<span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">de</span>::<span class="ident">DeserializeOwned</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">time</span>::<span class="ident">SystemTime</span>};
-<span class="kw">use</span> <span class="ident">tmc_langs_plugins</span>::<span class="ident">Language</span>;
-<span class="kw">use</span> <span class="ident">url</span>::<span class="ident">Url</span>;
+<span class="kw">use</span> <span class="ident">http::Method</span>;
+<span class="kw">use</span> <span class="ident">oauth2::TokenResponse</span>;
+<span class="kw">use</span> <span class="ident">reqwest::blocking::multipart::Form</span>;
+<span class="kw">use</span> <span class="ident">reqwest::blocking::multipart::Part</span>;
+<span class="kw">use</span> <span class="ident">reqwest::blocking</span>::{<span class="ident">RequestBuilder</span>, <span class="ident">Response</span>};
+<span class="kw">use</span> <span class="ident">serde::de::DeserializeOwned</span>;
+<span class="kw">use</span> <span class="ident">std::io::Read</span>;
+<span class="kw">use</span> <span class="ident">std::io::Write</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashMap</span>, <span class="ident">time::SystemTime</span>};
+<span class="kw">use</span> <span class="ident">tmc_langs_plugins::Language</span>;
+<span class="kw">use</span> <span class="ident">url::Url</span>;
 
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PasteData</span> {
     <span class="ident">WithoutMessage</span>,
@@ -2569,17 +2568,17 @@
         .<span class="number">0</span>
         .<span class="ident">root_url</span>
         .<span class="ident">join</span>(<span class="ident">tail</span>.<span class="ident">as_ref</span>())
-        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError</span>::<span class="ident">UrlParse</span>(<span class="ident">tail</span>.<span class="ident">as_ref</span>().<span class="ident">to_string</span>(), <span class="ident">e</span>))
+        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::UrlParse</span>(<span class="ident">tail</span>.<span class="ident">as_ref</span>().<span class="ident">to_string</span>(), <span class="ident">e</span>))
 }
 
 <span class="comment">// encodes a string so it can be used for a URL</span>
 <span class="kw">fn</span> <span class="ident">percent_encode</span>(<span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="ident">percent_encoding</span>::<span class="ident">utf8_percent_encode</span>(<span class="ident">target</span>, <span class="ident">percent_encoding</span>::<span class="ident">NON_ALPHANUMERIC</span>).<span class="ident">to_string</span>()
+    <span class="ident">percent_encoding::utf8_percent_encode</span>(<span class="ident">target</span>, <span class="ident">percent_encoding::NON_ALPHANUMERIC</span>).<span class="ident">to_string</span>()
 }
 
 <span class="comment">// creates a request with the required TMC and authentication headers</span>
 <span class="kw">fn</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>: <span class="kw-2">&amp;</span><span class="ident">TmcClient</span>, <span class="ident">method</span>: <span class="ident">Method</span>, <span class="ident">url</span>: <span class="ident">Url</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RequestBuilder</span> {
-    <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;{} {}&quot;</span>, <span class="ident">method</span>, <span class="ident">url</span>);
+    <span class="macro">log::info!</span>(<span class="string">&quot;{} {}&quot;</span>, <span class="ident">method</span>, <span class="ident">url</span>);
     <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">client</span>.<span class="number">0</span>.<span class="ident">client</span>.<span class="ident">request</span>(<span class="ident">method</span>, <span class="ident">url</span>).<span class="ident">query</span>(<span class="kw-2">&amp;</span>[
         (<span class="string">&quot;client&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">client</span>.<span class="number">0</span>.<span class="ident">client_name</span>),
         (<span class="string">&quot;client_version&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">client</span>.<span class="number">0</span>.<span class="ident">client_version</span>),
@@ -2599,12 +2598,12 @@
     } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">response</span>.<span class="ident">json</span>::<span class="op">&lt;</span><span class="ident">ErrorResponse</span><span class="op">&gt;</span>() {
         <span class="comment">// failed and got an error json</span>
         <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">err</span>.<span class="ident">error</span>, <span class="ident">err</span>.<span class="ident">errors</span>) {
-            (<span class="prelude-val">Some</span>(<span class="ident">err</span>), <span class="prelude-val">Some</span>(<span class="ident">errs</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}, {}&quot;</span>, <span class="ident">err</span>, <span class="ident">errs</span>.<span class="ident">join</span>(<span class="string">&quot;,&quot;</span>)),
+            (<span class="prelude-val">Some</span>(<span class="ident">err</span>), <span class="prelude-val">Some</span>(<span class="ident">errs</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;{}, {}&quot;</span>, <span class="ident">err</span>, <span class="ident">errs</span>.<span class="ident">join</span>(<span class="string">&quot;,&quot;</span>)),
             (<span class="prelude-val">Some</span>(<span class="ident">err</span>), <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">err</span>,
             (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">errs</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">errs</span>.<span class="ident">join</span>(<span class="string">&quot;,&quot;</span>),
             (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>(),
         };
-        <span class="prelude-val">Err</span>(<span class="ident">ClientError</span>::<span class="ident">HttpError</span> {
+        <span class="prelude-val">Err</span>(<span class="ident">ClientError::HttpError</span> {
             <span class="ident">url</span>: <span class="ident">url</span>.<span class="ident">clone</span>(),
             <span class="ident">status</span>,
             <span class="ident">error</span>,
@@ -2612,7 +2611,7 @@
         })
     } <span class="kw">else</span> {
         <span class="comment">// failed and failed to parse error json, return generic HTTP error</span>
-        <span class="prelude-val">Err</span>(<span class="ident">ClientError</span>::<span class="ident">HttpError</span> {
+        <span class="prelude-val">Err</span>(<span class="ident">ClientError::HttpError</span> {
             <span class="ident">url</span>: <span class="ident">url</span>.<span class="ident">clone</span>(),
             <span class="ident">status</span>,
             <span class="ident">error</span>: <span class="ident">status</span>.<span class="ident">to_string</span>(),
@@ -2623,27 +2622,27 @@
 
 <span class="doccomment">/// Converts a list of feedback answers to the format expected by the TMC server.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prepare_feedback_form</span>(<span class="ident">feedback</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FeedbackAnswer</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">answer</span>) <span class="kw">in</span> <span class="ident">feedback</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
         <span class="ident">form</span>.<span class="ident">insert</span>(
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;answers[{}][question_id]&quot;</span>, <span class="ident">i</span>),
+            <span class="macro">format!</span>(<span class="string">&quot;answers[{}][question_id]&quot;</span>, <span class="ident">i</span>),
             <span class="ident">answer</span>.<span class="ident">question_id</span>.<span class="ident">to_string</span>(),
         );
-        <span class="ident">form</span>.<span class="ident">insert</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;answers[{}][answer]&quot;</span>, <span class="ident">i</span>), <span class="ident">answer</span>.<span class="ident">answer</span>);
+        <span class="ident">form</span>.<span class="ident">insert</span>(<span class="macro">format!</span>(<span class="string">&quot;answers[{}][answer]&quot;</span>, <span class="ident">i</span>), <span class="ident">answer</span>.<span class="ident">answer</span>);
     }
     <span class="ident">form</span>
 }
 
 <span class="doccomment">/// Fetches data from the URL and writes it into the target.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">download</span>(<span class="ident">client</span>: <span class="kw-2">&amp;</span><span class="ident">TmcClient</span>, <span class="ident">url</span>: <span class="ident">Url</span>, <span class="kw-2">mut</span> <span class="ident">target</span>: <span class="kw">impl</span> <span class="ident">Write</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ClientError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method</span>::<span class="ident">GET</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
+    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method::GET</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
         .<span class="ident">send</span>()
-        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError</span>::<span class="ident">ConnectionError</span>(<span class="ident">Method</span>::<span class="ident">GET</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::ConnectionError</span>(<span class="ident">Method::GET</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">assert_success</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">_bytes</span> <span class="op">=</span> <span class="ident">res</span>
         .<span class="ident">copy_to</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">target</span>)
-        .<span class="ident">map_err</span>(<span class="ident">ClientError</span>::<span class="ident">HttpWriteResponse</span>)<span class="question-mark">?</span>;
+        .<span class="ident">map_err</span>(<span class="ident">ClientError::HttpWriteResponse</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
@@ -2653,15 +2652,15 @@
     <span class="ident">url</span>: <span class="ident">Url</span>,
     <span class="ident">params</span>: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">String</span>)],
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method</span>::<span class="ident">GET</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
+    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method::GET</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
         .<span class="ident">query</span>(<span class="ident">params</span>)
         .<span class="ident">send</span>()
-        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError</span>::<span class="ident">ConnectionError</span>(<span class="ident">Method</span>::<span class="ident">GET</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::ConnectionError</span>(<span class="ident">Method::GET</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">assert_success</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="ident">res</span>
         .<span class="ident">json</span>()
-        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError</span>::<span class="ident">HttpJsonResponse</span>(<span class="ident">url</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::HttpJsonResponse</span>(<span class="ident">url</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(<span class="ident">json</span>)
 }
 
@@ -2671,15 +2670,15 @@
     <span class="ident">url</span>: <span class="ident">Url</span>,
     <span class="ident">form</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method</span>::<span class="ident">POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
+    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method::POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
         .<span class="ident">form</span>(<span class="ident">form</span>)
         .<span class="ident">send</span>()
-        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError</span>::<span class="ident">ConnectionError</span>(<span class="ident">Method</span>::<span class="ident">GET</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::ConnectionError</span>(<span class="ident">Method::GET</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">assert_success</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="ident">res</span>
         .<span class="ident">json</span>()
-        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError</span>::<span class="ident">HttpJsonResponse</span>(<span class="ident">url</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::HttpJsonResponse</span>(<span class="ident">url</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(<span class="ident">json</span>)
 }
 
@@ -2688,7 +2687,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_credentials</span>(<span class="ident">client</span>: <span class="kw-2">&amp;</span><span class="ident">TmcClient</span>, <span class="ident">client_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Credentials</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
         <span class="ident">client</span>,
-        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/application/{}/credentials&quot;</span>, <span class="ident">client_name</span>),
+        <span class="macro">format!</span>(<span class="string">&quot;/api/v8/application/{}/credentials&quot;</span>, <span class="ident">client_name</span>),
     )<span class="question-mark">?</span>;
     <span class="ident">get_json</span>(<span class="ident">client</span>, <span class="ident">url</span>, <span class="kw-2">&amp;</span>[])
 }
@@ -2699,7 +2698,7 @@
     <span class="ident">client</span>: <span class="kw-2">&amp;</span><span class="ident">TmcClient</span>,
     <span class="ident">submission_id</span>: <span class="ident">u32</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SubmissionProcessingStatus</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/core/submission/{}&quot;</span>, <span class="ident">submission_id</span>))<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="macro">format!</span>(<span class="string">&quot;/api/v8/core/submission/{}&quot;</span>, <span class="ident">submission_id</span>))<span class="question-mark">?</span>;
     <span class="ident">get_json</span>(<span class="ident">client</span>, <span class="ident">url</span>, <span class="kw-2">&amp;</span>[])
 }
 
@@ -2709,7 +2708,7 @@
     <span class="doccomment">/// get /api/v8/users/{user_id}</span>
     <span class="doccomment">/// Returns the user&#39;s username, email, and administrator status by user id</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="ident">client</span>: <span class="kw-2">&amp;</span><span class="ident">TmcClient</span>, <span class="ident">user_id</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">User</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/users/{}&quot;</span>, <span class="ident">user_id</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="macro">format!</span>(<span class="string">&quot;/api/v8/users/{}&quot;</span>, <span class="ident">user_id</span>))<span class="question-mark">?</span>;
         <span class="ident">get_json</span>(<span class="ident">client</span>, <span class="ident">url</span>, <span class="kw-2">&amp;</span>[])
     }
 
@@ -2728,17 +2727,17 @@
         <span class="ident">usernames</span>: <span class="kw-2">&amp;</span>[<span class="ident">String</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">User</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="string">&quot;/api/v8/users/basic_info_by_usernames&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">username_map</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">username_map</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
         <span class="ident">username_map</span>.<span class="ident">insert</span>(<span class="string">&quot;usernames&quot;</span>, <span class="ident">usernames</span>);
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method</span>::<span class="ident">POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method::POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
             .<span class="ident">json</span>(<span class="kw-2">&amp;</span><span class="ident">username_map</span>)
             .<span class="ident">send</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError</span>::<span class="ident">ConnectionError</span>(<span class="ident">Method</span>::<span class="ident">POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::ConnectionError</span>(<span class="ident">Method::POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">assert_success</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">res</span>
             .<span class="ident">json</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError</span>::<span class="ident">HttpJsonResponse</span>(<span class="ident">url</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::HttpJsonResponse</span>(<span class="ident">url</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
     }
 
@@ -2750,17 +2749,17 @@
         <span class="ident">emails</span>: <span class="kw-2">&amp;</span>[<span class="ident">String</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">User</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="string">&quot;/api/v8/users/basic_info_by_emails&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">email_map</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">email_map</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
         <span class="ident">email_map</span>.<span class="ident">insert</span>(<span class="string">&quot;emails&quot;</span>, <span class="ident">emails</span>);
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method</span>::<span class="ident">POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method::POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
             .<span class="ident">json</span>(<span class="kw-2">&amp;</span><span class="ident">email_map</span>)
             .<span class="ident">send</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError</span>::<span class="ident">ConnectionError</span>(<span class="ident">Method</span>::<span class="ident">POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::ConnectionError</span>(<span class="ident">Method::POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">assert_success</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">res</span>
             .<span class="ident">json</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError</span>::<span class="ident">HttpJsonResponse</span>(<span class="ident">url</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::HttpJsonResponse</span>(<span class="ident">url</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
     }
 }
@@ -2771,7 +2770,7 @@
     <span class="doccomment">/// get /api/v8/courses/{course_id}</span>
     <span class="doccomment">/// Returns the course&#39;s information in a json format. Course is searched by id</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_by_id</span>(<span class="ident">client</span>: <span class="kw-2">&amp;</span><span class="ident">TmcClient</span>, <span class="ident">course_id</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CourseData</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/courses/{}&quot;</span>, <span class="ident">course_id</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="macro">format!</span>(<span class="string">&quot;/api/v8/courses/{}&quot;</span>, <span class="ident">course_id</span>))<span class="question-mark">?</span>;
         <span class="ident">get_json</span>(<span class="ident">client</span>, <span class="ident">url</span>, <span class="kw-2">&amp;</span>[])
     }
 
@@ -2784,7 +2783,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CourseData</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">&quot;/api/v8/org/{}/courses/{}&quot;</span>,
                 <span class="ident">percent_encode</span>(<span class="ident">organization_slug</span>),
                 <span class="ident">percent_encode</span>(<span class="ident">course_name</span>)
@@ -2803,7 +2802,7 @@
         <span class="ident">client</span>: <span class="kw-2">&amp;</span><span class="ident">TmcClient</span>,
         <span class="ident">course_id</span>: <span class="ident">u32</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CourseDataExercisePoint</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/courses/{}/points&quot;</span>, <span class="ident">course_id</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="macro">format!</span>(<span class="string">&quot;/api/v8/courses/{}/points&quot;</span>, <span class="ident">course_id</span>))<span class="question-mark">?</span>;
         <span class="ident">get_json</span>(<span class="ident">client</span>, <span class="ident">url</span>, <span class="kw-2">&amp;</span>[])
     }
 
@@ -2816,7 +2815,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CourseDataExercisePoint</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">&quot;/api/v8/courses/{}/exercises/{}/points&quot;</span>,
                 <span class="ident">course_id</span>,
                 <span class="ident">percent_encode</span>(<span class="ident">exercise_name</span>)
@@ -2835,7 +2834,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CourseDataExercisePoint</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">&quot;/api/v8/courses/{}/exercises/{}/users/{}/points&quot;</span>,
                 <span class="ident">course_id</span>,
                 <span class="ident">percent_encode</span>(<span class="ident">exercise_name</span>),
@@ -2854,7 +2853,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CourseDataExercisePoint</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">&quot;/api/v8/courses/{}/exercises/{}/users/current/points&quot;</span>,
                 <span class="ident">course_id</span>,
                 <span class="ident">percent_encode</span>(<span class="ident">exercise_name</span>)
@@ -2872,7 +2871,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CourseDataExercisePoint</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/courses/{}/users/{}/points&quot;</span>, <span class="ident">course_id</span>, <span class="ident">user_id</span>),
+            <span class="macro">format!</span>(<span class="string">&quot;/api/v8/courses/{}/users/{}/points&quot;</span>, <span class="ident">course_id</span>, <span class="ident">user_id</span>),
         )<span class="question-mark">?</span>;
         <span class="ident">get_json</span>(<span class="ident">client</span>, <span class="ident">url</span>, <span class="kw-2">&amp;</span>[])
     }
@@ -2885,7 +2884,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CourseDataExercisePoint</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/courses/{}/users/current/points&quot;</span>, <span class="ident">course_id</span>),
+            <span class="macro">format!</span>(<span class="string">&quot;/api/v8/courses/{}/users/current/points&quot;</span>, <span class="ident">course_id</span>),
         )<span class="question-mark">?</span>;
         <span class="ident">get_json</span>(<span class="ident">client</span>, <span class="ident">url</span>, <span class="kw-2">&amp;</span>[])
     }
@@ -2899,7 +2898,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CourseDataExercisePoint</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">&quot;/api/v8/org/{}/courses/{}/points&quot;</span>,
                 <span class="ident">percent_encode</span>(<span class="ident">organization_slug</span>),
                 <span class="ident">percent_encode</span>(<span class="ident">course_name</span>)
@@ -2938,7 +2937,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CourseDataExercisePoint</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">&quot;/api/v8/org/{}/courses/{}/exercises/{}/points&quot;</span>,
                 <span class="ident">percent_encode</span>(<span class="ident">organization_slug</span>),
                 <span class="ident">percent_encode</span>(<span class="ident">course_name</span>),
@@ -3004,7 +3003,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CourseDataExercisePoint</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">&quot;/api/v8/org/{}/courses/{}/users/{}/points&quot;</span>,
                 <span class="ident">percent_encode</span>(<span class="ident">organization_slug</span>),
                 <span class="ident">percent_encode</span>(<span class="ident">course_name</span>),
@@ -3023,7 +3022,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CourseDataExercisePoint</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">&quot;/api/v8/org/{}/courses/{}/users/current/points&quot;</span>,
                 <span class="ident">percent_encode</span>(<span class="ident">organization_slug</span>),
                 <span class="ident">percent_encode</span>(<span class="ident">course_name</span>),
@@ -3042,7 +3041,7 @@
         <span class="ident">client</span>: <span class="kw-2">&amp;</span><span class="ident">TmcClient</span>,
         <span class="ident">course_id</span>: <span class="ident">u32</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Submission</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/courses/{}/submissions&quot;</span>, <span class="ident">course_id</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="macro">format!</span>(<span class="string">&quot;/api/v8/courses/{}/submissions&quot;</span>, <span class="ident">course_id</span>))<span class="question-mark">?</span>;
         <span class="ident">get_json</span>(<span class="ident">client</span>, <span class="ident">url</span>, <span class="kw-2">&amp;</span>[])
     }
 
@@ -3054,7 +3053,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/courses/{}/submissions/last_hour&quot;</span>, <span class="ident">course_id</span>),
+            <span class="macro">format!</span>(<span class="string">&quot;/api/v8/courses/{}/submissions/last_hour&quot;</span>, <span class="ident">course_id</span>),
         )<span class="question-mark">?</span>;
         <span class="ident">get_json</span>(<span class="ident">client</span>, <span class="ident">url</span>, <span class="kw-2">&amp;</span>[])
     }
@@ -3068,7 +3067,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Submission</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">&quot;/api/v8/courses/{}/users/{}/submissions&quot;</span>,
                 <span class="ident">course_id</span>, <span class="ident">user_id</span>
             ),
@@ -3084,7 +3083,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Submission</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/courses/{}/users/current/submissions&quot;</span>, <span class="ident">course_id</span>,),
+            <span class="macro">format!</span>(<span class="string">&quot;/api/v8/courses/{}/users/current/submissions&quot;</span>, <span class="ident">course_id</span>,),
         )<span class="question-mark">?</span>;
         <span class="ident">get_json</span>(<span class="ident">client</span>, <span class="ident">url</span>, <span class="kw-2">&amp;</span>[])
     }
@@ -3098,7 +3097,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Submission</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">&quot;/api/v8/exercises/{}/users/{}/submissions&quot;</span>,
                 <span class="ident">exercise_id</span>, <span class="ident">user_id</span>
             ),
@@ -3114,7 +3113,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Submission</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">&quot;/api/v8/exercises/{}/users/current/submissions&quot;</span>,
                 <span class="ident">exercise_id</span>
             ),
@@ -3131,7 +3130,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Submission</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">&quot;/api/v8/org/{}/courses/{}/submissions&quot;</span>,
                 <span class="ident">percent_encode</span>(<span class="ident">organization_slug</span>),
                 <span class="ident">percent_encode</span>(<span class="ident">course_name</span>)
@@ -3150,7 +3149,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Submission</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">&quot;/api/v8/org/{}/courses/{}/users/{}/submissions&quot;</span>,
                 <span class="ident">percent_encode</span>(<span class="ident">organization_slug</span>),
                 <span class="ident">percent_encode</span>(<span class="ident">course_name</span>),
@@ -3169,7 +3168,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Submission</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">&quot;/api/v8/org/{}/courses/{}/users/current/submissions&quot;</span>,
                 <span class="ident">percent_encode</span>(<span class="ident">organization_slug</span>),
                 <span class="ident">percent_encode</span>(<span class="ident">course_name</span>),
@@ -3188,7 +3187,7 @@
         <span class="ident">client</span>: <span class="kw-2">&amp;</span><span class="ident">TmcClient</span>,
         <span class="ident">course_id</span>: <span class="ident">u32</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CourseExercise</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/courses/{}/exercises&quot;</span>, <span class="ident">course_id</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="macro">format!</span>(<span class="string">&quot;/api/v8/courses/{}/exercises&quot;</span>, <span class="ident">course_id</span>))<span class="question-mark">?</span>;
         <span class="ident">get_json</span>(<span class="ident">client</span>, <span class="ident">url</span>, <span class="kw-2">&amp;</span>[])
     }
 
@@ -3201,7 +3200,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Submission</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">&quot;/api/v8/exercises/{}/users/{}/submissions&quot;</span>,
                 <span class="ident">exercise_id</span>, <span class="ident">user_id</span>
             ),
@@ -3217,7 +3216,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Submission</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">&quot;/api/v8/exercises/{}/users/current/submissions&quot;</span>,
                 <span class="ident">exercise_id</span>
             ),
@@ -3234,7 +3233,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CourseDataExercise</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">&quot;/api/v8/org/{}/courses/{}/exercises&quot;</span>,
                 <span class="ident">percent_encode</span>(<span class="ident">organization_slug</span>),
                 <span class="ident">percent_encode</span>(<span class="ident">course_name</span>)
@@ -3254,7 +3253,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">&quot;/api/v8/org/{}/courses/{}/exercises/{}/download&quot;</span>,
                 <span class="ident">percent_encode</span>(<span class="ident">organization_slug</span>),
                 <span class="ident">percent_encode</span>(<span class="ident">course_name</span>),
@@ -3283,7 +3282,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Organization</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/org/{}.json&quot;</span>, <span class="ident">percent_encode</span>(<span class="ident">organization_slug</span>)),
+            <span class="macro">format!</span>(<span class="string">&quot;/api/v8/org/{}.json&quot;</span>, <span class="ident">percent_encode</span>(<span class="ident">organization_slug</span>)),
         )<span class="question-mark">?</span>;
         <span class="ident">get_json</span>(<span class="ident">client</span>, <span class="ident">url</span>, <span class="kw-2">&amp;</span>[])
     }
@@ -3295,7 +3294,7 @@
     <span class="doccomment">/// get /api/v8/core/courses/{course_id}</span>
     <span class="doccomment">/// Returns the course details in a json format. Course is searched by id</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_course</span>(<span class="ident">client</span>: <span class="kw-2">&amp;</span><span class="ident">TmcClient</span>, <span class="ident">course_id</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CourseDetails</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/core/courses/{}&quot;</span>, <span class="ident">course_id</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="macro">format!</span>(<span class="string">&quot;/api/v8/core/courses/{}&quot;</span>, <span class="ident">course_id</span>))<span class="question-mark">?</span>;
         <span class="ident">get_json</span>(<span class="ident">client</span>, <span class="ident">url</span>, <span class="kw-2">&amp;</span>[])
     }
 
@@ -3307,7 +3306,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Review</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/core/courses/{}/reviews&quot;</span>, <span class="ident">course_id</span>),
+            <span class="macro">format!</span>(<span class="string">&quot;/api/v8/core/courses/{}/reviews&quot;</span>, <span class="ident">course_id</span>),
         )<span class="question-mark">?</span>;
         <span class="ident">get_json</span>(<span class="ident">client</span>, <span class="ident">url</span>, <span class="kw-2">&amp;</span>[])
     }
@@ -3325,10 +3324,10 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/core/courses/{}/reviews/{}&quot;</span>, <span class="ident">course_id</span>, <span class="ident">review_id</span>),
+            <span class="macro">format!</span>(<span class="string">&quot;/api/v8/core/courses/{}/reviews/{}&quot;</span>, <span class="ident">course_id</span>, <span class="ident">review_id</span>),
         )<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">review_body</span>) <span class="op">=</span> <span class="ident">review_body</span> {
             <span class="ident">form</span>.<span class="ident">insert</span>(<span class="string">&quot;review[review_body]&quot;</span>, <span class="ident">review_body</span>);
         }
@@ -3339,10 +3338,10 @@
                 <span class="ident">form</span>.<span class="ident">insert</span>(<span class="string">&quot;mark_as_unread&quot;</span>, <span class="string">&quot;true&quot;</span>.<span class="ident">to_string</span>());
             }
         }
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method</span>::<span class="ident">PUT</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method::PUT</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
             .<span class="ident">form</span>(<span class="kw-2">&amp;</span><span class="ident">form</span>)
             .<span class="ident">send</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError</span>::<span class="ident">ConnectionError</span>(<span class="ident">Method</span>::<span class="ident">PUT</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::ConnectionError</span>(<span class="ident">Method::PUT</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
         <span class="ident">assert_success</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -3352,10 +3351,10 @@
     <span class="doccomment">/// Untested.</span>
     <span class="doccomment">/// Unlocks the courses exercises</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unlock_course</span>(<span class="ident">client</span>: <span class="kw-2">&amp;</span><span class="ident">TmcClient</span>, <span class="ident">course_id</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ClientError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/core/courses/{}/unlock&quot;</span>, <span class="ident">course_id</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method</span>::<span class="ident">POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
+        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="macro">format!</span>(<span class="string">&quot;/api/v8/core/courses/{}/unlock&quot;</span>, <span class="ident">course_id</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method::POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
             .<span class="ident">send</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError</span>::<span class="ident">ConnectionError</span>(<span class="ident">Method</span>::<span class="ident">POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::ConnectionError</span>(<span class="ident">Method::POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
         <span class="ident">assert_success</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -3370,7 +3369,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/core/exercises/{}/download&quot;</span>, <span class="ident">exercise_id</span>),
+            <span class="macro">format!</span>(<span class="string">&quot;/api/v8/core/exercises/{}/download&quot;</span>, <span class="ident">exercise_id</span>),
         )<span class="question-mark">?</span>;
         <span class="ident">download</span>(<span class="ident">client</span>, <span class="ident">url</span>, <span class="ident">target</span>)
     }
@@ -3381,7 +3380,7 @@
         <span class="ident">client</span>: <span class="kw-2">&amp;</span><span class="ident">TmcClient</span>,
         <span class="ident">exercise_id</span>: <span class="ident">u32</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseDetails</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/core/exercises/{}&quot;</span>, <span class="ident">exercise_id</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(<span class="ident">client</span>, <span class="macro">format!</span>(<span class="string">&quot;/api/v8/core/exercises/{}&quot;</span>, <span class="ident">exercise_id</span>))<span class="question-mark">?</span>;
         <span class="ident">get_json</span>(<span class="ident">client</span>, <span class="ident">url</span>, <span class="kw-2">&amp;</span>[])
     }
 
@@ -3396,7 +3395,7 @@
             <span class="string">&quot;ids&quot;</span>,
             <span class="ident">exercises</span>
                 .<span class="ident">iter</span>()
-                .<span class="ident">map</span>(<span class="ident">u32</span>::<span class="ident">to_string</span>)
+                .<span class="ident">map</span>(<span class="ident">u32::to_string</span>)
                 .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
                 .<span class="ident">join</span>(<span class="string">&quot;,&quot;</span>),
         );
@@ -3414,7 +3413,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/core/exercises/{}/solution/download&quot;</span>, <span class="ident">exercise_id</span>),
+            <span class="macro">format!</span>(<span class="string">&quot;/api/v8/core/exercises/{}/solution/download&quot;</span>, <span class="ident">exercise_id</span>),
         )<span class="question-mark">?</span>;
         <span class="ident">download</span>(<span class="ident">client</span>, <span class="ident">url</span>, <span class="ident">target</span>)
     }
@@ -3431,33 +3430,33 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NewSubmission</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/core/exercises/{}/submissions&quot;</span>, <span class="ident">exercise_id</span>),
+            <span class="macro">format!</span>(<span class="string">&quot;/api/v8/core/exercises/{}/submissions&quot;</span>, <span class="ident">exercise_id</span>),
         )<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">Form</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">Form::new</span>();
         <span class="ident">form</span> <span class="op">=</span> <span class="ident">form</span>
             .<span class="ident">text</span>(
                 <span class="string">&quot;client_time&quot;</span>,
-                <span class="ident">SystemTime</span>::<span class="ident">UNIX_EPOCH</span>.<span class="ident">elapsed</span>()<span class="question-mark">?</span>.<span class="ident">as_secs</span>().<span class="ident">to_string</span>(),
+                <span class="ident">SystemTime::UNIX_EPOCH</span>.<span class="ident">elapsed</span>()<span class="question-mark">?</span>.<span class="ident">as_secs</span>().<span class="ident">to_string</span>(),
             )
             .<span class="ident">text</span>(
                 <span class="string">&quot;client_nanotime&quot;</span>,
-                <span class="ident">SystemTime</span>::<span class="ident">UNIX_EPOCH</span>.<span class="ident">elapsed</span>()<span class="question-mark">?</span>.<span class="ident">as_nanos</span>().<span class="ident">to_string</span>(),
+                <span class="ident">SystemTime::UNIX_EPOCH</span>.<span class="ident">elapsed</span>()<span class="question-mark">?</span>.<span class="ident">as_nanos</span>().<span class="ident">to_string</span>(),
             )
             .<span class="ident">part</span>(
                 <span class="string">&quot;submission[file]&quot;</span>,
-                <span class="ident">Part</span>::<span class="ident">reader</span>(<span class="ident">submission_zip</span>).<span class="ident">file_name</span>(<span class="string">&quot;submission.zip&quot;</span>),
+                <span class="ident">Part::reader</span>(<span class="ident">submission_zip</span>).<span class="ident">file_name</span>(<span class="string">&quot;submission.zip&quot;</span>),
             );
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">submit_paste</span>) <span class="op">=</span> <span class="ident">submit_paste</span> {
             <span class="ident">form</span> <span class="op">=</span> <span class="ident">form</span>.<span class="ident">text</span>(<span class="string">&quot;paste&quot;</span>, <span class="string">&quot;1&quot;</span>);
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PasteData</span>::<span class="ident">WithMessage</span>(<span class="ident">message</span>) <span class="op">=</span> <span class="ident">submit_paste</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PasteData::WithMessage</span>(<span class="ident">message</span>) <span class="op">=</span> <span class="ident">submit_paste</span> {
                 <span class="ident">form</span> <span class="op">=</span> <span class="ident">form</span>.<span class="ident">text</span>(<span class="string">&quot;message_for_paste&quot;</span>, <span class="ident">message</span>);
             }
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">submit_for_review</span>) <span class="op">=</span> <span class="ident">submit_for_review</span> {
             <span class="ident">form</span> <span class="op">=</span> <span class="ident">form</span>.<span class="ident">text</span>(<span class="string">&quot;request_review&quot;</span>, <span class="string">&quot;1&quot;</span>);
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ReviewData</span>::<span class="ident">WithMessage</span>(<span class="ident">message</span>) <span class="op">=</span> <span class="ident">submit_for_review</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ReviewData::WithMessage</span>(<span class="ident">message</span>) <span class="op">=</span> <span class="ident">submit_for_review</span> {
                 <span class="ident">form</span> <span class="op">=</span> <span class="ident">form</span>.<span class="ident">text</span>(<span class="string">&quot;message_for_reviewer&quot;</span>, <span class="ident">message</span>);
             }
         }
@@ -3466,15 +3465,15 @@
             <span class="ident">form</span> <span class="op">=</span> <span class="ident">form</span>.<span class="ident">text</span>(<span class="string">&quot;error_msg_locale&quot;</span>, <span class="ident">locale</span>.<span class="ident">to_639_3</span>());
         }
 
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method</span>::<span class="ident">POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method::POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
             .<span class="ident">multipart</span>(<span class="ident">form</span>)
             .<span class="ident">send</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError</span>::<span class="ident">ConnectionError</span>(<span class="ident">Method</span>::<span class="ident">POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::ConnectionError</span>(<span class="ident">Method::POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">assert_success</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">res</span>
             .<span class="ident">json</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError</span>::<span class="ident">HttpJsonResponse</span>(<span class="ident">url</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::HttpJsonResponse</span>(<span class="ident">url</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
     }
 
@@ -3486,7 +3485,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Course</span><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(
+            <span class="macro">format!</span>(
                 <span class="string">&quot;/api/v8/core/org/{}/courses&quot;</span>,
                 <span class="ident">percent_encode</span>(<span class="ident">organization_slug</span>)
             ),
@@ -3503,7 +3502,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/core/submissions/{}/download&quot;</span>, <span class="ident">submission_id</span>),
+            <span class="macro">format!</span>(<span class="string">&quot;/api/v8/core/submissions/{}/download&quot;</span>, <span class="ident">submission_id</span>),
         )<span class="question-mark">?</span>;
         <span class="ident">download</span>(<span class="ident">client</span>, <span class="ident">url</span>, <span class="ident">target</span>)
     }
@@ -3517,19 +3516,19 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SubmissionFeedbackResponse</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/core/submissions/{}/feedback&quot;</span>, <span class="ident">submission_id</span>),
+            <span class="macro">format!</span>(<span class="string">&quot;/api/v8/core/submissions/{}/feedback&quot;</span>, <span class="ident">submission_id</span>),
         )<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">prepare_feedback_form</span>(<span class="ident">feedback</span>);
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method</span>::<span class="ident">POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method::POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
             .<span class="ident">form</span>(<span class="kw-2">&amp;</span><span class="ident">form</span>)
             .<span class="ident">send</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError</span>::<span class="ident">ConnectionError</span>(<span class="ident">Method</span>::<span class="ident">POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::ConnectionError</span>(<span class="ident">Method::POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">assert_success</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">res</span>
             .<span class="ident">json</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError</span>::<span class="ident">HttpJsonResponse</span>(<span class="ident">url</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::HttpJsonResponse</span>(<span class="ident">url</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
     }
 
@@ -3543,10 +3542,10 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">make_url</span>(
             <span class="ident">client</span>,
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/api/v8/core/submissions/{}/reviews&quot;</span>, <span class="ident">submission_id</span>),
+            <span class="macro">format!</span>(<span class="string">&quot;/api/v8/core/submissions/{}/reviews&quot;</span>, <span class="ident">submission_id</span>),
         )<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
         <span class="ident">form</span>.<span class="ident">insert</span>(<span class="string">&quot;review[review_body]&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">review</span>);
 
         <span class="comment">/*
@@ -3555,10 +3554,10 @@
         }
         */</span>
 
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method</span>::<span class="ident">POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">prepare_tmc_request</span>(<span class="ident">client</span>, <span class="ident">Method::POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>())
             .<span class="ident">form</span>(<span class="kw-2">&amp;</span><span class="ident">form</span>)
             .<span class="ident">send</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError</span>::<span class="ident">ConnectionError</span>(<span class="ident">Method</span>::<span class="ident">POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::ConnectionError</span>(<span class="ident">Method::POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
         <span class="ident">assert_success</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -3566,37 +3565,37 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">unwrap_used</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="ident">Cursor</span>, <span class="ident">Seek</span>, <span class="ident">SeekFrom</span>};
+    <span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">Cursor</span>, <span class="ident">Seek</span>, <span class="ident">SeekFrom</span>};
 
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw">super</span>::<span class="ident">TmcClient</span>;
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw">super</span><span class="ident">::TmcClient</span>;
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident">mockito</span>::{<span class="ident">Matcher</span>, <span class="ident">Mock</span>};
 
     <span class="kw">fn</span> <span class="ident">init</span>() {
         <span class="kw">use</span> <span class="ident">log</span>::<span class="kw-2">*</span>;
         <span class="kw">use</span> <span class="ident">simple_logger</span>::<span class="kw-2">*</span>;
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">SimpleLogger</span>::<span class="ident">new</span>().<span class="ident">with_level</span>(<span class="ident">LevelFilter</span>::<span class="ident">Debug</span>).<span class="ident">init</span>();
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">SimpleLogger::new</span>().<span class="ident">with_level</span>(<span class="ident">LevelFilter::Debug</span>).<span class="ident">init</span>();
     }
 
     <span class="kw">fn</span> <span class="ident">make_client</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TmcClient</span> {
-        <span class="ident">TmcClient</span>::<span class="ident">new</span>(
-            <span class="ident">mockito</span>::<span class="ident">server_url</span>().<span class="ident">parse</span>().<span class="ident">unwrap</span>(),
+        <span class="ident">TmcClient::new</span>(
+            <span class="ident">mockito::server_url</span>().<span class="ident">parse</span>().<span class="ident">unwrap</span>(),
             <span class="string">&quot;client&quot;</span>.<span class="ident">to_string</span>(),
             <span class="string">&quot;version&quot;</span>.<span class="ident">to_string</span>(),
         )
     }
 
     <span class="kw">fn</span> <span class="ident">client_matcher</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Matcher</span> {
-        <span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
-            <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;client&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client_version&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;version&quot;</span>.<span class="ident">to_string</span>()),
+        <span class="ident">Matcher::AllOf</span>(<span class="macro">vec!</span>[
+            <span class="ident">Matcher::UrlEncoded</span>(<span class="string">&quot;client&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;client&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">Matcher::UrlEncoded</span>(<span class="string">&quot;client_version&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;version&quot;</span>.<span class="ident">to_string</span>()),
         ])
     }
 
     <span class="kw">fn</span> <span class="ident">mock_get</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Mock</span> {
-        <span class="ident">mockito</span>::<span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="ident">path</span>)
+        <span class="ident">mockito::mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="ident">path</span>)
             .<span class="ident">match_query</span>(<span class="ident">client_matcher</span>())
             .<span class="ident">with_body</span>(<span class="ident">body</span>)
             .<span class="ident">create</span>()
@@ -3625,12 +3624,12 @@
         <span class="ident">init</span>();
 
         <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">make_client</span>();
-        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito</span>::<span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/submission/0&quot;</span>)
-            .<span class="ident">match_query</span>(<span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
-                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;client&quot;</span>.<span class="ident">into</span>()),
-                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;client_version&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;version&quot;</span>.<span class="ident">into</span>()),
+        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito::mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/submission/0&quot;</span>)
+            .<span class="ident">match_query</span>(<span class="ident">Matcher::AllOf</span>(<span class="macro">vec!</span>[
+                <span class="ident">Matcher::UrlEncoded</span>(<span class="string">&quot;client&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;client&quot;</span>.<span class="ident">into</span>()),
+                <span class="ident">Matcher::UrlEncoded</span>(<span class="string">&quot;client_version&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;version&quot;</span>.<span class="ident">into</span>()),
             ]))
-            .<span class="ident">with_body</span>(<span class="ident">serde_json</span>::<span class="macro">json</span><span class="macro">!</span>({
+            .<span class="ident">with_body</span>(<span class="macro">serde_json::json!</span>({
             <span class="string">&quot;api_version&quot;</span>: <span class="number">7</span>,
             <span class="string">&quot;all_tests_passed&quot;</span>: <span class="bool-val">true</span>,
             <span class="string">&quot;user_id&quot;</span>: <span class="number">3232</span>,
@@ -3681,10 +3680,10 @@
 
         <span class="kw">let</span> <span class="ident">submission_processing_status</span> <span class="op">=</span> <span class="ident">get_submission</span>(<span class="kw-2">&amp;</span><span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
         <span class="kw">match</span> <span class="ident">submission_processing_status</span> {
-            <span class="ident">SubmissionProcessingStatus</span>::<span class="ident">Finished</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">f</span>.<span class="ident">all_tests_passed</span>, <span class="prelude-val">Some</span>(<span class="bool-val">true</span>));
+            <span class="ident">SubmissionProcessingStatus::Finished</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">assert_eq!</span>(<span class="ident">f</span>.<span class="ident">all_tests_passed</span>, <span class="prelude-val">Some</span>(<span class="bool-val">true</span>));
             }
-            <span class="ident">SubmissionProcessingStatus</span>::<span class="ident">Processing</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;wrong status&quot;</span>),
+            <span class="ident">SubmissionProcessingStatus::Processing</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;wrong status&quot;</span>),
         }
     }
 
@@ -3704,7 +3703,7 @@
 }
 &quot;#</span>,
         );
-        <span class="kw">let</span> <span class="ident">_user</span> <span class="op">=</span> <span class="ident">user</span>::<span class="ident">get</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_user</span> <span class="op">=</span> <span class="ident">user::get</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -3724,7 +3723,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">user</span>::<span class="ident">get_current</span>(<span class="ident">client</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">user::get_current</span>(<span class="ident">client</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -3732,9 +3731,9 @@
         <span class="ident">init</span>();
 
         <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">make_client</span>();
-        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito</span>::<span class="ident">mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/api/v8/users/basic_info_by_usernames&quot;</span>)
+        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito::mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/api/v8/users/basic_info_by_usernames&quot;</span>)
             .<span class="ident">match_query</span>(<span class="ident">client_matcher</span>())
-            .<span class="ident">match_body</span>(<span class="ident">Matcher</span>::<span class="ident">JsonString</span>(
+            .<span class="ident">match_body</span>(<span class="ident">Matcher::JsonString</span>(
                 <span class="string">r#&quot;{&quot;usernames&quot;: [&quot;username&quot;]}&quot;#</span>.<span class="ident">to_string</span>(),
             ))
             .<span class="ident">with_body</span>(
@@ -3751,7 +3750,7 @@
             )
             .<span class="ident">create</span>();
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">user</span>::<span class="ident">get_basic_info_by_usernames</span>(<span class="ident">client</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;username&quot;</span>.<span class="ident">to_string</span>()]).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">user::get_basic_info_by_usernames</span>(<span class="ident">client</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;username&quot;</span>.<span class="ident">to_string</span>()]).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -3759,9 +3758,9 @@
         <span class="ident">init</span>();
 
         <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">make_client</span>();
-        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito</span>::<span class="ident">mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/api/v8/users/basic_info_by_emails&quot;</span>)
+        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito::mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/api/v8/users/basic_info_by_emails&quot;</span>)
             .<span class="ident">match_query</span>(<span class="ident">client_matcher</span>())
-            .<span class="ident">match_body</span>(<span class="ident">Matcher</span>::<span class="ident">JsonString</span>(<span class="string">r#&quot;{&quot;emails&quot;: [&quot;email&quot;]}&quot;#</span>.<span class="ident">to_string</span>()))
+            .<span class="ident">match_body</span>(<span class="ident">Matcher::JsonString</span>(<span class="string">r#&quot;{&quot;emails&quot;: [&quot;email&quot;]}&quot;#</span>.<span class="ident">to_string</span>()))
             .<span class="ident">with_body</span>(
                 <span class="string">r#&quot;
 [
@@ -3776,7 +3775,7 @@
             )
             .<span class="ident">create</span>();
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">user</span>::<span class="ident">get_basic_info_by_emails</span>(<span class="ident">client</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;email&quot;</span>.<span class="ident">to_string</span>()]).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">user::get_basic_info_by_emails</span>(<span class="ident">client</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;email&quot;</span>.<span class="ident">to_string</span>()]).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -3813,7 +3812,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">course</span>::<span class="ident">get_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">course::get_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -3850,7 +3849,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">course</span>::<span class="ident">get</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">course::get</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -3877,7 +3876,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">point</span>::<span class="ident">get_course_points_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">point::get_course_points_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -3904,7 +3903,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">point</span>::<span class="ident">get_exercise_points_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="string">&quot;someexercise&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">point::get_exercise_points_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="string">&quot;someexercise&quot;</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -3931,7 +3930,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">point</span>::<span class="ident">get_exercise_points_for_user_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="string">&quot;someexercise&quot;</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">point::get_exercise_points_for_user_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="string">&quot;someexercise&quot;</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -3959,7 +3958,7 @@
         );
 
         <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span>
-            <span class="ident">point</span>::<span class="ident">get_exercise_points_for_current_user_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="string">&quot;someexercise&quot;</span>).<span class="ident">unwrap</span>();
+            <span class="ident">point::get_exercise_points_for_current_user_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="string">&quot;someexercise&quot;</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -3986,7 +3985,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">point</span>::<span class="ident">get_course_points_for_user_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">point::get_course_points_for_user_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4013,7 +4012,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">point</span>::<span class="ident">get_course_points_for_current_user_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">point::get_course_points_for_current_user_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4040,7 +4039,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">point</span>::<span class="ident">get_course_points</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">point::get_course_points</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4068,7 +4067,7 @@
         );
 
         <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span>
-            <span class="ident">point</span>::<span class="ident">get_exercise_points</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>, <span class="string">&quot;someexercise&quot;</span>).<span class="ident">unwrap</span>();
+            <span class="ident">point::get_exercise_points</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>, <span class="string">&quot;someexercise&quot;</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4095,7 +4094,7 @@
   &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">point</span>::<span class="ident">get_course_points_for_user</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">point::get_course_points_for_user</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4123,7 +4122,7 @@
         );
 
         <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span>
-            <span class="ident">point</span>::<span class="ident">get_course_points_for_current_user</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>).<span class="ident">unwrap</span>();
+            <span class="ident">point::get_course_points_for_current_user</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4165,7 +4164,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">submission</span>::<span class="ident">get_course_submissions_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">submission::get_course_submissions_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4182,7 +4181,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">submission</span>::<span class="ident">get_course_submissions_for_last_hour</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">submission::get_course_submissions_for_last_hour</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4190,7 +4189,7 @@
         <span class="ident">init</span>();
 
         <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">make_client</span>();
-        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito</span>::<span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/courses/0/users/1/submissions&quot;</span>)
+        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito::mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/courses/0/users/1/submissions&quot;</span>)
             .<span class="ident">match_query</span>(<span class="ident">client_matcher</span>())
             .<span class="ident">with_body</span>(
                 <span class="string">r#&quot;
@@ -4226,7 +4225,7 @@
             )
             .<span class="ident">create</span>();
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">submission</span>::<span class="ident">get_course_submissions_for_user_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">submission::get_course_submissions_for_user_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4268,7 +4267,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">submission</span>::<span class="ident">get_course_submissions_for_current_user_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">submission::get_course_submissions_for_current_user_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4310,7 +4309,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">submission</span>::<span class="ident">get_course_submissions_for_user</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>, <span class="number">0</span>)
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">submission::get_course_submissions_for_user</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>, <span class="number">0</span>)
             .<span class="ident">unwrap</span>();
     }
 
@@ -4354,7 +4353,7 @@
         );
 
         <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span>
-            <span class="ident">submission</span>::<span class="ident">get_course_submissions_for_current_user</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>)
+            <span class="ident">submission::get_course_submissions_for_current_user</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>)
                 .<span class="ident">unwrap</span>();
     }
 
@@ -4397,7 +4396,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">submission</span>::<span class="ident">get_course_submissions</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">submission::get_course_submissions</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4439,7 +4438,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">submission</span>::<span class="ident">get_course_submissions_for_user</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>, <span class="number">0</span>)
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">submission::get_course_submissions_for_user</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>, <span class="number">0</span>)
             .<span class="ident">unwrap</span>();
     }
 
@@ -4483,7 +4482,7 @@
         );
 
         <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span>
-            <span class="ident">submission</span>::<span class="ident">get_course_submissions_for_current_user</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>)
+            <span class="ident">submission::get_course_submissions_for_current_user</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>)
                 .<span class="ident">unwrap</span>();
     }
 
@@ -4519,7 +4518,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">exercise</span>::<span class="ident">get_course_exercises_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">exercise::get_course_exercises_by_id</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4561,7 +4560,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">exercise</span>::<span class="ident">get_exercise_submissions_for_user</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">exercise::get_exercise_submissions_for_user</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4603,7 +4602,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">exercise</span>::<span class="ident">get_exercise_submissions_for_current_user</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">exercise::get_exercise_submissions_for_current_user</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4638,7 +4637,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">exercise</span>::<span class="ident">get_course_exercises</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">exercise::get_course_exercises</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>, <span class="string">&quot;somecourse&quot;</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4646,7 +4645,7 @@
         <span class="ident">init</span>();
 
         <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">make_client</span>();
-        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito</span>::<span class="ident">mock</span>(
+        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito::mock</span>(
             <span class="string">&quot;GET&quot;</span>,
             <span class="string">&quot;/api/v8/org/someorg/courses/somecourse/exercises/someexercise/download&quot;</span>,
         )
@@ -4654,8 +4653,8 @@
         .<span class="ident">with_body</span>(<span class="string">b&quot;1234&quot;</span>)
         .<span class="ident">create</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile</span>::<span class="ident">tempfile</span>().<span class="ident">unwrap</span>();
-        <span class="ident">exercise</span>::<span class="ident">download_course_exercise</span>(
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile::tempfile</span>().<span class="ident">unwrap</span>();
+        <span class="ident">exercise::download_course_exercise</span>(
             <span class="ident">client</span>,
             <span class="string">&quot;someorg&quot;</span>,
             <span class="string">&quot;somecourse&quot;</span>,
@@ -4663,10 +4662,10 @@
             <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">temp</span>,
         )
         .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
-        <span class="ident">temp</span>.<span class="ident">seek</span>(<span class="ident">SeekFrom</span>::<span class="ident">Start</span>(<span class="number">0</span>)).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+        <span class="ident">temp</span>.<span class="ident">seek</span>(<span class="ident">SeekFrom::Start</span>(<span class="number">0</span>)).<span class="ident">unwrap</span>();
         <span class="ident">temp</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">buf</span>.<span class="ident">is_empty</span>());
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">buf</span>.<span class="ident">is_empty</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4689,7 +4688,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">organization</span>::<span class="ident">get_organizations</span>(<span class="ident">client</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">organization::get_organizations</span>(<span class="ident">client</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4710,7 +4709,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">organization</span>::<span class="ident">get_organization</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">organization::get_organization</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4771,7 +4770,7 @@
     &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">core</span>::<span class="ident">get_course</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">core::get_course</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4805,7 +4804,7 @@
   &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">core</span>::<span class="ident">get_course_reviews</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">core::get_course_reviews</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4813,15 +4812,15 @@
         <span class="ident">init</span>();
 
         <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">make_client</span>();
-        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito</span>::<span class="ident">mock</span>(<span class="string">&quot;PUT&quot;</span>, <span class="string">&quot;/api/v8/core/courses/0/reviews/1&quot;</span>)
+        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito::mock</span>(<span class="string">&quot;PUT&quot;</span>, <span class="string">&quot;/api/v8/core/courses/0/reviews/1&quot;</span>)
             .<span class="ident">match_query</span>(<span class="ident">client_matcher</span>())
-            .<span class="ident">match_body</span>(<span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
-                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;review[review_body]&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;body&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;mark_as_read&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;true&quot;</span>.<span class="ident">to_string</span>()),
+            .<span class="ident">match_body</span>(<span class="ident">Matcher::AllOf</span>(<span class="macro">vec!</span>[
+                <span class="ident">Matcher::UrlEncoded</span>(<span class="string">&quot;review[review_body]&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;body&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">Matcher::UrlEncoded</span>(<span class="string">&quot;mark_as_read&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;true&quot;</span>.<span class="ident">to_string</span>()),
             ]))
             .<span class="ident">create</span>();
 
-        <span class="ident">core</span>::<span class="ident">update_course_review</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;body&quot;</span>.<span class="ident">to_string</span>()), <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)).<span class="ident">unwrap</span>();
+        <span class="ident">core::update_course_review</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;body&quot;</span>.<span class="ident">to_string</span>()), <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4829,11 +4828,11 @@
         <span class="ident">init</span>();
 
         <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">make_client</span>();
-        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito</span>::<span class="ident">mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/api/v8/core/courses/0/unlock&quot;</span>)
+        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito::mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/api/v8/core/courses/0/unlock&quot;</span>)
             .<span class="ident">match_query</span>(<span class="ident">client_matcher</span>())
             .<span class="ident">create</span>();
 
-        <span class="ident">core</span>::<span class="ident">unlock_course</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
+        <span class="ident">core::unlock_course</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4841,17 +4840,17 @@
         <span class="ident">init</span>();
 
         <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">make_client</span>();
-        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito</span>::<span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/exercises/0/download&quot;</span>)
+        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito::mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/exercises/0/download&quot;</span>)
             .<span class="ident">match_query</span>(<span class="ident">client_matcher</span>())
             .<span class="ident">with_body</span>(<span class="string">b&quot;1234&quot;</span>)
             .<span class="ident">create</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile</span>::<span class="ident">tempfile</span>().<span class="ident">unwrap</span>();
-        <span class="ident">core</span>::<span class="ident">download_exercise</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">temp</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
-        <span class="ident">temp</span>.<span class="ident">seek</span>(<span class="ident">SeekFrom</span>::<span class="ident">Start</span>(<span class="number">0</span>)).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile::tempfile</span>().<span class="ident">unwrap</span>();
+        <span class="ident">core::download_exercise</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">temp</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+        <span class="ident">temp</span>.<span class="ident">seek</span>(<span class="ident">SeekFrom::Start</span>(<span class="number">0</span>)).<span class="ident">unwrap</span>();
         <span class="ident">temp</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">buf</span>.<span class="ident">is_empty</span>());
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">buf</span>.<span class="ident">is_empty</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4891,7 +4890,7 @@
     &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">core</span>::<span class="ident">get_exercise</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">core::get_exercise</span>(<span class="ident">client</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4899,10 +4898,10 @@
         <span class="ident">init</span>();
 
         <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">make_client</span>();
-        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito</span>::<span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/exercises/details&quot;</span>)
-            .<span class="ident">match_query</span>(<span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
+        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito::mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/exercises/details&quot;</span>)
+            .<span class="ident">match_query</span>(<span class="ident">Matcher::AllOf</span>(<span class="macro">vec!</span>[
                 <span class="ident">client_matcher</span>(),
-                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;ids&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;0,1&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">Matcher::UrlEncoded</span>(<span class="string">&quot;ids&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;0,1&quot;</span>.<span class="ident">to_string</span>()),
             ]))
             .<span class="ident">with_body</span>(
                 <span class="string">r#&quot;
@@ -4920,7 +4919,7 @@
             )
             .<span class="ident">create</span>();
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">core</span>::<span class="ident">get_exercise_details</span>(<span class="ident">client</span>, <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>]).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">core::get_exercise_details</span>(<span class="ident">client</span>, <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>]).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4928,17 +4927,17 @@
         <span class="ident">init</span>();
 
         <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">make_client</span>();
-        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito</span>::<span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/exercises/0/solution/download&quot;</span>)
+        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito::mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/exercises/0/solution/download&quot;</span>)
             .<span class="ident">match_query</span>(<span class="ident">client_matcher</span>())
             .<span class="ident">with_body</span>(<span class="string">b&quot;1234&quot;</span>)
             .<span class="ident">create</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile</span>::<span class="ident">tempfile</span>().<span class="ident">unwrap</span>();
-        <span class="ident">core</span>::<span class="ident">download_exercise_solution</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">temp</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
-        <span class="ident">temp</span>.<span class="ident">seek</span>(<span class="ident">SeekFrom</span>::<span class="ident">Start</span>(<span class="number">0</span>)).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile::tempfile</span>().<span class="ident">unwrap</span>();
+        <span class="ident">core::download_exercise_solution</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">temp</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+        <span class="ident">temp</span>.<span class="ident">seek</span>(<span class="ident">SeekFrom::Start</span>(<span class="number">0</span>)).<span class="ident">unwrap</span>();
         <span class="ident">temp</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">buf</span>.<span class="ident">is_empty</span>());
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">buf</span>.<span class="ident">is_empty</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4946,17 +4945,17 @@
         <span class="ident">init</span>();
 
         <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">make_client</span>();
-        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito</span>::<span class="ident">mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/api/v8/core/exercises/0/submissions&quot;</span>)
+        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito::mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/api/v8/core/exercises/0/submissions&quot;</span>)
             .<span class="ident">match_query</span>(<span class="ident">client_matcher</span>())
-            .<span class="ident">match_body</span>(<span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
-                <span class="ident">Matcher</span>::<span class="ident">Regex</span>(<span class="string">&quot;client_time&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">Matcher</span>::<span class="ident">Regex</span>(<span class="string">&quot;client_nanotime&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">Matcher</span>::<span class="ident">Regex</span>(<span class="string">&quot;submission\\[file\\]&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">Matcher</span>::<span class="ident">Regex</span>(<span class="string">&quot;paste&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">Matcher</span>::<span class="ident">Regex</span>(<span class="string">&quot;message_for_paste&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">Matcher</span>::<span class="ident">Regex</span>(<span class="string">&quot;request_review&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">Matcher</span>::<span class="ident">Regex</span>(<span class="string">&quot;message_for_reviewer&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">Matcher</span>::<span class="ident">Regex</span>(<span class="string">&quot;error_msg_locale&quot;</span>.<span class="ident">to_string</span>()),
+            .<span class="ident">match_body</span>(<span class="ident">Matcher::AllOf</span>(<span class="macro">vec!</span>[
+                <span class="ident">Matcher::Regex</span>(<span class="string">&quot;client_time&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">Matcher::Regex</span>(<span class="string">&quot;client_nanotime&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">Matcher::Regex</span>(<span class="string">&quot;submission\\[file\\]&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">Matcher::Regex</span>(<span class="string">&quot;paste&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">Matcher::Regex</span>(<span class="string">&quot;message_for_paste&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">Matcher::Regex</span>(<span class="string">&quot;request_review&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">Matcher::Regex</span>(<span class="string">&quot;message_for_reviewer&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">Matcher::Regex</span>(<span class="string">&quot;error_msg_locale&quot;</span>.<span class="ident">to_string</span>()),
             ]))
             .<span class="ident">with_body</span>(
                 <span class="string">r#&quot;
@@ -4969,13 +4968,13 @@
             )
             .<span class="ident">create</span>();
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">core</span>::<span class="ident">submit_exercise</span>(
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">core::submit_exercise</span>(
             <span class="ident">client</span>,
             <span class="number">0</span>,
-            <span class="ident">Cursor</span>::<span class="ident">new</span>(<span class="macro">vec</span><span class="macro">!</span>[]),
-            <span class="prelude-val">Some</span>(<span class="ident">PasteData</span>::<span class="ident">WithMessage</span>(<span class="string">&quot;paste&quot;</span>.<span class="ident">to_string</span>())),
-            <span class="prelude-val">Some</span>(<span class="ident">ReviewData</span>::<span class="ident">WithMessage</span>(<span class="string">&quot;message&quot;</span>.<span class="ident">to_string</span>())),
-            <span class="prelude-val">Some</span>(<span class="ident">Language</span>::<span class="ident">from_639_1</span>(<span class="string">&quot;fi&quot;</span>).<span class="ident">unwrap</span>()),
+            <span class="ident">Cursor::new</span>(<span class="macro">vec!</span>[]),
+            <span class="prelude-val">Some</span>(<span class="ident">PasteData::WithMessage</span>(<span class="string">&quot;paste&quot;</span>.<span class="ident">to_string</span>())),
+            <span class="prelude-val">Some</span>(<span class="ident">ReviewData::WithMessage</span>(<span class="string">&quot;message&quot;</span>.<span class="ident">to_string</span>())),
+            <span class="prelude-val">Some</span>(<span class="ident">Language::from_639_1</span>(<span class="string">&quot;fi&quot;</span>).<span class="ident">unwrap</span>()),
         )
         .<span class="ident">unwrap</span>();
     }
@@ -5006,7 +5005,7 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">core</span>::<span class="ident">get_organization_courses</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">core::get_organization_courses</span>(<span class="ident">client</span>, <span class="string">&quot;someorg&quot;</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -5014,17 +5013,17 @@
         <span class="ident">init</span>();
 
         <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">make_client</span>();
-        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito</span>::<span class="ident">mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/submissions/0/download&quot;</span>)
+        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito::mock</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/submissions/0/download&quot;</span>)
             .<span class="ident">match_query</span>(<span class="ident">client_matcher</span>())
             .<span class="ident">with_body</span>(<span class="string">b&quot;1234&quot;</span>)
             .<span class="ident">create</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile</span>::<span class="ident">tempfile</span>().<span class="ident">unwrap</span>();
-        <span class="ident">core</span>::<span class="ident">download_submission</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">temp</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
-        <span class="ident">temp</span>.<span class="ident">seek</span>(<span class="ident">SeekFrom</span>::<span class="ident">Start</span>(<span class="number">0</span>)).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile::tempfile</span>().<span class="ident">unwrap</span>();
+        <span class="ident">core::download_submission</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">temp</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+        <span class="ident">temp</span>.<span class="ident">seek</span>(<span class="ident">SeekFrom::Start</span>(<span class="number">0</span>)).<span class="ident">unwrap</span>();
         <span class="ident">temp</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">buf</span>.<span class="ident">is_empty</span>());
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">buf</span>.<span class="ident">is_empty</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -5032,11 +5031,11 @@
         <span class="ident">init</span>();
 
         <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">make_client</span>();
-        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito</span>::<span class="ident">mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/api/v8/core/submissions/0/feedback&quot;</span>)
+        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito::mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/api/v8/core/submissions/0/feedback&quot;</span>)
             .<span class="ident">match_query</span>(<span class="ident">client_matcher</span>())
-            .<span class="ident">match_body</span>(<span class="ident">Matcher</span>::<span class="ident">AllOf</span>(<span class="macro">vec</span><span class="macro">!</span>[
-                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;answers[0][question_id]&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;0&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(<span class="string">&quot;answers[0][answer]&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;ans&quot;</span>.<span class="ident">to_string</span>()),
+            .<span class="ident">match_body</span>(<span class="ident">Matcher::AllOf</span>(<span class="macro">vec!</span>[
+                <span class="ident">Matcher::UrlEncoded</span>(<span class="string">&quot;answers[0][question_id]&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;0&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">Matcher::UrlEncoded</span>(<span class="string">&quot;answers[0][answer]&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;ans&quot;</span>.<span class="ident">to_string</span>()),
             ]))
             .<span class="ident">with_body</span>(
                 <span class="string">r#&quot;
@@ -5047,10 +5046,10 @@
             )
             .<span class="ident">create</span>();
 
-        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">core</span>::<span class="ident">post_submission_feedback</span>(
+        <span class="kw">let</span> <span class="ident">_res</span> <span class="op">=</span> <span class="ident">core::post_submission_feedback</span>(
             <span class="ident">client</span>,
             <span class="number">0</span>,
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">FeedbackAnswer</span> {
+            <span class="macro">vec!</span>[<span class="ident">FeedbackAnswer</span> {
                 <span class="ident">answer</span>: <span class="string">&quot;ans&quot;</span>.<span class="ident">to_string</span>(),
                 <span class="ident">question_id</span>: <span class="number">0</span>,
             }],
@@ -5063,17 +5062,16 @@
         <span class="ident">init</span>();
 
         <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">make_client</span>();
-        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito</span>::<span class="ident">mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/api/v8/core/submissions/0/reviews&quot;</span>)
+        <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">mockito::mock</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/api/v8/core/submissions/0/reviews&quot;</span>)
             .<span class="ident">match_query</span>(<span class="ident">client_matcher</span>())
-            .<span class="ident">match_body</span>(<span class="ident">Matcher</span>::<span class="ident">UrlEncoded</span>(
+            .<span class="ident">match_body</span>(<span class="ident">Matcher::UrlEncoded</span>(
                 <span class="string">&quot;review[review_body]&quot;</span>.<span class="ident">to_string</span>(),
                 <span class="string">&quot;review&quot;</span>.<span class="ident">to_string</span>(),
             ))
             .<span class="ident">create</span>();
 
-        <span class="ident">core</span>::<span class="ident">post_submission_review</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="string">&quot;review&quot;</span>.<span class="ident">to_string</span>()).<span class="ident">unwrap</span>();
+        <span class="ident">core::post_submission_review</span>(<span class="ident">client</span>, <span class="number">0</span>, <span class="string">&quot;review&quot;</span>.<span class="ident">to_string</span>()).<span class="ident">unwrap</span>();
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tmc_client" data-search-js="../../../search-index.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tmc_client" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

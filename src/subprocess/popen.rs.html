@@ -1,7 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/subprocess-0.2.7/src/popen.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>popen.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../subprocess/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../subprocess/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1303,26 +1302,26 @@
 <span id="1300">1300</span>
 <span id="1301">1301</span>
 <span id="1302">1302</span>
-</pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">RefCell</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">env</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::{<span class="ident">OsStr</span>, <span class="ident">OsString</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">result</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
+</pre><pre class="rust">
+<span class="kw">use</span> <span class="ident">std::cell::RefCell</span>;
+<span class="kw">use</span> <span class="ident">std::env</span>;
+<span class="kw">use</span> <span class="ident">std::error::Error</span>;
+<span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">OsStr</span>, <span class="ident">OsString</span>};
+<span class="kw">use</span> <span class="ident">std::fmt</span>;
+<span class="kw">use</span> <span class="ident">std::fs::File</span>;
+<span class="kw">use</span> <span class="ident">std::io</span>;
+<span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
+<span class="kw">use</span> <span class="ident">std::result</span>;
+<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">communicate</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">os_common</span>::{<span class="ident">ExitStatus</span>, <span class="ident">StandardStream</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::communicate</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::os_common</span>::{<span class="ident">ExitStatus</span>, <span class="ident">StandardStream</span>};
 
-<span class="kw">use</span> <span class="self">self</span>::<span class="ident">ChildState</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="self">self</span><span class="ident">::ChildState</span>::<span class="kw-2">*</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">os</span>::<span class="ident">ext</span> <span class="kw">as</span> <span class="ident">os_ext</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">os</span>::<span class="ident">make_pipe</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">communicate</span>::<span class="ident">Communicator</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::os::ext</span> <span class="kw">as</span> <span class="ident">os_ext</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::os::make_pipe</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">communicate::Communicator</span>;
 
 <span class="doccomment">/// Interface to a running subprocess.</span>
 <span class="doccomment">///</span>
@@ -1377,7 +1376,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">enum</span> <span class="ident">ChildState</span> {
     <span class="ident">Preparing</span>, <span class="comment">// only during construction</span>
-    <span class="ident">Running</span> { <span class="ident">pid</span>: <span class="ident">u32</span>, <span class="ident">ext</span>: <span class="ident">os</span>::<span class="ident">ExtChildState</span> },
+    <span class="ident">Running</span> { <span class="ident">pid</span>: <span class="ident">u32</span>, <span class="ident">ext</span>: <span class="ident">os::ExtChildState</span> },
     <span class="ident">Finished</span>(<span class="ident">ExitStatus</span>),
 }
 
@@ -1470,7 +1469,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`PopenConfig`]: struct.PopenConfig.html</span>
     <span class="doccomment">/// [`Redirection::File`]: enum.Redirection.html#variant.File</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PopenConfig</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">PopenConfig</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">PopenConfig</span> {
             <span class="ident">stdin</span>: <span class="self">self</span>.<span class="ident">stdin</span>.<span class="ident">try_clone</span>()<span class="question-mark">?</span>,
             <span class="ident">stdout</span>: <span class="self">self</span>.<span class="ident">stdout</span>.<span class="ident">try_clone</span>()<span class="question-mark">?</span>,
@@ -1492,16 +1491,16 @@
     <span class="doccomment">/// The returned value is in the format accepted by the `env`</span>
     <span class="doccomment">/// member of `PopenConfig`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_env</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">OsString</span>, <span class="ident">OsString</span>)<span class="op">&gt;</span> {
-        <span class="ident">env</span>::<span class="ident">vars_os</span>().<span class="ident">collect</span>()
+        <span class="ident">env::vars_os</span>().<span class="ident">collect</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">PopenConfig</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PopenConfig</span> {
         <span class="ident">PopenConfig</span> {
-            <span class="ident">stdin</span>: <span class="ident">Redirection</span>::<span class="prelude-val">None</span>,
-            <span class="ident">stdout</span>: <span class="ident">Redirection</span>::<span class="prelude-val">None</span>,
-            <span class="ident">stderr</span>: <span class="ident">Redirection</span>::<span class="prelude-val">None</span>,
+            <span class="ident">stdin</span>: <span class="ident">Redirection::None</span>,
+            <span class="ident">stdout</span>: <span class="ident">Redirection::None</span>,
+            <span class="ident">stderr</span>: <span class="ident">Redirection::None</span>,
             <span class="ident">detached</span>: <span class="bool-val">false</span>,
             <span class="ident">executable</span>: <span class="prelude-val">None</span>,
             <span class="ident">env</span>: <span class="prelude-val">None</span>,
@@ -1584,13 +1583,13 @@
     <span class="doccomment">/// Clone the underlying `Redirection`, or return an error.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Can fail in `File` variant.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Redirection</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Redirection</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Redirection</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Redirection</span>::<span class="prelude-val">None</span>,
-            <span class="ident">Redirection</span>::<span class="ident">Pipe</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Redirection</span>::<span class="ident">Pipe</span>,
-            <span class="ident">Redirection</span>::<span class="ident">Merge</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Redirection</span>::<span class="ident">Merge</span>,
-            <span class="ident">Redirection</span>::<span class="ident">File</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Redirection</span>::<span class="ident">File</span>(<span class="ident">f</span>.<span class="ident">try_clone</span>()<span class="question-mark">?</span>),
-            <span class="ident">Redirection</span>::<span class="ident">RcFile</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Redirection</span>::<span class="ident">RcFile</span>(<span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="ident">f</span>)),
+            <span class="ident">Redirection::None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Redirection::None</span>,
+            <span class="ident">Redirection::Pipe</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Redirection::Pipe</span>,
+            <span class="ident">Redirection::Merge</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Redirection::Merge</span>,
+            <span class="ident">Redirection::File</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Redirection::File</span>(<span class="ident">f</span>.<span class="ident">try_clone</span>()<span class="question-mark">?</span>),
+            <span class="ident">Redirection::RcFile</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Redirection::RcFile</span>(<span class="ident">Rc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">f</span>)),
         })
     }
 }
@@ -1623,14 +1622,14 @@
     <span class="doccomment">/// exit status.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">argv</span>: <span class="kw-2">&amp;</span>[<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">OsStr</span><span class="op">&gt;</span>], <span class="ident">config</span>: <span class="ident">PopenConfig</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Popen</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">argv</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PopenError</span>::<span class="ident">LogicError</span>(<span class="string">&quot;argv must not be empty&quot;</span>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PopenError::LogicError</span>(<span class="string">&quot;argv must not be empty&quot;</span>));
         }
         <span class="kw">let</span> <span class="ident">argv</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">argv</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>()).<span class="ident">collect</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inst</span> <span class="op">=</span> <span class="ident">Popen</span> {
             <span class="ident">stdin</span>: <span class="prelude-val">None</span>,
             <span class="ident">stdout</span>: <span class="prelude-val">None</span>,
             <span class="ident">stderr</span>: <span class="prelude-val">None</span>,
-            <span class="ident">child_state</span>: <span class="ident">ChildState</span>::<span class="ident">Preparing</span>,
+            <span class="ident">child_state</span>: <span class="ident">ChildState::Preparing</span>,
             <span class="ident">detached</span>: <span class="ident">config</span>.<span class="ident">detached</span>,
         };
         <span class="ident">inst</span>.<span class="ident">os_start</span>(<span class="ident">argv</span>, <span class="ident">config</span>)<span class="question-mark">?</span>;
@@ -1660,26 +1659,26 @@
         ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
             <span class="comment">// Store the parent&#39;s end of the pipe into the given</span>
             <span class="comment">// reference, and store the child end.</span>
-            <span class="kw">let</span> (<span class="ident">read</span>, <span class="ident">write</span>) <span class="op">=</span> <span class="ident">os</span>::<span class="ident">make_pipe</span>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> (<span class="ident">read</span>, <span class="ident">write</span>) <span class="op">=</span> <span class="ident">os::make_pipe</span>()<span class="question-mark">?</span>;
             <span class="kw">let</span> (<span class="ident">parent_end</span>, <span class="ident">child_end</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">parent_writes</span> {
                 (<span class="ident">write</span>, <span class="ident">read</span>)
             } <span class="kw">else</span> {
                 (<span class="ident">read</span>, <span class="ident">write</span>)
             };
-            <span class="ident">os</span>::<span class="ident">set_inheritable</span>(<span class="kw-2">&amp;</span><span class="ident">parent_end</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+            <span class="ident">os::set_inheritable</span>(<span class="kw-2">&amp;</span><span class="ident">parent_end</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
             <span class="kw-2">*</span><span class="ident">parent_ref</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">parent_end</span>);
-            <span class="kw-2">*</span><span class="ident">child_ref</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">child_end</span>));
+            <span class="kw-2">*</span><span class="ident">child_ref</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Rc::new</span>(<span class="ident">child_end</span>));
             <span class="prelude-val">Ok</span>(())
         }
-        <span class="kw">fn</span> <span class="ident">prepare_file</span>(<span class="ident">file</span>: <span class="ident">File</span>, <span class="ident">child_ref</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">prepare_file</span>(<span class="ident">file</span>: <span class="ident">File</span>, <span class="ident">child_ref</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
             <span class="comment">// Make the File inheritable and store it for use in the child.</span>
-            <span class="ident">os</span>::<span class="ident">set_inheritable</span>(<span class="kw-2">&amp;</span><span class="ident">file</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-            <span class="kw-2">*</span><span class="ident">child_ref</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">file</span>));
+            <span class="ident">os::set_inheritable</span>(<span class="kw-2">&amp;</span><span class="ident">file</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+            <span class="kw-2">*</span><span class="ident">child_ref</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Rc::new</span>(<span class="ident">file</span>));
             <span class="prelude-val">Ok</span>(())
         }
-        <span class="kw">fn</span> <span class="ident">prepare_rc_file</span>(<span class="ident">file</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>, <span class="ident">child_ref</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">prepare_rc_file</span>(<span class="ident">file</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>, <span class="ident">child_ref</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
             <span class="comment">// Like prepare_file, but for Rc&lt;File&gt;</span>
-            <span class="ident">os</span>::<span class="ident">set_inheritable</span>(<span class="kw-2">&amp;</span><span class="ident">file</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+            <span class="ident">os::set_inheritable</span>(<span class="kw-2">&amp;</span><span class="ident">file</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
             <span class="kw-2">*</span><span class="ident">child_ref</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">file</span>);
             <span class="prelude-val">Ok</span>(())
         }
@@ -1687,14 +1686,14 @@
             <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span>,
             <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span>,
             <span class="ident">src_id</span>: <span class="ident">StandardStream</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
             <span class="comment">// For Redirection::Merge, make stdout and stderr refer to</span>
             <span class="comment">// the same File.  If the file is unavailable, use the</span>
             <span class="comment">// appropriate system output stream.</span>
             <span class="kw">if</span> <span class="ident">src</span>.<span class="ident">is_none</span>() {
                 <span class="kw-2">*</span><span class="ident">src</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">get_standard_stream</span>(<span class="ident">src_id</span>)<span class="question-mark">?</span>);
             }
-            <span class="kw-2">*</span><span class="ident">dest</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="ident">src</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>()));
+            <span class="kw-2">*</span><span class="ident">dest</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Rc::clone</span>(<span class="ident">src</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>()));
             <span class="prelude-val">Ok</span>(())
         }
 
@@ -1703,34 +1702,34 @@
             <span class="ident">OutToErr</span>, <span class="comment">// 1&gt;&amp;2</span>
             <span class="prelude-val">None</span>,
         }
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">merge</span>: <span class="ident">MergeKind</span> <span class="op">=</span> <span class="ident">MergeKind</span>::<span class="prelude-val">None</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">merge</span>: <span class="ident">MergeKind</span> <span class="op">=</span> <span class="ident">MergeKind::None</span>;
 
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">child_stdin</span>, <span class="kw-2">mut</span> <span class="ident">child_stdout</span>, <span class="kw-2">mut</span> <span class="ident">child_stderr</span>) <span class="op">=</span> (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
 
         <span class="kw">match</span> <span class="ident">stdin</span> {
-            <span class="ident">Redirection</span>::<span class="ident">Pipe</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prepare_pipe</span>(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">stdin</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdin</span>)<span class="question-mark">?</span>,
-            <span class="ident">Redirection</span>::<span class="ident">File</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prepare_file</span>(<span class="ident">file</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdin</span>)<span class="question-mark">?</span>,
-            <span class="ident">Redirection</span>::<span class="ident">RcFile</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prepare_rc_file</span>(<span class="ident">file</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdin</span>)<span class="question-mark">?</span>,
-            <span class="ident">Redirection</span>::<span class="ident">Merge</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PopenError</span>::<span class="ident">LogicError</span>(
+            <span class="ident">Redirection::Pipe</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prepare_pipe</span>(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">stdin</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdin</span>)<span class="question-mark">?</span>,
+            <span class="ident">Redirection::File</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prepare_file</span>(<span class="ident">file</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdin</span>)<span class="question-mark">?</span>,
+            <span class="ident">Redirection::RcFile</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prepare_rc_file</span>(<span class="ident">file</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdin</span>)<span class="question-mark">?</span>,
+            <span class="ident">Redirection::Merge</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PopenError::LogicError</span>(
                     <span class="string">&quot;Redirection::Merge not valid for stdin&quot;</span>,
                 ));
             }
-            <span class="ident">Redirection</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> (),
+            <span class="ident">Redirection::None</span> <span class="op">=</span><span class="op">&gt;</span> (),
         };
         <span class="kw">match</span> <span class="ident">stdout</span> {
-            <span class="ident">Redirection</span>::<span class="ident">Pipe</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prepare_pipe</span>(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">stdout</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdout</span>)<span class="question-mark">?</span>,
-            <span class="ident">Redirection</span>::<span class="ident">File</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prepare_file</span>(<span class="ident">file</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdout</span>)<span class="question-mark">?</span>,
-            <span class="ident">Redirection</span>::<span class="ident">RcFile</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prepare_rc_file</span>(<span class="ident">file</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdout</span>)<span class="question-mark">?</span>,
-            <span class="ident">Redirection</span>::<span class="ident">Merge</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">merge</span> <span class="op">=</span> <span class="ident">MergeKind</span>::<span class="ident">OutToErr</span>,
-            <span class="ident">Redirection</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> (),
+            <span class="ident">Redirection::Pipe</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prepare_pipe</span>(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">stdout</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdout</span>)<span class="question-mark">?</span>,
+            <span class="ident">Redirection::File</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prepare_file</span>(<span class="ident">file</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdout</span>)<span class="question-mark">?</span>,
+            <span class="ident">Redirection::RcFile</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prepare_rc_file</span>(<span class="ident">file</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdout</span>)<span class="question-mark">?</span>,
+            <span class="ident">Redirection::Merge</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">merge</span> <span class="op">=</span> <span class="ident">MergeKind::OutToErr</span>,
+            <span class="ident">Redirection::None</span> <span class="op">=</span><span class="op">&gt;</span> (),
         };
         <span class="kw">match</span> <span class="ident">stderr</span> {
-            <span class="ident">Redirection</span>::<span class="ident">Pipe</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prepare_pipe</span>(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">stderr</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stderr</span>)<span class="question-mark">?</span>,
-            <span class="ident">Redirection</span>::<span class="ident">File</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prepare_file</span>(<span class="ident">file</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stderr</span>)<span class="question-mark">?</span>,
-            <span class="ident">Redirection</span>::<span class="ident">RcFile</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prepare_rc_file</span>(<span class="ident">file</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stderr</span>)<span class="question-mark">?</span>,
-            <span class="ident">Redirection</span>::<span class="ident">Merge</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">merge</span> <span class="op">=</span> <span class="ident">MergeKind</span>::<span class="ident">ErrToOut</span>,
-            <span class="ident">Redirection</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> (),
+            <span class="ident">Redirection::Pipe</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prepare_pipe</span>(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">stderr</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stderr</span>)<span class="question-mark">?</span>,
+            <span class="ident">Redirection::File</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prepare_file</span>(<span class="ident">file</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stderr</span>)<span class="question-mark">?</span>,
+            <span class="ident">Redirection::RcFile</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prepare_rc_file</span>(<span class="ident">file</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stderr</span>)<span class="question-mark">?</span>,
+            <span class="ident">Redirection::Merge</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">merge</span> <span class="op">=</span> <span class="ident">MergeKind::ErrToOut</span>,
+            <span class="ident">Redirection::None</span> <span class="op">=</span><span class="op">&gt;</span> (),
         };
 
         <span class="comment">// Handle Redirection::Merge after creating the output child</span>
@@ -1741,13 +1740,13 @@
         <span class="comment">// child_stderr point to a dup of child_stdout, or of the OS&#39;s</span>
         <span class="comment">// stdout stream.</span>
         <span class="kw">match</span> <span class="ident">merge</span> {
-            <span class="ident">MergeKind</span>::<span class="ident">ErrToOut</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">reuse_stream</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stderr</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdout</span>, <span class="ident">StandardStream</span>::<span class="ident">Output</span>)<span class="question-mark">?</span>
+            <span class="ident">MergeKind::ErrToOut</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">reuse_stream</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stderr</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdout</span>, <span class="ident">StandardStream::Output</span>)<span class="question-mark">?</span>
             }
-            <span class="ident">MergeKind</span>::<span class="ident">OutToErr</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">reuse_stream</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdout</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stderr</span>, <span class="ident">StandardStream</span>::<span class="ident">Error</span>)<span class="question-mark">?</span>
+            <span class="ident">MergeKind::OutToErr</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">reuse_stream</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdout</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stderr</span>, <span class="ident">StandardStream::Error</span>)<span class="question-mark">?</span>
             }
-            <span class="ident">MergeKind</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> (),
+            <span class="ident">MergeKind::None</span> <span class="op">=</span><span class="op">&gt;</span> (),
         }
 
         <span class="prelude-val">Ok</span>((<span class="ident">child_stdin</span>, <span class="ident">child_stdout</span>, <span class="ident">child_stderr</span>))
@@ -1824,7 +1823,7 @@
     <span class="doccomment">/// [`read`]: struct.Communicator.html#method.read</span>
     <span class="doccomment">/// [`read_string`]: struct.Communicator.html#method.read_string</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">communicate_start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">input_data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Communicator</span> {
-        <span class="ident">communicate</span>::<span class="ident">communicate</span>(
+        <span class="ident">communicate::communicate</span>(
             <span class="self">self</span>.<span class="ident">stdin</span>.<span class="ident">take</span>(),
             <span class="self">self</span>.<span class="ident">stdout</span>.<span class="ident">take</span>(),
             <span class="self">self</span>.<span class="ident">stderr</span>.<span class="ident">take</span>(),
@@ -1869,7 +1868,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">communicate_bytes</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">input_data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">communicate_start</span>(<span class="ident">input_data</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">i</span>.<span class="ident">to_vec</span>()))
             .<span class="ident">read</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">error</span>)
@@ -1894,7 +1893,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">communicate</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">input_data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">communicate_start</span>(<span class="ident">input_data</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">as_bytes</span>().<span class="ident">to_vec</span>()))
             .<span class="ident">read_string</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">error</span>)
@@ -1908,7 +1907,7 @@
     <span class="doccomment">/// and is exactly equivalent to</span>
     <span class="doccomment">/// `wait_timeout(Duration::from_secs(0)).unwrap_or(None)`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ExitStatus</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">wait_timeout</span>(<span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="number">0</span>)).<span class="ident">unwrap_or</span>(<span class="prelude-val">None</span>)
+        <span class="self">self</span>.<span class="ident">wait_timeout</span>(<span class="ident">Duration::from_secs</span>(<span class="number">0</span>)).<span class="ident">unwrap_or</span>(<span class="prelude-val">None</span>)
     }
 
     <span class="doccomment">/// Wait for the process to finish, and return its exit status.</span>
@@ -1945,7 +1944,7 @@
     <span class="doccomment">/// child process, which can be caught by the child in order to</span>
     <span class="doccomment">/// perform cleanup before exiting.  On Windows, it is equivalent</span>
     <span class="doccomment">/// to `kill()`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">terminate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">terminate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">os_terminate</span>()
     }
 
@@ -1958,7 +1957,7 @@
     <span class="doccomment">/// handle with equivalent semantics.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`TerminateProcess`]: https://msdn.microsoft.com/en-us/library/windows/desktop/ms686714(v=vs.85).aspx</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">os_kill</span>()
     }
 }
@@ -1967,41 +1966,41 @@
     <span class="kw">fn</span> <span class="ident">os_start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">argv</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span>, <span class="ident">config</span>: <span class="ident">PopenConfig</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
     <span class="kw">fn</span> <span class="ident">os_wait</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExitStatus</span><span class="op">&gt;</span>;
     <span class="kw">fn</span> <span class="ident">os_wait_timeout</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dur</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ExitStatus</span><span class="op">&gt;</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">os_terminate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">os_kill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">os_terminate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">os_kill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
 <span class="kw">mod</span> <span class="ident">os</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">posix</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashSet</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">OsString</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">Read</span>, <span class="ident">Write</span>};
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">unix</span>::<span class="ident">io</span>::<span class="ident">AsRawFd</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>};
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::posix</span>;
+    <span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
+    <span class="kw">use</span> <span class="ident">std::ffi::OsString</span>;
+    <span class="kw">use</span> <span class="ident">std::fs::File</span>;
+    <span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">Read</span>, <span class="ident">Write</span>};
+    <span class="kw">use</span> <span class="ident">std::os::unix::io::AsRawFd</span>;
+    <span class="kw">use</span> <span class="ident">std::time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>};
 
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">os_common</span>::<span class="ident">ExitStatus</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">unix</span>::<span class="ident">PopenExt</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::os_common::ExitStatus</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::unix::PopenExt</span>;
 
     <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ExtChildState</span> <span class="op">=</span> ();
 
-    <span class="kw">impl</span> <span class="kw">super</span>::<span class="ident">PopenOs</span> <span class="kw">for</span> <span class="ident">Popen</span> {
+    <span class="kw">impl</span> <span class="kw">super</span><span class="ident">::PopenOs</span> <span class="kw">for</span> <span class="ident">Popen</span> {
         <span class="kw">fn</span> <span class="ident">os_start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">argv</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span>, <span class="ident">config</span>: <span class="ident">PopenConfig</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exec_fail_pipe</span> <span class="op">=</span> <span class="ident">posix</span>::<span class="ident">pipe</span>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exec_fail_pipe</span> <span class="op">=</span> <span class="ident">posix::pipe</span>()<span class="question-mark">?</span>;
             <span class="ident">set_inheritable</span>(<span class="kw-2">&amp;</span><span class="ident">exec_fail_pipe</span>.<span class="number">0</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
             <span class="ident">set_inheritable</span>(<span class="kw-2">&amp;</span><span class="ident">exec_fail_pipe</span>.<span class="number">1</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
             {
                 <span class="kw">let</span> <span class="ident">child_ends</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">setup_streams</span>(<span class="ident">config</span>.<span class="ident">stdin</span>, <span class="ident">config</span>.<span class="ident">stdout</span>, <span class="ident">config</span>.<span class="ident">stderr</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">child_env</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">env</span>.<span class="ident">as_deref</span>().<span class="ident">map</span>(<span class="ident">format_env</span>);
                 <span class="kw">let</span> <span class="ident">cmd_to_exec</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">executable</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">argv</span>[<span class="number">0</span>]);
-                <span class="kw">let</span> <span class="ident">just_exec</span> <span class="op">=</span> <span class="ident">posix</span>::<span class="ident">prep_exec</span>(<span class="ident">cmd_to_exec</span>, <span class="kw-2">&amp;</span><span class="ident">argv</span>, <span class="ident">child_env</span>.<span class="ident">as_deref</span>())<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">just_exec</span> <span class="op">=</span> <span class="ident">posix::prep_exec</span>(<span class="ident">cmd_to_exec</span>, <span class="kw-2">&amp;</span><span class="ident">argv</span>, <span class="ident">child_env</span>.<span class="ident">as_deref</span>())<span class="question-mark">?</span>;
                 <span class="kw">unsafe</span> {
                     <span class="comment">// unsafe because after the call to fork() the</span>
                     <span class="comment">// child is not allowed to allocate</span>
-                    <span class="kw">match</span> <span class="ident">posix</span>::<span class="ident">fork</span>()<span class="question-mark">?</span> {
+                    <span class="kw">match</span> <span class="ident">posix::fork</span>()<span class="question-mark">?</span> {
                         <span class="prelude-val">Some</span>(<span class="ident">child_pid</span>) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="self">self</span>.<span class="ident">child_state</span> <span class="op">=</span> <span class="ident">Running</span> {
                                 <span class="ident">pid</span>: <span class="ident">child_pid</span>,
@@ -2010,7 +2009,7 @@
                         }
                         <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="ident">drop</span>(<span class="ident">exec_fail_pipe</span>.<span class="number">0</span>);
-                            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Popen</span>::<span class="ident">do_exec</span>(
+                            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Popen::do_exec</span>(
                                 <span class="ident">just_exec</span>,
                                 <span class="ident">child_ends</span>,
                                 <span class="ident">config</span>.<span class="ident">cwd</span>.<span class="ident">as_deref</span>(),
@@ -2020,7 +2019,7 @@
                             <span class="comment">// If we are here, it means that exec has failed.  Notify</span>
                             <span class="comment">// the parent and exit.</span>
                             <span class="kw">let</span> <span class="ident">error_code</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">result</span> {
-                                <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+                                <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
                                 <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">raw_os_error</span>().<span class="ident">unwrap_or</span>(<span class="op">-</span><span class="number">1</span>),
                             } <span class="kw">as</span> <span class="ident">u32</span>;
                             <span class="ident">exec_fail_pipe</span>
@@ -2032,7 +2031,7 @@
                                     (<span class="ident">error_code</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="kw">as</span> <span class="ident">u8</span>,
                                 ])
                                 .<span class="ident">ok</span>();
-                            <span class="ident">posix</span>::<span class="ident">_exit</span>(<span class="number">127</span>);
+                            <span class="ident">posix::_exit</span>(<span class="number">127</span>);
                         }
                     }
                 }
@@ -2047,11 +2046,11 @@
                     <span class="op">|</span> (<span class="ident">error_buf</span>[<span class="number">1</span>] <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>
                     <span class="op">|</span> (<span class="ident">error_buf</span>[<span class="number">2</span>] <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>
                     <span class="op">|</span> (<span class="ident">error_buf</span>[<span class="number">3</span>] <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">24</span>;
-                <span class="prelude-val">Err</span>(<span class="ident">PopenError</span>::<span class="ident">from</span>(<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">from_raw_os_error</span>(
+                <span class="prelude-val">Err</span>(<span class="ident">PopenError::from</span>(<span class="ident">io::Error::from_raw_os_error</span>(
                     <span class="ident">error_code</span> <span class="kw">as</span> <span class="ident">i32</span>,
                 )))
             } <span class="kw">else</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">PopenError</span>::<span class="ident">LogicError</span>(<span class="string">&quot;invalid read_count from exec pipe&quot;</span>))
+                <span class="prelude-val">Err</span>(<span class="ident">PopenError::LogicError</span>(<span class="string">&quot;invalid read_count from exec pipe&quot;</span>))
             }
         }
 
@@ -2063,44 +2062,44 @@
         }
 
         <span class="kw">fn</span> <span class="ident">os_wait_timeout</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dur</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ExitStatus</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">min</span>;
+            <span class="kw">use</span> <span class="ident">std::cmp::min</span>;
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Finished</span>(<span class="ident">exit_status</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">child_state</span> {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">exit_status</span>));
             }
 
-            <span class="kw">let</span> <span class="ident">deadline</span> <span class="op">=</span> <span class="ident">Instant</span>::<span class="ident">now</span>() <span class="op">+</span> <span class="ident">dur</span>;
+            <span class="kw">let</span> <span class="ident">deadline</span> <span class="op">=</span> <span class="ident">Instant::now</span>() <span class="op">+</span> <span class="ident">dur</span>;
             <span class="comment">// double delay at every iteration, maxing at 100ms</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">delay</span> <span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">from_millis</span>(<span class="number">1</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">delay</span> <span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">1</span>);
 
             <span class="kw">loop</span> {
                 <span class="self">self</span>.<span class="ident">waitpid</span>(<span class="bool-val">false</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Finished</span>(<span class="ident">exit_status</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">child_state</span> {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">exit_status</span>));
                 }
-                <span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">Instant</span>::<span class="ident">now</span>();
+                <span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
                 <span class="kw">if</span> <span class="ident">now</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">deadline</span> {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
                 }
                 <span class="kw">let</span> <span class="ident">remaining</span> <span class="op">=</span> <span class="ident">deadline</span>.<span class="ident">duration_since</span>(<span class="ident">now</span>);
-                ::<span class="ident">std</span>::<span class="ident">thread</span>::<span class="ident">sleep</span>(<span class="ident">min</span>(<span class="ident">delay</span>, <span class="ident">remaining</span>));
-                <span class="ident">delay</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">delay</span> <span class="op">*</span> <span class="number">2</span>, <span class="ident">Duration</span>::<span class="ident">from_millis</span>(<span class="number">100</span>));
+                <span class="ident">::std::thread::sleep</span>(<span class="ident">min</span>(<span class="ident">delay</span>, <span class="ident">remaining</span>));
+                <span class="ident">delay</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">delay</span> <span class="op">*</span> <span class="number">2</span>, <span class="ident">Duration::from_millis</span>(<span class="number">100</span>));
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">os_terminate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-            <span class="self">self</span>.<span class="ident">send_signal</span>(<span class="ident">posix</span>::<span class="ident">SIGTERM</span>)
+        <span class="kw">fn</span> <span class="ident">os_terminate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+            <span class="self">self</span>.<span class="ident">send_signal</span>(<span class="ident">posix::SIGTERM</span>)
         }
 
-        <span class="kw">fn</span> <span class="ident">os_kill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-            <span class="self">self</span>.<span class="ident">send_signal</span>(<span class="ident">posix</span>::<span class="ident">SIGKILL</span>)
+        <span class="kw">fn</span> <span class="ident">os_kill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+            <span class="self">self</span>.<span class="ident">send_signal</span>(<span class="ident">posix::SIGKILL</span>)
         }
     }
 
     <span class="kw">fn</span> <span class="ident">format_env</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span>[(<span class="ident">OsString</span>, <span class="ident">OsString</span>)]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span> {
         <span class="comment">// Convert Vec of (key, val) pairs to Vec of key=val, as required by</span>
         <span class="comment">// execvpe.  Eliminate dups, in favor of later-appearing entries.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seen</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">OsStr</span><span class="op">&gt;</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seen</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">OsStr</span><span class="op">&gt;</span><span class="ident">::new</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">formatted</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">env</span>
             .<span class="ident">iter</span>()
             .<span class="ident">rev</span>()
@@ -2116,70 +2115,70 @@
         <span class="ident">formatted</span>
     }
 
-    <span class="kw">trait</span> <span class="ident">PopenOsImpl</span>: <span class="kw">super</span>::<span class="ident">PopenOs</span> {
+    <span class="kw">trait</span> <span class="ident">PopenOsImpl</span>: <span class="kw">super</span><span class="ident">::PopenOs</span> {
         <span class="kw">fn</span> <span class="ident">do_exec</span>(
-            <span class="ident">just_exec</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
+            <span class="ident">just_exec</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
             <span class="ident">child_ends</span>: (<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span>),
             <span class="ident">cwd</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">OsStr</span><span class="op">&gt;</span>,
             <span class="ident">setuid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
             <span class="ident">setgid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
-        <span class="kw">fn</span> <span class="ident">waitpid</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+        <span class="kw">fn</span> <span class="ident">waitpid</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
     }
 
     <span class="kw">impl</span> <span class="ident">PopenOsImpl</span> <span class="kw">for</span> <span class="ident">Popen</span> {
         <span class="kw">fn</span> <span class="ident">do_exec</span>(
-            <span class="ident">just_exec</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
+            <span class="ident">just_exec</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
             <span class="ident">child_ends</span>: (<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span>),
             <span class="ident">cwd</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">OsStr</span><span class="op">&gt;</span>,
             <span class="ident">setuid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
             <span class="ident">setgid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cwd</span>) <span class="op">=</span> <span class="ident">cwd</span> {
-                <span class="ident">env</span>::<span class="ident">set_current_dir</span>(<span class="ident">cwd</span>)<span class="question-mark">?</span>;
+                <span class="ident">env::set_current_dir</span>(<span class="ident">cwd</span>)<span class="question-mark">?</span>;
             }
 
             <span class="kw">let</span> (<span class="ident">stdin</span>, <span class="ident">stdout</span>, <span class="ident">stderr</span>) <span class="op">=</span> <span class="ident">child_ends</span>;
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stdin</span>) <span class="op">=</span> <span class="ident">stdin</span> {
                 <span class="kw">if</span> <span class="ident">stdin</span>.<span class="ident">as_raw_fd</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                    <span class="ident">posix</span>::<span class="ident">dup2</span>(<span class="ident">stdin</span>.<span class="ident">as_raw_fd</span>(), <span class="number">0</span>)<span class="question-mark">?</span>;
+                    <span class="ident">posix::dup2</span>(<span class="ident">stdin</span>.<span class="ident">as_raw_fd</span>(), <span class="number">0</span>)<span class="question-mark">?</span>;
                 }
             }
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stdout</span>) <span class="op">=</span> <span class="ident">stdout</span> {
                 <span class="kw">if</span> <span class="ident">stdout</span>.<span class="ident">as_raw_fd</span>() <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
-                    <span class="ident">posix</span>::<span class="ident">dup2</span>(<span class="ident">stdout</span>.<span class="ident">as_raw_fd</span>(), <span class="number">1</span>)<span class="question-mark">?</span>;
+                    <span class="ident">posix::dup2</span>(<span class="ident">stdout</span>.<span class="ident">as_raw_fd</span>(), <span class="number">1</span>)<span class="question-mark">?</span>;
                 }
             }
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stderr</span>) <span class="op">=</span> <span class="ident">stderr</span> {
                 <span class="kw">if</span> <span class="ident">stderr</span>.<span class="ident">as_raw_fd</span>() <span class="op">!</span><span class="op">=</span> <span class="number">2</span> {
-                    <span class="ident">posix</span>::<span class="ident">dup2</span>(<span class="ident">stderr</span>.<span class="ident">as_raw_fd</span>(), <span class="number">2</span>)<span class="question-mark">?</span>;
+                    <span class="ident">posix::dup2</span>(<span class="ident">stderr</span>.<span class="ident">as_raw_fd</span>(), <span class="number">2</span>)<span class="question-mark">?</span>;
                 }
             }
-            <span class="ident">posix</span>::<span class="ident">reset_sigpipe</span>()<span class="question-mark">?</span>;
+            <span class="ident">posix::reset_sigpipe</span>()<span class="question-mark">?</span>;
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">uid</span>) <span class="op">=</span> <span class="ident">setuid</span> {
-                <span class="ident">posix</span>::<span class="ident">setuid</span>(<span class="ident">uid</span>)<span class="question-mark">?</span>;
+                <span class="ident">posix::setuid</span>(<span class="ident">uid</span>)<span class="question-mark">?</span>;
             }
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">gid</span>) <span class="op">=</span> <span class="ident">setgid</span> {
-                <span class="ident">posix</span>::<span class="ident">setgid</span>(<span class="ident">gid</span>)<span class="question-mark">?</span>;
+                <span class="ident">posix::setgid</span>(<span class="ident">gid</span>)<span class="question-mark">?</span>;
             }
             <span class="ident">just_exec</span>()<span class="question-mark">?</span>;
-            <span class="macro">unreachable</span><span class="macro">!</span>();
+            <span class="macro">unreachable!</span>();
         }
 
-        <span class="kw">fn</span> <span class="ident">waitpid</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">waitpid</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">child_state</span> {
-                <span class="ident">Preparing</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;child_state == Preparing&quot;</span>),
+                <span class="ident">Preparing</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;child_state == Preparing&quot;</span>),
                 <span class="ident">Running</span> { <span class="ident">pid</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">match</span> <span class="ident">posix</span>::<span class="ident">waitpid</span>(<span class="ident">pid</span>, <span class="kw">if</span> <span class="ident">block</span> { <span class="number">0</span> } <span class="kw">else</span> { <span class="ident">posix</span>::<span class="ident">WNOHANG</span> }) {
+                    <span class="kw">match</span> <span class="ident">posix::waitpid</span>(<span class="ident">pid</span>, <span class="kw">if</span> <span class="ident">block</span> { <span class="number">0</span> } <span class="kw">else</span> { <span class="ident">posix::WNOHANG</span> }) {
                         <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">errno</span>) <span class="op">=</span> <span class="ident">e</span>.<span class="ident">raw_os_error</span>() {
-                                <span class="kw">if</span> <span class="ident">errno</span> <span class="op">=</span><span class="op">=</span> <span class="ident">posix</span>::<span class="ident">ECHILD</span> {
+                                <span class="kw">if</span> <span class="ident">errno</span> <span class="op">=</span><span class="op">=</span> <span class="ident">posix::ECHILD</span> {
                                     <span class="comment">// Someone else has waited for the child</span>
                                     <span class="comment">// (another thread, a signal handler...).</span>
                                     <span class="comment">// The PID no longer exists and we cannot</span>
                                     <span class="comment">// find its exit status.</span>
-                                    <span class="self">self</span>.<span class="ident">child_state</span> <span class="op">=</span> <span class="ident">Finished</span>(<span class="ident">ExitStatus</span>::<span class="ident">Undetermined</span>);
+                                    <span class="self">self</span>.<span class="ident">child_state</span> <span class="op">=</span> <span class="ident">Finished</span>(<span class="ident">ExitStatus::Undetermined</span>);
                                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
                                 }
                             }
@@ -2198,13 +2197,13 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_inheritable</span>(<span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="ident">File</span>, <span class="ident">inheritable</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_inheritable</span>(<span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="ident">File</span>, <span class="ident">inheritable</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">inheritable</span> {
             <span class="comment">// Unix pipes are inheritable by default.</span>
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">as_raw_fd</span>();
-            <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">posix</span>::<span class="ident">fcntl</span>(<span class="ident">fd</span>, <span class="ident">posix</span>::<span class="ident">F_GETFD</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-            <span class="ident">posix</span>::<span class="ident">fcntl</span>(<span class="ident">fd</span>, <span class="ident">posix</span>::<span class="ident">F_SETFD</span>, <span class="prelude-val">Some</span>(<span class="ident">old</span> <span class="op">|</span> <span class="ident">posix</span>::<span class="ident">FD_CLOEXEC</span>))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">posix::fcntl</span>(<span class="ident">fd</span>, <span class="ident">posix::F_GETFD</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+            <span class="ident">posix::fcntl</span>(<span class="ident">fd</span>, <span class="ident">posix::F_SETFD</span>, <span class="prelude-val">Some</span>(<span class="ident">old</span> <span class="op">|</span> <span class="ident">posix::FD_CLOEXEC</span>))<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -2214,15 +2213,15 @@
     <span class="doccomment">/// This is a safe wrapper over `libc::pipe` or</span>
     <span class="doccomment">/// `winapi::um::namedpipeapi::CreatePipe`, depending on the operating</span>
     <span class="doccomment">/// system.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_pipe</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">File</span>, <span class="ident">File</span>)<span class="op">&gt;</span> {
-        <span class="ident">posix</span>::<span class="ident">pipe</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_pipe</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>(<span class="ident">File</span>, <span class="ident">File</span>)<span class="op">&gt;</span> {
+        <span class="ident">posix::pipe</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ext</span> {
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">popen</span>::<span class="ident">ChildState</span>::<span class="kw-2">*</span>;
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">popen</span>::<span class="ident">Popen</span>;
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">posix</span>;
-        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
+        <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::popen::ChildState</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::popen::Popen</span>;
+        <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::posix</span>;
+        <span class="kw">use</span> <span class="ident">std::io</span>;
 
         <span class="doccomment">/// Unix-specific extension methods for `Popen`</span>
         <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PopenExt</span> {
@@ -2238,13 +2237,13 @@
             <span class="doccomment">/// [`poll`]: ../struct.Popen.html#method.poll</span>
             <span class="doccomment">/// [`wait`]: ../struct.Popen.html#method.wait</span>
             <span class="doccomment">/// [`libc`]: https://docs.rs/libc/</span>
-            <span class="kw">fn</span> <span class="ident">send_signal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">signal</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+            <span class="kw">fn</span> <span class="ident">send_signal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">signal</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
         }
         <span class="kw">impl</span> <span class="ident">PopenExt</span> <span class="kw">for</span> <span class="ident">Popen</span> {
-            <span class="kw">fn</span> <span class="ident">send_signal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">signal</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">send_signal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">signal</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">child_state</span> {
-                    <span class="ident">Preparing</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;child_state == Preparing&quot;</span>),
-                    <span class="ident">Running</span> { <span class="ident">pid</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">posix</span>::<span class="ident">kill</span>(<span class="ident">pid</span>, <span class="ident">signal</span>),
+                    <span class="ident">Preparing</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;child_state == Preparing&quot;</span>),
+                    <span class="ident">Running</span> { <span class="ident">pid</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">posix::kill</span>(<span class="ident">pid</span>, <span class="ident">signal</span>),
                     <span class="ident">Finished</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
                 }
             }
@@ -2256,38 +2255,38 @@
 <span class="kw">mod</span> <span class="ident">os</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashSet</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">env</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::{<span class="ident">OsStr</span>, <span class="ident">OsString</span>};
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::{<span class="self">self</span>, <span class="ident">File</span>};
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">windows</span>::<span class="ident">ffi</span>::{<span class="ident">OsStrExt</span>, <span class="ident">OsStringExt</span>};
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">windows</span>::<span class="ident">io</span>::{<span class="ident">AsRawHandle</span>, <span class="ident">RawHandle</span>};
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
+    <span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
+    <span class="kw">use</span> <span class="ident">std::env</span>;
+    <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">OsStr</span>, <span class="ident">OsString</span>};
+    <span class="kw">use</span> <span class="ident">std::fs</span>::{<span class="self">self</span>, <span class="ident">File</span>};
+    <span class="kw">use</span> <span class="ident">std::io</span>;
+    <span class="kw">use</span> <span class="ident">std::os::windows::ffi</span>::{<span class="ident">OsStrExt</span>, <span class="ident">OsStringExt</span>};
+    <span class="kw">use</span> <span class="ident">std::os::windows::io</span>::{<span class="ident">AsRawHandle</span>, <span class="ident">RawHandle</span>};
+    <span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">os_common</span>::{<span class="ident">ExitStatus</span>, <span class="ident">StandardStream</span>};
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">win32</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::os_common</span>::{<span class="ident">ExitStatus</span>, <span class="ident">StandardStream</span>};
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::win32</span>;
 
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExtChildState</span>(<span class="ident">win32</span>::<span class="ident">Handle</span>);
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExtChildState</span>(<span class="ident">win32::Handle</span>);
 
-    <span class="kw">impl</span> <span class="kw">super</span>::<span class="ident">PopenOs</span> <span class="kw">for</span> <span class="ident">Popen</span> {
+    <span class="kw">impl</span> <span class="kw">super</span><span class="ident">::PopenOs</span> <span class="kw">for</span> <span class="ident">Popen</span> {
         <span class="kw">fn</span> <span class="ident">os_start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">argv</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span>, <span class="ident">config</span>: <span class="ident">PopenConfig</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
             <span class="kw">fn</span> <span class="ident">raw</span>(<span class="ident">opt</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RawHandle</span><span class="op">&gt;</span> {
                 <span class="ident">opt</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <span class="ident">f</span>.<span class="ident">as_raw_handle</span>())
             }
             <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">child_stdin</span>, <span class="kw-2">mut</span> <span class="ident">child_stdout</span>, <span class="kw-2">mut</span> <span class="ident">child_stderr</span>) <span class="op">=</span>
                 <span class="self">self</span>.<span class="ident">setup_streams</span>(<span class="ident">config</span>.<span class="ident">stdin</span>, <span class="ident">config</span>.<span class="ident">stdout</span>, <span class="ident">config</span>.<span class="ident">stderr</span>)<span class="question-mark">?</span>;
-            <span class="ident">ensure_child_stream</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdin</span>, <span class="ident">StandardStream</span>::<span class="ident">Input</span>)<span class="question-mark">?</span>;
-            <span class="ident">ensure_child_stream</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdout</span>, <span class="ident">StandardStream</span>::<span class="ident">Output</span>)<span class="question-mark">?</span>;
-            <span class="ident">ensure_child_stream</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stderr</span>, <span class="ident">StandardStream</span>::<span class="ident">Error</span>)<span class="question-mark">?</span>;
+            <span class="ident">ensure_child_stream</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdin</span>, <span class="ident">StandardStream::Input</span>)<span class="question-mark">?</span>;
+            <span class="ident">ensure_child_stream</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stdout</span>, <span class="ident">StandardStream::Output</span>)<span class="question-mark">?</span>;
+            <span class="ident">ensure_child_stream</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">child_stderr</span>, <span class="ident">StandardStream::Error</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">cmdline</span> <span class="op">=</span> <span class="ident">assemble_cmdline</span>(<span class="ident">argv</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">env_block</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">env</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">env</span><span class="op">|</span> <span class="ident">format_env_block</span>(<span class="kw-2">&amp;</span><span class="ident">env</span>));
             <span class="comment">// CreateProcess doesn&#39;t search for appname in the PATH.</span>
             <span class="comment">// We do it ourselves to match the Unix behavior.</span>
             <span class="kw">let</span> <span class="ident">executable</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">executable</span>.<span class="ident">map</span>(<span class="ident">locate_in_path</span>);
-            <span class="kw">let</span> (<span class="ident">handle</span>, <span class="ident">pid</span>) <span class="op">=</span> <span class="ident">win32</span>::<span class="ident">CreateProcess</span>(
-                <span class="ident">executable</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">OsString</span>::<span class="ident">as_ref</span>),
+            <span class="kw">let</span> (<span class="ident">handle</span>, <span class="ident">pid</span>) <span class="op">=</span> <span class="ident">win32::CreateProcess</span>(
+                <span class="ident">executable</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">OsString::as_ref</span>),
                 <span class="kw-2">&amp;</span><span class="ident">cmdline</span>,
                 <span class="kw-2">&amp;</span><span class="ident">env_block</span>,
                 <span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">cwd</span>.<span class="ident">as_deref</span>(),
@@ -2296,7 +2295,7 @@
                 <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="ident">child_stdin</span>),
                 <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="ident">child_stdout</span>),
                 <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="ident">child_stderr</span>),
-                <span class="ident">win32</span>::<span class="ident">STARTF_USESTDHANDLES</span>,
+                <span class="ident">win32::STARTF_USESTDHANDLES</span>,
             )<span class="question-mark">?</span>;
             <span class="self">self</span>.<span class="ident">child_state</span> <span class="op">=</span> <span class="ident">Running</span> {
                 <span class="ident">pid</span>: <span class="ident">pid</span> <span class="kw">as</span> <span class="ident">u32</span>,
@@ -2308,14 +2307,14 @@
         <span class="kw">fn</span> <span class="ident">os_wait</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExitStatus</span><span class="op">&gt;</span> {
             <span class="self">self</span>.<span class="ident">wait_handle</span>(<span class="prelude-val">None</span>)<span class="question-mark">?</span>;
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">child_state</span> {
-                <span class="ident">Preparing</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;child_state == Preparing&quot;</span>),
+                <span class="ident">Preparing</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;child_state == Preparing&quot;</span>),
                 <span class="ident">Finished</span>(<span class="ident">exit_status</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">exit_status</span>),
                 <span class="comment">// Since we invoked wait_handle without timeout, exit</span>
                 <span class="comment">// status should exist at this point.  The only way</span>
                 <span class="comment">// for it not to exist would be if something strange</span>
                 <span class="comment">// happened, like WaitForSingleObject returning</span>
                 <span class="comment">// something other than OBJECT_0.</span>
-                <span class="ident">Running</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">PopenError</span>::<span class="ident">LogicError</span>(<span class="string">&quot;Failed to obtain exit status&quot;</span>)),
+                <span class="ident">Running</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">PopenError::LogicError</span>(<span class="string">&quot;Failed to obtain exit status&quot;</span>)),
             }
         }
 
@@ -2327,23 +2326,23 @@
             <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">exit_status</span>())
         }
 
-        <span class="kw">fn</span> <span class="ident">os_terminate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">os_terminate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_child_state</span> <span class="op">=</span> <span class="prelude-val">None</span>;
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Running</span> {
                 <span class="ident">ext</span>: <span class="ident">ExtChildState</span>(<span class="kw-2">ref</span> <span class="ident">handle</span>),
                 ..
             } <span class="op">=</span> <span class="self">self</span>.<span class="ident">child_state</span>
             {
-                <span class="kw">match</span> <span class="ident">win32</span>::<span class="ident">TerminateProcess</span>(<span class="ident">handle</span>, <span class="number">1</span>) {
+                <span class="kw">match</span> <span class="ident">win32::TerminateProcess</span>(<span class="ident">handle</span>, <span class="number">1</span>) {
                     <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">raw_os_error</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">win32</span>::<span class="ident">ERROR_ACCESS_DENIED</span> <span class="kw">as</span> <span class="ident">i32</span>) {
+                        <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">raw_os_error</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">win32::ERROR_ACCESS_DENIED</span> <span class="kw">as</span> <span class="ident">i32</span>) {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>);
                         }
-                        <span class="kw">let</span> <span class="ident">rc</span> <span class="op">=</span> <span class="ident">win32</span>::<span class="ident">GetExitCodeProcess</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
-                        <span class="kw">if</span> <span class="ident">rc</span> <span class="op">=</span><span class="op">=</span> <span class="ident">win32</span>::<span class="ident">STILL_ACTIVE</span> {
+                        <span class="kw">let</span> <span class="ident">rc</span> <span class="op">=</span> <span class="ident">win32::GetExitCodeProcess</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
+                        <span class="kw">if</span> <span class="ident">rc</span> <span class="op">=</span><span class="op">=</span> <span class="ident">win32::STILL_ACTIVE</span> {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>);
                         }
-                        <span class="ident">new_child_state</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Finished</span>(<span class="ident">ExitStatus</span>::<span class="ident">Exited</span>(<span class="ident">rc</span>)));
+                        <span class="ident">new_child_state</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Finished</span>(<span class="ident">ExitStatus::Exited</span>(<span class="ident">rc</span>)));
                     }
                     <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> (),
                 }
@@ -2354,14 +2353,14 @@
             <span class="prelude-val">Ok</span>(())
         }
 
-        <span class="kw">fn</span> <span class="ident">os_kill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">os_kill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
             <span class="self">self</span>.<span class="ident">terminate</span>()
         }
     }
 
     <span class="kw">fn</span> <span class="ident">format_env_block</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span>[(<span class="ident">OsString</span>, <span class="ident">OsString</span>)]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> {
         <span class="kw">fn</span> <span class="ident">to_uppercase</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">OsStr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OsString</span> {
-            <span class="ident">OsString</span>::<span class="ident">from_wide</span>(
+            <span class="ident">OsString::from_wide</span>(
                 <span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">encode_wide</span>()
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> {
                         <span class="kw">if</span> <span class="ident">c</span> <span class="op">&lt;</span> <span class="number">128</span> {
@@ -2374,14 +2373,14 @@
             )
         }
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pruned</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seen</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span>::<span class="ident">new</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seen</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span><span class="ident">::new</span>();
             <span class="ident">env</span>.<span class="ident">iter</span>()
                 .<span class="ident">rev</span>()
                 .<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">k</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">seen</span>.<span class="ident">insert</span>(<span class="ident">to_uppercase</span>(<span class="ident">k</span>)))
                 .<span class="ident">collect</span>()
         };
         <span class="ident">pruned</span>.<span class="ident">reverse</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block</span> <span class="op">=</span> <span class="macro">vec!</span>[];
         <span class="kw">for</span> (<span class="ident">k</span>, <span class="ident">v</span>) <span class="kw">in</span> <span class="ident">pruned</span> {
             <span class="ident">block</span>.<span class="ident">extend</span>(<span class="ident">k</span>.<span class="ident">encode_wide</span>());
             <span class="ident">block</span>.<span class="ident">push</span>(<span class="string">&#39;=&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>);
@@ -2393,21 +2392,21 @@
     }
 
     <span class="kw">trait</span> <span class="ident">PopenOsImpl</span> {
-        <span class="kw">fn</span> <span class="ident">wait_handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ExitStatus</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+        <span class="kw">fn</span> <span class="ident">wait_handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ExitStatus</span><span class="op">&gt;</span><span class="op">&gt;</span>;
     }
 
     <span class="kw">impl</span> <span class="ident">PopenOsImpl</span> <span class="kw">for</span> <span class="ident">Popen</span> {
-        <span class="kw">fn</span> <span class="ident">wait_handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ExitStatus</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">wait_handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ExitStatus</span><span class="op">&gt;</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_child_state</span> <span class="op">=</span> <span class="prelude-val">None</span>;
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Running</span> {
                 <span class="ident">ext</span>: <span class="ident">ExtChildState</span>(<span class="kw-2">ref</span> <span class="ident">handle</span>),
                 ..
             } <span class="op">=</span> <span class="self">self</span>.<span class="ident">child_state</span>
             {
-                <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">win32</span>::<span class="ident">WaitForSingleObject</span>(<span class="ident">handle</span>, <span class="ident">timeout</span>)<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">win32</span>::<span class="ident">WaitEvent</span>::<span class="ident">OBJECT_0</span> <span class="op">=</span> <span class="ident">event</span> {
-                    <span class="kw">let</span> <span class="ident">exit_code</span> <span class="op">=</span> <span class="ident">win32</span>::<span class="ident">GetExitCodeProcess</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
-                    <span class="ident">new_child_state</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Finished</span>(<span class="ident">ExitStatus</span>::<span class="ident">Exited</span>(<span class="ident">exit_code</span>)));
+                <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">win32::WaitForSingleObject</span>(<span class="ident">handle</span>, <span class="ident">timeout</span>)<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">win32::WaitEvent::OBJECT_0</span> <span class="op">=</span> <span class="ident">event</span> {
+                    <span class="kw">let</span> <span class="ident">exit_code</span> <span class="op">=</span> <span class="ident">win32::GetExitCodeProcess</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
+                    <span class="ident">new_child_state</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Finished</span>(<span class="ident">ExitStatus::Exited</span>(<span class="ident">exit_code</span>)));
                 }
             }
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new_child_state</span>) <span class="op">=</span> <span class="ident">new_child_state</span> {
@@ -2417,7 +2416,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">ensure_child_stream</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">which</span>: <span class="ident">StandardStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">ensure_child_stream</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">which</span>: <span class="ident">StandardStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// If no stream is sent to CreateProcess, the child doesn&#39;t</span>
         <span class="comment">// get a valid stream.  This results in e.g.</span>
         <span class="comment">// Exec(&quot;sh&quot;).arg(&quot;-c&quot;).arg(&quot;echo foo &gt;&amp;2&quot;).stream_stderr()</span>
@@ -2429,10 +2428,10 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_inheritable</span>(<span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="ident">File</span>, <span class="ident">inheritable</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="ident">win32</span>::<span class="ident">SetHandleInformation</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_inheritable</span>(<span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="ident">File</span>, <span class="ident">inheritable</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="ident">win32::SetHandleInformation</span>(
             <span class="ident">f</span>,
-            <span class="ident">win32</span>::<span class="ident">HANDLE_FLAG_INHERIT</span>,
+            <span class="ident">win32::HANDLE_FLAG_INHERIT</span>,
             <span class="kw">if</span> <span class="ident">inheritable</span> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> },
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -2443,17 +2442,17 @@
     <span class="doccomment">/// This is a safe wrapper over `libc::pipe` or</span>
     <span class="doccomment">/// `winapi::um::namedpipeapi::CreatePipe`, depending on the operating</span>
     <span class="doccomment">/// system.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_pipe</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">File</span>, <span class="ident">File</span>)<span class="op">&gt;</span> {
-        <span class="ident">win32</span>::<span class="ident">CreatePipe</span>(<span class="bool-val">true</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_pipe</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>(<span class="ident">File</span>, <span class="ident">File</span>)<span class="op">&gt;</span> {
+        <span class="ident">win32::CreatePipe</span>(<span class="bool-val">true</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">locate_in_path</span>(<span class="ident">executable</span>: <span class="ident">OsString</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OsString</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">path</span>) <span class="op">=</span> <span class="ident">env</span>::<span class="ident">var_os</span>(<span class="string">&quot;PATH&quot;</span>) {
-            <span class="kw">for</span> <span class="ident">path</span> <span class="kw">in</span> <span class="ident">env</span>::<span class="ident">split_paths</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">path</span>) <span class="op">=</span> <span class="ident">env::var_os</span>(<span class="string">&quot;PATH&quot;</span>) {
+            <span class="kw">for</span> <span class="ident">path</span> <span class="kw">in</span> <span class="ident">env::split_paths</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>) {
                 <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>
                     .<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">executable</span>)
-                    .<span class="ident">with_extension</span>(::<span class="ident">std</span>::<span class="ident">env</span>::<span class="ident">consts</span>::<span class="ident">EXE_EXTENSION</span>);
-                <span class="kw">if</span> <span class="ident">fs</span>::<span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>).<span class="ident">is_ok</span>() {
+                    .<span class="ident">with_extension</span>(<span class="ident">::std::env::consts::EXE_EXTENSION</span>);
+                <span class="kw">if</span> <span class="ident">fs::metadata</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>).<span class="ident">is_ok</span>() {
                     <span class="kw">return</span> <span class="ident">path</span>.<span class="ident">into_os_string</span>();
                 }
             }
@@ -2461,8 +2460,8 @@
         <span class="ident">executable</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">assemble_cmdline</span>(<span class="ident">argv</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cmdline</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+    <span class="kw">fn</span> <span class="ident">assemble_cmdline</span>(<span class="ident">argv</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cmdline</span> <span class="op">=</span> <span class="macro">vec!</span>[];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_first</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">argv</span> {
             <span class="kw">if</span> <span class="op">!</span><span class="ident">is_first</span> {
@@ -2471,13 +2470,13 @@
                 <span class="ident">is_first</span> <span class="op">=</span> <span class="bool-val">false</span>;
             }
             <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">encode_wide</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>) {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">from_raw_os_error</span>(
-                    <span class="ident">win32</span>::<span class="ident">ERROR_BAD_PATHNAME</span> <span class="kw">as</span> <span class="ident">i32</span>,
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::from_raw_os_error</span>(
+                    <span class="ident">win32::ERROR_BAD_PATHNAME</span> <span class="kw">as</span> <span class="ident">i32</span>,
                 ));
             }
             <span class="ident">append_quoted</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cmdline</span>);
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">OsString</span>::<span class="ident">from_wide</span>(<span class="kw-2">&amp;</span><span class="ident">cmdline</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">OsString::from_wide</span>(<span class="kw-2">&amp;</span><span class="ident">cmdline</span>))
     }
 
     <span class="comment">// Translated from ArgvQuote at http://tinyurl.com/zmgtnls</span>
@@ -2540,22 +2539,22 @@
     }
 }
 
-<span class="macro">thread_local</span><span class="macro">!</span> {
-    <span class="kw">static</span> <span class="ident">STREAMS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span>[<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span>; <span class="number">3</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">default</span>();
+<span class="macro">thread_local!</span> {
+    <span class="kw">static</span> <span class="ident">STREAMS</span>: <span class="ident">RefCell</span><span class="op">&lt;</span>[<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span>; <span class="number">3</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell::default</span>();
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">posix</span>::<span class="ident">make_standard_stream</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::posix::make_standard_stream</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">win32</span>::<span class="ident">make_standard_stream</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::win32::make_standard_stream</span>;
 
-<span class="kw">fn</span> <span class="ident">get_standard_stream</span>(<span class="ident">which</span>: <span class="ident">StandardStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">get_standard_stream</span>(<span class="ident">which</span>: <span class="ident">StandardStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="ident">STREAMS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">streams</span><span class="op">|</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">stream</span>) <span class="op">=</span> <span class="ident">streams</span>.<span class="ident">borrow</span>()[<span class="ident">which</span> <span class="kw">as</span> <span class="ident">usize</span>] {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="ident">stream</span>));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Rc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">stream</span>));
         }
         <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">make_standard_stream</span>(<span class="ident">which</span>)<span class="question-mark">?</span>;
-        <span class="ident">streams</span>.<span class="ident">borrow_mut</span>()[<span class="ident">which</span> <span class="kw">as</span> <span class="ident">usize</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="ident">stream</span>));
+        <span class="ident">streams</span>.<span class="ident">borrow_mut</span>()[<span class="ident">which</span> <span class="kw">as</span> <span class="ident">usize</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Rc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">stream</span>));
         <span class="prelude-val">Ok</span>(<span class="ident">stream</span>)
     })
 }
@@ -2568,44 +2567,43 @@
 <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PopenError</span> {
     <span class="doccomment">/// An IO system call failed while executing the requested operation.</span>
-    <span class="ident">IoError</span>(<span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="ident">IoError</span>(<span class="ident">io::Error</span>),
     <span class="doccomment">/// A logical error was made, e.g. invalid arguments detected at run-time.</span>
     <span class="ident">LogicError</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>),
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PopenError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">io</span>::<span class="ident">Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PopenError</span> {
-        <span class="ident">PopenError</span>::<span class="ident">IoError</span>(<span class="ident">err</span>)
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">io::Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PopenError</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">io::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PopenError</span> {
+        <span class="ident">PopenError::IoError</span>(<span class="ident">err</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">communicate</span>::<span class="ident">CommunicateError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PopenError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">communicate</span>::<span class="ident">CommunicateError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PopenError</span> {
-        <span class="ident">PopenError</span>::<span class="ident">IoError</span>(<span class="ident">err</span>.<span class="ident">error</span>)
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">communicate::CommunicateError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PopenError</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">communicate::CommunicateError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PopenError</span> {
+        <span class="ident">PopenError::IoError</span>(<span class="ident">err</span>.<span class="ident">error</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Error</span> <span class="kw">for</span> <span class="ident">PopenError</span> {
     <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">PopenError</span>::<span class="ident">IoError</span>(<span class="kw-2">ref</span> <span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>),
-            <span class="ident">PopenError</span>::<span class="ident">LogicError</span>(<span class="ident">_msg</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">PopenError::IoError</span>(<span class="kw-2">ref</span> <span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>),
+            <span class="ident">PopenError::LogicError</span>(<span class="ident">_msg</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">PopenError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">PopenError</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">PopenError</span>::<span class="ident">IoError</span>(<span class="kw-2">ref</span> <span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
-            <span class="ident">PopenError</span>::<span class="ident">LogicError</span>(<span class="ident">desc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="ident">desc</span>),
+            <span class="ident">PopenError::IoError</span>(<span class="kw-2">ref</span> <span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fmt::Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
+            <span class="ident">PopenError::LogicError</span>(<span class="ident">desc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="ident">desc</span>),
         }
     }
 }
 
 <span class="doccomment">/// Result returned by calls in the `subprocess` crate in places where</span>
 <span class="doccomment">/// `::std::io::Result` does not suffice.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">PopenError</span><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">PopenError</span><span class="op">&gt;</span>;
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="subprocess" data-search-js="../../search-index.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="subprocess" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

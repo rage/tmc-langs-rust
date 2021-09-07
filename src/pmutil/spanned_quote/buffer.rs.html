@@ -1,7 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/pmutil-0.5.3/src/spanned_quote/buffer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buffer.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../pmutil/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../pmutil/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -228,14 +227,14 @@
 <span id="225">225</span>
 <span id="226">226</span>
 <span id="227">227</span>
-</pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">respan</span>::{<span class="self">self</span>, <span class="ident">Respan</span>};
+</pre><pre class="rust">
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::respan</span>::{<span class="self">self</span>, <span class="ident">Respan</span>};
 <span class="kw">use</span> <span class="ident">proc_macro2</span>::{<span class="ident">Delimiter</span>, <span class="ident">Group</span>, <span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">TokenStream</span>, <span class="ident">TokenTree</span>};
 <span class="kw">use</span> <span class="ident">quote</span>::{<span class="ident">ToTokens</span>, <span class="ident">TokenStreamExt</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashSet</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">env</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>, <span class="ident">Formatter</span>, <span class="ident">Write</span>};
-<span class="kw">use</span> <span class="ident">syn</span>::<span class="ident">parse</span>::<span class="ident">Parse</span>;
+<span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
+<span class="kw">use</span> <span class="ident">std::env</span>;
+<span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>, <span class="ident">Formatter</span>, <span class="ident">Write</span>};
+<span class="kw">use</span> <span class="ident">syn::parse::Parse</span>;
 
 <span class="doccomment">/// Buffer for quasi quotting.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Quote</span> {
@@ -258,8 +257,8 @@ Closure provided to push_group should not panic.&quot;</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Location</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}:{}:{}&quot;</span>, <span class="self">self</span>.<span class="ident">file_name</span>, <span class="self">self</span>.<span class="ident">line</span>, <span class="self">self</span>.<span class="ident">col</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}:{}:{}&quot;</span>, <span class="self">self</span>.<span class="ident">file_name</span>, <span class="self">self</span>.<span class="ident">line</span>, <span class="self">self</span>.<span class="ident">col</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -267,9 +266,9 @@ Closure provided to push_group should not panic.&quot;</span>;
 <span class="kw">impl</span> <span class="ident">Quote</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Respan</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">span</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Quote</span> {
-            <span class="ident">span</span>: <span class="prelude-val">Some</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">span</span>)),
-            <span class="ident">tts</span>: <span class="ident">TokenStream</span>::<span class="ident">new</span>(),
-            <span class="ident">sources</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="ident">span</span>: <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">span</span>)),
+            <span class="ident">tts</span>: <span class="ident">TokenStream::new</span>(),
+            <span class="ident">sources</span>: <span class="ident">Default::default</span>(),
         }
     }
 
@@ -279,7 +278,7 @@ Closure provided to push_group should not panic.&quot;</span>;
     <span class="doccomment">/// Quote::new(Span::call_site())</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_call_site</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">Span</span>::<span class="ident">call_site</span>())
+        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">Span::call_site</span>())
     }
 
     <span class="doccomment">/// Shorthand for</span>
@@ -288,7 +287,7 @@ Closure provided to push_group should not panic.&quot;</span>;
     <span class="doccomment">/// Quote::new(tokens.first_last())</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_tokens</span>(<span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">ToTokens</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">respan</span>::<span class="ident">FirstLast</span>::<span class="ident">from_tokens</span>(<span class="ident">tokens</span>))
+        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">respan::FirstLast::from_tokens</span>(<span class="ident">tokens</span>))
     }
 
     <span class="doccomment">/// Shorthand for</span>
@@ -302,8 +301,8 @@ Closure provided to push_group should not panic.&quot;</span>;
     <span class="doccomment">///</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_tokens_or</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ToTokens</span><span class="op">&gt;</span>(<span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">default_span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">tokens</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">tokens</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">from_tokens</span>(<span class="ident">tokens</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">default_span</span>),
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">tokens</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::from_tokens</span>(<span class="ident">tokens</span>),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">default_span</span>),
         }
     }
 }
@@ -318,13 +317,13 @@ Closure provided to push_group should not panic.&quot;</span>;
         <span class="comment">// TODO: Use span to report error.</span>
         <span class="kw">let</span> <span class="ident">Quote</span> { <span class="ident">tts</span>, <span class="ident">sources</span>, .. } <span class="op">=</span> <span class="self">self</span>;
 
-        <span class="kw">let</span> <span class="ident">debug_tts</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">env</span>::<span class="ident">var</span>(<span class="string">&quot;DBG_DUMP&quot;</span>).<span class="ident">is_ok</span>() {
+        <span class="kw">let</span> <span class="ident">debug_tts</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">env::var</span>(<span class="string">&quot;DBG_DUMP&quot;</span>).<span class="ident">is_ok</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">tts</span>.<span class="ident">clone</span>())
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
         };
 
-        <span class="ident">syn</span>::<span class="ident">parse2</span>(<span class="ident">tts</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+        <span class="ident">syn::parse2</span>(<span class="ident">tts</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">debug_tts</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Display</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">debug_tts</span> {
                 <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">tts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tts</span>,
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
@@ -334,14 +333,14 @@ Closure provided to push_group should not panic.&quot;</span>;
             };
 
             <span class="kw">let</span> <span class="ident">notes</span> <span class="op">=</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Note: quasi quotting was invoked from:\n&quot;</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;Note: quasi quotting was invoked from:\n&quot;</span>);
                 <span class="kw">for</span> <span class="ident">src</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">sources</span> {
-                    <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">b</span>, <span class="string">&quot;       {}&quot;</span>, <span class="ident">src</span>).<span class="ident">unwrap</span>();
+                    <span class="macro">writeln!</span>(<span class="ident">b</span>, <span class="string">&quot;       {}&quot;</span>, <span class="ident">src</span>).<span class="ident">unwrap</span>();
                 }
                 <span class="ident">b</span>
             };
 
-            <span class="macro">panic</span><span class="macro">!</span>(
+            <span class="macro">panic!</span>(
                 <span class="string">&quot;Quote::parse() failed.
                 {notes}
 Error from syn: {err}
@@ -396,7 +395,7 @@ Error from syn: {err}
     <span class="doccomment">/// Respan symbol and append it to `self`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_sym</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">term</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
         <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_span</span>();
-        <span class="self">self</span>.<span class="ident">push_tt</span>(<span class="ident">TokenTree</span>::<span class="ident">Ident</span>(<span class="ident">Ident</span>::<span class="ident">new</span>(<span class="ident">term</span>, <span class="ident">span</span>)))
+        <span class="self">self</span>.<span class="ident">push_tt</span>(<span class="ident">TokenTree::Ident</span>(<span class="ident">Ident::new</span>(<span class="ident">term</span>, <span class="ident">span</span>)))
     }
 
     <span class="kw">fn</span> <span class="ident">next_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
@@ -410,14 +409,14 @@ Error from syn: {err}
     {
         <span class="comment">//TODO: Exception safety</span>
         <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">span</span>.<span class="ident">take</span>().<span class="ident">expect</span>(<span class="ident">INVALID_SPAN_STATE</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sub</span> <span class="op">=</span> <span class="ident">Quote</span>::<span class="ident">new</span>(<span class="ident">span</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sub</span> <span class="op">=</span> <span class="ident">Quote::new</span>(<span class="ident">span</span>);
         <span class="ident">child</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">sub</span>);
         <span class="self">self</span>.<span class="ident">sources</span>.<span class="ident">extend</span>(<span class="ident">sub</span>.<span class="ident">sources</span>);
 
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">span</span>.<span class="ident">is_none</span>());
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">span</span>.<span class="ident">is_none</span>());
         <span class="self">self</span>.<span class="ident">span</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">sub</span>.<span class="ident">span</span>.<span class="ident">expect</span>(<span class="ident">INVALID_SPAN_STATE</span>));
 
-        <span class="self">self</span>.<span class="ident">push_tt</span>(<span class="ident">TokenTree</span>::<span class="ident">Group</span>(<span class="ident">Group</span>::<span class="ident">new</span>(<span class="ident">delim</span>, <span class="ident">sub</span>.<span class="ident">tts</span>)))
+        <span class="self">self</span>.<span class="ident">push_tt</span>(<span class="ident">TokenTree::Group</span>(<span class="ident">Group::new</span>(<span class="ident">delim</span>, <span class="ident">sub</span>.<span class="ident">tts</span>)))
     }
 
     <span class="doccomment">/// Appends node into `self` **without respanning**.</span>
@@ -427,10 +426,10 @@ Error from syn: {err}
 }
 
 <span class="kw">impl</span> <span class="ident">IntoIterator</span> <span class="kw">for</span> <span class="ident">Quote</span> {
-    <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">TokenStream</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span>::<span class="ident">IntoIter</span>;
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">TokenStream</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span>::<span class="ident">Item</span>;
+    <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">TokenStream</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::IntoIter</span>;
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">TokenStream</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::Item</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">IntoIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::IntoIter</span> {
         <span class="self">self</span>.<span class="ident">tts</span>.<span class="ident">into_iter</span>()
     }
 }
@@ -441,9 +440,9 @@ Error from syn: {err}
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Quote</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">proc_macro</span>::<span class="ident">TokenStream</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Quote</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">proc_macro::TokenStream</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">quote</span>: <span class="ident">Quote</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">TokenStream</span>::<span class="ident">from</span>(<span class="ident">quote</span>).<span class="ident">into</span>()
+        <span class="ident">TokenStream::from</span>(<span class="ident">quote</span>).<span class="ident">into</span>()
     }
 }
 
@@ -457,5 +456,4 @@ Error from syn: {err}
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="pmutil" data-search-js="../../../search-index.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="pmutil" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

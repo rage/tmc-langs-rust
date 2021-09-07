@@ -1,7 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/swc_common-0.10.20/src/source_map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>source_map.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/swc_common-0.10.23/src/source_map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>source_map.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../swc_common/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../swc_common/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1478,7 +1477,31 @@
 <span id="1475">1475</span>
 <span id="1476">1476</span>
 <span id="1477">1477</span>
-</pre><div class="example-wrap"><pre class="rust ">
+<span id="1478">1478</span>
+<span id="1479">1479</span>
+<span id="1480">1480</span>
+<span id="1481">1481</span>
+<span id="1482">1482</span>
+<span id="1483">1483</span>
+<span id="1484">1484</span>
+<span id="1485">1485</span>
+<span id="1486">1486</span>
+<span id="1487">1487</span>
+<span id="1488">1488</span>
+<span id="1489">1489</span>
+<span id="1490">1490</span>
+<span id="1491">1491</span>
+<span id="1492">1492</span>
+<span id="1493">1493</span>
+<span id="1494">1494</span>
+<span id="1495">1495</span>
+<span id="1496">1496</span>
+<span id="1497">1497</span>
+<span id="1498">1498</span>
+<span id="1499">1499</span>
+<span id="1500">1500</span>
+<span id="1501">1501</span>
+</pre><pre class="rust">
 <span class="comment">// Copyright 2012 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
 <span class="comment">// http://rust-lang.org/COPYRIGHT.</span>
@@ -1497,24 +1520,24 @@
 <span class="doccomment">//! `spans` and used pervasively in the compiler. They are absolute positions</span>
 <span class="doccomment">//! within the SourceMap, which upon request can be converted to line and column</span>
 <span class="doccomment">//! information, source code snippets, etc.</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">syntax_pos</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::syntax_pos</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">errors</span>::<span class="ident">SourceMapper</span>,
-    <span class="ident">rustc_data_structures</span>::<span class="ident">stable_hasher</span>::<span class="ident">StableHasher</span>,
+    <span class="ident">errors::SourceMapper</span>,
+    <span class="ident">rustc_data_structures::stable_hasher::StableHasher</span>,
     <span class="ident">sync</span>::{<span class="ident">Lock</span>, <span class="ident">LockGuard</span>, <span class="ident">Lrc</span>, <span class="ident">MappedLockGuard</span>},
 };
-<span class="kw">use</span> <span class="ident">log</span>::<span class="ident">debug</span>;
+<span class="kw">use</span> <span class="ident">log::debug</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sourcemap&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">sourcemap</span>::<span class="ident">SourceMapBuilder</span>;
+<span class="kw">use</span> <span class="ident">sourcemap::SourceMapBuilder</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cmp</span>,
     <span class="ident">cmp</span>::{<span class="ident">max</span>, <span class="ident">min</span>},
-    <span class="ident">collections</span>::<span class="ident">HashMap</span>,
+    <span class="ident">collections::HashMap</span>,
     <span class="ident">env</span>, <span class="ident">fs</span>,
-    <span class="ident">hash</span>::<span class="ident">Hash</span>,
+    <span class="ident">hash::Hash</span>,
     <span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">Read</span>},
     <span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>},
-    <span class="ident">sync</span>::<span class="ident">atomic</span>::{<span class="ident">AtomicUsize</span>, <span class="ident">Ordering</span>::<span class="ident">SeqCst</span>},
+    <span class="ident">sync::atomic</span>::{<span class="ident">AtomicUsize</span>, <span class="ident">Ordering::SeqCst</span>},
 };
 
 <span class="comment">// _____________________________________________________________________________</span>
@@ -1530,7 +1553,7 @@
     <span class="kw">fn</span> <span class="ident">abs_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Read the contents of an UTF-8 file into memory.</span>
-    <span class="kw">fn</span> <span class="ident">read_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">read_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>;
 }
 
 <span class="doccomment">/// A FileLoader that uses std::fs to load real files.</span>
@@ -1538,20 +1561,20 @@
 
 <span class="kw">impl</span> <span class="ident">FileLoader</span> <span class="kw">for</span> <span class="ident">RealFileLoader</span> {
     <span class="kw">fn</span> <span class="ident">file_exists</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="ident">fs</span>::<span class="ident">metadata</span>(<span class="ident">path</span>).<span class="ident">is_ok</span>()
+        <span class="ident">fs::metadata</span>(<span class="ident">path</span>).<span class="ident">is_ok</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">abs_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">is_absolute</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">path</span>.<span class="ident">to_path_buf</span>())
         } <span class="kw">else</span> {
-            <span class="ident">env</span>::<span class="ident">current_dir</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">cwd</span><span class="op">|</span> <span class="ident">cwd</span>.<span class="ident">join</span>(<span class="ident">path</span>))
+            <span class="ident">env::current_dir</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">cwd</span><span class="op">|</span> <span class="ident">cwd</span>.<span class="ident">join</span>(<span class="ident">path</span>))
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">read_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
-        <span class="ident">fs</span>::<span class="ident">File</span>::<span class="ident">open</span>(<span class="ident">path</span>)<span class="question-mark">?</span>.<span class="ident">read_to_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">src</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn</span> <span class="ident">read_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">String::new</span>();
+        <span class="ident">fs::File::open</span>(<span class="ident">path</span>)<span class="question-mark">?</span>.<span class="ident">read_to_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">src</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">src</span>)
     }
 }
@@ -1564,7 +1587,7 @@
 
 <span class="kw">impl</span> <span class="ident">StableSourceFileId</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">source_file</span>: <span class="kw-2">&amp;</span><span class="ident">SourceFile</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StableSourceFileId</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">StableHasher</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">StableHasher::new</span>();
 
         <span class="ident">source_file</span>.<span class="ident">name</span>.<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">hasher</span>);
         <span class="ident">source_file</span>.<span class="ident">name_was_remapped</span>.<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">hasher</span>);
@@ -1584,6 +1607,13 @@
     <span class="ident">stable_id_to_source_file</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">StableSourceFileId</span>, <span class="ident">Lrc</span><span class="op">&lt;</span><span class="ident">SourceFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
+<span class="doccomment">/// The interner for spans.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// As most spans are simply stored, we store them as interend form.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">///  - Each ast node only stores pointer to actual data ([BytePos]).</span>
+<span class="doccomment">///  - The pointers ([BytePos]) can be converted to file name, line and column</span>
+<span class="doccomment">///    using this struct.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SourceMap</span> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">files</span>: <span class="ident">Lock</span><span class="op">&lt;</span><span class="ident">SourceMapFiles</span><span class="op">&gt;</span>,
     <span class="ident">start_pos</span>: <span class="ident">AtomicUsize</span>,
@@ -1598,16 +1628,16 @@
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">SourceMap</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">FilePathMapping</span>::<span class="ident">empty</span>())
+        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">FilePathMapping::empty</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">SourceMap</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">path_mapping</span>: <span class="ident">FilePathMapping</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SourceMap</span> {
         <span class="ident">SourceMap</span> {
-            <span class="ident">files</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">start_pos</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">file_loader</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">RealFileLoader</span>),
+            <span class="ident">files</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">start_pos</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">file_loader</span>: <span class="ident">Box::new</span>(<span class="ident">RealFileLoader</span>),
             <span class="ident">path_mapping</span>,
             <span class="ident">doctest_offset</span>: <span class="prelude-val">None</span>,
         }
@@ -1618,8 +1648,8 @@
         <span class="ident">path_mapping</span>: <span class="ident">FilePathMapping</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SourceMap</span> {
         <span class="ident">SourceMap</span> {
-            <span class="ident">files</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">start_pos</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="ident">files</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">start_pos</span>: <span class="ident">Default::default</span>(),
             <span class="ident">file_loader</span>,
             <span class="ident">path_mapping</span>,
             <span class="ident">doctest_offset</span>: <span class="prelude-val">None</span>,
@@ -1634,14 +1664,14 @@
         <span class="self">self</span>.<span class="ident">file_loader</span>.<span class="ident">file_exists</span>(<span class="ident">path</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Lrc</span><span class="op">&lt;</span><span class="ident">SourceFile</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Lrc</span><span class="op">&lt;</span><span class="ident">SourceFile</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_loader</span>.<span class="ident">read_file</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">filename</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">to_owned</span>().<span class="ident">into</span>();
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">new_source_file</span>(<span class="ident">filename</span>, <span class="ident">src</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">files</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MappedLockGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Lrc</span><span class="op">&lt;</span><span class="ident">SourceFile</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">LockGuard</span>::<span class="ident">map</span>(<span class="self">self</span>.<span class="ident">files</span>.<span class="ident">borrow</span>(), <span class="op">|</span><span class="ident">files</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">files</span>.<span class="ident">source_files</span>)
+        <span class="ident">LockGuard::map</span>(<span class="self">self</span>.<span class="ident">files</span>.<span class="ident">borrow</span>(), <span class="op">|</span><span class="ident">files</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">files</span>.<span class="ident">source_files</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">source_file_by_stable_id</span>(
@@ -1672,9 +1702,9 @@
         <span class="kw">let</span> <span class="ident">unmapped_path</span> <span class="op">=</span> <span class="ident">filename</span>.<span class="ident">clone</span>();
 
         <span class="kw">let</span> (<span class="ident">filename</span>, <span class="ident">was_remapped</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">filename</span> {
-            <span class="ident">FileName</span>::<span class="ident">Real</span>(<span class="ident">filename</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">FileName::Real</span>(<span class="ident">filename</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> (<span class="ident">filename</span>, <span class="ident">was_remapped</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">path_mapping</span>.<span class="ident">map_prefix</span>(<span class="ident">filename</span>);
-                (<span class="ident">FileName</span>::<span class="ident">Real</span>(<span class="ident">filename</span>), <span class="ident">was_remapped</span>)
+                (<span class="ident">FileName::Real</span>(<span class="ident">filename</span>), <span class="ident">was_remapped</span>)
             }
             <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">other</span>, <span class="bool-val">false</span>),
         };
@@ -1685,19 +1715,19 @@
 
         <span class="kw">let</span> <span class="ident">start_pos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_start_pos</span>(<span class="ident">src</span>.<span class="ident">len</span>());
 
-        <span class="kw">let</span> <span class="ident">source_file</span> <span class="op">=</span> <span class="ident">Lrc</span>::<span class="ident">new</span>(<span class="ident">SourceFile</span>::<span class="ident">new</span>(
+        <span class="kw">let</span> <span class="ident">source_file</span> <span class="op">=</span> <span class="ident">Lrc::new</span>(<span class="ident">SourceFile::new</span>(
             <span class="ident">filename</span>,
             <span class="ident">was_remapped</span>,
             <span class="ident">unmapped_path</span>,
             <span class="ident">src</span>,
-            <span class="ident">Pos</span>::<span class="ident">from_usize</span>(<span class="ident">start_pos</span>),
+            <span class="ident">Pos::from_usize</span>(<span class="ident">start_pos</span>),
         ));
 
         {
             <span class="ident">files</span>.<span class="ident">source_files</span>.<span class="ident">push</span>(<span class="ident">source_file</span>.<span class="ident">clone</span>());
             <span class="ident">files</span>
                 .<span class="ident">stable_id_to_source_file</span>
-                .<span class="ident">insert</span>(<span class="ident">StableSourceFileId</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">source_file</span>), <span class="ident">source_file</span>.<span class="ident">clone</span>());
+                .<span class="ident">insert</span>(<span class="ident">StableSourceFileId::new</span>(<span class="kw-2">&amp;</span><span class="ident">source_file</span>), <span class="ident">source_file</span>.<span class="ident">clone</span>());
         }
 
         <span class="ident">source_file</span>
@@ -1705,7 +1735,7 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mk_substr_filename</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sp</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
         <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lookup_char_pos</span>(<span class="ident">sp</span>.<span class="ident">lo</span>());
-        <span class="macro">format</span><span class="macro">!</span>(
+        <span class="macro">format!</span>(
             <span class="string">&quot;&lt;{}:{}:{}&gt;&quot;</span>,
             <span class="ident">pos</span>.<span class="ident">file</span>.<span class="ident">name</span>,
             <span class="ident">pos</span>.<span class="ident">line</span>,
@@ -1745,7 +1775,7 @@
 
                 <span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">a</span> <span class="op">+</span> <span class="number">1</span>; <span class="comment">// Line numbers start at 1</span>
                 <span class="kw">let</span> <span class="ident">linebpos</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">lines</span>[<span class="ident">a</span>];
-                <span class="macro">assert</span><span class="macro">!</span>(
+                <span class="macro">assert!</span>(
                     <span class="ident">pos</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">linebpos</span>,
                     <span class="string">&quot;{}: bpos = {:?}; linebpos = {:?};&quot;</span>,
                     <span class="ident">f</span>.<span class="ident">name</span>,
@@ -1773,15 +1803,15 @@
                         .<span class="ident">sum</span>();
                     <span class="ident">col</span>.<span class="number">0</span> <span class="op">-</span> <span class="ident">special_chars</span> <span class="op">+</span> <span class="ident">non_narrow</span>
                 };
-                <span class="macro">debug</span><span class="macro">!</span>(
+                <span class="macro">debug!</span>(
                     <span class="string">&quot;byte pos {:?} is on the line at byte pos {:?}&quot;</span>,
                     <span class="ident">pos</span>, <span class="ident">linebpos</span>
                 );
-                <span class="macro">debug</span><span class="macro">!</span>(
+                <span class="macro">debug!</span>(
                     <span class="string">&quot;char pos {:?} is on the line at char pos {:?}&quot;</span>,
                     <span class="ident">chpos</span>, <span class="ident">linechpos</span>
                 );
-                <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;byte is on line: {}&quot;</span>, <span class="ident">line</span>);
+                <span class="macro">debug!</span>(<span class="string">&quot;byte is on line: {}&quot;</span>, <span class="ident">line</span>);
                 <span class="comment">//                assert!(chpos &gt;= linechpos);</span>
                 <span class="ident">Loc</span> {
                     <span class="ident">file</span>: <span class="ident">f</span>,
@@ -1890,7 +1920,7 @@
 
         <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lookup_char_pos_adj</span>(<span class="ident">sp</span>.<span class="ident">lo</span>());
         <span class="kw">let</span> <span class="ident">hi</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lookup_char_pos_adj</span>(<span class="ident">sp</span>.<span class="ident">hi</span>());
-        <span class="macro">format</span><span class="macro">!</span>(
+        <span class="macro">format!</span>(
             <span class="string">&quot;{}:{}:{}: {}:{}&quot;</span>,
             <span class="ident">lo</span>.<span class="ident">filename</span>,
             <span class="ident">lo</span>.<span class="ident">line</span>,
@@ -1919,34 +1949,34 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_to_lines</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sp</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FileLinesResult</span> {
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;span_to_lines(sp={:?})&quot;</span>, <span class="ident">sp</span>);
+        <span class="macro">debug!</span>(<span class="string">&quot;span_to_lines(sp={:?})&quot;</span>, <span class="ident">sp</span>);
 
         <span class="kw">if</span> <span class="ident">sp</span>.<span class="ident">lo</span>() <span class="op">&gt;</span> <span class="ident">sp</span>.<span class="ident">hi</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SpanLinesError</span>::<span class="ident">IllFormedSpan</span>(<span class="ident">sp</span>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SpanLinesError::IllFormedSpan</span>(<span class="ident">sp</span>));
         }
 
         <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lookup_char_pos</span>(<span class="ident">sp</span>.<span class="ident">lo</span>());
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;span_to_lines: lo={:?}&quot;</span>, <span class="ident">lo</span>);
+        <span class="macro">debug!</span>(<span class="string">&quot;span_to_lines: lo={:?}&quot;</span>, <span class="ident">lo</span>);
         <span class="kw">let</span> <span class="ident">hi</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lookup_char_pos</span>(<span class="ident">sp</span>.<span class="ident">hi</span>());
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;span_to_lines: hi={:?}&quot;</span>, <span class="ident">hi</span>);
+        <span class="macro">debug!</span>(<span class="string">&quot;span_to_lines: hi={:?}&quot;</span>, <span class="ident">hi</span>);
 
         <span class="kw">if</span> <span class="ident">lo</span>.<span class="ident">file</span>.<span class="ident">start_pos</span> <span class="op">!</span><span class="op">=</span> <span class="ident">hi</span>.<span class="ident">file</span>.<span class="ident">start_pos</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SpanLinesError</span>::<span class="ident">DistinctSources</span>(<span class="ident">DistinctSources</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SpanLinesError::DistinctSources</span>(<span class="ident">DistinctSources</span> {
                 <span class="ident">begin</span>: (<span class="ident">lo</span>.<span class="ident">file</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">lo</span>.<span class="ident">file</span>.<span class="ident">start_pos</span>),
                 <span class="ident">end</span>: (<span class="ident">hi</span>.<span class="ident">file</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">hi</span>.<span class="ident">file</span>.<span class="ident">start_pos</span>),
             }));
         }
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">hi</span>.<span class="ident">line</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">lo</span>.<span class="ident">line</span>);
+        <span class="macro">assert!</span>(<span class="ident">hi</span>.<span class="ident">line</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">lo</span>.<span class="ident">line</span>);
 
         <span class="comment">// Empty file contains no lines</span>
         <span class="kw">if</span> <span class="ident">lo</span>.<span class="ident">file</span>.<span class="ident">src</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">FileLines</span> {
                 <span class="ident">file</span>: <span class="ident">lo</span>.<span class="ident">file</span>,
-                <span class="ident">lines</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                <span class="ident">lines</span>: <span class="macro">vec!</span>[],
             });
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lines</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">hi</span>.<span class="ident">line</span> <span class="op">-</span> <span class="ident">lo</span>.<span class="ident">line</span> <span class="op">+</span> <span class="number">1</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lines</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">hi</span>.<span class="ident">line</span> <span class="op">-</span> <span class="ident">lo</span>.<span class="ident">line</span> <span class="op">+</span> <span class="number">1</span>);
 
         <span class="comment">// The span starts partway through the first line,</span>
         <span class="comment">// but after that it starts from offset 0.</span>
@@ -1965,9 +1995,9 @@
             <span class="ident">lines</span>.<span class="ident">push</span>(<span class="ident">LineInfo</span> {
                 <span class="ident">line_index</span>,
                 <span class="ident">start_col</span>,
-                <span class="ident">end_col</span>: <span class="ident">CharPos</span>::<span class="ident">from_usize</span>(<span class="ident">line_len</span>),
+                <span class="ident">end_col</span>: <span class="ident">CharPos::from_usize</span>(<span class="ident">line_len</span>),
             });
-            <span class="ident">start_col</span> <span class="op">=</span> <span class="ident">CharPos</span>::<span class="ident">from_usize</span>(<span class="number">0</span>);
+            <span class="ident">start_col</span> <span class="op">=</span> <span class="ident">CharPos::from_usize</span>(<span class="number">0</span>);
         }
 
         <span class="comment">// For the last line, it extends from `start_col` to `hi.col`:</span>
@@ -1993,14 +2023,14 @@
         <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">usize</span>, <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ret</span>,
     {
         <span class="kw">if</span> <span class="ident">sp</span>.<span class="ident">lo</span>() <span class="op">&gt;</span> <span class="ident">sp</span>.<span class="ident">hi</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SpanSnippetError</span>::<span class="ident">IllFormedSpan</span>(<span class="ident">sp</span>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SpanSnippetError::IllFormedSpan</span>(<span class="ident">sp</span>));
         }
 
         <span class="kw">let</span> <span class="ident">local_begin</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lookup_byte_offset</span>(<span class="ident">sp</span>.<span class="ident">lo</span>());
         <span class="kw">let</span> <span class="ident">local_end</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lookup_byte_offset</span>(<span class="ident">sp</span>.<span class="ident">hi</span>());
 
         <span class="kw">if</span> <span class="ident">local_begin</span>.<span class="ident">sf</span>.<span class="ident">start_pos</span> <span class="op">!</span><span class="op">=</span> <span class="ident">local_end</span>.<span class="ident">sf</span>.<span class="ident">start_pos</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">SpanSnippetError</span>::<span class="ident">DistinctSources</span>(<span class="ident">DistinctSources</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">SpanSnippetError::DistinctSources</span>(<span class="ident">DistinctSources</span> {
                 <span class="ident">begin</span>: (<span class="ident">local_begin</span>.<span class="ident">sf</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">local_begin</span>.<span class="ident">sf</span>.<span class="ident">start_pos</span>),
                 <span class="ident">end</span>: (<span class="ident">local_end</span>.<span class="ident">sf</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">local_end</span>.<span class="ident">sf</span>.<span class="ident">start_pos</span>),
             }))
@@ -2010,7 +2040,7 @@
             <span class="kw">let</span> <span class="ident">source_len</span> <span class="op">=</span> (<span class="ident">local_begin</span>.<span class="ident">sf</span>.<span class="ident">end_pos</span> <span class="op">-</span> <span class="ident">local_begin</span>.<span class="ident">sf</span>.<span class="ident">start_pos</span>).<span class="ident">to_usize</span>();
 
             <span class="kw">if</span> <span class="ident">start_index</span> <span class="op">&gt;</span> <span class="ident">end_index</span> <span class="op">|</span><span class="op">|</span> <span class="ident">end_index</span> <span class="op">&gt;</span> <span class="ident">source_len</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SpanSnippetError</span>::<span class="ident">MalformedForSourcemap</span>(
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SpanSnippetError::MalformedForSourcemap</span>(
                     <span class="ident">MalformedSourceMapPositions</span> {
                         <span class="ident">name</span>: <span class="ident">local_begin</span>.<span class="ident">sf</span>.<span class="ident">name</span>.<span class="ident">clone</span>(),
                         <span class="ident">source_len</span>,
@@ -2106,7 +2136,16 @@
 
     <span class="doccomment">/// Given a `Span`, try to get a shorter span ending before the first</span>
     <span class="doccomment">/// occurrence of `c` `char`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Notes</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This method returns a dummy span for a dummy span.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_until_char</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sp</span>: <span class="ident">Span</span>, <span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+        <span class="kw">if</span> <span class="ident">sp</span>.<span class="ident">is_dummy</span>() {
+            <span class="kw">return</span> <span class="ident">sp</span>;
+        }
+
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">span_to_snippet</span>(<span class="ident">sp</span>) {
             <span class="prelude-val">Ok</span>(<span class="ident">snippet</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">snippet</span> <span class="op">=</span> <span class="ident">snippet</span>.<span class="ident">split</span>(<span class="ident">c</span>).<span class="ident">nth</span>(<span class="number">0</span>).<span class="ident">unwrap_or</span>(<span class="string">&quot;&quot;</span>).<span class="ident">trim_end</span>();
@@ -2122,7 +2161,15 @@
 
     <span class="doccomment">/// Given a `Span`, try to get a shorter span ending just after the first</span>
     <span class="doccomment">/// occurrence of `char` `c`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Notes</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This method returns a dummy span for a dummy span.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_through_char</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sp</span>: <span class="ident">Span</span>, <span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+        <span class="kw">if</span> <span class="ident">sp</span>.<span class="ident">is_dummy</span>() {
+            <span class="kw">return</span> <span class="ident">sp</span>;
+        }
+
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">snippet</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">span_to_snippet</span>(<span class="ident">sp</span>) {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">offset</span>) <span class="op">=</span> <span class="ident">snippet</span>.<span class="ident">find</span>(<span class="ident">c</span>) {
                 <span class="kw">return</span> <span class="ident">sp</span>.<span class="ident">with_hi</span>(<span class="ident">BytePos</span>(<span class="ident">sp</span>.<span class="ident">lo</span>().<span class="number">0</span> <span class="op">+</span> (<span class="ident">offset</span> <span class="op">+</span> <span class="ident">c</span>.<span class="ident">len_utf8</span>()) <span class="kw">as</span> <span class="ident">u32</span>));
@@ -2185,7 +2232,7 @@
         <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">sp</span>.<span class="ident">lo</span>().<span class="number">0</span>;
         <span class="kw">let</span> <span class="ident">width</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">find_width_of_character_at_span</span>(<span class="ident">sp</span>, <span class="bool-val">false</span>);
         <span class="kw">let</span> <span class="ident">corrected_start_position</span> <span class="op">=</span> <span class="ident">pos</span>.<span class="ident">checked_add</span>(<span class="ident">width</span>).<span class="ident">unwrap_or</span>(<span class="ident">pos</span>);
-        <span class="kw">let</span> <span class="ident">end_point</span> <span class="op">=</span> <span class="ident">BytePos</span>(<span class="ident">cmp</span>::<span class="ident">max</span>(<span class="ident">corrected_start_position</span>, <span class="ident">sp</span>.<span class="ident">lo</span>().<span class="number">0</span>));
+        <span class="kw">let</span> <span class="ident">end_point</span> <span class="op">=</span> <span class="ident">BytePos</span>(<span class="ident">cmp::max</span>(<span class="ident">corrected_start_position</span>, <span class="ident">sp</span>.<span class="ident">lo</span>().<span class="number">0</span>));
         <span class="ident">sp</span>.<span class="ident">with_hi</span>(<span class="ident">end_point</span>)
     }
 
@@ -2196,7 +2243,7 @@
         <span class="kw">let</span> <span class="ident">width</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">find_width_of_character_at_span</span>(<span class="ident">sp</span>, <span class="bool-val">false</span>);
         <span class="kw">let</span> <span class="ident">corrected_end_position</span> <span class="op">=</span> <span class="ident">pos</span>.<span class="ident">checked_sub</span>(<span class="ident">width</span>).<span class="ident">unwrap_or</span>(<span class="ident">pos</span>);
 
-        <span class="kw">let</span> <span class="ident">end_point</span> <span class="op">=</span> <span class="ident">BytePos</span>(<span class="ident">cmp</span>::<span class="ident">max</span>(<span class="ident">corrected_end_position</span>, <span class="ident">sp</span>.<span class="ident">lo</span>().<span class="number">0</span>));
+        <span class="kw">let</span> <span class="ident">end_point</span> <span class="op">=</span> <span class="ident">BytePos</span>(<span class="ident">cmp::max</span>(<span class="ident">corrected_end_position</span>, <span class="ident">sp</span>.<span class="ident">lo</span>().<span class="number">0</span>));
         <span class="ident">sp</span>.<span class="ident">with_lo</span>(<span class="ident">end_point</span>)
     }
 
@@ -2214,8 +2261,8 @@
             .<span class="ident">checked_add</span>(<span class="ident">width</span> <span class="op">-</span> <span class="number">1</span>)
             .<span class="ident">unwrap_or</span>(<span class="ident">start_of_next_point</span>);
 
-        <span class="kw">let</span> <span class="ident">end_of_next_point</span> <span class="op">=</span> <span class="ident">BytePos</span>(<span class="ident">cmp</span>::<span class="ident">max</span>(<span class="ident">sp</span>.<span class="ident">lo</span>().<span class="number">0</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">end_of_next_point</span>));
-        <span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">BytePos</span>(<span class="ident">start_of_next_point</span>), <span class="ident">end_of_next_point</span>, <span class="ident">sp</span>.<span class="ident">ctxt</span>())
+        <span class="kw">let</span> <span class="ident">end_of_next_point</span> <span class="op">=</span> <span class="ident">BytePos</span>(<span class="ident">cmp::max</span>(<span class="ident">sp</span>.<span class="ident">lo</span>().<span class="number">0</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">end_of_next_point</span>));
+        <span class="ident">Span::new</span>(<span class="ident">BytePos</span>(<span class="ident">start_of_next_point</span>), <span class="ident">end_of_next_point</span>, <span class="ident">sp</span>.<span class="ident">ctxt</span>())
     }
 
     <span class="doccomment">/// Finds the width of a character, either before or after the provided</span>
@@ -2223,41 +2270,41 @@
     <span class="kw">fn</span> <span class="ident">find_width_of_character_at_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sp</span>: <span class="ident">Span</span>, <span class="ident">forwards</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="comment">// Disregard malformed spans and assume a one-byte wide character.</span>
         <span class="kw">if</span> <span class="ident">sp</span>.<span class="ident">lo</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">sp</span>.<span class="ident">hi</span>() {
-            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;find_width_of_character_at_span: early return malformed span&quot;</span>);
+            <span class="macro">debug!</span>(<span class="string">&quot;find_width_of_character_at_span: early return malformed span&quot;</span>);
             <span class="kw">return</span> <span class="number">1</span>;
         }
 
         <span class="kw">let</span> <span class="ident">local_begin</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lookup_byte_offset</span>(<span class="ident">sp</span>.<span class="ident">lo</span>());
         <span class="kw">let</span> <span class="ident">local_end</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lookup_byte_offset</span>(<span class="ident">sp</span>.<span class="ident">hi</span>());
-        <span class="macro">debug</span><span class="macro">!</span>(
+        <span class="macro">debug!</span>(
             <span class="string">&quot;find_width_of_character_at_span: local_begin=`{:?}`, local_end=`{:?}`&quot;</span>,
             <span class="ident">local_begin</span>, <span class="ident">local_end</span>
         );
 
         <span class="kw">let</span> <span class="ident">start_index</span> <span class="op">=</span> <span class="ident">local_begin</span>.<span class="ident">pos</span>.<span class="ident">to_usize</span>();
         <span class="kw">let</span> <span class="ident">end_index</span> <span class="op">=</span> <span class="ident">local_end</span>.<span class="ident">pos</span>.<span class="ident">to_usize</span>();
-        <span class="macro">debug</span><span class="macro">!</span>(
+        <span class="macro">debug!</span>(
             <span class="string">&quot;find_width_of_character_at_span: start_index=`{:?}`, end_index=`{:?}`&quot;</span>,
             <span class="ident">start_index</span>, <span class="ident">end_index</span>
         );
 
         <span class="comment">// Disregard indexes that are at the start or end of their spans, they can&#39;t fit</span>
         <span class="comment">// bigger characters.</span>
-        <span class="kw">if</span> (<span class="op">!</span><span class="ident">forwards</span> <span class="op">&amp;&amp;</span> <span class="ident">end_index</span> <span class="op">=</span><span class="op">=</span> <span class="ident">usize</span>::<span class="ident">min_value</span>())
-            <span class="op">|</span><span class="op">|</span> (<span class="ident">forwards</span> <span class="op">&amp;&amp;</span> <span class="ident">start_index</span> <span class="op">=</span><span class="op">=</span> <span class="ident">usize</span>::<span class="ident">max_value</span>())
+        <span class="kw">if</span> (<span class="op">!</span><span class="ident">forwards</span> <span class="op">&amp;&amp;</span> <span class="ident">end_index</span> <span class="op">=</span><span class="op">=</span> <span class="ident">usize::min_value</span>())
+            <span class="op">|</span><span class="op">|</span> (<span class="ident">forwards</span> <span class="op">&amp;&amp;</span> <span class="ident">start_index</span> <span class="op">=</span><span class="op">=</span> <span class="ident">usize::max_value</span>())
         {
-            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;find_width_of_character_at_span: start or end of span, cannot be multibyte&quot;</span>);
+            <span class="macro">debug!</span>(<span class="string">&quot;find_width_of_character_at_span: start or end of span, cannot be multibyte&quot;</span>);
             <span class="kw">return</span> <span class="number">1</span>;
         }
 
         <span class="kw">let</span> <span class="ident">source_len</span> <span class="op">=</span> (<span class="ident">local_begin</span>.<span class="ident">sf</span>.<span class="ident">end_pos</span> <span class="op">-</span> <span class="ident">local_begin</span>.<span class="ident">sf</span>.<span class="ident">start_pos</span>).<span class="ident">to_usize</span>();
-        <span class="macro">debug</span><span class="macro">!</span>(
+        <span class="macro">debug!</span>(
             <span class="string">&quot;find_width_of_character_at_span: source_len=`{:?}`&quot;</span>,
             <span class="ident">source_len</span>
         );
         <span class="comment">// Ensure indexes are also not malformed.</span>
         <span class="kw">if</span> <span class="ident">start_index</span> <span class="op">&gt;</span> <span class="ident">end_index</span> <span class="op">|</span><span class="op">|</span> <span class="ident">end_index</span> <span class="op">&gt;</span> <span class="ident">source_len</span> {
-            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;find_width_of_character_at_span: source indexes are malformed&quot;</span>);
+            <span class="macro">debug!</span>(<span class="string">&quot;find_width_of_character_at_span: source indexes are malformed&quot;</span>);
             <span class="kw">return</span> <span class="number">1</span>;
         }
 
@@ -2269,14 +2316,14 @@
             <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">len</span>();
             <span class="kw-2">&amp;</span><span class="ident">src</span>[<span class="ident">start_index</span>..<span class="ident">len</span>]
         };
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;find_width_of_character_at_span: snippet=`{:?}`&quot;</span>, <span class="ident">snippet</span>);
+        <span class="macro">debug!</span>(<span class="string">&quot;find_width_of_character_at_span: snippet=`{:?}`&quot;</span>, <span class="ident">snippet</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">target</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">forwards</span> {
             <span class="ident">end_index</span> <span class="op">+</span> <span class="number">1</span>
         } <span class="kw">else</span> {
             <span class="ident">end_index</span> <span class="op">-</span> <span class="number">1</span>
         };
-        <span class="macro">debug</span><span class="macro">!</span>(
+        <span class="macro">debug!</span>(
             <span class="string">&quot;find_width_of_character_at_span: initial target=`{:?}`&quot;</span>,
             <span class="ident">target</span>
         );
@@ -2292,9 +2339,9 @@
                     }
                 }
             };
-            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;find_width_of_character_at_span: target=`{:?}`&quot;</span>, <span class="ident">target</span>);
+            <span class="macro">debug!</span>(<span class="string">&quot;find_width_of_character_at_span: target=`{:?}`&quot;</span>, <span class="ident">target</span>);
         }
-        <span class="macro">debug</span><span class="macro">!</span>(
+        <span class="macro">debug!</span>(
             <span class="string">&quot;find_width_of_character_at_span: final target=`{:?}`&quot;</span>,
             <span class="ident">target</span>
         );
@@ -2332,7 +2379,7 @@
 
     <span class="kw">fn</span> <span class="ident">bytepos_to_file_charpos_with</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">map</span>: <span class="kw-2">&amp;</span><span class="ident">SourceFile</span>, <span class="ident">bpos</span>: <span class="ident">BytePos</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CharPos</span> {
         <span class="kw">let</span> <span class="ident">total_extra_bytes</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">calc_extra_bytes</span>(<span class="ident">map</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="number">0</span>, <span class="ident">bpos</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(
+        <span class="macro">assert!</span>(
             <span class="ident">map</span>.<span class="ident">start_pos</span>.<span class="ident">to_u32</span>() <span class="op">+</span> <span class="ident">total_extra_bytes</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">bpos</span>.<span class="ident">to_u32</span>(),
             <span class="string">&quot;map.start_pos = {:?}; total_extra_bytes = {}; bpos = {:?}&quot;</span>,
             <span class="ident">map</span>.<span class="ident">start_pos</span>,
@@ -2348,14 +2395,14 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total_extra_bytes</span> <span class="op">=</span> <span class="number">0</span>;
 
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">mbc</span>) <span class="kw">in</span> <span class="ident">map</span>.<span class="ident">multibyte_chars</span>[<span class="kw-2">*</span><span class="ident">start</span>..].<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;{}-byte char at {:?}&quot;</span>, <span class="ident">mbc</span>.<span class="ident">bytes</span>, <span class="ident">mbc</span>.<span class="ident">pos</span>);
+            <span class="macro">debug!</span>(<span class="string">&quot;{}-byte char at {:?}&quot;</span>, <span class="ident">mbc</span>.<span class="ident">bytes</span>, <span class="ident">mbc</span>.<span class="ident">pos</span>);
             <span class="kw">if</span> <span class="ident">mbc</span>.<span class="ident">pos</span> <span class="op">&lt;</span> <span class="ident">bpos</span> {
                 <span class="comment">// every character is at least one byte, so we only</span>
                 <span class="comment">// count the actual extra bytes.</span>
                 <span class="ident">total_extra_bytes</span> <span class="op">+</span><span class="op">=</span> <span class="ident">mbc</span>.<span class="ident">bytes</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">-</span> <span class="number">1</span>;
                 <span class="comment">// We should never see a byte position in the middle of a</span>
                 <span class="comment">// character</span>
-                <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">bpos</span>.<span class="ident">to_u32</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">mbc</span>.<span class="ident">pos</span>.<span class="ident">to_u32</span>() <span class="op">+</span> <span class="ident">mbc</span>.<span class="ident">bytes</span> <span class="kw">as</span> <span class="ident">u32</span>);
+                <span class="macro">debug_assert!</span>(<span class="ident">bpos</span>.<span class="ident">to_u32</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">mbc</span>.<span class="ident">pos</span>.<span class="ident">to_u32</span>() <span class="op">+</span> <span class="ident">mbc</span>.<span class="ident">bytes</span> <span class="kw">as</span> <span class="ident">u32</span>);
             } <span class="kw">else</span> {
                 <span class="kw-2">*</span><span class="ident">start</span> <span class="op">+</span><span class="op">=</span> <span class="ident">i</span>;
                 <span class="kw">break</span>;
@@ -2402,11 +2449,11 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lookup_source_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">BytePos</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Lrc</span><span class="op">&lt;</span><span class="ident">SourceFile</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">files</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">files</span>.<span class="ident">borrow</span>();
         <span class="kw">let</span> <span class="ident">files</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">files</span>.<span class="ident">source_files</span>;
-        <span class="kw">let</span> <span class="ident">fm</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">lookup_source_file_in</span>(<span class="kw-2">&amp;</span><span class="ident">files</span>, <span class="ident">pos</span>);
+        <span class="kw">let</span> <span class="ident">fm</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::lookup_source_file_in</span>(<span class="kw-2">&amp;</span><span class="ident">files</span>, <span class="ident">pos</span>);
         <span class="kw">match</span> <span class="ident">fm</span> {
             <span class="prelude-val">Some</span>(<span class="ident">fm</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fm</span>,
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">panic</span><span class="macro">!</span>(
+                <span class="macro">panic!</span>(
                     <span class="string">&quot;position {} does not resolve to a source location&quot;</span>,
                     <span class="ident">pos</span>.<span class="ident">to_usize</span>()
                 );
@@ -2485,9 +2532,9 @@
                 <span class="comment">// Prepare the new suggested snippet to append the type parameter that triggered</span>
                 <span class="comment">// the error in the generics of the function signature</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_snippet</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">last_char</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&#39;&gt;&#39;</span>) {
-                    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}, &quot;</span>, <span class="kw-2">&amp;</span><span class="ident">snippet</span>[..(<span class="ident">offset</span> <span class="op">-</span> <span class="string">&#39;&gt;&#39;</span>.<span class="ident">len_utf8</span>())])
+                    <span class="macro">format!</span>(<span class="string">&quot;{}, &quot;</span>, <span class="kw-2">&amp;</span><span class="ident">snippet</span>[..(<span class="ident">offset</span> <span class="op">-</span> <span class="string">&#39;&gt;&#39;</span>.<span class="ident">len_utf8</span>())])
                 } <span class="kw">else</span> {
-                    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&lt;&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">snippet</span>[..<span class="ident">offset</span>])
+                    <span class="macro">format!</span>(<span class="string">&quot;{}&lt;&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">snippet</span>[..<span class="ident">offset</span>])
                 };
                 <span class="ident">new_snippet</span>.<span class="ident">push_str</span>(
                     <span class="kw-2">&amp;</span><span class="self">self</span>
@@ -2505,7 +2552,7 @@
 
     <span class="doccomment">///</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sourcemap&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_source_map</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">mappings</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">BytePos</span>, <span class="ident">LineCol</span>)<span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sourcemap</span>::<span class="ident">SourceMap</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_source_map</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">mappings</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">BytePos</span>, <span class="ident">LineCol</span>)<span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sourcemap::SourceMap</span> {
         <span class="self">self</span>.<span class="ident">build_source_map_from</span>(<span class="ident">mappings</span>, <span class="prelude-val">None</span>)
     }
 
@@ -2514,8 +2561,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_source_map_from</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">mappings</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">BytePos</span>, <span class="ident">LineCol</span>)<span class="op">&gt;</span>,
-        <span class="ident">orig</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">sourcemap</span>::<span class="ident">SourceMap</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sourcemap</span>::<span class="ident">SourceMap</span> {
+        <span class="ident">orig</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">sourcemap::SourceMap</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sourcemap::SourceMap</span> {
         <span class="self">self</span>.<span class="ident">build_source_map_with_config</span>(<span class="ident">mappings</span>, <span class="ident">orig</span>, <span class="ident">DefaultSourceMapGenConfig</span>)
     }
 
@@ -2523,10 +2570,10 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_source_map_with_config</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">mappings</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">BytePos</span>, <span class="ident">LineCol</span>)<span class="op">&gt;</span>,
-        <span class="ident">orig</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">sourcemap</span>::<span class="ident">SourceMap</span><span class="op">&gt;</span>,
+        <span class="ident">orig</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">sourcemap::SourceMap</span><span class="op">&gt;</span>,
         <span class="ident">config</span>: <span class="kw">impl</span> <span class="ident">SourceMapGenConfig</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sourcemap</span>::<span class="ident">SourceMap</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">SourceMapBuilder</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>);
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">sourcemap::SourceMap</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">SourceMapBuilder::new</span>(<span class="prelude-val">None</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">src_id</span> <span class="op">=</span> <span class="number">0u32</span>;
 
@@ -2578,7 +2625,7 @@
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">a</span> <span class="op">+</span> <span class="number">1</span>; <span class="comment">// Line numbers start at 1</span>
             <span class="kw">let</span> <span class="ident">linebpos</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">lines</span>[<span class="ident">a</span> <span class="kw">as</span> <span class="ident">usize</span>];
-            <span class="macro">debug_assert</span><span class="macro">!</span>(
+            <span class="macro">debug_assert!</span>(
                 <span class="ident">pos</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">linebpos</span>,
                 <span class="string">&quot;{}: bpos = {:?}; linebpos = {:?};&quot;</span>,
                 <span class="ident">f</span>.<span class="ident">name</span>,
@@ -2639,7 +2686,7 @@
 
 <span class="kw">impl</span> <span class="ident">FilePathMapping</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FilePathMapping</span> {
-        <span class="ident">FilePathMapping</span> { <span class="ident">mapping</span>: <span class="macro">vec</span><span class="macro">!</span>[] }
+        <span class="ident">FilePathMapping</span> { <span class="ident">mapping</span>: <span class="macro">vec!</span>[] }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">mapping</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">PathBuf</span>, <span class="ident">PathBuf</span>)<span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FilePathMapping</span> {
@@ -2675,7 +2722,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DefaultSourceMapGenConfig</span>;
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_ref</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_ref</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">TP</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">TP</span><span class="op">&gt;</span> <span class="ident">SourceMapGenConfig</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>
         <span class="kw">where</span>
@@ -2688,10 +2735,10 @@
     };
 }
 
-<span class="macro">impl_ref</span><span class="macro">!</span>(<span class="ident">T</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">T</span>);
-<span class="macro">impl_ref</span><span class="macro">!</span>(<span class="ident">T</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="macro">impl_ref</span><span class="macro">!</span>(<span class="ident">T</span>, <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="macro">impl_ref</span><span class="macro">!</span>(<span class="ident">T</span>, <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+<span class="macro">impl_ref!</span>(<span class="ident">T</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">T</span>);
+<span class="macro">impl_ref!</span>(<span class="ident">T</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+<span class="macro">impl_ref!</span>(<span class="ident">T</span>, <span class="ident">std::rc::Rc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+<span class="macro">impl_ref!</span>(<span class="ident">T</span>, <span class="ident">std::sync::Arc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span> <span class="ident">SourceMapGenConfig</span> <span class="kw">for</span> <span class="ident">DefaultSourceMapGenConfig</span> {
     <span class="kw">fn</span> <span class="ident">file_name_to_source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="ident">FileName</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
@@ -2706,17 +2753,17 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">sync</span>::<span class="ident">Lrc</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::sync::Lrc</span>;
 
     <span class="kw">fn</span> <span class="ident">init_source_map</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SourceMap</span> {
-        <span class="kw">let</span> <span class="ident">sm</span> <span class="op">=</span> <span class="ident">SourceMap</span>::<span class="ident">new</span>(<span class="ident">FilePathMapping</span>::<span class="ident">empty</span>());
+        <span class="kw">let</span> <span class="ident">sm</span> <span class="op">=</span> <span class="ident">SourceMap::new</span>(<span class="ident">FilePathMapping::empty</span>());
         <span class="ident">sm</span>.<span class="ident">new_source_file</span>(
-            <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;blork.rs&quot;</span>).<span class="ident">into</span>(),
+            <span class="ident">PathBuf::from</span>(<span class="string">&quot;blork.rs&quot;</span>).<span class="ident">into</span>(),
             <span class="string">&quot;first line.\nsecond line&quot;</span>.<span class="ident">to_string</span>(),
         );
-        <span class="ident">sm</span>.<span class="ident">new_source_file</span>(<span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;empty.rs&quot;</span>).<span class="ident">into</span>(), <span class="ident">String</span>::<span class="ident">new</span>());
+        <span class="ident">sm</span>.<span class="ident">new_source_file</span>(<span class="ident">PathBuf::from</span>(<span class="string">&quot;empty.rs&quot;</span>).<span class="ident">into</span>(), <span class="ident">String::new</span>());
         <span class="ident">sm</span>.<span class="ident">new_source_file</span>(
-            <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;blork2.rs&quot;</span>).<span class="ident">into</span>(),
+            <span class="ident">PathBuf::from</span>(<span class="string">&quot;blork2.rs&quot;</span>).<span class="ident">into</span>(),
             <span class="string">&quot;first line.\nsecond line&quot;</span>.<span class="ident">to_string</span>(),
         );
         <span class="ident">sm</span>
@@ -2728,16 +2775,16 @@
         <span class="kw">let</span> <span class="ident">sm</span> <span class="op">=</span> <span class="ident">init_source_map</span>();
 
         <span class="kw">let</span> <span class="ident">srcfbp1</span> <span class="op">=</span> <span class="ident">sm</span>.<span class="ident">lookup_byte_offset</span>(<span class="ident">BytePos</span>(<span class="number">23</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">srcfbp1</span>.<span class="ident">sf</span>.<span class="ident">name</span>, <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;blork.rs&quot;</span>).<span class="ident">into</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">srcfbp1</span>.<span class="ident">pos</span>, <span class="ident">BytePos</span>(<span class="number">23</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">srcfbp1</span>.<span class="ident">sf</span>.<span class="ident">name</span>, <span class="ident">PathBuf::from</span>(<span class="string">&quot;blork.rs&quot;</span>).<span class="ident">into</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">srcfbp1</span>.<span class="ident">pos</span>, <span class="ident">BytePos</span>(<span class="number">23</span>));
 
         <span class="kw">let</span> <span class="ident">srcfbp1</span> <span class="op">=</span> <span class="ident">sm</span>.<span class="ident">lookup_byte_offset</span>(<span class="ident">BytePos</span>(<span class="number">24</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">srcfbp1</span>.<span class="ident">sf</span>.<span class="ident">name</span>, <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;empty.rs&quot;</span>).<span class="ident">into</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">srcfbp1</span>.<span class="ident">pos</span>, <span class="ident">BytePos</span>(<span class="number">0</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">srcfbp1</span>.<span class="ident">sf</span>.<span class="ident">name</span>, <span class="ident">PathBuf::from</span>(<span class="string">&quot;empty.rs&quot;</span>).<span class="ident">into</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">srcfbp1</span>.<span class="ident">pos</span>, <span class="ident">BytePos</span>(<span class="number">0</span>));
 
         <span class="kw">let</span> <span class="ident">srcfbp2</span> <span class="op">=</span> <span class="ident">sm</span>.<span class="ident">lookup_byte_offset</span>(<span class="ident">BytePos</span>(<span class="number">25</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">srcfbp2</span>.<span class="ident">sf</span>.<span class="ident">name</span>, <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;blork2.rs&quot;</span>).<span class="ident">into</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">srcfbp2</span>.<span class="ident">pos</span>, <span class="ident">BytePos</span>(<span class="number">0</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">srcfbp2</span>.<span class="ident">sf</span>.<span class="ident">name</span>, <span class="ident">PathBuf::from</span>(<span class="string">&quot;blork2.rs&quot;</span>).<span class="ident">into</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">srcfbp2</span>.<span class="ident">pos</span>, <span class="ident">BytePos</span>(<span class="number">0</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -2746,10 +2793,10 @@
         <span class="kw">let</span> <span class="ident">sm</span> <span class="op">=</span> <span class="ident">init_source_map</span>();
 
         <span class="kw">let</span> <span class="ident">cp1</span> <span class="op">=</span> <span class="ident">sm</span>.<span class="ident">bytepos_to_file_charpos</span>(<span class="ident">BytePos</span>(<span class="number">22</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">cp1</span>, <span class="ident">CharPos</span>(<span class="number">22</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">cp1</span>, <span class="ident">CharPos</span>(<span class="number">22</span>));
 
         <span class="kw">let</span> <span class="ident">cp2</span> <span class="op">=</span> <span class="ident">sm</span>.<span class="ident">bytepos_to_file_charpos</span>(<span class="ident">BytePos</span>(<span class="number">25</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">cp2</span>, <span class="ident">CharPos</span>(<span class="number">0</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">cp2</span>, <span class="ident">CharPos</span>(<span class="number">0</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -2758,25 +2805,25 @@
         <span class="kw">let</span> <span class="ident">sm</span> <span class="op">=</span> <span class="ident">init_source_map</span>();
 
         <span class="kw">let</span> <span class="ident">loc1</span> <span class="op">=</span> <span class="ident">sm</span>.<span class="ident">lookup_char_pos</span>(<span class="ident">BytePos</span>(<span class="number">22</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">loc1</span>.<span class="ident">file</span>.<span class="ident">name</span>, <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;blork.rs&quot;</span>).<span class="ident">into</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">loc1</span>.<span class="ident">line</span>, <span class="number">2</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">loc1</span>.<span class="ident">col</span>, <span class="ident">CharPos</span>(<span class="number">10</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">loc1</span>.<span class="ident">file</span>.<span class="ident">name</span>, <span class="ident">PathBuf::from</span>(<span class="string">&quot;blork.rs&quot;</span>).<span class="ident">into</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">loc1</span>.<span class="ident">line</span>, <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">loc1</span>.<span class="ident">col</span>, <span class="ident">CharPos</span>(<span class="number">10</span>));
 
         <span class="kw">let</span> <span class="ident">loc2</span> <span class="op">=</span> <span class="ident">sm</span>.<span class="ident">lookup_char_pos</span>(<span class="ident">BytePos</span>(<span class="number">25</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">loc2</span>.<span class="ident">file</span>.<span class="ident">name</span>, <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;blork2.rs&quot;</span>).<span class="ident">into</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">loc2</span>.<span class="ident">line</span>, <span class="number">1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">loc2</span>.<span class="ident">col</span>, <span class="ident">CharPos</span>(<span class="number">0</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">loc2</span>.<span class="ident">file</span>.<span class="ident">name</span>, <span class="ident">PathBuf::from</span>(<span class="string">&quot;blork2.rs&quot;</span>).<span class="ident">into</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">loc2</span>.<span class="ident">line</span>, <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">loc2</span>.<span class="ident">col</span>, <span class="ident">CharPos</span>(<span class="number">0</span>));
     }
 
     <span class="kw">fn</span> <span class="ident">init_source_map_mbc</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SourceMap</span> {
-        <span class="kw">let</span> <span class="ident">sm</span> <span class="op">=</span> <span class="ident">SourceMap</span>::<span class="ident">new</span>(<span class="ident">FilePathMapping</span>::<span class="ident">empty</span>());
+        <span class="kw">let</span> <span class="ident">sm</span> <span class="op">=</span> <span class="ident">SourceMap::new</span>(<span class="ident">FilePathMapping::empty</span>());
         <span class="comment">// € is a three byte utf8 char.</span>
         <span class="ident">sm</span>.<span class="ident">new_source_file</span>(
-            <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;blork.rs&quot;</span>).<span class="ident">into</span>(),
+            <span class="ident">PathBuf::from</span>(<span class="string">&quot;blork.rs&quot;</span>).<span class="ident">into</span>(),
             <span class="string">&quot;fir€st €€€€ line.\nsecond line&quot;</span>.<span class="ident">to_string</span>(),
         );
         <span class="ident">sm</span>.<span class="ident">new_source_file</span>(
-            <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;blork2.rs&quot;</span>).<span class="ident">into</span>(),
+            <span class="ident">PathBuf::from</span>(<span class="string">&quot;blork2.rs&quot;</span>).<span class="ident">into</span>(),
             <span class="string">&quot;first line€€.\n€ second line&quot;</span>.<span class="ident">to_string</span>(),
         );
         <span class="ident">sm</span>
@@ -2788,28 +2835,28 @@
         <span class="kw">let</span> <span class="ident">sm</span> <span class="op">=</span> <span class="ident">init_source_map_mbc</span>();
 
         <span class="kw">let</span> <span class="ident">cp1</span> <span class="op">=</span> <span class="ident">sm</span>.<span class="ident">bytepos_to_file_charpos</span>(<span class="ident">BytePos</span>(<span class="number">3</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">cp1</span>, <span class="ident">CharPos</span>(<span class="number">3</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">cp1</span>, <span class="ident">CharPos</span>(<span class="number">3</span>));
 
         <span class="kw">let</span> <span class="ident">cp2</span> <span class="op">=</span> <span class="ident">sm</span>.<span class="ident">bytepos_to_file_charpos</span>(<span class="ident">BytePos</span>(<span class="number">6</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">cp2</span>, <span class="ident">CharPos</span>(<span class="number">4</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">cp2</span>, <span class="ident">CharPos</span>(<span class="number">4</span>));
 
         <span class="kw">let</span> <span class="ident">cp3</span> <span class="op">=</span> <span class="ident">sm</span>.<span class="ident">bytepos_to_file_charpos</span>(<span class="ident">BytePos</span>(<span class="number">56</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">cp3</span>, <span class="ident">CharPos</span>(<span class="number">12</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">cp3</span>, <span class="ident">CharPos</span>(<span class="number">12</span>));
 
         <span class="kw">let</span> <span class="ident">cp4</span> <span class="op">=</span> <span class="ident">sm</span>.<span class="ident">bytepos_to_file_charpos</span>(<span class="ident">BytePos</span>(<span class="number">61</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">cp4</span>, <span class="ident">CharPos</span>(<span class="number">15</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">cp4</span>, <span class="ident">CharPos</span>(<span class="number">15</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">t7</span>() {
         <span class="comment">// Test span_to_lines for a span ending at the end of source_file</span>
         <span class="kw">let</span> <span class="ident">sm</span> <span class="op">=</span> <span class="ident">init_source_map</span>();
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">BytePos</span>(<span class="number">12</span>), <span class="ident">BytePos</span>(<span class="number">23</span>), <span class="ident">NO_EXPANSION</span>);
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">BytePos</span>(<span class="number">12</span>), <span class="ident">BytePos</span>(<span class="number">23</span>), <span class="ident">NO_EXPANSION</span>);
         <span class="kw">let</span> <span class="ident">file_lines</span> <span class="op">=</span> <span class="ident">sm</span>.<span class="ident">span_to_lines</span>(<span class="ident">span</span>).<span class="ident">unwrap</span>();
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">file_lines</span>.<span class="ident">file</span>.<span class="ident">name</span>, <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;blork.rs&quot;</span>).<span class="ident">into</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">file_lines</span>.<span class="ident">lines</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">file_lines</span>.<span class="ident">lines</span>[<span class="number">0</span>].<span class="ident">line_index</span>, <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">file_lines</span>.<span class="ident">file</span>.<span class="ident">name</span>, <span class="ident">PathBuf::from</span>(<span class="string">&quot;blork.rs&quot;</span>).<span class="ident">into</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">file_lines</span>.<span class="ident">lines</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">file_lines</span>.<span class="ident">lines</span>[<span class="number">0</span>].<span class="ident">line_index</span>, <span class="number">1</span>);
     }
 
     <span class="doccomment">/// Given a string like &quot; ~~~~~~~~~~~~ &quot;, produces a span</span>
@@ -2817,32 +2864,32 @@
     <span class="doccomment">/// length as the input, and we uncover the byte positions.  Note</span>
     <span class="doccomment">/// that this can span lines and so on.</span>
     <span class="kw">fn</span> <span class="ident">span_from_selection</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">selection</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">input</span>.<span class="ident">len</span>(), <span class="ident">selection</span>.<span class="ident">len</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">input</span>.<span class="ident">len</span>(), <span class="ident">selection</span>.<span class="ident">len</span>());
         <span class="kw">let</span> <span class="ident">left_index</span> <span class="op">=</span> <span class="ident">selection</span>.<span class="ident">find</span>(<span class="string">&#39;~&#39;</span>).<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="kw">let</span> <span class="ident">right_index</span> <span class="op">=</span> <span class="ident">selection</span>.<span class="ident">rfind</span>(<span class="string">&#39;~&#39;</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">unwrap_or</span>(<span class="ident">left_index</span>);
-        <span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">BytePos</span>(<span class="ident">left_index</span>), <span class="ident">BytePos</span>(<span class="ident">right_index</span> <span class="op">+</span> <span class="number">1</span>), <span class="ident">NO_EXPANSION</span>)
+        <span class="ident">Span::new</span>(<span class="ident">BytePos</span>(<span class="ident">left_index</span>), <span class="ident">BytePos</span>(<span class="ident">right_index</span> <span class="op">+</span> <span class="number">1</span>), <span class="ident">NO_EXPANSION</span>)
     }
 
     <span class="doccomment">/// Test span_to_snippet and span_to_lines for a span converting 3</span>
     <span class="doccomment">/// lines in the middle of a file.</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">span_to_snippet_and_lines_spanning_multiple_lines</span>() {
-        <span class="kw">let</span> <span class="ident">sm</span> <span class="op">=</span> <span class="ident">SourceMap</span>::<span class="ident">new</span>(<span class="ident">FilePathMapping</span>::<span class="ident">empty</span>());
+        <span class="kw">let</span> <span class="ident">sm</span> <span class="op">=</span> <span class="ident">SourceMap::new</span>(<span class="ident">FilePathMapping::empty</span>());
         <span class="kw">let</span> <span class="ident">inputtext</span> <span class="op">=</span> <span class="string">&quot;aaaaa\nbbbbBB\nCCC\nDDDDDddddd\neee\n&quot;</span>;
         <span class="kw">let</span> <span class="ident">selection</span> <span class="op">=</span> <span class="string">&quot;     \n    ~~\n~~~\n~~~~~     \n   \n&quot;</span>;
         <span class="ident">sm</span>.<span class="ident">new_source_file</span>(
-            <span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;blork.rs&quot;</span>).<span class="ident">to_owned</span>().<span class="ident">into</span>(),
+            <span class="ident">Path::new</span>(<span class="string">&quot;blork.rs&quot;</span>).<span class="ident">to_owned</span>().<span class="ident">into</span>(),
             <span class="ident">inputtext</span>.<span class="ident">to_string</span>(),
         );
         <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">span_from_selection</span>(<span class="ident">inputtext</span>, <span class="ident">selection</span>);
 
         <span class="comment">// check that we are extracting the text we thought we were extracting</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw-2">&amp;</span><span class="ident">sm</span>.<span class="ident">span_to_snippet</span>(<span class="ident">span</span>).<span class="ident">unwrap</span>(), <span class="string">&quot;BB\nCCC\nDDDDD&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">sm</span>.<span class="ident">span_to_snippet</span>(<span class="ident">span</span>).<span class="ident">unwrap</span>(), <span class="string">&quot;BB\nCCC\nDDDDD&quot;</span>);
 
         <span class="comment">// check that span_to_lines gives us the complete result with the lines/cols we</span>
         <span class="comment">// expected</span>
         <span class="kw">let</span> <span class="ident">lines</span> <span class="op">=</span> <span class="ident">sm</span>.<span class="ident">span_to_lines</span>(<span class="ident">span</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[
+        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">vec!</span>[
             <span class="ident">LineInfo</span> {
                 <span class="ident">line_index</span>: <span class="number">1</span>,
                 <span class="ident">start_col</span>: <span class="ident">CharPos</span>(<span class="number">4</span>),
@@ -2859,56 +2906,56 @@
                 <span class="ident">end_col</span>: <span class="ident">CharPos</span>(<span class="number">5</span>),
             },
         ];
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">lines</span>.<span class="ident">lines</span>, <span class="ident">expected</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">lines</span>.<span class="ident">lines</span>, <span class="ident">expected</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">t8</span>() {
         <span class="comment">// Test span_to_snippet for a span ending at the end of source_file</span>
         <span class="kw">let</span> <span class="ident">sm</span> <span class="op">=</span> <span class="ident">init_source_map</span>();
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">BytePos</span>(<span class="number">12</span>), <span class="ident">BytePos</span>(<span class="number">23</span>), <span class="ident">NO_EXPANSION</span>);
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">BytePos</span>(<span class="number">12</span>), <span class="ident">BytePos</span>(<span class="number">23</span>), <span class="ident">NO_EXPANSION</span>);
         <span class="kw">let</span> <span class="ident">snippet</span> <span class="op">=</span> <span class="ident">sm</span>.<span class="ident">span_to_snippet</span>(<span class="ident">span</span>);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">snippet</span>, <span class="prelude-val">Ok</span>(<span class="string">&quot;second line&quot;</span>.<span class="ident">to_string</span>()));
+        <span class="macro">assert_eq!</span>(<span class="ident">snippet</span>, <span class="prelude-val">Ok</span>(<span class="string">&quot;second line&quot;</span>.<span class="ident">to_string</span>()));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">t9</span>() {
         <span class="comment">// Test span_to_str for a span ending at the end of source_file</span>
         <span class="kw">let</span> <span class="ident">sm</span> <span class="op">=</span> <span class="ident">init_source_map</span>();
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">BytePos</span>(<span class="number">12</span>), <span class="ident">BytePos</span>(<span class="number">23</span>), <span class="ident">NO_EXPANSION</span>);
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">BytePos</span>(<span class="number">12</span>), <span class="ident">BytePos</span>(<span class="number">23</span>), <span class="ident">NO_EXPANSION</span>);
         <span class="kw">let</span> <span class="ident">sstr</span> <span class="op">=</span> <span class="ident">sm</span>.<span class="ident">span_to_string</span>(<span class="ident">span</span>);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">sstr</span>, <span class="string">&quot;blork.rs:2:1: 2:12&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">sstr</span>, <span class="string">&quot;blork.rs:2:1: 2:12&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">t10</span>() {
         <span class="comment">// Test span_to_lines for a span of empty file</span>
-        <span class="kw">let</span> <span class="ident">sm</span> <span class="op">=</span> <span class="ident">SourceMap</span>::<span class="ident">new</span>(<span class="ident">FilePathMapping</span>::<span class="ident">empty</span>());
-        <span class="ident">sm</span>.<span class="ident">new_source_file</span>(<span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;blork.rs&quot;</span>).<span class="ident">into</span>(), <span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>());
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">BytePos</span>(<span class="number">0</span>), <span class="ident">BytePos</span>(<span class="number">0</span>), <span class="ident">NO_EXPANSION</span>);
+        <span class="kw">let</span> <span class="ident">sm</span> <span class="op">=</span> <span class="ident">SourceMap::new</span>(<span class="ident">FilePathMapping::empty</span>());
+        <span class="ident">sm</span>.<span class="ident">new_source_file</span>(<span class="ident">PathBuf::from</span>(<span class="string">&quot;blork.rs&quot;</span>).<span class="ident">into</span>(), <span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>());
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">BytePos</span>(<span class="number">0</span>), <span class="ident">BytePos</span>(<span class="number">0</span>), <span class="ident">NO_EXPANSION</span>);
         <span class="kw">let</span> <span class="ident">file_lines</span> <span class="op">=</span> <span class="ident">sm</span>.<span class="ident">span_to_lines</span>(<span class="ident">span</span>).<span class="ident">unwrap</span>();
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">file_lines</span>.<span class="ident">file</span>.<span class="ident">name</span>, <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;blork.rs&quot;</span>).<span class="ident">into</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">file_lines</span>.<span class="ident">lines</span>.<span class="ident">len</span>(), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">file_lines</span>.<span class="ident">file</span>.<span class="ident">name</span>, <span class="ident">PathBuf::from</span>(<span class="string">&quot;blork.rs&quot;</span>).<span class="ident">into</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">file_lines</span>.<span class="ident">lines</span>.<span class="ident">len</span>(), <span class="number">0</span>);
     }
 
     <span class="doccomment">/// Test failing to merge two spans on different lines</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">span_merging_fail</span>() {
-        <span class="kw">let</span> <span class="ident">sm</span> <span class="op">=</span> <span class="ident">SourceMap</span>::<span class="ident">new</span>(<span class="ident">FilePathMapping</span>::<span class="ident">empty</span>());
+        <span class="kw">let</span> <span class="ident">sm</span> <span class="op">=</span> <span class="ident">SourceMap::new</span>(<span class="ident">FilePathMapping::empty</span>());
         <span class="kw">let</span> <span class="ident">inputtext</span> <span class="op">=</span> <span class="string">&quot;bbbb BB\ncc CCC\n&quot;</span>;
         <span class="kw">let</span> <span class="ident">selection1</span> <span class="op">=</span> <span class="string">&quot;     ~~\n      \n&quot;</span>;
         <span class="kw">let</span> <span class="ident">selection2</span> <span class="op">=</span> <span class="string">&quot;       \n   ~~~\n&quot;</span>;
         <span class="ident">sm</span>.<span class="ident">new_source_file</span>(
-            <span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;blork.rs&quot;</span>).<span class="ident">to_owned</span>().<span class="ident">into</span>(),
+            <span class="ident">Path::new</span>(<span class="string">&quot;blork.rs&quot;</span>).<span class="ident">to_owned</span>().<span class="ident">into</span>(),
             <span class="ident">inputtext</span>.<span class="ident">to_owned</span>(),
         );
         <span class="kw">let</span> <span class="ident">span1</span> <span class="op">=</span> <span class="ident">span_from_selection</span>(<span class="ident">inputtext</span>, <span class="ident">selection1</span>);
         <span class="kw">let</span> <span class="ident">span2</span> <span class="op">=</span> <span class="ident">span_from_selection</span>(<span class="ident">inputtext</span>, <span class="ident">selection2</span>);
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">sm</span>.<span class="ident">merge_spans</span>(<span class="ident">span1</span>, <span class="ident">span2</span>).<span class="ident">is_none</span>());
+        <span class="macro">assert!</span>(<span class="ident">sm</span>.<span class="ident">merge_spans</span>(<span class="ident">span1</span>, <span class="ident">span2</span>).<span class="ident">is_none</span>());
     }
 
     <span class="doccomment">/// Returns the span corresponding to the `n`th occurrence of</span>
@@ -2935,7 +2982,7 @@
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hi</span> <span class="op">=</span> <span class="number">0</span>;
             <span class="kw">loop</span> {
                 <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">source_text</span>[<span class="ident">hi</span>..].<span class="ident">find</span>(<span class="ident">substring</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="macro">panic</span><span class="macro">!</span>(
+                    <span class="macro">panic!</span>(
                         <span class="string">&quot;source_text `{}` does not have {} occurrences of `{}`, only {}&quot;</span>,
                         <span class="ident">source_text</span>, <span class="ident">n</span>, <span class="ident">substring</span>, <span class="ident">i</span>
                     );
@@ -2943,12 +2990,12 @@
                 <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> <span class="ident">hi</span> <span class="op">+</span> <span class="ident">offset</span>;
                 <span class="ident">hi</span> <span class="op">=</span> <span class="ident">lo</span> <span class="op">+</span> <span class="ident">substring</span>.<span class="ident">len</span>();
                 <span class="kw">if</span> <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n</span> {
-                    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span</span>::<span class="ident">new</span>(
+                    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span::new</span>(
                         <span class="ident">BytePos</span>(<span class="ident">lo</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> <span class="ident">file</span>.<span class="ident">start_pos</span>.<span class="number">0</span>),
                         <span class="ident">BytePos</span>(<span class="ident">hi</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> <span class="ident">file</span>.<span class="ident">start_pos</span>.<span class="number">0</span>),
                         <span class="ident">NO_EXPANSION</span>,
                     );
-                    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">span_to_snippet</span>(<span class="ident">span</span>).<span class="ident">unwrap</span>()[..], <span class="ident">substring</span>);
+                    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">span_to_snippet</span>(<span class="ident">span</span>).<span class="ident">unwrap</span>()[..], <span class="ident">substring</span>);
                     <span class="kw">return</span> <span class="ident">span</span>;
                 }
                 <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -2957,5 +3004,4 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="swc_common" data-search-js="../../search-index.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="swc_common" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

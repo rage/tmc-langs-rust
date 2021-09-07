@@ -1,7 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/neon-0.8.3/src/object/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/neon-0.9.1/src/object/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../neon/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../neon/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -248,60 +247,129 @@
 <span id="245">245</span>
 <span id="246">246</span>
 <span id="247">247</span>
-</pre><div class="example-wrap"><pre class="rust ">
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+</pre><pre class="rust">
 <span class="doccomment">//! Traits for working with JavaScript objects.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This module defines the [`Object`](Object) trait, which is implemented</span>
+<span class="doccomment">//! by all object types in the [JavaScript type hierarchy][hierarchy]. This</span>
+<span class="doccomment">//! trait provides key operations in the semantics of JavaScript objects,</span>
+<span class="doccomment">//! such as getting and setting an object&#39;s properties.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## Property Keys</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Object properties are accessed by a _property key_, which in JavaScript</span>
+<span class="doccomment">//! can be a string or [symbol][symbol]. (Neon does not yet have support for</span>
+<span class="doccomment">//! symbols.) For convenience, the [`PropertyKey`](PropertyKey) trait allows</span>
+<span class="doccomment">//! Neon programs to use various Rust string types, as well as numeric types,</span>
+<span class="doccomment">//! as keys when accessing object properties, converting the keys to strings</span>
+<span class="doccomment">//! as necessary:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//! # #[cfg(feature = &quot;napi-1&quot;)] {</span>
+<span class="doccomment">//! # use neon::prelude::*;</span>
+<span class="doccomment">//! fn set_and_check&lt;&#39;a&gt;(</span>
+<span class="doccomment">//!     cx: &amp;mut impl Context&lt;&#39;a&gt;,</span>
+<span class="doccomment">//!     obj: Handle&lt;&#39;a, JsObject&gt;</span>
+<span class="doccomment">//! ) -&gt; JsResult&lt;&#39;a, JsValue&gt; {</span>
+<span class="doccomment">//!     let value = cx.string(&quot;hello!&quot;);</span>
+<span class="doccomment">//!     // set property &quot;17&quot; with integer shorthand</span>
+<span class="doccomment">//!     obj.set(cx, 17, value)?;</span>
+<span class="doccomment">//!     // get property &quot;17&quot; with string shorthand</span>
+<span class="doccomment">//!     // returns the same value (&quot;hello!&quot;)</span>
+<span class="doccomment">//!     obj.get(cx, &quot;17&quot;)</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//! # }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [hierarchy]: crate::types#the-javascript-type-hierarchy</span>
+<span class="doccomment">//! [symbol]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;legacy-runtime&quot;</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">class</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;legacy-runtime&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassDescriptor</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">traits</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::class</span>::{<span class="ident">Class</span>, <span class="ident">ClassDescriptor</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::traits</span>::<span class="kw-2">*</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;legacy-runtime&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">traits</span> {
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">context</span>::<span class="ident">Context</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">handle</span>::{<span class="ident">Handle</span>, <span class="ident">Managed</span>};
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">result</span>::{<span class="ident">JsResult</span>, <span class="ident">NeonResult</span>, <span class="ident">Throw</span>};
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::<span class="ident">utf8</span>::<span class="ident">Utf8</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::{<span class="ident">build</span>, <span class="ident">JsArray</span>, <span class="ident">JsValue</span>, <span class="ident">Value</span>};
-    <span class="kw">use</span> <span class="ident">neon_runtime</span>::<span class="ident">raw</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::context::Context</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::handle</span>::{<span class="ident">Handle</span>, <span class="ident">Managed</span>};
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::result</span>::{<span class="ident">JsResult</span>, <span class="ident">NeonResult</span>, <span class="ident">Throw</span>};
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::types::utf8::Utf8</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::types</span>::{<span class="ident">build</span>, <span class="ident">JsArray</span>, <span class="ident">JsValue</span>, <span class="ident">Value</span>};
+    <span class="kw">use</span> <span class="ident">neon_runtime::raw</span>;
 
     <span class="doccomment">/// A property key in a JavaScript object.</span>
     <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PropertyKey</span> {
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_from</span>(<span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw</span>::<span class="ident">Local</span>, <span class="ident">obj</span>: <span class="ident">raw</span>::<span class="ident">Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_from</span>(<span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bool</span>, <span class="ident">obj</span>: <span class="ident">raw</span>::<span class="ident">Local</span>, <span class="ident">val</span>: <span class="ident">raw</span>::<span class="ident">Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_from</span>(<span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw::Local</span>, <span class="ident">obj</span>: <span class="ident">raw::Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_from</span>(<span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bool</span>, <span class="ident">obj</span>: <span class="ident">raw::Local</span>, <span class="ident">val</span>: <span class="ident">raw::Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
     }
 
     <span class="kw">impl</span> <span class="ident">PropertyKey</span> <span class="kw">for</span> <span class="ident">u32</span> {
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_from</span>(<span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw</span>::<span class="ident">Local</span>, <span class="ident">obj</span>: <span class="ident">raw</span>::<span class="ident">Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-            <span class="ident">neon_runtime</span>::<span class="ident">object</span>::<span class="ident">get_index</span>(<span class="ident">out</span>, <span class="ident">obj</span>, <span class="self">self</span>)
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_from</span>(<span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw::Local</span>, <span class="ident">obj</span>: <span class="ident">raw::Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="ident">neon_runtime::object::get_index</span>(<span class="ident">out</span>, <span class="ident">obj</span>, <span class="self">self</span>)
         }
 
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_from</span>(<span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bool</span>, <span class="ident">obj</span>: <span class="ident">raw</span>::<span class="ident">Local</span>, <span class="ident">val</span>: <span class="ident">raw</span>::<span class="ident">Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-            <span class="ident">neon_runtime</span>::<span class="ident">object</span>::<span class="ident">set_index</span>(<span class="ident">out</span>, <span class="ident">obj</span>, <span class="self">self</span>, <span class="ident">val</span>)
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_from</span>(<span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bool</span>, <span class="ident">obj</span>: <span class="ident">raw::Local</span>, <span class="ident">val</span>: <span class="ident">raw::Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="ident">neon_runtime::object::set_index</span>(<span class="ident">out</span>, <span class="ident">obj</span>, <span class="self">self</span>, <span class="ident">val</span>)
         }
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>: <span class="ident">Value</span><span class="op">&gt;</span> <span class="ident">PropertyKey</span> <span class="kw">for</span> <span class="ident">Handle</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_from</span>(<span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw</span>::<span class="ident">Local</span>, <span class="ident">obj</span>: <span class="ident">raw</span>::<span class="ident">Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-            <span class="ident">neon_runtime</span>::<span class="ident">object</span>::<span class="ident">get</span>(<span class="ident">out</span>, <span class="ident">obj</span>, <span class="self">self</span>.<span class="ident">to_raw</span>())
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_from</span>(<span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw::Local</span>, <span class="ident">obj</span>: <span class="ident">raw::Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="ident">neon_runtime::object::get</span>(<span class="ident">out</span>, <span class="ident">obj</span>, <span class="self">self</span>.<span class="ident">to_raw</span>())
         }
 
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_from</span>(<span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bool</span>, <span class="ident">obj</span>: <span class="ident">raw</span>::<span class="ident">Local</span>, <span class="ident">val</span>: <span class="ident">raw</span>::<span class="ident">Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-            <span class="ident">neon_runtime</span>::<span class="ident">object</span>::<span class="ident">set</span>(<span class="ident">out</span>, <span class="ident">obj</span>, <span class="self">self</span>.<span class="ident">to_raw</span>(), <span class="ident">val</span>)
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_from</span>(<span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bool</span>, <span class="ident">obj</span>: <span class="ident">raw::Local</span>, <span class="ident">val</span>: <span class="ident">raw::Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="ident">neon_runtime::object::set</span>(<span class="ident">out</span>, <span class="ident">obj</span>, <span class="self">self</span>.<span class="ident">to_raw</span>(), <span class="ident">val</span>)
         }
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">PropertyKey</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_from</span>(<span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw</span>::<span class="ident">Local</span>, <span class="ident">obj</span>: <span class="ident">raw</span>::<span class="ident">Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-            <span class="kw">let</span> (<span class="ident">ptr</span>, <span class="ident">len</span>) <span class="op">=</span> <span class="ident">Utf8</span>::<span class="ident">from</span>(<span class="self">self</span>).<span class="ident">into_small_unwrap</span>().<span class="ident">lower</span>();
-            <span class="ident">neon_runtime</span>::<span class="ident">object</span>::<span class="ident">get_string</span>(<span class="ident">out</span>, <span class="ident">obj</span>, <span class="ident">ptr</span>, <span class="ident">len</span>)
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_from</span>(<span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw::Local</span>, <span class="ident">obj</span>: <span class="ident">raw::Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="kw">let</span> (<span class="ident">ptr</span>, <span class="ident">len</span>) <span class="op">=</span> <span class="ident">Utf8::from</span>(<span class="self">self</span>).<span class="ident">into_small_unwrap</span>().<span class="ident">lower</span>();
+            <span class="ident">neon_runtime::object::get_string</span>(<span class="ident">out</span>, <span class="ident">obj</span>, <span class="ident">ptr</span>, <span class="ident">len</span>)
         }
 
-        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_from</span>(<span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bool</span>, <span class="ident">obj</span>: <span class="ident">raw</span>::<span class="ident">Local</span>, <span class="ident">val</span>: <span class="ident">raw</span>::<span class="ident">Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-            <span class="kw">let</span> (<span class="ident">ptr</span>, <span class="ident">len</span>) <span class="op">=</span> <span class="ident">Utf8</span>::<span class="ident">from</span>(<span class="self">self</span>).<span class="ident">into_small_unwrap</span>().<span class="ident">lower</span>();
-            <span class="ident">neon_runtime</span>::<span class="ident">object</span>::<span class="ident">set_string</span>(<span class="ident">out</span>, <span class="ident">obj</span>, <span class="ident">ptr</span>, <span class="ident">len</span>, <span class="ident">val</span>)
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_from</span>(<span class="self">self</span>, <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bool</span>, <span class="ident">obj</span>: <span class="ident">raw::Local</span>, <span class="ident">val</span>: <span class="ident">raw::Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="kw">let</span> (<span class="ident">ptr</span>, <span class="ident">len</span>) <span class="op">=</span> <span class="ident">Utf8::from</span>(<span class="self">self</span>).<span class="ident">into_small_unwrap</span>().<span class="ident">lower</span>();
+            <span class="ident">neon_runtime::object::set_string</span>(<span class="ident">out</span>, <span class="ident">obj</span>, <span class="ident">ptr</span>, <span class="ident">len</span>, <span class="ident">val</span>)
         }
     }
 
@@ -318,7 +386,7 @@
         <span class="kw">fn</span> <span class="ident">get_own_property_names</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">JsArray</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">cx</span>.<span class="ident">env</span>();
             <span class="ident">build</span>(<span class="ident">env</span>, <span class="op">|</span><span class="ident">out</span><span class="op">|</span> <span class="kw">unsafe</span> {
-                <span class="ident">neon_runtime</span>::<span class="ident">object</span>::<span class="ident">get_own_property_names</span>(<span class="ident">out</span>, <span class="ident">env</span>.<span class="ident">to_raw</span>(), <span class="self">self</span>.<span class="ident">to_raw</span>())
+                <span class="ident">neon_runtime::object::get_own_property_names</span>(<span class="ident">out</span>, <span class="ident">env</span>.<span class="ident">to_raw</span>(), <span class="self">self</span>.<span class="ident">to_raw</span>())
             })
         }
 
@@ -339,41 +407,41 @@
 
     <span class="doccomment">/// The trait of types that can be a function&#39;s `this` binding.</span>
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">trait</span> <span class="ident">This</span>: <span class="ident">Managed</span> {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">as_this</span>(<span class="ident">h</span>: <span class="ident">raw</span>::<span class="ident">Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
+        <span class="kw">fn</span> <span class="ident">as_this</span>(<span class="ident">h</span>: <span class="ident">raw::Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;napi-1&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">traits</span> {
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">context</span>::<span class="ident">internal</span>::<span class="ident">Env</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">context</span>::<span class="ident">Context</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">handle</span>::{<span class="ident">Handle</span>, <span class="ident">Managed</span>, <span class="ident">Root</span>};
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">result</span>::{<span class="ident">NeonResult</span>, <span class="ident">Throw</span>};
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::<span class="ident">utf8</span>::<span class="ident">Utf8</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::{<span class="ident">build</span>, <span class="ident">JsValue</span>, <span class="ident">Value</span>};
-    <span class="kw">use</span> <span class="ident">neon_runtime</span>::<span class="ident">raw</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::context::internal::Env</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::context::Context</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::handle</span>::{<span class="ident">Handle</span>, <span class="ident">Managed</span>, <span class="ident">Root</span>};
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::result</span>::{<span class="ident">NeonResult</span>, <span class="ident">Throw</span>};
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::types::utf8::Utf8</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::types</span>::{<span class="ident">build</span>, <span class="ident">JsValue</span>, <span class="ident">Value</span>};
+    <span class="kw">use</span> <span class="ident">neon_runtime::raw</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;napi-6&quot;</span>)]</span>
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">result</span>::<span class="ident">JsResult</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::result::JsResult</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;napi-6&quot;</span>)]</span>
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::<span class="ident">JsArray</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::types::JsArray</span>;
 
     <span class="doccomment">/// A property key in a JavaScript object.</span>
     <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PropertyKey</span> {
         <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_from</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span><span class="op">&gt;</span>(
             <span class="self">self</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">C</span>,
-            <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw</span>::<span class="ident">Local</span>,
-            <span class="ident">obj</span>: <span class="ident">raw</span>::<span class="ident">Local</span>,
+            <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw::Local</span>,
+            <span class="ident">obj</span>: <span class="ident">raw::Local</span>,
         ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 
         <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_from</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span><span class="op">&gt;</span>(
             <span class="self">self</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">C</span>,
             <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bool</span>,
-            <span class="ident">obj</span>: <span class="ident">raw</span>::<span class="ident">Local</span>,
-            <span class="ident">val</span>: <span class="ident">raw</span>::<span class="ident">Local</span>,
+            <span class="ident">obj</span>: <span class="ident">raw::Local</span>,
+            <span class="ident">val</span>: <span class="ident">raw::Local</span>,
         ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
     }
 
@@ -381,20 +449,20 @@
         <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_from</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span><span class="op">&gt;</span>(
             <span class="self">self</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">C</span>,
-            <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw</span>::<span class="ident">Local</span>,
-            <span class="ident">obj</span>: <span class="ident">raw</span>::<span class="ident">Local</span>,
+            <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw::Local</span>,
+            <span class="ident">obj</span>: <span class="ident">raw::Local</span>,
         ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-            <span class="ident">neon_runtime</span>::<span class="ident">object</span>::<span class="ident">get_index</span>(<span class="ident">out</span>, <span class="ident">cx</span>.<span class="ident">env</span>().<span class="ident">to_raw</span>(), <span class="ident">obj</span>, <span class="self">self</span>)
+            <span class="ident">neon_runtime::object::get_index</span>(<span class="ident">out</span>, <span class="ident">cx</span>.<span class="ident">env</span>().<span class="ident">to_raw</span>(), <span class="ident">obj</span>, <span class="self">self</span>)
         }
 
         <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_from</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span><span class="op">&gt;</span>(
             <span class="self">self</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">C</span>,
             <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bool</span>,
-            <span class="ident">obj</span>: <span class="ident">raw</span>::<span class="ident">Local</span>,
-            <span class="ident">val</span>: <span class="ident">raw</span>::<span class="ident">Local</span>,
+            <span class="ident">obj</span>: <span class="ident">raw::Local</span>,
+            <span class="ident">val</span>: <span class="ident">raw::Local</span>,
         ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-            <span class="ident">neon_runtime</span>::<span class="ident">object</span>::<span class="ident">set_index</span>(<span class="ident">out</span>, <span class="ident">cx</span>.<span class="ident">env</span>().<span class="ident">to_raw</span>(), <span class="ident">obj</span>, <span class="self">self</span>, <span class="ident">val</span>)
+            <span class="ident">neon_runtime::object::set_index</span>(<span class="ident">out</span>, <span class="ident">cx</span>.<span class="ident">env</span>().<span class="ident">to_raw</span>(), <span class="ident">obj</span>, <span class="self">self</span>, <span class="ident">val</span>)
         }
     }
 
@@ -402,24 +470,24 @@
         <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_from</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span><span class="op">&gt;</span>(
             <span class="self">self</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">C</span>,
-            <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw</span>::<span class="ident">Local</span>,
-            <span class="ident">obj</span>: <span class="ident">raw</span>::<span class="ident">Local</span>,
+            <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw::Local</span>,
+            <span class="ident">obj</span>: <span class="ident">raw::Local</span>,
         ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">cx</span>.<span class="ident">env</span>().<span class="ident">to_raw</span>();
 
-            <span class="ident">neon_runtime</span>::<span class="ident">object</span>::<span class="ident">get</span>(<span class="ident">out</span>, <span class="ident">env</span>, <span class="ident">obj</span>, <span class="self">self</span>.<span class="ident">to_raw</span>())
+            <span class="ident">neon_runtime::object::get</span>(<span class="ident">out</span>, <span class="ident">env</span>, <span class="ident">obj</span>, <span class="self">self</span>.<span class="ident">to_raw</span>())
         }
 
         <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_from</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span><span class="op">&gt;</span>(
             <span class="self">self</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">C</span>,
             <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bool</span>,
-            <span class="ident">obj</span>: <span class="ident">raw</span>::<span class="ident">Local</span>,
-            <span class="ident">val</span>: <span class="ident">raw</span>::<span class="ident">Local</span>,
+            <span class="ident">obj</span>: <span class="ident">raw::Local</span>,
+            <span class="ident">val</span>: <span class="ident">raw::Local</span>,
         ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">cx</span>.<span class="ident">env</span>().<span class="ident">to_raw</span>();
 
-            <span class="ident">neon_runtime</span>::<span class="ident">object</span>::<span class="ident">set</span>(<span class="ident">out</span>, <span class="ident">env</span>, <span class="ident">obj</span>, <span class="self">self</span>.<span class="ident">to_raw</span>(), <span class="ident">val</span>)
+            <span class="ident">neon_runtime::object::set</span>(<span class="ident">out</span>, <span class="ident">env</span>, <span class="ident">obj</span>, <span class="self">self</span>.<span class="ident">to_raw</span>(), <span class="ident">val</span>)
         }
     }
 
@@ -427,26 +495,26 @@
         <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_from</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span><span class="op">&gt;</span>(
             <span class="self">self</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">C</span>,
-            <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw</span>::<span class="ident">Local</span>,
-            <span class="ident">obj</span>: <span class="ident">raw</span>::<span class="ident">Local</span>,
+            <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw::Local</span>,
+            <span class="ident">obj</span>: <span class="ident">raw::Local</span>,
         ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-            <span class="kw">let</span> (<span class="ident">ptr</span>, <span class="ident">len</span>) <span class="op">=</span> <span class="ident">Utf8</span>::<span class="ident">from</span>(<span class="self">self</span>).<span class="ident">into_small_unwrap</span>().<span class="ident">lower</span>();
+            <span class="kw">let</span> (<span class="ident">ptr</span>, <span class="ident">len</span>) <span class="op">=</span> <span class="ident">Utf8::from</span>(<span class="self">self</span>).<span class="ident">into_small_unwrap</span>().<span class="ident">lower</span>();
             <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">cx</span>.<span class="ident">env</span>().<span class="ident">to_raw</span>();
 
-            <span class="ident">neon_runtime</span>::<span class="ident">object</span>::<span class="ident">get_string</span>(<span class="ident">env</span>, <span class="ident">out</span>, <span class="ident">obj</span>, <span class="ident">ptr</span>, <span class="ident">len</span>)
+            <span class="ident">neon_runtime::object::get_string</span>(<span class="ident">env</span>, <span class="ident">out</span>, <span class="ident">obj</span>, <span class="ident">ptr</span>, <span class="ident">len</span>)
         }
 
         <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_from</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span><span class="op">&gt;</span>(
             <span class="self">self</span>,
             <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">C</span>,
             <span class="ident">out</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bool</span>,
-            <span class="ident">obj</span>: <span class="ident">raw</span>::<span class="ident">Local</span>,
-            <span class="ident">val</span>: <span class="ident">raw</span>::<span class="ident">Local</span>,
+            <span class="ident">obj</span>: <span class="ident">raw::Local</span>,
+            <span class="ident">val</span>: <span class="ident">raw::Local</span>,
         ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-            <span class="kw">let</span> (<span class="ident">ptr</span>, <span class="ident">len</span>) <span class="op">=</span> <span class="ident">Utf8</span>::<span class="ident">from</span>(<span class="self">self</span>).<span class="ident">into_small_unwrap</span>().<span class="ident">lower</span>();
+            <span class="kw">let</span> (<span class="ident">ptr</span>, <span class="ident">len</span>) <span class="op">=</span> <span class="ident">Utf8::from</span>(<span class="self">self</span>).<span class="ident">into_small_unwrap</span>().<span class="ident">lower</span>();
             <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">cx</span>.<span class="ident">env</span>().<span class="ident">to_raw</span>();
 
-            <span class="ident">neon_runtime</span>::<span class="ident">object</span>::<span class="ident">set_string</span>(<span class="ident">env</span>, <span class="ident">out</span>, <span class="ident">obj</span>, <span class="ident">ptr</span>, <span class="ident">len</span>, <span class="ident">val</span>)
+            <span class="ident">neon_runtime::object::set_string</span>(<span class="ident">env</span>, <span class="ident">out</span>, <span class="ident">obj</span>, <span class="ident">ptr</span>, <span class="ident">len</span>, <span class="ident">val</span>)
         }
     }
 
@@ -463,11 +531,12 @@
         }
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;napi-6&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;napi-6&quot;</span>)))]</span>
         <span class="kw">fn</span> <span class="ident">get_own_property_names</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">JsArray</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">cx</span>.<span class="ident">env</span>();
 
             <span class="ident">build</span>(<span class="ident">cx</span>.<span class="ident">env</span>(), <span class="op">|</span><span class="ident">out</span><span class="op">|</span> <span class="kw">unsafe</span> {
-                <span class="ident">neon_runtime</span>::<span class="ident">object</span>::<span class="ident">get_own_property_names</span>(<span class="ident">out</span>, <span class="ident">env</span>.<span class="ident">to_raw</span>(), <span class="self">self</span>.<span class="ident">to_raw</span>())
+                <span class="ident">neon_runtime::object::get_own_property_names</span>(<span class="ident">out</span>, <span class="ident">env</span>.<span class="ident">to_raw</span>(), <span class="self">self</span>.<span class="ident">to_raw</span>())
             })
         }
 
@@ -486,16 +555,15 @@
         }
 
         <span class="kw">fn</span> <span class="ident">root</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Root</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="ident">Root</span>::<span class="ident">new</span>(<span class="ident">cx</span>, <span class="self">self</span>)
+            <span class="ident">Root::new</span>(<span class="ident">cx</span>, <span class="self">self</span>)
         }
     }
 
     <span class="doccomment">/// The trait of types that can be a function&#39;s `this` binding.</span>
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">trait</span> <span class="ident">This</span>: <span class="ident">Managed</span> {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">as_this</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">h</span>: <span class="ident">raw</span>::<span class="ident">Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
+        <span class="kw">fn</span> <span class="ident">as_this</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">h</span>: <span class="ident">raw::Local</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="neon" data-search-js="../../../search-index.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="neon" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

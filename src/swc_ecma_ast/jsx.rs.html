@@ -1,7 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/swc_ecma_ast-0.42.0/src/jsx.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>jsx.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../swc_ecma_ast/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../swc_ecma_ast/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -254,23 +253,23 @@
 <span id="251">251</span>
 <span id="252">252</span>
 <span id="253">253</span>
-</pre><div class="example-wrap"><pre class="rust ">
+</pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">expr</span>::{<span class="ident">Expr</span>, <span class="ident">SpreadElement</span>},
-    <span class="ident">ident</span>::<span class="ident">Ident</span>,
-    <span class="ident">lit</span>::<span class="ident">Lit</span>,
-    <span class="ident">typescript</span>::<span class="ident">TsTypeParamInstantiation</span>,
+    <span class="ident">ident::Ident</span>,
+    <span class="ident">lit::Lit</span>,
+    <span class="ident">typescript::TsTypeParamInstantiation</span>,
 };
-<span class="kw">use</span> <span class="ident">is_macro</span>::<span class="ident">Is</span>;
-<span class="kw">use</span> <span class="ident">swc_atoms</span>::<span class="ident">JsWord</span>;
-<span class="kw">use</span> <span class="ident">swc_common</span>::<span class="ident">EqIgnoreSpan</span>;
+<span class="kw">use</span> <span class="ident">is_macro::Is</span>;
+<span class="kw">use</span> <span class="ident">swc_atoms::JsWord</span>;
+<span class="kw">use</span> <span class="ident">swc_common::EqIgnoreSpan</span>;
 <span class="kw">use</span> <span class="ident">swc_common</span>::{<span class="ident">ast_node</span>, <span class="ident">Span</span>};
 
 <span class="doccomment">/// Used for `obj` property of `JSXMemberExpr`.</span>
 <span class="attribute">#[<span class="ident">ast_node</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Is</span>, <span class="ident">EqIgnoreSpan</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">variant_size_differences</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary::Arbitrary</span>))]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">JSXObject</span> {
     <span class="attribute">#[<span class="ident">tag</span>(<span class="string">&quot;JSXMemberExpression&quot;</span>)]</span>
     <span class="ident">JSXMemberExpr</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">JSXMemberExpr</span><span class="op">&gt;</span>),
@@ -280,7 +279,7 @@
 
 <span class="attribute">#[<span class="ident">ast_node</span>(<span class="string">&quot;JSXMemberExpression&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">EqIgnoreSpan</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary::Arbitrary</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JSXMemberExpr</span> {
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;object&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">span</span>(<span class="ident">lo</span>)]</span>
@@ -294,7 +293,7 @@
 <span class="doccomment">/// XML-based namespace syntax:</span>
 <span class="attribute">#[<span class="ident">ast_node</span>(<span class="string">&quot;JSXNamespacedName&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">EqIgnoreSpan</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary::Arbitrary</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JSXNamespacedName</span> {
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;namespace&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">span</span>(<span class="ident">lo</span>)]</span>
@@ -305,14 +304,14 @@
 
 <span class="attribute">#[<span class="ident">ast_node</span>(<span class="string">&quot;JSXEmptyExpression&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Copy</span>, <span class="ident">EqIgnoreSpan</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary::Arbitrary</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JSXEmptyExpr</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
 }
 
 <span class="attribute">#[<span class="ident">ast_node</span>(<span class="string">&quot;JSXExpressionContainer&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">EqIgnoreSpan</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary::Arbitrary</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JSXExprContainer</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;expression&quot;</span>)]</span>
@@ -322,7 +321,7 @@
 <span class="attribute">#[<span class="ident">ast_node</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">EqIgnoreSpan</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">variant_size_differences</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary::Arbitrary</span>))]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">JSXExpr</span> {
     <span class="attribute">#[<span class="ident">tag</span>(<span class="string">&quot;JSXEmptyExpression&quot;</span>)]</span>
     <span class="ident">JSXEmptyExpr</span>(<span class="ident">JSXEmptyExpr</span>),
@@ -332,7 +331,7 @@
 
 <span class="attribute">#[<span class="ident">ast_node</span>(<span class="string">&quot;JSXSpreadChild&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">EqIgnoreSpan</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary::Arbitrary</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JSXSpreadChild</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;expression&quot;</span>)]</span>
@@ -341,7 +340,7 @@
 
 <span class="attribute">#[<span class="ident">ast_node</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">EqIgnoreSpan</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary::Arbitrary</span>))]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">JSXElementName</span> {
     <span class="attribute">#[<span class="ident">tag</span>(<span class="string">&quot;Identifier&quot;</span>)]</span>
     <span class="ident">Ident</span>(<span class="ident">Ident</span>),
@@ -353,7 +352,7 @@
 
 <span class="attribute">#[<span class="ident">ast_node</span>(<span class="string">&quot;JSXOpeningElement&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">EqIgnoreSpan</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary::Arbitrary</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JSXOpeningElement</span> {
     <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">JSXElementName</span>,
 
@@ -374,7 +373,7 @@
 <span class="attribute">#[<span class="ident">ast_node</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">EqIgnoreSpan</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">variant_size_differences</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary::Arbitrary</span>))]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">JSXAttrOrSpread</span> {
     <span class="attribute">#[<span class="ident">tag</span>(<span class="string">&quot;JSXAttribute&quot;</span>)]</span>
     <span class="ident">JSXAttr</span>(<span class="ident">JSXAttr</span>),
@@ -384,7 +383,7 @@
 
 <span class="attribute">#[<span class="ident">ast_node</span>(<span class="string">&quot;JSXClosingElement&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">EqIgnoreSpan</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary::Arbitrary</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JSXClosingElement</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
     <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">JSXElementName</span>,
@@ -392,7 +391,7 @@
 
 <span class="attribute">#[<span class="ident">ast_node</span>(<span class="string">&quot;JSXAttribute&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">EqIgnoreSpan</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary::Arbitrary</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JSXAttr</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
     <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">JSXAttrName</span>,
@@ -402,7 +401,7 @@
 
 <span class="attribute">#[<span class="ident">ast_node</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">EqIgnoreSpan</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary::Arbitrary</span>))]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">JSXAttrName</span> {
     <span class="attribute">#[<span class="ident">tag</span>(<span class="string">&quot;Identifier&quot;</span>)]</span>
     <span class="ident">Ident</span>(<span class="ident">Ident</span>),
@@ -412,7 +411,7 @@
 
 <span class="attribute">#[<span class="ident">ast_node</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">EqIgnoreSpan</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary::Arbitrary</span>))]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">JSXAttrValue</span> {
     <span class="attribute">#[<span class="ident">tag</span>(<span class="string">&quot;StringLiteral&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">tag</span>(<span class="string">&quot;BooleanLiteral&quot;</span>)]</span>
@@ -441,8 +440,8 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span> <span class="kw">for</span> <span class="ident">JSXText</span> {
-    <span class="kw">fn</span> <span class="ident">arbitrary</span>(<span class="ident">u</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arbitrary</span>::<span class="ident">Unstructured</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">arbitrary</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">arbitrary::Arbitrary</span> <span class="kw">for</span> <span class="ident">JSXText</span> {
+    <span class="kw">fn</span> <span class="ident">arbitrary</span>(<span class="ident">u</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arbitrary::Unstructured</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">arbitrary::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">u</span>.<span class="ident">arbitrary</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">u</span>.<span class="ident">arbitrary</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">u</span>.<span class="ident">arbitrary</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
@@ -453,7 +452,7 @@
 
 <span class="attribute">#[<span class="ident">ast_node</span>(<span class="string">&quot;JSXElement&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">EqIgnoreSpan</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary::Arbitrary</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JSXElement</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
     <span class="kw">pub</span> <span class="ident">opening</span>: <span class="ident">JSXOpeningElement</span>,
@@ -463,7 +462,7 @@
 
 <span class="attribute">#[<span class="ident">ast_node</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">EqIgnoreSpan</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary::Arbitrary</span>))]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">JSXElementChild</span> {
     <span class="attribute">#[<span class="ident">tag</span>(<span class="string">&quot;JSXText&quot;</span>)]</span>
     <span class="ident">JSXText</span>(<span class="ident">JSXText</span>),
@@ -483,7 +482,7 @@
 
 <span class="attribute">#[<span class="ident">ast_node</span>(<span class="string">&quot;JSXFragment&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">EqIgnoreSpan</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary::Arbitrary</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JSXFragment</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
 
@@ -497,17 +496,16 @@
 
 <span class="attribute">#[<span class="ident">ast_node</span>(<span class="string">&quot;JSXOpeningFragment&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Copy</span>, <span class="ident">EqIgnoreSpan</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary::Arbitrary</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JSXOpeningFragment</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
 }
 
 <span class="attribute">#[<span class="ident">ast_node</span>(<span class="string">&quot;JSXClosingFragment&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Copy</span>, <span class="ident">EqIgnoreSpan</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary</span>::<span class="ident">Arbitrary</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>, <span class="ident">derive</span>(<span class="ident">arbitrary::Arbitrary</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JSXClosingFragment</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="swc_ecma_ast" data-search-js="../../search-index.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="swc_ecma_ast" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

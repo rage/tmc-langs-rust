@@ -1,7 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tmc-langs/src/submission_packaging.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>submission_packaging.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../tmc_langs/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../tmc_langs/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -701,23 +700,23 @@
 <span id="698">698</span>
 <span id="699">699</span>
 <span id="700">700</span>
-</pre><div class="example-wrap"><pre class="rust ">
+</pre><pre class="rust">
 <span class="doccomment">//! Submission packaging.</span>
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">TmcProjectYml</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">data</span>::{<span class="ident">OutputFormat</span>, <span class="ident">TmcParams</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">LangsError</span>;
-<span class="kw">use</span> <span class="ident">once_cell</span>::<span class="ident">sync</span>::<span class="ident">Lazy</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="ident">Cursor</span>, <span class="ident">Write</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">ffi</span>::<span class="ident">OsStr</span>, <span class="ident">sync</span>::<span class="ident">Mutex</span>};
-<span class="kw">use</span> <span class="ident">tmc_langs_plugins</span>::<span class="ident">Plugin</span>;
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::TmcProjectYml</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::data</span>::{<span class="ident">OutputFormat</span>, <span class="ident">TmcParams</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::error::LangsError</span>;
+<span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
+<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">Cursor</span>, <span class="ident">Write</span>};
+<span class="kw">use</span> <span class="ident">std::path::Path</span>;
+<span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">ffi::OsStr</span>, <span class="ident">sync::Mutex</span>};
+<span class="kw">use</span> <span class="ident">tmc_langs_plugins::Plugin</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{<span class="ident">file_util</span>, <span class="ident">FileError</span>};
-<span class="kw">use</span> <span class="ident">walkdir</span>::<span class="ident">WalkDir</span>;
-<span class="kw">use</span> <span class="ident">zip</span>::{<span class="ident">read</span>::<span class="ident">ZipFile</span>, <span class="ident">write</span>::<span class="ident">FileOptions</span>, <span class="ident">ZipWriter</span>};
+<span class="kw">use</span> <span class="ident">walkdir::WalkDir</span>;
+<span class="kw">use</span> <span class="ident">zip</span>::{<span class="ident">read::ZipFile</span>, <span class="ident">write::FileOptions</span>, <span class="ident">ZipWriter</span>};
 
-<span class="kw">static</span> <span class="ident">MUTEX</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy</span>::<span class="ident">new</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Mutex</span>::<span class="ident">new</span>(()));
+<span class="kw">static</span> <span class="ident">MUTEX</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Mutex::new</span>(()));
 
 <span class="doccomment">/// Note: Used by tmc-server. Prepares a submission for further processing.</span>
 <span class="doccomment">/// The clone path is assumed to be a directory with the exercise name as the directory name,</span>
@@ -732,63 +731,63 @@
     <span class="ident">output_format</span>: <span class="ident">OutputFormat</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LangsError</span><span class="op">&gt;</span> {
     <span class="comment">// workaround for unknown issues when prepare_submission is ran multiple times in parallel</span>
-    <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">MUTEX</span>.<span class="ident">lock</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">LangsError</span>::<span class="ident">MutexError</span>)<span class="question-mark">?</span>;
-    <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;preparing submission for {}&quot;</span>, <span class="ident">zip_path</span>.<span class="ident">display</span>());
+    <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">MUTEX</span>.<span class="ident">lock</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">LangsError::MutexError</span>)<span class="question-mark">?</span>;
+    <span class="macro">log::debug!</span>(<span class="string">&quot;preparing submission for {}&quot;</span>, <span class="ident">zip_path</span>.<span class="ident">display</span>());
 
     <span class="kw">fn</span> <span class="ident">useless_file_filter</span>(<span class="ident">entry</span>: <span class="kw-2">&amp;</span><span class="ident">ZipFile</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">files_to_filter</span> <span class="op">=</span> <span class="kw-2">&amp;</span>[
-            <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">OsStr</span>::<span class="ident">new</span>(<span class="string">&quot;.DS_Store&quot;</span>),
-            <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">OsStr</span>::<span class="ident">new</span>(<span class="string">&quot;desktop.ini&quot;</span>),
-            <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">OsStr</span>::<span class="ident">new</span>(<span class="string">&quot;Thumbs.db&quot;</span>),
-            <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">OsStr</span>::<span class="ident">new</span>(<span class="string">&quot;.directory&quot;</span>),
-            <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">OsStr</span>::<span class="ident">new</span>(<span class="string">&quot;__MACOSX&quot;</span>),
+            <span class="ident">std::ffi::OsStr::new</span>(<span class="string">&quot;.DS_Store&quot;</span>),
+            <span class="ident">std::ffi::OsStr::new</span>(<span class="string">&quot;desktop.ini&quot;</span>),
+            <span class="ident">std::ffi::OsStr::new</span>(<span class="string">&quot;Thumbs.db&quot;</span>),
+            <span class="ident">std::ffi::OsStr::new</span>(<span class="string">&quot;.directory&quot;</span>),
+            <span class="ident">std::ffi::OsStr::new</span>(<span class="string">&quot;__MACOSX&quot;</span>),
         ];
-        <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">entry</span>.<span class="ident">name</span>())
+        <span class="ident">Path::new</span>(<span class="ident">entry</span>.<span class="ident">name</span>())
             .<span class="ident">components</span>()
             .<span class="ident">any</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">files_to_filter</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">p</span>.<span class="ident">as_os_str</span>()))
     }
 
-    <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile</span>::<span class="ident">tempdir</span>().<span class="ident">map_err</span>(<span class="ident">LangsError</span>::<span class="ident">TempDir</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">map_err</span>(<span class="ident">LangsError::TempDir</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">received_dir</span> <span class="op">=</span> <span class="ident">temp</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;received&quot;</span>);
-    <span class="ident">file_util</span>::<span class="ident">create_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">received_dir</span>)<span class="question-mark">?</span>;
+    <span class="ident">file_util::create_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">received_dir</span>)<span class="question-mark">?</span>;
 
     <span class="comment">// unzip submission to received dir</span>
-    <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;unzipping submission&quot;</span>);
+    <span class="macro">log::debug!</span>(<span class="string">&quot;unzipping submission&quot;</span>);
     <span class="ident">unzip</span>(<span class="ident">zip_path</span>, <span class="kw-2">&amp;</span><span class="ident">received_dir</span>, <span class="ident">useless_file_filter</span>)<span class="question-mark">?</span>;
 
     <span class="comment">// find project dir in unzipped files</span>
     <span class="kw">let</span> <span class="ident">project_root</span> <span class="op">=</span> <span class="ident">find_project_root</span>(<span class="kw-2">&amp;</span><span class="ident">received_dir</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">project_root</span> <span class="op">=</span>
-        <span class="ident">project_root</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">LangsError</span>::<span class="ident">NoProjectDirInZip</span>(<span class="ident">zip_path</span>.<span class="ident">to_path_buf</span>()))<span class="question-mark">?</span>;
+        <span class="ident">project_root</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">LangsError::NoProjectDirInZip</span>(<span class="ident">zip_path</span>.<span class="ident">to_path_buf</span>()))<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">tmc_langs_plugins</span>::<span class="ident">get_language_plugin</span>(<span class="kw-2">&amp;</span><span class="ident">clone_path</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">tmc_langs_plugins::get_language_plugin</span>(<span class="ident">clone_path</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">dest</span> <span class="op">=</span> <span class="ident">temp</span>.<span class="ident">path</span>().<span class="ident">join</span>(
         <span class="ident">toplevel_dir_name</span>
             .<span class="ident">as_ref</span>()
-            .<span class="ident">map</span>(<span class="ident">Path</span>::<span class="ident">new</span>)
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;dest&quot;</span>)),
+            .<span class="ident">map</span>(<span class="ident">Path::new</span>)
+            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Path::new</span>(<span class="string">&quot;dest&quot;</span>)),
     );
-    <span class="ident">file_util</span>::<span class="ident">create_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
+    <span class="ident">file_util::create_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
 
     <span class="comment">// write tmc params</span>
     <span class="kw">if</span> <span class="ident">tmc_params</span>.<span class="number">0</span>.<span class="ident">is_empty</span>() {
-        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;no tmc params to write&quot;</span>);
+        <span class="macro">log::debug!</span>(<span class="string">&quot;no tmc params to write&quot;</span>);
     } <span class="kw">else</span> {
-        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;writing .tmcparams&quot;</span>);
+        <span class="macro">log::debug!</span>(<span class="string">&quot;writing .tmcparams&quot;</span>);
         <span class="kw">let</span> <span class="ident">tmc_params_path</span> <span class="op">=</span> <span class="ident">dest</span>.<span class="ident">join</span>(<span class="string">&quot;.tmcparams&quot;</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmc_params_file</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">create_file</span>(<span class="kw-2">&amp;</span><span class="ident">tmc_params_path</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmc_params_file</span> <span class="op">=</span> <span class="ident">file_util::create_file</span>(<span class="kw-2">&amp;</span><span class="ident">tmc_params_path</span>)<span class="question-mark">?</span>;
         <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">tmc_params</span>.<span class="number">0</span> {
             <span class="comment">// todo handle arrays, shell escapes</span>
-            <span class="kw">let</span> <span class="ident">export</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;export {}={}\n&quot;</span>, <span class="ident">key</span>, <span class="ident">value</span>);
-            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">export</span>);
+            <span class="kw">let</span> <span class="ident">export</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;export {}={}\n&quot;</span>, <span class="ident">key</span>, <span class="ident">value</span>);
+            <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">export</span>);
             <span class="ident">tmc_params_file</span>
                 .<span class="ident">write_all</span>(<span class="ident">export</span>.<span class="ident">as_bytes</span>())
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FileError</span>::<span class="ident">FileWrite</span>(<span class="ident">tmc_params_path</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FileError::FileWrite</span>(<span class="ident">tmc_params_path</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
         }
     }
 
     <span class="comment">// copy IDE files</span>
-    <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;copying IDE files&quot;</span>);
+    <span class="macro">log::debug!</span>(<span class="string">&quot;copying IDE files&quot;</span>);
     <span class="kw">for</span> <span class="ident">ide_dir</span> <span class="kw">in</span> <span class="kw-2">&amp;</span>[
         <span class="comment">// netbeans</span>
         <span class="string">&quot;nbproject&quot;</span>,
@@ -802,9 +801,9 @@
         <span class="kw">let</span> <span class="ident">ide_dir_in_received</span> <span class="op">=</span> <span class="ident">project_root</span>.<span class="ident">join</span>(<span class="ident">ide_dir</span>);
         <span class="kw">let</span> <span class="ident">ide_dir_in_clone</span> <span class="op">=</span> <span class="ident">clone_path</span>.<span class="ident">join</span>(<span class="ident">ide_dir</span>);
         <span class="kw">if</span> <span class="ident">ide_dir_in_received</span>.<span class="ident">exists</span>() {
-            <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">ide_dir_in_received</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
+            <span class="ident">file_util::copy</span>(<span class="ident">ide_dir_in_received</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">ide_dir_in_clone</span>.<span class="ident">exists</span>() {
-            <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">ide_dir_in_clone</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
+            <span class="ident">file_util::copy</span>(<span class="ident">ide_dir_in_clone</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
         }
     }
 
@@ -818,25 +817,25 @@
     };
 
     <span class="comment">// copy files</span>
-    <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;copying language specific files&quot;</span>);
+    <span class="macro">log::debug!</span>(<span class="string">&quot;copying language specific files&quot;</span>);
     <span class="kw">let</span> <span class="ident">tests_dir</span> <span class="op">=</span> <span class="ident">stub_project_root</span>.<span class="ident">as_deref</span>().<span class="ident">unwrap_or</span>(<span class="ident">clone_path</span>);
     <span class="kw">match</span> <span class="ident">plugin</span> {
-        <span class="ident">Plugin</span>::<span class="ident">Maven</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Plugin::Maven</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// copy pom</span>
-            <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">clone_path</span>.<span class="ident">join</span>(<span class="string">&quot;pom.xml&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
+            <span class="ident">file_util::copy</span>(<span class="ident">clone_path</span>.<span class="ident">join</span>(<span class="string">&quot;pom.xml&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// copy src main and test</span>
             <span class="kw">let</span> <span class="ident">main_path</span> <span class="op">=</span> <span class="ident">clone_path</span>.<span class="ident">join</span>(<span class="string">&quot;src/main&quot;</span>);
             <span class="kw">if</span> <span class="ident">main_path</span>.<span class="ident">exists</span>() {
-                <span class="kw">super</span>::<span class="ident">submission_processing</span>::<span class="ident">prepare_stub</span>(<span class="kw-2">&amp;</span><span class="ident">main_path</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>.<span class="ident">join</span>(<span class="string">&quot;src&quot;</span>))<span class="question-mark">?</span>;
+                <span class="kw">super</span><span class="ident">::submission_processing::prepare_stub</span>(<span class="kw-2">&amp;</span><span class="ident">main_path</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>.<span class="ident">join</span>(<span class="string">&quot;src&quot;</span>))<span class="question-mark">?</span>;
             }
             <span class="kw">let</span> <span class="ident">test_path</span> <span class="op">=</span> <span class="ident">tests_dir</span>.<span class="ident">join</span>(<span class="string">&quot;src/test&quot;</span>);
             <span class="kw">if</span> <span class="ident">test_path</span>.<span class="ident">exists</span>() {
-                <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">test_path</span>, <span class="ident">dest</span>.<span class="ident">join</span>(<span class="string">&quot;src&quot;</span>))<span class="question-mark">?</span>;
+                <span class="ident">file_util::copy</span>(<span class="ident">test_path</span>, <span class="ident">dest</span>.<span class="ident">join</span>(<span class="string">&quot;src&quot;</span>))<span class="question-mark">?</span>;
             }
 
             <span class="comment">// copy files from config</span>
-            <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">TmcProjectYml</span>::<span class="ident">load_or_default</span>(<span class="ident">clone_path</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">TmcProjectYml::load_or_default</span>(<span class="ident">clone_path</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">get_exercise_packaging_configuration</span>(<span class="ident">config</span>)<span class="question-mark">?</span>;
             <span class="kw">for</span> <span class="ident">path</span> <span class="kw">in</span> <span class="ident">config</span>.<span class="ident">student_file_paths</span> {
                 <span class="kw">let</span> <span class="ident">student_file</span> <span class="op">=</span> <span class="ident">project_root</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>);
@@ -846,7 +845,7 @@
                     } <span class="kw">else</span> {
                         <span class="ident">dest</span>.<span class="ident">to_path_buf</span>()
                     };
-                    <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">student_file</span>, <span class="ident">target</span>)<span class="question-mark">?</span>;
+                    <span class="ident">file_util::copy</span>(<span class="ident">student_file</span>, <span class="ident">target</span>)<span class="question-mark">?</span>;
                 }
             }
             <span class="kw">for</span> <span class="ident">path</span> <span class="kw">in</span> <span class="ident">config</span>.<span class="ident">exercise_file_paths</span> {
@@ -857,12 +856,12 @@
                     } <span class="kw">else</span> {
                         <span class="ident">dest</span>.<span class="ident">to_path_buf</span>()
                     };
-                    <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">exercise_file</span>, <span class="ident">target</span>)<span class="question-mark">?</span>;
+                    <span class="ident">file_util::copy</span>(<span class="ident">exercise_file</span>, <span class="ident">target</span>)<span class="question-mark">?</span>;
                 }
             }
 
             <span class="comment">// copy files directly in clone_path to dest</span>
-            <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir</span>::<span class="ident">new</span>(<span class="ident">clone_path</span>)
+            <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir::new</span>(<span class="ident">clone_path</span>)
                 .<span class="ident">min_depth</span>(<span class="number">1</span>)
                 .<span class="ident">max_depth</span>(<span class="number">1</span>)
                 .<span class="ident">into_iter</span>()
@@ -873,61 +872,61 @@
                     .<span class="ident">path</span>()
                     .<span class="ident">strip_prefix</span>(<span class="ident">clone_path</span>)
                     .<span class="ident">expect</span>(<span class="string">&quot;the entry is inside the clone path&quot;</span>);
-                <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">entry</span>.<span class="ident">path</span>(), <span class="ident">dest</span>.<span class="ident">join</span>(<span class="ident">stripped</span>))<span class="question-mark">?</span>;
+                <span class="ident">file_util::copy</span>(<span class="ident">entry</span>.<span class="ident">path</span>(), <span class="ident">dest</span>.<span class="ident">join</span>(<span class="ident">stripped</span>))<span class="question-mark">?</span>;
             }
         }
-        <span class="ident">Plugin</span>::<span class="ident">Make</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Plugin::Make</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// copy src and test</span>
-            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;copying src and test&quot;</span>);
+            <span class="macro">log::debug!</span>(<span class="string">&quot;copying src and test&quot;</span>);
             <span class="kw">let</span> <span class="ident">main_path</span> <span class="op">=</span> <span class="ident">clone_path</span>.<span class="ident">join</span>(<span class="string">&quot;src&quot;</span>);
             <span class="kw">if</span> <span class="ident">main_path</span>.<span class="ident">exists</span>() {
-                <span class="kw">super</span>::<span class="ident">submission_processing</span>::<span class="ident">prepare_stub</span>(<span class="kw-2">&amp;</span><span class="ident">main_path</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>.<span class="ident">join</span>(<span class="string">&quot;src&quot;</span>))<span class="question-mark">?</span>;
+                <span class="kw">super</span><span class="ident">::submission_processing::prepare_stub</span>(<span class="kw-2">&amp;</span><span class="ident">main_path</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>.<span class="ident">join</span>(<span class="string">&quot;src&quot;</span>))<span class="question-mark">?</span>;
             }
             <span class="kw">let</span> <span class="ident">test_path</span> <span class="op">=</span> <span class="ident">clone_path</span>.<span class="ident">join</span>(<span class="string">&quot;test&quot;</span>);
             <span class="kw">if</span> <span class="ident">test_path</span>.<span class="ident">exists</span>() {
-                <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">test_path</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
+                <span class="ident">file_util::copy</span>(<span class="ident">test_path</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
             }
 
             <span class="comment">// copy files directly in tests to dest</span>
-            <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir</span>::<span class="ident">new</span>(<span class="ident">tests_dir</span>).<span class="ident">min_depth</span>(<span class="number">1</span>).<span class="ident">max_depth</span>(<span class="number">1</span>) {
+            <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir::new</span>(<span class="ident">tests_dir</span>).<span class="ident">min_depth</span>(<span class="number">1</span>).<span class="ident">max_depth</span>(<span class="number">1</span>) {
                 <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">entry</span><span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="ident">entry</span>.<span class="ident">path</span>().<span class="ident">is_file</span>() {
-                    <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">entry</span>.<span class="ident">path</span>(), <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
+                    <span class="ident">file_util::copy</span>(<span class="ident">entry</span>.<span class="ident">path</span>(), <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
                 }
             }
         }
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// copy libs</span>
-            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;copying lib&quot;</span>);
+            <span class="macro">log::debug!</span>(<span class="string">&quot;copying lib&quot;</span>);
             <span class="kw">let</span> <span class="ident">lib_dir</span> <span class="op">=</span> <span class="ident">clone_path</span>.<span class="ident">join</span>(<span class="string">&quot;lib&quot;</span>);
             <span class="kw">if</span> <span class="ident">lib_dir</span>.<span class="ident">exists</span>() {
-                <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">lib_dir</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
+                <span class="ident">file_util::copy</span>(<span class="ident">lib_dir</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
             }
 
             <span class="comment">// copy files from config</span>
-            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;copying files according to packaging config&quot;</span>);
-            <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">TmcProjectYml</span>::<span class="ident">load_or_default</span>(<span class="ident">clone_path</span>)<span class="question-mark">?</span>;
+            <span class="macro">log::debug!</span>(<span class="string">&quot;copying files according to packaging config&quot;</span>);
+            <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">TmcProjectYml::load_or_default</span>(<span class="ident">clone_path</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">get_exercise_packaging_configuration</span>(<span class="ident">config</span>)<span class="question-mark">?</span>;
             <span class="kw">for</span> <span class="ident">path</span> <span class="kw">in</span> <span class="ident">config</span>.<span class="ident">student_file_paths</span> {
                 <span class="kw">let</span> <span class="ident">student_file</span> <span class="op">=</span> <span class="ident">project_root</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>);
                 <span class="kw">if</span> <span class="ident">student_file</span>.<span class="ident">exists</span>() {
-                    <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">student_file</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
+                    <span class="ident">file_util::copy</span>(<span class="ident">student_file</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
                 }
             }
             <span class="kw">for</span> <span class="ident">path</span> <span class="kw">in</span> <span class="ident">config</span>.<span class="ident">exercise_file_paths</span> {
                 <span class="kw">let</span> <span class="ident">exercise_file</span> <span class="op">=</span> <span class="ident">tests_dir</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>);
                 <span class="kw">if</span> <span class="ident">exercise_file</span>.<span class="ident">exists</span>() {
                     <span class="comment">// todo --no-target-directory?</span>
-                    <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">exercise_file</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
+                    <span class="ident">file_util::copy</span>(<span class="ident">exercise_file</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
                 }
             }
 
             <span class="comment">// copy files directly in clone_path to dest</span>
-            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;copying files in clone path&quot;</span>);
-            <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir</span>::<span class="ident">new</span>(<span class="ident">clone_path</span>).<span class="ident">min_depth</span>(<span class="number">1</span>).<span class="ident">max_depth</span>(<span class="number">1</span>) {
+            <span class="macro">log::debug!</span>(<span class="string">&quot;copying files in clone path&quot;</span>);
+            <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir::new</span>(<span class="ident">clone_path</span>).<span class="ident">min_depth</span>(<span class="number">1</span>).<span class="ident">max_depth</span>(<span class="number">1</span>) {
                 <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">entry</span><span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="ident">entry</span>.<span class="ident">path</span>().<span class="ident">is_file</span>() {
-                    <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">entry</span>.<span class="ident">path</span>(), <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
+                    <span class="ident">file_util::copy</span>(<span class="ident">entry</span>.<span class="ident">path</span>(), <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>;
                 }
             }
         }
@@ -935,56 +934,56 @@
 
     <span class="comment">// copy extra student files</span>
     <span class="comment">// todo: necessary?</span>
-    <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;copying extra student files&quot;</span>);
-    <span class="kw">let</span> <span class="ident">tmc_project_yml</span> <span class="op">=</span> <span class="ident">TmcProjectYml</span>::<span class="ident">load_or_default</span>(<span class="ident">clone_path</span>)<span class="question-mark">?</span>;
+    <span class="macro">log::debug!</span>(<span class="string">&quot;copying extra student files&quot;</span>);
+    <span class="kw">let</span> <span class="ident">tmc_project_yml</span> <span class="op">=</span> <span class="ident">TmcProjectYml::load_or_default</span>(<span class="ident">clone_path</span>)<span class="question-mark">?</span>;
     <span class="kw">for</span> <span class="ident">extra_student_file</span> <span class="kw">in</span> <span class="ident">tmc_project_yml</span>.<span class="ident">extra_student_files</span> {
         <span class="comment">// todo secure path</span>
         <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">project_root</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">extra_student_file</span>);
         <span class="kw">if</span> <span class="ident">source</span>.<span class="ident">exists</span>() {
             <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">dest</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">extra_student_file</span>);
-            <span class="ident">file_util</span>::<span class="ident">copy</span>(<span class="ident">source</span>, <span class="ident">target</span>)<span class="question-mark">?</span>;
+            <span class="ident">file_util::copy</span>(<span class="ident">source</span>, <span class="ident">target</span>)<span class="question-mark">?</span>;
         }
     }
 
     <span class="comment">// make archive</span>
-    <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;creating submission archive&quot;</span>);
+    <span class="macro">log::debug!</span>(<span class="string">&quot;creating submission archive&quot;</span>);
 
     <span class="kw">let</span> <span class="ident">exercise_name</span> <span class="op">=</span> <span class="ident">clone_path</span>.<span class="ident">file_name</span>();
-    <span class="kw">let</span> <span class="ident">course_name</span> <span class="op">=</span> <span class="ident">clone_path</span>.<span class="ident">parent</span>().<span class="ident">and_then</span>(<span class="ident">Path</span>::<span class="ident">file_name</span>);
+    <span class="kw">let</span> <span class="ident">course_name</span> <span class="op">=</span> <span class="ident">clone_path</span>.<span class="ident">parent</span>().<span class="ident">and_then</span>(<span class="ident">Path::file_name</span>);
     <span class="kw">let</span> <span class="ident">prefix</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">toplevel_dir_name</span>, <span class="ident">course_name</span>, <span class="ident">exercise_name</span>) {
         (<span class="prelude-val">Some</span>(<span class="ident">toplevel_dir_name</span>), <span class="prelude-val">Some</span>(<span class="ident">course_name</span>), <span class="prelude-val">Some</span>(<span class="ident">exercise_name</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">Path</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">toplevel_dir_name</span>)
+            <span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><span class="ident">toplevel_dir_name</span>)
                 .<span class="ident">join</span>(<span class="ident">course_name</span>)
                 .<span class="ident">join</span>(<span class="ident">exercise_name</span>)
         }
         (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">course_name</span>), <span class="prelude-val">Some</span>(<span class="ident">exercise_name</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">course_name</span>).<span class="ident">join</span>(<span class="ident">exercise_name</span>)
+            <span class="ident">Path::new</span>(<span class="ident">course_name</span>).<span class="ident">join</span>(<span class="ident">exercise_name</span>)
         }
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">log</span>::<span class="macro">warn</span><span class="macro">!</span>(
+            <span class="macro">log::warn!</span>(
                 <span class="string">&quot;was not able to find exercise and/or course name from clone path {}&quot;</span>,
                 <span class="ident">clone_path</span>.<span class="ident">display</span>()
             );
-            <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;&quot;</span>)
+            <span class="ident">PathBuf::from</span>(<span class="string">&quot;&quot;</span>)
         }
     };
 
-    <span class="kw">let</span> <span class="ident">archive_file</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">create_file</span>(<span class="ident">target_path</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">archive_file</span> <span class="op">=</span> <span class="ident">file_util::create_file</span>(<span class="ident">target_path</span>)<span class="question-mark">?</span>;
     <span class="kw">match</span> <span class="ident">output_format</span> {
-        <span class="ident">OutputFormat</span>::<span class="ident">Tar</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">tar</span>::<span class="ident">Builder</span>::<span class="ident">new</span>(<span class="ident">archive_file</span>);
-            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
+        <span class="ident">OutputFormat::Tar</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">tar::Builder::new</span>(<span class="ident">archive_file</span>);
+            <span class="macro">log::debug!</span>(
                 <span class="string">&quot;appending \&quot;{}\&quot; at \&quot;{}\&quot;&quot;</span>,
                 <span class="ident">dest</span>.<span class="ident">display</span>(),
                 <span class="ident">prefix</span>.<span class="ident">display</span>()
             );
             <span class="ident">archive</span>
                 .<span class="ident">append_dir_all</span>(<span class="ident">prefix</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>)
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">LangsError</span>::<span class="ident">TarAppend</span>(<span class="ident">dest</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">LangsError::TarAppend</span>(<span class="ident">dest</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
         }
-        <span class="ident">OutputFormat</span>::<span class="ident">Zip</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">ZipWriter</span>::<span class="ident">new</span>(<span class="ident">archive_file</span>);
-            <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">dest</span>).<span class="ident">into_iter</span>().<span class="ident">skip</span>(<span class="number">1</span>) {
+        <span class="ident">OutputFormat::Zip</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">ZipWriter::new</span>(<span class="ident">archive_file</span>);
+            <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir::new</span>(<span class="kw-2">&amp;</span><span class="ident">dest</span>).<span class="ident">into_iter</span>().<span class="ident">skip</span>(<span class="number">1</span>) {
                 <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">entry</span><span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">entry_path</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">path</span>();
                 <span class="kw">let</span> <span class="ident">stripped</span> <span class="op">=</span> <span class="ident">prefix</span>.<span class="ident">join</span>(
@@ -992,7 +991,7 @@
                         .<span class="ident">strip_prefix</span>(<span class="kw-2">&amp;</span><span class="ident">dest</span>)
                         .<span class="ident">expect</span>(<span class="string">&quot;the entry is inside dest&quot;</span>),
                 );
-                <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
+                <span class="macro">log::debug!</span>(
                     <span class="string">&quot;adding {} to zip at {}&quot;</span>,
                     <span class="ident">entry_path</span>.<span class="ident">display</span>(),
                     <span class="ident">stripped</span>.<span class="ident">display</span>()
@@ -1000,35 +999,35 @@
                 <span class="kw">if</span> <span class="ident">entry_path</span>.<span class="ident">is_dir</span>() {
                     <span class="ident">archive</span>.<span class="ident">add_directory</span>(
                         <span class="ident">stripped</span>.<span class="ident">to_string_lossy</span>(),
-                        <span class="ident">FileOptions</span>::<span class="ident">default</span>().<span class="ident">unix_permissions</span>(<span class="number">0o744</span>),
+                        <span class="ident">FileOptions::default</span>().<span class="ident">unix_permissions</span>(<span class="number">0o744</span>),
                     )<span class="question-mark">?</span>;
                 } <span class="kw">else</span> {
                     <span class="ident">archive</span>.<span class="ident">start_file</span>(
                         <span class="ident">stripped</span>.<span class="ident">to_string_lossy</span>(),
-                        <span class="ident">FileOptions</span>::<span class="ident">default</span>().<span class="ident">unix_permissions</span>(<span class="number">0o744</span>),
+                        <span class="ident">FileOptions::default</span>().<span class="ident">unix_permissions</span>(<span class="number">0o744</span>),
                     )<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">open_file</span>(<span class="ident">entry_path</span>)<span class="question-mark">?</span>;
-                    <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">copy</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">file</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">archive</span>)
-                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">LangsError</span>::<span class="ident">TarAppend</span>(<span class="ident">entry_path</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file_util::open_file</span>(<span class="ident">entry_path</span>)<span class="question-mark">?</span>;
+                    <span class="ident">std::io::copy</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">file</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">archive</span>)
+                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">LangsError::TarAppend</span>(<span class="ident">entry_path</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
                 }
             }
             <span class="ident">archive</span>.<span class="ident">finish</span>()<span class="question-mark">?</span>;
         }
-        <span class="ident">OutputFormat</span>::<span class="ident">TarZstd</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Cursor</span>::<span class="ident">new</span>(<span class="macro">vec</span><span class="macro">!</span>[]);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">tar</span>::<span class="ident">Builder</span>::<span class="ident">new</span>(<span class="ident">buf</span>);
-            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(
+        <span class="ident">OutputFormat::TarZstd</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Cursor::new</span>(<span class="macro">vec!</span>[]);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">tar::Builder::new</span>(<span class="ident">buf</span>);
+            <span class="macro">log::debug!</span>(
                 <span class="string">&quot;appending \&quot;{}\&quot; at \&quot;{}\&quot;&quot;</span>,
                 <span class="ident">dest</span>.<span class="ident">display</span>(),
                 <span class="ident">prefix</span>.<span class="ident">display</span>()
             );
             <span class="ident">archive</span>
                 .<span class="ident">append_dir_all</span>(<span class="ident">prefix</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>)
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">LangsError</span>::<span class="ident">TarAppend</span>(<span class="ident">dest</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
-            <span class="ident">archive</span>.<span class="ident">finish</span>().<span class="ident">map_err</span>(<span class="ident">LangsError</span>::<span class="ident">TarFinish</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tar</span> <span class="op">=</span> <span class="ident">archive</span>.<span class="ident">into_inner</span>().<span class="ident">map_err</span>(<span class="ident">LangsError</span>::<span class="ident">TarIntoInner</span>)<span class="question-mark">?</span>;
+                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">LangsError::TarAppend</span>(<span class="ident">dest</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+            <span class="ident">archive</span>.<span class="ident">finish</span>().<span class="ident">map_err</span>(<span class="ident">LangsError::TarFinish</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tar</span> <span class="op">=</span> <span class="ident">archive</span>.<span class="ident">into_inner</span>().<span class="ident">map_err</span>(<span class="ident">LangsError::TarIntoInner</span>)<span class="question-mark">?</span>;
             <span class="ident">tar</span>.<span class="ident">set_position</span>(<span class="number">0</span>); <span class="comment">// reset the cursor</span>
-            <span class="ident">zstd</span>::<span class="ident">stream</span>::<span class="ident">copy_encode</span>(<span class="ident">tar</span>, <span class="ident">archive_file</span>, <span class="number">0</span>).<span class="ident">map_err</span>(<span class="ident">LangsError</span>::<span class="ident">Zstd</span>)<span class="question-mark">?</span>;
+            <span class="ident">zstd::stream::copy_encode</span>(<span class="ident">tar</span>, <span class="ident">archive_file</span>, <span class="number">0</span>).<span class="ident">map_err</span>(<span class="ident">LangsError::Zstd</span>)<span class="question-mark">?</span>;
         }
     }
     <span class="prelude-val">Ok</span>(())
@@ -1036,13 +1035,13 @@
 
 <span class="comment">// TODO: make more robust instead of just looking for src...</span>
 <span class="kw">fn</span> <span class="ident">find_project_root</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>, <span class="ident">FileError</span><span class="op">&gt;</span> {
-    <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>) {
+    <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir::new</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>) {
         <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">entry</span><span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">entry</span>.<span class="ident">path</span>().<span class="ident">is_dir</span>() <span class="op">&amp;&amp;</span> <span class="ident">entry</span>.<span class="ident">file_name</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">OsStr</span>::<span class="ident">new</span>(<span class="string">&quot;src&quot;</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">entry</span>.<span class="ident">path</span>().<span class="ident">parent</span>().<span class="ident">map</span>(<span class="ident">Path</span>::<span class="ident">to_path_buf</span>));
+        <span class="kw">if</span> <span class="ident">entry</span>.<span class="ident">path</span>().<span class="ident">is_dir</span>() <span class="op">&amp;&amp;</span> <span class="ident">entry</span>.<span class="ident">file_name</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">OsStr::new</span>(<span class="string">&quot;src&quot;</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">entry</span>.<span class="ident">path</span>().<span class="ident">parent</span>().<span class="ident">map</span>(<span class="ident">Path::to_path_buf</span>));
         }
     }
-    <span class="ident">log</span>::<span class="macro">warn</span><span class="macro">!</span>(
+    <span class="macro">log::warn!</span>(
         <span class="string">&quot;No src director found, defaulting the project root to the input path {}&quot;</span>,
         <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">display</span>()
     );
@@ -1060,22 +1059,22 @@
     <span class="kw">let</span> <span class="ident">zip_path</span> <span class="op">=</span> <span class="ident">zip_path</span>.<span class="ident">as_ref</span>();
 
     <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">as_ref</span>();
-    <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;unzip from {} to {}&quot;</span>, <span class="ident">zip_path</span>.<span class="ident">display</span>(), <span class="ident">target</span>.<span class="ident">display</span>());
+    <span class="macro">log::debug!</span>(<span class="string">&quot;unzip from {} to {}&quot;</span>, <span class="ident">zip_path</span>.<span class="ident">display</span>(), <span class="ident">target</span>.<span class="ident">display</span>());
 
-    <span class="kw">let</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">open_file</span>(<span class="ident">zip_path</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">zip</span>::<span class="ident">ZipArchive</span>::<span class="ident">new</span>(<span class="ident">archive</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">file_util::open_file</span>(<span class="ident">zip_path</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">zip::ZipArchive::new</span>(<span class="ident">archive</span>)<span class="question-mark">?</span>;
     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">archive</span>.<span class="ident">len</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">archive</span>.<span class="ident">by_index</span>(<span class="ident">i</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">filter</span>(<span class="kw-2">&amp;</span><span class="ident">file</span>) {
-            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;skipped file {}&quot;</span>, <span class="ident">file</span>.<span class="ident">name</span>());
+            <span class="macro">log::debug!</span>(<span class="string">&quot;skipped file {}&quot;</span>, <span class="ident">file</span>.<span class="ident">name</span>());
             <span class="kw">continue</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">target_path</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">join</span>(<span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">file</span>.<span class="ident">name</span>()));
+        <span class="kw">let</span> <span class="ident">target_path</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">join</span>(<span class="ident">Path::new</span>(<span class="ident">file</span>.<span class="ident">name</span>()));
         <span class="kw">if</span> <span class="ident">file</span>.<span class="ident">is_dir</span>() {
-            <span class="ident">file_util</span>::<span class="ident">create_dir_all</span>(<span class="ident">target_path</span>)<span class="question-mark">?</span>;
+            <span class="ident">file_util::create_dir_all</span>(<span class="ident">target_path</span>)<span class="question-mark">?</span>;
         } <span class="kw">else</span> {
-            <span class="ident">file_util</span>::<span class="ident">read_to_file</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">file</span>, <span class="ident">target_path</span>)<span class="question-mark">?</span>;
+            <span class="ident">file_util::read_to_file</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">file</span>, <span class="ident">target_path</span>)<span class="question-mark">?</span>;
         }
     }
     <span class="prelude-val">Ok</span>(())
@@ -1083,13 +1082,13 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span> <span class="comment">// no maven plugin on other OS</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">clippy</span>::<span class="ident">unwrap_used</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
-    <span class="kw">use</span> <span class="ident">tempfile</span>::<span class="ident">TempDir</span>;
-    <span class="kw">use</span> <span class="ident">walkdir</span>::<span class="ident">WalkDir</span>;
+    <span class="kw">use</span> <span class="ident">std::fs</span>;
+    <span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
+    <span class="kw">use</span> <span class="ident">tempfile::TempDir</span>;
+    <span class="kw">use</span> <span class="ident">walkdir::WalkDir</span>;
 
     <span class="kw">const</span> <span class="ident">MAVEN_CLONE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;tests/data/some_course/MavenExercise&quot;</span>;
     <span class="kw">const</span> <span class="ident">MAVEN_ZIP</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;tests/data/MavenExercise.zip&quot;</span>;
@@ -1103,40 +1102,40 @@
     <span class="kw">fn</span> <span class="ident">init</span>() {
         <span class="kw">use</span> <span class="ident">log</span>::<span class="kw-2">*</span>;
         <span class="kw">use</span> <span class="ident">simple_logger</span>::<span class="kw-2">*</span>;
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">SimpleLogger</span>::<span class="ident">new</span>()
-            .<span class="ident">with_level</span>(<span class="ident">LevelFilter</span>::<span class="ident">Debug</span>)
-            .<span class="ident">with_module_level</span>(<span class="string">&quot;j4rs&quot;</span>, <span class="ident">LevelFilter</span>::<span class="ident">Warn</span>)
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">SimpleLogger::new</span>()
+            .<span class="ident">with_level</span>(<span class="ident">LevelFilter::Debug</span>)
+            .<span class="ident">with_module_level</span>(<span class="string">&quot;j4rs&quot;</span>, <span class="ident">LevelFilter::Warn</span>)
             .<span class="ident">init</span>();
     }
 
     <span class="kw">fn</span> <span class="ident">generic_submission</span>(<span class="ident">clone</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">zip</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">TempDir</span>, <span class="ident">PathBuf</span>) {
-        <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile</span>::<span class="ident">tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">output_archive</span> <span class="op">=</span> <span class="ident">temp</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;output.tar&quot;</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">output_archive</span>.<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">output_archive</span>.<span class="ident">exists</span>());
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmc_params</span> <span class="op">=</span> <span class="ident">TmcParams</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmc_params</span> <span class="op">=</span> <span class="ident">TmcParams::new</span>();
         <span class="ident">tmc_params</span>.<span class="ident">insert_string</span>(<span class="string">&quot;param_one&quot;</span>, <span class="string">&quot;value_one&quot;</span>).<span class="ident">unwrap</span>();
         <span class="ident">tmc_params</span>
-            .<span class="ident">insert_array</span>(<span class="string">&quot;param_two&quot;</span>, <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;value_two&quot;</span>, <span class="string">&quot;value_three&quot;</span>])
+            .<span class="ident">insert_array</span>(<span class="string">&quot;param_two&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;value_two&quot;</span>, <span class="string">&quot;value_three&quot;</span>])
             .<span class="ident">unwrap</span>();
         <span class="ident">prepare_submission</span>(
-            <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">zip</span>),
+            <span class="ident">Path::new</span>(<span class="ident">zip</span>),
             <span class="kw-2">&amp;</span><span class="ident">output_archive</span>,
             <span class="prelude-val">None</span>,
             <span class="ident">tmc_params</span>,
-            <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">clone</span>),
+            <span class="ident">Path::new</span>(<span class="ident">clone</span>),
             <span class="prelude-val">None</span>,
-            <span class="ident">OutputFormat</span>::<span class="ident">Tar</span>,
+            <span class="ident">OutputFormat::Tar</span>,
         )
         .<span class="ident">unwrap</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output_archive</span>.<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(<span class="ident">output_archive</span>.<span class="ident">exists</span>());
 
-        <span class="kw">let</span> <span class="ident">output_file</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">open_file</span>(<span class="kw-2">&amp;</span><span class="ident">output_archive</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">tar</span>::<span class="ident">Archive</span>::<span class="ident">new</span>(<span class="ident">output_file</span>);
+        <span class="kw">let</span> <span class="ident">output_file</span> <span class="op">=</span> <span class="ident">file_util::open_file</span>(<span class="kw-2">&amp;</span><span class="ident">output_archive</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">tar::Archive::new</span>(<span class="ident">output_file</span>);
         <span class="kw">let</span> <span class="ident">output_extracted</span> <span class="op">=</span> <span class="ident">temp</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;output&quot;</span>);
         <span class="ident">archive</span>.<span class="ident">unpack</span>(<span class="kw-2">&amp;</span><span class="ident">output_extracted</span>).<span class="ident">unwrap</span>();
-        <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir</span>::<span class="ident">new</span>(<span class="ident">temp</span>.<span class="ident">path</span>()) {
-            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;file {}&quot;</span>, <span class="ident">entry</span>.<span class="ident">unwrap</span>().<span class="ident">path</span>().<span class="ident">display</span>());
+        <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir::new</span>(<span class="ident">temp</span>.<span class="ident">path</span>()) {
+            <span class="macro">log::debug!</span>(<span class="string">&quot;file {}&quot;</span>, <span class="ident">entry</span>.<span class="ident">unwrap</span>().<span class="ident">path</span>().<span class="ident">display</span>());
         }
         (<span class="ident">temp</span>, <span class="ident">output_extracted</span>)
     }
@@ -1146,16 +1145,16 @@
         <span class="ident">init</span>();
         <span class="kw">let</span> (<span class="ident">_temp</span>, <span class="ident">output</span>) <span class="op">=</span> <span class="ident">generic_submission</span>(<span class="ident">MAVEN_CLONE</span>, <span class="ident">MAVEN_ZIP</span>);
         <span class="comment">// expected files</span>
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output</span>
+        <span class="macro">assert!</span>(<span class="ident">output</span>
             .<span class="ident">join</span>(<span class="string">&quot;some_course/MavenExercise/src/main/java/SimpleStuff.java&quot;</span>)
             .<span class="ident">exists</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output</span>
+        <span class="macro">assert!</span>(<span class="ident">output</span>
             .<span class="ident">join</span>(<span class="string">&quot;some_course/MavenExercise/src/test/java/SimpleTest.java&quot;</span>)
             .<span class="ident">exists</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output</span>
+        <span class="macro">assert!</span>(<span class="ident">output</span>
             .<span class="ident">join</span>(<span class="string">&quot;some_course/MavenExercise/src/test/java/SimpleHiddenTest.java&quot;</span>)
             .<span class="ident">exists</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output</span>.<span class="ident">join</span>(<span class="string">&quot;some_course/MavenExercise/pom.xml&quot;</span>).<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(<span class="ident">output</span>.<span class="ident">join</span>(<span class="string">&quot;some_course/MavenExercise/pom.xml&quot;</span>).<span class="ident">exists</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1164,8 +1163,8 @@
         <span class="kw">let</span> (<span class="ident">_temp</span>, <span class="ident">output</span>) <span class="op">=</span> <span class="ident">generic_submission</span>(<span class="ident">MAVEN_CLONE</span>, <span class="ident">MAVEN_ZIP</span>);
 
         <span class="comment">// files that should not be included</span>
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">output</span>.<span class="ident">join</span>(<span class="string">&quot;some_course/MavenExercise/__MACOSX&quot;</span>).<span class="ident">exists</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">output</span>
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">output</span>.<span class="ident">join</span>(<span class="string">&quot;some_course/MavenExercise/__MACOSX&quot;</span>).<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">output</span>
             .<span class="ident">join</span>(<span class="string">&quot;some_course/MavenExercise/src/test/java/MadeUpTest.java&quot;</span>)
             .<span class="ident">exists</span>());
     }
@@ -1176,21 +1175,21 @@
         <span class="kw">let</span> (<span class="ident">_temp</span>, <span class="ident">output</span>) <span class="op">=</span> <span class="ident">generic_submission</span>(<span class="ident">MAVEN_CLONE</span>, <span class="ident">MAVEN_ZIP</span>);
 
         <span class="comment">// submission zip has a test file with the text MODIFIED...</span>
-        <span class="kw">let</span> <span class="ident">zipfile</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">open_file</span>(<span class="ident">MAVEN_ZIP</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zip</span> <span class="op">=</span> <span class="ident">zip</span>::<span class="ident">ZipArchive</span>::<span class="ident">new</span>(<span class="ident">zipfile</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">zipfile</span> <span class="op">=</span> <span class="ident">file_util::open_file</span>(<span class="ident">MAVEN_ZIP</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zip</span> <span class="op">=</span> <span class="ident">zip::ZipArchive::new</span>(<span class="ident">zipfile</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">modified</span> <span class="op">=</span> <span class="ident">zip</span>
             .<span class="ident">by_name</span>(<span class="string">&quot;MavenExercise/src/test/java/SimpleTest.java&quot;</span>)
             .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writer</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
-        <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">copy</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">modified</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">writer</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">contents</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from_utf8</span>(<span class="ident">writer</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">contents</span>.<span class="ident">contains</span>(<span class="string">&quot;MODIFIED&quot;</span>));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writer</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+        <span class="ident">std::io::copy</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">modified</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">writer</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">contents</span> <span class="op">=</span> <span class="ident">String::from_utf8</span>(<span class="ident">writer</span>).<span class="ident">unwrap</span>();
+        <span class="macro">assert!</span>(<span class="ident">contents</span>.<span class="ident">contains</span>(<span class="string">&quot;MODIFIED&quot;</span>));
         <span class="comment">// the text should not be in the package</span>
-        <span class="kw">let</span> <span class="ident">test_file</span> <span class="op">=</span> <span class="ident">fs</span>::<span class="ident">read_to_string</span>(<span class="macro">dbg</span><span class="macro">!</span>(
+        <span class="kw">let</span> <span class="ident">test_file</span> <span class="op">=</span> <span class="ident">fs::read_to_string</span>(<span class="macro">dbg!</span>(
             <span class="ident">output</span>.<span class="ident">join</span>(<span class="string">&quot;some_course/MavenExercise/src/test/java/SimpleTest.java&quot;</span>)
         ))
         .<span class="ident">unwrap</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">test_file</span>.<span class="ident">contains</span>(<span class="string">&quot;MODIFIED&quot;</span>));
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">test_file</span>.<span class="ident">contains</span>(<span class="string">&quot;MODIFIED&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1199,46 +1198,46 @@
         <span class="kw">let</span> (<span class="ident">_temp</span>, <span class="ident">output</span>) <span class="op">=</span> <span class="ident">generic_submission</span>(<span class="ident">MAVEN_CLONE</span>, <span class="ident">MAVEN_ZIP</span>);
 
         <span class="kw">let</span> <span class="ident">param_file</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">join</span>(<span class="string">&quot;some_course/MavenExercise/.tmcparams&quot;</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">param_file</span>.<span class="ident">exists</span>());
-        <span class="kw">let</span> <span class="ident">conts</span> <span class="op">=</span> <span class="ident">fs</span>::<span class="ident">read_to_string</span>(<span class="ident">param_file</span>).<span class="ident">unwrap</span>();
-        <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;tmcparams {}&quot;</span>, <span class="ident">conts</span>);
+        <span class="macro">assert!</span>(<span class="ident">param_file</span>.<span class="ident">exists</span>());
+        <span class="kw">let</span> <span class="ident">conts</span> <span class="op">=</span> <span class="ident">fs::read_to_string</span>(<span class="ident">param_file</span>).<span class="ident">unwrap</span>();
+        <span class="macro">log::debug!</span>(<span class="string">&quot;tmcparams {}&quot;</span>, <span class="ident">conts</span>);
         <span class="kw">let</span> <span class="ident">lines</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">conts</span>.<span class="ident">lines</span>().<span class="ident">collect</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">lines</span>.<span class="ident">len</span>(), <span class="number">2</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">lines</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="string">&quot;export param_one=value_one&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">lines</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="string">&quot;export param_two=( value_two value_three )&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">lines</span>.<span class="ident">len</span>(), <span class="number">2</span>);
+        <span class="macro">assert!</span>(<span class="ident">lines</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="string">&quot;export param_one=value_one&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">lines</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="string">&quot;export param_two=( value_two value_three )&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">packages_with_toplevel_dir_name</span>() {
         <span class="ident">init</span>();
 
-        <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile</span>::<span class="ident">tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">temp</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;output.tar&quot;</span>);
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">output</span>.<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">output</span>.<span class="ident">exists</span>());
         <span class="ident">prepare_submission</span>(
-            <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">MAVEN_ZIP</span>),
+            <span class="ident">Path::new</span>(<span class="ident">MAVEN_ZIP</span>),
             <span class="kw-2">&amp;</span><span class="ident">output</span>,
             <span class="prelude-val">Some</span>(<span class="string">&quot;toplevel&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">TmcParams</span>::<span class="ident">new</span>(),
-            <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">MAVEN_CLONE</span>),
+            <span class="ident">TmcParams::new</span>(),
+            <span class="ident">Path::new</span>(<span class="ident">MAVEN_CLONE</span>),
             <span class="prelude-val">None</span>,
-            <span class="ident">OutputFormat</span>::<span class="ident">Tar</span>,
+            <span class="ident">OutputFormat::Tar</span>,
         )
         .<span class="ident">unwrap</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output</span>.<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(<span class="ident">output</span>.<span class="ident">exists</span>());
 
-        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">open_file</span>(<span class="ident">output</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">tar</span>::<span class="ident">Archive</span>::<span class="ident">new</span>(<span class="ident">output</span>);
+        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">file_util::open_file</span>(<span class="ident">output</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">tar::Archive::new</span>(<span class="ident">output</span>);
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">temp</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;output&quot;</span>);
         <span class="ident">archive</span>.<span class="ident">unpack</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>).<span class="ident">unwrap</span>();
-        <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir</span>::<span class="ident">new</span>(<span class="ident">temp</span>.<span class="ident">path</span>()) {
-            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">entry</span>.<span class="ident">unwrap</span>().<span class="ident">path</span>().<span class="ident">display</span>());
+        <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir::new</span>(<span class="ident">temp</span>.<span class="ident">path</span>()) {
+            <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">entry</span>.<span class="ident">unwrap</span>().<span class="ident">path</span>().<span class="ident">display</span>());
         }
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output</span>
+        <span class="macro">assert!</span>(<span class="ident">output</span>
             .<span class="ident">join</span>(<span class="string">&quot;toplevel/some_course/MavenExercise/src/test/java/SimpleHiddenTest.java&quot;</span>)
             .<span class="ident">exists</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output</span>
+        <span class="macro">assert!</span>(<span class="ident">output</span>
             .<span class="ident">join</span>(<span class="string">&quot;toplevel/some_course/MavenExercise/pom.xml&quot;</span>)
             .<span class="ident">exists</span>());
     }
@@ -1247,58 +1246,58 @@
     <span class="kw">fn</span> <span class="ident">packages_with_output_zstd</span>() {
         <span class="ident">init</span>();
 
-        <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile</span>::<span class="ident">tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">temp</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;output.tar.zst&quot;</span>);
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">output</span>.<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">output</span>.<span class="ident">exists</span>());
         <span class="ident">prepare_submission</span>(
-            <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">MAVEN_ZIP</span>),
+            <span class="ident">Path::new</span>(<span class="ident">MAVEN_ZIP</span>),
             <span class="kw-2">&amp;</span><span class="ident">output</span>,
             <span class="prelude-val">None</span>,
-            <span class="ident">TmcParams</span>::<span class="ident">new</span>(),
-            <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">MAVEN_CLONE</span>),
+            <span class="ident">TmcParams::new</span>(),
+            <span class="ident">Path::new</span>(<span class="ident">MAVEN_CLONE</span>),
             <span class="prelude-val">None</span>,
-            <span class="ident">OutputFormat</span>::<span class="ident">TarZstd</span>,
+            <span class="ident">OutputFormat::TarZstd</span>,
         )
         .<span class="ident">unwrap</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output</span>.<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(<span class="ident">output</span>.<span class="ident">exists</span>());
 
-        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">open_file</span>(<span class="ident">output</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Cursor</span>::<span class="ident">new</span>(<span class="ident">zstd</span>::<span class="ident">decode_all</span>(<span class="ident">output</span>).<span class="ident">unwrap</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">tar</span>::<span class="ident">Archive</span>::<span class="ident">new</span>(<span class="ident">output</span>);
+        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">file_util::open_file</span>(<span class="ident">output</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">std::io::Cursor::new</span>(<span class="ident">zstd::decode_all</span>(<span class="ident">output</span>).<span class="ident">unwrap</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">tar::Archive::new</span>(<span class="ident">output</span>);
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">temp</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;output&quot;</span>);
         <span class="ident">archive</span>.<span class="ident">unpack</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>).<span class="ident">unwrap</span>();
-        <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir</span>::<span class="ident">new</span>(<span class="ident">temp</span>.<span class="ident">path</span>()) {
-            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">entry</span>.<span class="ident">unwrap</span>().<span class="ident">path</span>().<span class="ident">display</span>());
+        <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir::new</span>(<span class="ident">temp</span>.<span class="ident">path</span>()) {
+            <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">entry</span>.<span class="ident">unwrap</span>().<span class="ident">path</span>().<span class="ident">display</span>());
         }
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output</span>
+        <span class="macro">assert!</span>(<span class="ident">output</span>
             .<span class="ident">join</span>(<span class="string">&quot;some_course/MavenExercise/src/test/java/SimpleHiddenTest.java&quot;</span>)
             .<span class="ident">exists</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output</span>.<span class="ident">join</span>(<span class="string">&quot;some_course/MavenExercise/pom.xml&quot;</span>).<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(<span class="ident">output</span>.<span class="ident">join</span>(<span class="string">&quot;some_course/MavenExercise/pom.xml&quot;</span>).<span class="ident">exists</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">packages_with_output_zip</span>() {
         <span class="ident">init</span>();
 
-        <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile</span>::<span class="ident">tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">temp</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;output.zip&quot;</span>);
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">output</span>.<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">output</span>.<span class="ident">exists</span>());
         <span class="ident">prepare_submission</span>(
-            <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">MAVEN_ZIP</span>),
+            <span class="ident">Path::new</span>(<span class="ident">MAVEN_ZIP</span>),
             <span class="kw-2">&amp;</span><span class="ident">output</span>,
             <span class="prelude-val">None</span>,
-            <span class="ident">TmcParams</span>::<span class="ident">new</span>(),
-            <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">MAVEN_CLONE</span>),
+            <span class="ident">TmcParams::new</span>(),
+            <span class="ident">Path::new</span>(<span class="ident">MAVEN_CLONE</span>),
             <span class="prelude-val">None</span>,
-            <span class="ident">OutputFormat</span>::<span class="ident">Zip</span>,
+            <span class="ident">OutputFormat::Zip</span>,
         )
         .<span class="ident">unwrap</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output</span>.<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(<span class="ident">output</span>.<span class="ident">exists</span>());
 
-        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">open_file</span>(<span class="ident">output</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">zip</span>::<span class="ident">ZipArchive</span>::<span class="ident">new</span>(<span class="ident">output</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">file_util::open_file</span>(<span class="ident">output</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">zip::ZipArchive::new</span>(<span class="ident">output</span>).<span class="ident">unwrap</span>();
         <span class="ident">archive</span>
             .<span class="ident">by_name</span>(<span class="string">&quot;some_course/MavenExercise/src/test/java/SimpleHiddenTest.java&quot;</span>)
             .<span class="ident">unwrap</span>();
@@ -1308,24 +1307,24 @@
     <span class="kw">fn</span> <span class="ident">packages_with_toplevel_dir_and_output_zip</span>() {
         <span class="ident">init</span>();
 
-        <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile</span>::<span class="ident">tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">temp</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;output.zip&quot;</span>);
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">output</span>.<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">output</span>.<span class="ident">exists</span>());
         <span class="ident">prepare_submission</span>(
-            <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">MAVEN_ZIP</span>),
+            <span class="ident">Path::new</span>(<span class="ident">MAVEN_ZIP</span>),
             <span class="kw-2">&amp;</span><span class="ident">output</span>,
             <span class="prelude-val">Some</span>(<span class="string">&quot;toplevel&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">TmcParams</span>::<span class="ident">new</span>(),
-            <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">MAVEN_CLONE</span>),
+            <span class="ident">TmcParams::new</span>(),
+            <span class="ident">Path::new</span>(<span class="ident">MAVEN_CLONE</span>),
             <span class="prelude-val">None</span>,
-            <span class="ident">OutputFormat</span>::<span class="ident">Zip</span>,
+            <span class="ident">OutputFormat::Zip</span>,
         )
         .<span class="ident">unwrap</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output</span>.<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(<span class="ident">output</span>.<span class="ident">exists</span>());
 
-        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">open_file</span>(<span class="ident">output</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">zip</span>::<span class="ident">ZipArchive</span>::<span class="ident">new</span>(<span class="ident">output</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">file_util::open_file</span>(<span class="ident">output</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">zip::ZipArchive::new</span>(<span class="ident">output</span>).<span class="ident">unwrap</span>();
         <span class="ident">archive</span>
             .<span class="ident">by_name</span>(<span class="string">&quot;toplevel/some_course/MavenExercise/src/test/java/SimpleHiddenTest.java&quot;</span>)
             .<span class="ident">unwrap</span>();
@@ -1338,35 +1337,35 @@
     <span class="kw">fn</span> <span class="ident">package_with_stub_tests</span>() {
         <span class="ident">init</span>();
 
-        <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile</span>::<span class="ident">tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">output_arch</span> <span class="op">=</span> <span class="ident">temp</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;output.tar&quot;</span>);
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">output_arch</span>.<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">output_arch</span>.<span class="ident">exists</span>());
         <span class="ident">prepare_submission</span>(
-            <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">MAVEN_ZIP</span>),
+            <span class="ident">Path::new</span>(<span class="ident">MAVEN_ZIP</span>),
             <span class="kw-2">&amp;</span><span class="ident">output_arch</span>,
             <span class="prelude-val">None</span>,
-            <span class="ident">TmcParams</span>::<span class="ident">new</span>(),
-            <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">MAVEN_CLONE</span>),
-            <span class="prelude-val">Some</span>(<span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;tests/data/MavenStub.zip&quot;</span>)),
-            <span class="ident">OutputFormat</span>::<span class="ident">Tar</span>,
+            <span class="ident">TmcParams::new</span>(),
+            <span class="ident">Path::new</span>(<span class="ident">MAVEN_CLONE</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">Path::new</span>(<span class="string">&quot;tests/data/MavenStub.zip&quot;</span>)),
+            <span class="ident">OutputFormat::Tar</span>,
         )
         .<span class="ident">unwrap</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output_arch</span>.<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(<span class="ident">output_arch</span>.<span class="ident">exists</span>());
 
-        <span class="kw">let</span> <span class="ident">output_file</span> <span class="op">=</span> <span class="ident">file_util</span>::<span class="ident">open_file</span>(<span class="kw-2">&amp;</span><span class="ident">output_arch</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">tar</span>::<span class="ident">Archive</span>::<span class="ident">new</span>(<span class="ident">output_file</span>);
+        <span class="kw">let</span> <span class="ident">output_file</span> <span class="op">=</span> <span class="ident">file_util::open_file</span>(<span class="kw-2">&amp;</span><span class="ident">output_arch</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">tar::Archive::new</span>(<span class="ident">output_file</span>);
         <span class="kw">let</span> <span class="ident">output_extracted</span> <span class="op">=</span> <span class="ident">temp</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;output&quot;</span>);
         <span class="ident">archive</span>.<span class="ident">unpack</span>(<span class="kw-2">&amp;</span><span class="ident">output_extracted</span>).<span class="ident">unwrap</span>();
-        <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir</span>::<span class="ident">new</span>(<span class="ident">temp</span>.<span class="ident">path</span>()) {
-            <span class="ident">log</span>::<span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">entry</span>.<span class="ident">unwrap</span>().<span class="ident">path</span>().<span class="ident">display</span>());
+        <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir::new</span>(<span class="ident">temp</span>.<span class="ident">path</span>()) {
+            <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">entry</span>.<span class="ident">unwrap</span>().<span class="ident">path</span>().<span class="ident">display</span>());
         }
 
         <span class="comment">// visible tests included, hidden test isn&#39;t</span>
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output_extracted</span>
+        <span class="macro">assert!</span>(<span class="ident">output_extracted</span>
             .<span class="ident">join</span>(<span class="string">&quot;some_course/MavenExercise/src/test/java/SimpleTest.java&quot;</span>)
             .<span class="ident">exists</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">output_extracted</span>
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">output_extracted</span>
             .<span class="ident">join</span>(<span class="string">&quot;some_course/MavenExercise/src/test/java/SimpleHiddenTest.java&quot;</span>)
             .<span class="ident">exists</span>());
     }
@@ -1377,11 +1376,11 @@
         <span class="kw">let</span> (<span class="ident">_temp</span>, <span class="ident">output</span>) <span class="op">=</span> <span class="ident">generic_submission</span>(<span class="ident">MAKE_CLONE</span>, <span class="ident">MAKE_ZIP</span>);
 
         <span class="comment">// expected files</span>
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output</span>.<span class="ident">join</span>(<span class="string">&quot;some_course/MakeExercise/src/main.c&quot;</span>).<span class="ident">exists</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output</span>
+        <span class="macro">assert!</span>(<span class="ident">output</span>.<span class="ident">join</span>(<span class="string">&quot;some_course/MakeExercise/src/main.c&quot;</span>).<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(<span class="ident">output</span>
             .<span class="ident">join</span>(<span class="string">&quot;some_course/MakeExercise/test/test_source.c&quot;</span>)
             .<span class="ident">exists</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output</span>.<span class="ident">join</span>(<span class="string">&quot;some_course/MakeExercise/Makefile&quot;</span>).<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(<span class="ident">output</span>.<span class="ident">join</span>(<span class="string">&quot;some_course/MakeExercise/Makefile&quot;</span>).<span class="ident">exists</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1390,18 +1389,17 @@
         <span class="kw">let</span> (<span class="ident">_temp</span>, <span class="ident">output</span>) <span class="op">=</span> <span class="ident">generic_submission</span>(<span class="ident">PYTHON_CLONE</span>, <span class="ident">PYTHON_ZIP</span>);
 
         <span class="comment">// expected files</span>
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output</span>
+        <span class="macro">assert!</span>(<span class="ident">output</span>
             .<span class="ident">join</span>(<span class="string">&quot;some_course/PythonExercise/src/__main__.py&quot;</span>)
             .<span class="ident">exists</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output</span>
+        <span class="macro">assert!</span>(<span class="ident">output</span>
             .<span class="ident">join</span>(<span class="string">&quot;some_course/PythonExercise/test/test_greeter.py&quot;</span>)
             .<span class="ident">exists</span>());
         <span class="comment">// assert!(output.join(&quot;tmc/points.py&quot;).exists()); // not included?</span>
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">output</span>
+        <span class="macro">assert!</span>(<span class="ident">output</span>
             .<span class="ident">join</span>(<span class="string">&quot;some_course/PythonExercise/__init__.py&quot;</span>)
             .<span class="ident">exists</span>());
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tmc_langs" data-search-js="../../search-index.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tmc_langs" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

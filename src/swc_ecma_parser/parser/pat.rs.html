@@ -1,7 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/swc_ecma_parser-0.52.2/src/parser/pat.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pat.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../swc_ecma_parser/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../swc_ecma_parser/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1132,20 +1131,20 @@
 <span id="1129">1129</span>
 <span id="1130">1130</span>
 <span id="1131">1131</span>
-</pre><div class="example-wrap"><pre class="rust ">
+</pre><pre class="rust">
 <span class="doccomment">//! 13.3.3 Destructuring Binding Patterns</span>
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">util</span>::<span class="ident">ExprExt</span>, <span class="kw-2">*</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">parser</span>::<span class="ident">class_and_fn</span>::<span class="ident">is_not_this</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">parser</span>::<span class="ident">expr</span>::<span class="ident">PatOrExprOrSpread</span>, <span class="ident">token</span>::<span class="ident">AssignOpToken</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">iter</span>;
-<span class="kw">use</span> <span class="ident">swc_atoms</span>::<span class="ident">js_word</span>;
-<span class="kw">use</span> <span class="ident">swc_common</span>::<span class="ident">Spanned</span>;
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">util::ExprExt</span>, <span class="kw-2">*</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::parser::class_and_fn::is_not_this</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">parser::expr::PatOrExprOrSpread</span>, <span class="ident">token::AssignOpToken</span>};
+<span class="kw">use</span> <span class="ident">std::iter</span>;
+<span class="kw">use</span> <span class="ident">swc_atoms::js_word</span>;
+<span class="kw">use</span> <span class="ident">swc_common::Spanned</span>;
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>: <span class="ident">Tokens</span><span class="op">&gt;</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">parse_opt_binding_ident</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BindingIdent</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">trace_cur</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">parse_opt_binding_ident</span>);
+        <span class="macro">trace_cur!</span>(<span class="self">self</span>, <span class="ident">parse_opt_binding_ident</span>);
 
-        <span class="kw">if</span> <span class="macro">is</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">BindingIdent</span>) <span class="op">|</span><span class="op">|</span> (<span class="self">self</span>.<span class="ident">input</span>.<span class="ident">syntax</span>().<span class="ident">typescript</span>() <span class="op">&amp;&amp;</span> <span class="macro">is</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&quot;this&quot;</span>)) {
+        <span class="kw">if</span> <span class="macro">is!</span>(<span class="self">self</span>, <span class="ident">BindingIdent</span>) <span class="op">|</span><span class="op">|</span> (<span class="self">self</span>.<span class="ident">input</span>.<span class="ident">syntax</span>().<span class="ident">typescript</span>() <span class="op">&amp;&amp;</span> <span class="macro">is!</span>(<span class="self">self</span>, <span class="string">&quot;this&quot;</span>)) {
             <span class="self">self</span>.<span class="ident">parse_binding_ident</span>().<span class="ident">map</span>(<span class="prelude-val">Some</span>)
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
@@ -1156,57 +1155,57 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// spec: `BindingIdentifier`</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">parse_binding_ident</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">BindingIdent</span><span class="op">&gt;</span> {
-        <span class="macro">trace_cur</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">parse_binding_ident</span>);
+        <span class="macro">trace_cur!</span>(<span class="self">self</span>, <span class="ident">parse_binding_ident</span>);
 
         <span class="comment">// &quot;yield&quot; and &quot;await&quot; is **lexically** accepted.</span>
         <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_ident</span>(<span class="bool-val">true</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">ident</span>.<span class="ident">sym</span> <span class="op">=</span><span class="op">=</span> <span class="macro">js_word</span><span class="macro">!</span>(<span class="string">&quot;arguments&quot;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">ident</span>.<span class="ident">sym</span> <span class="op">=</span><span class="op">=</span> <span class="macro">js_word</span><span class="macro">!</span>(<span class="string">&quot;eval&quot;</span>) {
-            <span class="self">self</span>.<span class="ident">emit_strict_mode_err</span>(<span class="ident">ident</span>.<span class="ident">span</span>, <span class="ident">SyntaxError</span>::<span class="ident">EvalAndArgumentsInStrict</span>);
+        <span class="kw">if</span> <span class="ident">ident</span>.<span class="ident">sym</span> <span class="op">=</span><span class="op">=</span> <span class="macro">js_word!</span>(<span class="string">&quot;arguments&quot;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">ident</span>.<span class="ident">sym</span> <span class="op">=</span><span class="op">=</span> <span class="macro">js_word!</span>(<span class="string">&quot;eval&quot;</span>) {
+            <span class="self">self</span>.<span class="ident">emit_strict_mode_err</span>(<span class="ident">ident</span>.<span class="ident">span</span>, <span class="ident">SyntaxError::EvalAndArgumentsInStrict</span>);
         }
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ctx</span>().<span class="ident">in_async</span> <span class="op">&amp;&amp;</span> <span class="ident">ident</span>.<span class="ident">sym</span> <span class="op">=</span><span class="op">=</span> <span class="macro">js_word</span><span class="macro">!</span>(<span class="string">&quot;await&quot;</span>) {
-            <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">ident</span>.<span class="ident">span</span>, <span class="ident">SyntaxError</span>::<span class="ident">ExpectedIdent</span>);
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ctx</span>().<span class="ident">in_async</span> <span class="op">&amp;&amp;</span> <span class="ident">ident</span>.<span class="ident">sym</span> <span class="op">=</span><span class="op">=</span> <span class="macro">js_word!</span>(<span class="string">&quot;await&quot;</span>) {
+            <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">ident</span>.<span class="ident">span</span>, <span class="ident">SyntaxError::ExpectedIdent</span>);
         }
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ctx</span>().<span class="ident">in_generator</span> <span class="op">&amp;&amp;</span> <span class="ident">ident</span>.<span class="ident">sym</span> <span class="op">=</span><span class="op">=</span> <span class="macro">js_word</span><span class="macro">!</span>(<span class="string">&quot;yield&quot;</span>) {
-            <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">ident</span>.<span class="ident">span</span>, <span class="ident">SyntaxError</span>::<span class="ident">ExpectedIdent</span>);
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ctx</span>().<span class="ident">in_generator</span> <span class="op">&amp;&amp;</span> <span class="ident">ident</span>.<span class="ident">sym</span> <span class="op">=</span><span class="op">=</span> <span class="macro">js_word!</span>(<span class="string">&quot;yield&quot;</span>) {
+            <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">ident</span>.<span class="ident">span</span>, <span class="ident">SyntaxError::ExpectedIdent</span>);
         }
 
         <span class="prelude-val">Ok</span>(<span class="ident">ident</span>.<span class="ident">into</span>())
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">parse_binding_pat_or_ident</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">Pat</span><span class="op">&gt;</span> {
-        <span class="macro">trace_cur</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">parse_binding_pat_or_ident</span>);
+        <span class="macro">trace_cur!</span>(<span class="self">self</span>, <span class="ident">parse_binding_pat_or_ident</span>);
 
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="macro">cur</span><span class="macro">!</span>(<span class="self">self</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span> {
-            <span class="macro">tok</span><span class="macro">!</span>(<span class="string">&quot;yield&quot;</span>) <span class="op">|</span> <span class="ident">Word</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">parse_binding_ident</span>().<span class="ident">map</span>(<span class="ident">Pat</span>::<span class="ident">from</span>),
-            <span class="macro">tok</span><span class="macro">!</span>(<span class="string">&#39;[&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">parse_array_binding_pat</span>(),
-            <span class="macro">tok</span><span class="macro">!</span>(<span class="string">&#39;{&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">parse_object</span>(),
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="macro">cur!</span>(<span class="self">self</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span> {
+            <span class="macro">tok!</span>(<span class="string">&quot;yield&quot;</span>) <span class="op">|</span> <span class="ident">Word</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">parse_binding_ident</span>().<span class="ident">map</span>(<span class="ident">Pat::from</span>),
+            <span class="macro">tok!</span>(<span class="string">&#39;[&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">parse_array_binding_pat</span>(),
+            <span class="macro">tok!</span>(<span class="string">&#39;{&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">parse_object</span>(),
             <span class="comment">// tok!(&#39;(&#39;) =&gt; {</span>
             <span class="comment">//     bump!(self);</span>
             <span class="comment">//     let pat = self.parse_binding_pat_or_ident()?;</span>
             <span class="comment">//     expect!(self, &#39;)&#39;);</span>
             <span class="comment">//     Ok(pat)</span>
             <span class="comment">// }</span>
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unexpected</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&quot;yield, an identifier, [ or {&quot;</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unexpected!</span>(<span class="self">self</span>, <span class="string">&quot;yield, an identifier, [ or {&quot;</span>),
         }
     }
 
     <span class="doccomment">/// babel: `parseBindingAtom`</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">parse_binding_element</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">Pat</span><span class="op">&gt;</span> {
-        <span class="macro">trace_cur</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">parse_binding_element</span>);
+        <span class="macro">trace_cur!</span>(<span class="self">self</span>, <span class="ident">parse_binding_element</span>);
 
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="macro">cur_pos</span><span class="macro">!</span>(<span class="self">self</span>);
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="macro">cur_pos!</span>(<span class="self">self</span>);
         <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_binding_pat_or_ident</span>()<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="macro">eat</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;=&#39;</span>) {
+        <span class="kw">if</span> <span class="macro">eat!</span>(<span class="self">self</span>, <span class="string">&#39;=&#39;</span>) {
             <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">include_in_expr</span>(<span class="bool-val">true</span>).<span class="ident">parse_assignment_expr</span>()<span class="question-mark">?</span>;
 
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ctx</span>().<span class="ident">in_declare</span> {
-                <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="macro">span</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">start</span>), <span class="ident">SyntaxError</span>::<span class="ident">TS2371</span>);
+                <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="macro">span!</span>(<span class="self">self</span>, <span class="ident">start</span>), <span class="ident">SyntaxError::TS2371</span>);
             }
 
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Pat</span>::<span class="ident">Assign</span>(<span class="ident">AssignPat</span> {
-                <span class="ident">span</span>: <span class="macro">span</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">start</span>),
-                <span class="ident">left</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">left</span>),
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Pat::Assign</span>(<span class="ident">AssignPat</span> {
+                <span class="ident">span</span>: <span class="macro">span!</span>(<span class="self">self</span>, <span class="ident">start</span>),
+                <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
                 <span class="ident">right</span>,
                 <span class="ident">type_ann</span>: <span class="prelude-val">None</span>,
             }));
@@ -1216,34 +1215,34 @@
     }
 
     <span class="kw">fn</span> <span class="ident">parse_array_binding_pat</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">Pat</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="macro">cur_pos</span><span class="macro">!</span>(<span class="self">self</span>);
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="macro">cur_pos!</span>(<span class="self">self</span>);
 
-        <span class="macro">assert_and_bump</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;[&#39;</span>);
+        <span class="macro">assert_and_bump!</span>(<span class="self">self</span>, <span class="string">&#39;[&#39;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elems</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elems</span> <span class="op">=</span> <span class="macro">vec!</span>[];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">comma</span> <span class="op">=</span> <span class="number">0</span>;
 
-        <span class="kw">while</span> <span class="op">!</span><span class="macro">eof</span><span class="macro">!</span>(<span class="self">self</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="macro">is</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;]&#39;</span>) {
-            <span class="kw">if</span> <span class="macro">eat</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;,&#39;</span>) {
+        <span class="kw">while</span> <span class="op">!</span><span class="macro">eof!</span>(<span class="self">self</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="macro">is!</span>(<span class="self">self</span>, <span class="string">&#39;]&#39;</span>) {
+            <span class="kw">if</span> <span class="macro">eat!</span>(<span class="self">self</span>, <span class="string">&#39;,&#39;</span>) {
                 <span class="ident">comma</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="kw">continue</span>;
             }
             <span class="kw">if</span> <span class="ident">comma</span> <span class="op">&gt;</span> <span class="number">0</span> {
                 <span class="comment">// One comma is used for separating elements</span>
                 <span class="kw">let</span> <span class="ident">cnt</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">elems</span>.<span class="ident">is_empty</span>() { <span class="ident">comma</span> } <span class="kw">else</span> { <span class="ident">comma</span> <span class="op">-</span> <span class="number">1</span> };
-                <span class="ident">elems</span>.<span class="ident">extend</span>(<span class="ident">iter</span>::<span class="ident">repeat</span>(<span class="prelude-val">None</span>).<span class="ident">take</span>(<span class="ident">cnt</span>));
+                <span class="ident">elems</span>.<span class="ident">extend</span>(<span class="ident">iter::repeat</span>(<span class="prelude-val">None</span>).<span class="ident">take</span>(<span class="ident">cnt</span>));
                 <span class="ident">comma</span> <span class="op">=</span> <span class="number">0</span>;
             }
-            <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="macro">cur_pos</span><span class="macro">!</span>(<span class="self">self</span>);
+            <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="macro">cur_pos!</span>(<span class="self">self</span>);
 
-            <span class="kw">if</span> <span class="macro">eat</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&quot;...&quot;</span>) {
-                <span class="kw">let</span> <span class="ident">dot3_token</span> <span class="op">=</span> <span class="macro">span</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">start</span>);
+            <span class="kw">if</span> <span class="macro">eat!</span>(<span class="self">self</span>, <span class="string">&quot;...&quot;</span>) {
+                <span class="kw">let</span> <span class="ident">dot3_token</span> <span class="op">=</span> <span class="macro">span!</span>(<span class="self">self</span>, <span class="ident">start</span>);
 
                 <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_binding_pat_or_ident</span>()<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="ident">Pat</span>::<span class="ident">Rest</span>(<span class="ident">RestPat</span> {
-                    <span class="ident">span</span>: <span class="macro">span</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">start</span>),
+                <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="ident">Pat::Rest</span>(<span class="ident">RestPat</span> {
+                    <span class="ident">span</span>: <span class="macro">span!</span>(<span class="self">self</span>, <span class="ident">start</span>),
                     <span class="ident">dot3_token</span>,
-                    <span class="ident">arg</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">pat</span>),
+                    <span class="ident">arg</span>: <span class="ident">Box::new</span>(<span class="ident">pat</span>),
                     <span class="ident">type_ann</span>: <span class="prelude-val">None</span>,
                 });
                 <span class="ident">elems</span>.<span class="ident">push</span>(<span class="prelude-val">Some</span>(<span class="ident">pat</span>));
@@ -1254,11 +1253,11 @@
             }
         }
 
-        <span class="macro">expect</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;]&#39;</span>);
-        <span class="kw">let</span> <span class="ident">optional</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">input</span>.<span class="ident">syntax</span>().<span class="ident">dts</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">ctx</span>().<span class="ident">in_declare</span>) <span class="op">&amp;&amp;</span> <span class="macro">eat</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;?&#39;</span>);
+        <span class="macro">expect!</span>(<span class="self">self</span>, <span class="string">&#39;]&#39;</span>);
+        <span class="kw">let</span> <span class="ident">optional</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">input</span>.<span class="ident">syntax</span>().<span class="ident">dts</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">ctx</span>().<span class="ident">in_declare</span>) <span class="op">&amp;&amp;</span> <span class="macro">eat!</span>(<span class="self">self</span>, <span class="string">&#39;?&#39;</span>);
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Pat</span>::<span class="ident">Array</span>(<span class="ident">ArrayPat</span> {
-            <span class="ident">span</span>: <span class="macro">span</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">start</span>),
+        <span class="prelude-val">Ok</span>(<span class="ident">Pat::Array</span>(<span class="ident">ArrayPat</span> {
+            <span class="ident">span</span>: <span class="macro">span!</span>(<span class="self">self</span>, <span class="ident">start</span>),
             <span class="ident">elems</span>,
             <span class="ident">optional</span>,
             <span class="ident">type_ann</span>: <span class="prelude-val">None</span>,
@@ -1267,14 +1266,14 @@
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">eat_any_ts_modifier</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">has_modifier</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">syntax</span>().<span class="ident">typescript</span>()
-            <span class="op">&amp;&amp;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="macro">cur</span><span class="macro">!</span>(<span class="self">self</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span> {
-                <span class="ident">Word</span>(<span class="ident">Word</span>::<span class="ident">Ident</span>(<span class="macro">js_word</span><span class="macro">!</span>(<span class="string">&quot;public&quot;</span>)))
-                <span class="op">|</span> <span class="ident">Word</span>(<span class="ident">Word</span>::<span class="ident">Ident</span>(<span class="macro">js_word</span><span class="macro">!</span>(<span class="string">&quot;protected&quot;</span>)))
-                <span class="op">|</span> <span class="ident">Word</span>(<span class="ident">Word</span>::<span class="ident">Ident</span>(<span class="macro">js_word</span><span class="macro">!</span>(<span class="string">&quot;private&quot;</span>)))
-                <span class="op">|</span> <span class="ident">Word</span>(<span class="ident">Word</span>::<span class="ident">Ident</span>(<span class="macro">js_word</span><span class="macro">!</span>(<span class="string">&quot;readonly&quot;</span>))) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="op">&amp;&amp;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="macro">cur!</span>(<span class="self">self</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span> {
+                <span class="ident">Word</span>(<span class="ident">Word::Ident</span>(<span class="macro">js_word!</span>(<span class="string">&quot;public&quot;</span>)))
+                <span class="op">|</span> <span class="ident">Word</span>(<span class="ident">Word::Ident</span>(<span class="macro">js_word!</span>(<span class="string">&quot;protected&quot;</span>)))
+                <span class="op">|</span> <span class="ident">Word</span>(<span class="ident">Word::Ident</span>(<span class="macro">js_word!</span>(<span class="string">&quot;private&quot;</span>)))
+                <span class="op">|</span> <span class="ident">Word</span>(<span class="ident">Word::Ident</span>(<span class="macro">js_word!</span>(<span class="string">&quot;readonly&quot;</span>))) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
             }
-            <span class="op">&amp;&amp;</span> (<span class="macro">peeked_is</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">IdentName</span>) <span class="op">|</span><span class="op">|</span> <span class="macro">peeked_is</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;{&#39;</span>) <span class="op">|</span><span class="op">|</span> <span class="macro">peeked_is</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;[&#39;</span>));
+            <span class="op">&amp;&amp;</span> (<span class="macro">peeked_is!</span>(<span class="self">self</span>, <span class="ident">IdentName</span>) <span class="op">|</span><span class="op">|</span> <span class="macro">peeked_is!</span>(<span class="self">self</span>, <span class="string">&#39;{&#39;</span>) <span class="op">|</span><span class="op">|</span> <span class="macro">peeked_is!</span>(<span class="self">self</span>, <span class="string">&#39;[&#39;</span>));
         <span class="kw">if</span> <span class="ident">has_modifier</span> {
             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_ts_modifier</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;public&quot;</span>, <span class="string">&quot;protected&quot;</span>, <span class="string">&quot;private&quot;</span>, <span class="string">&quot;readonly&quot;</span>]);
         }
@@ -1286,28 +1285,28 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// babel: `parseAssignableListItem`</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">parse_formal_param_pat</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">Pat</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="macro">cur_pos</span><span class="macro">!</span>(<span class="self">self</span>);
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="macro">cur_pos!</span>(<span class="self">self</span>);
 
         <span class="kw">let</span> <span class="ident">has_modifier</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">eat_any_ts_modifier</span>()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">pat_start</span> <span class="op">=</span> <span class="macro">cur_pos</span><span class="macro">!</span>(<span class="self">self</span>);
+        <span class="kw">let</span> <span class="ident">pat_start</span> <span class="op">=</span> <span class="macro">cur_pos!</span>(<span class="self">self</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pat</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_binding_element</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opt</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">syntax</span>().<span class="ident">typescript</span>() {
-            <span class="kw">if</span> <span class="macro">eat</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;?&#39;</span>) {
+            <span class="kw">if</span> <span class="macro">eat!</span>(<span class="self">self</span>, <span class="string">&#39;?&#39;</span>) {
                 <span class="kw">match</span> <span class="ident">pat</span> {
-                    <span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">BindingIdent</span> {
+                    <span class="ident">Pat::Ident</span>(<span class="ident">BindingIdent</span> {
                         <span class="ident">id</span>:
                             <span class="ident">Ident</span> {
                                 <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">optional</span>, ..
                             },
                         ..
                     })
-                    <span class="op">|</span> <span class="ident">Pat</span>::<span class="ident">Array</span>(<span class="ident">ArrayPat</span> {
+                    <span class="op">|</span> <span class="ident">Pat::Array</span>(<span class="ident">ArrayPat</span> {
                         <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">optional</span>, ..
                     })
-                    <span class="op">|</span> <span class="ident">Pat</span>::<span class="ident">Object</span>(<span class="ident">ObjectPat</span> {
+                    <span class="op">|</span> <span class="ident">Pat::Object</span>(<span class="ident">ObjectPat</span> {
                         <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">optional</span>, ..
                     }) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw-2">*</span><span class="ident">optional</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -1315,71 +1314,71 @@
                     }
                     <span class="kw">_</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">syntax</span>().<span class="ident">dts</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">ctx</span>().<span class="ident">in_declare</span> <span class="op">=</span><span class="op">&gt;</span> {}
                     <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="macro">syntax_error</span><span class="macro">!</span>(
+                        <span class="macro">syntax_error!</span>(
                             <span class="self">self</span>,
                             <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">prev_span</span>(),
-                            <span class="ident">SyntaxError</span>::<span class="ident">TsBindingPatCannotBeOptional</span>
+                            <span class="ident">SyntaxError::TsBindingPatCannotBeOptional</span>
                         );
                     }
                 }
             }
 
             <span class="kw">match</span> <span class="ident">pat</span> {
-                <span class="ident">Pat</span>::<span class="ident">Array</span>(<span class="ident">ArrayPat</span> {
+                <span class="ident">Pat::Array</span>(<span class="ident">ArrayPat</span> {
                     <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">type_ann</span>,
                     <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">span</span>,
                     ..
                 })
-                <span class="op">|</span> <span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">BindingIdent</span> {
+                <span class="op">|</span> <span class="ident">Pat::Ident</span>(<span class="ident">BindingIdent</span> {
                     <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">type_ann</span>,
                     <span class="ident">id</span>: <span class="ident">Ident</span> { <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">span</span>, .. },
                     ..
                 })
-                <span class="op">|</span> <span class="ident">Pat</span>::<span class="ident">Object</span>(<span class="ident">ObjectPat</span> {
+                <span class="op">|</span> <span class="ident">Pat::Object</span>(<span class="ident">ObjectPat</span> {
                     <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">type_ann</span>,
                     <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">span</span>,
                     ..
                 })
-                <span class="op">|</span> <span class="ident">Pat</span>::<span class="ident">Rest</span>(<span class="ident">RestPat</span> {
+                <span class="op">|</span> <span class="ident">Pat::Rest</span>(<span class="ident">RestPat</span> {
                     <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">type_ann</span>,
                     <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">span</span>,
                     ..
                 }) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">new_type_ann</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_parse_ts_type_ann</span>()<span class="question-mark">?</span>;
                     <span class="kw">if</span> <span class="ident">new_type_ann</span>.<span class="ident">is_some</span>() {
-                        <span class="kw-2">*</span><span class="ident">span</span> <span class="op">=</span> <span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">pat_start</span>, <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">prev_span</span>().<span class="ident">hi</span>, <span class="ident">Default</span>::<span class="ident">default</span>());
+                        <span class="kw-2">*</span><span class="ident">span</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">pat_start</span>, <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">prev_span</span>().<span class="ident">hi</span>, <span class="ident">Default::default</span>());
                     }
                     <span class="kw-2">*</span><span class="ident">type_ann</span> <span class="op">=</span> <span class="ident">new_type_ann</span>;
                 }
-                <span class="ident">Pat</span>::<span class="ident">Assign</span>(<span class="ident">AssignPat</span> {
+                <span class="ident">Pat::Assign</span>(<span class="ident">AssignPat</span> {
                     <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">type_ann</span>,
                     <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">span</span>,
                     ..
                 }) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_parse_ts_type_ann</span>()<span class="question-mark">?</span> {
-                        <span class="kw-2">*</span><span class="ident">span</span> <span class="op">=</span> <span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">pat_start</span>, <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">prev_span</span>().<span class="ident">hi</span>, <span class="ident">Default</span>::<span class="ident">default</span>());
-                        <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="kw-2">*</span><span class="ident">span</span>, <span class="ident">SyntaxError</span>::<span class="ident">TSTypeAnnotationAfterAssign</span>);
+                        <span class="kw-2">*</span><span class="ident">span</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">pat_start</span>, <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">prev_span</span>().<span class="ident">hi</span>, <span class="ident">Default::default</span>());
+                        <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="kw-2">*</span><span class="ident">span</span>, <span class="ident">SyntaxError::TSTypeAnnotationAfterAssign</span>);
                     }
                 }
-                <span class="ident">Pat</span>::<span class="ident">Invalid</span>(..) <span class="op">=</span><span class="op">&gt;</span> {}
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;invalid syntax: Pat: {:?}&quot;</span>, <span class="ident">pat</span>),
+                <span class="ident">Pat::Invalid</span>(..) <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;invalid syntax: Pat: {:?}&quot;</span>, <span class="ident">pat</span>),
             }
         }
 
-        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="kw">if</span> <span class="macro">eat</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;=&#39;</span>) {
+        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="kw">if</span> <span class="macro">eat!</span>(<span class="self">self</span>, <span class="string">&#39;=&#39;</span>) {
             <span class="comment">// `=` cannot follow optional parameter.</span>
             <span class="kw">if</span> <span class="ident">opt</span> {
-                <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">pat</span>.<span class="ident">span</span>(), <span class="ident">SyntaxError</span>::<span class="ident">TS1015</span>);
+                <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">pat</span>.<span class="ident">span</span>(), <span class="ident">SyntaxError::TS1015</span>);
             }
 
             <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_assignment_expr</span>()<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ctx</span>().<span class="ident">in_declare</span> {
-                <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="macro">span</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">start</span>), <span class="ident">SyntaxError</span>::<span class="ident">TS2371</span>);
+                <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="macro">span!</span>(<span class="self">self</span>, <span class="ident">start</span>), <span class="ident">SyntaxError::TS2371</span>);
             }
 
-            <span class="ident">Pat</span>::<span class="ident">Assign</span>(<span class="ident">AssignPat</span> {
-                <span class="ident">span</span>: <span class="macro">span</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">start</span>),
-                <span class="ident">left</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">pat</span>),
+            <span class="ident">Pat::Assign</span>(<span class="ident">AssignPat</span> {
+                <span class="ident">span</span>: <span class="macro">span!</span>(<span class="self">self</span>, <span class="ident">start</span>),
+                <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">pat</span>),
                 <span class="ident">type_ann</span>: <span class="prelude-val">None</span>,
                 <span class="ident">right</span>,
             })
@@ -1388,7 +1387,7 @@
         };
 
         <span class="kw">if</span> <span class="ident">has_modifier</span> {
-            <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="macro">span</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">start</span>), <span class="ident">SyntaxError</span>::<span class="ident">TS2369</span>);
+            <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="macro">span!</span>(<span class="self">self</span>, <span class="ident">start</span>), <span class="ident">SyntaxError::TS2369</span>);
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">pat</span>);
         }
 
@@ -1397,42 +1396,42 @@
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">parse_constructor_params</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ParamOrTsParamProp</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">params</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">params</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
-        <span class="kw">while</span> <span class="op">!</span><span class="macro">eof</span><span class="macro">!</span>(<span class="self">self</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="macro">is</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;)&#39;</span>) {
+        <span class="kw">while</span> <span class="op">!</span><span class="macro">eof!</span>(<span class="self">self</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="macro">is!</span>(<span class="self">self</span>, <span class="string">&#39;)&#39;</span>) {
             <span class="kw">if</span> <span class="ident">first</span> {
                 <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">false</span>;
             } <span class="kw">else</span> {
-                <span class="macro">expect</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;,&#39;</span>);
+                <span class="macro">expect!</span>(<span class="self">self</span>, <span class="string">&#39;,&#39;</span>);
                 <span class="comment">// Handle trailing comma.</span>
-                <span class="kw">if</span> <span class="macro">is</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;)&#39;</span>) {
+                <span class="kw">if</span> <span class="macro">is!</span>(<span class="self">self</span>, <span class="string">&#39;)&#39;</span>) {
                     <span class="kw">break</span>;
                 }
             }
 
-            <span class="kw">let</span> <span class="ident">param_start</span> <span class="op">=</span> <span class="macro">cur_pos</span><span class="macro">!</span>(<span class="self">self</span>);
+            <span class="kw">let</span> <span class="ident">param_start</span> <span class="op">=</span> <span class="macro">cur_pos!</span>(<span class="self">self</span>);
             <span class="kw">let</span> <span class="ident">decorators</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_decorators</span>(<span class="bool-val">false</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">pat_start</span> <span class="op">=</span> <span class="macro">cur_pos</span><span class="macro">!</span>(<span class="self">self</span>);
+            <span class="kw">let</span> <span class="ident">pat_start</span> <span class="op">=</span> <span class="macro">cur_pos!</span>(<span class="self">self</span>);
 
-            <span class="kw">if</span> <span class="macro">eat</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&quot;...&quot;</span>) {
-                <span class="kw">let</span> <span class="ident">dot3_token</span> <span class="op">=</span> <span class="macro">span</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">pat_start</span>);
+            <span class="kw">if</span> <span class="macro">eat!</span>(<span class="self">self</span>, <span class="string">&quot;...&quot;</span>) {
+                <span class="kw">let</span> <span class="ident">dot3_token</span> <span class="op">=</span> <span class="macro">span!</span>(<span class="self">self</span>, <span class="ident">pat_start</span>);
 
                 <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_binding_pat_or_ident</span>()<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">type_ann</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">syntax</span>().<span class="ident">typescript</span>() <span class="op">&amp;&amp;</span> <span class="macro">is</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;:&#39;</span>) {
-                    <span class="kw">let</span> <span class="ident">cur_pos</span> <span class="op">=</span> <span class="macro">cur_pos</span><span class="macro">!</span>(<span class="self">self</span>);
+                <span class="kw">let</span> <span class="ident">type_ann</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">syntax</span>().<span class="ident">typescript</span>() <span class="op">&amp;&amp;</span> <span class="macro">is!</span>(<span class="self">self</span>, <span class="string">&#39;:&#39;</span>) {
+                    <span class="kw">let</span> <span class="ident">cur_pos</span> <span class="op">=</span> <span class="macro">cur_pos!</span>(<span class="self">self</span>);
                     <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">parse_ts_type_ann</span>(<span class="comment">/* eat_colon */</span> <span class="bool-val">true</span>, <span class="ident">cur_pos</span>)<span class="question-mark">?</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
                 };
 
-                <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="ident">Pat</span>::<span class="ident">Rest</span>(<span class="ident">RestPat</span> {
-                    <span class="ident">span</span>: <span class="macro">span</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">pat_start</span>),
+                <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="ident">Pat::Rest</span>(<span class="ident">RestPat</span> {
+                    <span class="ident">span</span>: <span class="macro">span!</span>(<span class="self">self</span>, <span class="ident">pat_start</span>),
                     <span class="ident">dot3_token</span>,
-                    <span class="ident">arg</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">pat</span>),
+                    <span class="ident">arg</span>: <span class="ident">Box::new</span>(<span class="ident">pat</span>),
                     <span class="ident">type_ann</span>,
                 });
-                <span class="ident">params</span>.<span class="ident">push</span>(<span class="ident">ParamOrTsParamProp</span>::<span class="ident">Param</span>(<span class="ident">Param</span> {
-                    <span class="ident">span</span>: <span class="macro">span</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">param_start</span>),
+                <span class="ident">params</span>.<span class="ident">push</span>(<span class="ident">ParamOrTsParamProp::Param</span>(<span class="ident">Param</span> {
+                    <span class="ident">span</span>: <span class="macro">span!</span>(<span class="self">self</span>, <span class="ident">param_start</span>),
                     <span class="ident">decorators</span>,
                     <span class="ident">pat</span>,
                 }));
@@ -1461,19 +1460,19 @@
         };
         <span class="kw">if</span> <span class="ident">accessibility</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">None</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">readonly</span> {
             <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_formal_param_pat</span>()<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<span class="ident">ParamOrTsParamProp</span>::<span class="ident">Param</span>(<span class="ident">Param</span> {
-                <span class="ident">span</span>: <span class="macro">span</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">param_start</span>),
+            <span class="prelude-val">Ok</span>(<span class="ident">ParamOrTsParamProp::Param</span>(<span class="ident">Param</span> {
+                <span class="ident">span</span>: <span class="macro">span!</span>(<span class="self">self</span>, <span class="ident">param_start</span>),
                 <span class="ident">decorators</span>,
                 <span class="ident">pat</span>,
             }))
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">param</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">parse_formal_param_pat</span>()<span class="question-mark">?</span> {
-                <span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TsParamPropParam</span>::<span class="ident">Ident</span>(<span class="ident">i</span>),
-                <span class="ident">Pat</span>::<span class="ident">Assign</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TsParamPropParam</span>::<span class="ident">Assign</span>(<span class="ident">a</span>),
-                <span class="ident">node</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">syntax_error</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">node</span>.<span class="ident">span</span>(), <span class="ident">SyntaxError</span>::<span class="ident">TsInvalidParamPropPat</span>),
+                <span class="ident">Pat::Ident</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TsParamPropParam::Ident</span>(<span class="ident">i</span>),
+                <span class="ident">Pat::Assign</span>(<span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TsParamPropParam::Assign</span>(<span class="ident">a</span>),
+                <span class="ident">node</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">syntax_error!</span>(<span class="self">self</span>, <span class="ident">node</span>.<span class="ident">span</span>(), <span class="ident">SyntaxError::TsInvalidParamPropPat</span>),
             };
-            <span class="prelude-val">Ok</span>(<span class="ident">ParamOrTsParamProp</span>::<span class="ident">TsParamProp</span>(<span class="ident">TsParamProp</span> {
-                <span class="ident">span</span>: <span class="macro">span</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">param_start</span>),
+            <span class="prelude-val">Ok</span>(<span class="ident">ParamOrTsParamProp::TsParamProp</span>(<span class="ident">TsParamProp</span> {
+                <span class="ident">span</span>: <span class="macro">span!</span>(<span class="self">self</span>, <span class="ident">param_start</span>),
                 <span class="ident">accessibility</span>,
                 <span class="ident">readonly</span>,
                 <span class="ident">decorators</span>,
@@ -1487,17 +1486,17 @@
         <span class="kw">let</span> <span class="ident">cnt</span> <span class="op">=</span> <span class="ident">params</span>.<span class="ident">iter</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">is_not_this</span>(<span class="ident">p</span>)).<span class="ident">count</span>();
 
         <span class="kw">if</span> <span class="ident">cnt</span> <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
-            <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">key_span</span>, <span class="ident">SyntaxError</span>::<span class="ident">TS1094</span>);
+            <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">key_span</span>, <span class="ident">SyntaxError::TS1094</span>);
         }
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">params</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Pat</span>::<span class="ident">Rest</span>(..) <span class="op">=</span> <span class="ident">params</span>[<span class="number">0</span>].<span class="ident">pat</span> {
-                <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">params</span>[<span class="number">0</span>].<span class="ident">pat</span>.<span class="ident">span</span>(), <span class="ident">SyntaxError</span>::<span class="ident">RestPatInSetter</span>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Pat::Rest</span>(..) <span class="op">=</span> <span class="ident">params</span>[<span class="number">0</span>].<span class="ident">pat</span> {
+                <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">params</span>[<span class="number">0</span>].<span class="ident">pat</span>.<span class="ident">span</span>(), <span class="ident">SyntaxError::RestPatInSetter</span>);
             }
         }
 
         <span class="kw">if</span> <span class="ident">params</span>.<span class="ident">is_empty</span>() {
-            <span class="macro">syntax_error</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">SyntaxError</span>::<span class="ident">SetterParamRequired</span>);
+            <span class="macro">syntax_error!</span>(<span class="self">self</span>, <span class="ident">SyntaxError::SetterParamRequired</span>);
         }
 
         <span class="prelude-val">Ok</span>(<span class="ident">params</span>.<span class="ident">into_iter</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>())
@@ -1505,70 +1504,70 @@
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">parse_formal_params</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Param</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">params</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dot3_token</span> <span class="op">=</span> <span class="ident">Span</span>::<span class="ident">default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">params</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dot3_token</span> <span class="op">=</span> <span class="ident">Span::default</span>();
 
-        <span class="kw">while</span> <span class="op">!</span><span class="macro">eof</span><span class="macro">!</span>(<span class="self">self</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="macro">is</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;)&#39;</span>) {
+        <span class="kw">while</span> <span class="op">!</span><span class="macro">eof!</span>(<span class="self">self</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="macro">is!</span>(<span class="self">self</span>, <span class="string">&#39;)&#39;</span>) {
             <span class="kw">if</span> <span class="ident">first</span> {
                 <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">false</span>;
             } <span class="kw">else</span> {
                 <span class="kw">if</span> <span class="ident">dot3_token</span>.<span class="ident">is_dummy</span>() {
-                    <span class="macro">expect</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;,&#39;</span>);
+                    <span class="macro">expect!</span>(<span class="self">self</span>, <span class="string">&#39;,&#39;</span>);
                 } <span class="kw">else</span> {
                     <span class="comment">// We are handling error.</span>
 
-                    <span class="macro">eat</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;,&#39;</span>);
+                    <span class="macro">eat!</span>(<span class="self">self</span>, <span class="string">&#39;,&#39;</span>);
                 }
 
                 <span class="comment">// Handle trailing comma.</span>
-                <span class="kw">if</span> <span class="macro">is</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;)&#39;</span>) {
+                <span class="kw">if</span> <span class="macro">is!</span>(<span class="self">self</span>, <span class="string">&#39;)&#39;</span>) {
                     <span class="kw">break</span>;
                 }
             }
 
-            <span class="kw">let</span> <span class="ident">param_start</span> <span class="op">=</span> <span class="macro">cur_pos</span><span class="macro">!</span>(<span class="self">self</span>);
+            <span class="kw">let</span> <span class="ident">param_start</span> <span class="op">=</span> <span class="macro">cur_pos!</span>(<span class="self">self</span>);
 
             <span class="kw">if</span> <span class="op">!</span><span class="ident">dot3_token</span>.<span class="ident">is_dummy</span>() {
-                <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">dot3_token</span>, <span class="ident">SyntaxError</span>::<span class="ident">TS1014</span>);
+                <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">dot3_token</span>, <span class="ident">SyntaxError::TS1014</span>);
             }
 
             <span class="kw">let</span> <span class="ident">decorators</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_decorators</span>(<span class="bool-val">false</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">pat_start</span> <span class="op">=</span> <span class="macro">cur_pos</span><span class="macro">!</span>(<span class="self">self</span>);
+            <span class="kw">let</span> <span class="ident">pat_start</span> <span class="op">=</span> <span class="macro">cur_pos!</span>(<span class="self">self</span>);
 
-            <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="kw">if</span> <span class="macro">eat</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&quot;...&quot;</span>) {
-                <span class="ident">dot3_token</span> <span class="op">=</span> <span class="macro">span</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">pat_start</span>);
+            <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="kw">if</span> <span class="macro">eat!</span>(<span class="self">self</span>, <span class="string">&quot;...&quot;</span>) {
+                <span class="ident">dot3_token</span> <span class="op">=</span> <span class="macro">span!</span>(<span class="self">self</span>, <span class="ident">pat_start</span>);
 
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pat</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_binding_pat_or_ident</span>()<span class="question-mark">?</span>;
 
-                <span class="kw">if</span> <span class="macro">eat</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;=&#39;</span>) {
+                <span class="kw">if</span> <span class="macro">eat!</span>(<span class="self">self</span>, <span class="string">&#39;=&#39;</span>) {
                     <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_assignment_expr</span>()<span class="question-mark">?</span>;
-                    <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">pat</span>.<span class="ident">span</span>(), <span class="ident">SyntaxError</span>::<span class="ident">TS1048</span>);
+                    <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">pat</span>.<span class="ident">span</span>(), <span class="ident">SyntaxError::TS1048</span>);
                     <span class="ident">pat</span> <span class="op">=</span> <span class="ident">AssignPat</span> {
-                        <span class="ident">span</span>: <span class="macro">span</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">pat_start</span>),
-                        <span class="ident">left</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">pat</span>),
+                        <span class="ident">span</span>: <span class="macro">span!</span>(<span class="self">self</span>, <span class="ident">pat_start</span>),
+                        <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">pat</span>),
                         <span class="ident">right</span>,
                         <span class="ident">type_ann</span>: <span class="prelude-val">None</span>,
                     }
                     .<span class="ident">into</span>();
                 }
 
-                <span class="kw">let</span> <span class="ident">type_ann</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">syntax</span>().<span class="ident">typescript</span>() <span class="op">&amp;&amp;</span> <span class="macro">is</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;:&#39;</span>) {
-                    <span class="kw">let</span> <span class="ident">cur_pos</span> <span class="op">=</span> <span class="macro">cur_pos</span><span class="macro">!</span>(<span class="self">self</span>);
+                <span class="kw">let</span> <span class="ident">type_ann</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">syntax</span>().<span class="ident">typescript</span>() <span class="op">&amp;&amp;</span> <span class="macro">is!</span>(<span class="self">self</span>, <span class="string">&#39;:&#39;</span>) {
+                    <span class="kw">let</span> <span class="ident">cur_pos</span> <span class="op">=</span> <span class="macro">cur_pos!</span>(<span class="self">self</span>);
                     <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_ts_type_ann</span>(<span class="comment">/* eat_colon */</span> <span class="bool-val">true</span>, <span class="ident">cur_pos</span>)<span class="question-mark">?</span>;
                     <span class="prelude-val">Some</span>(<span class="ident">ty</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
                 };
 
-                <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="ident">Pat</span>::<span class="ident">Rest</span>(<span class="ident">RestPat</span> {
-                    <span class="ident">span</span>: <span class="macro">span</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">pat_start</span>),
+                <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="ident">Pat::Rest</span>(<span class="ident">RestPat</span> {
+                    <span class="ident">span</span>: <span class="macro">span!</span>(<span class="self">self</span>, <span class="ident">pat_start</span>),
                     <span class="ident">dot3_token</span>,
-                    <span class="ident">arg</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">pat</span>),
+                    <span class="ident">arg</span>: <span class="ident">Box::new</span>(<span class="ident">pat</span>),
                     <span class="ident">type_ann</span>,
                 });
 
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">syntax</span>().<span class="ident">typescript</span>() <span class="op">&amp;&amp;</span> <span class="macro">eat</span><span class="macro">!</span>(<span class="self">self</span>, <span class="string">&#39;?&#39;</span>) {
-                    <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="self">self</span>.<span class="ident">input</span>.<span class="ident">prev_span</span>(), <span class="ident">SyntaxError</span>::<span class="ident">TS1047</span>);
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">syntax</span>().<span class="ident">typescript</span>() <span class="op">&amp;&amp;</span> <span class="macro">eat!</span>(<span class="self">self</span>, <span class="string">&#39;?&#39;</span>) {
+                    <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="self">self</span>.<span class="ident">input</span>.<span class="ident">prev_span</span>(), <span class="ident">SyntaxError::TS1047</span>);
                     <span class="comment">//</span>
                 }
 
@@ -1578,7 +1577,7 @@
             };
 
             <span class="ident">params</span>.<span class="ident">push</span>(<span class="ident">Param</span> {
-                <span class="ident">span</span>: <span class="macro">span</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">param_start</span>),
+                <span class="ident">span</span>: <span class="macro">span!</span>(<span class="self">self</span>, <span class="ident">param_start</span>),
                 <span class="ident">decorators</span>,
                 <span class="ident">pat</span>,
             });
@@ -1606,8 +1605,8 @@
 <span class="kw">impl</span> <span class="ident">PatType</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">element</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">PatType</span>::<span class="ident">BindingPat</span> <span class="op">|</span> <span class="ident">PatType</span>::<span class="ident">BindingElement</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PatType</span>::<span class="ident">BindingElement</span>,
-            <span class="ident">PatType</span>::<span class="ident">AssignPat</span> <span class="op">|</span> <span class="ident">PatType</span>::<span class="ident">AssignElement</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PatType</span>::<span class="ident">AssignElement</span>,
+            <span class="ident">PatType::BindingPat</span> <span class="op">|</span> <span class="ident">PatType::BindingElement</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PatType::BindingElement</span>,
+            <span class="ident">PatType::AssignPat</span> <span class="op">|</span> <span class="ident">PatType::AssignElement</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PatType::AssignElement</span>,
         }
     }
 }
@@ -1616,13 +1615,13 @@
     <span class="doccomment">/// This does not return &#39;rest&#39; pattern because non-last parameter cannot be</span>
     <span class="doccomment">/// rest.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">reparse_expr_as_pat</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pat_ty</span>: <span class="ident">PatType</span>, <span class="ident">expr</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">Pat</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Expr</span>::<span class="ident">Invalid</span>(<span class="ident">i</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">expr</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Pat</span>::<span class="ident">Invalid</span>(<span class="ident">i</span>));
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Expr::Invalid</span>(<span class="ident">i</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">expr</span> {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Pat::Invalid</span>(<span class="ident">i</span>));
         }
 
-        <span class="kw">if</span> <span class="ident">pat_ty</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PatType</span>::<span class="ident">AssignPat</span> {
+        <span class="kw">if</span> <span class="ident">pat_ty</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PatType::AssignPat</span> {
             <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">expr</span> {
-                <span class="ident">Expr</span>::<span class="ident">Object</span>(..) <span class="op">|</span> <span class="ident">Expr</span>::<span class="ident">Array</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Expr::Object</span>(..) <span class="op">|</span> <span class="ident">Expr::Array</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// It is a Syntax Error if LeftHandSideExpression is either</span>
                     <span class="comment">// an ObjectLiteral or an ArrayLiteral</span>
                     <span class="comment">// and LeftHandSideExpression cannot</span>
@@ -1644,13 +1643,13 @@
         <span class="ident">expr</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">Pat</span><span class="op">&gt;</span> {
         <span class="comment">// In dts, we do not reparse.</span>
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">input</span>.<span class="ident">syntax</span>().<span class="ident">dts</span>());
+        <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">input</span>.<span class="ident">syntax</span>().<span class="ident">dts</span>());
 
         <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">expr</span>.<span class="ident">span</span>();
 
-        <span class="kw">if</span> <span class="ident">pat_ty</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PatType</span>::<span class="ident">AssignPat</span> {
+        <span class="kw">if</span> <span class="ident">pat_ty</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PatType::AssignPat</span> {
             <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">expr</span> {
-                <span class="ident">Expr</span>::<span class="ident">Object</span>(..) <span class="op">|</span> <span class="ident">Expr</span>::<span class="ident">Array</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Expr::Object</span>(..) <span class="op">|</span> <span class="ident">Expr::Array</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// It is a Syntax Error if LeftHandSideExpression is either</span>
                     <span class="comment">// an ObjectLiteral or an ArrayLiteral</span>
                     <span class="comment">// and LeftHandSideExpression cannot</span>
@@ -1663,12 +1662,12 @@
                     <span class="comment">// Expression derives a phrase that would produce a Syntax Error according</span>
                     <span class="comment">// to these rules if that phrase were substituted for</span>
                     <span class="comment">// LeftHandSideExpression. This rule is recursively applied.</span>
-                    <span class="ident">Expr</span>::<span class="ident">Paren</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Pat</span>::<span class="ident">Expr</span>(<span class="ident">expr</span>));
+                    <span class="ident">Expr::Paren</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Pat::Expr</span>(<span class="ident">expr</span>));
                     }
-                    <span class="ident">Expr</span>::<span class="ident">Ident</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">i</span>.<span class="ident">into</span>()),
+                    <span class="ident">Expr::Ident</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">i</span>.<span class="ident">into</span>()),
                     <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Pat</span>::<span class="ident">Expr</span>(<span class="ident">expr</span>));
+                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Pat::Expr</span>(<span class="ident">expr</span>));
                     }
                 },
             }
@@ -1679,105 +1678,105 @@
         <span class="comment">//</span>
         <span class="comment">// DestructuringAssignmentTarget:</span>
         <span class="comment">//      LeftHandSideExpression</span>
-        <span class="kw">if</span> <span class="ident">pat_ty</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PatType</span>::<span class="ident">AssignElement</span> {
+        <span class="kw">if</span> <span class="ident">pat_ty</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PatType::AssignElement</span> {
             <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">expr</span> {
-                <span class="ident">Expr</span>::<span class="ident">Array</span>(..) <span class="op">|</span> <span class="ident">Expr</span>::<span class="ident">Object</span>(..) <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="ident">Expr::Array</span>(..) <span class="op">|</span> <span class="ident">Expr::Object</span>(..) <span class="op">=</span><span class="op">&gt;</span> {}
 
-                <span class="ident">Expr</span>::<span class="ident">Member</span>(..)
-                <span class="op">|</span> <span class="ident">Expr</span>::<span class="ident">Call</span>(..)
-                <span class="op">|</span> <span class="ident">Expr</span>::<span class="ident">New</span>(..)
-                <span class="op">|</span> <span class="ident">Expr</span>::<span class="ident">Lit</span>(..)
-                <span class="op">|</span> <span class="ident">Expr</span>::<span class="ident">Ident</span>(..)
-                <span class="op">|</span> <span class="ident">Expr</span>::<span class="ident">Fn</span>(..)
-                <span class="op">|</span> <span class="ident">Expr</span>::<span class="ident">Class</span>(..)
-                <span class="op">|</span> <span class="ident">Expr</span>::<span class="ident">Tpl</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Expr::Member</span>(..)
+                <span class="op">|</span> <span class="ident">Expr::Call</span>(..)
+                <span class="op">|</span> <span class="ident">Expr::New</span>(..)
+                <span class="op">|</span> <span class="ident">Expr::Lit</span>(..)
+                <span class="op">|</span> <span class="ident">Expr::Ident</span>(..)
+                <span class="op">|</span> <span class="ident">Expr::Fn</span>(..)
+                <span class="op">|</span> <span class="ident">Expr::Class</span>(..)
+                <span class="op">|</span> <span class="ident">Expr::Tpl</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">expr</span>.<span class="ident">is_valid_simple_assignment_target</span>(<span class="self">self</span>.<span class="ident">ctx</span>().<span class="ident">strict</span>) {
-                        <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">span</span>, <span class="ident">SyntaxError</span>::<span class="ident">NotSimpleAssign</span>)
+                        <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">span</span>, <span class="ident">SyntaxError::NotSimpleAssign</span>)
                     }
                     <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">expr</span> {
-                        <span class="ident">Expr</span>::<span class="ident">Ident</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">i</span>.<span class="ident">into</span>()),
+                        <span class="ident">Expr::Ident</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">i</span>.<span class="ident">into</span>()),
                         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Pat</span>::<span class="ident">Expr</span>(<span class="ident">expr</span>));
+                            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Pat::Expr</span>(<span class="ident">expr</span>));
                         }
                     }
                 }
 
                 <span class="comment">// It&#39;s special because of optional initializer</span>
-                <span class="ident">Expr</span>::<span class="ident">Assign</span>(..) <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="ident">Expr::Assign</span>(..) <span class="op">=</span><span class="op">&gt;</span> {}
 
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">span</span>, <span class="ident">SyntaxError</span>::<span class="ident">InvalidPat</span>),
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">span</span>, <span class="ident">SyntaxError::InvalidPat</span>),
             }
         }
 
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">expr</span> {
-            <span class="ident">Expr</span>::<span class="ident">Paren</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">span</span>, <span class="ident">SyntaxError</span>::<span class="ident">InvalidPat</span>);
-                <span class="prelude-val">Ok</span>(<span class="ident">Pat</span>::<span class="ident">Invalid</span>(<span class="ident">Invalid</span> { <span class="ident">span</span> }))
+            <span class="ident">Expr::Paren</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">span</span>, <span class="ident">SyntaxError::InvalidPat</span>);
+                <span class="prelude-val">Ok</span>(<span class="ident">Pat::Invalid</span>(<span class="ident">Invalid</span> { <span class="ident">span</span> }))
             }
-            <span class="ident">Expr</span>::<span class="ident">Assign</span>(
+            <span class="ident">Expr::Assign</span>(
                 <span class="ident">assign_expr</span>
                 @
                 <span class="ident">AssignExpr</span> {
-                    <span class="ident">op</span>: <span class="ident">AssignOpToken</span>::<span class="ident">Assign</span>,
+                    <span class="ident">op</span>: <span class="ident">AssignOpToken::Assign</span>,
                     ..
                 },
             ) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">AssignExpr</span> {
                     <span class="ident">span</span>, <span class="ident">left</span>, <span class="ident">right</span>, ..
                 } <span class="op">=</span> <span class="ident">assign_expr</span>;
-                <span class="prelude-val">Ok</span>(<span class="ident">Pat</span>::<span class="ident">Assign</span>(<span class="ident">AssignPat</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">Pat::Assign</span>(<span class="ident">AssignPat</span> {
                     <span class="ident">span</span>,
                     <span class="ident">left</span>: <span class="kw">match</span> <span class="ident">left</span> {
-                        <span class="ident">PatOrExpr</span>::<span class="ident">Expr</span>(<span class="ident">left</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">reparse_expr_as_pat</span>(<span class="ident">pat_ty</span>, <span class="ident">left</span>)<span class="question-mark">?</span>),
-                        <span class="ident">PatOrExpr</span>::<span class="ident">Pat</span>(<span class="ident">left</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">left</span>,
+                        <span class="ident">PatOrExpr::Expr</span>(<span class="ident">left</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Box::new</span>(<span class="self">self</span>.<span class="ident">reparse_expr_as_pat</span>(<span class="ident">pat_ty</span>, <span class="ident">left</span>)<span class="question-mark">?</span>),
+                        <span class="ident">PatOrExpr::Pat</span>(<span class="ident">left</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">left</span>,
                     },
                     <span class="ident">right</span>,
                     <span class="ident">type_ann</span>: <span class="prelude-val">None</span>,
                 }))
             }
-            <span class="ident">Expr</span>::<span class="ident">Object</span>(<span class="ident">ObjectLit</span> { <span class="ident">span</span>, <span class="ident">props</span> }) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Expr::Object</span>(<span class="ident">ObjectLit</span> { <span class="ident">span</span>, <span class="ident">props</span> }) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// {}</span>
-                <span class="prelude-val">Ok</span>(<span class="ident">Pat</span>::<span class="ident">Object</span>(<span class="ident">ObjectPat</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">Pat::Object</span>(<span class="ident">ObjectPat</span> {
                     <span class="ident">span</span>,
                     <span class="ident">props</span>: <span class="ident">props</span>
                         .<span class="ident">into_iter</span>()
                         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">prop</span><span class="op">|</span> {
                             <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">prop</span>.<span class="ident">span</span>();
                             <span class="kw">match</span> <span class="ident">prop</span> {
-                                <span class="ident">PropOrSpread</span>::<span class="ident">Prop</span>(<span class="ident">prop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">prop</span> {
-                                    <span class="ident">Prop</span>::<span class="ident">Shorthand</span>(<span class="ident">id</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                                        <span class="prelude-val">Ok</span>(<span class="ident">ObjectPatProp</span>::<span class="ident">Assign</span>(<span class="ident">AssignPatProp</span> {
+                                <span class="ident">PropOrSpread::Prop</span>(<span class="ident">prop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">prop</span> {
+                                    <span class="ident">Prop::Shorthand</span>(<span class="ident">id</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                                        <span class="prelude-val">Ok</span>(<span class="ident">ObjectPatProp::Assign</span>(<span class="ident">AssignPatProp</span> {
                                             <span class="ident">span</span>: <span class="ident">id</span>.<span class="ident">span</span>(),
                                             <span class="ident">key</span>: <span class="ident">id</span>,
                                             <span class="ident">value</span>: <span class="prelude-val">None</span>,
                                         }))
                                     }
-                                    <span class="ident">Prop</span>::<span class="ident">KeyValue</span>(<span class="ident">kv_prop</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                                        <span class="prelude-val">Ok</span>(<span class="ident">ObjectPatProp</span>::<span class="ident">KeyValue</span>(<span class="ident">KeyValuePatProp</span> {
+                                    <span class="ident">Prop::KeyValue</span>(<span class="ident">kv_prop</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                                        <span class="prelude-val">Ok</span>(<span class="ident">ObjectPatProp::KeyValue</span>(<span class="ident">KeyValuePatProp</span> {
                                             <span class="ident">key</span>: <span class="ident">kv_prop</span>.<span class="ident">key</span>,
-                                            <span class="ident">value</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">reparse_expr_as_pat</span>(
+                                            <span class="ident">value</span>: <span class="ident">Box::new</span>(<span class="self">self</span>.<span class="ident">reparse_expr_as_pat</span>(
                                                 <span class="ident">pat_ty</span>.<span class="ident">element</span>(),
                                                 <span class="ident">kv_prop</span>.<span class="ident">value</span>,
                                             )<span class="question-mark">?</span>),
                                         }))
                                     }
-                                    <span class="ident">Prop</span>::<span class="ident">Assign</span>(<span class="ident">assign_prop</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                                        <span class="prelude-val">Ok</span>(<span class="ident">ObjectPatProp</span>::<span class="ident">Assign</span>(<span class="ident">AssignPatProp</span> {
+                                    <span class="ident">Prop::Assign</span>(<span class="ident">assign_prop</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                                        <span class="prelude-val">Ok</span>(<span class="ident">ObjectPatProp::Assign</span>(<span class="ident">AssignPatProp</span> {
                                             <span class="ident">span</span>,
                                             <span class="ident">key</span>: <span class="ident">assign_prop</span>.<span class="ident">key</span>,
                                             <span class="ident">value</span>: <span class="prelude-val">Some</span>(<span class="ident">assign_prop</span>.<span class="ident">value</span>),
                                         }))
                                     }
-                                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">syntax_error</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">prop</span>.<span class="ident">span</span>(), <span class="ident">SyntaxError</span>::<span class="ident">InvalidPat</span>),
+                                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">syntax_error!</span>(<span class="self">self</span>, <span class="ident">prop</span>.<span class="ident">span</span>(), <span class="ident">SyntaxError::InvalidPat</span>),
                                 },
 
-                                <span class="ident">PropOrSpread</span>::<span class="ident">Spread</span>(<span class="ident">SpreadElement</span> { <span class="ident">dot3_token</span>, <span class="ident">expr</span> }) <span class="op">=</span><span class="op">&gt;</span> {
-                                    <span class="prelude-val">Ok</span>(<span class="ident">ObjectPatProp</span>::<span class="ident">Rest</span>(<span class="ident">RestPat</span> {
+                                <span class="ident">PropOrSpread::Spread</span>(<span class="ident">SpreadElement</span> { <span class="ident">dot3_token</span>, <span class="ident">expr</span> }) <span class="op">=</span><span class="op">&gt;</span> {
+                                    <span class="prelude-val">Ok</span>(<span class="ident">ObjectPatProp::Rest</span>(<span class="ident">RestPat</span> {
                                         <span class="ident">span</span>,
                                         <span class="ident">dot3_token</span>,
                                         <span class="comment">// FIXME: is BindingPat correct?</span>
-                                        <span class="ident">arg</span>: <span class="ident">Box</span>::<span class="ident">new</span>(
-                                            <span class="self">self</span>.<span class="ident">reparse_expr_as_pat</span>(<span class="ident">PatType</span>::<span class="ident">BindingPat</span>, <span class="ident">expr</span>)<span class="question-mark">?</span>,
+                                        <span class="ident">arg</span>: <span class="ident">Box::new</span>(
+                                            <span class="self">self</span>.<span class="ident">reparse_expr_as_pat</span>(<span class="ident">PatType::BindingPat</span>, <span class="ident">expr</span>)<span class="question-mark">?</span>,
                                         ),
                                         <span class="ident">type_ann</span>: <span class="prelude-val">None</span>,
                                     }))
@@ -1789,15 +1788,15 @@
                     <span class="ident">type_ann</span>: <span class="prelude-val">None</span>,
                 }))
             }
-            <span class="ident">Expr</span>::<span class="ident">Ident</span>(<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">ident</span>.<span class="ident">into</span>()),
-            <span class="ident">Expr</span>::<span class="ident">Member</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Pat</span>::<span class="ident">Expr</span>(<span class="ident">expr</span>)),
-            <span class="ident">Expr</span>::<span class="ident">Array</span>(<span class="ident">ArrayLit</span> {
+            <span class="ident">Expr::Ident</span>(<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">ident</span>.<span class="ident">into</span>()),
+            <span class="ident">Expr::Member</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Pat::Expr</span>(<span class="ident">expr</span>)),
+            <span class="ident">Expr::Array</span>(<span class="ident">ArrayLit</span> {
                 <span class="ident">elems</span>: <span class="kw-2">mut</span> <span class="ident">exprs</span>, ..
             }) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">exprs</span>.<span class="ident">is_empty</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Pat</span>::<span class="ident">Array</span>(<span class="ident">ArrayPat</span> {
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Pat::Array</span>(<span class="ident">ArrayPat</span> {
                         <span class="ident">span</span>,
-                        <span class="ident">elems</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                        <span class="ident">elems</span>: <span class="macro">vec!</span>[],
                         <span class="ident">optional</span>: <span class="bool-val">false</span>,
                         <span class="ident">type_ann</span>: <span class="prelude-val">None</span>,
                     }));
@@ -1808,7 +1807,7 @@
                     <span class="ident">exprs</span>.<span class="ident">iter</span>().<span class="ident">rev</span>().<span class="ident">take_while</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">is_none</span>()).<span class="ident">count</span>();
 
                 <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">exprs</span>.<span class="ident">len</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">exprs</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">count_of_trailing_comma</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">exprs</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">count_of_trailing_comma</span>);
 
                 <span class="comment">// Comma or other pattern cannot follow a rest pattern.</span>
                 <span class="kw">let</span> <span class="ident">idx_of_rest_not_allowed</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">count_of_trailing_comma</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
@@ -1828,7 +1827,7 @@
                             },
                         ) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">syntax</span>().<span class="ident">early_errors</span>() {
-                                <span class="macro">syntax_error</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">expr</span>.<span class="ident">span</span>(), <span class="ident">SyntaxError</span>::<span class="ident">NonLastRestParam</span>)
+                                <span class="macro">syntax_error!</span>(<span class="self">self</span>, <span class="ident">expr</span>.<span class="ident">span</span>(), <span class="ident">SyntaxError::NonLastRestParam</span>)
                             }
                         }
                         <span class="prelude-val">Some</span>(<span class="ident">ExprOrSpread</span> { <span class="ident">expr</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
@@ -1850,10 +1849,10 @@
                             <span class="kw">let</span> <span class="ident">expr_span</span> <span class="op">=</span> <span class="ident">expr</span>.<span class="ident">span</span>();
                             <span class="self">self</span>.<span class="ident">reparse_expr_as_pat</span>(<span class="ident">pat_ty</span>.<span class="ident">element</span>(), <span class="ident">expr</span>)
                                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pat</span><span class="op">|</span> {
-                                    <span class="ident">Pat</span>::<span class="ident">Rest</span>(<span class="ident">RestPat</span> {
+                                    <span class="ident">Pat::Rest</span>(<span class="ident">RestPat</span> {
                                         <span class="ident">span</span>: <span class="ident">expr_span</span>,
                                         <span class="ident">dot3_token</span>,
-                                        <span class="ident">arg</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">pat</span>),
+                                        <span class="ident">arg</span>: <span class="ident">Box::new</span>(<span class="ident">pat</span>),
                                         <span class="ident">type_ann</span>: <span class="prelude-val">None</span>,
                                     })
                                 })
@@ -1868,7 +1867,7 @@
                     };
                     <span class="ident">params</span>.<span class="ident">push</span>(<span class="ident">last</span>);
                 }
-                <span class="prelude-val">Ok</span>(<span class="ident">Pat</span>::<span class="ident">Array</span>(<span class="ident">ArrayPat</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">Pat::Array</span>(<span class="ident">ArrayPat</span> {
                     <span class="ident">span</span>,
                     <span class="ident">elems</span>: <span class="ident">params</span>,
                     <span class="ident">optional</span>: <span class="bool-val">false</span>,
@@ -1878,20 +1877,20 @@
 
             <span class="comment">// Invalid patterns.</span>
             <span class="comment">// Note that assignment expression with &#39;=&#39; is valid, and handled above.</span>
-            <span class="ident">Expr</span>::<span class="ident">Lit</span>(..) <span class="op">|</span> <span class="ident">Expr</span>::<span class="ident">Assign</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">span</span>, <span class="ident">SyntaxError</span>::<span class="ident">InvalidPat</span>);
-                <span class="prelude-val">Ok</span>(<span class="ident">Pat</span>::<span class="ident">Invalid</span>(<span class="ident">Invalid</span> { <span class="ident">span</span> }))
+            <span class="ident">Expr::Lit</span>(..) <span class="op">|</span> <span class="ident">Expr::Assign</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">span</span>, <span class="ident">SyntaxError::InvalidPat</span>);
+                <span class="prelude-val">Ok</span>(<span class="ident">Pat::Invalid</span>(<span class="ident">Invalid</span> { <span class="ident">span</span> }))
             }
 
-            <span class="ident">Expr</span>::<span class="ident">Yield</span>(..) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ctx</span>().<span class="ident">in_generator</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">span</span>, <span class="ident">SyntaxError</span>::<span class="ident">InvalidPat</span>);
-                <span class="prelude-val">Ok</span>(<span class="ident">Pat</span>::<span class="ident">Invalid</span>(<span class="ident">Invalid</span> { <span class="ident">span</span> }))
+            <span class="ident">Expr::Yield</span>(..) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ctx</span>().<span class="ident">in_generator</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">span</span>, <span class="ident">SyntaxError::InvalidPat</span>);
+                <span class="prelude-val">Ok</span>(<span class="ident">Pat::Invalid</span>(<span class="ident">Invalid</span> { <span class="ident">span</span> }))
             }
 
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">span</span>, <span class="ident">SyntaxError</span>::<span class="ident">InvalidPat</span>);
+                <span class="self">self</span>.<span class="ident">emit_err</span>(<span class="ident">span</span>, <span class="ident">SyntaxError::InvalidPat</span>);
 
-                <span class="prelude-val">Ok</span>(<span class="ident">Pat</span>::<span class="ident">Invalid</span>(<span class="ident">Invalid</span> { <span class="ident">span</span> }))
+                <span class="prelude-val">Ok</span>(<span class="ident">Pat::Invalid</span>(<span class="ident">Invalid</span> { <span class="ident">span</span> }))
             }
         }
     }
@@ -1900,54 +1899,54 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="kw-2">mut</span> <span class="ident">exprs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PatOrExprOrSpread</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Pat</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">pat_ty</span> <span class="op">=</span> <span class="ident">PatType</span>::<span class="ident">BindingPat</span>;
+        <span class="kw">let</span> <span class="ident">pat_ty</span> <span class="op">=</span> <span class="ident">PatType::BindingPat</span>;
 
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">exprs</span>.<span class="ident">len</span>();
         <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro">vec</span><span class="macro">!</span>[]);
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[]);
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">len</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">len</span>);
 
         <span class="kw">for</span> <span class="ident">expr</span> <span class="kw">in</span> <span class="ident">exprs</span>.<span class="ident">drain</span>(..<span class="ident">len</span> <span class="op">-</span> <span class="number">1</span>) {
             <span class="kw">match</span> <span class="ident">expr</span> {
-                <span class="ident">PatOrExprOrSpread</span>::<span class="ident">ExprOrSpread</span>(<span class="ident">ExprOrSpread</span> {
+                <span class="ident">PatOrExprOrSpread::ExprOrSpread</span>(<span class="ident">ExprOrSpread</span> {
                     <span class="ident">spread</span>: <span class="prelude-val">Some</span>(..), ..
                 })
-                <span class="op">|</span> <span class="ident">PatOrExprOrSpread</span>::<span class="ident">Pat</span>(<span class="ident">Pat</span>::<span class="ident">Rest</span>(..)) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="op">|</span> <span class="ident">PatOrExprOrSpread::Pat</span>(<span class="ident">Pat::Rest</span>(..)) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">syntax</span>().<span class="ident">early_errors</span>() {
-                        <span class="macro">syntax_error</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">expr</span>.<span class="ident">span</span>(), <span class="ident">SyntaxError</span>::<span class="ident">NonLastRestParam</span>)
+                        <span class="macro">syntax_error!</span>(<span class="self">self</span>, <span class="ident">expr</span>.<span class="ident">span</span>(), <span class="ident">SyntaxError::NonLastRestParam</span>)
                     }
                 }
-                <span class="ident">PatOrExprOrSpread</span>::<span class="ident">ExprOrSpread</span>(<span class="ident">ExprOrSpread</span> {
+                <span class="ident">PatOrExprOrSpread::ExprOrSpread</span>(<span class="ident">ExprOrSpread</span> {
                     <span class="ident">spread</span>: <span class="prelude-val">None</span>, <span class="ident">expr</span>, ..
                 }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">params</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">reparse_expr_as_pat</span>(<span class="ident">pat_ty</span>, <span class="ident">expr</span>)<span class="question-mark">?</span>),
-                <span class="ident">PatOrExprOrSpread</span>::<span class="ident">Pat</span>(<span class="ident">pat</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">params</span>.<span class="ident">push</span>(<span class="ident">pat</span>),
+                <span class="ident">PatOrExprOrSpread::Pat</span>(<span class="ident">pat</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">params</span>.<span class="ident">push</span>(<span class="ident">pat</span>),
             }
         }
 
-        <span class="macro">debug_assert_eq</span><span class="macro">!</span>(<span class="ident">exprs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="macro">debug_assert_eq!</span>(<span class="ident">exprs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
         <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">exprs</span>.<span class="ident">into_iter</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">expr</span> {
             <span class="comment">// Rest</span>
-            <span class="ident">PatOrExprOrSpread</span>::<span class="ident">ExprOrSpread</span>(<span class="ident">ExprOrSpread</span> {
+            <span class="ident">PatOrExprOrSpread::ExprOrSpread</span>(<span class="ident">ExprOrSpread</span> {
                 <span class="ident">spread</span>: <span class="prelude-val">Some</span>(<span class="ident">dot3_token</span>),
                 <span class="ident">expr</span>,
             }) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">expr_span</span> <span class="op">=</span> <span class="ident">expr</span>.<span class="ident">span</span>();
                 <span class="self">self</span>.<span class="ident">reparse_expr_as_pat</span>(<span class="ident">pat_ty</span>, <span class="ident">expr</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">pat</span><span class="op">|</span> {
-                    <span class="ident">Pat</span>::<span class="ident">Rest</span>(<span class="ident">RestPat</span> {
+                    <span class="ident">Pat::Rest</span>(<span class="ident">RestPat</span> {
                         <span class="ident">span</span>: <span class="ident">expr_span</span>,
                         <span class="ident">dot3_token</span>,
-                        <span class="ident">arg</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">pat</span>),
+                        <span class="ident">arg</span>: <span class="ident">Box::new</span>(<span class="ident">pat</span>),
                         <span class="ident">type_ann</span>: <span class="prelude-val">None</span>,
                     })
                 })<span class="question-mark">?</span>
             }
-            <span class="ident">PatOrExprOrSpread</span>::<span class="ident">ExprOrSpread</span>(<span class="ident">ExprOrSpread</span> { <span class="ident">expr</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">PatOrExprOrSpread::ExprOrSpread</span>(<span class="ident">ExprOrSpread</span> { <span class="ident">expr</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">reparse_expr_as_pat</span>(<span class="ident">pat_ty</span>, <span class="ident">expr</span>)<span class="question-mark">?</span>
             }
-            <span class="ident">PatOrExprOrSpread</span>::<span class="ident">Pat</span>(<span class="ident">pat</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">pat</span>,
+            <span class="ident">PatOrExprOrSpread::Pat</span>(<span class="ident">pat</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">pat</span>,
         };
         <span class="ident">params</span>.<span class="ident">push</span>(<span class="ident">last</span>);
 
@@ -1958,49 +1957,49 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">swc_common</span>::<span class="ident">DUMMY_SP</span> <span class="kw">as</span> <span class="ident">span</span>;
-    <span class="kw">use</span> <span class="ident">swc_ecma_visit</span>::<span class="ident">assert_eq_ignore_span</span>;
+    <span class="kw">use</span> <span class="ident">swc_common::DUMMY_SP</span> <span class="kw">as</span> <span class="ident">span</span>;
+    <span class="kw">use</span> <span class="ident">swc_ecma_visit::assert_eq_ignore_span</span>;
 
     <span class="kw">fn</span> <span class="ident">array_pat</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Pat</span> {
-        <span class="ident">test_parser</span>(<span class="ident">s</span>, <span class="ident">Syntax</span>::<span class="ident">default</span>(), <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">parse_array_binding_pat</span>())
+        <span class="ident">test_parser</span>(<span class="ident">s</span>, <span class="ident">Syntax::default</span>(), <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">parse_array_binding_pat</span>())
     }
 
     <span class="kw">fn</span> <span class="ident">object_pat</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Pat</span> {
-        <span class="ident">test_parser</span>(<span class="ident">s</span>, <span class="ident">Syntax</span>::<span class="ident">default</span>(), <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">parse_binding_pat_or_ident</span>())
+        <span class="ident">test_parser</span>(<span class="ident">s</span>, <span class="ident">Syntax::default</span>(), <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">parse_binding_pat_or_ident</span>())
     }
 
     <span class="kw">fn</span> <span class="ident">ident</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ident</span> {
-        <span class="ident">Ident</span>::<span class="ident">new</span>(<span class="ident">s</span>.<span class="ident">into</span>(), <span class="ident">span</span>)
+        <span class="ident">Ident::new</span>(<span class="ident">s</span>.<span class="ident">into</span>(), <span class="ident">span</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">rest</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Pat</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">Pat</span>::<span class="ident">Rest</span>(<span class="ident">RestPat</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">Pat::Rest</span>(<span class="ident">RestPat</span> {
             <span class="ident">span</span>,
             <span class="ident">dot3_token</span>: <span class="ident">span</span>,
             <span class="ident">type_ann</span>: <span class="prelude-val">None</span>,
-            <span class="ident">arg</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;tail&quot;</span>).<span class="ident">into</span>())),
+            <span class="ident">arg</span>: <span class="ident">Box::new</span>(<span class="ident">Pat::Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;tail&quot;</span>).<span class="ident">into</span>())),
         }))
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">array_pat_simple</span>() {
-        <span class="macro">assert_eq_ignore_span</span><span class="macro">!</span>(
+        <span class="macro">assert_eq_ignore_span!</span>(
             <span class="ident">array_pat</span>(<span class="string">&quot;[a, [b], [c]]&quot;</span>),
-            <span class="ident">Pat</span>::<span class="ident">Array</span>(<span class="ident">ArrayPat</span> {
+            <span class="ident">Pat::Array</span>(<span class="ident">ArrayPat</span> {
                 <span class="ident">span</span>,
                 <span class="ident">optional</span>: <span class="bool-val">false</span>,
-                <span class="ident">elems</span>: <span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="prelude-val">Some</span>(<span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;a&quot;</span>).<span class="ident">into</span>())),
-                    <span class="prelude-val">Some</span>(<span class="ident">Pat</span>::<span class="ident">Array</span>(<span class="ident">ArrayPat</span> {
+                <span class="ident">elems</span>: <span class="macro">vec!</span>[
+                    <span class="prelude-val">Some</span>(<span class="ident">Pat::Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;a&quot;</span>).<span class="ident">into</span>())),
+                    <span class="prelude-val">Some</span>(<span class="ident">Pat::Array</span>(<span class="ident">ArrayPat</span> {
                         <span class="ident">span</span>,
                         <span class="ident">optional</span>: <span class="bool-val">false</span>,
-                        <span class="ident">elems</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="prelude-val">Some</span>(<span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;b&quot;</span>).<span class="ident">into</span>()))],
+                        <span class="ident">elems</span>: <span class="macro">vec!</span>[<span class="prelude-val">Some</span>(<span class="ident">Pat::Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;b&quot;</span>).<span class="ident">into</span>()))],
                         <span class="ident">type_ann</span>: <span class="prelude-val">None</span>
                     })),
-                    <span class="prelude-val">Some</span>(<span class="ident">Pat</span>::<span class="ident">Array</span>(<span class="ident">ArrayPat</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">Pat::Array</span>(<span class="ident">ArrayPat</span> {
                         <span class="ident">span</span>,
                         <span class="ident">optional</span>: <span class="bool-val">false</span>,
-                        <span class="ident">elems</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="prelude-val">Some</span>(<span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;c&quot;</span>).<span class="ident">into</span>()))],
+                        <span class="ident">elems</span>: <span class="macro">vec!</span>[<span class="prelude-val">Some</span>(<span class="ident">Pat::Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;c&quot;</span>).<span class="ident">into</span>()))],
                         <span class="ident">type_ann</span>: <span class="prelude-val">None</span>
                     }))
                 ],
@@ -2011,24 +2010,24 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">array_pat_empty_start</span>() {
-        <span class="macro">assert_eq_ignore_span</span><span class="macro">!</span>(
+        <span class="macro">assert_eq_ignore_span!</span>(
             <span class="ident">array_pat</span>(<span class="string">&quot;[, a, [b], [c]]&quot;</span>),
-            <span class="ident">Pat</span>::<span class="ident">Array</span>(<span class="ident">ArrayPat</span> {
+            <span class="ident">Pat::Array</span>(<span class="ident">ArrayPat</span> {
                 <span class="ident">span</span>,
                 <span class="ident">optional</span>: <span class="bool-val">false</span>,
-                <span class="ident">elems</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">elems</span>: <span class="macro">vec!</span>[
                     <span class="prelude-val">None</span>,
-                    <span class="prelude-val">Some</span>(<span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;a&quot;</span>).<span class="ident">into</span>())),
-                    <span class="prelude-val">Some</span>(<span class="ident">Pat</span>::<span class="ident">Array</span>(<span class="ident">ArrayPat</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">Pat::Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;a&quot;</span>).<span class="ident">into</span>())),
+                    <span class="prelude-val">Some</span>(<span class="ident">Pat::Array</span>(<span class="ident">ArrayPat</span> {
                         <span class="ident">span</span>,
                         <span class="ident">optional</span>: <span class="bool-val">false</span>,
-                        <span class="ident">elems</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="prelude-val">Some</span>(<span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;b&quot;</span>).<span class="ident">into</span>()))],
+                        <span class="ident">elems</span>: <span class="macro">vec!</span>[<span class="prelude-val">Some</span>(<span class="ident">Pat::Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;b&quot;</span>).<span class="ident">into</span>()))],
                         <span class="ident">type_ann</span>: <span class="prelude-val">None</span>
                     })),
-                    <span class="prelude-val">Some</span>(<span class="ident">Pat</span>::<span class="ident">Array</span>(<span class="ident">ArrayPat</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">Pat::Array</span>(<span class="ident">ArrayPat</span> {
                         <span class="ident">span</span>,
                         <span class="ident">optional</span>: <span class="bool-val">false</span>,
-                        <span class="ident">elems</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="prelude-val">Some</span>(<span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;c&quot;</span>).<span class="ident">into</span>()))],
+                        <span class="ident">elems</span>: <span class="macro">vec!</span>[<span class="prelude-val">Some</span>(<span class="ident">Pat::Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;c&quot;</span>).<span class="ident">into</span>()))],
                         <span class="ident">type_ann</span>: <span class="prelude-val">None</span>
                     }))
                 ],
@@ -2039,24 +2038,24 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">array_pat_empty</span>() {
-        <span class="macro">assert_eq_ignore_span</span><span class="macro">!</span>(
+        <span class="macro">assert_eq_ignore_span!</span>(
             <span class="ident">array_pat</span>(<span class="string">&quot;[a, , [b], [c]]&quot;</span>),
-            <span class="ident">Pat</span>::<span class="ident">Array</span>(<span class="ident">ArrayPat</span> {
+            <span class="ident">Pat::Array</span>(<span class="ident">ArrayPat</span> {
                 <span class="ident">span</span>,
                 <span class="ident">optional</span>: <span class="bool-val">false</span>,
-                <span class="ident">elems</span>: <span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="prelude-val">Some</span>(<span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;a&quot;</span>).<span class="ident">into</span>())),
+                <span class="ident">elems</span>: <span class="macro">vec!</span>[
+                    <span class="prelude-val">Some</span>(<span class="ident">Pat::Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;a&quot;</span>).<span class="ident">into</span>())),
                     <span class="prelude-val">None</span>,
-                    <span class="prelude-val">Some</span>(<span class="ident">Pat</span>::<span class="ident">Array</span>(<span class="ident">ArrayPat</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">Pat::Array</span>(<span class="ident">ArrayPat</span> {
                         <span class="ident">span</span>,
                         <span class="ident">optional</span>: <span class="bool-val">false</span>,
-                        <span class="ident">elems</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="prelude-val">Some</span>(<span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;b&quot;</span>).<span class="ident">into</span>()))],
+                        <span class="ident">elems</span>: <span class="macro">vec!</span>[<span class="prelude-val">Some</span>(<span class="ident">Pat::Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;b&quot;</span>).<span class="ident">into</span>()))],
                         <span class="ident">type_ann</span>: <span class="prelude-val">None</span>
                     })),
-                    <span class="prelude-val">Some</span>(<span class="ident">Pat</span>::<span class="ident">Array</span>(<span class="ident">ArrayPat</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">Pat::Array</span>(<span class="ident">ArrayPat</span> {
                         <span class="ident">span</span>,
                         <span class="ident">optional</span>: <span class="bool-val">false</span>,
-                        <span class="ident">elems</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="prelude-val">Some</span>(<span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;c&quot;</span>).<span class="ident">into</span>()))],
+                        <span class="ident">elems</span>: <span class="macro">vec!</span>[<span class="prelude-val">Some</span>(<span class="ident">Pat::Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;c&quot;</span>).<span class="ident">into</span>()))],
                         <span class="ident">type_ann</span>: <span class="prelude-val">None</span>
                     }))
                 ],
@@ -2067,12 +2066,12 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">array_binding_pattern_tail</span>() {
-        <span class="macro">assert_eq_ignore_span</span><span class="macro">!</span>(
+        <span class="macro">assert_eq_ignore_span!</span>(
             <span class="ident">array_pat</span>(<span class="string">&quot;[...tail]&quot;</span>),
-            <span class="ident">Pat</span>::<span class="ident">Array</span>(<span class="ident">ArrayPat</span> {
+            <span class="ident">Pat::Array</span>(<span class="ident">ArrayPat</span> {
                 <span class="ident">span</span>,
                 <span class="ident">optional</span>: <span class="bool-val">false</span>,
-                <span class="ident">elems</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">rest</span>()],
+                <span class="ident">elems</span>: <span class="macro">vec!</span>[<span class="ident">rest</span>()],
                 <span class="ident">type_ann</span>: <span class="prelude-val">None</span>
             })
         );
@@ -2080,18 +2079,18 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">array_binding_pattern_assign</span>() {
-        <span class="macro">assert_eq_ignore_span</span><span class="macro">!</span>(
+        <span class="macro">assert_eq_ignore_span!</span>(
             <span class="ident">array_pat</span>(<span class="string">&quot;[,a=1,]&quot;</span>),
-            <span class="ident">Pat</span>::<span class="ident">Array</span>(<span class="ident">ArrayPat</span> {
+            <span class="ident">Pat::Array</span>(<span class="ident">ArrayPat</span> {
                 <span class="ident">span</span>,
                 <span class="ident">optional</span>: <span class="bool-val">false</span>,
-                <span class="ident">elems</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">elems</span>: <span class="macro">vec!</span>[
                     <span class="prelude-val">None</span>,
-                    <span class="prelude-val">Some</span>(<span class="ident">Pat</span>::<span class="ident">Assign</span>(<span class="ident">AssignPat</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">Pat::Assign</span>(<span class="ident">AssignPat</span> {
                         <span class="ident">type_ann</span>: <span class="prelude-val">None</span>,
                         <span class="ident">span</span>,
-                        <span class="ident">left</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;a&quot;</span>).<span class="ident">into</span>())),
-                        <span class="ident">right</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Expr</span>::<span class="ident">Lit</span>(<span class="ident">Lit</span>::<span class="ident">Num</span>(<span class="ident">Number</span> { <span class="ident">span</span>, <span class="ident">value</span>: <span class="number">1.0</span> })))
+                        <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">Pat::Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;a&quot;</span>).<span class="ident">into</span>())),
+                        <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">Expr::Lit</span>(<span class="ident">Lit::Num</span>(<span class="ident">Number</span> { <span class="ident">span</span>, <span class="ident">value</span>: <span class="number">1.0</span> })))
                     }))
                 ],
                 <span class="ident">type_ann</span>: <span class="prelude-val">None</span>
@@ -2101,12 +2100,12 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">array_binding_pattern_tail_with_elems</span>() {
-        <span class="macro">assert_eq_ignore_span</span><span class="macro">!</span>(
+        <span class="macro">assert_eq_ignore_span!</span>(
             <span class="ident">array_pat</span>(<span class="string">&quot;[,,,...tail]&quot;</span>),
-            <span class="ident">Pat</span>::<span class="ident">Array</span>(<span class="ident">ArrayPat</span> {
+            <span class="ident">Pat::Array</span>(<span class="ident">ArrayPat</span> {
                 <span class="ident">span</span>,
                 <span class="ident">optional</span>: <span class="bool-val">false</span>,
-                <span class="ident">elems</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="ident">rest</span>()],
+                <span class="ident">elems</span>: <span class="macro">vec!</span>[<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="ident">rest</span>()],
                 <span class="ident">type_ann</span>: <span class="prelude-val">None</span>
             })
         );
@@ -2114,23 +2113,23 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">array_binding_pattern_tail_inside_tail</span>() {
-        <span class="macro">assert_eq_ignore_span</span><span class="macro">!</span>(
+        <span class="macro">assert_eq_ignore_span!</span>(
             <span class="ident">array_pat</span>(<span class="string">&quot;[,,,...[...tail]]&quot;</span>),
-            <span class="ident">Pat</span>::<span class="ident">Array</span>(<span class="ident">ArrayPat</span> {
+            <span class="ident">Pat::Array</span>(<span class="ident">ArrayPat</span> {
                 <span class="ident">span</span>,
                 <span class="ident">optional</span>: <span class="bool-val">false</span>,
-                <span class="ident">elems</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">elems</span>: <span class="macro">vec!</span>[
                     <span class="prelude-val">None</span>,
                     <span class="prelude-val">None</span>,
                     <span class="prelude-val">None</span>,
-                    <span class="prelude-val">Some</span>(<span class="ident">Pat</span>::<span class="ident">Rest</span>(<span class="ident">RestPat</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">Pat::Rest</span>(<span class="ident">RestPat</span> {
                         <span class="ident">span</span>,
                         <span class="ident">dot3_token</span>: <span class="ident">span</span>,
                         <span class="ident">type_ann</span>: <span class="prelude-val">None</span>,
-                        <span class="ident">arg</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Pat</span>::<span class="ident">Array</span>(<span class="ident">ArrayPat</span> {
+                        <span class="ident">arg</span>: <span class="ident">Box::new</span>(<span class="ident">Pat::Array</span>(<span class="ident">ArrayPat</span> {
                             <span class="ident">span</span>,
                             <span class="ident">optional</span>: <span class="bool-val">false</span>,
-                            <span class="ident">elems</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">rest</span>()],
+                            <span class="ident">elems</span>: <span class="macro">vec!</span>[<span class="ident">rest</span>()],
                             <span class="ident">type_ann</span>: <span class="prelude-val">None</span>
                         }))
                     }))
@@ -2142,17 +2141,17 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">object_binding_pattern_tail</span>() {
-        <span class="macro">assert_eq_ignore_span</span><span class="macro">!</span>(
+        <span class="macro">assert_eq_ignore_span!</span>(
             <span class="ident">object_pat</span>(<span class="string">&quot;{...obj}&quot;</span>),
-            <span class="ident">Pat</span>::<span class="ident">Object</span>(<span class="ident">ObjectPat</span> {
+            <span class="ident">Pat::Object</span>(<span class="ident">ObjectPat</span> {
                 <span class="ident">span</span>,
                 <span class="ident">type_ann</span>: <span class="prelude-val">None</span>,
                 <span class="ident">optional</span>: <span class="bool-val">false</span>,
-                <span class="ident">props</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">ObjectPatProp</span>::<span class="ident">Rest</span>(<span class="ident">RestPat</span> {
+                <span class="ident">props</span>: <span class="macro">vec!</span>[<span class="ident">ObjectPatProp::Rest</span>(<span class="ident">RestPat</span> {
                     <span class="ident">span</span>,
                     <span class="ident">dot3_token</span>: <span class="ident">span</span>,
                     <span class="ident">type_ann</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">arg</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;obj&quot;</span>).<span class="ident">into</span>()))
+                    <span class="ident">arg</span>: <span class="ident">Box::new</span>(<span class="ident">Pat::Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;obj&quot;</span>).<span class="ident">into</span>()))
                 })]
             })
         );
@@ -2160,16 +2159,16 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">object_binding_pattern_with_prop</span>() {
-        <span class="macro">assert_eq_ignore_span</span><span class="macro">!</span>(
+        <span class="macro">assert_eq_ignore_span!</span>(
             <span class="ident">object_pat</span>(<span class="string">&quot;{prop = 10 }&quot;</span>),
-            <span class="ident">Pat</span>::<span class="ident">Object</span>(<span class="ident">ObjectPat</span> {
+            <span class="ident">Pat::Object</span>(<span class="ident">ObjectPat</span> {
                 <span class="ident">span</span>,
                 <span class="ident">type_ann</span>: <span class="prelude-val">None</span>,
                 <span class="ident">optional</span>: <span class="bool-val">false</span>,
-                <span class="ident">props</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">ObjectPatProp</span>::<span class="ident">Assign</span>(<span class="ident">AssignPatProp</span> {
+                <span class="ident">props</span>: <span class="macro">vec!</span>[<span class="ident">ObjectPatProp::Assign</span>(<span class="ident">AssignPatProp</span> {
                     <span class="ident">span</span>,
                     <span class="ident">key</span>: <span class="ident">ident</span>(<span class="string">&quot;prop&quot;</span>),
-                    <span class="ident">value</span>: <span class="prelude-val">Some</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Expr</span>::<span class="ident">Lit</span>(<span class="ident">Lit</span>::<span class="ident">Num</span>(<span class="ident">Number</span> { <span class="ident">span</span>, <span class="ident">value</span>: <span class="number">10.0</span> }))))
+                    <span class="ident">value</span>: <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">Expr::Lit</span>(<span class="ident">Lit::Num</span>(<span class="ident">Number</span> { <span class="ident">span</span>, <span class="ident">value</span>: <span class="number">10.0</span> }))))
                 })]
             })
         );
@@ -2178,82 +2177,82 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">object_binding_pattern_with_prop_and_label</span>() {
         <span class="kw">fn</span> <span class="ident">prop</span>(<span class="ident">key</span>: <span class="ident">PropName</span>, <span class="ident">assign_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">expr</span>: <span class="ident">Expr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PropOrSpread</span> {
-            <span class="ident">PropOrSpread</span>::<span class="ident">Prop</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Prop</span>::<span class="ident">KeyValue</span>(<span class="ident">KeyValueProp</span> {
+            <span class="ident">PropOrSpread::Prop</span>(<span class="ident">Box::new</span>(<span class="ident">Prop::KeyValue</span>(<span class="ident">KeyValueProp</span> {
                 <span class="ident">key</span>,
-                <span class="ident">value</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Expr</span>::<span class="ident">Assign</span>(<span class="ident">AssignExpr</span> {
+                <span class="ident">value</span>: <span class="ident">Box::new</span>(<span class="ident">Expr::Assign</span>(<span class="ident">AssignExpr</span> {
                     <span class="ident">span</span>,
-                    <span class="ident">op</span>: <span class="ident">AssignOp</span>::<span class="ident">Assign</span>,
-                    <span class="ident">left</span>: <span class="ident">PatOrExpr</span>::<span class="ident">Pat</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">ident</span>(<span class="ident">assign_name</span>).<span class="ident">into</span>()))),
-                    <span class="ident">right</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">expr</span>),
+                    <span class="ident">op</span>: <span class="ident">AssignOp::Assign</span>,
+                    <span class="ident">left</span>: <span class="ident">PatOrExpr::Pat</span>(<span class="ident">Box::new</span>(<span class="ident">Pat::Ident</span>(<span class="ident">ident</span>(<span class="ident">assign_name</span>).<span class="ident">into</span>()))),
+                    <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">expr</span>),
                 })),
             })))
         }
 
-        <span class="macro">assert_eq_ignore_span</span><span class="macro">!</span>(
+        <span class="macro">assert_eq_ignore_span!</span>(
             <span class="ident">object_pat</span>(
                 <span class="string">&quot;{obj = {$: num = 10, &#39;&#39;: sym = &#39;&#39;, \&quot; \&quot;: quote = \&quot; \&quot;, _: under = [...tail],}}&quot;</span>
             ),
-            <span class="ident">Pat</span>::<span class="ident">Object</span>(<span class="ident">ObjectPat</span> {
+            <span class="ident">Pat::Object</span>(<span class="ident">ObjectPat</span> {
                 <span class="ident">span</span>,
                 <span class="ident">type_ann</span>: <span class="prelude-val">None</span>,
                 <span class="ident">optional</span>: <span class="bool-val">false</span>,
-                <span class="ident">props</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">ObjectPatProp</span>::<span class="ident">Assign</span>(<span class="ident">AssignPatProp</span> {
+                <span class="ident">props</span>: <span class="macro">vec!</span>[<span class="ident">ObjectPatProp::Assign</span>(<span class="ident">AssignPatProp</span> {
                     <span class="ident">span</span>,
                     <span class="ident">key</span>: <span class="ident">ident</span>(<span class="string">&quot;obj&quot;</span>),
-                    <span class="ident">value</span>: <span class="prelude-val">Some</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Expr</span>::<span class="ident">Object</span>(<span class="ident">ObjectLit</span> {
+                    <span class="ident">value</span>: <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">Expr::Object</span>(<span class="ident">ObjectLit</span> {
                         <span class="ident">span</span>,
-                        <span class="ident">props</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                        <span class="ident">props</span>: <span class="macro">vec!</span>[
                             <span class="ident">prop</span>(
-                                <span class="ident">PropName</span>::<span class="ident">Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;$&quot;</span>)),
+                                <span class="ident">PropName::Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;$&quot;</span>)),
                                 <span class="string">&quot;num&quot;</span>,
-                                <span class="ident">Expr</span>::<span class="ident">Lit</span>(<span class="ident">Lit</span>::<span class="ident">Num</span>(<span class="ident">Number</span> { <span class="ident">span</span>, <span class="ident">value</span>: <span class="number">10.0</span> }))
+                                <span class="ident">Expr::Lit</span>(<span class="ident">Lit::Num</span>(<span class="ident">Number</span> { <span class="ident">span</span>, <span class="ident">value</span>: <span class="number">10.0</span> }))
                             ),
                             <span class="ident">prop</span>(
-                                <span class="ident">PropName</span>::<span class="ident">Str</span>(<span class="ident">Str</span> {
+                                <span class="ident">PropName::Str</span>(<span class="ident">Str</span> {
                                     <span class="ident">span</span>,
                                     <span class="ident">has_escape</span>: <span class="bool-val">false</span>,
                                     <span class="ident">value</span>: <span class="string">&quot;&quot;</span>.<span class="ident">into</span>(),
-                                    <span class="ident">kind</span>: <span class="ident">StrKind</span>::<span class="ident">Normal</span> {
+                                    <span class="ident">kind</span>: <span class="ident">StrKind::Normal</span> {
                                         <span class="ident">contains_quote</span>: <span class="bool-val">true</span>
                                     }
                                 }),
                                 <span class="string">&quot;sym&quot;</span>,
-                                <span class="ident">Expr</span>::<span class="ident">Lit</span>(<span class="ident">Lit</span>::<span class="ident">Str</span>(<span class="ident">Str</span> {
+                                <span class="ident">Expr::Lit</span>(<span class="ident">Lit::Str</span>(<span class="ident">Str</span> {
                                     <span class="ident">span</span>,
                                     <span class="ident">has_escape</span>: <span class="bool-val">false</span>,
                                     <span class="ident">value</span>: <span class="string">&quot;&quot;</span>.<span class="ident">into</span>(),
-                                    <span class="ident">kind</span>: <span class="ident">StrKind</span>::<span class="ident">Normal</span> {
+                                    <span class="ident">kind</span>: <span class="ident">StrKind::Normal</span> {
                                         <span class="ident">contains_quote</span>: <span class="bool-val">true</span>
                                     }
                                 }))
                             ),
                             <span class="ident">prop</span>(
-                                <span class="ident">PropName</span>::<span class="ident">Str</span>(<span class="ident">Str</span> {
+                                <span class="ident">PropName::Str</span>(<span class="ident">Str</span> {
                                     <span class="ident">span</span>,
                                     <span class="ident">has_escape</span>: <span class="bool-val">false</span>,
                                     <span class="ident">value</span>: <span class="string">&quot; &quot;</span>.<span class="ident">into</span>(),
-                                    <span class="ident">kind</span>: <span class="ident">StrKind</span>::<span class="ident">Normal</span> {
+                                    <span class="ident">kind</span>: <span class="ident">StrKind::Normal</span> {
                                         <span class="ident">contains_quote</span>: <span class="bool-val">true</span>
                                     }
                                 }),
                                 <span class="string">&quot;quote&quot;</span>,
-                                <span class="ident">Expr</span>::<span class="ident">Lit</span>(<span class="ident">Lit</span>::<span class="ident">Str</span>(<span class="ident">Str</span> {
+                                <span class="ident">Expr::Lit</span>(<span class="ident">Lit::Str</span>(<span class="ident">Str</span> {
                                     <span class="ident">span</span>,
                                     <span class="ident">has_escape</span>: <span class="bool-val">false</span>,
                                     <span class="ident">value</span>: <span class="string">&quot; &quot;</span>.<span class="ident">into</span>(),
-                                    <span class="ident">kind</span>: <span class="ident">StrKind</span>::<span class="ident">Normal</span> {
+                                    <span class="ident">kind</span>: <span class="ident">StrKind::Normal</span> {
                                         <span class="ident">contains_quote</span>: <span class="bool-val">true</span>
                                     }
                                 }))
                             ),
                             <span class="ident">prop</span>(
-                                <span class="ident">PropName</span>::<span class="ident">Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;_&quot;</span>)),
+                                <span class="ident">PropName::Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;_&quot;</span>)),
                                 <span class="string">&quot;under&quot;</span>,
-                                <span class="ident">Expr</span>::<span class="ident">Array</span>(<span class="ident">ArrayLit</span> {
+                                <span class="ident">Expr::Array</span>(<span class="ident">ArrayLit</span> {
                                     <span class="ident">span</span>,
-                                    <span class="ident">elems</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="prelude-val">Some</span>(<span class="ident">ExprOrSpread</span> {
+                                    <span class="ident">elems</span>: <span class="macro">vec!</span>[<span class="prelude-val">Some</span>(<span class="ident">ExprOrSpread</span> {
                                         <span class="ident">spread</span>: <span class="prelude-val">Some</span>(<span class="ident">span</span>),
-                                        <span class="ident">expr</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Expr</span>::<span class="ident">Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;tail&quot;</span>)))
+                                        <span class="ident">expr</span>: <span class="ident">Box::new</span>(<span class="ident">Expr::Ident</span>(<span class="ident">ident</span>(<span class="string">&quot;tail&quot;</span>)))
                                     })]
                                 })
                             ),
@@ -2265,5 +2264,4 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="swc_ecma_parser" data-search-js="../../../search-index.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="swc_ecma_parser" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

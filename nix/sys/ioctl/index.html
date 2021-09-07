@@ -1,7 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Provide helpers for making ioctl system calls."><meta name="keywords" content="rust, rustlang, rust-lang, ioctl"><title>nix::sys::ioctl - Rust</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../nix/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a><p class="location">Module ioctl</p><div class="sidebar-elems"><p class="location"><a href="../../index.html">nix</a>::<wbr><a href="../index.html">sys</a></p><div id="sidebar-vars" data-name="ioctl" data-ty="mod" data-relpath="../"></div><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Module <a href="../../index.html">nix</a>::<wbr><a href="../index.html">sys</a>::<wbr><a class="mod" href="">ioctl</a></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../../../src/nix/sys/ioctl/mod.rs.html#1-776" title="goto source code">[src]</a></span></h1><div class="docblock"><p>Provide helpers for making ioctl system calls.</p>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../nix/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a><h2 class="location">Module ioctl</h2><div class="sidebar-elems"><div id="sidebar-vars" data-name="ioctl" data-ty="mod" data-relpath="./"></div><script defer src="./sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Module <a href="../../index.html">nix</a>::<wbr><a href="../index.html">sys</a>::<wbr><a class="mod" href="#">ioctl</a><button id="copy-path" onclick="copy_path(this)" title="copy path"><img src="../../../clipboard.svg" width="19" height="18" alt="Copy item import" title="Copy item import to clipboard"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../../../src/nix/sys/ioctl/mod.rs.html#1-778" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Provide helpers for making ioctl system calls.</p>
 <p>This library is pretty low-level and messy. <code>ioctl</code> is not fun.</p>
 <h1 id="what-is-an-ioctl" class="section-header"><a href="#what-is-an-ioctl">What is an <code>ioctl</code>?</a></h1>
 <p>The <code>ioctl</code> syscall is the grab-bag syscall on POSIX systems. Don’t want to add a new
@@ -49,13 +48,13 @@ macro, we know it’s a <code>read</code> ioctl and can use the <code>ioctl_read
 <div class="example-wrap"><pre class="rust rust-example-rendered">
 <span class="kw">const</span> <span class="ident">SPI_IOC_MAGIC</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="string">b&#39;k&#39;</span>; <span class="comment">// Defined in linux/spi/spidev.h</span>
 <span class="kw">const</span> <span class="ident">SPI_IOC_TYPE_MODE</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">1</span>;
-<span class="macro">ioctl_read</span><span class="macro">!</span>(<span class="ident">spi_read_mode</span>, <span class="ident">SPI_IOC_MAGIC</span>, <span class="ident">SPI_IOC_TYPE_MODE</span>, <span class="ident">u8</span>);</pre></div>
+<span class="macro">ioctl_read!</span>(<span class="ident">spi_read_mode</span>, <span class="ident">SPI_IOC_MAGIC</span>, <span class="ident">SPI_IOC_TYPE_MODE</span>, <span class="ident">u8</span>);</pre></div>
 <p>This generates the function:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered">
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">spi_read_mode</span>(<span class="ident">fd</span>: <span class="ident">c_int</span>, <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">c_int</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">ioctl</span>(<span class="ident">fd</span>, <span class="macro">request_code_read</span><span class="macro">!</span>(<span class="ident">SPI_IOC_MAGIC</span>, <span class="ident">SPI_IOC_TYPE_MODE</span>, <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>()), <span class="ident">data</span>);
-    <span class="ident">Errno</span>::<span class="ident">result</span>(<span class="ident">res</span>)
+    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">libc::ioctl</span>(<span class="ident">fd</span>, <span class="macro">request_code_read!</span>(<span class="ident">SPI_IOC_MAGIC</span>, <span class="ident">SPI_IOC_TYPE_MODE</span>, <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>()), <span class="ident">data</span>);
+    <span class="ident">Errno::result</span>(<span class="ident">res</span>)
 }</pre></div>
 <p>The return value for the wrapper functions generated by the <code>ioctl_*!</code> macros are <code>nix::Error</code>s.
 These are generated by assuming the return value of the ioctl is <code>-1</code> on error and everything
@@ -68,7 +67,7 @@ of the range of “good” values (-Inf..-2, 0..Inf) into a smaller range in a h
 <div class="example-wrap"><pre class="rust rust-example-rendered">
 <span class="kw">const</span> <span class="ident">HCI_IOC_MAGIC</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="string">b&#39;k&#39;</span>;
 <span class="kw">const</span> <span class="ident">HCI_IOC_HCIDEVUP</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">1</span>;
-<span class="macro">ioctl_write_int</span><span class="macro">!</span>(<span class="ident">hci_dev_up</span>, <span class="ident">HCI_IOC_MAGIC</span>, <span class="ident">HCI_IOC_HCIDEVUP</span>);</pre></div>
+<span class="macro">ioctl_write_int!</span>(<span class="ident">hci_dev_up</span>, <span class="ident">HCI_IOC_MAGIC</span>, <span class="ident">HCI_IOC_HCIDEVUP</span>);</pre></div>
 <p>Some <code>ioctl</code>s don’t transfer any data, and those should use <code>ioctl_none!</code>. This macro
 doesn’t take a type and so it is declared similar to the <code>write_int</code> variant shown above.</p>
 <p>The mode for a given <code>ioctl</code> should be clear from the documentation if it has good
@@ -77,7 +76,7 @@ number where <code>_IO</code>, <code>_IOR</code>, <code>_IOW</code>, and <code>_
 respectively. To determine the specific <code>write_</code> variant to use you’ll need to find
 what the argument type is supposed to be. If it’s an <code>int</code>, then <code>write_int</code> should be used,
 otherwise it should be a pointer and <code>write_ptr</code> should be used. On Linux the
-<a href="http://man7.org/linux/man-pages/man2/ioctl_list.2.html"><code>ioctl_list</code> man page</a> describes a
+<a href="https://man7.org/linux/man-pages/man2/ioctl_list.2.html"><code>ioctl_list</code> man page</a> describes a
 large number of <code>ioctl</code>s and describes their argument data type.</p>
 <h2 id="using-bad-ioctls" class="section-header"><a href="#using-bad-ioctls">Using “bad” <code>ioctl</code>s</a></h2>
 <p>As mentioned earlier, there are many old <code>ioctl</code>s that do not use the newer method of
@@ -89,7 +88,7 @@ the ioctl number and instead use the defined value directly.</p>
 It’s defined as <code>0x5401</code> in <code>ioctls.h</code> on Linux and can be implemented as:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="macro">ioctl_read_bad</span><span class="macro">!</span>(<span class="ident">tcgets</span>, <span class="ident">TCGETS</span>, <span class="ident">termios</span>);</pre></div>
+<span class="macro">ioctl_read_bad!</span>(<span class="ident">tcgets</span>, <span class="ident">TCGETS</span>, <span class="ident">termios</span>);</pre></div>
 <p>The generated function has the same form as that generated by <code>ioctl_read!</code>:</p>
 <pre><code class="language-text">pub unsafe fn tcgets(fd: c_int, data: *mut termios) -&gt; Result&lt;c_int&gt;;
 </code></pre>
@@ -112,15 +111,15 @@ needed to define this <code>ioctl</code> is:</p>
 <div class="example-wrap"><pre class="rust rust-example-rendered">
 <span class="kw">const</span> <span class="ident">SPI_IOC_MAGIC</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="string">b&#39;k&#39;</span>; <span class="comment">// Defined in linux/spi/spidev.h</span>
 <span class="kw">const</span> <span class="ident">SPI_IOC_TYPE_MESSAGE</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">0</span>;
-<span class="macro">ioctl_write_buf</span><span class="macro">!</span>(<span class="ident">spi_transfer</span>, <span class="ident">SPI_IOC_MAGIC</span>, <span class="ident">SPI_IOC_TYPE_MESSAGE</span>, <span class="ident">spi_ioc_transfer</span>);</pre></div>
+<span class="macro">ioctl_write_buf!</span>(<span class="ident">spi_transfer</span>, <span class="ident">SPI_IOC_MAGIC</span>, <span class="ident">SPI_IOC_TYPE_MESSAGE</span>, <span class="ident">spi_ioc_transfer</span>);</pre></div>
 <p>This generates a function like:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered">
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">spi_message</span>(<span class="ident">fd</span>: <span class="ident">c_int</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">spi_ioc_transfer</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">c_int</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">ioctl</span>(<span class="ident">fd</span>,
-                          <span class="macro">request_code_write</span><span class="macro">!</span>(<span class="ident">SPI_IOC_MAGIC</span>, <span class="ident">SPI_IOC_TYPE_MESSAGE</span>, <span class="ident">data</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">spi_ioc_transfer</span><span class="op">&gt;</span>()),
+    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">libc::ioctl</span>(<span class="ident">fd</span>,
+                          <span class="macro">request_code_write!</span>(<span class="ident">SPI_IOC_MAGIC</span>, <span class="ident">SPI_IOC_TYPE_MESSAGE</span>, <span class="ident">data</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">spi_ioc_transfer</span><span class="op">&gt;</span>()),
                           <span class="ident">data</span>);
-    <span class="ident">Errno</span>::<span class="ident">result</span>(<span class="ident">res</span>)
+    <span class="ident">Errno::result</span>(<span class="ident">res</span>)
 }</pre></div>
 <h2 id="finding-ioctl-documentation" class="section-header"><a href="#finding-ioctl-documentation">Finding <code>ioctl</code> Documentation</a></h2>
 <p>For Linux, look at your system’s headers. For example, <code>/usr/include/linux/input.h</code> has a lot
@@ -136,7 +135,7 @@ them in a private module.</p>
 example :</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="macro">ioctl_read</span><span class="macro">!</span> {
+<span class="macro">ioctl_read!</span> {
     <span class="doccomment">/// Make the given terminal the controlling terminal of the calling process. The calling</span>
     <span class="doccomment">/// process must be a session leader and not have a controlling terminal already. If the</span>
     <span class="doccomment">/// terminal is already the controlling terminal of a different session group then the</span>
@@ -146,5 +145,4 @@ example :</p>
     <span class="ident">tiocsctty</span>, <span class="string">b&#39;t&#39;</span>, <span class="number">19</span>, <span class="ident">c_int</span>
 }
 </pre></div>
-</div></section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nix" data-search-js="../../../search-index.js"></div>
-    <script src="../../../main.js"></script></body></html>
+</div></details></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nix" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div><script src="../../../main.js"></script></body></html>

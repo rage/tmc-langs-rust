@@ -1,7 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-fs-1.5.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../async_fs/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../async_fs/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1785,7 +1784,7 @@
 <span id="1782">1782</span>
 <span id="1783">1783</span>
 <span id="1784">1784</span>
-</pre><div class="example-wrap"><pre class="rust ">
+</pre><pre class="rust">
 <span class="doccomment">//! Async filesystem primitives.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This crate is an async version of [`std::fs`].</span>
@@ -1813,29 +1812,29 @@
 
 <span class="attribute">#![<span class="ident">warn</span>(<span class="ident">missing_docs</span>, <span class="ident">missing_debug_implementations</span>, <span class="ident">rust_2018_idioms</span>)]</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">OsString</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">future</span>::<span class="ident">Future</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">SeekFrom</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">pin</span>::<span class="ident">Pin</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">task</span>::{<span class="ident">Context</span>, <span class="ident">Poll</span>};
+<span class="kw">use</span> <span class="ident">std::ffi::OsString</span>;
+<span class="kw">use</span> <span class="ident">std::fmt</span>;
+<span class="kw">use</span> <span class="ident">std::future::Future</span>;
+<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">SeekFrom</span>};
+<span class="kw">use</span> <span class="ident">std::path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
+<span class="kw">use</span> <span class="ident">std::pin::Pin</span>;
+<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
+<span class="kw">use</span> <span class="ident">std::task</span>::{<span class="ident">Context</span>, <span class="ident">Poll</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">unix</span>::<span class="ident">fs</span>::{<span class="ident">DirEntryExt</span> <span class="kw">as</span> <span class="kw">_</span>, <span class="ident">OpenOptionsExt</span> <span class="kw">as</span> <span class="kw">_</span>};
+<span class="kw">use</span> <span class="ident">std::os::unix::fs</span>::{<span class="ident">DirEntryExt</span> <span class="kw">as</span> <span class="kw">_</span>, <span class="ident">OpenOptionsExt</span> <span class="kw">as</span> <span class="kw">_</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">windows</span>::<span class="ident">fs</span>::<span class="ident">OpenOptionsExt</span> <span class="kw">as</span> <span class="kw">_</span>;
+<span class="kw">use</span> <span class="ident">std::os::windows::fs::OpenOptionsExt</span> <span class="kw">as</span> <span class="kw">_</span>;
 
-<span class="kw">use</span> <span class="ident">async_lock</span>::<span class="ident">Mutex</span>;
+<span class="kw">use</span> <span class="ident">async_lock::Mutex</span>;
 <span class="kw">use</span> <span class="ident">blocking</span>::{<span class="ident">unblock</span>, <span class="ident">Unblock</span>};
-<span class="kw">use</span> <span class="ident">futures_lite</span>::<span class="ident">io</span>::{<span class="ident">AsyncRead</span>, <span class="ident">AsyncSeek</span>, <span class="ident">AsyncWrite</span>, <span class="ident">AsyncWriteExt</span>};
-<span class="kw">use</span> <span class="ident">futures_lite</span>::<span class="ident">stream</span>::<span class="ident">Stream</span>;
+<span class="kw">use</span> <span class="ident">futures_lite::io</span>::{<span class="ident">AsyncRead</span>, <span class="ident">AsyncSeek</span>, <span class="ident">AsyncWrite</span>, <span class="ident">AsyncWriteExt</span>};
+<span class="kw">use</span> <span class="ident">futures_lite::stream::Stream</span>;
 <span class="kw">use</span> <span class="ident">futures_lite</span>::{<span class="ident">future</span>, <span class="ident">ready</span>};
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">no_inline</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::{<span class="ident">FileType</span>, <span class="ident">Metadata</span>, <span class="ident">Permissions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">std::fs</span>::{<span class="ident">FileType</span>, <span class="ident">Metadata</span>, <span class="ident">Permissions</span>};
 
 <span class="doccomment">/// Returns the canonical form of a path.</span>
 <span class="doccomment">///</span>
@@ -1857,9 +1856,9 @@
 <span class="doccomment">/// let path = async_fs::canonicalize(&quot;.&quot;).await?;</span>
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">canonicalize</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">canonicalize</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">canonicalize</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span>
+    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::canonicalize</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span>
 }
 
 <span class="doccomment">/// Copies a file to a new location.</span>
@@ -1888,10 +1887,10 @@
 <span class="doccomment">/// let num_bytes = async_fs::copy(&quot;a.txt&quot;, &quot;b.txt&quot;).await?;</span>
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">copy</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>, <span class="ident">Q</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">src</span>: <span class="ident">P</span>, <span class="ident">dst</span>: <span class="ident">Q</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">copy</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>, <span class="ident">Q</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">src</span>: <span class="ident">P</span>, <span class="ident">dst</span>: <span class="ident">Q</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
     <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">dst</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">copy</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;</span><span class="ident">dst</span>)).<span class="kw">await</span>
+    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::copy</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;</span><span class="ident">dst</span>)).<span class="kw">await</span>
 }
 
 <span class="doccomment">/// Creates a directory.</span>
@@ -1915,9 +1914,9 @@
 <span class="doccomment">/// async_fs::create_dir(&quot;./some/directory&quot;).await?;</span>
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">create_dir</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">create_dir</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">create_dir</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span>
+    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::create_dir</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span>
 }
 
 <span class="doccomment">/// Creates a directory and its parent directories if they are missing.</span>
@@ -1937,9 +1936,9 @@
 <span class="doccomment">/// async_fs::create_dir_all(&quot;./some/directory&quot;).await?;</span>
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">create_dir_all</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">create_dir_all</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">create_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span>
+    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::create_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span>
 }
 
 <span class="doccomment">/// Creates a hard link on the filesystem.</span>
@@ -1961,10 +1960,10 @@
 <span class="doccomment">/// async_fs::hard_link(&quot;a.txt&quot;, &quot;b.txt&quot;).await?;</span>
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">hard_link</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>, <span class="ident">Q</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">src</span>: <span class="ident">P</span>, <span class="ident">dst</span>: <span class="ident">Q</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">hard_link</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>, <span class="ident">Q</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">src</span>: <span class="ident">P</span>, <span class="ident">dst</span>: <span class="ident">Q</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
     <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">dst</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">hard_link</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;</span><span class="ident">dst</span>)).<span class="kw">await</span>
+    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::hard_link</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;</span><span class="ident">dst</span>)).<span class="kw">await</span>
 }
 
 <span class="doccomment">/// Reads metadata for a path.</span>
@@ -1988,9 +1987,9 @@
 <span class="doccomment">/// let perm = async_fs::metadata(&quot;a.txt&quot;).await?.permissions();</span>
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">metadata</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">metadata</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">metadata</span>(<span class="ident">path</span>)).<span class="kw">await</span>
+    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::metadata</span>(<span class="ident">path</span>)).<span class="kw">await</span>
 }
 
 <span class="doccomment">/// Reads the entire contents of a file as raw bytes.</span>
@@ -2016,9 +2015,9 @@
 <span class="doccomment">/// let contents = async_fs::read(&quot;a.txt&quot;).await?;</span>
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">read</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">read</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span>
+    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::read</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span>
 }
 
 <span class="doccomment">/// Returns a stream of entries in a directory.</span>
@@ -2047,9 +2046,9 @@
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">read_dir</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ReadDir</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">read_dir</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">ReadDir</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">read_dir</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">ReadDir</span>(<span class="ident">State</span>::<span class="ident">Idle</span>(<span class="prelude-val">Some</span>(<span class="ident">inner</span>))))).<span class="kw">await</span>
+    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::read_dir</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">ReadDir</span>(<span class="ident">State::Idle</span>(<span class="prelude-val">Some</span>(<span class="ident">inner</span>))))).<span class="kw">await</span>
 }
 
 <span class="doccomment">/// A stream of entries in a directory.</span>
@@ -2063,36 +2062,36 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// The `ReadDir` can be either idle or busy performing an asynchronous operation.</span>
 <span class="kw">enum</span> <span class="ident">State</span> {
-    <span class="ident">Idle</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">ReadDir</span><span class="op">&gt;</span>),
-    <span class="ident">Busy</span>(<span class="ident">future</span>::<span class="ident">Boxed</span><span class="op">&lt;</span>(<span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">ReadDir</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">DirEntry</span><span class="op">&gt;</span><span class="op">&gt;</span>)<span class="op">&gt;</span>),
+    <span class="ident">Idle</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">std::fs::ReadDir</span><span class="op">&gt;</span>),
+    <span class="ident">Busy</span>(<span class="ident">future::Boxed</span><span class="op">&lt;</span>(<span class="ident">std::fs::ReadDir</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">std::fs::DirEntry</span><span class="op">&gt;</span><span class="op">&gt;</span>)<span class="op">&gt;</span>),
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">ReadDir</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ReadDir</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;ReadDir&quot;</span>).<span class="ident">finish</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Stream</span> <span class="kw">for</span> <span class="ident">ReadDir</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DirEntry</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">DirEntry</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">0</span> {
-                <span class="ident">State</span>::<span class="ident">Idle</span>(<span class="ident">opt</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">State::Idle</span>(<span class="ident">opt</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">opt</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
 
                     <span class="comment">// Start the operation asynchronously.</span>
-                    <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">State</span>::<span class="ident">Busy</span>(<span class="ident">Box</span>::<span class="ident">pin</span>(<span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
+                    <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">State::Busy</span>(<span class="ident">Box::pin</span>(<span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
                         <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">next</span>();
                         (<span class="ident">inner</span>, <span class="ident">next</span>)
                     })));
                 }
                 <span class="comment">// Poll the asynchronous operation the file is currently blocked on.</span>
-                <span class="ident">State</span>::<span class="ident">Busy</span>(<span class="ident">task</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">let</span> (<span class="ident">inner</span>, <span class="ident">opt</span>) <span class="op">=</span> <span class="macro">ready</span><span class="macro">!</span>(<span class="ident">task</span>.<span class="ident">as_mut</span>().<span class="ident">poll</span>(<span class="ident">cx</span>));
-                    <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">State</span>::<span class="ident">Idle</span>(<span class="prelude-val">Some</span>(<span class="ident">inner</span>));
-                    <span class="kw">return</span> <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="ident">opt</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="ident">res</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">DirEntry</span>(<span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">inner</span>)))));
+                <span class="ident">State::Busy</span>(<span class="ident">task</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">let</span> (<span class="ident">inner</span>, <span class="ident">opt</span>) <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">task</span>.<span class="ident">as_mut</span>().<span class="ident">poll</span>(<span class="ident">cx</span>));
+                    <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">State::Idle</span>(<span class="prelude-val">Some</span>(<span class="ident">inner</span>));
+                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="ident">opt</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="ident">res</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">DirEntry</span>(<span class="ident">Arc::new</span>(<span class="ident">inner</span>)))));
                 }
             }
         }
@@ -2104,7 +2103,7 @@
 <span class="doccomment">/// A stream of entries in a directory is returned by [`read_dir()`].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// For Unix-specific options, import the [`DirEntryExt`][`std::os::unix::fs::DirEntryExt`] trait.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DirEntry</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">DirEntry</span><span class="op">&gt;</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DirEntry</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">std::fs::DirEntry</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span> <span class="ident">DirEntry</span> {
     <span class="doccomment">/// Returns the full path to this entry.</span>
@@ -2157,7 +2156,7 @@
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>();
         <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">metadata</span>()).<span class="kw">await</span>
     }
@@ -2189,7 +2188,7 @@
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">file_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FileType</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">file_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">FileType</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>();
         <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">file_type</span>()).<span class="kw">await</span>
     }
@@ -2214,8 +2213,8 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">DirEntry</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">DirEntry</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;DirEntry&quot;</span>).<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">path</span>()).<span class="ident">finish</span>()
     }
 }
@@ -2227,7 +2226,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <span class="ident">unix</span>::<span class="ident">DirEntryExt</span> <span class="kw">for</span> <span class="ident">DirEntry</span> {
+<span class="kw">impl</span> <span class="ident">unix::DirEntryExt</span> <span class="kw">for</span> <span class="ident">DirEntry</span> {
     <span class="kw">fn</span> <span class="ident">ino</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">ino</span>()
     }
@@ -2249,9 +2248,9 @@
 <span class="doccomment">/// let path = async_fs::read_link(&quot;a.txt&quot;).await?;</span>
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">read_link</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">read_link</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">read_link</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span>
+    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::read_link</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span>
 }
 
 <span class="doccomment">/// Reads the entire contents of a file as a string.</span>
@@ -2278,9 +2277,9 @@
 <span class="doccomment">/// let contents = async_fs::read_to_string(&quot;a.txt&quot;).await?;</span>
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">read_to_string</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">read_to_string</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">read_to_string</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span>
+    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::read_to_string</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span>
 }
 
 <span class="doccomment">/// Removes an empty directory.</span>
@@ -2303,9 +2302,9 @@
 <span class="doccomment">/// async_fs::remove_dir(&quot;./some/directory&quot;).await?;</span>
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">remove_dir</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">remove_dir</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">remove_dir</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span>
+    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::remove_dir</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span>
 }
 
 <span class="doccomment">/// Removes a directory and all of its contents.</span>
@@ -2325,9 +2324,9 @@
 <span class="doccomment">/// async_fs::remove_dir_all(&quot;./some/directory&quot;).await?;</span>
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">remove_dir_all</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">remove_dir_all</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">remove_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span>
+    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::remove_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span>
 }
 
 <span class="doccomment">/// Removes a file.</span>
@@ -2347,9 +2346,9 @@
 <span class="doccomment">/// async_fs::remove_file(&quot;a.txt&quot;).await?;</span>
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">remove_file</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">remove_file</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">remove_file</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span>
+    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::remove_file</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span>
 }
 
 <span class="doccomment">/// Renames a file or directory to a new location.</span>
@@ -2373,10 +2372,10 @@
 <span class="doccomment">/// async_fs::rename(&quot;a.txt&quot;, &quot;b.txt&quot;).await?;</span>
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">rename</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>, <span class="ident">Q</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">src</span>: <span class="ident">P</span>, <span class="ident">dst</span>: <span class="ident">Q</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">rename</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>, <span class="ident">Q</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">src</span>: <span class="ident">P</span>, <span class="ident">dst</span>: <span class="ident">Q</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
     <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">dst</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">rename</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;</span><span class="ident">dst</span>)).<span class="kw">await</span>
+    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::rename</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;</span><span class="ident">dst</span>)).<span class="kw">await</span>
 }
 
 <span class="doccomment">/// Changes the permissions of a file or directory.</span>
@@ -2398,9 +2397,9 @@
 <span class="doccomment">/// async_fs::set_permissions(&quot;a.txt&quot;, perm).await?;</span>
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">set_permissions</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>, <span class="ident">perm</span>: <span class="ident">Permissions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">set_permissions</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>, <span class="ident">perm</span>: <span class="ident">Permissions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">set_permissions</span>(<span class="ident">path</span>, <span class="ident">perm</span>)).<span class="kw">await</span>
+    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::set_permissions</span>(<span class="ident">path</span>, <span class="ident">perm</span>)).<span class="kw">await</span>
 }
 
 <span class="doccomment">/// Reads metadata for a path without following symbolic links.</span>
@@ -2423,9 +2422,9 @@
 <span class="doccomment">/// let perm = async_fs::symlink_metadata(&quot;a.txt&quot;).await?.permissions();</span>
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">symlink_metadata</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">symlink_metadata</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">symlink_metadata</span>(<span class="ident">path</span>)).<span class="kw">await</span>
+    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::symlink_metadata</span>(<span class="ident">path</span>)).<span class="kw">await</span>
 }
 
 <span class="doccomment">/// Writes a slice of bytes as the new contents of a file.</span>
@@ -2448,10 +2447,10 @@
 <span class="doccomment">/// async_fs::write(&quot;a.txt&quot;, b&quot;Hello world!&quot;).await?;</span>
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">write</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>, <span class="ident">C</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>, <span class="ident">contents</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">write</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>, <span class="ident">C</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>, <span class="ident">contents</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
     <span class="kw">let</span> <span class="ident">contents</span> <span class="op">=</span> <span class="ident">contents</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>, <span class="ident">contents</span>)).<span class="kw">await</span>
+    <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::write</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>, <span class="ident">contents</span>)).<span class="kw">await</span>
 }
 
 <span class="doccomment">/// A builder for creating directories with configurable options.</span>
@@ -2537,14 +2536,14 @@
     <span class="doccomment">///     .await?;</span>
     <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">DirBuilder</span>::<span class="ident">new</span>();
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">std::fs::DirBuilder::new</span>();
         <span class="ident">builder</span>.<span class="ident">recursive</span>(<span class="self">self</span>.<span class="ident">recursive</span>);
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
         {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">mode</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">mode</span> {
-                <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">unix</span>::<span class="ident">fs</span>::<span class="ident">DirBuilderExt</span>::<span class="ident">mode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">builder</span>, <span class="ident">mode</span>);
+                <span class="ident">std::os::unix::fs::DirBuilderExt::mode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">builder</span>, <span class="ident">mode</span>);
             }
         }
 
@@ -2554,7 +2553,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <span class="ident">unix</span>::<span class="ident">DirBuilderExt</span> <span class="kw">for</span> <span class="ident">DirBuilder</span> {
+<span class="kw">impl</span> <span class="ident">unix::DirBuilderExt</span> <span class="kw">for</span> <span class="ident">DirBuilder</span> {
     <span class="kw">fn</span> <span class="ident">mode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">mode</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">mode</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">mode</span>);
         <span class="self">self</span>
@@ -2606,7 +2605,7 @@
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">File</span> {
     <span class="doccomment">/// Always accessible reference to the file.</span>
-    <span class="ident">file</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span><span class="op">&gt;</span>,
+    <span class="ident">file</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">std::fs::File</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Performs blocking I/O operations on a thread pool.</span>
     <span class="ident">unblock</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Unblock</span><span class="op">&lt;</span><span class="ident">ArcFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -2614,7 +2613,7 @@
     <span class="doccomment">/// Logical file cursor, tracked when reading from the file.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This will be set to an error if the file is not seekable.</span>
-    <span class="ident">read_pos</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">read_pos</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Set to `true` if the file needs flushing.</span>
     <span class="ident">is_dirty</span>: <span class="ident">bool</span>,
@@ -2622,9 +2621,9 @@
 
 <span class="kw">impl</span> <span class="ident">File</span> {
     <span class="doccomment">/// Creates an async file from a blocking file.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>, <span class="ident">is_dirty</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">File</span> {
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">inner</span>);
-        <span class="kw">let</span> <span class="ident">unblock</span> <span class="op">=</span> <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">Unblock</span>::<span class="ident">new</span>(<span class="ident">ArcFile</span>(<span class="ident">file</span>.<span class="ident">clone</span>())));
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">std::fs::File</span>, <span class="ident">is_dirty</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">File</span> {
+        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">inner</span>);
+        <span class="kw">let</span> <span class="ident">unblock</span> <span class="op">=</span> <span class="ident">Mutex::new</span>(<span class="ident">Unblock::new</span>(<span class="ident">ArcFile</span>(<span class="ident">file</span>.<span class="ident">clone</span>())));
         <span class="kw">let</span> <span class="ident">read_pos</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="ident">File</span> {
             <span class="ident">file</span>,
@@ -2657,10 +2656,10 @@
     <span class="doccomment">/// let file = File::open(&quot;a.txt&quot;).await?;</span>
     <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">open</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">open</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>::<span class="ident">open</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">File</span>::<span class="ident">new</span>(<span class="ident">file</span>, <span class="bool-val">false</span>))
+        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::File::open</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="ident">File::new</span>(<span class="ident">file</span>, <span class="bool-val">false</span>))
     }
 
     <span class="doccomment">/// Opens a file in write-only mode.</span>
@@ -2688,10 +2687,10 @@
     <span class="doccomment">/// let file = File::create(&quot;a.txt&quot;).await?;</span>
     <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">create</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">create</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>::<span class="ident">create</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">File</span>::<span class="ident">new</span>(<span class="ident">file</span>, <span class="bool-val">false</span>))
+        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::fs::File::create</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="ident">File::new</span>(<span class="ident">file</span>, <span class="bool-val">false</span>))
     }
 
     <span class="doccomment">/// Synchronizes OS-internal buffered contents and metadata to disk.</span>
@@ -2714,7 +2713,7 @@
     <span class="doccomment">/// file.sync_all().await?;</span>
     <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">sync_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">sync_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">unblock</span>.<span class="ident">lock</span>().<span class="kw">await</span>;
         <span class="ident">inner</span>.<span class="ident">flush</span>().<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file</span>.<span class="ident">clone</span>();
@@ -2745,7 +2744,7 @@
     <span class="doccomment">/// file.sync_data().await?;</span>
     <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">sync_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">sync_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">unblock</span>.<span class="ident">lock</span>().<span class="kw">await</span>;
         <span class="ident">inner</span>.<span class="ident">flush</span>().<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file</span>.<span class="ident">clone</span>();
@@ -2771,7 +2770,7 @@
     <span class="doccomment">/// file.set_len(10).await?;</span>
     <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">set_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">size</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">set_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">size</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">unblock</span>.<span class="ident">lock</span>().<span class="kw">await</span>;
         <span class="ident">inner</span>.<span class="ident">flush</span>().<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file</span>.<span class="ident">clone</span>();
@@ -2790,7 +2789,7 @@
     <span class="doccomment">/// let metadata = file.metadata().await?;</span>
     <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Metadata</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file</span>.<span class="ident">clone</span>();
         <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">file</span>.<span class="ident">metadata</span>()).<span class="kw">await</span>
     }
@@ -2817,7 +2816,7 @@
     <span class="doccomment">/// file.set_permissions(perms).await?;</span>
     <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">set_permissions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">perm</span>: <span class="ident">Permissions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">set_permissions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">perm</span>: <span class="ident">Permissions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file</span>.<span class="ident">clone</span>();
         <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">file</span>.<span class="ident">set_permissions</span>(<span class="ident">perm</span>)).<span class="kw">await</span>
     }
@@ -2830,51 +2829,51 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// After reading ends, if we decide to perform a write or a seek operation, the real file</span>
     <span class="doccomment">/// cursor must first be repositioned back to the correct logical position.</span>
-    <span class="kw">fn</span> <span class="ident">poll_reposition</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_reposition</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">read_pos</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_pos</span> {
-            <span class="macro">ready</span><span class="macro">!</span>(<span class="ident">Pin</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">unblock</span>.<span class="ident">get_mut</span>()).<span class="ident">poll_seek</span>(<span class="ident">cx</span>, <span class="ident">SeekFrom</span>::<span class="ident">Start</span>(<span class="ident">read_pos</span>)))<span class="question-mark">?</span>;
+            <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="self">self</span>.<span class="ident">unblock</span>.<span class="ident">get_mut</span>()).<span class="ident">poll_seek</span>(<span class="ident">cx</span>, <span class="ident">SeekFrom::Start</span>(<span class="ident">read_pos</span>)))<span class="question-mark">?</span>;
         }
         <span class="self">self</span>.<span class="ident">read_pos</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()))
+        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">File</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">File</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="self">self</span>.<span class="ident">file</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">File</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">inner</span>: <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">File</span> {
-        <span class="ident">File</span>::<span class="ident">new</span>(<span class="ident">inner</span>, <span class="bool-val">true</span>)
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">std::fs::File</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">File</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">inner</span>: <span class="ident">std::fs::File</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">File</span> {
+        <span class="ident">File::new</span>(<span class="ident">inner</span>, <span class="bool-val">true</span>)
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">unix</span>::<span class="ident">io</span>::<span class="ident">FromRawFd</span> <span class="kw">for</span> <span class="ident">File</span> {
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_fd</span>(<span class="ident">raw</span>: <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">unix</span>::<span class="ident">io</span>::<span class="ident">RawFd</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">File</span> {
-        <span class="ident">File</span>::<span class="ident">from</span>(<span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>::<span class="ident">from_raw_fd</span>(<span class="ident">raw</span>))
+<span class="kw">impl</span> <span class="ident">std::os::unix::io::FromRawFd</span> <span class="kw">for</span> <span class="ident">File</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_fd</span>(<span class="ident">raw</span>: <span class="ident">std::os::unix::io::RawFd</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">File</span> {
+        <span class="ident">File::from</span>(<span class="ident">std::fs::File::from_raw_fd</span>(<span class="ident">raw</span>))
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">windows</span>::<span class="ident">io</span>::<span class="ident">FromRawHandle</span> <span class="kw">for</span> <span class="ident">File</span> {
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_handle</span>(<span class="ident">raw</span>: <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">windows</span>::<span class="ident">io</span>::<span class="ident">RawHandle</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">File</span> {
-        <span class="ident">File</span>::<span class="ident">from</span>(<span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>::<span class="ident">from_raw_handle</span>(<span class="ident">raw</span>))
+<span class="kw">impl</span> <span class="ident">std::os::windows::io::FromRawHandle</span> <span class="kw">for</span> <span class="ident">File</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_handle</span>(<span class="ident">raw</span>: <span class="ident">std::os::windows::io::RawHandle</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">File</span> {
+        <span class="ident">File::from</span>(<span class="ident">std::fs::File::from_raw_handle</span>(<span class="ident">raw</span>))
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">unix</span>::<span class="ident">io</span>::<span class="ident">AsRawFd</span> <span class="kw">for</span> <span class="ident">File</span> {
-    <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">unix</span>::<span class="ident">io</span>::<span class="ident">RawFd</span> {
+<span class="kw">impl</span> <span class="ident">std::os::unix::io::AsRawFd</span> <span class="kw">for</span> <span class="ident">File</span> {
+    <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::os::unix::io::RawFd</span> {
         <span class="self">self</span>.<span class="ident">file</span>.<span class="ident">as_raw_fd</span>()
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">windows</span>::<span class="ident">io</span>::<span class="ident">AsRawHandle</span> <span class="kw">for</span> <span class="ident">File</span> {
-    <span class="kw">fn</span> <span class="ident">as_raw_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">windows</span>::<span class="ident">io</span>::<span class="ident">RawHandle</span> {
+<span class="kw">impl</span> <span class="ident">std::os::windows::io::AsRawHandle</span> <span class="kw">for</span> <span class="ident">File</span> {
+    <span class="kw">fn</span> <span class="ident">as_raw_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::os::windows::io::RawHandle</span> {
         <span class="self">self</span>.<span class="ident">file</span>.<span class="ident">as_raw_handle</span>()
     }
 }
@@ -2884,21 +2883,21 @@
         <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// Before reading begins, remember the current cursor position.</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">read_pos</span>.<span class="ident">is_none</span>() {
             <span class="comment">// Initialize the logical cursor to the current position in the file.</span>
-            <span class="self">self</span>.<span class="ident">read_pos</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="macro">ready</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">poll_seek</span>(<span class="ident">cx</span>, <span class="ident">SeekFrom</span>::<span class="ident">Current</span>(<span class="number">0</span>))));
+            <span class="self">self</span>.<span class="ident">read_pos</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">poll_seek</span>(<span class="ident">cx</span>, <span class="ident">SeekFrom::Current</span>(<span class="number">0</span>))));
         }
 
-        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="macro">ready</span><span class="macro">!</span>(<span class="ident">Pin</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">unblock</span>.<span class="ident">get_mut</span>()).<span class="ident">poll_read</span>(<span class="ident">cx</span>, <span class="ident">buf</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="self">self</span>.<span class="ident">unblock</span>.<span class="ident">get_mut</span>()).<span class="ident">poll_read</span>(<span class="ident">cx</span>, <span class="ident">buf</span>))<span class="question-mark">?</span>;
 
         <span class="comment">// Update the logical cursor if the file is seekable.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">pos</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_pos</span>.<span class="ident">as_mut</span>() {
             <span class="kw-2">*</span><span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>;
         }
 
-        <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">n</span>))
+        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">n</span>))
     }
 }
 
@@ -2907,22 +2906,22 @@
         <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">ready</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">poll_reposition</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">poll_reposition</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">is_dirty</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="ident">Pin</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">unblock</span>.<span class="ident">get_mut</span>()).<span class="ident">poll_write</span>(<span class="ident">cx</span>, <span class="ident">buf</span>)
+        <span class="ident">Pin::new</span>(<span class="self">self</span>.<span class="ident">unblock</span>.<span class="ident">get_mut</span>()).<span class="ident">poll_write</span>(<span class="ident">cx</span>, <span class="ident">buf</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_dirty</span> {
-            <span class="macro">ready</span><span class="macro">!</span>(<span class="ident">Pin</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">unblock</span>.<span class="ident">get_mut</span>()).<span class="ident">poll_flush</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
+            <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="self">self</span>.<span class="ident">unblock</span>.<span class="ident">get_mut</span>()).<span class="ident">poll_flush</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
             <span class="self">self</span>.<span class="ident">is_dirty</span> <span class="op">=</span> <span class="bool-val">false</span>;
         }
-        <span class="ident">Poll</span>::<span class="ident">Ready</span>(<span class="prelude-val">Ok</span>(()))
+        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Pin</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">unblock</span>.<span class="ident">get_mut</span>()).<span class="ident">poll_close</span>(<span class="ident">cx</span>)
+    <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">Pin::new</span>(<span class="self">self</span>.<span class="ident">unblock</span>.<span class="ident">get_mut</span>()).<span class="ident">poll_close</span>(<span class="ident">cx</span>)
     }
 }
 
@@ -2931,33 +2930,33 @@
         <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">pos</span>: <span class="ident">SeekFrom</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">ready</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">poll_reposition</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
-        <span class="ident">Pin</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">unblock</span>.<span class="ident">get_mut</span>()).<span class="ident">poll_seek</span>(<span class="ident">cx</span>, <span class="ident">pos</span>)
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">poll_reposition</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
+        <span class="ident">Pin::new</span>(<span class="self">self</span>.<span class="ident">unblock</span>.<span class="ident">get_mut</span>()).<span class="ident">poll_seek</span>(<span class="ident">cx</span>, <span class="ident">pos</span>)
     }
 }
 
 <span class="doccomment">/// A wrapper around `Arc&lt;std::fs::File&gt;` that implements `Read`, `Write`, and `Seek`.</span>
-<span class="kw">struct</span> <span class="ident">ArcFile</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span><span class="op">&gt;</span>);
+<span class="kw">struct</span> <span class="ident">ArcFile</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">std::fs::File</span><span class="op">&gt;</span>);
 
-<span class="kw">impl</span> <span class="ident">io</span>::<span class="ident">Read</span> <span class="kw">for</span> <span class="ident">ArcFile</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">io::Read</span> <span class="kw">for</span> <span class="ident">ArcFile</span> {
+    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).<span class="ident">read</span>(<span class="ident">buf</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">io</span>::<span class="ident">Write</span> <span class="kw">for</span> <span class="ident">ArcFile</span> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">io::Write</span> <span class="kw">for</span> <span class="ident">ArcFile</span> {
+    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).<span class="ident">write</span>(<span class="ident">buf</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).<span class="ident">flush</span>()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">io</span>::<span class="ident">Seek</span> <span class="kw">for</span> <span class="ident">ArcFile</span> {
-    <span class="kw">fn</span> <span class="ident">seek</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">SeekFrom</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">io::Seek</span> <span class="kw">for</span> <span class="ident">ArcFile</span> {
+    <span class="kw">fn</span> <span class="ident">seek</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">SeekFrom</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
         (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>).<span class="ident">seek</span>(<span class="ident">pos</span>)
     }
 }
@@ -3004,7 +3003,7 @@
 <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OpenOptions</span>(<span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">OpenOptions</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OpenOptions</span>(<span class="ident">std::fs::OpenOptions</span>);
 
 <span class="kw">impl</span> <span class="ident">OpenOptions</span> {
     <span class="doccomment">/// Creates a blank set of options.</span>
@@ -3024,7 +3023,7 @@
     <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OpenOptions</span> {
-        <span class="ident">OpenOptions</span>(<span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">OpenOptions</span>::<span class="ident">new</span>())
+        <span class="ident">OpenOptions</span>(<span class="ident">std::fs::OpenOptions::new</span>())
     }
 
     <span class="doccomment">/// Configures the option for read mode.</span>
@@ -3204,24 +3203,24 @@
     <span class="doccomment">///     .await?;</span>
     <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">open</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">open</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
         <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>();
         <span class="kw">async</span> <span class="kw">move</span> {
             <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">options</span>.<span class="ident">open</span>(<span class="ident">path</span>)).<span class="kw">await</span><span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<span class="ident">File</span>::<span class="ident">new</span>(<span class="ident">file</span>, <span class="bool-val">false</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">File::new</span>(<span class="ident">file</span>, <span class="bool-val">false</span>))
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">OpenOptions</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">new</span>()
+        <span class="self">Self</span><span class="ident">::new</span>()
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <span class="ident">unix</span>::<span class="ident">OpenOptionsExt</span> <span class="kw">for</span> <span class="ident">OpenOptions</span> {
+<span class="kw">impl</span> <span class="ident">unix::OpenOptionsExt</span> <span class="kw">for</span> <span class="ident">OpenOptions</span> {
     <span class="kw">fn</span> <span class="ident">mode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">mode</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">mode</span>(<span class="ident">mode</span>);
         <span class="self">self</span>
@@ -3234,7 +3233,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">impl</span> <span class="ident">windows</span>::<span class="ident">OpenOptionsExt</span> <span class="kw">for</span> <span class="ident">OpenOptions</span> {
+<span class="kw">impl</span> <span class="ident">windows::OpenOptionsExt</span> <span class="kw">for</span> <span class="ident">OpenOptions</span> {
     <span class="kw">fn</span> <span class="ident">access_mode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">access</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">access_mode</span>(<span class="ident">access</span>);
         <span class="self">self</span>
@@ -3267,7 +3266,7 @@
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">no_inline</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">unix</span>::<span class="ident">fs</span>::{<span class="ident">FileTypeExt</span>, <span class="ident">MetadataExt</span>, <span class="ident">PermissionsExt</span>};
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">std::os::unix::fs</span>::{<span class="ident">FileTypeExt</span>, <span class="ident">MetadataExt</span>, <span class="ident">PermissionsExt</span>};
 
     <span class="doccomment">/// Creates a new symbolic link on the filesystem.</span>
     <span class="doccomment">///</span>
@@ -3280,10 +3279,10 @@
     <span class="doccomment">/// async_fs::unix::symlink(&quot;a.txt&quot;, &quot;b.txt&quot;).await?;</span>
     <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">symlink</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>, <span class="ident">Q</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">src</span>: <span class="ident">P</span>, <span class="ident">dst</span>: <span class="ident">Q</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">symlink</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>, <span class="ident">Q</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">src</span>: <span class="ident">P</span>, <span class="ident">dst</span>: <span class="ident">Q</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">dst</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-        <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">unix</span>::<span class="ident">fs</span>::<span class="ident">symlink</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;</span><span class="ident">dst</span>)).<span class="kw">await</span>
+        <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::os::unix::fs::symlink</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;</span><span class="ident">dst</span>)).<span class="kw">await</span>
     }
 
     <span class="doccomment">/// Unix-specific extensions to [`DirBuilder`].</span>
@@ -3379,7 +3378,7 @@
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">no_inline</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">windows</span>::<span class="ident">fs</span>::<span class="ident">MetadataExt</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">std::os::windows::fs::MetadataExt</span>;
 
     <span class="doccomment">/// Creates a new directory symbolic link on the filesystem.</span>
     <span class="doccomment">///</span>
@@ -3392,10 +3391,10 @@
     <span class="doccomment">/// async_fs::windows::symlink_dir(&quot;a&quot;, &quot;b&quot;).await?;</span>
     <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">symlink_dir</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>, <span class="ident">Q</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">src</span>: <span class="ident">P</span>, <span class="ident">dst</span>: <span class="ident">Q</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">symlink_dir</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>, <span class="ident">Q</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">src</span>: <span class="ident">P</span>, <span class="ident">dst</span>: <span class="ident">Q</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">dst</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-        <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">windows</span>::<span class="ident">fs</span>::<span class="ident">symlink_dir</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;</span><span class="ident">dst</span>)).<span class="kw">await</span>
+        <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::os::windows::fs::symlink_dir</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;</span><span class="ident">dst</span>)).<span class="kw">await</span>
     }
 
     <span class="doccomment">/// Creates a new file symbolic link on the filesystem.</span>
@@ -3409,10 +3408,10 @@
     <span class="doccomment">/// async_fs::windows::symlink_file(&quot;a.txt&quot;, &quot;b.txt&quot;).await?;</span>
     <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">symlink_file</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>, <span class="ident">Q</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">src</span>: <span class="ident">P</span>, <span class="ident">dst</span>: <span class="ident">Q</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">symlink_file</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>, <span class="ident">Q</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">src</span>: <span class="ident">P</span>, <span class="ident">dst</span>: <span class="ident">Q</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">dst</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-        <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">windows</span>::<span class="ident">fs</span>::<span class="ident">symlink_file</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;</span><span class="ident">dst</span>)).<span class="kw">await</span>
+        <span class="ident">unblock</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">std::os::windows::fs::symlink_file</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;</span><span class="ident">dst</span>)).<span class="kw">await</span>
     }
 
     <span class="doccomment">/// Windows-specific extensions to [`OpenOptions`].</span>
@@ -3571,5 +3570,4 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_fs" data-search-js="../../search-index.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_fs" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
