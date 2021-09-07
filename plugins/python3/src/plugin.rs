@@ -186,7 +186,7 @@ impl Python3Plugin {
 
         // verify test results
         if let Some((hmac_secret, test_runner_hmac_hex)) = hmac_data {
-            let mut mac = Hmac::<Sha256>::new_varkey(hmac_secret.as_bytes())
+            let mut mac = Hmac::<Sha256>::new_from_slice(hmac_secret.as_bytes())
                 .expect("HMAC can take key of any size");
             mac.update(results.as_bytes());
             let bytes =

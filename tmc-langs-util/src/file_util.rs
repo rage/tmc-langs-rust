@@ -1,7 +1,7 @@
 //! Various utility functions, primarily wrapping the standard library's IO and filesystem functions
 
 use crate::error::FileError;
-use fd_lock::FdLock;
+use fd_lock::RwLock;
 use std::fs::{self, File, ReadDir};
 use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut};
@@ -24,10 +24,10 @@ macro_rules! lock {
 // macros always live at the top-level, re-export here
 pub use crate::lock;
 
-pub struct FdLockWrapper(FdLock<File>);
+pub struct FdLockWrapper(RwLock<File>);
 
 impl Deref for FdLockWrapper {
-    type Target = FdLock<File>;
+    type Target = RwLock<File>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -75,7 +75,7 @@ pub fn open_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLockWrapper, FileErro
     log::trace!("locking file {}", path.as_ref().display());
 
     let file = open_file(path)?;
-    let lock = FdLockWrapper(FdLock::new(file));
+    let lock = FdLockWrapper(RwLock::new(file));
     Ok(lock)
 }
 
@@ -119,11 +119,11 @@ pub fn create_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLockWrapper, FileEr
 
     if let Ok(existing) = open_file(&path) {
         // wait for an existing process to be done with the file before rewriting
-        let mut lock = FdLock::new(existing);
-        lock.lock().expect("\"On Unix this may return an error if the operation was interrupted by a signal handler.\"; sounds unlikely to ever actually cause problems");
+        let mut lock = RwLock::new(existing);
+        let _ = lock.write().expect("\"On Unix this may return an error if the operation was interrupted by a signal handler.\"; sounds unlikely to ever actually cause problems");
     }
     let file = create_file(path)?;
-    let lock = FdLockWrapper(FdLock::new(file));
+    let lock = FdLockWrapper(RwLock::new(file));
     Ok(lock)
 }
 

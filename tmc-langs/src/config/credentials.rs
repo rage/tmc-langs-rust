@@ -33,7 +33,7 @@ impl Credentials {
 
         let mut credentials_file = file_util::open_file_lock(&credentials_path)?;
         let guard = credentials_file
-            .lock()
+            .write()
             .map_err(|e| FileError::FdLock(credentials_path.clone(), e))?;
 
         match serde_json::from_reader(guard.deref()) {
@@ -60,7 +60,7 @@ impl Credentials {
         }
         let mut credentials_file = file_util::create_file_lock(&credentials_path)?;
         let guard = credentials_file
-            .lock()
+            .write()
             .map_err(|e| FileError::FdLock(credentials_path.clone(), e))?;
 
         // write token

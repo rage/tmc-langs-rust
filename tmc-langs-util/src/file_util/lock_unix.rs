@@ -2,7 +2,7 @@
 
 use crate::error::FileError;
 use crate::file_util::*;
-use fd_lock::{FdLock, FdLockGuard};
+use fd_lock::{RwLock, RwLockWriteGuard};
 use std::fs::File;
 use std::path::PathBuf;
 
@@ -10,7 +10,7 @@ use std::path::PathBuf;
 /// from multiple instances of tmc-langs.
 pub struct FileLock {
     path: PathBuf,
-    fd_lock: FdLock<File>,
+    fd_lock: RwLock<File>,
 }
 
 impl FileLock {
@@ -18,7 +18,7 @@ impl FileLock {
         let file = open_file(&path)?;
         Ok(Self {
             path,
-            fd_lock: FdLock::new(file),
+            fd_lock: RwLock::new(file),
         })
     }
 
@@ -28,7 +28,7 @@ impl FileLock {
         let path = &self.path;
         let fd_lock = &mut self.fd_lock;
         let guard = fd_lock
-            .lock()
+            .write()
             .map_err(|e| FileError::FdLock(path.clone(), e))?;
         log::trace!("locked {}", self.path.display());
         Ok(FileLockGuard {
@@ -42,7 +42,7 @@ impl FileLock {
 #[derive(Debug)]
 pub struct FileLockGuard<'a> {
     path: &'a Path,
-    _guard: FdLockGuard<'a, File>,
+    _guard: RwLockWriteGuard<'a, File>,
 }
 
 impl Drop for FileLockGuard<'_> {

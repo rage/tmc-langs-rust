@@ -237,7 +237,7 @@ fn run_app(matches: Opt) -> Result<()> {
             output_path,
         } => {
             let mut archive = file_util::open_file_lock(&archive_path)?;
-            let mut guard = archive.lock()?;
+            let mut guard = archive.write()?;
 
             let mut data = vec![];
             guard.read_to_end(&mut data)?;
@@ -1067,7 +1067,7 @@ fn write_result_to_file_as_json<T: Serialize>(
             output_path.display()
         )
     })?;
-    let guard = output_file.lock()?;
+    let guard = output_file.write()?;
 
     if let Some(secret) = secret {
         let token = tmc_langs::sign_with_jwt(result, secret.as_bytes())?;

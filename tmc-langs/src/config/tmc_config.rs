@@ -71,7 +71,7 @@ impl TmcConfig {
         }
         let mut lock = file_util::create_file_lock(&path)?;
         let mut guard = lock
-            .lock()
+            .write()
             .map_err(|e| FileError::FdLock(path.to_path_buf(), e))?;
 
         let toml = toml::to_string_pretty(&self)?;
@@ -93,7 +93,7 @@ impl TmcConfig {
             Ok(mut lock) => {
                 // found config file, lock and read
                 let mut guard = lock
-                    .lock()
+                    .write()
                     .map_err(|e| FileError::FdLock(path.to_path_buf(), e))?;
                 let mut buf = vec![];
                 let _bytes = guard
@@ -149,7 +149,7 @@ impl TmcConfig {
 
         let mut lock = file_util::create_file_lock(path)?;
         let mut guard = lock
-            .lock()
+            .write()
             .map_err(|e| FileError::FdLock(path.to_path_buf(), e))?;
 
         let default_project_dir =

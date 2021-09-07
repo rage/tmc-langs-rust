@@ -92,7 +92,7 @@ pub struct UpdatedExercise {
 /// # Errors
 /// Should never fail, but returns an error to be safe against changes in external libraries.
 pub fn sign_with_jwt<T: Serialize>(value: T, secret: &[u8]) -> Result<String, LangsError> {
-    let key: Hmac<Sha256> = Hmac::new_varkey(secret)?;
+    let key: Hmac<Sha256> = Hmac::new_from_slice(secret)?;
     let token = value.sign_with_key(&key)?;
     Ok(token)
 }

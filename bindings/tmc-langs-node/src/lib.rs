@@ -108,7 +108,7 @@ fn extract_project(mut cx: FunctionContext) -> JsResult<JsValue> {
 
     let mut archive =
         file_util::open_file_lock(archive_path).map_err(|e| convert_err(&mut cx, e))?;
-    let mut guard = archive.lock().expect("failed to lock file");
+    let mut guard = archive.write().expect("failed to lock file");
     let mut data = vec![];
     guard.read_to_end(&mut data).expect("failed to read data");
 
@@ -944,11 +944,6 @@ mod test {
             "TMC_LANGS_MOCK_SERVER_ADDR",
             format!("http://{}", server_address()),
         );
-
-        #[cfg(windows)]
-        let npm = "npm.cmd";
-        #[cfg(not(windows))]
-        let npm = "npm";
 
         let s = Command::new("npm")
             .args(&["run", "jest"])

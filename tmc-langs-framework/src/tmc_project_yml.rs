@@ -115,7 +115,7 @@ impl TmcProjectYml {
         let config_path = Self::path_in_dir(dir);
         let mut file = file_util::create_file_lock(&config_path)?;
         let guard = file
-            .lock()
+            .write()
             .map_err(|e| FileError::FdLock(config_path.clone(), e))?;
         serde_yaml::to_writer(guard.deref(), &self)?;
         Ok(())
