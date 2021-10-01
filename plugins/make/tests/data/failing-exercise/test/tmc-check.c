@@ -35,6 +35,10 @@ static void parse_points(const char *points, PointsList **target_list);
 static void add_to_point_set(const char *point, ssize_t len, PointsList **target_list);
 static int points_list_contains(const PointsList *list, const char *point, ssize_t len);
 
+static void delete_points_assoc();
+static void delete_suite_points();
+static void delete_all_points();
+
 void tmc_set_tcase_points(TCase *tc, const char *tc_name, const char *points)
 {
     PointsAssoc *pa = (PointsAssoc*)malloc(sizeof(PointsAssoc));
@@ -47,11 +51,11 @@ void tmc_set_tcase_points(TCase *tc, const char *tc_name, const char *points)
     parse_points(points, &all_points);
 }
 
-void _tmc_register_test(Suite *s, TFun tf, const char *fname, const char *points)
+void _tmc_register_test(Suite *s, const TTest *tt, const char *fname, const char *points)
 {
     TCase *tc = tcase_create(fname);
     tmc_set_tcase_points(tc, fname, points);
-    _tcase_add_test(tc, tf, fname, 0, 0, 0, 1);
+    _tcase_add_test(tc, tt, 0, 0, 0, 1);
     suite_add_tcase(s, tc);
 }
 
@@ -73,29 +77,6 @@ Suite* tmc_suite_create(const char *name, const char *points)
     tmc_set_suite_points(s, name, points);
     return s;
 }
-
-void delete_points_assoc()
-{
-  PointsAssoc *pa = points_assocs;
-  while(pa) {
-    PointsAssoc *next = pa->next;
-    free(pa);
-    pa = next;
-  }
-}
-
-void delete_all_points()
-{
-  PointsList *pl = all_points;
-  while(pl) {
-    PointsList *next = pl->next;
-    if (pl->point)
-      free(pl->point);
-    free(pl);
-    pl = next;
-  }
-}
-
 
 int tmc_run_tests(int argc, const char **argv, Suite *s)
 {
@@ -124,7 +105,8 @@ int tmc_run_tests(int argc, const char **argv, Suite *s)
 
     delete_points_assoc();
     delete_all_points();
-    
+    delete_suite_points();
+
     return EXIT_SUCCESS;
 }
 
@@ -167,10 +149,10 @@ static void parse_points(const char *points, PointsList **target_list)
     const char *p = points;
     const char *q = p;
     while (*q != '\0') {
-        if (isspace(*q)) {
+        if (isspace((int)*q)) {
             const ssize_t len = q - p;
 
-            if (!isspace(*p)) {
+            if (!isspace((int)*p)) {
                 add_to_point_set(p, len, target_list);
             }
 
@@ -181,7 +163,7 @@ static void parse_points(const char *points, PointsList **target_list)
         }
     }
 
-    if (!isspace(*p) && q > p) {
+    if (!isspace((int)*p) && q > p) {
         const ssize_t len = q - p;
         add_to_point_set(p, len, target_list);
     }
@@ -201,8 +183,7 @@ static void add_to_point_set(const char *point, ssize_t len, PointsList **target
 
 static int points_list_contains(const PointsList *list, const char *point, ssize_t len)
 {
-    const PointsList *pl = list; // hack to clean up warnings
-    pl = all_points;
+    const PointsList *pl = all_points;
     while (pl != NULL) {
         if (strncmp(pl->point, point, len) == 0) {
             return 1;
@@ -210,4 +191,39 @@ static int points_list_contains(const PointsList *list, const char *point, ssize
         pl = pl->next;
     }
     return 0;
+}
+
+static void delete_points_assoc()
+{
+    PointsAssoc *pa = points_assocs;
+    while(pa) {
+        PointsAssoc *next = pa->next;
+        free(pa);
+        pa = next;
+    }
+    points_assocs = NULL;
+}
+
+static void delete_suite_points()
+{
+    SuitePoints *sp = suite_points;
+    while(sp) {
+        SuitePoints *next = sp->next;
+        free(sp);
+        sp = next;
+    }
+    suite_points = NULL;
+}
+
+
+static void delete_all_points()
+{
+    PointsList *pl = all_points;
+    while(pl) {
+        PointsList *next = pl->next;
+        free(pl->point);
+        free(pl);
+        pl = next;
+    }
+    all_points = NULL;
 }
