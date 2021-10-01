@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Error",""]],"mod":[["de",""],["ser",""]],"struct":[["EventReader","A wrapper around an `std::io::Read` instance which provides pull-based XML parsing."],["ParserConfig","Parser configuration structure."]]});
+initSidebarItems({"enum":[["Error",""]],"macro":[["debug_expect",""],["expect",""]],"mod":[["de",""],["ser",""]],"struct":[["EventReader","A wrapper around an `std::io::Read` instance which provides pull-based XML parsing."],["ParserConfig","Parser configuration structure."]]});
