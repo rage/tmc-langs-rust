@@ -21,11 +21,21 @@ jobs:
             armv7-unknown-linux-gnueabihf,
           ]
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - name: Cache
+        uses: Swatinem/rust-cache@v1
+      - name: Node
+        uses: actions/setup-node@v2
         with:
           node-version: "16"
-      - uses: google-github-actions/setup-gcloud@master
+      - name: GCloud
+        uses: google-github-actions/setup-gcloud@master
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
@@ -46,7 +56,7 @@ jobs:
           rustup target add ${{ matrix.target }}
 
           # build and deploy CLI
-          cargo build -p tmc-langs-cli --release --verbose --target ${{ matrix.target }}
+          cargo build -p tmc-langs-cli --release --target ${{ matrix.target }}
           gsutil cp target/${{ matrix.target }}/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG
 
           # build and deploy Node module
@@ -60,19 +70,30 @@ jobs:
       matrix:
         target: [i686-pc-windows-msvc, x86_64-pc-windows-msvc]
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - name: Cache
+        uses: Swatinem/rust-cache@v1
+      - name: Node
+        uses: actions/setup-node@v2
         with:
           node-version: "16"
-      - uses: google-github-actions/setup-gcloud@master
+      - name: GCloud
+        uses: google-github-actions/setup-gcloud@master
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
+
       - name: Build
         run: |
           rustup target add ${{ matrix.target }}
           $env:RUSTFLAGS="-C target-feature=+crt-static"  # crt-static is set with RUSTFLAGS to statically link MSVCRT (VCRUNTIME140.dll)
-          cargo build -p tmc-langs-cli --release --verbose --target ${{ matrix.target }}
+          cargo build -p tmc-langs-cli --release --target ${{ matrix.target }}
           cd ./bindings/tmc-langs-node && npm install && npm run build -- --release --target ${{ matrix.target }}
       - name: Deploy
         run: |
@@ -84,17 +105,28 @@ jobs:
   macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - name: Cache
+        uses: Swatinem/rust-cache@v1
+      - name: Node
+        uses: actions/setup-node@v2
         with:
           node-version: "16"
-      - uses: google-github-actions/setup-gcloud@master
+      - name: GCloud
+        uses: google-github-actions/setup-gcloud@master
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
+
       - name: Cargo build
         run: |
-          cargo build -p tmc-langs-cli --release --verbose
+          cargo build -p tmc-langs-cli --release
           npm --prefix ./bindings/tmc-langs-node install
           npm run --prefix ./bindings/tmc-langs-node build -- --release
       - name: Sign
