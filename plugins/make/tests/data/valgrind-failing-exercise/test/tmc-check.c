@@ -56,7 +56,7 @@ void _tmc_register_test(Suite *s, TFun tf, const char *fname, const char *points
 {
     TCase *tc = tcase_create(fname);
     tmc_set_tcase_points(tc, fname, points);
-    _tcase_add_test(tc, tf, tname, 0, 0, 0, 1);
+    _tcase_add_test(tc, tf, fname, 0, 0, 0, 1);
     suite_add_tcase(s, tc);
 }
 #else
