@@ -51,6 +51,15 @@ void tmc_set_tcase_points(TCase *tc, const char *tc_name, const char *points)
     parse_points(points, &all_points);
 }
 
+#if CHECK_MINOR_VERSION < 15
+void _tmc_register_test(Suite *s, TFun tf, const char *fname, const char *points)
+{
+    TCase *tc = tcase_create(fname);
+    tmc_set_tcase_points(tc, fname, points);
+    _tcase_add_test(tc, tf, tname, 0, 0, 0, 1);
+    suite_add_tcase(s, tc);
+}
+#else
 void _tmc_register_test(Suite *s, const TTest *tt, const char *fname, const char *points)
 {
     TCase *tc = tcase_create(fname);
@@ -58,6 +67,7 @@ void _tmc_register_test(Suite *s, const TTest *tt, const char *fname, const char
     _tcase_add_test(tc, tt, 0, 0, 0, 1);
     suite_add_tcase(s, tc);
 }
+#endif
 
 void tmc_set_suite_points(Suite *s, const char *s_name, const char *points)
 {
