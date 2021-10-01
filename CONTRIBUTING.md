@@ -12,7 +12,7 @@ Install [OpenJDK 11](https://openjdk.java.net/install/index.html) (other version
 
 Install [.NET 5.0](https://dotnet.microsoft.com/download)
 
-Install [check 0.12](https://libcheck.github.io/check/) (`tmc-check` seems to be broken on 0.15, which is default on Ubuntu 21.04...)
+Install [check 0.15](https://libcheck.github.io/check/)
 
 Install [R](https://www.r-project.org/), [devtools](https://devtools.r-lib.org/) with `install.packages("devtools")` and [tmc-r-tester](https://github.com/testmycode/tmc-rstudio) with `devtools::install_github("testmycode/tmc-r-tester/tmcRtestrunner", build = FALSE)`
 
@@ -26,13 +26,8 @@ If you have any troubles building the project, please do make an issue!
 
 ## Testing
 
-To run tests for all included projects, run the `run-tests.sh` script.
 ```bash
-bash run-tests.sh
-```
-To run tests for the Node.js bindings run
-```bash
-npm --prefix bindings/tmc-langs-node/ run jest
+cargo test
 ```
 
 ## Formatting and linting
