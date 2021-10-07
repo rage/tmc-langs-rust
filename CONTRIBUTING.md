@@ -2,7 +2,7 @@
 
 Install Rust according to https://www.rust-lang.org/tools/install
 
-Install [zstd](https://github.com/facebook/zstd). For example, on Ubuntu you need the package `libzstd1`. For Windows, download the appropriate archive from the [releases](https://github.com/facebook/zstd/releases), extract it and add the extracted directory to your PATH.
+Install [zstd 1.4.9](https://github.com/facebook/zstd). For example, on Ubuntu you need the package `libzstd1`. For Windows, download the appropriate archive from the [releases](https://github.com/facebook/zstd/releases), extract it and add the extracted directory to your PATH.
 
 Install [Node.js and npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
 
@@ -12,7 +12,7 @@ Install [OpenJDK 11](https://openjdk.java.net/install/index.html) (other version
 
 Install [.NET 5.0](https://dotnet.microsoft.com/download)
 
-Install [check 0.15](https://libcheck.github.io/check/)
+Install [check](https://libcheck.github.io/check/) (works with at least 0.14 and 0.15)
 
 Install [R](https://www.r-project.org/), [devtools](https://devtools.r-lib.org/) with `install.packages("devtools")` and [tmc-r-tester](https://github.com/testmycode/tmc-rstudio) with `devtools::install_github("testmycode/tmc-r-tester/tmcRtestrunner", build = FALSE)`
 
@@ -42,9 +42,8 @@ In addition to the dependencies listed in each crate's `Cargo.toml`, the project
 
 ## Versioning
 
-tmc-langs-rust follows Rust-style semantic versioning, but only for the `tmc-langs-cli` and `tmc-langs` crates. Other crates are considered internal and may go through breaking changes in any release as long as the public API is unaffected.
+tmc-langs-rust follows Rust-style semantic versioning, but only for the `tmc-langs-cli` and `tmc-langs` crates. Other crates are considered internal and may go through breaking changes in any release as long as the public API is unaffected. Try to keep the version in `tmc-langs-cli`'s `Cargo.toml` up to date so that CLI's help message contains the right version.
 
 ## Licensing
 
-Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
