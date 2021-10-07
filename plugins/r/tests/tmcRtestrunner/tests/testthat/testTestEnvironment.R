@@ -7,7 +7,23 @@ simple_all_tests_pass_project_path_with_plot <- paste(sep = "",
                                 "/simple_all_tests_pass_with_plot")
 
 test_that("test_env is created correctly for simple_all_tests_pass", {
-  test_env <- .create_test_env(simple_all_tests_pass_project_path)
+  addin_data <- list(only_test_names = FALSE,
+                     server_mode     = TRUE)
+  test_results <- list()
+  project_path <- simple_all_tests_pass_project_path
+  # Lists all the files in the path beginning with "test" and ending in ".R"
+  test_files <- list.files(path       = file.path(project_path, "tests", "testthat"),
+                           pattern    = "test.*\\.R$",
+                           full.names = TRUE,
+                           recursive  = FALSE)
+
+  .GlobalEnv$points               <- list()
+  .GlobalEnv$points_for_all_tests <- list()
+  addin_data$test_files <- test_files
+  test_env_list <- .create_test_env(simple_all_tests_pass_project_path, addin_data)
+  # test_env <- new.env(parent = emptyenv())
+  test_env <- test_env_list[[2]]$env
+  .define_tester_functions(test_env)
 
   #Test functions should exist:
   expect_true(exists("test", where = test_env, mode = "function"))
@@ -21,11 +37,27 @@ test_that("test_env is created correctly for simple_all_tests_pass", {
 })
 
 test_that("plot is overwriten in test_env", {
-    test_env <- .create_test_env(simple_all_tests_pass_project_path_with_plot)
-    mock_path <- paste(sep = .Platform$file.sep,
-                    simple_all_tests_pass_project_path_with_plot,
-                    "tests", "testthat", "mock.R")
+    addin_data <- list(only_test_names = FALSE,
+                       server_mode     = TRUE)
+    test_results <- list()
+    project_path <- simple_all_tests_pass_project_path_with_plot
+    # Lists all the files in the path beginning with "test" and ending in ".R"
+    test_files <- list.files(path       = file.path(project_path, "tests", "testthat"),
+                             pattern    = "test.*\\.R$",
+                             full.names = TRUE,
+                             recursive  = FALSE)
 
+    .GlobalEnv$points               <- list()
+    .GlobalEnv$points_for_all_tests <- list()
+    addin_data$test_files <- test_files
+    test_env_list <- .create_test_env(project_path, addin_data)
+    # test_env <- new.env(parent = emptyenv())
+    test_env <- test_env_list[[1]]$env
+    .define_tester_functions(test_env)
+    #test_env <- .create_test_env(simple_all_tests_pass_project_path_with_plot)
+    mock_path <- paste(sep = .Platform$file.sep,
+                       simple_all_tests_pass_project_path_with_plot,
+                       "tests", "testthat", "mock.R")
     expect_true(file.exists(mock_path))
     expect_true(exists("plot", where = test_env, mode = "function"))
     expect_true(exists("used_plot_args", where = test_env))

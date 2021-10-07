@@ -1,13 +1,13 @@
 test_resources_dir <- paste(sep = "", getwd(), "/resources")
 
-#projects for testing:
-simple_all_tests_fail_project_path <- paste(sep = "", test_resources_dir, "/simple_all_tests_fail")
-simple_all_tests_pass_project_path <- paste(sep = "", test_resources_dir, "/simple_all_tests_pass")
+# projects for testing:
+simple_all_tests_fail_project_path  <- paste(sep = "", test_resources_dir, "/simple_all_tests_fail")
+simple_all_tests_pass_project_path  <- paste(sep = "", test_resources_dir, "/simple_all_tests_pass")
 simple_some_tests_fail_project_path <- paste(sep = "", test_resources_dir, "/simple_some_tests_fail")
 
 test_that("Test is reported to pass correctly", {
   test_output <- .run_create_file_result_for_files(simple_all_tests_pass_project_path)
-  #All tests should return true:
+  # All tests should return true:
   for (test in test_output) {
     expect_equal(test$status, "pass")
   }
@@ -15,7 +15,7 @@ test_that("Test is reported to pass correctly", {
 
 test_that("Test is reported to fail correctly", {
   test_output <- .run_create_file_result_for_files(simple_all_tests_fail_project_path)
-  #All tests should return false
+  # All tests should return false
   for (test in test_output) {
     expect_equal(test$status, "fail")
   }
@@ -36,7 +36,7 @@ test_that("Points are added correctly", {
 
 test_that("Status is added correctly for passing tests", {
   test_output <- .run_create_file_result_for_files(simple_all_tests_pass_project_path)
-  #All tests should be given pass:
+  # All tests should be given pass:
   for (test in test_output) {
     expect_equal(test$status, "pass")
   }

@@ -1,47 +1,48 @@
 export interface StyleValidationResult {
   strategy: StyleValidationStrategy;
-  validationErrors: { [key: string]: StyleValidationError[] } | null;
+  validation_errors: Record | null;
 }
 
 export interface StyleValidationError {
   column: number;
   line: number;
   message: string;
-  sourceName: string;
+  source_name: string;
 }
 
-export type StyleValidationStrategy = "FAIL" | "WARN" | "DISABLED";
+export type StyleValidationStrategy = "Fail" | "Warn" | "Disabled";
 
 export interface ExercisePackagingConfiguration {
-  student_file_paths: string[];
-  exercise_file_paths: string[];
+  student_file_paths: Array<unknown>;
+  exercise_file_paths: Array<unknown>;
 }
 
 export interface LocalExercise {
-  "exercise-slug": string;
-  "exercise-path": string;
+  exercise_slug: string;
+  exercise_path: unknown;
 }
 
 export type OutputFormat = "Tar" | "Zip" | "TarZstd";
 
 export interface RefreshData {
-  "new-cache-path": string;
-  "course-options": object;
-  exercises: RefreshExercise[];
+  new_cache_path: unknown;
+  course_options: object;
+  exercises: Array<RefreshExercise>;
 }
 
 export interface RefreshExercise {
   name: string;
   checksum: string;
-  points: string[];
-  "sandbox-image": string;
-  "tmcproject-yml": TmcProjectYml | null;
+  points: Array<string>;
+  path: unknown;
+  sandbox_image: string;
+  tmcproject_yml: TmcProjectYml | null;
 }
 
 export interface TmcProjectYml {
-  extra_student_files: string[] | null;
-  extra_exercise_files: string[] | null;
-  force_update: string[] | null;
+  extra_student_files: Array<unknown>;
+  extra_exercise_files: Array<unknown>;
+  force_update: Array<unknown>;
   tests_timeout_ms: number | null;
   fail_on_valgrind_error: boolean | null;
   minimum_python_version: PythonVer | null;
@@ -56,33 +57,33 @@ export interface PythonVer {
 
 export interface RunResult {
   status: RunStatus;
-  testResults: TestResult[];
-  logs: { [key: string]: string };
+  test_results: Array<TestResult>;
+  logs: Record<string, string>;
 }
 
 export type RunStatus =
-  | "PASSED"
-  | "TESTS_FAILED"
-  | "COMPILE_FAILED"
-  | "TESTRUN_INTERRUPTED"
-  | "GENERIC_ERROR";
+  | "Passed"
+  | "TestsFailed"
+  | "CompileFailed"
+  | "TestrunInterrupted"
+  | "GenericError";
 
 export interface TestResult {
   name: string;
   successful: boolean;
-  points: string[];
+  points: Array<string>;
   message: string;
-  exception: string[];
+  exception: Array<string>;
 }
 
 export interface ExerciseDesc {
   name: string;
-  tests: TestDesc[];
+  tests: Array<TestDesc>;
 }
 
 export interface TestDesc {
   name: string;
-  points: string[];
+  points: Array<string>;
 }
 
 export interface UpdatedExercise {
@@ -90,36 +91,28 @@ export interface UpdatedExercise {
 }
 
 export interface DownloadOrUpdateCourseExercisesResult {
-  downloaded: ExerciseDownload[];
-  skipped: ExerciseDownload[];
-  failed: [ExerciseDownload, string[]][] | null;
+  downloaded: Array<ExerciseDownload>;
+  skipped: Array<ExerciseDownload>;
+  failed: Array | null;
 }
 
 export interface ExerciseDownload {
   id: number;
-  "course-slug": string;
-  "exercise-slug": string;
-  path: string;
+  course_slug: string;
+  exercise_slug: string;
+  path: unknown;
 }
 
 export interface CombinedCourseData {
   details: CourseDetails;
-  exercises: CourseExercise[];
+  exercises: Array<CourseExercise>;
   settings: CourseData;
 }
 
 export interface CourseDetails {
-  id: number;
-  name: string;
-  title: string;
-  description: string | null;
-  details_url: string;
-  unlock_url: string;
-  reviews_url: string;
-  comet_url: string;
-  spyware_urls: string[];
-  unlockables: string[];
-  exercises: Exercise[];
+  course: Course;
+  unlockables: Array<string>;
+  exercises: Array<Exercise>;
 }
 
 export interface Exercise {
@@ -140,7 +133,7 @@ export interface Exercise {
   reviewed: boolean;
   all_review_points_given: boolean;
   memory_limit: number | null;
-  runtime_params: string[];
+  runtime_params: Array<string>;
   valgrind_strategy: string;
   code_review_requests_enabled: boolean;
   run_tests_locally_action_enabled: boolean;
@@ -151,8 +144,8 @@ export interface Exercise {
 
 export interface CourseExercise {
   id: number;
-  available_points: ExercisePoint[];
-  awarded_points: string[];
+  available_points: Array<ExercisePoint>;
+  awarded_points: Array<string>;
   name: string;
   publish_time: string | null;
   solution_visible_after: string | null;
@@ -202,7 +195,7 @@ export interface ExerciseDetails {
   exercise_id: number;
   unlocked_at: string | null;
   deadline: string | null;
-  submissions: ExerciseSubmission[];
+  submissions: Array<ExerciseSubmission>;
 }
 
 export interface ExerciseSubmission {
@@ -248,8 +241,8 @@ export interface Submission {
 }
 
 export interface UpdateResult {
-  created: Exercise[];
-  updated: Exercise[];
+  created: Array<Exercise>;
+  updated: Array<Exercise>;
 }
 
 export interface Organization {
@@ -267,8 +260,8 @@ export interface Review {
   marked_as_read: boolean;
   reviewer_name: string;
   review_body: string;
-  points: string[];
-  points_not_awarded: string[];
+  points: Array<string>;
+  points_not_awarded: Array<string>;
   url: string;
   update_url: string;
   created_at: string;
@@ -287,11 +280,11 @@ export interface SubmissionFeedbackResponse {
 }
 
 export type SubmissionStatus =
-  | "processing"
-  | "fail"
-  | "ok"
-  | "error"
-  | "hidden";
+  | "Processing"
+  | "Fail"
+  | "Ok"
+  | "Error"
+  | "Hidden";
 
 export interface SubmissionFinished {
   api_version: number;
@@ -301,7 +294,7 @@ export interface SubmissionFinished {
   course: string;
   exercise_name: string;
   status: SubmissionStatus;
-  points: string[];
+  points: Array<string>;
   valgrind: string | null;
   submission_url: string;
   solution_url: string | null;
@@ -311,9 +304,9 @@ export interface SubmissionFinished {
   requests_review: boolean;
   paste_url: string | null;
   message_for_paste: string | null;
-  missing_review_points: string[];
-  test_cases: TestCase[] | null;
-  feedback_questions: SubmissionFeedbackQuestion[] | null;
+  missing_review_points: Array<string>;
+  test_cases: Array | null;
+  feedback_questions: Array | null;
   feedback_answer_url: string | null;
   error: string | null;
   validations: StyleValidationResult | null;
@@ -323,7 +316,7 @@ export interface TestCase {
   name: string;
   successful: boolean;
   message: string | null;
-  exception: string[] | null;
+  exception: Array | null;
   detailed_message: string | null;
 }
 
@@ -339,5 +332,5 @@ export type SubmissionFeedbackKind = "Text" | {
 };
 
 export interface TmcConfig {
-  projects_dir: string;
+  projects_dir: unknown;
 }

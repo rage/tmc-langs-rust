@@ -4,7 +4,7 @@ The plugin creates a warning when the Python used is detected to be older than t
 
 ## Updating tmc-python-tester
 
-The tests use [tmc-python-tester](https://github.com/testmycode/tmc-python-tester) which should be updated occasionally by replacing `./tests/data/tmc` with the latest `./tmc` directory from the main branch of the repository. The update date should be written to `./tests/data/tmc_updated` to make it easier to see when it was last updated.
+The tests use [tmc-python-tester](https://github.com/testmycode/tmc-python-tester) which should be updated occasionally by replacing `./tests/data/tmc` with the latest `./tmc` directory from the main branch of the repository. When updating, update the `UPDATED` file to indicate when the update was done.
 
 ## Student file policy
 
