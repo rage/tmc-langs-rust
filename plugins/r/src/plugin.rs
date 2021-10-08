@@ -381,7 +381,7 @@ test("sample", c("r1.1"), {
         log::debug!("{:#?}", res);
         assert!(!res.successful);
         assert_eq!(res.points, &["r1", "r1.1"]);
-        assert_eq!(res.message, "object 'unexpected' not found");
+        assert!(res.message.contains("object 'unexpected' not found"));
         assert!(res.exception.is_empty());
     }
 
