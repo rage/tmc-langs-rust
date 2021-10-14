@@ -351,6 +351,20 @@ fn execute_zip(
         let zip_file_path = zip_dir.join(format!("{}.zip", exercise.name));
 
         let mut writer = zip::ZipWriter::new(file_util::create_file(zip_file_path)?);
+
+        // hidden files are filtered, so we handle .tmcproject.yml here
+        let tmcproject_yml_path = exercise_root.join(".tmcproject.yml");
+        if tmcproject_yml_path.exists() {
+            let tmcproject_yml = file_util::read_file(&tmcproject_yml_path)?;
+            let relative_path = tmcproject_yml_path.strip_prefix(&root_path).unwrap(); // safe
+            writer.start_file(
+                relative_path.to_string_lossy(),
+                zip::write::FileOptions::default(),
+            )?;
+            writer
+                .write_all(&tmcproject_yml)
+                .map_err(LangsError::ZipWrite)?;
+        }
         for entry in WalkDir::new(&exercise_root).into_iter().filter_entry(|e| {
             !e.file_name()
                 .to_str()
@@ -530,12 +544,14 @@ mod test {
         file_to(&temp, "clone/part2/ex2/setup.py", "");
         file_to(&temp, "clone/part2/ex2/dir/subdir/file", "");
         file_to(&temp, "clone/part2/ex2/dir/subdir/.hidden", "");
+        file_to(&temp, "clone/part2/ex2/.tmcproject.yml", "some: 'yaml'");
         file_to(&temp, "stub/part1/ex1/setup.py", "");
         file_to(&temp, "stub/part1/ex2/setup.py", "");
         file_to(&temp, "stub/part2/ex1/setup.py", "");
         file_to(&temp, "stub/part2/ex2/setup.py", "");
         file_to(&temp, "stub/part2/ex2/dir/subdir/file", "some file");
         file_to(&temp, "stub/part2/ex2/dir/subdir/.hidden", "hidden file");
+        file_to(&temp, "stub/part2/ex2/.tmcproject.yml", "some: 'yaml'");
 
         let exercise_dirs = find_exercise_directories(&temp.path().join("clone"))
             .unwrap()
@@ -603,7 +619,20 @@ mod test {
             .unwrap(); // other files have their stub contents
         let mut buf = String::new();
         file.read_to_string(&mut buf).unwrap();
+        drop(file);
+
         assert_eq!(buf, "some file");
+        let mut file = fz
+            .by_name(
+                &Path::new("part2")
+                    .join("ex2")
+                    .join(".tmcproject.yml")
+                    .to_string_lossy(),
+            )
+            .unwrap(); // .tmcproject.yml is not filtered out
+        let mut buf = String::new();
+        file.read_to_string(&mut buf).unwrap();
+        assert_eq!(buf, "some: 'yaml'");
     }
 
     #[test]
