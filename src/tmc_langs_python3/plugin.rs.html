@@ -841,8 +841,6 @@
 <span id="841">841</span>
 <span id="842">842</span>
 <span id="843">843</span>
-<span id="844">844</span>
-<span id="845">845</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Contains the Python3Plugin struct</span>
 
@@ -850,7 +848,7 @@
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::policy::Python3StudentFilePolicy</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::python_test_result::PythonTestResult</span>;
 <span class="kw">use</span> <span class="ident">hmac</span>::{<span class="ident">Hmac</span>, <span class="ident">Mac</span>, <span class="ident">NewMac</span>};
-<span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
+<span class="kw">use</span> <span class="ident">lazy_static::lazy_static</span>;
 <span class="kw">use</span> <span class="ident">rand::Rng</span>;
 <span class="kw">use</span> <span class="ident">sha2::Sha256</span>;
 <span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>};
@@ -878,32 +876,31 @@
     }
 
     <span class="kw">fn</span> <span class="ident">get_local_python_command</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TmcCommand</span> {
-        <span class="comment">// the correct python command is platform-dependent</span>
-        <span class="kw">static</span> <span class="ident">LOCAL_PY</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">LocalPy</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">python_exec</span>) <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;TMC_LANGS_PYTHON_EXEC&quot;</span>) {
-                <span class="macro">log::debug!</span>(
-                    <span class="string">&quot;using Python from environment variable TMC_LANGS_PYTHON_EXEC={}&quot;</span>,
-                    <span class="ident">python_exec</span>
-                );
-                <span class="kw">return</span> <span class="ident">LocalPy::Custom</span> { <span class="ident">python_exec</span> };
-            }
-
-            <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">windows</span>) {
-                <span class="comment">// Check for Conda</span>
-                <span class="kw">let</span> <span class="ident">conda</span> <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;CONDA_PYTHON_EXE&quot;</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">conda_path</span>) <span class="op">=</span> <span class="ident">conda</span> {
-                    <span class="kw">if</span> <span class="ident">PathBuf::from</span>(<span class="kw-2">&amp;</span><span class="ident">conda_path</span>).<span class="ident">exists</span>() {
-                        <span class="macro">log::debug!</span>(<span class="string">&quot;detected conda on windows&quot;</span>);
-                        <span class="kw">return</span> <span class="ident">LocalPy::WindowsConda</span> { <span class="ident">conda_path</span> };
-                    }
+        <span class="macro">lazy_static!</span> {
+            <span class="comment">// the correct python command is platform-dependent</span>
+            <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">LOCAL_PY</span>: <span class="ident">LocalPy</span> <span class="op">=</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">python_exec</span>) <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;TMC_LANGS_PYTHON_EXEC&quot;</span>) {
+                    <span class="macro">log::debug!</span>(<span class="string">&quot;using Python from environment variable TMC_LANGS_PYTHON_EXEC={}&quot;</span>, <span class="ident">python_exec</span>);
+                    <span class="kw">return</span> <span class="ident">LocalPy::Custom</span> { <span class="ident">python_exec</span> };
                 }
-                <span class="macro">log::debug!</span>(<span class="string">&quot;detected windows&quot;</span>);
-                <span class="ident">LocalPy::Windows</span>
-            } <span class="kw">else</span> {
-                <span class="macro">log::debug!</span>(<span class="string">&quot;detected unix&quot;</span>);
-                <span class="ident">LocalPy::Unix</span>
-            }
-        });
+
+                <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">windows</span>) {
+                    <span class="comment">// Check for Conda</span>
+                    <span class="kw">let</span> <span class="ident">conda</span> <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;CONDA_PYTHON_EXE&quot;</span>);
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">conda_path</span>) <span class="op">=</span> <span class="ident">conda</span> {
+                        <span class="kw">if</span> <span class="ident">PathBuf::from</span>(<span class="kw-2">&amp;</span><span class="ident">conda_path</span>).<span class="ident">exists</span>() {
+                            <span class="macro">log::debug!</span>(<span class="string">&quot;detected conda on windows&quot;</span>);
+                            <span class="kw">return</span> <span class="ident">LocalPy::WindowsConda</span> { <span class="ident">conda_path</span> };
+                        }
+                    }
+                    <span class="macro">log::debug!</span>(<span class="string">&quot;detected windows&quot;</span>);
+                    <span class="ident">LocalPy::Windows</span>
+                } <span class="kw">else</span> {
+                    <span class="macro">log::debug!</span>(<span class="string">&quot;detected unix&quot;</span>);
+                    <span class="ident">LocalPy::Unix</span>
+                }
+            };
+        }
 
         <span class="kw">enum</span> <span class="ident">LocalPy</span> {
             <span class="ident">Unix</span>,
@@ -920,25 +917,25 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">get_local_python_ver</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">u32</span>, <span class="ident">u32</span>), <span class="ident">PythonError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_local_python_ver</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>, <span class="ident">usize</span>), <span class="ident">PythonError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::get_local_python_command</span>()
         .<span class="ident">with</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">args</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;-c&quot;</span>, <span class="string">&quot;import sys; print(sys.version_info.major); print(sys.version_info.minor); print(sys.version_info.micro);&quot;</span>]))
         .<span class="ident">output_checked</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">stdout</span> <span class="op">=</span> <span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stdout</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lines</span> <span class="op">=</span> <span class="ident">stdout</span>.<span class="ident">lines</span>();
-        <span class="kw">let</span> <span class="ident">major</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">lines</span>
+        <span class="kw">let</span> <span class="ident">major</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">lines</span>
             .<span class="ident">next</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">PythonError::VersionPrintError</span>(<span class="ident">stdout</span>.<span class="ident">clone</span>().<span class="ident">into_owned</span>()))<span class="question-mark">?</span>
             .<span class="ident">trim</span>()
             .<span class="ident">parse</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">PythonError::VersionParseError</span>(<span class="ident">stdout</span>.<span class="ident">clone</span>().<span class="ident">into_owned</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">minor</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">lines</span>
+        <span class="kw">let</span> <span class="ident">minor</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">lines</span>
             .<span class="ident">next</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">PythonError::VersionPrintError</span>(<span class="ident">stdout</span>.<span class="ident">clone</span>().<span class="ident">into_owned</span>()))<span class="question-mark">?</span>
             .<span class="ident">trim</span>()
             .<span class="ident">parse</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">PythonError::VersionParseError</span>(<span class="ident">stdout</span>.<span class="ident">clone</span>().<span class="ident">into_owned</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">patch</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">lines</span>
+        <span class="kw">let</span> <span class="ident">patch</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">lines</span>
             .<span class="ident">next</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">PythonError::VersionPrintError</span>(<span class="ident">stdout</span>.<span class="ident">clone</span>().<span class="ident">into_owned</span>()))<span class="question-mark">?</span>
             .<span class="ident">trim</span>()
@@ -1032,7 +1029,7 @@
 
         <span class="comment">// verify test results</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">hmac_secret</span>, <span class="ident">test_runner_hmac_hex</span>)) <span class="op">=</span> <span class="ident">hmac_data</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mac</span> <span class="op">=</span> <span class="ident">Hmac</span>::<span class="op">&lt;</span><span class="ident">Sha256</span><span class="op">&gt;</span><span class="ident">::new_from_slice</span>(<span class="ident">hmac_secret</span>.<span class="ident">as_bytes</span>())
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mac</span> <span class="op">=</span> <span class="ident">Hmac</span>::<span class="op">&lt;</span><span class="ident">Sha256</span><span class="op">&gt;</span><span class="ident">::new_varkey</span>(<span class="ident">hmac_secret</span>.<span class="ident">as_bytes</span>())
                 .<span class="ident">expect</span>(<span class="string">&quot;HMAC can take key of any size&quot;</span>);
             <span class="ident">mac</span>.<span class="ident">update</span>(<span class="ident">results</span>.<span class="ident">as_bytes</span>());
             <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span>
@@ -1256,7 +1253,6 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident">std</span>::{
