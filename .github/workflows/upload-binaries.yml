@@ -3,7 +3,7 @@ name: Upload CLI binaries
 on:
   release:
     types:
-      - created
+      - released
 
 env:
   TAG: ${{ github.event.release.tag_name }} # had some issue using this directly on windows
@@ -13,23 +13,56 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        target: [i686-unknown-linux-gnu, x86_64-unknown-linux-gnu]
+        target:
+          [
+            x86_64-unknown-linux-gnu,
+            i686-unknown-linux-gnu,
+            aarch64-unknown-linux-gnu,
+            armv7-unknown-linux-gnueabihf,
+          ]
     steps:
-      - uses: actions/checkout@v2
-      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - name: Cache
+        uses: Swatinem/rust-cache@v1
+      - name: Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16"
+      - name: GCloud
+        uses: google-github-actions/setup-gcloud@master
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y gcc-multilib # required to build for 32-bit arch
-      - name: Cargo build
-        run: |
-          rustup target add i686-unknown-linux-gnu
-          cargo build -p tmc-langs-cli --release --verbose --target ${{ matrix.target }}
+          sudo apt install -y gcc-multilib  # required to build for 32-bit arch
+
+      - name: Install aarch64-unknown-linux-gnu linker
+        if: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
+        run: sudo apt install -y gcc-aarch64-linux-gnu
+      - name: Install armv7-unknown-linux-gnueabihf linker
+        if: ${{ matrix.target == 'armv7-unknown-linux-gnueabihf' }}
+        run: sudo apt install -y gcc-arm-linux-gnueabihf
+
       - name: Deploy
-        run: gsutil cp target/${{ matrix.target }}/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG
+        run: |
+          rustup target add ${{ matrix.target }}
+
+          # build and deploy CLI
+          cargo build -p tmc-langs-cli --release --target ${{ matrix.target }}
+          gsutil cp target/${{ matrix.target }}/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG
+
+          # build and deploy Node module
+          npm --prefix ./bindings/tmc-langs-node install
+          npm --prefix ./bindings/tmc-langs-node run build -- --release --target ${{ matrix.target }}
+          gsutil cp bindings/tmc-langs-node/ts/functions.node gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$TAG.node
 
   windows:
     runs-on: windows-latest
@@ -37,52 +70,102 @@ jobs:
       matrix:
         target: [i686-pc-windows-msvc, x86_64-pc-windows-msvc]
     steps:
-      - uses: actions/checkout@v2
-      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - name: Cache
+        uses: Swatinem/rust-cache@v1
+      - name: Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16"
+      - name: GCloud
+        uses: google-github-actions/setup-gcloud@master
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
-      - name: Cargo build # crt-static is set with RUSTFLAGS to statically link MSVCRT (VCRUNTIME140.dll)
+
+      - name: Build
         run: |
-          rustup target add i686-pc-windows-msvc
-          $env:RUSTFLAGS="-C target-feature=+crt-static"
-          cargo build -p tmc-langs-cli --release --verbose --target ${{ matrix.target }}
+          rustup target add ${{ matrix.target }}
+          $env:RUSTFLAGS="-C target-feature=+crt-static"  # crt-static is set with RUSTFLAGS to statically link MSVCRT (VCRUNTIME140.dll)
+          cargo build -p tmc-langs-cli --release --target ${{ matrix.target }}
+          cd ./bindings/tmc-langs-node && npm install && npm run build -- --release --target ${{ matrix.target }}
       - name: Deploy
         run: |
           $env:python_version=$(python -c 'import sys; print(\".\".join(map(str, sys.version_info[:3])))')
           $env:CLOUDSDK_PYTHON="C:\hostedtoolcache\windows\Python\$env:python_version\x64\python"
           gsutil cp target/${{ matrix.target }}/release/tmc-langs-cli.exe gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$Env:TAG.exe
+          gsutil cp bindings/tmc-langs-node/ts/functions.node             gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$Env:TAG.node
 
   macos:
-    runs-on: macos-latest
+    runs-on: macos-10.15
     steps:
-      - uses: actions/checkout@v2
-      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - name: Cache
+        uses: Swatinem/rust-cache@v1
+      - name: Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16"
+      - name: GCloud
+        uses: google-github-actions/setup-gcloud@master
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
+
       - name: Cargo build
-        run: cargo build -p tmc-langs-cli --release --verbose
+        run: |
+          cargo build -p tmc-langs-cli --release
+          npm --prefix ./bindings/tmc-langs-node install
+          npm run --prefix ./bindings/tmc-langs-node build -- --release
       - name: Sign
         run: codesign --force -s - target/release/tmc-langs-cli
       - name: Deploy
-        run: gsutil cp target/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-x86_64-apple-darwin-$TAG
+        run: |
+          gsutil cp target/release/tmc-langs-cli              gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-x86_64-apple-darwin-$TAG
+          gsutil cp bindings/tmc-langs-node/ts/functions.node gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-x86_64-apple-darwin-$TAG.node
 
-  arm:
-    runs-on: ubuntu-18.04
-    strategy:
-      matrix:
-        target: [aarch64-unknown-linux-gnu, armv7-unknown-linux-gnueabihf]
+  macos-11:
+    runs-on: macos-11
     steps:
-      - uses: actions/checkout@v2
-      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - name: Cache
+        uses: Swatinem/rust-cache@v1
+      - name: Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16"
+      - name: GCloud
+        uses: google-github-actions/setup-gcloud@master
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
+
       - name: Cargo build
         run: |
-          rustup target add ${{ matrix.target }}
-          cargo install cross
-          cross build -p tmc-langs-cli --release --verbose --target ${{ matrix.target }}
+          cargo build -p tmc-langs-cli --release
+          npm --prefix ./bindings/tmc-langs-node install
+          npm run --prefix ./bindings/tmc-langs-node build -- --release
+      - name: Sign
+        run: codesign --force -s - target/release/tmc-langs-cli
       - name: Deploy
-        run: gsutil cp target/${{ matrix.target }}/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG
+        run: |
+          gsutil cp target/release/tmc-langs-cli              gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-aarch64-apple-darwin-$TAG
+          gsutil cp bindings/tmc-langs-node/ts/functions.node gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-aarch64-apple-darwin-$TAG.node
