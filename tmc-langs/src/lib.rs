@@ -1054,12 +1054,14 @@ mod test {
                 course_name: "some course".to_string(),
                 exercise_name: "some exercise".to_string(),
                 checksum: "new checksum".to_string(),
+                hide_submission_results: false,
             },
             ExercisesDetails {
                 id: 2,
                 course_name: "some course".to_string(),
                 exercise_name: "another exercise".to_string(),
                 checksum: "old checksum".to_string(),
+                hide_submission_results: false,
             },
         ];
         let mut response = HashMap::new();
@@ -1159,24 +1161,35 @@ checksum = 'new checksum'
                     checksum: "new checksum".to_string(),
                     course_name: "some course".to_string(),
                     exercise_name: "on disk exercise with update and submission".to_string(),
+                    hide_submission_results: false,
                 },
                 ExercisesDetails {
                     id: 2,
                     checksum: "new checksum".to_string(),
                     course_name: "some course".to_string(),
                     exercise_name: "on disk exercise without update".to_string(),
+                    hide_submission_results: false,
                 },
                 ExercisesDetails {
                     id: 3,
                     checksum: "new checksum".to_string(),
                     course_name: "another course".to_string(),
                     exercise_name: "not on disk exercise with submission".to_string(),
+                    hide_submission_results: false,
                 },
                 ExercisesDetails {
                     id: 4,
                     checksum: "new checksum".to_string(),
                     course_name: "another course".to_string(),
                     exercise_name: "not on disk exercise without submission".to_string(),
+                    hide_submission_results: false,
+                },
+                ExercisesDetails {
+                    id: 5,
+                    checksum: "new checksum".to_string(),
+                    course_name: "another course".to_string(),
+                    exercise_name: "not on disk exercise with submission exercise hide submission result".to_string(),
+                    hide_submission_results: true,
                 },
             ],
         );
@@ -1254,6 +1267,16 @@ checksum = 'new checksum'
         .with_body(serde_json::to_string(&[0; 0]).unwrap())
         .create();
 
+        let _m = mockito::mock(
+            "GET",
+            mockito::Matcher::AllOf(vec![
+                mockito::Matcher::Regex("exercises/5".to_string()),
+                mockito::Matcher::Regex("submissions".to_string()),
+            ]),
+        )
+        .with_body(serde_json::to_string(&sub_body).unwrap())
+        .create();
+
         let mut template_zw = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
         template_zw
             .start_file("src/student_file.py", zip::write::FileOptions::default())
@@ -1312,6 +1335,15 @@ checksum = 'new checksum'
         )
         .with_body(&template_z)
         .create();
+        let _m = mockito::mock(
+            "GET",
+            mockito::Matcher::AllOf(vec![
+                mockito::Matcher::Regex("exercises/5".to_string()),
+                mockito::Matcher::Regex("download".to_string()),
+            ]),
+        )
+        .with_body(&template_z)
+        .create();
 
         let mut sub_zw = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
         sub_zw
@@ -1356,13 +1388,14 @@ checksum = 'new checksum'
             other => panic!("{:?}", other),
         };
 
-        assert_eq!(downloaded.len(), 3);
+        assert_eq!(downloaded.len(), 4);
         assert_eq!(skipped.len(), 1);
 
         let e1 = downloaded.iter().find(|e| e.id == 1).unwrap();
         let _e2 = skipped.iter().find(|e| e.id == 2).unwrap();
         let e3 = downloaded.iter().find(|e| e.id == 3).unwrap();
         let e4 = downloaded.iter().find(|e| e.id == 4).unwrap();
+        let e5 = downloaded.iter().find(|e|e.id == 5).unwrap();
 
         // did not download submission even though it was available because it was on disk
         let f = file_util::read_file_to_string(e1.path.join("src/student_file.py")).unwrap();
@@ -1385,8 +1418,15 @@ checksum = 'new checksum'
         // did not download submission because one was not available
         let f = file_util::read_file_to_string(e4.path.join("src/student_file.py")).unwrap();
         assert_eq!(f, "template");
-        assert!(e1.path.join("src/template_only_student_file.py").exists());
+        assert!(e4.path.join("src/template_only_student_file.py").exists());
         let f = file_util::read_file_to_string(e4.path.join("test/exercise_file.py")).unwrap();
+        assert_eq!(f, "template");
+
+        // did not download submission because exercise hides submission results, for example exam exercise
+        let f = file_util::read_file_to_string(e5.path.join("src/student_file.py")).unwrap();
+        assert_eq!(f, "template");
+        assert!(e5.path.join("src/template_only_student_file.py").exists());
+        let f = file_util::read_file_to_string(e5.path.join("test/exercise_file.py")).unwrap();
         assert_eq!(f, "template");
     }
 

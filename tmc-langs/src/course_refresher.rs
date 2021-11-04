@@ -392,7 +392,7 @@ fn execute_zip(
         let tmcproject_yml_path = exercise_root.join(".tmcproject.yml");
         if tmcproject_yml_path.exists() {
             let tmcproject_yml = file_util::read_file(&tmcproject_yml_path)?;
-            let relative_path = tmcproject_yml_path.strip_prefix(&root_path).unwrap(); // safe
+            let relative_path = tmcproject_yml_path.strip_prefix(&root_path).expect("relative path failed for tmcproject yml"); // safe
             writer.start_file(
                 relative_path.to_string_lossy(),
                 zip::write::FileOptions::default(),
