@@ -282,25 +282,27 @@ pub fn download_or_update_course_exercises(
                     .into_iter()
                     .max_by_key(|s| s.created_at)
                 {
-                    // previous submission found
-                    to_be_downloaded.push(DownloadTarget {
-                        target: ExerciseDownload {
-                            id: exercise_detail.id,
-                            course_slug: exercise_detail.course_name,
-                            exercise_slug: exercise_detail.exercise_name,
-                            path: target,
-                        },
-                        checksum: exercise_detail.checksum,
-                        kind: DownloadTargetKind::Submission {
-                            submission_id: latest_submission.id,
-                        },
-                    });
-                    continue;
+                    // previous submission found, check if exercise submission results hidden (part of exam)
+                    if !exercise_detail.hide_submission_results {
+                        to_be_downloaded.push(DownloadTarget {
+                            target: ExerciseDownload {
+                                id: exercise_detail.id,
+                                course_slug: exercise_detail.course_name,
+                                exercise_slug: exercise_detail.exercise_name,
+                                path: target,
+                            },
+                            checksum: exercise_detail.checksum,
+                            kind: DownloadTargetKind::Submission {
+                                submission_id: latest_submission.id,
+                            },
+                        });
+                        continue;
+                    }
                 }
             }
         }
 
-        // not skipped, either not on disk or no previous submissions, downloading template
+        // not skipped, either not on disk or no previous submissions or submission result hidden, downloading template
         to_be_downloaded.push(DownloadTarget {
             target: ExerciseDownload {
                 id: exercise_detail.id,
