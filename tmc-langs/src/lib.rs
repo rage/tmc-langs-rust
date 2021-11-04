@@ -1188,7 +1188,9 @@ checksum = 'new checksum'
                     id: 5,
                     checksum: "new checksum".to_string(),
                     course_name: "another course".to_string(),
-                    exercise_name: "not on disk exercise with submission exercise hide submission result".to_string(),
+                    exercise_name:
+                        "not on disk exercise with submission exercise hide submission result"
+                            .to_string(),
                     hide_submission_results: true,
                 },
             ],
@@ -1395,7 +1397,7 @@ checksum = 'new checksum'
         let _e2 = skipped.iter().find(|e| e.id == 2).unwrap();
         let e3 = downloaded.iter().find(|e| e.id == 3).unwrap();
         let e4 = downloaded.iter().find(|e| e.id == 4).unwrap();
-        let e5 = downloaded.iter().find(|e|e.id == 5).unwrap();
+        let e5 = downloaded.iter().find(|e| e.id == 5).unwrap();
 
         // did not download submission even though it was available because it was on disk
         let f = file_util::read_file_to_string(e1.path.join("src/student_file.py")).unwrap();
