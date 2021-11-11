@@ -393,10 +393,15 @@ pub fn download_or_update_course_exercises(
 
                             let mut buf = vec![];
                             client.download_old_submission(*submission_id, &mut buf)?;
-                            plugin.extract_student_files(
+                            if let Err(err) = plugin.extract_student_files(
                                 Cursor::new(buf),
                                 &download_target.target.path,
-                            )?;
+                            ) {
+                                log::error!(
+                                    "Something went wrong when downloading old submission: {}",
+                                    err
+                                );
+                            }
                         }
                     }
                     // download successful, save to course config
