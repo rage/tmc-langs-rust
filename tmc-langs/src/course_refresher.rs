@@ -379,7 +379,7 @@ fn execute_zip(
             if entry.path().is_file() {
                 writer.start_file(
                     relative_path.to_string_lossy(),
-                    zip::write::FileOptions::default(),
+                    zip::write::FileOptions::default().unix_permissions(0o755),
                 )?;
                 let bytes = file_util::read_file(entry.path())?;
                 writer.write_all(&bytes).map_err(LangsError::ZipWrite)?;
@@ -387,7 +387,7 @@ fn execute_zip(
                 // java-langs expects directories to have their own entries
                 writer.start_file(
                     relative_path.join("").to_string_lossy(), // java-langs expects directory entries to have a trailing slash
-                    zip::write::FileOptions::default(),
+                    zip::write::FileOptions::default().unix_permissions(0o755),
                 )?;
             }
         }
