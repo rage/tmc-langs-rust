@@ -37,14 +37,14 @@ pub fn zip_student_files<P: StudentFilePolicy>(
                 log::trace!("adding directory {}", path.display());
                 writer.add_directory(
                     path_to_zip_compatible_string(path),
-                    FileOptions::default().unix_permissions(0o744),
+                    FileOptions::default().unix_permissions(0o755),
                 )?;
             } else {
                 let bytes = file_util::read_file(entry.path())?;
                 log::trace!("writing file {}", path.display());
                 writer.start_file(
                     path_to_zip_compatible_string(path),
-                    FileOptions::default().unix_permissions(0o744),
+                    FileOptions::default().unix_permissions(0o755),
                 )?;
                 writer
                     .write_all(&bytes)
