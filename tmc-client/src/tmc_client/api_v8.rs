@@ -2372,7 +2372,8 @@ mod test {
       "id": 1,
       "course_name": "course",
       "exercise_name": "exercise",
-      "checksum": "f25e139769b2688e213938456959eeaf"
+      "checksum": "f25e139769b2688e213938456959eeaf",
+      "hide_submission_results": false
     }
   ]
 }

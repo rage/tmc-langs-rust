@@ -39,6 +39,10 @@ checksum = '{checksum}'
 [exercises."{}"]
 id = {}
 checksum = '{checksum}'
+
+[exercises."{}"]
+id = {}
+checksum = '{checksum}'
 "#,
         COURSE_NAME,
         EXERCISE_NAMES[0],
@@ -49,6 +53,8 @@ checksum = '{checksum}'
         EXERCISE_IDS[2],
         EXERCISE_NAMES[3],
         EXERCISE_IDS[3],
+        EXERCISE_NAMES[4],
+        EXERCISE_IDS[4],
         checksum = EXERCISE_CHECKSUM,
     )
 }
@@ -60,12 +66,13 @@ pub const ORGANIZATION_NAME: &str = "mock-organization";
 pub const ORGANIZATION_SLUG: &str = "morg";
 pub const COURSE_ID: u32 = 1;
 pub const COURSE_NAME: &str = "mock-course";
-pub const EXERCISE_IDS: [u32; 4] = [1, 2, 3, 4];
-pub const EXERCISE_NAMES: [&str; 4] = [
+pub const EXERCISE_IDS: [u32; 5] = [1, 2, 3, 4, 5];
+pub const EXERCISE_NAMES: [&str; 5] = [
     "mock-exercise-1",
     "mock-exercise-2",
     "mock-exercise-3",
     "mock-exercise-4",
+    "mock-exercise-5",
 ];
 pub const EXERCISE_CHECKSUM: &str = "new checksum";
 pub const SUBMISSION_ID: u32 = 1;
@@ -608,6 +615,33 @@ pub mod core {
                     "latest_submission_id": SUBMISSION_ID,
                     "solution_zip_url": "http://localhost"
                 },
+                {
+                    "id": EXERCISE_IDS[4],
+                    "name": EXERCISE_NAMES[4],
+                    "locked": false,
+                    "deadline_description": "2016-02-29 23:59:00 +0200",
+                    "deadline": "2016-02-29T23:59:00.000+02:00",
+                    "checksum": "new checksum",
+                    "return_url": "https://tmc.mooc.fi/api/v8/core/exercises/1337/submissions",
+                    "zip_url": "https://tmc.mooc.fi/api/v8/core/exercises/4272/download",
+                    "returnable": true,
+                    "requires_review": false,
+                    "attempted": false,
+                    "completed": false,
+                    "reviewed": false,
+                    "all_review_points_given": true,
+                    "memory_limit": 1024,
+                    "runtime_params": [
+                      "-Xss64M"
+                    ],
+                    "valgrind_strategy": "fail",
+                    "code_review_requests_enabled": false,
+                    "run_tests_locally_action_enabled": true,
+                    "exercise_submissions_url": "https://localhost",
+                    "latest_submission_url": "https://localhost",
+                    "latest_submission_id": SUBMISSION_ID,
+                    "solution_zip_url": "http://localhost"
+                },
               ]
         }})
     }
@@ -669,24 +703,35 @@ pub mod core {
                     "course_name": COURSE_NAME,
                     "exercise_name": EXERCISE_NAMES[0],
                     "checksum": EXERCISE_CHECKSUM,
+                    "hide_submission_results": false,
                 },
                 {
                     "id": EXERCISE_IDS[1],
                     "course_name": COURSE_NAME,
                     "exercise_name": EXERCISE_NAMES[1],
                     "checksum": EXERCISE_CHECKSUM,
+                    "hide_submission_results": false,
                 },
                 {
                     "id": EXERCISE_IDS[2],
                     "course_name": COURSE_NAME,
                     "exercise_name": EXERCISE_NAMES[2],
                     "checksum": EXERCISE_CHECKSUM,
+                    "hide_submission_results": false,
                 },
                 {
                     "id": EXERCISE_IDS[3],
                     "course_name": COURSE_NAME,
                     "exercise_name": EXERCISE_NAMES[3],
                     "checksum": EXERCISE_CHECKSUM,
+                    "hide_submission_results": false,
+                },
+                {
+                    "id": EXERCISE_IDS[4],
+                    "course_name": COURSE_NAME,
+                    "exercise_name": EXERCISE_NAMES[4],
+                    "checksum": EXERCISE_CHECKSUM,
+                    "hide_submission_results": true,
                 },
             ]
         })

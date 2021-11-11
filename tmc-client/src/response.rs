@@ -270,6 +270,7 @@ pub struct ExercisesDetails {
     pub course_name: String,
     pub exercise_name: String,
     pub checksum: String,
+    pub hide_submission_results: bool,
 }
 
 /// get /api/v8/courses/{course_id}/submissions
