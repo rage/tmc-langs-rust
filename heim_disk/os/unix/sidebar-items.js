@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Flags","Various options that were employed when mounting this filesystem (see `statvfs(3)`)."]],"trait":[["UsageExt","Unix-specific extensions for Usage struct."]]});

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;bitvec-0.19.5&#x2F;src&#x2F;pointer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pointer.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../bitvec/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;bitvec-0.19.5&#x2F;src&#x2F;pointer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pointer.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../bitvec/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1119,8 +1119,7 @@
 <span id="1119">1119</span>
 <span id="1120">1120</span>
 <span id="1121">1121</span>
-</pre><pre class="rust">
-<span class="doccomment">/*! Bitslice pointer encoding
+</pre><pre class="rust"><code><span class="doccomment">/*! Bitslice pointer encoding
 
 This module defines the in-memory representation of the handle to a `BitSlice`
 region. This structure is crate-internal, and defines the methods required to
@@ -1252,7 +1251,7 @@ project.
 {
 	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">addr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-		<span class="self">Self</span><span class="ident">::new</span>((<span class="ident">addr</span>) <span class="kw">as</span> <span class="ident">usize</span>)
+		<span class="ident"><span class="self">Self</span>::new</span>((<span class="ident">addr</span>) <span class="kw">as</span> <span class="ident">usize</span>)
 	}
 }
 
@@ -1272,7 +1271,7 @@ project.
 {
 	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">addr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-		<span class="self">Self</span><span class="ident">::new</span>(<span class="ident">addr</span> <span class="kw">as</span> <span class="ident">usize</span>)
+		<span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">addr</span> <span class="kw">as</span> <span class="ident">usize</span>)
 	}
 }
 
@@ -1475,15 +1474,15 @@ it certainly may not be seen or observed by other crates.
 	<span class="doccomment">/// Marks the bits of `self.len` that hold part of the `head` logical field.</span>
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">LEN_HEAD_MASK</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0b0111</span>;
 	<span class="doccomment">/// Marks the bits of `self.ptr` that hold the `addr` logical field.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">PTR_ADDR_MASK</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="op">!</span><span class="number">0</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">Self</span><span class="ident">::PTR_HEAD_BITS</span>;
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">PTR_ADDR_MASK</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="op">!</span><span class="number">0</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident"><span class="self">Self</span>::PTR_HEAD_BITS</span>;
 	<span class="doccomment">/// The number of low bits of `self.ptr` required to hold the high bits of</span>
 	<span class="doccomment">/// the head `BitIdx` cursor.</span>
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">PTR_HEAD_BITS</span>: <span class="ident">usize</span> <span class="op">=</span>
-		<span class="ident">T::Mem::INDX</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="self">Self</span><span class="ident">::LEN_HEAD_BITS</span>;
+		<span class="ident">T::Mem::INDX</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident"><span class="self">Self</span>::LEN_HEAD_BITS</span>;
 	<span class="doccomment">/// Marks the bits of `self.ptr` that hold part of the `head` logical field.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">PTR_HEAD_MASK</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="op">!</span><span class="self">Self</span><span class="ident">::PTR_ADDR_MASK</span>;
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">PTR_HEAD_MASK</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="op">!</span><span class="ident"><span class="self">Self</span>::PTR_ADDR_MASK</span>;
 	<span class="doccomment">/// The inclusive maximum number of bits that a `BitPtr` can cover.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">REGION_MAX_BITS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="op">!</span><span class="number">0</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::LEN_HEAD_BITS</span>;
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">REGION_MAX_BITS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="op">!</span><span class="number">0</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::LEN_HEAD_BITS</span>;
 	<span class="doccomment">/// The inclusive maximum number of elements that the region described by a</span>
 	<span class="doccomment">/// `BitPtr` can cover in memory.</span>
 	<span class="doccomment">///</span>
@@ -1495,7 +1494,7 @@ it certainly may not be seen or observed by other crates.
 	<span class="doccomment">/// number is guaranteed to be well below the limits of arithmetic or Rust’s</span>
 	<span class="doccomment">/// own constraints on memory region handles.</span>
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">REGION_MAX_ELTS</span>: <span class="ident">usize</span> <span class="op">=</span>
-		<span class="kw">crate</span><span class="ident">::mem::elts</span>::<span class="op">&lt;</span><span class="ident">T::Mem</span><span class="op">&gt;</span>(<span class="self">Self</span><span class="ident">::REGION_MAX_BITS</span>) <span class="op">+</span> <span class="number">1</span>;
+		<span class="ident"><span class="kw">crate</span>::mem::elts</span>::<span class="op">&lt;</span><span class="ident">T::Mem</span><span class="op">&gt;</span>(<span class="ident"><span class="self">Self</span>::REGION_MAX_BITS</span>) <span class="op">+</span> <span class="number">1</span>;
 
 	<span class="doccomment">/// Constructs an empty `BitPtr` at a bare pointer.</span>
 	<span class="doccomment">///</span>
@@ -1516,15 +1515,15 @@ it certainly may not be seen or observed by other crates.
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">uninhabited</span>(<span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Address</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
 		<span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">addr</span>.<span class="ident">into</span>();
 		<span class="macro">assert!</span>(
-			<span class="ident">addr</span>.<span class="ident">value</span>().<span class="ident">trailing_zeros</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">Self</span><span class="ident">::PTR_HEAD_BITS</span>,
+			<span class="ident">addr</span>.<span class="ident">value</span>().<span class="ident">trailing_zeros</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident"><span class="self">Self</span>::PTR_HEAD_BITS</span>,
 			<span class="string">&quot;Pointer {:p} does not satisfy minimum alignment requirements {}&quot;</span>,
 			<span class="ident">addr</span>.<span class="ident">to_const</span>(),
-			<span class="self">Self</span><span class="ident">::PTR_HEAD_BITS</span>
+			<span class="ident"><span class="self">Self</span>::PTR_HEAD_BITS</span>
 		);
 		<span class="self">Self</span> {
 			<span class="ident">ptr</span>: <span class="kw">match</span> <span class="ident">NonNull::new</span>(<span class="ident">addr</span>.<span class="ident">to_mut</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>) {
 				<span class="prelude-val">Some</span>(<span class="ident">nn</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">nn</span>,
-				<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="self">Self</span><span class="ident">::EMPTY</span>,
+				<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::EMPTY</span>,
 			},
 			<span class="ident">len</span>: <span class="number">0</span>,
 			<span class="ident">_ty</span>: <span class="ident">PhantomData</span>,
@@ -1567,8 +1566,8 @@ it certainly may not be seen or observed by other crates.
 		<span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">addr</span>.<span class="ident">into</span>();
 
 		<span class="kw">if</span> <span class="ident">addr</span>.<span class="ident">to_const</span>().<span class="ident">is_null</span>()
-			<span class="op">|</span><span class="op">|</span> (<span class="ident">addr</span>.<span class="ident">value</span>().<span class="ident">trailing_zeros</span>() <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="self">Self</span><span class="ident">::PTR_HEAD_BITS</span>
-			<span class="op">|</span><span class="op">|</span> <span class="ident">bits</span> <span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::REGION_MAX_BITS</span>
+			<span class="op">|</span><span class="op">|</span> (<span class="ident">addr</span>.<span class="ident">value</span>().<span class="ident">trailing_zeros</span>() <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="ident"><span class="self">Self</span>::PTR_HEAD_BITS</span>
+			<span class="op">|</span><span class="op">|</span> <span class="ident">bits</span> <span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::REGION_MAX_BITS</span>
 		{
 			<span class="kw">return</span> <span class="prelude-val">None</span>;
 		}
@@ -1579,7 +1578,7 @@ it certainly may not be seen or observed by other crates.
 			<span class="kw">return</span> <span class="prelude-val">None</span>;
 		}
 
-		<span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <span class="self">Self</span><span class="ident">::new_unchecked</span>(<span class="ident">addr</span>, <span class="ident">head</span>, <span class="ident">bits</span>) })
+		<span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::new_unchecked</span>(<span class="ident">addr</span>, <span class="ident">head</span>, <span class="ident">bits</span>) })
 	}
 
 	<span class="doccomment">/// Creates a new `BitPtr&lt;T&gt;` from its components, without any validity</span>
@@ -1611,11 +1610,11 @@ it certainly may not be seen or observed by other crates.
 	{
 		<span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">head</span>) <span class="op">=</span> (<span class="ident">addr</span>.<span class="ident">into</span>(), <span class="ident">head</span>.<span class="ident">value</span>() <span class="kw">as</span> <span class="ident">usize</span>);
 
-		<span class="kw">let</span> <span class="ident">ptr_data</span> <span class="op">=</span> <span class="ident">addr</span>.<span class="ident">value</span>() <span class="op">&amp;</span> <span class="self">Self</span><span class="ident">::PTR_ADDR_MASK</span>;
-		<span class="kw">let</span> <span class="ident">ptr_head</span> <span class="op">=</span> <span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::LEN_HEAD_BITS</span>;
+		<span class="kw">let</span> <span class="ident">ptr_data</span> <span class="op">=</span> <span class="ident">addr</span>.<span class="ident">value</span>() <span class="op">&amp;</span> <span class="ident"><span class="self">Self</span>::PTR_ADDR_MASK</span>;
+		<span class="kw">let</span> <span class="ident">ptr_head</span> <span class="op">=</span> <span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::LEN_HEAD_BITS</span>;
 
-		<span class="kw">let</span> <span class="ident">len_head</span> <span class="op">=</span> <span class="ident">head</span> <span class="op">&amp;</span> <span class="self">Self</span><span class="ident">::LEN_HEAD_MASK</span>;
-		<span class="kw">let</span> <span class="ident">len_bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">Self</span><span class="ident">::LEN_HEAD_BITS</span>;
+		<span class="kw">let</span> <span class="ident">len_head</span> <span class="op">=</span> <span class="ident">head</span> <span class="op">&amp;</span> <span class="ident"><span class="self">Self</span>::LEN_HEAD_MASK</span>;
+		<span class="kw">let</span> <span class="ident">len_bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident"><span class="self">Self</span>::LEN_HEAD_BITS</span>;
 
 		<span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">Address::new</span>(<span class="ident">ptr_data</span> <span class="op">|</span> <span class="ident">ptr_head</span>);
 
@@ -1639,7 +1638,7 @@ it certainly may not be seen or observed by other crates.
 	<span class="doccomment">/// access type.</span>
 	<span class="attribute">#[<span class="ident">inline</span>]</span>
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pointer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Address</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="ident">Address::new</span>(<span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&amp;</span> <span class="self">Self</span><span class="ident">::PTR_ADDR_MASK</span>)
+		<span class="ident">Address::new</span>(<span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&amp;</span> <span class="ident"><span class="self">Self</span>::PTR_ADDR_MASK</span>)
 	}
 
 	<span class="doccomment">/// Overwrites the data pointer with a new address. This method does not</span>
@@ -1658,11 +1657,11 @@ it certainly may not be seen or observed by other crates.
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_pointer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">addr</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Address</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">addr</span>.<span class="ident">into</span>();
 		<span class="kw">if</span> <span class="ident">addr</span>.<span class="ident">to_const</span>().<span class="ident">is_null</span>() {
-			<span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::EMPTY</span>;
+			<span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::EMPTY</span>;
 			<span class="kw">return</span>;
 		}
-		<span class="ident">addr</span>.<span class="ident">addr</span> <span class="op">&amp;=</span> <span class="self">Self</span><span class="ident">::PTR_ADDR_MASK</span>;
-		<span class="ident">addr</span>.<span class="ident">addr</span> <span class="op">|</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&amp;</span> <span class="self">Self</span><span class="ident">::PTR_HEAD_MASK</span>;
+		<span class="ident">addr</span>.<span class="ident">addr</span> <span class="op">&amp;=</span> <span class="ident"><span class="self">Self</span>::PTR_ADDR_MASK</span>;
+		<span class="ident">addr</span>.<span class="ident">addr</span> <span class="op">|</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&amp;</span> <span class="ident"><span class="self">Self</span>::PTR_HEAD_MASK</span>;
 		<span class="self">self</span>.<span class="ident">ptr</span> <span class="op">=</span> <span class="ident">NonNull::new_unchecked</span>(<span class="ident">addr</span>.<span class="ident">to_mut</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>);
 	}
 
@@ -1679,9 +1678,9 @@ it certainly may not be seen or observed by other crates.
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">head</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BitIdx</span><span class="op">&lt;</span><span class="ident">T::Mem</span><span class="op">&gt;</span> {
 		<span class="comment">//  Get the high part of the head counter out of the pointer.</span>
 		<span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>;
-		<span class="kw">let</span> <span class="ident">ptr_head</span> <span class="op">=</span> (<span class="ident">ptr</span> <span class="op">&amp;</span> <span class="self">Self</span><span class="ident">::PTR_HEAD_MASK</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">Self</span><span class="ident">::LEN_HEAD_BITS</span>;
+		<span class="kw">let</span> <span class="ident">ptr_head</span> <span class="op">=</span> (<span class="ident">ptr</span> <span class="op">&amp;</span> <span class="ident"><span class="self">Self</span>::PTR_HEAD_MASK</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident"><span class="self">Self</span>::LEN_HEAD_BITS</span>;
 		<span class="comment">//  Get the low part of the head counter out of the length.</span>
-		<span class="kw">let</span> <span class="ident">len_head</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span> <span class="op">&amp;</span> <span class="self">Self</span><span class="ident">::LEN_HEAD_MASK</span>;
+		<span class="kw">let</span> <span class="ident">len_head</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span> <span class="op">&amp;</span> <span class="ident"><span class="self">Self</span>::LEN_HEAD_MASK</span>;
 		<span class="comment">//  Combine and mark as an index.</span>
 		<span class="kw">unsafe</span> { <span class="ident">BitIdx::new_unchecked</span>((<span class="ident">ptr_head</span> <span class="op">|</span> <span class="ident">len_head</span>) <span class="kw">as</span> <span class="ident">u8</span>) }
 	}
@@ -1702,12 +1701,12 @@ it certainly may not be seen or observed by other crates.
 		<span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="ident">head</span>.<span class="ident">value</span>() <span class="kw">as</span> <span class="ident">usize</span>;
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>;
 
-		<span class="ident">ptr</span> <span class="op">&amp;=</span> <span class="self">Self</span><span class="ident">::PTR_ADDR_MASK</span>;
-		<span class="ident">ptr</span> <span class="op">|</span><span class="op">=</span> <span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::LEN_HEAD_BITS</span>;
+		<span class="ident">ptr</span> <span class="op">&amp;=</span> <span class="ident"><span class="self">Self</span>::PTR_ADDR_MASK</span>;
+		<span class="ident">ptr</span> <span class="op">|</span><span class="op">=</span> <span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::LEN_HEAD_BITS</span>;
 		<span class="self">self</span>.<span class="ident">ptr</span> <span class="op">=</span> <span class="ident">NonNull::new_unchecked</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>);
 
-		<span class="self">self</span>.<span class="ident">len</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="self">Self</span><span class="ident">::LEN_HEAD_MASK</span>;
-		<span class="self">self</span>.<span class="ident">len</span> <span class="op">|</span><span class="op">=</span> <span class="ident">head</span> <span class="op">&amp;</span> <span class="self">Self</span><span class="ident">::LEN_HEAD_MASK</span>;
+		<span class="self">self</span>.<span class="ident">len</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="ident"><span class="self">Self</span>::LEN_HEAD_MASK</span>;
+		<span class="self">self</span>.<span class="ident">len</span> <span class="op">|</span><span class="op">=</span> <span class="ident">head</span> <span class="op">&amp;</span> <span class="ident"><span class="self">Self</span>::LEN_HEAD_MASK</span>;
 	}
 
 	<span class="doccomment">/// Gets the number of live bits in the referent region.</span>
@@ -1721,7 +1720,7 @@ it certainly may not be seen or observed by other crates.
 	<span class="doccomment">/// A count of how many live bits the region pointer describes.</span>
 	<span class="attribute">#[<span class="ident">inline</span>]</span>
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-		<span class="self">self</span>.<span class="ident">len</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::LEN_HEAD_BITS</span>
+		<span class="self">self</span>.<span class="ident">len</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::LEN_HEAD_BITS</span>
 	}
 
 	<span class="doccomment">/// Sets the `.bits` logical member to a new value.</span>
@@ -1738,12 +1737,12 @@ it certainly may not be seen or observed by other crates.
 	<span class="attribute">#[<span class="ident">inline</span>]</span>
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_len</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">new_len</span>: <span class="ident">usize</span>) {
 		<span class="macro">debug_assert!</span>(
-			<span class="ident">new_len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">Self</span><span class="ident">::REGION_MAX_BITS</span>,
+			<span class="ident">new_len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident"><span class="self">Self</span>::REGION_MAX_BITS</span>,
 			<span class="string">&quot;Length {} out of range&quot;</span>,
 			<span class="ident">new_len</span>,
 		);
-		<span class="self">self</span>.<span class="ident">len</span> <span class="op">&amp;=</span> <span class="self">Self</span><span class="ident">::LEN_HEAD_MASK</span>;
-		<span class="self">self</span>.<span class="ident">len</span> <span class="op">|</span><span class="op">=</span> <span class="ident">new_len</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">Self</span><span class="ident">::LEN_HEAD_BITS</span>;
+		<span class="self">self</span>.<span class="ident">len</span> <span class="op">&amp;=</span> <span class="ident"><span class="self">Self</span>::LEN_HEAD_MASK</span>;
+		<span class="self">self</span>.<span class="ident">len</span> <span class="op">|</span><span class="op">=</span> <span class="ident">new_len</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident"><span class="self">Self</span>::LEN_HEAD_BITS</span>;
 	}
 
 	<span class="doccomment">/// Gets the three logical components of the pointer.</span>
@@ -1836,13 +1835,13 @@ it certainly may not be seen or observed by other crates.
 		<span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">head</span>().<span class="ident">value</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="number">1</span>;
 
 		<span class="comment">//  Write the low bits into the `.len` field, then discard them.</span>
-		<span class="self">self</span>.<span class="ident">len</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="self">Self</span><span class="ident">::LEN_HEAD_MASK</span>;
-		<span class="self">self</span>.<span class="ident">len</span> <span class="op">|</span><span class="op">=</span> <span class="ident">head</span> <span class="op">&amp;</span> <span class="self">Self</span><span class="ident">::LEN_HEAD_MASK</span>;
-		<span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::LEN_HEAD_BITS</span>;
+		<span class="self">self</span>.<span class="ident">len</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="ident"><span class="self">Self</span>::LEN_HEAD_MASK</span>;
+		<span class="self">self</span>.<span class="ident">len</span> <span class="op">|</span><span class="op">=</span> <span class="ident">head</span> <span class="op">&amp;</span> <span class="ident"><span class="self">Self</span>::LEN_HEAD_MASK</span>;
+		<span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="ident">head</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::LEN_HEAD_BITS</span>;
 
 		<span class="comment">//  Erase the high bits of `.head` from `.ptr`,</span>
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>;
-		<span class="ident">ptr</span> <span class="op">&amp;=</span> <span class="self">Self</span><span class="ident">::PTR_ADDR_MASK</span>;
+		<span class="ident">ptr</span> <span class="op">&amp;=</span> <span class="ident"><span class="self">Self</span>::PTR_ADDR_MASK</span>;
 		<span class="comment">/* Then numerically add the high bits of `.head` into the low bits of
 		`.ptr`. If the head increment rolled over into a new element, this will
 		have the effect of raising the `.addr` logical field to the next element
@@ -2000,7 +1999,7 @@ it certainly may not be seen or observed by other crates.
 	<span class="kw">where</span> <span class="ident">O</span>: <span class="ident">BitOrder</span> {
 		<span class="kw">let</span> <span class="ident">slice_nn</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">NonNull::new</span>(<span class="ident">raw</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [()] <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> [()]) {
 			<span class="prelude-val">Some</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>,
-			<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="self">Self</span><span class="ident">::EMPTY</span>,
+			<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::EMPTY</span>,
 		};
 		<span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">dvl::nonnull_slice_to_base</span>(<span class="ident">slice_nn</span>).<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>();
 		<span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">slice_nn</span>.<span class="ident">as_ref</span>() }.<span class="ident">len</span>();
@@ -2016,7 +2015,7 @@ it certainly may not be seen or observed by other crates.
 	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_bitslice_ptr_mut</span><span class="op">&lt;</span><span class="ident">O</span><span class="op">&gt;</span>(<span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">BitSlice</span><span class="op">&lt;</span><span class="ident">O</span>, <span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
 	<span class="kw">where</span> <span class="ident">O</span>: <span class="ident">BitOrder</span> {
-		<span class="self">Self</span><span class="ident">::from_bitslice_ptr</span>(<span class="ident">raw</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">BitSlice</span><span class="op">&lt;</span><span class="ident">O</span>, <span class="ident">T</span><span class="op">&gt;</span>)
+		<span class="ident"><span class="self">Self</span>::from_bitslice_ptr</span>(<span class="ident">raw</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">BitSlice</span><span class="op">&lt;</span><span class="ident">O</span>, <span class="ident">T</span><span class="op">&gt;</span>)
 	}
 
 	<span class="doccomment">/// Type-casts the pointer structure into a raw region pointer.</span>
@@ -2171,7 +2170,7 @@ it certainly may not be seen or observed by other crates.
 {
 	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-		<span class="self">Self</span><span class="ident">::EMPTY</span>
+		<span class="ident"><span class="self">Self</span>::EMPTY</span>
 	}
 }
 
@@ -2241,7 +2240,7 @@ it certainly may not be seen or observed by other crates.
 		<span class="macro">assert_eq!</span>(<span class="kw">unsafe</span> { <span class="ident">a</span>.<span class="ident">ptr_diff</span>(<span class="ident">b</span>) }, (<span class="op">-</span><span class="number">1</span>, <span class="op">-</span><span class="number">5</span>));
 	}
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="bitvec" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

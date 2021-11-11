@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;nom-6.2.1&#x2F;src&#x2F;character&#x2F;streaming.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>streaming.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../nom/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;nom-6.1.2&#x2F;src&#x2F;character&#x2F;streaming.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>streaming.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../nom/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -991,20 +991,17 @@
 <span id="991">991</span>
 <span id="992">992</span>
 <span id="993">993</span>
-<span id="994">994</span>
-<span id="995">995</span>
-</pre><pre class="rust">
-<span class="doccomment">//! Character specific parsers and combinators, streaming version</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Character specific parsers and combinators, streaming version</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Functions recognizing specific characters</span>
 
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::error::ParseError</span>;
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::internal</span>::{<span class="prelude-val">Err</span>, <span class="ident">IResult</span>, <span class="ident">Needed</span>};
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::lib::std::ops</span>::{<span class="ident">Range</span>, <span class="ident">RangeFrom</span>, <span class="ident">RangeTo</span>};
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::traits</span>::{<span class="ident">AsChar</span>, <span class="ident">FindToken</span>, <span class="ident">InputIter</span>, <span class="ident">InputLength</span>, <span class="ident">InputTakeAtPosition</span>, <span class="ident">Slice</span>};
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::traits</span>::{<span class="ident">Compare</span>, <span class="ident">CompareResult</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::ParseError</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::internal</span>::{<span class="prelude-val">Err</span>, <span class="ident">IResult</span>, <span class="ident">Needed</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::lib::std::ops</span>::{<span class="ident">Range</span>, <span class="ident">RangeFrom</span>, <span class="ident">RangeTo</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::traits</span>::{<span class="ident">AsChar</span>, <span class="ident">FindToken</span>, <span class="ident">InputIter</span>, <span class="ident">InputLength</span>, <span class="ident">InputTakeAtPosition</span>, <span class="ident">Slice</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::traits</span>::{<span class="ident">Compare</span>, <span class="ident">CompareResult</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::error::ErrorKind</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::ErrorKind</span>;
 
 <span class="doccomment">/// Recognizes one character.</span>
 <span class="doccomment">///</span>
@@ -1147,19 +1144,17 @@
   }
 }
 
-<span class="doccomment">/// Recognizes a string of any char except &#39;\r\n&#39; or &#39;\n&#39;.</span>
+<span class="doccomment">/// Recognizes a string of any char except &#39;\r&#39; or &#39;\n&#39;.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// *Streaming version*: Will return `Err(nom::Err::Incomplete(_))` if there&#39;s not enough input data.</span>
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
-<span class="doccomment">/// # use nom::{Err, error::{Error, ErrorKind}, IResult, Needed};</span>
+<span class="doccomment">/// # use nom::{Err, error::ErrorKind, IResult, Needed};</span>
 <span class="doccomment">/// # use nom::character::streaming::not_line_ending;</span>
 <span class="doccomment">/// assert_eq!(not_line_ending::&lt;_, (_, ErrorKind)&gt;(&quot;ab\r\nc&quot;), Ok((&quot;\r\nc&quot;, &quot;ab&quot;)));</span>
 <span class="doccomment">/// assert_eq!(not_line_ending::&lt;_, (_, ErrorKind)&gt;(&quot;abc&quot;), Err(Err::Incomplete(Needed::Unknown)));</span>
 <span class="doccomment">/// assert_eq!(not_line_ending::&lt;_, (_, ErrorKind)&gt;(&quot;&quot;), Err(Err::Incomplete(Needed::Unknown)));</span>
-<span class="doccomment">/// assert_eq!(not_line_ending::&lt;_, (_, ErrorKind)&gt;(&quot;a\rb\nc&quot;), Err(Err::Error((&quot;a\rb\nc&quot;, ErrorKind::Tag ))));</span>
-<span class="doccomment">/// assert_eq!(not_line_ending::&lt;_, (_, ErrorKind)&gt;(&quot;a\rbc&quot;), Err(Err::Error((&quot;a\rbc&quot;, ErrorKind::Tag ))));</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">not_line_ending</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span>: <span class="ident">ParseError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
@@ -1608,19 +1603,19 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
   <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-  <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::error::ErrorKind</span>;
-  <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::internal</span>::{<span class="prelude-val">Err</span>, <span class="ident">Needed</span>};
+  <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::ErrorKind</span>;
+  <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::internal</span>::{<span class="prelude-val">Err</span>, <span class="ident">Needed</span>};
 
   <span class="macro">macro_rules!</span> <span class="ident">assert_parse</span>(
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>: <span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>: <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
-      <span class="kw">let</span> <span class="ident">res</span>: <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, (<span class="kw">_</span>, <span class="ident">ErrorKind</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>;
+      <span class="kw">let</span> <span class="ident">res</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::IResult</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, (<span class="kw">_</span>, <span class="ident">ErrorKind</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>;
       <span class="macro">assert_eq!</span>(<span class="ident">res</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>);
     };
   );
 
   <span class="attribute">#[<span class="ident">test</span>]</span>
   <span class="kw">fn</span> <span class="ident">anychar_str</span>() {
-    <span class="kw">use</span> <span class="kw">super</span><span class="ident">::anychar</span>;
+    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::anychar</span>;
     <span class="macro">assert_eq!</span>(<span class="ident">anychar</span>::<span class="op">&lt;</span><span class="kw">_</span>, (<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">ErrorKind</span>)<span class="op">&gt;</span>(<span class="string">&quot;Ә&quot;</span>), <span class="prelude-val">Ok</span>((<span class="string">&quot;&quot;</span>, <span class="string">&#39;Ә&#39;</span>)));
   }
 
@@ -1750,7 +1745,7 @@
     );
   }
 
-  <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::traits::Offset</span>;
+  <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::traits::Offset</span>;
   <span class="attribute">#[<span class="ident">test</span>]</span>
   <span class="kw">fn</span> <span class="ident">offset</span>() {
     <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="string">b&quot;abcd;&quot;</span>[..];
@@ -1877,18 +1872,18 @@
       <span class="prelude-val">Err</span>(<span class="ident">Err::Error</span>(<span class="macro">error_position!</span>(<span class="ident">i</span>, <span class="ident">ErrorKind::HexDigit</span>)))
     );
 
-    <span class="macro">assert!</span>(<span class="kw">crate</span><span class="ident">::character::is_hex_digit</span>(<span class="string">b&#39;0&#39;</span>));
-    <span class="macro">assert!</span>(<span class="kw">crate</span><span class="ident">::character::is_hex_digit</span>(<span class="string">b&#39;9&#39;</span>));
-    <span class="macro">assert!</span>(<span class="kw">crate</span><span class="ident">::character::is_hex_digit</span>(<span class="string">b&#39;a&#39;</span>));
-    <span class="macro">assert!</span>(<span class="kw">crate</span><span class="ident">::character::is_hex_digit</span>(<span class="string">b&#39;f&#39;</span>));
-    <span class="macro">assert!</span>(<span class="kw">crate</span><span class="ident">::character::is_hex_digit</span>(<span class="string">b&#39;A&#39;</span>));
-    <span class="macro">assert!</span>(<span class="kw">crate</span><span class="ident">::character::is_hex_digit</span>(<span class="string">b&#39;F&#39;</span>));
-    <span class="macro">assert!</span>(<span class="op">!</span><span class="kw">crate</span><span class="ident">::character::is_hex_digit</span>(<span class="string">b&#39;g&#39;</span>));
-    <span class="macro">assert!</span>(<span class="op">!</span><span class="kw">crate</span><span class="ident">::character::is_hex_digit</span>(<span class="string">b&#39;G&#39;</span>));
-    <span class="macro">assert!</span>(<span class="op">!</span><span class="kw">crate</span><span class="ident">::character::is_hex_digit</span>(<span class="string">b&#39;/&#39;</span>));
-    <span class="macro">assert!</span>(<span class="op">!</span><span class="kw">crate</span><span class="ident">::character::is_hex_digit</span>(<span class="string">b&#39;:&#39;</span>));
-    <span class="macro">assert!</span>(<span class="op">!</span><span class="kw">crate</span><span class="ident">::character::is_hex_digit</span>(<span class="string">b&#39;@&#39;</span>));
-    <span class="macro">assert!</span>(<span class="op">!</span><span class="kw">crate</span><span class="ident">::character::is_hex_digit</span>(<span class="string">b&#39;\x60&#39;</span>));
+    <span class="macro">assert!</span>(<span class="ident"><span class="kw">crate</span>::character::is_hex_digit</span>(<span class="string">b&#39;0&#39;</span>));
+    <span class="macro">assert!</span>(<span class="ident"><span class="kw">crate</span>::character::is_hex_digit</span>(<span class="string">b&#39;9&#39;</span>));
+    <span class="macro">assert!</span>(<span class="ident"><span class="kw">crate</span>::character::is_hex_digit</span>(<span class="string">b&#39;a&#39;</span>));
+    <span class="macro">assert!</span>(<span class="ident"><span class="kw">crate</span>::character::is_hex_digit</span>(<span class="string">b&#39;f&#39;</span>));
+    <span class="macro">assert!</span>(<span class="ident"><span class="kw">crate</span>::character::is_hex_digit</span>(<span class="string">b&#39;A&#39;</span>));
+    <span class="macro">assert!</span>(<span class="ident"><span class="kw">crate</span>::character::is_hex_digit</span>(<span class="string">b&#39;F&#39;</span>));
+    <span class="macro">assert!</span>(<span class="op">!</span><span class="ident"><span class="kw">crate</span>::character::is_hex_digit</span>(<span class="string">b&#39;g&#39;</span>));
+    <span class="macro">assert!</span>(<span class="op">!</span><span class="ident"><span class="kw">crate</span>::character::is_hex_digit</span>(<span class="string">b&#39;G&#39;</span>));
+    <span class="macro">assert!</span>(<span class="op">!</span><span class="ident"><span class="kw">crate</span>::character::is_hex_digit</span>(<span class="string">b&#39;/&#39;</span>));
+    <span class="macro">assert!</span>(<span class="op">!</span><span class="ident"><span class="kw">crate</span>::character::is_hex_digit</span>(<span class="string">b&#39;:&#39;</span>));
+    <span class="macro">assert!</span>(<span class="op">!</span><span class="ident"><span class="kw">crate</span>::character::is_hex_digit</span>(<span class="string">b&#39;@&#39;</span>));
+    <span class="macro">assert!</span>(<span class="op">!</span><span class="ident"><span class="kw">crate</span>::character::is_hex_digit</span>(<span class="string">b&#39;\x60&#39;</span>));
   }
 
   <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1902,16 +1897,16 @@
       <span class="prelude-val">Err</span>(<span class="ident">Err::Error</span>(<span class="macro">error_position!</span>(<span class="ident">i</span>, <span class="ident">ErrorKind::OctDigit</span>)))
     );
 
-    <span class="macro">assert!</span>(<span class="kw">crate</span><span class="ident">::character::is_oct_digit</span>(<span class="string">b&#39;0&#39;</span>));
-    <span class="macro">assert!</span>(<span class="kw">crate</span><span class="ident">::character::is_oct_digit</span>(<span class="string">b&#39;7&#39;</span>));
-    <span class="macro">assert!</span>(<span class="op">!</span><span class="kw">crate</span><span class="ident">::character::is_oct_digit</span>(<span class="string">b&#39;8&#39;</span>));
-    <span class="macro">assert!</span>(<span class="op">!</span><span class="kw">crate</span><span class="ident">::character::is_oct_digit</span>(<span class="string">b&#39;9&#39;</span>));
-    <span class="macro">assert!</span>(<span class="op">!</span><span class="kw">crate</span><span class="ident">::character::is_oct_digit</span>(<span class="string">b&#39;a&#39;</span>));
-    <span class="macro">assert!</span>(<span class="op">!</span><span class="kw">crate</span><span class="ident">::character::is_oct_digit</span>(<span class="string">b&#39;A&#39;</span>));
-    <span class="macro">assert!</span>(<span class="op">!</span><span class="kw">crate</span><span class="ident">::character::is_oct_digit</span>(<span class="string">b&#39;/&#39;</span>));
-    <span class="macro">assert!</span>(<span class="op">!</span><span class="kw">crate</span><span class="ident">::character::is_oct_digit</span>(<span class="string">b&#39;:&#39;</span>));
-    <span class="macro">assert!</span>(<span class="op">!</span><span class="kw">crate</span><span class="ident">::character::is_oct_digit</span>(<span class="string">b&#39;@&#39;</span>));
-    <span class="macro">assert!</span>(<span class="op">!</span><span class="kw">crate</span><span class="ident">::character::is_oct_digit</span>(<span class="string">b&#39;\x60&#39;</span>));
+    <span class="macro">assert!</span>(<span class="ident"><span class="kw">crate</span>::character::is_oct_digit</span>(<span class="string">b&#39;0&#39;</span>));
+    <span class="macro">assert!</span>(<span class="ident"><span class="kw">crate</span>::character::is_oct_digit</span>(<span class="string">b&#39;7&#39;</span>));
+    <span class="macro">assert!</span>(<span class="op">!</span><span class="ident"><span class="kw">crate</span>::character::is_oct_digit</span>(<span class="string">b&#39;8&#39;</span>));
+    <span class="macro">assert!</span>(<span class="op">!</span><span class="ident"><span class="kw">crate</span>::character::is_oct_digit</span>(<span class="string">b&#39;9&#39;</span>));
+    <span class="macro">assert!</span>(<span class="op">!</span><span class="ident"><span class="kw">crate</span>::character::is_oct_digit</span>(<span class="string">b&#39;a&#39;</span>));
+    <span class="macro">assert!</span>(<span class="op">!</span><span class="ident"><span class="kw">crate</span>::character::is_oct_digit</span>(<span class="string">b&#39;A&#39;</span>));
+    <span class="macro">assert!</span>(<span class="op">!</span><span class="ident"><span class="kw">crate</span>::character::is_oct_digit</span>(<span class="string">b&#39;/&#39;</span>));
+    <span class="macro">assert!</span>(<span class="op">!</span><span class="ident"><span class="kw">crate</span>::character::is_oct_digit</span>(<span class="string">b&#39;:&#39;</span>));
+    <span class="macro">assert!</span>(<span class="op">!</span><span class="ident"><span class="kw">crate</span>::character::is_oct_digit</span>(<span class="string">b&#39;@&#39;</span>));
+    <span class="macro">assert!</span>(<span class="op">!</span><span class="ident"><span class="kw">crate</span>::character::is_oct_digit</span>(<span class="string">b&#39;\x60&#39;</span>));
   }
 
   <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1989,7 +1984,7 @@
     );
   }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nom" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
 </body></html>

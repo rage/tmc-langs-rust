@@ -1,1 +1,0 @@
-initSidebarItems({"trait":[["VerifyWithKey","Allow objects to be verified with a key."],["VerifyWithStore","Allow objects to be verified with a store."]]});
