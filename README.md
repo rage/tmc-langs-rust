@@ -68,7 +68,8 @@ A TMC plugin for R.
 - Linux 32-bit (i686-unknown-linux-gnu)
 - Windows MSVC 64-bit (x86_64-pc-windows-msvc)
 - Windows MSVC 32-bit (i686-pc-windows-msvc)
-- MacOS 64-bit (x86_64-apple-darwin)
+- MacOS x86 (x86_64-apple-darwin)
+- MacOS M1 (aarch64-apple-darwin)
 - ARM64 (aarch64-unknown-linux-gnu)
 - Armv7 (armv7-unknown-linux-gnueabihf)
 
