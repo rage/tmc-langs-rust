@@ -34,6 +34,7 @@ impl StudentFilePolicy for Python3StudentFilePolicy {
             None => true,
         };
         let is_py_file = path.extension() == Some(OsStr::new("py"));
+        let is_ipynb = path.extension() == Some(OsStr::new("ipynb"));
 
         // all files in non-tmc and non-test subdirectories are considered student files
         let is_in_exercise_subdir = path.starts_with("test") || path.starts_with("tmc");
@@ -41,6 +42,7 @@ impl StudentFilePolicy for Python3StudentFilePolicy {
         in_src && !is_cache_file
             || is_in_project_root && is_py_file
             || !is_in_exercise_subdir && !is_in_project_root && !is_cache_file
+            || is_ipynb && !is_cache_file
     }
 }
 

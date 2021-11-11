@@ -296,12 +296,12 @@ pub fn prepare_submission(
                 if entry_path.is_dir() {
                     archive.add_directory(
                         stripped.to_string_lossy(),
-                        FileOptions::default().unix_permissions(0o744),
+                        FileOptions::default().unix_permissions(0o755),
                     )?;
                 } else {
                     archive.start_file(
                         stripped.to_string_lossy(),
-                        FileOptions::default().unix_permissions(0o744),
+                        FileOptions::default().unix_permissions(0o755),
                     )?;
                     let mut file = file_util::open_file(entry_path)?;
                     std::io::copy(&mut file, &mut archive)
