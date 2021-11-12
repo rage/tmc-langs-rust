@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["call",""],["construct",""],["get_dynamic_callback",""],["new","Mutates the `out` argument provided to refer to a newly created `v8::Function`. Returns `false` if the value couldn’t be created."]]});

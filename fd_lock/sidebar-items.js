@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["FdLock","A file descriptor lock."],["FdLockGuard","A guard that unlocks the file descriptor when it goes out of scope."]]});
+initSidebarItems({"struct":[["RwLock","Advisory reader-writer lock for files."],["RwLockReadGuard","RAII structure used to release the shared read access of a lock when dropped."],["RwLockWriteGuard","RAII structure used to release the exclusive write access of a lock when dropped."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["download_exercise",""],["download_exercise_solution",""],["download_submission",""],["get_course",""],["get_course_reviews",""],["get_exercise",""],["get_exercise_details",""],["get_organization_courses",""],["post_submission_feedback",""],["post_submission_review",""],["submit_exercise",""],["unlock_course",""],["update_course_review",""]]});
