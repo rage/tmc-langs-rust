@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["Language",""]],"trait":[["LanguagePlugin","The trait that each language plug-in must implement."]]});

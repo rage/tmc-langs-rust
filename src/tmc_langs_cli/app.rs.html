@@ -1219,20 +1219,19 @@
 <span id="1219">1219</span>
 <span id="1220">1220</span>
 <span id="1221">1221</span>
-<span id="1222">1222</span>
-<span id="1223">1223</span>
-<span id="1224">1224</span>
-<span id="1225">1225</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Create clap app</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::output</span>::{
-    <span class="ident">CombinedCourseData</span>, <span class="ident">DownloadOrUpdateCourseExercisesResult</span>, <span class="ident">LocalExercise</span>, <span class="ident">UpdatedExercise</span>,
-};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::output::UpdatedExercise</span>;
 <span class="kw">use</span> <span class="ident">clap</span>::{<span class="ident">App</span>, <span class="ident">AppSettings</span>, <span class="ident">Arg</span>, <span class="ident">SubCommand</span>};
 <span class="kw">use</span> <span class="ident">schemars::JsonSchema</span>;
 <span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
-<span class="kw">use</span> <span class="ident">tmc_client</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">tmc_langs_framework::domain</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">tmc_langs</span>::{
+    <span class="ident">CombinedCourseData</span>, <span class="ident">CourseData</span>, <span class="ident">CourseDetails</span>, <span class="ident">CourseExercise</span>,
+    <span class="ident">DownloadOrUpdateCourseExercisesResult</span>, <span class="ident">ExerciseDesc</span>, <span class="ident">ExerciseDetails</span>,
+    <span class="ident">ExercisePackagingConfiguration</span>, <span class="ident">LocalExercise</span>, <span class="ident">NewSubmission</span>, <span class="ident">Organization</span>, <span class="ident">Review</span>, <span class="ident">RunResult</span>,
+    <span class="ident">StyleValidationResult</span>, <span class="ident">Submission</span>, <span class="ident">SubmissionFeedbackResponse</span>, <span class="ident">SubmissionFinished</span>,
+    <span class="ident">UpdateResult</span>,
+};
 <span class="comment">// use tmc_langs_util::task_executor::RefreshData;</span>
 
 <span class="doccomment">/// Constructs the CLI root.</span>
@@ -1290,15 +1289,17 @@
 
         .<span class="ident">subcommand</span>(<span class="ident">create_core_app</span>()) <span class="comment">// &quot;core&quot;</span>
 
-        .<span class="ident">subcommand</span>(
-            <span class="ident">SubCommand::with_name</span>(<span class="string">&quot;disk-space&quot;</span>)
-                .<span class="ident">about</span>(<span class="string">&quot;Returns the amount of free disk space in megabytes left on the partition that contains the given path&quot;</span>)
-                .<span class="ident">arg</span>(<span class="ident">Arg::with_name</span>(<span class="string">&quot;path&quot;</span>)
-                    .<span class="ident">help</span>(<span class="string">&quot;A path in the partition that should be inspected.&quot;</span>)
-                    .<span class="ident">long</span>(<span class="string">&quot;path&quot;</span>)
-                    .<span class="ident">required</span>(<span class="bool-val">true</span>)
-                    .<span class="ident">takes_value</span>(<span class="bool-val">true</span>))
+        <span class="comment">/*
+        .subcommand(
+            SubCommand::with_name(&quot;disk-space&quot;)
+                .about(&quot;Returns the amount of free disk space in megabytes left on the partition that contains the given path&quot;)
+                .arg(Arg::with_name(&quot;path&quot;)
+                    .help(&quot;A path in the partition that should be inspected.&quot;)
+                    .long(&quot;path&quot;)
+                    .required(true)
+                    .takes_value(true))
         )
+        */</span>
 
         .<span class="ident">subcommand</span>(<span class="ident">SubCommand::with_name</span>(<span class="string">&quot;extract-project&quot;</span>)
             .<span class="ident">about</span>(<span class="string">&quot;Extracts an exercise from a ZIP archive. If the output-path is a project root, the plugin&#39;s student file policy will be used to avoid overwriting student files&quot;</span>)
@@ -1477,7 +1478,10 @@
             .<span class="ident">arg</span>(<span class="ident">Arg::with_name</span>(<span class="string">&quot;output-path&quot;</span>)
                 .<span class="ident">help</span>(<span class="string">&quot;If defined, the test results will be written to this path. Overwritten if it already exists.&quot;</span>)
                 .<span class="ident">long</span>(<span class="string">&quot;output-path&quot;</span>)
-                .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)))
+                .<span class="ident">takes_value</span>(<span class="bool-val">true</span>))
+            .<span class="ident">arg</span>(<span class="ident">Arg::with_name</span>(<span class="string">&quot;wait-for-secret&quot;</span>)
+                .<span class="ident">help</span>(<span class="string">&quot;If defined, the command will wait for a string to be written to stdin, used for signing the output file with jwt.&quot;</span>)
+                .<span class="ident">long</span>(<span class="string">&quot;wait-for-secret&quot;</span>)))
 
         .<span class="ident">subcommand</span>(<span class="ident">create_settings_app</span>()) <span class="comment">// &quot;settings&quot;</span>
 
@@ -1532,7 +1536,7 @@
         .<span class="ident">subcommand</span>(<span class="ident">SubCommand::with_name</span>(<span class="string">&quot;download-old-submission&quot;</span>)
             .<span class="ident">about</span>(<span class="string">&quot;Downloads an old submission. Resets the exercise at output-path if any, downloading the exercise base from the server. The old submission is then downloaded and extracted on top of the base, using the student file policy to retain student files&quot;</span>)
             .<span class="ident">long_about</span>(<span class="ident">SCHEMA_NULL</span>)
-            .<span class="ident">arg</span>(<span class="ident">Arg::with_name</span>(<span class="string">&quot;save-old-state&quot;</span>)
+            .<span class="ident">arg</span>(<span class="ident">Arg::with_name</span>(<span class="string">&quot;save-old-state&quot;</span>) <span class="comment">// TODO: unnecessary, remove (submission-url is enough, but probaly needs a rename if the flag is removed)</span>
                 .<span class="ident">help</span>(<span class="string">&quot;If set, the exercise is submitted to the server before resetting it.&quot;</span>)
                 .<span class="ident">long</span>(<span class="string">&quot;save-old-state&quot;</span>)
                 .<span class="ident">requires</span>(<span class="string">&quot;submission-url&quot;</span>))
@@ -1559,23 +1563,14 @@
         .<span class="ident">subcommand</span>(<span class="ident">SubCommand::with_name</span>(<span class="string">&quot;download-or-update-course-exercises&quot;</span>)
             .<span class="ident">about</span>(<span class="string">&quot;Downloads exercises. If downloading an exercise that has been downloaded before, the student file policy will be used to avoid overwriting student files, effectively just updating the exercise files&quot;</span>)
             .<span class="ident">long_about</span>(<span class="ident">schema_leaked</span>::<span class="op">&lt;</span><span class="ident">DownloadOrUpdateCourseExercisesResult</span><span class="op">&gt;</span>())
+            .<span class="ident">arg</span>(<span class="ident">Arg::with_name</span>(<span class="string">&quot;download-template&quot;</span>)
+                .<span class="ident">help</span>(<span class="string">&quot;If set, will always download the course template instead of the latest submission, even if one exists.&quot;</span>)
+                .<span class="ident">long</span>(<span class="string">&quot;download-template&quot;</span>))
             .<span class="ident">arg</span>(<span class="ident">Arg::with_name</span>(<span class="string">&quot;exercise-id&quot;</span>)
                 .<span class="ident">help</span>(<span class="string">&quot;Exercise id of an exercise that should be downloaded. Multiple ids can be given.&quot;</span>)
                 .<span class="ident">long</span>(<span class="string">&quot;exercise-id&quot;</span>)
                 .<span class="ident">required</span>(<span class="bool-val">true</span>)
                 .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)
-                .<span class="ident">multiple</span>(<span class="bool-val">true</span>)))
-
-        .<span class="ident">subcommand</span>(<span class="ident">SubCommand::with_name</span>(<span class="string">&quot;download-or-update-exercises&quot;</span>)
-            .<span class="ident">about</span>(<span class="string">&quot;Downloads exercises. If downloading an exercise on top of an existing one, the student file policy will be used to avoid overwriting student files, effectively just updating the exercise files&quot;</span>)
-            .<span class="ident">long_about</span>(<span class="ident">SCHEMA_NULL</span>)
-            .<span class="ident">arg</span>(<span class="ident">Arg::with_name</span>(<span class="string">&quot;exercise&quot;</span>)
-                .<span class="ident">help</span>(<span class="string">&quot;An exercise. Takes two values, an exercise id and an exercise path. Multiple exercises can be given.&quot;</span>)
-                .<span class="ident">long</span>(<span class="string">&quot;exercise&quot;</span>)
-                .<span class="ident">required</span>(<span class="bool-val">true</span>)
-                .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)
-                .<span class="ident">number_of_values</span>(<span class="number">2</span>)
-                .<span class="ident">value_names</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;exercise-id&quot;</span>, <span class="string">&quot;exercise-path&quot;</span>])
                 .<span class="ident">multiple</span>(<span class="bool-val">true</span>)))
 
         .<span class="ident">subcommand</span>(<span class="ident">SubCommand::with_name</span>(<span class="string">&quot;get-course-data&quot;</span>)
@@ -2006,10 +2001,12 @@
         ]);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">disk_space</span>() {
-        <span class="ident">get_matches</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;disk-space&quot;</span>, <span class="string">&quot;--path&quot;</span>, <span class="string">&quot;path&quot;</span>]);
+    <span class="comment">/*
+    #[test]
+    fn disk_space() {
+        get_matches(&amp;[&quot;disk-space&quot;, &quot;--path&quot;, &quot;path&quot;]);
     }
+    */</span>
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">extract_project</span>() {
@@ -2208,11 +2205,6 @@
             <span class="string">&quot;--exercise-id&quot;</span>,
             <span class="string">&quot;2345&quot;</span>,
         ]);
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">download_or_update_exercises</span>() {
-        <span class="ident">get_matches_core</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;download-or-update-exercises&quot;</span>, <span class="string">&quot;--exercise&quot;</span>, <span class="string">&quot;1234&quot;</span>, <span class="string">&quot;path&quot;</span>]);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>

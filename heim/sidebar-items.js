@@ -1,1 +1,0 @@
-initSidebarItems({"mod":[["disk","Disks information."],["os","Runtime specific re-exports."],["units","Measurement units used in API."]],"struct":[["Error","Error type for data fetching operations."]],"type":[["Result","A specialized Result type for data fetching functions."]]});

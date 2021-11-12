@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["NotificationKind",""]],"fn":[["init","Initializes the warning reporter with the given closure to be called with any warnings. Can only be initialized once, repeated calls do nothing."],["notify","Calls the warning closure with the given warning."]],"struct":[["Notification",""]]});

@@ -37,11 +37,19 @@
 <span id="37">37</span>
 <span id="38">38</span>
 <span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
 </pre><pre class="rust"><code><span class="comment">// Python plugin error type</span>
 
 <span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
 <span class="kw">use</span> <span class="ident">thiserror::Error</span>;
-<span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{<span class="ident">error::FileIo</span>, <span class="ident">TmcError</span>};
+<span class="kw">use</span> <span class="ident">tmc_langs_framework::TmcError</span>;
+<span class="kw">use</span> <span class="ident">tmc_langs_util::FileError</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Error</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PythonError</span> {
@@ -58,19 +66,25 @@
         <span class="ident">found</span>: <span class="ident">String</span>,
         <span class="ident">minimum_required</span>: <span class="ident">String</span>,
     },
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to decode the test runner&#39;s HMAC as hex&quot;</span>)]</span>
+    <span class="ident">UnexpectedHmac</span>,
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to verify the test results&quot;</span>)]</span>
+    <span class="ident">InvalidHmac</span>,
 
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;File IO error&quot;</span>)]</span>
-    <span class="ident">FileIo</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">FileIo</span>),
+    <span class="ident">FileError</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">FileError</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Error&quot;</span>)]</span>
     <span class="ident">Tmc</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">tmc_langs_framework::TmcError</span>),
 }
 
+<span class="comment">// conversion from plugin error to TmcError::Plugin</span>
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">PythonError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TmcError</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">PythonError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TmcError</span> {
         <span class="ident">TmcError::Plugin</span>(<span class="ident">Box::new</span>(<span class="ident">err</span>))
     }
 }
 
+<span class="comment">// conversion from plugin error to a tmc result</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">TmcError</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PythonError</span> {
     <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="prelude-val">Err</span>(<span class="ident">TmcError::Plugin</span>(<span class="ident">Box::new</span>(<span class="self">self</span>)))
