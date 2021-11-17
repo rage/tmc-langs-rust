@@ -841,100 +841,18 @@
 <span id="841">841</span>
 <span id="842">842</span>
 <span id="843">843</span>
-<span id="844">844</span>
-<span id="845">845</span>
-<span id="846">846</span>
-<span id="847">847</span>
-<span id="848">848</span>
-<span id="849">849</span>
-<span id="850">850</span>
-<span id="851">851</span>
-<span id="852">852</span>
-<span id="853">853</span>
-<span id="854">854</span>
-<span id="855">855</span>
-<span id="856">856</span>
-<span id="857">857</span>
-<span id="858">858</span>
-<span id="859">859</span>
-<span id="860">860</span>
-<span id="861">861</span>
-<span id="862">862</span>
-<span id="863">863</span>
-<span id="864">864</span>
-<span id="865">865</span>
-<span id="866">866</span>
-<span id="867">867</span>
-<span id="868">868</span>
-<span id="869">869</span>
-<span id="870">870</span>
-<span id="871">871</span>
-<span id="872">872</span>
-<span id="873">873</span>
-<span id="874">874</span>
-<span id="875">875</span>
-<span id="876">876</span>
-<span id="877">877</span>
-<span id="878">878</span>
-<span id="879">879</span>
-<span id="880">880</span>
-<span id="881">881</span>
-<span id="882">882</span>
-<span id="883">883</span>
-<span id="884">884</span>
-<span id="885">885</span>
-<span id="886">886</span>
-<span id="887">887</span>
-<span id="888">888</span>
-<span id="889">889</span>
-<span id="890">890</span>
-<span id="891">891</span>
-<span id="892">892</span>
-<span id="893">893</span>
-<span id="894">894</span>
-<span id="895">895</span>
-<span id="896">896</span>
-<span id="897">897</span>
-<span id="898">898</span>
-<span id="899">899</span>
-<span id="900">900</span>
-<span id="901">901</span>
-<span id="902">902</span>
-<span id="903">903</span>
-<span id="904">904</span>
-<span id="905">905</span>
-<span id="906">906</span>
-<span id="907">907</span>
-<span id="908">908</span>
-<span id="909">909</span>
-<span id="910">910</span>
-<span id="911">911</span>
-<span id="912">912</span>
-<span id="913">913</span>
-<span id="914">914</span>
-<span id="915">915</span>
-<span id="916">916</span>
-<span id="917">917</span>
-<span id="918">918</span>
-<span id="919">919</span>
-<span id="920">920</span>
-<span id="921">921</span>
-<span id="922">922</span>
-<span id="923">923</span>
-<span id="924">924</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains the Python3Plugin struct</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::PythonError</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::policy::Python3StudentFilePolicy</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::python_test_result::PythonTestResult</span>;
 <span class="kw">use</span> <span class="ident">hmac</span>::{<span class="ident">Hmac</span>, <span class="ident">Mac</span>, <span class="ident">NewMac</span>};
-<span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
+<span class="kw">use</span> <span class="ident">lazy_static::lazy_static</span>;
 <span class="kw">use</span> <span class="ident">rand::Rng</span>;
 <span class="kw">use</span> <span class="ident">sha2::Sha256</span>;
 <span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>};
 <span class="kw">use</span> <span class="ident">std::env</span>;
-<span class="kw">use</span> <span class="ident">std::ffi::OsStr</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">BufReader</span>, <span class="ident">Read</span>, <span class="ident">Seek</span>};
+<span class="kw">use</span> <span class="ident">std::io::BufReader</span>;
 <span class="kw">use</span> <span class="ident">std::path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
 <span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
@@ -948,7 +866,6 @@
     <span class="ident">parse_util</span>,
 };
 <span class="kw">use</span> <span class="ident">walkdir::WalkDir</span>;
-<span class="kw">use</span> <span class="ident">zip::ZipArchive</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Python3Plugin</span> {}
 
@@ -958,32 +875,31 @@
     }
 
     <span class="kw">fn</span> <span class="ident">get_local_python_command</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TmcCommand</span> {
-        <span class="comment">// the correct python command is platform-dependent</span>
-        <span class="kw">static</span> <span class="ident">LOCAL_PY</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">LocalPy</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">python_exec</span>) <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;TMC_LANGS_PYTHON_EXEC&quot;</span>) {
-                <span class="macro">log::debug!</span>(
-                    <span class="string">&quot;using Python from environment variable TMC_LANGS_PYTHON_EXEC={}&quot;</span>,
-                    <span class="ident">python_exec</span>
-                );
-                <span class="kw">return</span> <span class="ident">LocalPy::Custom</span> { <span class="ident">python_exec</span> };
-            }
-
-            <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">windows</span>) {
-                <span class="comment">// Check for Conda</span>
-                <span class="kw">let</span> <span class="ident">conda</span> <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;CONDA_PYTHON_EXE&quot;</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">conda_path</span>) <span class="op">=</span> <span class="ident">conda</span> {
-                    <span class="kw">if</span> <span class="ident">PathBuf::from</span>(<span class="kw-2">&amp;</span><span class="ident">conda_path</span>).<span class="ident">exists</span>() {
-                        <span class="macro">log::debug!</span>(<span class="string">&quot;detected conda on windows&quot;</span>);
-                        <span class="kw">return</span> <span class="ident">LocalPy::WindowsConda</span> { <span class="ident">conda_path</span> };
-                    }
+        <span class="macro">lazy_static!</span> {
+            <span class="comment">// the correct python command is platform-dependent</span>
+            <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">LOCAL_PY</span>: <span class="ident">LocalPy</span> <span class="op">=</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">python_exec</span>) <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;TMC_LANGS_PYTHON_EXEC&quot;</span>) {
+                    <span class="macro">log::debug!</span>(<span class="string">&quot;using Python from environment variable TMC_LANGS_PYTHON_EXEC={}&quot;</span>, <span class="ident">python_exec</span>);
+                    <span class="kw">return</span> <span class="ident">LocalPy::Custom</span> { <span class="ident">python_exec</span> };
                 }
-                <span class="macro">log::debug!</span>(<span class="string">&quot;detected windows&quot;</span>);
-                <span class="ident">LocalPy::Windows</span>
-            } <span class="kw">else</span> {
-                <span class="macro">log::debug!</span>(<span class="string">&quot;detected unix&quot;</span>);
-                <span class="ident">LocalPy::Unix</span>
-            }
-        });
+
+                <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">windows</span>) {
+                    <span class="comment">// Check for Conda</span>
+                    <span class="kw">let</span> <span class="ident">conda</span> <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;CONDA_PYTHON_EXE&quot;</span>);
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">conda_path</span>) <span class="op">=</span> <span class="ident">conda</span> {
+                        <span class="kw">if</span> <span class="ident">PathBuf::from</span>(<span class="kw-2">&amp;</span><span class="ident">conda_path</span>).<span class="ident">exists</span>() {
+                            <span class="macro">log::debug!</span>(<span class="string">&quot;detected conda on windows&quot;</span>);
+                            <span class="kw">return</span> <span class="ident">LocalPy::WindowsConda</span> { <span class="ident">conda_path</span> };
+                        }
+                    }
+                    <span class="macro">log::debug!</span>(<span class="string">&quot;detected windows&quot;</span>);
+                    <span class="ident">LocalPy::Windows</span>
+                } <span class="kw">else</span> {
+                    <span class="macro">log::debug!</span>(<span class="string">&quot;detected unix&quot;</span>);
+                    <span class="ident">LocalPy::Unix</span>
+                }
+            };
+        }
 
         <span class="kw">enum</span> <span class="ident">LocalPy</span> {
             <span class="ident">Unix</span>,
@@ -1000,25 +916,25 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">get_local_python_ver</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">u32</span>, <span class="ident">u32</span>), <span class="ident">PythonError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_local_python_ver</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>, <span class="ident">usize</span>), <span class="ident">PythonError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_local_python_command</span>()
         .<span class="ident">with</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">args</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;-c&quot;</span>, <span class="string">&quot;import sys; print(sys.version_info.major); print(sys.version_info.minor); print(sys.version_info.micro);&quot;</span>]))
         .<span class="ident">output_checked</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">stdout</span> <span class="op">=</span> <span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stdout</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lines</span> <span class="op">=</span> <span class="ident">stdout</span>.<span class="ident">lines</span>();
-        <span class="kw">let</span> <span class="ident">major</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">lines</span>
+        <span class="kw">let</span> <span class="ident">major</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">lines</span>
             .<span class="ident">next</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">PythonError::VersionPrintError</span>(<span class="ident">stdout</span>.<span class="ident">clone</span>().<span class="ident">into_owned</span>()))<span class="question-mark">?</span>
             .<span class="ident">trim</span>()
             .<span class="ident">parse</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">PythonError::VersionParseError</span>(<span class="ident">stdout</span>.<span class="ident">clone</span>().<span class="ident">into_owned</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">minor</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">lines</span>
+        <span class="kw">let</span> <span class="ident">minor</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">lines</span>
             .<span class="ident">next</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">PythonError::VersionPrintError</span>(<span class="ident">stdout</span>.<span class="ident">clone</span>().<span class="ident">into_owned</span>()))<span class="question-mark">?</span>
             .<span class="ident">trim</span>()
             .<span class="ident">parse</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">PythonError::VersionParseError</span>(<span class="ident">stdout</span>.<span class="ident">clone</span>().<span class="ident">into_owned</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">patch</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">lines</span>
+        <span class="kw">let</span> <span class="ident">patch</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">lines</span>
             .<span class="ident">next</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">PythonError::VersionPrintError</span>(<span class="ident">stdout</span>.<span class="ident">clone</span>().<span class="ident">into_owned</span>()))<span class="question-mark">?</span>
             .<span class="ident">trim</span>()
@@ -1112,7 +1028,7 @@
 
         <span class="comment">// verify test results</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">hmac_secret</span>, <span class="ident">test_runner_hmac_hex</span>)) <span class="op">=</span> <span class="ident">hmac_data</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mac</span> <span class="op">=</span> <span class="ident">Hmac</span>::<span class="op">&lt;</span><span class="ident">Sha256</span><span class="op">&gt;</span><span class="ident">::new_from_slice</span>(<span class="ident">hmac_secret</span>.<span class="ident">as_bytes</span>())
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mac</span> <span class="op">=</span> <span class="ident">Hmac</span>::<span class="op">&lt;</span><span class="ident">Sha256</span><span class="op">&gt;</span><span class="ident">::new_varkey</span>(<span class="ident">hmac_secret</span>.<span class="ident">as_bytes</span>())
                 .<span class="ident">expect</span>(<span class="string">&quot;HMAC can take key of any size&quot;</span>);
             <span class="ident">mac</span>.<span class="ident">update</span>(<span class="ident">results</span>.<span class="ident">as_bytes</span>());
             <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span>
@@ -1269,60 +1185,6 @@
         }
     }
 
-    <span class="doccomment">/// Searches the zip for a valid project directory.</span>
-    <span class="doccomment">/// Note that the returned path may not actually have an entry in the zip.</span>
-    <span class="doccomment">/// Searches for either a src directory, or the most shallow directory containing an .ipynb file.</span>
-    <span class="doccomment">/// Ignores everything in a __MACOSX directory.</span>
-    <span class="kw">fn</span> <span class="ident">find_project_dir_in_zip</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span> <span class="op">+</span> <span class="ident">Seek</span><span class="op">&gt;</span>(
-        <span class="ident">zip_archive</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ZipArchive</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shallowest_ipynb_path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">zip_archive</span>.<span class="ident">len</span>() {
-            <span class="comment">// zips don&#39;t necessarily contain entries for intermediate directories,</span>
-            <span class="comment">// so we need to check every path for src</span>
-            <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">zip_archive</span>.<span class="ident">by_index</span>(<span class="ident">i</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">file_path</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="ident">file</span>.<span class="ident">name</span>());
-
-            <span class="comment">// todo: do in one pass somehow</span>
-            <span class="kw">if</span> <span class="ident">file_path</span>.<span class="ident">components</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">as_os_str</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&quot;src&quot;</span>) {
-                <span class="kw">let</span> <span class="ident">path</span>: <span class="ident">PathBuf</span> <span class="op">=</span> <span class="ident">file_path</span>
-                    .<span class="ident">components</span>()
-                    .<span class="ident">take_while</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">as_os_str</span>() <span class="op">!</span><span class="op">=</span> <span class="string">&quot;src&quot;</span>)
-                    .<span class="ident">collect</span>();
-
-                <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">components</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">as_os_str</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&quot;__MACOSX&quot;</span>) {
-                    <span class="kw">continue</span>;
-                }
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">path</span>);
-            }
-            <span class="kw">if</span> <span class="ident">file_path</span>.<span class="ident">extension</span>() <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">OsStr::new</span>(<span class="string">&quot;ipynb&quot;</span>)) {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ipynb_path</span>) <span class="op">=</span> <span class="ident">shallowest_ipynb_path</span>.<span class="ident">as_mut</span>() {
-                    <span class="comment">// make sure we maintain the shallowest ipynb path in the archive</span>
-                    <span class="kw">if</span> <span class="ident">ipynb_path</span>.<span class="ident">components</span>().<span class="ident">count</span>() <span class="op">&gt;</span> <span class="ident">file_path</span>.<span class="ident">components</span>().<span class="ident">count</span>() {
-                        <span class="kw-2">*</span><span class="ident">ipynb_path</span> <span class="op">=</span> <span class="ident">file_path</span>
-                            .<span class="ident">parent</span>()
-                            .<span class="ident">map</span>(<span class="ident">PathBuf::from</span>)
-                            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">PathBuf::from</span>(<span class="string">&quot;&quot;</span>));
-                    }
-                } <span class="kw">else</span> {
-                    <span class="ident">shallowest_ipynb_path</span> <span class="op">=</span> <span class="prelude-val">Some</span>(
-                        <span class="ident">file_path</span>
-                            .<span class="ident">parent</span>()
-                            .<span class="ident">map</span>(<span class="ident">PathBuf::from</span>)
-                            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">PathBuf::from</span>(<span class="string">&quot;&quot;</span>)),
-                    );
-                }
-            }
-        }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ipynb_path</span>) <span class="op">=</span> <span class="ident">shallowest_ipynb_path</span> {
-            <span class="comment">// no src found, use shallowest ipynb path</span>
-            <span class="prelude-val">Ok</span>(<span class="ident">ipynb_path</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">TmcError::NoProjectDirInZip</span>)
-        }
-    }
-
     <span class="doccomment">/// Checks if the directory has one of setup.py, requirements.txt., test/__init__.py, or tmc/__main__.py</span>
     <span class="kw">fn</span> <span class="ident">is_exercise_type_correct</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">setup</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">join</span>(<span class="string">&quot;setup.py&quot;</span>);
@@ -1390,7 +1252,6 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident">std</span>::{
@@ -1747,29 +1608,6 @@ class TestErroring(unittest.TestCase):
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zip</span> <span class="op">=</span> <span class="ident">ZipArchive::new</span>(<span class="ident">std::io::Cursor::new</span>(<span class="ident">bytes</span>)).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">Python3Plugin::find_project_dir_in_zip</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">zip</span>);
         <span class="macro">assert!</span>(<span class="ident">res</span>.<span class="ident">is_err</span>());
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">finds_project_dir_from_ipynb</span>() {
-        <span class="ident">init</span>();
-
-        <span class="kw">let</span> <span class="ident">temp_dir</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
-        <span class="ident">file_to</span>(<span class="kw-2">&amp;</span><span class="ident">temp_dir</span>, <span class="string">&quot;inner/file.ipynb&quot;</span>, <span class="string">&quot;&quot;</span>);
-        <span class="ident">file_to</span>(<span class="kw-2">&amp;</span><span class="ident">temp_dir</span>, <span class="string">&quot;file.ipynb&quot;</span>, <span class="string">&quot;&quot;</span>);
-
-        <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">dir_to_zip</span>(<span class="kw-2">&amp;</span><span class="ident">temp_dir</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zip</span> <span class="op">=</span> <span class="ident">ZipArchive::new</span>(<span class="ident">std::io::Cursor::new</span>(<span class="ident">bytes</span>)).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">Python3Plugin::find_project_dir_in_zip</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">zip</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">dir</span>, <span class="ident">Path::new</span>(<span class="string">&quot;&quot;</span>));
-
-        <span class="kw">let</span> <span class="ident">temp_dir</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
-        <span class="ident">file_to</span>(<span class="kw-2">&amp;</span><span class="ident">temp_dir</span>, <span class="string">&quot;dir/inner/file.ipynb&quot;</span>, <span class="string">&quot;&quot;</span>);
-        <span class="ident">file_to</span>(<span class="kw-2">&amp;</span><span class="ident">temp_dir</span>, <span class="string">&quot;dir/file.ipynb&quot;</span>, <span class="string">&quot;&quot;</span>);
-
-        <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">dir_to_zip</span>(<span class="kw-2">&amp;</span><span class="ident">temp_dir</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zip</span> <span class="op">=</span> <span class="ident">ZipArchive::new</span>(<span class="ident">std::io::Cursor::new</span>(<span class="ident">bytes</span>)).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">Python3Plugin::find_project_dir_in_zip</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">zip</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">dir</span>, <span class="ident">Path::new</span>(<span class="string">&quot;dir&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>

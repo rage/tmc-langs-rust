@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["EscapableHandleScope",""],["HandleScope",""],["InheritedHandleScope",""]],"type":[["Env",""],["FunctionCallbackInfo",""],["Local",""]]});

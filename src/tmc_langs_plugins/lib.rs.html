@@ -185,7 +185,9 @@
 <span id="185">185</span>
 <span id="186">186</span>
 <span id="187">187</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">deny</span>(<span class="ident">clippy::print_stdout</span>, <span class="ident">clippy::print_stderr</span>, <span class="ident">clippy::unwrap_used</span>)]</span>
+<span id="188">188</span>
+<span id="189">189</span>
+</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">deny</span>(<span class="ident">clippy::print_stdout</span>, <span class="ident">clippy::print_stderr</span>)]</span>
 
 <span class="kw">mod</span> <span class="ident">error</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">tmc_zip</span>;
@@ -230,43 +232,46 @@
     <span class="ident">compressed_project</span>: <span class="kw">impl</span> <span class="ident">std::io::Read</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
     <span class="ident">target_location</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">PluginError</span><span class="op">&gt;</span> {
-    <span class="ident">tmc_zip::unzip</span>(<span class="ident">compressed_project</span>, <span class="ident">target_location</span>)<span class="question-mark">?</span>;
+    <span class="ident">tmc_zip::unzip</span>(
+        <span class="ident">NothingIsStudentFilePolicy::new</span>(<span class="ident">target_location</span>)<span class="question-mark">?</span>,
+        <span class="ident">compressed_project</span>,
+        <span class="ident">target_location</span>,
+    )<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
 <span class="doccomment">/// See `LanguagePlugin::compress_project`.</span>
 <span class="comment">// TODO: clean up</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compress_project_to_zip</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">PluginError</span><span class="op">&gt;</span> {
-    <span class="kw">match</span> <span class="ident">get_language_plugin_type</span>(<span class="ident">path</span>) {
-        <span class="prelude-val">Some</span>(<span class="ident">PluginType::CSharp</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip::zip_student_files</span>(
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compress_project</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">PluginError</span><span class="op">&gt;</span> {
+    <span class="kw">match</span> <span class="ident">get_language_plugin_type</span>(<span class="ident">path</span>)<span class="question-mark">?</span> {
+        <span class="ident">PluginType::CSharp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip::zip</span>(
             <span class="op">&lt;</span><span class="ident">CSharpPlugin</span> <span class="kw">as</span> <span class="ident">LanguagePlugin</span><span class="op">&gt;</span><span class="ident">::StudentFilePolicy::new</span>(<span class="ident">path</span>)<span class="question-mark">?</span>,
             <span class="ident">path</span>,
         )<span class="question-mark">?</span>),
-        <span class="prelude-val">Some</span>(<span class="ident">PluginType::Make</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip::zip_student_files</span>(
+        <span class="ident">PluginType::Make</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip::zip</span>(
             <span class="op">&lt;</span><span class="ident">MakePlugin</span> <span class="kw">as</span> <span class="ident">LanguagePlugin</span><span class="op">&gt;</span><span class="ident">::StudentFilePolicy::new</span>(<span class="ident">path</span>)<span class="question-mark">?</span>,
             <span class="ident">path</span>,
         )<span class="question-mark">?</span>),
-        <span class="prelude-val">Some</span>(<span class="ident">PluginType::Maven</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip::zip_student_files</span>(
+        <span class="ident">PluginType::Maven</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip::zip</span>(
             <span class="op">&lt;</span><span class="ident">MavenPlugin</span> <span class="kw">as</span> <span class="ident">LanguagePlugin</span><span class="op">&gt;</span><span class="ident">::StudentFilePolicy::new</span>(<span class="ident">path</span>)<span class="question-mark">?</span>,
             <span class="ident">path</span>,
         )<span class="question-mark">?</span>),
-        <span class="prelude-val">Some</span>(<span class="ident">PluginType::NoTests</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip::zip_student_files</span>(
+        <span class="ident">PluginType::NoTests</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip::zip</span>(
             <span class="op">&lt;</span><span class="ident">NoTestsPlugin</span> <span class="kw">as</span> <span class="ident">LanguagePlugin</span><span class="op">&gt;</span><span class="ident">::StudentFilePolicy::new</span>(<span class="ident">path</span>)<span class="question-mark">?</span>,
             <span class="ident">path</span>,
         )<span class="question-mark">?</span>),
-        <span class="prelude-val">Some</span>(<span class="ident">PluginType::Python3</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip::zip_student_files</span>(
+        <span class="ident">PluginType::Python3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip::zip</span>(
             <span class="op">&lt;</span><span class="ident">Python3Plugin</span> <span class="kw">as</span> <span class="ident">LanguagePlugin</span><span class="op">&gt;</span><span class="ident">::StudentFilePolicy::new</span>(<span class="ident">path</span>)<span class="question-mark">?</span>,
             <span class="ident">path</span>,
         )<span class="question-mark">?</span>),
-        <span class="prelude-val">Some</span>(<span class="ident">PluginType::R</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip::zip_student_files</span>(
+        <span class="ident">PluginType::R</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip::zip</span>(
             <span class="op">&lt;</span><span class="ident">RPlugin</span> <span class="kw">as</span> <span class="ident">LanguagePlugin</span><span class="op">&gt;</span><span class="ident">::StudentFilePolicy::new</span>(<span class="ident">path</span>)<span class="question-mark">?</span>,
             <span class="ident">path</span>,
         )<span class="question-mark">?</span>),
-        <span class="prelude-val">Some</span>(<span class="ident">PluginType::Ant</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip::zip_student_files</span>(
+        <span class="ident">PluginType::Ant</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">tmc_zip::zip</span>(
             <span class="op">&lt;</span><span class="ident">AntPlugin</span> <span class="kw">as</span> <span class="ident">LanguagePlugin</span><span class="op">&gt;</span><span class="ident">::StudentFilePolicy::new</span>(<span class="ident">path</span>)<span class="question-mark">?</span>,
             <span class="ident">path</span>,
         )<span class="question-mark">?</span>),
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">PluginError::PluginNotFound</span>(<span class="ident">path</span>.<span class="ident">to_path_buf</span>())),
     }
 }
 
@@ -301,7 +306,7 @@
     <span class="ident">Ant</span>,
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_language_plugin_type</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PluginType</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_language_plugin_type</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PluginType</span>, <span class="ident">PluginError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">plugin_type</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">NoTestsPlugin::is_exercise_type_correct</span>(<span class="ident">path</span>) {
         <span class="macro">log::info!</span>(
             <span class="string">&quot;Detected project at {} as {}&quot;</span>,
@@ -353,22 +358,21 @@
         );
         <span class="ident">PluginType::Ant</span>
     } <span class="kw">else</span> {
-        <span class="kw">return</span> <span class="prelude-val">None</span>;
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PluginError::PluginNotFound</span>(<span class="ident">path</span>.<span class="ident">to_path_buf</span>()));
     };
-    <span class="prelude-val">Some</span>(<span class="ident">plugin_type</span>)
+    <span class="prelude-val">Ok</span>(<span class="ident">plugin_type</span>)
 }
 
 <span class="comment">// Get language plugin for the given path.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_language_plugin</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Plugin</span>, <span class="ident">PluginError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">get_language_plugin_type</span>(<span class="ident">path</span>) {
-        <span class="prelude-val">Some</span>(<span class="ident">PluginType::NoTests</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Plugin::NoTests</span>(<span class="ident">NoTestsPlugin::new</span>()),
-        <span class="prelude-val">Some</span>(<span class="ident">PluginType::CSharp</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Plugin::CSharp</span>(<span class="ident">CSharpPlugin::new</span>()),
-        <span class="prelude-val">Some</span>(<span class="ident">PluginType::Make</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Plugin::Make</span>(<span class="ident">MakePlugin::new</span>()),
-        <span class="prelude-val">Some</span>(<span class="ident">PluginType::Python3</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Plugin::Python3</span>(<span class="ident">Python3Plugin::new</span>()),
-        <span class="prelude-val">Some</span>(<span class="ident">PluginType::R</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Plugin::R</span>(<span class="ident">RPlugin::new</span>()),
-        <span class="prelude-val">Some</span>(<span class="ident">PluginType::Maven</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Plugin::Maven</span>(<span class="ident">MavenPlugin::new</span>()<span class="question-mark">?</span>),
-        <span class="prelude-val">Some</span>(<span class="ident">PluginType::Ant</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Plugin::Ant</span>(<span class="ident">AntPlugin::new</span>()<span class="question-mark">?</span>),
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PluginError::PluginNotFound</span>(<span class="ident">path</span>.<span class="ident">to_path_buf</span>())),
+    <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">get_language_plugin_type</span>(<span class="ident">path</span>)<span class="question-mark">?</span> {
+        <span class="ident">PluginType::NoTests</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Plugin::NoTests</span>(<span class="ident">NoTestsPlugin::new</span>()),
+        <span class="ident">PluginType::CSharp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Plugin::CSharp</span>(<span class="ident">CSharpPlugin::new</span>()),
+        <span class="ident">PluginType::Make</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Plugin::Make</span>(<span class="ident">MakePlugin::new</span>()),
+        <span class="ident">PluginType::Python3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Plugin::Python3</span>(<span class="ident">Python3Plugin::new</span>()),
+        <span class="ident">PluginType::R</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Plugin::R</span>(<span class="ident">RPlugin::new</span>()),
+        <span class="ident">PluginType::Maven</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Plugin::Maven</span>(<span class="ident">MavenPlugin::new</span>()<span class="question-mark">?</span>),
+        <span class="ident">PluginType::Ant</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Plugin::Ant</span>(<span class="ident">AntPlugin::new</span>()<span class="question-mark">?</span>),
     };
     <span class="prelude-val">Ok</span>(<span class="ident">plugin</span>)
 }

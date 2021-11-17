@@ -22,30 +22,40 @@
 <span id="22">22</span>
 <span id="23">23</span>
 <span id="24">24</span>
-</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">deny</span>(<span class="ident">clippy::print_stdout</span>, <span class="ident">clippy::print_stderr</span>, <span class="ident">clippy::unwrap_used</span>)]</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">deny</span>(<span class="ident">clippy::print_stdout</span>, <span class="ident">clippy::print_stderr</span>)]</span>
 
 <span class="doccomment">//! Used to communicate with the TMC server. See the TmcClient struct for more details.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```rust,no_run</span>
 <span class="doccomment">//! use tmc_client::TmcClient;</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! let mut client = TmcClient::new(&quot;https://tmc.mooc.fi&quot;.parse().unwrap(), &quot;some_client&quot;.to_string(), &quot;some_version&quot;.to_string());</span>
+<span class="doccomment">//! let mut client = TmcClient::new_in_config(&quot;https://tmc.mooc.fi&quot;.to_string(), &quot;some_client&quot;.to_string(), &quot;some_version&quot;.to_string()).unwrap();</span>
 <span class="doccomment">//! client.authenticate(&quot;client_name&quot;, &quot;email&quot;.to_string(), &quot;password&quot;.to_string());</span>
 <span class="doccomment">//! let organizations = client.get_organizations();</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
 
 <span class="kw">mod</span> <span class="ident">error</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">request</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">response</span>;
+<span class="kw">mod</span> <span class="ident">request</span>;
+<span class="kw">mod</span> <span class="ident">response</span>;
 <span class="kw">mod</span> <span class="ident">tmc_client</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::error::ClientError</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::tmc_client</span>::{<span class="ident">api_v8</span>, <span class="ident">ClientUpdateData</span>, <span class="ident">TmcClient</span>, <span class="ident">Token</span>, <span class="ident">UpdateResult</span>};
-
-<span class="comment">// these types are part of tmc-client&#39;s API and thus re-exported</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::request::FeedbackAnswer</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::response</span>::{
+    <span class="ident">Course</span>, <span class="ident">CourseData</span>, <span class="ident">CourseDataExercise</span>, <span class="ident">CourseDataExercisePoint</span>, <span class="ident">CourseDetails</span>, <span class="ident">CourseExercise</span>,
+    <span class="ident">Exercise</span>, <span class="ident">ExerciseDetails</span>, <span class="ident">ExercisesDetails</span>, <span class="ident">NewSubmission</span>, <span class="ident">Organization</span>, <span class="ident">Review</span>, <span class="ident">Submission</span>,
+    <span class="ident">SubmissionFeedbackResponse</span>, <span class="ident">SubmissionFinished</span>, <span class="ident">SubmissionProcessingStatus</span>, <span class="ident">SubmissionStatus</span>,
+    <span class="ident">UpdateResult</span>, <span class="ident">User</span>,
+};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::tmc_client</span>::{<span class="ident">ClientUpdateData</span>, <span class="ident">TmcClient</span>, <span class="ident">Token</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">oauth2</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tmc_langs_plugins::Language</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tmc_langs_plugins</span>::{<span class="ident">Language</span>, <span class="ident">RunResult</span>, <span class="ident">StyleValidationResult</span>, <span class="ident">StyleValidationStrategy</span>};
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tmc_client" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
