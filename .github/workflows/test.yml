@@ -2,60 +2,78 @@ name: Run tests
 
 on:
   push:
-    branches: [master]
+    branches: [main, "[0-9]+.[0-9]+"]
   pull_request:
-    branches: [master]
+    branches: [main, "[0-9]+.[0-9]+"]
 
 env:
   RUST_LOG: debug,j4rs=warn
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: "-C debuginfo=0"
 
 jobs:
-  linux:
-    runs-on: ubuntu-latest
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Install depedencies
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: rustfmt, clippy
+      - name: Cache
+        uses: Swatinem/rust-cache@v1
+
+      - name: Diagnostics on Windows
+        if: matrix.os == 'windows-latest'
+        run: "gci env:"
+
+      - name: Rustfmt
+        run: cargo fmt -- --check
+      - name: Clippy
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all-features
+
+      - name: Build test binary
+        run: cargo test --no-run
+
+      - name: Install dependencies
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt update -y
           sudo apt install -y check valgrind  # required for make plugin
           sudo apt install -y libcurl4-gnutls-dev libgit2-dev # required for R
-      - uses: r-lib/actions/setup-r@v1
+
+      - name: Install Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16"
+
+      - name: Install C#
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: "5.0.x"
+
+      - name: Install R
+        if: matrix.os == 'ubuntu-latest'
+        uses: r-lib/actions/setup-r@v1
         with:
           r-version: "3.5.3"
-      - uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: "5.0.x"
       - name: Install tmc-r-tester
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          Rscript -e 'install.packages(c("devtools","testthat", "httr", "curl"),repos="https://ftp.eenet.ee/pub/cran/")'
-          Rscript -e 'devtools::install_github("RTMC/tmc-r-tester/tmcRtestrunner")'
-      - name: Build test binary
-        run: cargo test --no-run --verbose
-      - name: Run tests
-        run: cargo test --verbose --no-fail-fast
+          Rscript -e 'install.packages(c("testthat", "jsonlite", "R.utils"))'
+          Rscript -e 'install.packages("plugins/r/tests/tmcRtestrunner", repos=NULL, type="source")'
 
-  windows:
-    runs-on: windows-latest
-    steps: # TODO: install missing dependencies and run all tests on windows
-      - uses: actions/checkout@v2
-      - uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: "5.0.x"
-      - name: Diagnostics
-        run: "gci env:"
-      - name: Build test binary
-        run: cargo test --no-run --verbose
       - name: Run tests
-        run: cargo test --verbose --no-fail-fast
-
-  macos:
-    runs-on: macos-latest
-    steps: # TODO: install missing dependencies and run all tests on macos
-      - uses: actions/checkout@v2
-      - uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: "5.0.x"
-      - name: Build test binary
-        run: cargo test --no-run --verbose
-      - name: Run tests
-        run: cargo test --verbose --no-fail-fast
+        run: cargo test --no-fail-fast
