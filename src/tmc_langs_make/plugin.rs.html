@@ -576,66 +576,6 @@
 <span id="576">576</span>
 <span id="577">577</span>
 <span id="578">578</span>
-<span id="579">579</span>
-<span id="580">580</span>
-<span id="581">581</span>
-<span id="582">582</span>
-<span id="583">583</span>
-<span id="584">584</span>
-<span id="585">585</span>
-<span id="586">586</span>
-<span id="587">587</span>
-<span id="588">588</span>
-<span id="589">589</span>
-<span id="590">590</span>
-<span id="591">591</span>
-<span id="592">592</span>
-<span id="593">593</span>
-<span id="594">594</span>
-<span id="595">595</span>
-<span id="596">596</span>
-<span id="597">597</span>
-<span id="598">598</span>
-<span id="599">599</span>
-<span id="600">600</span>
-<span id="601">601</span>
-<span id="602">602</span>
-<span id="603">603</span>
-<span id="604">604</span>
-<span id="605">605</span>
-<span id="606">606</span>
-<span id="607">607</span>
-<span id="608">608</span>
-<span id="609">609</span>
-<span id="610">610</span>
-<span id="611">611</span>
-<span id="612">612</span>
-<span id="613">613</span>
-<span id="614">614</span>
-<span id="615">615</span>
-<span id="616">616</span>
-<span id="617">617</span>
-<span id="618">618</span>
-<span id="619">619</span>
-<span id="620">620</span>
-<span id="621">621</span>
-<span id="622">622</span>
-<span id="623">623</span>
-<span id="624">624</span>
-<span id="625">625</span>
-<span id="626">626</span>
-<span id="627">627</span>
-<span id="628">628</span>
-<span id="629">629</span>
-<span id="630">630</span>
-<span id="631">631</span>
-<span id="632">632</span>
-<span id="633">633</span>
-<span id="634">634</span>
-<span id="635">635</span>
-<span id="636">636</span>
-<span id="637">637</span>
-<span id="638">638</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains the main plugin struct.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::check_log::CheckLog</span>;
@@ -645,16 +585,20 @@
 <span class="kw">use</span> <span class="ident">lazy_static::lazy_static</span>;
 <span class="kw">use</span> <span class="ident">regex::Regex</span>;
 <span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">BufRead</span>, <span class="ident">BufReader</span>, <span class="ident">Read</span>, <span class="ident">Seek</span>};
+<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">BufRead</span>, <span class="ident">BufReader</span>};
 <span class="kw">use</span> <span class="ident">std::path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
 <span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
-    <span class="ident">nom</span>::{<span class="ident">bytes</span>, <span class="ident">character</span>, <span class="ident">combinator</span>, <span class="ident">error::VerboseError</span>, <span class="ident">sequence</span>, <span class="ident">IResult</span>},
-    <span class="ident">CommandError</span>, <span class="ident">ExerciseDesc</span>, <span class="ident">LanguagePlugin</span>, <span class="ident">Output</span>, <span class="ident">PopenError</span>, <span class="ident">RunResult</span>, <span class="ident">RunStatus</span>, <span class="ident">TestDesc</span>,
-    <span class="ident">TmcCommand</span>, <span class="ident">TmcError</span>, <span class="ident">TmcProjectYml</span>,
+    <span class="ident">anyhow</span>,
+    <span class="ident">command</span>::{<span class="ident">Output</span>, <span class="ident">TmcCommand</span>},
+    <span class="ident">domain</span>::{<span class="ident">ExerciseDesc</span>, <span class="ident">RunResult</span>, <span class="ident">RunStatus</span>, <span class="ident">TestDesc</span>},
+    <span class="ident">error</span>::{<span class="ident">CommandError</span>, <span class="ident">FileIo</span>},
+    <span class="ident">file_util</span>,
+    <span class="ident">nom</span>::{<span class="ident">bytes</span>, <span class="ident">character</span>, <span class="ident">combinator</span>, <span class="ident">sequence</span>, <span class="ident">IResult</span>},
+    <span class="ident">plugin::LanguagePlugin</span>,
+    <span class="ident">subprocess::PopenError</span>,
+    <span class="ident">TmcError</span>, <span class="ident">TmcProjectYml</span>,
 };
-<span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{<span class="ident">file_util</span>, <span class="ident">FileError</span>};
-<span class="kw">use</span> <span class="ident">zip::ZipArchive</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MakePlugin</span> {}
@@ -684,7 +628,7 @@
 
         <span class="kw">let</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<span class="ident">file</span>);
         <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">reader</span>.<span class="ident">lines</span>() {
-            <span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">line</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FileError::FileRead</span>(<span class="ident">available_points</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">line</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FileIo::FileRead</span>(<span class="ident">available_points</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">captures</span>) <span class="op">=</span> <span class="ident">RE</span>.<span class="ident">captures</span>(<span class="kw-2">&amp;</span><span class="ident">line</span>) {
                 <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">captures</span>[<span class="string">&quot;type&quot;</span>] <span class="op">=</span><span class="op">=</span> <span class="string">&quot;test&quot;</span> {
@@ -719,7 +663,7 @@
         };
         <span class="macro">log::info!</span>(<span class="string">&quot;Running make {}&quot;</span>, <span class="ident">arg</span>);
 
-        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">TmcCommand::piped</span>(<span class="string">&quot;make&quot;</span>)
+        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">TmcCommand::new_with_file_io</span>(<span class="string">&quot;make&quot;</span>)<span class="question-mark">?</span>
             .<span class="ident">with</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">cwd</span>(<span class="ident">path</span>).<span class="ident">arg</span>(<span class="ident">arg</span>))
             .<span class="ident">output</span>()<span class="question-mark">?</span>;
 
@@ -745,7 +689,7 @@
     <span class="doccomment">/// the process finished successfully or not.</span>
     <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dir</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Output</span>, <span class="ident">MakeError</span><span class="op">&gt;</span> {
         <span class="macro">log::debug!</span>(<span class="string">&quot;building {}&quot;</span>, <span class="ident">dir</span>.<span class="ident">display</span>());
-        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">TmcCommand::piped</span>(<span class="string">&quot;make&quot;</span>)
+        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">TmcCommand::new_with_file_io</span>(<span class="string">&quot;make&quot;</span>)<span class="question-mark">?</span>
             .<span class="ident">with</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">cwd</span>(<span class="ident">dir</span>).<span class="ident">arg</span>(<span class="string">&quot;test&quot;</span>))
             .<span class="ident">output</span>()<span class="question-mark">?</span>;
 
@@ -762,7 +706,12 @@
     <span class="kw">const</span> <span class="ident">BLOCK_COMMENT</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="string">&quot;/*&quot;</span>, <span class="string">&quot;*/&quot;</span>));
     <span class="kw">type</span> <span class="ident">StudentFilePolicy</span> <span class="op">=</span> <span class="ident">MakeStudentFilePolicy</span>;
 
-    <span class="kw">fn</span> <span class="ident">scan_exercise</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">exercise_name</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">scan_exercise</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+        <span class="ident">exercise_name</span>: <span class="ident">String</span>,
+        <span class="ident">_warnings</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">anyhow::Error</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="ident"><span class="self">Self</span>::is_exercise_type_correct</span>(<span class="ident">path</span>) {
             <span class="kw">return</span> <span class="ident">MakeError::NoExerciseFound</span>(<span class="ident">path</span>.<span class="ident">to_path_buf</span>()).<span class="ident">into</span>();
         }
@@ -782,6 +731,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
         <span class="ident">_timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
+        <span class="ident">_warnings</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">anyhow::Error</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RunResult</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">build</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="op">!</span><span class="ident">output</span>.<span class="ident">status</span>.<span class="ident">success</span>() {
@@ -849,7 +799,7 @@
         <span class="kw">let</span> <span class="ident">base_test_path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">join</span>(<span class="string">&quot;test&quot;</span>);
 
         <span class="comment">// fails on valgrind by default</span>
-        <span class="kw">let</span> <span class="ident">fail_on_valgrind_error</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">TmcProjectYml::load_or_default</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>) {
+        <span class="kw">let</span> <span class="ident">fail_on_valgrind_error</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">TmcProjectYml::from</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>) {
             <span class="prelude-val">Ok</span>(<span class="ident">parsed</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parsed</span>.<span class="ident">fail_on_valgrind_error</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>),
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
         };
@@ -916,45 +866,14 @@
         <span class="prelude-val">Ok</span>(<span class="ident">run_result</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">find_project_dir_in_zip</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span> <span class="op">+</span> <span class="ident">Seek</span><span class="op">&gt;</span>(
-        <span class="ident">zip_archive</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ZipArchive</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
-        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">zip_archive</span>.<span class="ident">len</span>() {
-            <span class="comment">// zips don&#39;t necessarily contain entries for intermediate directories,</span>
-            <span class="comment">// so we need to check every path for src</span>
-            <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">zip_archive</span>.<span class="ident">by_index</span>(<span class="ident">i</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">file_path</span> <span class="op">=</span> <span class="ident">PathBuf::from</span>(<span class="ident">file</span>.<span class="ident">name</span>());
-            <span class="ident">drop</span>(<span class="ident">file</span>);
-
-            <span class="comment">// todo: do in one pass somehow</span>
-            <span class="kw">if</span> <span class="ident">file_path</span>.<span class="ident">components</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">as_os_str</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&quot;src&quot;</span>) {
-                <span class="kw">let</span> <span class="ident">path</span>: <span class="ident">PathBuf</span> <span class="op">=</span> <span class="ident">file_path</span>
-                    .<span class="ident">components</span>()
-                    .<span class="ident">take_while</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">as_os_str</span>() <span class="op">!</span><span class="op">=</span> <span class="string">&quot;src&quot;</span>)
-                    .<span class="ident">collect</span>();
-
-                <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">components</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">as_os_str</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&quot;__MACOSX&quot;</span>) {
-                    <span class="kw">continue</span>;
-                }
-                <span class="comment">// found src not in __MACOSX, check for Makefile</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">makefile_path</span>) <span class="op">=</span> <span class="ident">path</span>.<span class="ident">join</span>(<span class="string">&quot;Makefile&quot;</span>).<span class="ident">to_str</span>() {
-                    <span class="kw">if</span> <span class="ident">zip_archive</span>.<span class="ident">by_name</span>(<span class="ident">makefile_path</span>).<span class="ident">is_ok</span>() {
-                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">path</span>);
-                    }
-                }
-            }
-        }
-        <span class="prelude-val">Err</span>(<span class="ident">TmcError::NoProjectDirInZip</span>)
-    }
-
-    <span class="doccomment">/// Checks if the directory has a src dir and a Makefile file in it.</span>
+    <span class="doccomment">/// Checks if the directory has a Makefile in it.</span>
     <span class="kw">fn</span> <span class="ident">is_exercise_type_correct</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="ident">path</span>.<span class="ident">join</span>(<span class="string">&quot;src&quot;</span>).<span class="ident">is_dir</span>() <span class="op">&amp;&amp;</span> <span class="ident">path</span>.<span class="ident">join</span>(<span class="string">&quot;Makefile&quot;</span>).<span class="ident">is_file</span>()
+        <span class="ident">path</span>.<span class="ident">join</span>(<span class="string">&quot;Makefile&quot;</span>).<span class="ident">is_file</span>()
     }
 
     <span class="comment">// does not check for success</span>
     <span class="kw">fn</span> <span class="ident">clean</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TmcError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">TmcCommand::piped</span>(<span class="string">&quot;make&quot;</span>)
+        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">TmcCommand::new_with_file_io</span>(<span class="string">&quot;make&quot;</span>)<span class="question-mark">?</span>
             .<span class="ident">with</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">cwd</span>(<span class="ident">path</span>).<span class="ident">arg</span>(<span class="string">&quot;clean&quot;</span>))
             .<span class="ident">output</span>()<span class="question-mark">?</span>;
 
@@ -975,47 +894,27 @@
         <span class="macro">vec!</span>[<span class="ident">PathBuf::from</span>(<span class="string">&quot;test&quot;</span>)]
     }
 
-    <span class="kw">fn</span> <span class="ident">points_parser</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">tmc_register_test_parser</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">points_parser</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+        <span class="ident">combinator::map</span>(
             <span class="ident">sequence::delimited</span>(
                 <span class="ident">sequence::tuple</span>((
                     <span class="ident">bytes::complete::tag</span>(<span class="string">&quot;tmc_register_test&quot;</span>),
                     <span class="ident">character::complete::multispace0</span>,
                     <span class="ident">character::complete::char</span>(<span class="string">&#39;(&#39;</span>),
-                    <span class="ident">character::complete::multispace0</span>,
-                    <span class="ident">arg_parser</span>,
-                    <span class="ident">arg_parser</span>,
+                    <span class="ident">bytes::complete::is_not</span>(<span class="string">&quot;\&quot;&quot;</span>),
                 )),
-                <span class="ident">string_parser</span>,
+                <span class="ident">sequence::delimited</span>(
+                    <span class="ident">character::complete::char</span>(<span class="string">&#39;&quot;&#39;</span>),
+                    <span class="ident">bytes::complete::is_not</span>(<span class="string">&quot;\&quot;&quot;</span>),
+                    <span class="ident">character::complete::char</span>(<span class="string">&#39;&quot;&#39;</span>),
+                ),
                 <span class="ident">sequence::tuple</span>((
                     <span class="ident">character::complete::multispace0</span>,
                     <span class="ident">character::complete::char</span>(<span class="string">&#39;)&#39;</span>),
                 )),
-            )(<span class="ident">i</span>)
-            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">a</span>, <span class="ident">b</span>)<span class="op">|</span> (<span class="ident">a</span>, <span class="macro">vec!</span>[<span class="ident">b</span>]))
-        }
-
-        <span class="comment">// todo: currently cannot handle function calls with multiple parameters, probably not a problem</span>
-        <span class="kw">fn</span> <span class="ident">arg_parser</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="ident">combinator::value</span>(
-                <span class="string">&quot;&quot;</span>,
-                <span class="ident">sequence::tuple</span>((
-                    <span class="ident">bytes::complete::take_till</span>(<span class="op">|</span><span class="ident">c</span>: <span class="ident">char</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">is_whitespace</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;,&#39;</span>),
-                    <span class="ident">character::complete::char</span>(<span class="string">&#39;,&#39;</span>),
-                    <span class="ident">character::complete::multispace0</span>,
-                )),
-            )(<span class="ident">i</span>)
-        }
-
-        <span class="kw">fn</span> <span class="ident">string_parser</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="ident">sequence::delimited</span>(
-                <span class="ident">character::complete::char</span>(<span class="string">&#39;&quot;&#39;</span>),
-                <span class="ident">bytes::complete::is_not</span>(<span class="string">&quot;\&quot;&quot;</span>),
-                <span class="ident">character::complete::char</span>(<span class="string">&#39;&quot;&#39;</span>),
-            )(<span class="ident">i</span>)
-        }
-
-        <span class="ident">tmc_register_test_parser</span>(<span class="ident">i</span>)
+            ),
+            <span class="ident">str::trim</span>,
+        )(<span class="ident">i</span>)
     }
 }
 
@@ -1023,7 +922,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span> <span class="comment">// check not installed on other CI platforms</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">zip::ZipArchive</span>;
+    <span class="kw">use</span> <span class="ident">tmc_langs_framework::zip::ZipArchive</span>;
 
     <span class="kw">fn</span> <span class="ident">init</span>() {
         <span class="kw">use</span> <span class="ident">log</span>::<span class="kw-2">*</span>;
@@ -1137,7 +1036,7 @@ test [invalid] point6
         <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">dir_to_temp</span>(<span class="string">&quot;tests/data/passing-exercise&quot;</span>);
         <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">MakePlugin::new</span>();
         <span class="kw">let</span> <span class="ident">exercise_desc</span> <span class="op">=</span> <span class="ident">plugin</span>
-            .<span class="ident">scan_exercise</span>(<span class="ident">temp</span>.<span class="ident">path</span>(), <span class="string">&quot;test&quot;</span>.<span class="ident">to_string</span>())
+            .<span class="ident">scan_exercise</span>(<span class="ident">temp</span>.<span class="ident">path</span>(), <span class="string">&quot;test&quot;</span>.<span class="ident">to_string</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro">vec!</span>[])
             .<span class="ident">unwrap</span>();
 
         <span class="macro">assert_eq!</span>(<span class="ident">exercise_desc</span>.<span class="ident">name</span>, <span class="string">&quot;test&quot;</span>);
@@ -1154,7 +1053,7 @@ test [invalid] point6
 
         <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">dir_to_temp</span>(<span class="string">&quot;tests/data/passing-exercise&quot;</span>);
         <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">MakePlugin::new</span>();
-        <span class="kw">let</span> <span class="ident">run_result</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">run_tests</span>(<span class="ident">temp</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">run_result</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">run_tests</span>(<span class="ident">temp</span>.<span class="ident">path</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro">vec!</span>[]).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">run_result</span>.<span class="ident">status</span>, <span class="ident">RunStatus::Passed</span>);
         <span class="kw">let</span> <span class="ident">test_results</span> <span class="op">=</span> <span class="ident">run_result</span>.<span class="ident">test_results</span>;
         <span class="macro">assert_eq!</span>(<span class="ident">test_results</span>.<span class="ident">len</span>(), <span class="number">1</span>);
@@ -1175,7 +1074,7 @@ test [invalid] point6
 
         <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">dir_to_temp</span>(<span class="string">&quot;tests/data/failing-exercise&quot;</span>);
         <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">MakePlugin::new</span>();
-        <span class="kw">let</span> <span class="ident">run_result</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">run_tests</span>(<span class="ident">temp</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">run_result</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">run_tests</span>(<span class="ident">temp</span>.<span class="ident">path</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro">vec!</span>[]).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">run_result</span>.<span class="ident">status</span>, <span class="ident">RunStatus::TestsFailed</span>);
         <span class="kw">let</span> <span class="ident">test_results</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">run_result</span>.<span class="ident">test_results</span>;
         <span class="macro">assert_eq!</span>(<span class="ident">test_results</span>.<span class="ident">len</span>(), <span class="number">1</span>);
@@ -1195,7 +1094,7 @@ test [invalid] point6
 
         <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">dir_to_temp</span>(<span class="string">&quot;tests/data/valgrind-failing-exercise&quot;</span>);
         <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">MakePlugin::new</span>();
-        <span class="kw">let</span> <span class="ident">run_result</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">run_tests</span>(<span class="ident">temp</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">run_result</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">run_tests</span>(<span class="ident">temp</span>.<span class="ident">path</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro">vec!</span>[]).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">run_result</span>.<span class="ident">status</span>, <span class="ident">RunStatus::TestsFailed</span>);
         <span class="kw">let</span> <span class="ident">test_results</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">run_result</span>.<span class="ident">test_results</span>;
         <span class="macro">assert_eq!</span>(<span class="ident">test_results</span>.<span class="ident">len</span>(), <span class="number">2</span>);
@@ -1218,7 +1117,6 @@ test [invalid] point6
         <span class="ident">init</span>();
         <span class="kw">let</span> <span class="ident">temp_dir</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
         <span class="ident">dir_to</span>(<span class="kw-2">&amp;</span><span class="ident">temp_dir</span>, <span class="string">&quot;Outer/Inner/make_project/src&quot;</span>);
-        <span class="ident">file_to</span>(<span class="kw-2">&amp;</span><span class="ident">temp_dir</span>, <span class="string">&quot;Outer/Inner/make_project/Makefile&quot;</span>, <span class="string">&quot;&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">zip_contents</span> <span class="op">=</span> <span class="ident">dir_to_zip</span>(<span class="kw-2">&amp;</span><span class="ident">temp_dir</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zip</span> <span class="op">=</span> <span class="ident">ZipArchive::new</span>(<span class="ident">std::io::Cursor::new</span>(<span class="ident">zip_contents</span>)).<span class="ident">unwrap</span>();
@@ -1231,8 +1129,7 @@ test [invalid] point6
         <span class="ident">init</span>();
 
         <span class="kw">let</span> <span class="ident">temp_dir</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
-        <span class="ident">dir_to</span>(<span class="kw-2">&amp;</span><span class="ident">temp_dir</span>, <span class="string">&quot;Outer/Inner/make_project/src&quot;</span>);
-        <span class="ident">file_to</span>(<span class="kw-2">&amp;</span><span class="ident">temp_dir</span>, <span class="string">&quot;Outer/Inner/make_project/Makefil&quot;</span>, <span class="string">&quot;&quot;</span>);
+        <span class="ident">dir_to</span>(<span class="kw-2">&amp;</span><span class="ident">temp_dir</span>, <span class="string">&quot;Outer/Inner/make_project/srcb&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">zip_contents</span> <span class="op">=</span> <span class="ident">dir_to_zip</span>(<span class="kw-2">&amp;</span><span class="ident">temp_dir</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zip</span> <span class="op">=</span> <span class="ident">ZipArchive::new</span>(<span class="ident">std::io::Cursor::new</span>(<span class="ident">zip_contents</span>)).<span class="ident">unwrap</span>();
@@ -1252,26 +1149,9 @@ test [invalid] point6
                 <span class="string">&quot;tmc_register_test(s, test_insertion_empty_list, \&quot;dlink_insert\&quot;);&quot;</span>,
             )
             .<span class="ident">unwrap</span>()
-            .<span class="number">1</span>[<span class="number">0</span>],
+            .<span class="number">1</span>,
             <span class="string">&quot;dlink_insert&quot;</span>
         );
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">does_not_parse_check_function</span>() {
-        <span class="macro">assert!</span>(<span class="ident">MakePlugin::points_parser</span>(
-            <span class="string">r#&quot;tmc_register_test(Suite *s, TFun tf, const char *fname, const char *points)
-{
-    // stuff
-}
-
-int tmc_run_tests(int argc, const char **argv, Suite *s)
-{
-    func(&quot;--print-available-points&quot;)
-}
-&quot;#</span>
-        )
-        .<span class="ident">is_err</span>())
     }
 }
 </code></pre></div>

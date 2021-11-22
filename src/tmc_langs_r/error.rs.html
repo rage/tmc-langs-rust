@@ -29,32 +29,36 @@
 <span id="29">29</span>
 <span id="30">30</span>
 <span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Error type for the R plugin</span>
 
 <span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
 <span class="kw">use</span> <span class="ident">thiserror::Error</span>;
-<span class="kw">use</span> <span class="ident">tmc_langs_framework::TmcError</span>;
-<span class="kw">use</span> <span class="ident">tmc_langs_util::FileError</span>;
+<span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
+    <span class="ident">error</span>::{<span class="ident">CommandError</span>, <span class="ident">FileIo</span>},
+    <span class="ident">TmcError</span>,
+};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Error</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">RError</span> {
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to deserialize file {0} into JSON&quot;</span>)]</span>
     <span class="ident">JsonDeserialize</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">serde_json::Error</span>),
 
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to run command&quot;</span>)]</span>
+    <span class="ident">Command</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">CommandError</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;File IO error&quot;</span>)]</span>
-    <span class="ident">FileError</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">FileError</span>),
+    <span class="ident">FileIo</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">FileIo</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Error&quot;</span>)]</span>
     <span class="ident">Tmc</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">TmcError</span>),
 }
 
-<span class="comment">// conversion from plugin error to TmcError::Plugin</span>
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">RError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TmcError</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">RError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TmcError</span> {
         <span class="ident">TmcError::Plugin</span>(<span class="ident">Box::new</span>(<span class="ident">err</span>))
     }
 }
 
-<span class="comment">// conversion from plugin error to a tmc result</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">TmcError</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RError</span> {
     <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="prelude-val">Err</span>(<span class="ident">TmcError::Plugin</span>(<span class="ident">Box::new</span>(<span class="self">self</span>)))

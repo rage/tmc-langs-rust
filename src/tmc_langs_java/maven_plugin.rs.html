@@ -528,6 +528,28 @@
 <span id="528">528</span>
 <span id="529">529</span>
 <span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Java Maven plugin.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -542,10 +564,14 @@
 <span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 <span class="kw">use</span> <span class="ident">tar::Archive</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
-    <span class="ident">nom</span>::{<span class="ident">error::VerboseError</span>, <span class="ident">IResult</span>},
-    <span class="ident">ExerciseDesc</span>, <span class="ident">Language</span>, <span class="ident">LanguagePlugin</span>, <span class="ident">RunResult</span>, <span class="ident">StyleValidationResult</span>, <span class="ident">TmcCommand</span>, <span class="ident">TmcError</span>,
+    <span class="ident">anyhow</span>,
+    <span class="ident">command::TmcCommand</span>,
+    <span class="ident">domain</span>::{<span class="ident">ExerciseDesc</span>, <span class="ident">RunResult</span>, <span class="ident">StyleValidationResult</span>},
+    <span class="ident">file_util</span>,
+    <span class="ident">nom::IResult</span>,
+    <span class="ident">plugin</span>::{<span class="ident">Language</span>, <span class="ident">LanguagePlugin</span>},
+    <span class="ident">TmcError</span>,
 };
-<span class="kw">use</span> <span class="ident">tmc_langs_util::file_util</span>;
 
 <span class="kw">const</span> <span class="ident">MVN_ARCHIVE</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../deps/apache-maven-3.6.3-bin.tar.gz&quot;</span>);
 
@@ -566,7 +592,7 @@
     <span class="comment">// the executable used from within the extracted maven differs per platform</span>
     <span class="kw">fn</span> <span class="ident">get_mvn_command</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OsString</span>, <span class="ident">JavaError</span><span class="op">&gt;</span> {
         <span class="comment">// check if mvn is in PATH</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">status</span>) <span class="op">=</span> <span class="ident">TmcCommand::piped</span>(<span class="string">&quot;mvn&quot;</span>)
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">status</span>) <span class="op">=</span> <span class="ident">TmcCommand::new_with_file_io</span>(<span class="string">&quot;mvn&quot;</span>)<span class="question-mark">?</span>
             .<span class="ident">with</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">arg</span>(<span class="string">&quot;--batch-mode&quot;</span>).<span class="ident">arg</span>(<span class="string">&quot;--version&quot;</span>))
             .<span class="ident">status</span>()
         {
@@ -611,7 +637,12 @@
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">run_checkstyle</span>(<span class="kw-2">&amp;</span><span class="ident">locale</span>, <span class="ident">path</span>)<span class="question-mark">?</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">scan_exercise</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">exercise_name</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">scan_exercise</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+        <span class="ident">exercise_name</span>: <span class="ident">String</span>,
+        <span class="ident">_warnings</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">anyhow::Error</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExerciseDesc</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="ident"><span class="self">Self</span>::is_exercise_type_correct</span>(<span class="ident">path</span>) {
             <span class="kw">return</span> <span class="ident">JavaError::InvalidExercise</span>(<span class="ident">path</span>.<span class="ident">to_path_buf</span>()).<span class="ident">into</span>();
         }
@@ -624,6 +655,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">project_root_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
         <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
+        <span class="ident">_warnings</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">anyhow::Error</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RunResult</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">run_java_tests</span>(<span class="ident">project_root_path</span>, <span class="ident">timeout</span>)<span class="question-mark">?</span>)
     }
@@ -638,7 +670,7 @@
         <span class="macro">log::info!</span>(<span class="string">&quot;Cleaning maven project at {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>());
 
         <span class="kw">let</span> <span class="ident">mvn_command</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_mvn_command</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">_output</span> <span class="op">=</span> <span class="ident">TmcCommand::piped</span>(<span class="ident">mvn_command</span>)
+        <span class="kw">let</span> <span class="ident">_output</span> <span class="op">=</span> <span class="ident">TmcCommand::new_with_file_io</span>(<span class="ident">mvn_command</span>)<span class="question-mark">?</span>
             .<span class="ident">with</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">cwd</span>(<span class="ident">path</span>).<span class="ident">arg</span>(<span class="string">&quot;--batch-mode&quot;</span>).<span class="ident">arg</span>(<span class="string">&quot;clean&quot;</span>))
             .<span class="ident">output_checked</span>()<span class="question-mark">?</span>;
 
@@ -653,7 +685,7 @@
         <span class="macro">vec!</span>[<span class="ident">PathBuf::from</span>(<span class="string">&quot;src/test&quot;</span>)]
     }
 
-    <span class="kw">fn</span> <span class="ident">points_parser</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">VerboseError</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">points_parser</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="ident"><span class="self">Self</span>::java_points_parser</span>(<span class="ident">i</span>)
     }
 }
@@ -673,7 +705,7 @@
 
         <span class="kw">let</span> <span class="ident">output_arg</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;-Dmdep.outputFile={}&quot;</span>, <span class="ident">class_path_file</span>.<span class="ident">display</span>());
         <span class="kw">let</span> <span class="ident">mvn_path</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_mvn_command</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">_output</span> <span class="op">=</span> <span class="ident">TmcCommand::piped</span>(<span class="ident">mvn_path</span>)
+        <span class="kw">let</span> <span class="ident">_output</span> <span class="op">=</span> <span class="ident">TmcCommand::new_with_file_io</span>(<span class="ident">mvn_path</span>)<span class="question-mark">?</span>
             .<span class="ident">with</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
                 <span class="ident">e</span>.<span class="ident">cwd</span>(<span class="ident">path</span>)
                     .<span class="ident">arg</span>(<span class="string">&quot;--batch-mode&quot;</span>)
@@ -702,7 +734,7 @@
         <span class="macro">log::info!</span>(<span class="string">&quot;Building maven project at {}&quot;</span>, <span class="ident">project_root_path</span>.<span class="ident">display</span>());
 
         <span class="kw">let</span> <span class="ident">mvn_path</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_mvn_command</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">TmcCommand::piped</span>(<span class="ident">mvn_path</span>)
+        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">TmcCommand::new_with_file_io</span>(<span class="ident">mvn_path</span>)<span class="question-mark">?</span>
             .<span class="ident">with</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
                 <span class="ident">e</span>.<span class="ident">cwd</span>(<span class="ident">project_root_path</span>)
                     .<span class="ident">arg</span>(<span class="string">&quot;--batch-mode&quot;</span>)
@@ -729,7 +761,7 @@
         <span class="macro">log::info!</span>(<span class="string">&quot;Running tests for maven project at {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>());
 
         <span class="kw">let</span> <span class="ident">mvn_path</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_mvn_command</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">TmcCommand::piped</span>(<span class="ident">mvn_path</span>).<span class="ident">with</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">TmcCommand::new_with_file_io</span>(<span class="ident">mvn_path</span>)<span class="question-mark">?</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
             <span class="ident">e</span>.<span class="ident">cwd</span>(<span class="ident">path</span>)
                 .<span class="ident">arg</span>(<span class="string">&quot;--batch-mode&quot;</span>)
                 .<span class="ident">arg</span>(<span class="string">&quot;fi.helsinki.cs.tmc:tmc-maven-plugin:1.12:test&quot;</span>)
@@ -756,8 +788,8 @@
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident">std::fs</span>;
     <span class="kw">use</span> <span class="ident">std::sync</span>::{<span class="ident">Mutex</span>, <span class="ident">MutexGuard</span>};
-    <span class="kw">use</span> <span class="ident">tmc_langs_framework::StyleValidationStrategy</span>;
-    <span class="kw">use</span> <span class="ident">zip::ZipArchive</span>;
+    <span class="kw">use</span> <span class="ident">tmc_langs_framework::domain::StyleValidationStrategy</span>;
+    <span class="kw">use</span> <span class="ident">tmc_langs_framework::zip::ZipArchive</span>;
 
     <span class="macro">lazy_static::lazy_static!</span> {
         <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">MAVEN_LOCK</span>: <span class="ident">Mutex</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Mutex::new</span>(());
@@ -894,7 +926,7 @@
         <span class="kw">let</span> <span class="ident">temp_dir</span> <span class="op">=</span> <span class="ident">dir_to_temp</span>(<span class="string">&quot;tests/data/maven-exercise&quot;</span>);
         <span class="kw">let</span> (<span class="ident">plugin</span>, <span class="ident">_lock</span>) <span class="op">=</span> <span class="ident">get_maven</span>();
         <span class="kw">let</span> <span class="ident">exercises</span> <span class="op">=</span> <span class="ident">plugin</span>
-            .<span class="ident">scan_exercise</span>(<span class="kw-2">&amp;</span><span class="ident">temp_dir</span>.<span class="ident">path</span>(), <span class="string">&quot;test&quot;</span>.<span class="ident">to_string</span>())
+            .<span class="ident">scan_exercise</span>(<span class="kw-2">&amp;</span><span class="ident">temp_dir</span>.<span class="ident">path</span>(), <span class="string">&quot;test&quot;</span>.<span class="ident">to_string</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro">vec!</span>[])
             .<span class="ident">unwrap</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">exercises</span>.<span class="ident">name</span>, <span class="string">&quot;test&quot;</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">exercises</span>.<span class="ident">tests</span>.<span class="ident">len</span>(), <span class="number">1</span>);
@@ -911,9 +943,12 @@
 
         <span class="kw">let</span> <span class="ident">temp_dir</span> <span class="op">=</span> <span class="ident">dir_to_temp</span>(<span class="string">&quot;tests/data/maven-exercise&quot;</span>);
         <span class="kw">let</span> (<span class="ident">plugin</span>, <span class="ident">_lock</span>) <span class="op">=</span> <span class="ident">get_maven</span>();
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">run_tests</span>(<span class="ident">temp_dir</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">run_tests</span>(<span class="ident">temp_dir</span>.<span class="ident">path</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro">vec!</span>[]).<span class="ident">unwrap</span>();
         <span class="macro">log::debug!</span>(<span class="string">&quot;{:#?}&quot;</span>, <span class="ident">res</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">res</span>.<span class="ident">status</span>, <span class="ident">tmc_langs_framework::RunStatus::TestsFailed</span>);
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">res</span>.<span class="ident">status</span>,
+            <span class="ident">tmc_langs_framework::domain::RunStatus::TestsFailed</span>
+        );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -923,7 +958,11 @@
         <span class="kw">let</span> <span class="ident">temp_dir</span> <span class="op">=</span> <span class="ident">dir_to_temp</span>(<span class="string">&quot;tests/data/maven-exercise&quot;</span>);
         <span class="kw">let</span> (<span class="ident">plugin</span>, <span class="ident">_lock</span>) <span class="op">=</span> <span class="ident">get_maven</span>();
         <span class="kw">let</span> <span class="ident">test_result_err</span> <span class="op">=</span> <span class="ident">plugin</span>
-            .<span class="ident">run_tests_with_timeout</span>(<span class="ident">temp_dir</span>.<span class="ident">path</span>(), <span class="prelude-val">Some</span>(<span class="ident">std::time::Duration::from_nanos</span>(<span class="number">1</span>)))
+            .<span class="ident">run_tests_with_timeout</span>(
+                <span class="ident">temp_dir</span>.<span class="ident">path</span>(),
+                <span class="prelude-val">Some</span>(<span class="ident">std::time::Duration::from_nanos</span>(<span class="number">1</span>)),
+                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro">vec!</span>[],
+            )
             .<span class="ident">unwrap_err</span>();
         <span class="macro">log::debug!</span>(<span class="string">&quot;{:#?}&quot;</span>, <span class="ident">test_result_err</span>);
 
@@ -932,8 +971,13 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">test_result_err</span>.<span class="ident">source</span>();
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <span class="ident">source</span> {
             <span class="ident">source</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">source</span>();
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cmd_error</span>) <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">tmc_langs_framework::CommandError</span><span class="op">&gt;</span>() {
-                <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">cmd_error</span>, <span class="ident">tmc_langs_framework::CommandError::TimeOut</span> { .. }) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cmd_error</span>) <span class="op">=</span>
+                <span class="ident">inner</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">tmc_langs_framework::error::CommandError</span><span class="op">&gt;</span>()
+            {
+                <span class="kw">if</span> <span class="macro">matches!</span>(
+                    <span class="ident">cmd_error</span>,
+                    <span class="ident">tmc_langs_framework::error::CommandError::TimeOut</span> { .. }
+                ) {
                     <span class="kw">return</span>;
                 }
             }

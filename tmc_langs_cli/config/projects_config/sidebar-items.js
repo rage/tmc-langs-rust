@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["CourseConfig",""],["Exercise",""],["ProjectsConfig",""]]});

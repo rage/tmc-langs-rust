@@ -248,19 +248,58 @@
 <span id="248">248</span>
 <span id="249">249</span>
 <span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Output format</span>
 
 <span class="kw">use</span> <span class="ident">schemars::JsonSchema</span>;
 <span class="kw">use</span> <span class="ident">serde::Serialize</span>;
 <span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
-<span class="kw">use</span> <span class="ident">tmc_langs</span>::{
-    <span class="ident">notification_reporter::Notification</span>, <span class="ident">ClientUpdateData</span>, <span class="ident">CombinedCourseData</span>, <span class="ident">ConfigValue</span>, <span class="ident">Course</span>,
-    <span class="ident">CourseData</span>, <span class="ident">CourseDetails</span>, <span class="ident">CourseExercise</span>, <span class="ident">DownloadOrUpdateCourseExercisesResult</span>, <span class="ident">ExerciseDesc</span>,
-    <span class="ident">ExerciseDetails</span>, <span class="ident">ExerciseDownload</span>, <span class="ident">ExercisePackagingConfiguration</span>, <span class="ident">LocalExercise</span>,
+<span class="kw">use</span> <span class="ident">tmc_client</span>::{
+    <span class="ident">ClientUpdateData</span>, <span class="ident">Course</span>, <span class="ident">CourseData</span>, <span class="ident">CourseDetails</span>, <span class="ident">CourseExercise</span>, <span class="ident">ExerciseDetails</span>,
     <span class="ident">NewSubmission</span>, <span class="ident">Organization</span>, <span class="ident">Review</span>, <span class="ident">RunResult</span>, <span class="ident">StyleValidationResult</span>, <span class="ident">Submission</span>,
-    <span class="ident">SubmissionFeedbackResponse</span>, <span class="ident">SubmissionFinished</span>, <span class="ident">TmcConfig</span>, <span class="ident">Token</span>, <span class="ident">UpdateResult</span>,
+    <span class="ident">SubmissionFeedbackResponse</span>, <span class="ident">SubmissionFinished</span>, <span class="ident">Token</span>, <span class="ident">UpdateResult</span>,
 };
-<span class="kw">use</span> <span class="ident">tmc_langs_util::progress_reporter::StatusUpdate</span>;
+<span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{
+    <span class="ident">progress_reporter::StatusUpdate</span>, <span class="ident">task_executor::RefreshData</span>, <span class="ident">ExerciseDesc</span>,
+    <span class="ident">ExercisePackagingConfiguration</span>,
+};
+
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::config</span>::{<span class="ident">ConfigValue</span>, <span class="ident">TmcConfig</span>};
 
 <span class="doccomment">/// The format for all messages written to stdout by the CLI</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>)]</span>
@@ -272,7 +311,7 @@
     <span class="doccomment">/// Status update output as a command progresses.</span>
     <span class="ident">StatusUpdate</span>(<span class="ident">StatusUpdateData</span>),
     <span class="doccomment">/// Additional warnings, such as for an outdated Python dependency.</span>
-    <span class="ident">Notification</span>(<span class="ident">Notification</span>),
+    <span class="ident">Warnings</span>(<span class="ident">Warnings</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">Output</span> {
@@ -299,18 +338,14 @@
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">tag</span> <span class="op">=</span> <span class="string">&quot;output-data-kind&quot;</span>, <span class="ident">content</span> <span class="op">=</span> <span class="string">&quot;output-data&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Data</span> {
-    <span class="ident">Error</span> {
-        <span class="ident">kind</span>: <span class="ident">Kind</span>,
-        <span class="ident">trace</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    },
+    <span class="ident">Error</span> { <span class="ident">kind</span>: <span class="ident">Kind</span>, <span class="ident">trace</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> },
     <span class="ident">Validation</span>(<span class="ident">StyleValidationResult</span>),
-    <span class="doccomment">/// megabytes</span>
-    <span class="comment">// FreeDiskSpace(u64),</span>
+    <span class="ident">FreeDiskSpace</span>(<span class="ident">u64</span>),
     <span class="ident">AvailablePoints</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>),
     <span class="ident">Exercises</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>),
     <span class="ident">ExercisePackagingConfiguration</span>(<span class="ident">ExercisePackagingConfiguration</span>),
     <span class="ident">LocalExercises</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LocalExercise</span><span class="op">&gt;</span>),
-    <span class="ident">RefreshResult</span>(<span class="ident">tmc_langs::RefreshData</span>),
+    <span class="ident">RefreshResult</span>(<span class="ident">RefreshData</span>),
     <span class="ident">TestResult</span>(<span class="ident">RunResult</span>),
     <span class="ident">ExerciseDesc</span>(<span class="ident">ExerciseDesc</span>),
     <span class="ident">UpdatedExercises</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">UpdatedExercise</span><span class="op">&gt;</span>),
@@ -378,13 +413,39 @@
     <span class="ident">InvalidToken</span>,
     <span class="doccomment">/// Failed to download some or all exercises</span>
     <span class="ident">FailedExerciseDownload</span> {
-        <span class="ident">completed</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ExerciseDownload</span><span class="op">&gt;</span>,
-        <span class="ident">skipped</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ExerciseDownload</span><span class="op">&gt;</span>,
-        <span class="ident">failed</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">ExerciseDownload</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
+        <span class="ident">completed</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">DownloadOrUpdateCourseExercise</span><span class="op">&gt;</span>,
+        <span class="ident">skipped</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">DownloadOrUpdateCourseExercise</span><span class="op">&gt;</span>,
+        <span class="ident">failed</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">DownloadOrUpdateCourseExercise</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
     },
 }
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tmc_langs::ProjectsDirExercise</span>;
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CombinedCourseData</span> {
+    <span class="kw">pub</span> <span class="ident">details</span>: <span class="ident">CourseDetails</span>,
+    <span class="kw">pub</span> <span class="ident">exercises</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CourseExercise</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">settings</span>: <span class="ident">CourseData</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DownloadOrUpdateCourseExercisesResult</span> {
+    <span class="kw">pub</span> <span class="ident">downloaded</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">DownloadOrUpdateCourseExercise</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">skipped</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">DownloadOrUpdateCourseExercise</span><span class="op">&gt;</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
+<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DownloadOrUpdateCourseExercise</span> {
+    <span class="kw">pub</span> <span class="ident">course_slug</span>: <span class="ident">String</span>,
+    <span class="kw">pub</span> <span class="ident">exercise_slug</span>: <span class="ident">String</span>,
+    <span class="kw">pub</span> <span class="ident">path</span>: <span class="ident">PathBuf</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
+<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LocalExercise</span> {
+    <span class="kw">pub</span> <span class="ident">exercise_slug</span>: <span class="ident">String</span>,
+    <span class="kw">pub</span> <span class="ident">exercise_path</span>: <span class="ident">PathBuf</span>,
+}
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
@@ -396,6 +457,19 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DownloadTarget</span> {
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">path</span>: <span class="ident">PathBuf</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Warnings</span> {
+    <span class="ident">warnings</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">Warnings</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_error_list</span>(<span class="ident">warnings</span>: <span class="kw-2">&amp;</span>[<span class="ident">anyhow::Error</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">warnings</span>: <span class="ident">warnings</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">to_string</span>()).<span class="ident">collect</span>(),
+        }
+    }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -444,26 +518,22 @@
             <span class="ident">data</span>: <span class="prelude-val">Some</span>(<span class="ident">Data::ExerciseDownload</span>(
                 <span class="ident">DownloadOrUpdateCourseExercisesResult</span> {
                     <span class="ident">downloaded</span>: <span class="macro">vec!</span>[
-                        <span class="ident">ExerciseDownload</span> {
-                            <span class="ident">id</span>: <span class="number">1</span>,
+                        <span class="ident">DownloadOrUpdateCourseExercise</span> {
                             <span class="ident">course_slug</span>: <span class="string">&quot;some course&quot;</span>.<span class="ident">to_string</span>(),
                             <span class="ident">exercise_slug</span>: <span class="string">&quot;some exercise&quot;</span>.<span class="ident">to_string</span>(),
                             <span class="ident">path</span>: <span class="ident">PathBuf::from</span>(<span class="string">&quot;some path&quot;</span>),
                         },
-                        <span class="ident">ExerciseDownload</span> {
-                            <span class="ident">id</span>: <span class="number">2</span>,
+                        <span class="ident">DownloadOrUpdateCourseExercise</span> {
                             <span class="ident">course_slug</span>: <span class="string">&quot;some course&quot;</span>.<span class="ident">to_string</span>(),
                             <span class="ident">exercise_slug</span>: <span class="string">&quot;another exercise&quot;</span>.<span class="ident">to_string</span>(),
                             <span class="ident">path</span>: <span class="ident">PathBuf::from</span>(<span class="string">&quot;another path&quot;</span>),
                         },
                     ],
-                    <span class="ident">skipped</span>: <span class="macro">vec!</span>[<span class="ident">ExerciseDownload</span> {
-                        <span class="ident">id</span>: <span class="number">3</span>,
+                    <span class="ident">skipped</span>: <span class="macro">vec!</span>[<span class="ident">DownloadOrUpdateCourseExercise</span> {
                         <span class="ident">course_slug</span>: <span class="string">&quot;another course&quot;</span>.<span class="ident">to_string</span>(),
                         <span class="ident">exercise_slug</span>: <span class="string">&quot;some skipped exercise&quot;</span>.<span class="ident">to_string</span>(),
                         <span class="ident">path</span>: <span class="ident">PathBuf::from</span>(<span class="string">&quot;third path&quot;</span>),
                     }],
-                    <span class="ident">failed</span>: <span class="prelude-val">None</span>,
                 },
             )),
         });
@@ -483,7 +553,7 @@
                 <span class="ident">finished</span>: <span class="bool-val">false</span>,
                 <span class="ident">message</span>: <span class="string">&quot;doing things...&quot;</span>.<span class="ident">to_string</span>(),
                 <span class="ident">percent_done</span>: <span class="number">33.3333</span>,
-                <span class="ident">time</span>: <span class="number">2000</span>,
+                <span class="ident">time</span>: <span class="prelude-val">Some</span>(<span class="number">2000</span>),
             }));
         <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">serde_json::to_string_pretty</span>(<span class="kw-2">&amp;</span><span class="ident">status_update</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">read_api_file</span>(<span class="string">&quot;status-update.json&quot;</span>);
@@ -491,8 +561,10 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">notification</span>() {
-        <span class="kw">let</span> <span class="ident">status_update</span> <span class="op">=</span> <span class="ident">Output::Notification</span>(<span class="ident">Notification::warning</span>(<span class="string">&quot;some warning&quot;</span>));
+    <span class="kw">fn</span> <span class="ident">warnings</span>() {
+        <span class="kw">let</span> <span class="ident">status_update</span> <span class="op">=</span> <span class="ident">Output::Warnings</span>(<span class="ident">Warnings</span> {
+            <span class="ident">warnings</span>: <span class="macro">vec!</span>[<span class="string">&quot;warning 1&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;warning 2&quot;</span>.<span class="ident">to_string</span>()],
+        });
         <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">serde_json::to_string_pretty</span>(<span class="kw-2">&amp;</span><span class="ident">status_update</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">read_api_file</span>(<span class="string">&quot;warnings.json&quot;</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">actual</span>, <span class="ident">expected</span>);

@@ -520,22 +520,8 @@
 <span id="520">520</span>
 <span id="521">521</span>
 <span id="522">522</span>
-<span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
-<span id="526">526</span>
-<span id="527">527</span>
-<span id="528">528</span>
-<span id="529">529</span>
-<span id="530">530</span>
-<span id="531">531</span>
-<span id="532">532</span>
-<span id="533">533</span>
-<span id="534">534</span>
-<span id="535">535</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains types which model the JSON responses from tmc-server</span>
 
-<span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">DateTime</span>, <span class="ident">FixedOffset</span>};
 <span class="kw">use</span> <span class="ident">lazy_static::lazy_static</span>;
 <span class="kw">use</span> <span class="ident">regex::Regex</span>;
 <span class="kw">use</span> <span class="ident">schemars::JsonSchema</span>;
@@ -546,7 +532,7 @@
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
 <span class="kw">use</span> <span class="ident">std::str::FromStr</span>;
 <span class="kw">use</span> <span class="ident">thiserror::Error</span>;
-<span class="kw">use</span> <span class="ident">tmc_langs_plugins::StyleValidationResult</span>;
+<span class="kw">use</span> <span class="ident">tmc_langs_util::StyleValidationResult</span>;
 
 <span class="doccomment">/// Represents an error response from tmc-server</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Error</span>, <span class="ident">Deserialize</span>)]</span>
@@ -575,7 +561,6 @@
     <span class="kw">pub</span> <span class="ident">administrator</span>: <span class="ident">bool</span>,
 }
 
-<span class="doccomment">/// Organization information.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Organization</span> {
     <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">String</span>,
@@ -585,7 +570,6 @@
     <span class="kw">pub</span> <span class="ident">pinned</span>: <span class="ident">bool</span>,
 }
 
-<span class="doccomment">/// Information for a course.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Course</span> {
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">usize</span>,
@@ -599,7 +583,6 @@
     <span class="kw">pub</span> <span class="ident">spyware_urls</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
 
-<span class="doccomment">/// Data for a course.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CourseData</span> {
     <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">String</span>,
@@ -608,7 +591,7 @@
     <span class="kw">pub</span> <span class="ident">cache_version</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">spreadsheet_key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">hidden_if_registered_after</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">refreshed_at</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">FixedOffset</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">refreshed_at</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">locked_exercise_points_visible</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span> <span class="ident">description</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">paste_visibility</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
@@ -641,7 +624,6 @@
     <span class="kw">pub</span> <span class="ident">exercises</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Exercise</span><span class="op">&gt;</span>,
 }
 
-<span class="doccomment">/// Details for a course.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">from</span> <span class="op">=</span> <span class="string">&quot;CourseDetailsWrapper&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CourseDetails</span> {
@@ -689,7 +671,6 @@
     <span class="kw">pub</span> <span class="ident">solution_zip_url</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
 
-<span class="doccomment">/// Exercise for a course.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CourseExercise</span> {
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">usize</span>,
@@ -736,10 +717,9 @@
     <span class="ident">user_id</span>: <span class="ident">usize</span>,
     <span class="ident">submission_id</span>: <span class="ident">usize</span>,
     <span class="ident">name</span>: <span class="ident">String</span>,
-    <span class="ident">created_at</span>: <span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">FixedOffset</span><span class="op">&gt;</span>,
+    <span class="ident">created_at</span>: <span class="ident">String</span>,
 }
 
-<span class="doccomment">/// Details for an exercise.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExerciseDetails</span> {
     <span class="kw">pub</span> <span class="ident">course_name</span>: <span class="ident">String</span>,
@@ -761,23 +741,22 @@
     <span class="kw">pub</span> <span class="ident">checksum</span>: <span class="ident">String</span>,
 }
 
-<span class="doccomment">/// Exercise submission.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Submission</span> {
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">user_id</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">pretest_error</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">created_at</span>: <span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">FixedOffset</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">created_at</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">exercise_name</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">course_id</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">processed</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span> <span class="ident">all_tests_passed</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span> <span class="ident">points</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">processing_tried_at</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">FixedOffset</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">processing_began_at</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">FixedOffset</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">processing_completed_at</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">FixedOffset</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">processing_tried_at</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">processing_began_at</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">processing_completed_at</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">times_sent_to_sandbox</span>: <span class="ident">usize</span>,
-    <span class="kw">pub</span> <span class="ident">processing_attempts_started_at</span>: <span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">FixedOffset</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">processing_attempts_started_at</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">params_json</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">requires_review</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span> <span class="ident">requests_review</span>: <span class="ident">bool</span>,
@@ -796,7 +775,7 @@
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">user_id</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">course_id</span>: <span class="ident">usize</span>,
-    <span class="kw">pub</span> <span class="ident">created_at</span>: <span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">FixedOffset</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">created_at</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">all_tests_passed</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span> <span class="ident">points</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">submitted_zip_url</span>: <span class="ident">String</span>,
@@ -806,7 +785,6 @@
     <span class="kw">pub</span> <span class="ident">requests_review</span>: <span class="ident">bool</span>,
 }
 
-<span class="doccomment">/// Exercise submission.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NewSubmission</span> {
     <span class="kw">pub</span> <span class="ident">show_submission_url</span>: <span class="ident">String</span>,
@@ -835,7 +813,6 @@
     <span class="ident">ProcessingOnSandbox</span>,
 }
 
-<span class="doccomment">/// Finished submission.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SubmissionFinished</span> {
     <span class="kw">pub</span> <span class="ident">api_version</span>: <span class="ident">usize</span>,
@@ -873,7 +850,6 @@
     <span class="ident">Hidden</span>,
 }
 
-<span class="doccomment">/// Response to feedback.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SubmissionFeedbackResponse</span> {
     <span class="kw">pub</span> <span class="ident">api_version</span>: <span class="ident">usize</span>,
@@ -965,7 +941,6 @@
     }
 }
 
-<span class="doccomment">/// Code review.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Review</span> {
     <span class="kw">pub</span> <span class="ident">submission_id</span>: <span class="ident">String</span>,
@@ -978,11 +953,10 @@
     <span class="kw">pub</span> <span class="ident">points_not_awarded</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">url</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">update_url</span>: <span class="ident">String</span>,
-    <span class="kw">pub</span> <span class="ident">created_at</span>: <span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">FixedOffset</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">created_at</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">updated_at</span>: <span class="ident">String</span>,
 }
 
-<span class="doccomment">/// Updated exercises.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UpdateResult</span> {
     <span class="kw">pub</span> <span class="ident">created</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Exercise</span><span class="op">&gt;</span>,
