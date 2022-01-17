@@ -170,6 +170,8 @@ where
 }
 
 fn find_project_dir<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<PathBuf, TmcError> {
+    let mut lowest_ipynb_dir = None::<PathBuf>;
+
     for i in 0..zip_archive.len() {
         let file = zip_archive.by_index(i)?;
         let file_path = Path::new(file.name());
@@ -204,8 +206,27 @@ fn find_project_dir<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<P
             log::debug!("found project dir {}", parent.display());
             return Ok(parent.to_path_buf());
         }
+
+        if file_path
+            .extension()
+            .map(|ext| ext == "ipynb")
+            .unwrap_or_default()
+        {
+            let parent = file_path.parent().unwrap_or(Path::new("./"));
+            if let Some(lowest_ipynb_dir) = lowest_ipynb_dir.as_mut() {
+                if lowest_ipynb_dir.components().count() > parent.components().count() {
+                    *lowest_ipynb_dir = parent.to_path_buf();
+                }
+            } else {
+                lowest_ipynb_dir = Some(parent.to_path_buf());
+            }
+        }
     }
-    Err(TmcError::NoProjectDirInZip)
+    if let Some(lowest_ipynb_dir) = lowest_ipynb_dir {
+        Ok(lowest_ipynb_dir)
+    } else {
+        Err(TmcError::NoProjectDirInZip)
+    }
 }
 
 fn contains_tmcnosubmit(entry: &DirEntry) -> bool {
