@@ -463,52 +463,6 @@ impl LanguagePlugin for Python3Plugin {
             },
         )(i)
     }
-
-    fn find_project_dir_in_zip<R: Read + Seek>(
-        zip_archive: &mut ZipArchive<R>,
-    ) -> Result<PathBuf, TmcError> {
-        let mut lowest_ipynb_dir = None::<PathBuf>;
-
-        for i in 0..zip_archive.len() {
-            // zips don't necessarily contain entries for intermediate directories,
-            // so we need to check every path for src
-            let file = zip_archive.by_index(i)?;
-            let file_path = Path::new(file.name());
-
-            if file_path.components().any(|c| c.as_os_str() == "src") {
-                let path: PathBuf = file_path
-                    .components()
-                    .take_while(|c| c.as_os_str() != "src")
-                    .collect();
-
-                if path.components().any(|p| p.as_os_str() == "__MACOSX") {
-                    continue;
-                }
-                return Ok(path);
-            }
-
-            if file_path
-                .extension()
-                .map(|ext| ext == "ipynb")
-                .unwrap_or_default()
-            {
-                let parent = file_path.parent().unwrap_or(Path::new("./"));
-                if let Some(lowest_ipynb_dir) = lowest_ipynb_dir.as_mut() {
-                    if lowest_ipynb_dir.components().count() > parent.components().count() {
-                        *lowest_ipynb_dir = parent.to_path_buf();
-                    }
-                } else {
-                    lowest_ipynb_dir = Some(parent.to_path_buf());
-                }
-            }
-        }
-
-        if let Some(lowest_ipynb_dir) = lowest_ipynb_dir {
-            Ok(lowest_ipynb_dir)
-        } else {
-            Err(TmcError::NoProjectDirInZip)
-        }
-    }
 }
 
 #[cfg(test)]
