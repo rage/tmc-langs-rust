@@ -108,7 +108,7 @@ pub enum LangsError {
     #[error(transparent)]
     Jwt(#[from] jwt::Error),
     #[error(transparent)]
-    Hmac(#[from] hmac::crypto_mac::InvalidKeyLength),
+    Hmac(#[from] hmac::digest::InvalidLength),
 }
 
 /// Error validating TMC params values.

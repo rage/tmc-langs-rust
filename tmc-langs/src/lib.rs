@@ -22,7 +22,7 @@ pub use crate::error::{LangsError, ParamError};
 pub use crate::submission_packaging::prepare_submission;
 pub use crate::submission_processing::prepare_solution;
 use data::DownloadTargetKind;
-use hmac::{Hmac, NewMac};
+use hmac::{Hmac, Mac};
 use serde::Serialize;
 use sha2::Sha256;
 pub use tmc_client::{
@@ -92,7 +92,7 @@ pub struct UpdatedExercise {
 /// # Errors
 /// Should never fail, but returns an error to be safe against changes in external libraries.
 pub fn sign_with_jwt<T: Serialize>(value: T, secret: &[u8]) -> Result<String, LangsError> {
-    let key: Hmac<Sha256> = Hmac::new_from_slice(secret)?;
+    let key: Hmac<Sha256> = Hmac::<Sha256>::new_from_slice(secret)?;
     let token = value.sign_with_key(&key)?;
     Ok(token)
 }

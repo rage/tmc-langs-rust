@@ -3,7 +3,7 @@
 use crate::error::PythonError;
 use crate::policy::Python3StudentFilePolicy;
 use crate::python_test_result::PythonTestResult;
-use hmac::{Hmac, Mac, NewMac};
+use hmac::{Hmac, Mac};
 use once_cell::sync::Lazy;
 use rand::Rng;
 use sha2::Sha256;
@@ -193,7 +193,8 @@ impl Python3Plugin {
             mac.update(results.as_bytes());
             let bytes =
                 hex::decode(&test_runner_hmac_hex).map_err(|_| PythonError::UnexpectedHmac)?;
-            mac.verify(&bytes).map_err(|_| PythonError::InvalidHmac)?;
+            mac.verify_slice(&bytes)
+                .map_err(|_| PythonError::InvalidHmac)?;
         }
 
         let test_results: Vec<PythonTestResult> = serde_json::from_str(&results)

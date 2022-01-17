@@ -1,10 +1,9 @@
 //! Create clap app
 
 use anyhow::Context;
-use clap::AppSettings;
 use schemars::JsonSchema;
 use std::{path::PathBuf, str::FromStr};
-use structopt::StructOpt;
+use structopt::{clap::AppSettings, StructOpt};
 use tmc_langs::{
     CombinedCourseData, CourseData, CourseDetails, CourseExercise,
     DownloadOrUpdateCourseExercisesResult, ExerciseDesc, ExerciseDetails,
