@@ -149,7 +149,7 @@ fn find_project_dir<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<P
             .map(|ext| ext == "ipynb")
             .unwrap_or_default()
         {
-            let parent = file_path.parent().unwrap_or(Path::new("./"));
+            let parent = file_path.parent().unwrap_or_else(|| Path::new(""));
             if let Some(lowest_ipynb_dir) = lowest_ipynb_dir.as_mut() {
                 if lowest_ipynb_dir.components().count() > parent.components().count() {
                     *lowest_ipynb_dir = parent.to_path_buf();

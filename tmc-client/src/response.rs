@@ -229,18 +229,18 @@ pub struct ExercisePoint {
 /// get /api/v8/org/{organization_slug}/courses/{course_name}/users/current/points
 #[derive(Debug, Deserialize)]
 pub struct CourseDataExercisePoint {
-    awarded_point: AwardedPoint,
-    exercise_id: u32,
+    pub awarded_point: AwardedPoint,
+    pub exercise_id: u32,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct AwardedPoint {
-    id: u32,
-    course_id: u32,
-    user_id: u32,
-    submission_id: u32,
-    name: String,
-    created_at: DateTime<FixedOffset>,
+    pub id: u32,
+    pub course_id: u32,
+    pub user_id: u32,
+    pub submission_id: u32,
+    pub name: String,
+    pub created_at: DateTime<FixedOffset>,
 }
 
 /// get /api/v8/core/exercises/{exercise_id}

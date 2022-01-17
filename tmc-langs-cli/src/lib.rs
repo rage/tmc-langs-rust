@@ -58,12 +58,12 @@ pub fn run() {
             } else {
                 "Process panicked unexpectedly without an error message".to_string()
             };
-            let output = OutputKind::OutputData(OutputData {
+            let output = OutputKind::OutputData(Box::new(OutputData {
                 status: Status::Crashed,
                 message: error_message,
                 result: OutputResult::Error,
                 data: None,
-            });
+            }));
             print_output(&output, false).expect("this should never fail");
 
             quit::with_code(1);
@@ -100,7 +100,7 @@ fn run_inner() -> Result<(), ()> {
         let message = error_message_special_casing(&e);
         let kind = solve_error_kind(&e);
         let sandbox_path = check_sandbox_err(&e);
-        let error_output = OutputKind::OutputData(OutputData {
+        let error_output = OutputKind::OutputData(Box::new(OutputData {
             status: Status::Finished,
             message,
             result: OutputResult::Error,
@@ -108,7 +108,7 @@ fn run_inner() -> Result<(), ()> {
                 kind,
                 trace: causes,
             }),
-        });
+        }));
         print_output_with_file(&error_output, pretty, sandbox_path)
             .expect("failed to print output");
         Err(())
@@ -758,19 +758,19 @@ fn run_core_inner(
 
         Core::LoggedIn => {
             if let Some(credentials) = credentials {
-                OutputKind::OutputData(OutputData {
+                OutputKind::OutputData(Box::new(OutputData {
                     status: Status::Finished,
                     message: "currently logged in".to_string(),
                     result: OutputResult::LoggedIn,
                     data: Some(DataKind::Token(credentials.token())),
-                })
+                }))
             } else {
-                OutputKind::OutputData(OutputData {
+                OutputKind::OutputData(Box::new(OutputData {
                     status: Status::Finished,
                     message: "currently not logged in".to_string(),
                     result: OutputResult::NotLoggedIn,
                     data: None,
-                })
+                }))
             }
         }
 
@@ -799,24 +799,24 @@ fn run_core_inner(
             // create token file
             Credentials::save(client_name, token)?;
 
-            OutputKind::OutputData(OutputData {
+            OutputKind::OutputData(Box::new(OutputData {
                 status: Status::Finished,
                 message: "logged in".to_string(),
                 result: OutputResult::LoggedIn,
                 data: None,
-            })
+            }))
         }
 
         Core::Logout => {
             if let Some(credentials) = credentials.take() {
                 credentials.remove()?;
             }
-            OutputKind::OutputData(OutputData {
+            OutputKind::OutputData(Box::new(OutputData {
                 status: Status::Finished,
                 message: "logged out".to_string(),
                 result: OutputResult::LoggedOut,
                 data: None,
-            })
+            }))
         }
 
         Core::MarkReviewAsRead {

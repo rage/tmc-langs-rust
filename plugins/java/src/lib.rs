@@ -180,10 +180,12 @@ struct TestCase {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct CaughtException {
-    class_name: String,
+    // unused
+    // class_name: String,
     message: Option<String>,
     stack_trace: Vec<StackTrace>,
-    cause: Option<Box<CaughtException>>,
+    // unused
+    // cause: Option<Box<CaughtException>>,
 }
 
 #[derive(Debug, Deserialize, PartialEq, Eq)]

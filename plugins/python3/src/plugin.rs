@@ -14,7 +14,7 @@ use std::io::{BufReader, Read, Seek};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tmc_langs_framework::{
-    nom::{branch, bytes, character, combinator, error::VerboseError, sequence, IResult},
+    nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
     CommandError, ExerciseDesc, LanguagePlugin, Output, RunResult, RunStatus, TestDesc, TestResult,
     TmcCommand, TmcError, TmcProjectYml,
 };

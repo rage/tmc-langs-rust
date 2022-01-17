@@ -18,7 +18,7 @@ use tmc_langs_util::progress_reporter::StatusUpdate;
 #[serde(tag = "output-kind")]
 pub enum OutputKind {
     /// Data that is output at the end of a command.
-    OutputData(OutputData),
+    OutputData(Box<OutputData>),
     /// Status update output as a command progresses.
     StatusUpdate(StatusUpdateData),
     /// Additional warnings, such as for an outdated Python dependency.
@@ -30,21 +30,21 @@ impl OutputKind {
         message: impl Into<String>,
         data: impl Into<Option<DataKind>>,
     ) -> Self {
-        Self::OutputData(OutputData {
+        Self::OutputData(Box::new(OutputData {
             status: Status::Finished,
             message: message.into(),
             result: OutputResult::ExecutedCommand,
             data: data.into(),
-        })
+        }))
     }
 
     pub fn finished(message: impl Into<String>) -> Self {
-        Self::OutputData(OutputData {
+        Self::OutputData(Box::new(OutputData {
             status: Status::Finished,
             message: message.into(),
             result: OutputResult::ExecutedCommand,
             data: None,
-        })
+        }))
     }
 }
 
@@ -165,12 +165,12 @@ mod test {
 
     #[test]
     fn output_data_none() {
-        let output_data = OutputKind::OutputData(OutputData {
+        let output_data = OutputKind::OutputData(Box::new(OutputData {
             status: Status::Finished,
             message: "output with no data".to_string(),
             result: OutputResult::ExecutedCommand,
             data: None,
-        });
+        }));
         let actual = serde_json::to_string_pretty(&output_data).unwrap();
         let expected = read_api_file("output-data-none.json");
         assert_eq!(actual, expected);
@@ -178,7 +178,7 @@ mod test {
 
     #[test]
     fn output_data_error() {
-        let output_data = OutputKind::OutputData(OutputData {
+        let output_data = OutputKind::OutputData(Box::new(OutputData {
             status: Status::Finished,
             message: "errored!".to_string(),
             result: OutputResult::Error,
@@ -186,7 +186,7 @@ mod test {
                 kind: Kind::Generic,
                 trace: vec!["trace 1".to_string(), "trace 2".to_string()],
             }),
-        });
+        }));
         let actual = serde_json::to_string_pretty(&output_data).unwrap();
         let expected = read_api_file("output-data-error.json");
         assert_eq!(actual, expected);
@@ -194,7 +194,7 @@ mod test {
 
     #[test]
     fn output_data_dl() {
-        let output_data = OutputKind::OutputData(OutputData {
+        let output_data = OutputKind::OutputData(Box::new(OutputData {
             status: Status::Finished,
             message: "downloaded things".to_string(),
             result: OutputResult::ExecutedCommand,
@@ -223,7 +223,7 @@ mod test {
                     failed: None,
                 },
             )),
-        });
+        }));
         let actual = serde_json::to_string_pretty(&output_data).unwrap();
         let expected = read_api_file("output-data-download-or-update.json");
         assert_eq!(actual, expected);

@@ -88,7 +88,6 @@ fn process_files(
     for entry in walker
         .filter_entry(|e| !is_hidden_dir(e) && !on_skip_list(e) && !contains_tmcignore(e))
         .filter_map(|e| e.ok())
-        .into_iter()
     {
         process_file(entry, source, dest_root, &mut line_filter, &mut file_filter)?;
     }
