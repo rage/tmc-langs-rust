@@ -127,7 +127,7 @@ pub fn prepare_submission(
             }
             let test_path = tests_dir.join("src/test");
             if test_path.exists() {
-                file_util::copy(test_path, dest.join("src"))?;
+                file_util::copy(test_path, dest.join("test"))?;
             }
 
             // copy files from config
@@ -180,7 +180,7 @@ pub fn prepare_submission(
             }
             let test_path = clone_path.join("test");
             if test_path.exists() {
-                file_util::copy(test_path, &dest)?;
+                file_util::copy(test_path, &dest.join("test"))?;
             }
 
             // copy files directly in tests to dest
@@ -191,12 +191,21 @@ pub fn prepare_submission(
                 }
             }
         }
-        _ => {
+        Plugin::Python3(_) => {
             // copy libs
             log::debug!("copying lib");
             let lib_dir = clone_path.join("lib");
             if lib_dir.exists() {
                 file_util::copy(lib_dir, &dest)?;
+            }
+
+            // copy files directly in clone_path to dest
+            log::debug!("copying files in clone path");
+            for entry in WalkDir::new(clone_path).min_depth(1).max_depth(1) {
+                let entry = entry?;
+                if entry.path().is_file() {
+                    file_util::copy(entry.path(), &dest)?;
+                }
             }
 
             // copy files from config
@@ -217,12 +226,56 @@ pub fn prepare_submission(
                 }
             }
 
+            // copy all ipynb files
+            log::debug!("copying all ipynb files");
+            for entry in WalkDir::new(&project_root) {
+                let entry = entry?;
+                if entry
+                    .path()
+                    .extension()
+                    .map(|ext| ext == "ipynb")
+                    .unwrap_or_default()
+                {
+                    let relative = entry
+                        .path()
+                        .strip_prefix(&project_root)
+                        .expect("always inside project root");
+                    file_util::copy(entry.path(), dest.join(relative))?;
+                }
+            }
+        }
+        _ => {
+            // copy libs
+            log::debug!("copying lib");
+            let lib_dir = clone_path.join("lib");
+            if lib_dir.exists() {
+                file_util::copy(lib_dir, &dest)?;
+            }
+
             // copy files directly in clone_path to dest
             log::debug!("copying files in clone path");
             for entry in WalkDir::new(clone_path).min_depth(1).max_depth(1) {
                 let entry = entry?;
                 if entry.path().is_file() {
                     file_util::copy(entry.path(), &dest)?;
+                }
+            }
+
+            // copy files from config
+            log::debug!("copying files according to packaging config");
+            let config = TmcProjectYml::load_or_default(clone_path)?;
+            let config = plugin.get_exercise_packaging_configuration(config)?;
+            for path in config.student_file_paths {
+                let student_file = project_root.join(&path);
+                if student_file.exists() {
+                    file_util::copy(student_file, &dest)?;
+                }
+            }
+            for path in config.exercise_file_paths {
+                let exercise_file = tests_dir.join(&path);
+                if exercise_file.exists() {
+                    // todo --no-target-directory?
+                    file_util::copy(exercise_file, &dest)?;
                 }
             }
         }
@@ -317,12 +370,34 @@ pub fn prepare_submission(
 
 // TODO: make more robust instead of just looking for src...
 fn find_project_root<P: AsRef<Path>>(path: P) -> Result<Option<PathBuf>, FileError> {
+    let mut shallowest_ipynb_dir = None::<PathBuf>;
     for entry in WalkDir::new(&path) {
         let entry = entry?;
         if entry.path().is_dir() && entry.file_name() == OsStr::new("src") {
             return Ok(entry.path().parent().map(Path::to_path_buf));
         }
+
+        if entry
+            .path()
+            .extension()
+            .map(|ext| ext == "ipynb")
+            .unwrap_or_default()
+        {
+            let ipynb_dir = entry.path().parent().unwrap_or_else(|| Path::new(""));
+            if let Some(shallowest_ipynb_dir) = shallowest_ipynb_dir.as_mut() {
+                if shallowest_ipynb_dir.components().count() > ipynb_dir.components().count() {
+                    *shallowest_ipynb_dir = ipynb_dir.to_path_buf();
+                }
+            } else {
+                shallowest_ipynb_dir = Some(ipynb_dir.to_path_buf());
+            }
+        }
     }
+
+    if shallowest_ipynb_dir.is_some() {
+        return Ok(shallowest_ipynb_dir);
+    }
+
     log::warn!(
         "No src director found, defaulting the project root to the input path {}",
         path.as_ref().display()
