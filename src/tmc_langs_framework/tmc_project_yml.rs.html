@@ -202,63 +202,241 @@
 <span id="201">201</span>
 <span id="202">202</span>
 <span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains a struct that models the .tmcproject.yml file.</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::file_util</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::TmcError</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{
     <span class="ident">de</span>::{<span class="ident">Error</span>, <span class="ident">Visitor</span>},
-    <span class="ident">Deserialize</span>, <span class="ident">Deserializer</span>,
+    <span class="ident">Deserialize</span>, <span class="ident">Deserializer</span>, <span class="ident">Serialize</span>,
 };
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
+<span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
 <span class="kw">use</span> <span class="ident">std::path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
+<span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{<span class="ident">file_util</span>, <span class="ident">FileError</span>};
 
 <span class="doccomment">/// Extra data from a `.tmcproject.yml` file.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>, <span class="ident">Default</span>)]</span>
+<span class="comment">// NOTE: when adding fields, remember to update the merge function as well</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TmcProjectYml</span> {
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Vec::is_empty&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">extra_student_files</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
 
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Vec::is_empty&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">extra_exercise_files</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
 
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Vec::is_empty&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">force_update</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
 
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Option::is_none&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">tests_timeout_ms</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
 
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;no-tests&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Option::is_none&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">no_tests</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NoTests</span><span class="op">&gt;</span>,
 
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Option::is_none&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">fail_on_valgrind_error</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Option::is_none&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">minimum_python_version</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PythonVer</span><span class="op">&gt;</span>,
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Option::is_none&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">sandbox_image</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">TmcProjectYml</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">project_dir</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">path_in_dir</span>(<span class="ident">dir</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="ident">PathBuf</span> {
+        <span class="ident">dir</span>.<span class="ident">join</span>(<span class="string">&quot;.tmcproject.yml&quot;</span>)
+    }
+
+    <span class="doccomment">/// Tries to load a</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_or_default</span>(<span class="ident">project_dir</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">config</span>) <span class="op">=</span> <span class="ident"><span class="self">Self</span>::load</span>(<span class="ident">project_dir</span>)<span class="question-mark">?</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">config</span>)
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::default</span>())
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load</span>(<span class="ident">project_dir</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config_path</span> <span class="op">=</span> <span class="ident">project_dir</span>.<span class="ident">to_owned</span>();
         <span class="ident">config_path</span>.<span class="ident">push</span>(<span class="string">&quot;.tmcproject.yml&quot;</span>);
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">config_path</span>.<span class="ident">exists</span>() {
             <span class="macro">log::trace!</span>(<span class="string">&quot;no config found at {}&quot;</span>, <span class="ident">config_path</span>.<span class="ident">display</span>());
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::default</span>());
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
         <span class="macro">log::debug!</span>(<span class="string">&quot;reading .tmcproject.yml from {}&quot;</span>, <span class="ident">config_path</span>.<span class="ident">display</span>());
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file_util::open_file</span>(<span class="kw-2">&amp;</span><span class="ident">config_path</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">serde_yaml::from_reader</span>(<span class="ident">file</span>)<span class="question-mark">?</span>;
         <span class="macro">log::trace!</span>(<span class="string">&quot;read {:#?}&quot;</span>, <span class="ident">config</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">config</span>)
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">config</span>))
+    }
+
+    <span class="doccomment">/// Merges the contents of `with` with `self`.</span>
+    <span class="doccomment">/// Empty or missing values in self are replaced with those from with. Other values are left unchanged.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">merge</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">with</span>: <span class="self">Self</span>) {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">extra_student_files</span>.<span class="ident">is_empty</span>() {
+            <span class="self">self</span>.<span class="ident">extra_student_files</span> <span class="op">=</span> <span class="ident">with</span>.<span class="ident">extra_student_files</span>;
+        }
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">extra_exercise_files</span>.<span class="ident">is_empty</span>() {
+            <span class="self">self</span>.<span class="ident">extra_exercise_files</span> <span class="op">=</span> <span class="ident">with</span>.<span class="ident">extra_exercise_files</span>;
+        }
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">force_update</span>.<span class="ident">is_empty</span>() {
+            <span class="self">self</span>.<span class="ident">force_update</span> <span class="op">=</span> <span class="ident">with</span>.<span class="ident">force_update</span>;
+        }
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">tests_timeout_ms</span>.<span class="ident">is_none</span>() {
+            <span class="self">self</span>.<span class="ident">tests_timeout_ms</span> <span class="op">=</span> <span class="ident">with</span>.<span class="ident">tests_timeout_ms</span>;
+        }
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">no_tests</span>.<span class="ident">is_none</span>() {
+            <span class="self">self</span>.<span class="ident">no_tests</span> <span class="op">=</span> <span class="ident">with</span>.<span class="ident">no_tests</span>;
+        }
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">fail_on_valgrind_error</span>.<span class="ident">is_none</span>() {
+            <span class="self">self</span>.<span class="ident">fail_on_valgrind_error</span> <span class="op">=</span> <span class="ident">with</span>.<span class="ident">fail_on_valgrind_error</span>;
+        }
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">minimum_python_version</span>.<span class="ident">is_none</span>() {
+            <span class="self">self</span>.<span class="ident">minimum_python_version</span> <span class="op">=</span> <span class="ident">with</span>.<span class="ident">minimum_python_version</span>;
+        }
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">sandbox_image</span>.<span class="ident">is_none</span>() {
+            <span class="self">self</span>.<span class="ident">sandbox_image</span> <span class="op">=</span> <span class="ident">with</span>.<span class="ident">sandbox_image</span>;
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">save_to_dir</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dir</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">TmcError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">config_path</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::path_in_dir</span>(<span class="ident">dir</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file_util::create_file_lock</span>(<span class="kw-2">&amp;</span><span class="ident">config_path</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">file</span>
+            .<span class="ident">lock</span>()
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FileError::FdLock</span>(<span class="ident">config_path</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+        <span class="ident">serde_yaml::to_writer</span>(<span class="ident">guard</span>.<span class="ident">deref</span>(), <span class="kw-2">&amp;</span><span class="self">self</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(())
     }
 }
 
 <span class="doccomment">/// Minimum Python version requirement.</span>
 <span class="doccomment">/// TODO: if patch is Some minor is also guaranteed to be Some etc. encode this in the type system</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Serialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PythonVer</span> {
     <span class="kw">pub</span> <span class="ident">major</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">minor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
@@ -316,7 +494,7 @@
 }
 
 <span class="doccomment">/// Contents of the no-tests field.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">Clone</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">from</span> <span class="op">=</span> <span class="string">&quot;NoTestsWrapper&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NoTests</span> {
     <span class="kw">pub</span> <span class="ident">flag</span>: <span class="ident">bool</span>,
@@ -371,8 +549,16 @@
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
+    <span class="kw">fn</span> <span class="ident">init</span>() {
+        <span class="kw">use</span> <span class="ident">log</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="ident">simple_logger</span>::<span class="kw-2">*</span>;
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">SimpleLogger::new</span>().<span class="ident">with_level</span>(<span class="ident">LevelFilter::Debug</span>).<span class="ident">init</span>();
+    }
+
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_no_tests</span>() {
+        <span class="ident">init</span>();
+
         <span class="kw">let</span> <span class="ident">no_tests_yml</span> <span class="op">=</span> <span class="string">r#&quot;no-tests:
   points:
     - 1
@@ -387,6 +573,8 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_python_ver</span>() {
+        <span class="ident">init</span>();
+
         <span class="kw">let</span> <span class="ident">python_ver</span>: <span class="ident">PythonVer</span> <span class="op">=</span> <span class="ident">serde_yaml::from_str</span>(<span class="string">&quot;1.2.3&quot;</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">python_ver</span>.<span class="ident">major</span>, <span class="prelude-val">Some</span>(<span class="number">1</span>));
         <span class="macro">assert_eq!</span>(<span class="ident">python_ver</span>.<span class="ident">minor</span>, <span class="prelude-val">Some</span>(<span class="number">2</span>));
@@ -403,6 +591,44 @@
         <span class="macro">assert_eq!</span>(<span class="ident">python_ver</span>.<span class="ident">patch</span>, <span class="prelude-val">None</span>);
 
         <span class="macro">assert!</span>(<span class="ident">serde_yaml::from_str</span>::<span class="op">&lt;</span><span class="ident">PythonVer</span><span class="op">&gt;</span>(<span class="string">&quot;asd&quot;</span>).<span class="ident">is_err</span>())
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">merges</span>() {
+        <span class="ident">init</span>();
+
+        <span class="kw">let</span> <span class="ident">tpy_root</span> <span class="op">=</span> <span class="ident">TmcProjectYml</span> {
+            <span class="ident">tests_timeout_ms</span>: <span class="prelude-val">Some</span>(<span class="number">123</span>),
+            <span class="ident">fail_on_valgrind_error</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
+            ..<span class="ident">Default::default</span>()
+        };
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tpy_exercise</span> <span class="op">=</span> <span class="ident">TmcProjectYml</span> {
+            <span class="ident">tests_timeout_ms</span>: <span class="prelude-val">Some</span>(<span class="number">234</span>),
+            ..<span class="ident">Default::default</span>()
+        };
+        <span class="ident">tpy_exercise</span>.<span class="ident">merge</span>(<span class="ident">tpy_root</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">tpy_exercise</span>.<span class="ident">tests_timeout_ms</span>, <span class="prelude-val">Some</span>(<span class="number">234</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">tpy_exercise</span>.<span class="ident">fail_on_valgrind_error</span>, <span class="prelude-val">Some</span>(<span class="bool-val">true</span>));
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">saves_to_dir</span>() {
+        <span class="ident">init</span>();
+
+        <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">TmcProjectYml::path_in_dir</span>(<span class="ident">temp</span>.<span class="ident">path</span>());
+
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">path</span>.<span class="ident">exists</span>());
+
+        <span class="kw">let</span> <span class="ident">tpy</span> <span class="op">=</span> <span class="ident">TmcProjectYml</span> {
+            <span class="ident">tests_timeout_ms</span>: <span class="prelude-val">Some</span>(<span class="number">1234</span>),
+            ..<span class="ident">Default::default</span>()
+        };
+        <span class="ident">tpy</span>.<span class="ident">save_to_dir</span>(<span class="ident">temp</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+
+        <span class="macro">assert!</span>(<span class="ident">path</span>.<span class="ident">exists</span>());
+        <span class="kw">let</span> <span class="ident">tpy</span> <span class="op">=</span> <span class="ident">TmcProjectYml::load</span>(<span class="ident">temp</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>().<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">tpy</span>.<span class="ident">tests_timeout_ms</span>, <span class="prelude-val">Some</span>(<span class="number">1234</span>));
     }
 }
 </code></pre></div>

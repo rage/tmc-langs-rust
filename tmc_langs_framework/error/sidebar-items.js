@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["CommandError","An error caused by a failed attempt to execute an external command."],["FileIo","A wrapper for std::io::Error that provides more context for the failed operations."],["TmcError",""]]});
