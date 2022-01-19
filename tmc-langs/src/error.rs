@@ -64,6 +64,11 @@ pub enum LangsError {
     NoPlugin,
     #[error("Invalid Jupyter notebook: {0}")]
     InvalidNotebook(&'static str),
+    #[error("Invalid path in zip at {zip_path}: {file_path}")]
+    InvalidZipPath {
+        zip_path: PathBuf,
+        file_path: String,
+    },
 
     #[error("Cache path {0} was invalid. Not a valid UTF-8 string or did not contain a cache version after a dash")]
     InvalidCachePath(PathBuf),

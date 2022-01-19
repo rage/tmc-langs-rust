@@ -8,8 +8,12 @@ pub use tmc_langs_framework::{
     ExerciseDesc, ExercisePackagingConfiguration, Language, NothingIsStudentFilePolicy, RunResult,
     StudentFilePolicy, StyleValidationResult, StyleValidationStrategy,
 };
+use zip::ZipArchive;
 
-use std::path::Path;
+use std::{
+    io::{Read, Seek},
+    path::{Path, PathBuf},
+};
 use tmc_langs_csharp::CSharpPlugin;
 use tmc_langs_framework::{LanguagePlugin, TmcError, TmcProjectYml};
 pub use tmc_langs_java::{AntPlugin, MavenPlugin};
@@ -93,6 +97,7 @@ pub fn compress_project_to_zip(path: &Path) -> Result<Vec<u8>, PluginError> {
     pub fn run_tests(&self, path: &Path) -> Result<RunResult, TmcError> {}
     pub fn check_code_style(&self, path: &Path, locale: Language) -> Result<Option<StyleValidationResult>, TmcError> {}
     pub fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, TmcError> {}
+    pub fn find_project_dir_in_zip<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<PathBuf, TmcError> {}
 )]
 pub enum Plugin {
     CSharp(CSharpPlugin),
