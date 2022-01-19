@@ -127,7 +127,7 @@ pub fn prepare_submission(
             }
             let test_path = tests_dir.join("src/test");
             if test_path.exists() {
-                file_util::copy(test_path, dest.join("test"))?;
+                file_util::copy(test_path, dest.join("src"))?;
             }
 
             // copy files from config
@@ -180,7 +180,7 @@ pub fn prepare_submission(
             }
             let test_path = clone_path.join("test");
             if test_path.exists() {
-                file_util::copy(test_path, &dest.join("test"))?;
+                file_util::copy(test_path, &dest)?;
             }
 
             // copy files directly in tests to dest
