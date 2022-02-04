@@ -13,7 +13,7 @@ use self::output::{
 use crate::app::{Locale, Opt};
 use anyhow::{Context, Result};
 use app::{Command, Core, OutputFormatWrapper, Settings};
-use clap::{Error, ErrorKind};
+use clap::{ErrorKind, IntoApp, Parser};
 use serde::Serialize;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -22,7 +22,6 @@ use std::fs::File;
 use std::io::{self, Cursor, Read, Write};
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
-use structopt::StructOpt;
 use tmc_langs::{
     file_util, notification_reporter, ClientError, ClientUpdateData, CommandError, Credentials,
     DownloadOrUpdateCourseExercisesResult, DownloadResult, FeedbackAnswer, Language,
@@ -74,7 +73,7 @@ pub fn run() {
 // sets up warning and progress reporting and calls run_app and does error handling for its result
 // returns Ok if we should exit with code 0, Err if we should exit with 1
 fn run_inner() -> Result<(), ()> {
-    let matches = Opt::from_args();
+    let matches = Opt::parse();
     let pretty = matches.pretty;
 
     notification_reporter::init(Box::new(move |warning| {
@@ -367,11 +366,12 @@ fn run_app(matches: Opt) -> Result<()> {
             for value in &tmc_param {
                 let params: Vec<_> = value.split('=').collect();
                 if params.len() != 2 {
-                    Error::with_description(
-                        "tmc-param values should contain a single '=' as a delimiter.".to_string(),
-                        ErrorKind::ValueValidation,
-                    )
-                    .exit();
+                    app::Opt::into_app()
+                        .error(
+                            ErrorKind::ValueValidation,
+                            "tmc-param values should contain a single '=' as a delimiter.",
+                        )
+                        .exit();
                 }
                 let key = params[0];
                 let value = params[1];
