@@ -105,8 +105,7 @@ impl CSharpPlugin {
     /// Parses the test results JSON file at the path argument.
     fn parse_test_results(
         test_results_path: &Path,
-        logs: HashMap<String, String>,
-    ) -> Result<RunResult, CSharpError> {
+    ) -> Result<(RunStatus, Vec<TestResult>), CSharpError> {
         log::debug!("parsing C# test results");
         let test_results = file_util::open_file(test_results_path)?;
         let test_results: Vec<CSTestResult> = serde_json::from_reader(test_results)
@@ -126,11 +125,7 @@ impl CSharpPlugin {
             .into_iter()
             .map(|t| t.into_test_result(&failed_points))
             .collect();
-        Ok(RunResult {
-            status,
-            test_results,
-            logs,
-        })
+        Ok((status, test_results))
     }
 }
 
@@ -238,20 +233,41 @@ impl LanguagePlugin for CSharpPlugin {
             Ok(output) => {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 let stderr = String::from_utf8_lossy(&output.stderr);
-                log::trace!("stdout: {}", stdout);
-                log::debug!("stderr: {}", stderr);
-                let mut logs = HashMap::new();
-                logs.insert("stdout".to_string(), stdout.into_owned());
-                logs.insert("stderr".to_string(), stderr.into_owned());
-
                 if !output.status.success() {
+                    log::warn!("stdout: {}", stdout);
+                    log::error!("stderr: {}", stderr);
+                    let mut logs = HashMap::new();
+                    logs.insert("stdout".to_string(), stdout.into_owned());
+                    logs.insert("stderr".to_string(), stderr.into_owned());
                     return Ok(RunResult {
                         status: RunStatus::CompileFailed,
                         test_results: vec![],
                         logs,
                     });
                 }
-                Self::parse_test_results(&test_results_path, logs).map_err(|e| e.into())
+
+                log::trace!("stdout: {}", stdout);
+                log::debug!("stderr: {}", stderr);
+
+                if !test_results_path.exists() {
+                    return Err(CSharpError::MissingTestResults {
+                        path: test_results_path,
+                        stdout: stdout.into_owned(),
+                        stderr: stderr.into_owned(),
+                    }
+                    .into());
+                }
+                let (status, test_results) = Self::parse_test_results(&test_results_path)?;
+                file_util::remove_file(&test_results_path)?;
+
+                let mut logs = HashMap::new();
+                logs.insert("stdout".to_string(), stdout.into_owned());
+                logs.insert("stderr".to_string(), stderr.into_owned());
+                Ok(RunResult {
+                    status,
+                    test_results,
+                    logs,
+                })
             }
             Err(TmcError::Command(CommandError::TimeOut { stdout, stderr, .. })) => {
                 let mut logs = HashMap::new();
@@ -477,9 +493,9 @@ mod test {
 ]
 "#,
         );
-        let parse = CSharpPlugin::parse_test_results(&json, HashMap::new()).unwrap();
-        assert_eq!(parse.status, RunStatus::TestsFailed);
-        assert_eq!(parse.test_results.len(), 2);
+        let (status, test_results) = CSharpPlugin::parse_test_results(&json).unwrap();
+        assert_eq!(status, RunStatus::TestsFailed);
+        assert_eq!(test_results.len(), 2);
     }
 
     #[test]

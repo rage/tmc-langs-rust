@@ -75,24 +75,37 @@ impl LanguagePlugin for RPlugin {
             &["-e", "library(tmcRtestrunner);run_tests()"]
         };
 
-        if let Some(timeout) = timeout {
-            let _command = TmcCommand::piped("Rscript")
+        let output = if let Some(timeout) = timeout {
+            TmcCommand::piped("Rscript")
                 .with(|e| e.cwd(path).args(args))
-                .output_with_timeout_checked(timeout)?;
+                .output_with_timeout_checked(timeout)?
         } else {
-            let _command = TmcCommand::piped("Rscript")
+            TmcCommand::piped("Rscript")
                 .with(|e| e.cwd(path).args(args))
-                .output_checked()?;
-        }
+                .output_checked()?
+        };
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        log::trace!("stdout: {}", stdout);
+        log::debug!("stderr: {}", stderr);
 
         // parse test result
+        if !results_path.exists() {
+            return Err(RError::MissingTestResults {
+                path: results_path,
+                stdout: stdout.into_owned(),
+                stderr: stderr.into_owned(),
+            }
+            .into());
+        }
         let json_file = file_util::open_file(&results_path)?;
         let run_result: RRunResult = serde_json::from_reader(json_file).map_err(|e| {
             if let Ok(s) = fs::read_to_string(&results_path) {
-                log::error!("json {}", s);
+                log::error!("Failed to deserialize json {}", s);
             }
-            RError::JsonDeserialize(results_path, e)
+            RError::JsonDeserialize(results_path.clone(), e)
         })?;
+        file_util::remove_file(&results_path)?;
 
         Ok(run_result.into())
     }

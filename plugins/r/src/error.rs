@@ -9,6 +9,16 @@ use tmc_langs_util::FileError;
 pub enum RError {
     #[error("Failed to deserialize file {0} into JSON")]
     JsonDeserialize(PathBuf, #[source] serde_json::Error),
+    #[error(
+        "Failed to locate test results at {path}
+    stdout: {stdout}
+    stderr: {stderr}"
+    )]
+    MissingTestResults {
+        path: PathBuf,
+        stdout: String,
+        stderr: String,
+    },
 
     #[error("File IO error")]
     FileError(#[from] FileError),

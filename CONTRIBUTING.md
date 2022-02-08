@@ -12,7 +12,7 @@ Install [OpenJDK 11](https://openjdk.java.net/install/index.html) (other version
 
 Install [.NET 5.0](https://dotnet.microsoft.com/download)
 
-Install [check](https://libcheck.github.io/check/) (works with at least 0.14 and 0.15)
+Install [check](https://libcheck.github.io/check/) (works with at least 0.14 and 0.15) and [valgrind](https://valgrind.org/)
 
 Install [R](https://www.r-project.org/), [devtools](https://devtools.r-lib.org/) with `install.packages("devtools")` and [tmc-r-tester](https://github.com/testmycode/tmc-rstudio) with `devtools::install_github("testmycode/tmc-r-tester/tmcRtestrunner", build = FALSE)`
 

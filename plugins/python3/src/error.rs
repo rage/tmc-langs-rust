@@ -24,6 +24,16 @@ pub enum PythonError {
     UnexpectedHmac,
     #[error("Failed to verify the test results")]
     InvalidHmac,
+    #[error(
+        "Failed to locate test results at {path}
+    stdout: {stdout}
+    stderr: {stderr}"
+    )]
+    MissingTestResults {
+        path: PathBuf,
+        stdout: String,
+        stderr: String,
+    },
 
     #[error("File IO error")]
     FileError(#[from] FileError),

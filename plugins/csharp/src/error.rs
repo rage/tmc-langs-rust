@@ -16,6 +16,16 @@ pub enum CSharpError {
     CacheDir,
     #[error("Could not locate boostrap DLL at {0}")]
     MissingBootstrapDll(PathBuf),
+    #[error(
+        "Failed to locate test results at {path}
+    stdout: {stdout}
+    stderr: {stderr}"
+    )]
+    MissingTestResults {
+        path: PathBuf,
+        stdout: String,
+        stderr: String,
+    },
 
     // Wrapping other error types.
     #[error("File IO error")]

@@ -181,9 +181,8 @@ impl Python3Plugin {
     /// Parse test result file
     fn parse_and_verify_test_result(
         test_results_json: &Path,
-        logs: HashMap<String, String>,
         hmac_data: Option<(String, String)>,
-    ) -> Result<RunResult, PythonError> {
+    ) -> Result<(RunStatus, Vec<TestResult>), PythonError> {
         let results = file_util::read_file_to_string(&test_results_json)?;
 
         // verify test results
@@ -213,7 +212,7 @@ impl Python3Plugin {
             .into_iter()
             .map(|r| r.into_test_result(&failed_points))
             .collect();
-        Ok(RunResult::new(status, test_results, logs))
+        Ok((status, test_results))
     }
 }
 
@@ -234,9 +233,9 @@ impl LanguagePlugin for Python3Plugin {
             file_util::remove_file(&available_points_json)?;
         }
 
-        let run_result =
-            Self::run_tmc_command(exercise_directory, &["available_points"], None, None);
-        if let Err(error) = run_result {
+        if let Err(error) =
+            Self::run_tmc_command(exercise_directory, &["available_points"], None, None)
+        {
             log::error!("Failed to scan exercise. {}", error);
         }
 
@@ -280,15 +279,12 @@ impl LanguagePlugin for Python3Plugin {
 
         match output {
             Ok(output) => {
-                let mut logs = HashMap::new();
-                logs.insert(
-                    "stdout".to_string(),
-                    String::from_utf8_lossy(&output.stdout).into_owned(),
-                );
-                logs.insert(
-                    "stderr".to_string(),
-                    String::from_utf8_lossy(&output.stderr).into_owned(),
-                );
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                log::trace!("stdout: {}", stdout);
+                log::debug!("stderr: {}", stderr);
+
+                // TODO: is it OK to not check output.status.success()?
 
                 let hmac_data = if let Some(random_string) = random_string {
                     let hmac_result_path = exercise_directory.join(".tmc_test_results.hmac.sha256");
@@ -298,27 +294,37 @@ impl LanguagePlugin for Python3Plugin {
                     None
                 };
 
-                let parse_res =
-                    Self::parse_and_verify_test_result(&test_results_json, logs, hmac_data);
-                // remove file regardless of parse success
-                if test_results_json.exists() {
-                    file_util::remove_file(&test_results_json)?;
+                if !test_results_json.exists() {
+                    return Err(PythonError::MissingTestResults {
+                        path: test_results_json,
+                        stdout: stdout.into_owned(),
+                        stderr: stderr.into_owned(),
+                    }
+                    .into());
                 }
-
-                let mut run_result = parse_res?;
+                let (status, mut test_results) =
+                    Self::parse_and_verify_test_result(&test_results_json, hmac_data)?;
+                file_util::remove_file(&test_results_json)?;
 
                 // remove points associated with any failed tests
                 let mut failed_points = HashSet::new();
-                for test_result in &run_result.test_results {
+                for test_result in &test_results {
                     if !test_result.successful {
                         failed_points.extend(test_result.points.iter().cloned());
                     }
                 }
-                for test_result in &mut run_result.test_results {
+                for test_result in &mut test_results {
                     test_result.points.retain(|p| !failed_points.contains(p));
                 }
 
-                Ok(run_result)
+                let mut logs = HashMap::new();
+                logs.insert("stdout".to_string(), stdout.into_owned());
+                logs.insert("stderr".to_string(), stderr.into_owned());
+                Ok(RunResult {
+                    status,
+                    test_results,
+                    logs,
+                })
             }
             Err(PythonError::Tmc(TmcError::Command(CommandError::TimeOut {
                 stdout,
@@ -899,7 +905,6 @@ class TestClass(unittest.TestCase):
             "b379817c66cc7b1610d03ac263f02fa11f7b0153e6aeff3262ecc0598bf0be21".to_string();
         Python3Plugin::parse_and_verify_test_result(
             temp.path(),
-            HashMap::new(),
             Some((hmac_secret, test_runner_hmac)),
         )
         .unwrap();
@@ -917,7 +922,6 @@ class TestClass(unittest.TestCase):
             "b379817c66cc7b1610d03ac263f02fa11f7b0153e6aeff3262ecc0598bf0be22".to_string();
         let res = Python3Plugin::parse_and_verify_test_result(
             temp.path(),
-            HashMap::new(),
             Some((hmac_secret, test_runner_hmac)),
         );
         assert!(res.is_err());
