@@ -45,7 +45,6 @@ impl AntPlugin {
     // TODO: check for updates
     pub fn copy_tmc_junit_runner(dest_path: &Path) -> Result<(), JavaError> {
         log::debug!("copying TMC Junit runner");
-        const JUNIT_RUNNER_ARCHIVE: &[u8] = include_bytes!("../deps/tmc-junit-runner-0.2.8.jar");
 
         let runner_dir = dest_path.join("lib").join("testrunner");
         let runner_path = runner_dir.join("tmc-junit-runner.jar");
@@ -53,7 +52,7 @@ impl AntPlugin {
         // TODO: don't traverse symlinks
         if !runner_path.exists() {
             log::debug!("writing tmc-junit-runner to {}", runner_path.display());
-            file_util::write_to_file(JUNIT_RUNNER_ARCHIVE, &runner_path)?;
+            file_util::write_to_file(super::TMC_JUNIT_RUNNER_BYTES, &runner_path)?;
         } else {
             log::debug!("already exists");
         }
