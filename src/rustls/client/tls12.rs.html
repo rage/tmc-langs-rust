@@ -1,5 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;rustls-0.20.2&#x2F;src&#x2F;client&#x2F;tls12.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tls12.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../rustls/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;rustls-0.20.4&#x2F;src&#x2F;client&#x2F;tls12.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tls12.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../../rustls/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../rustls/index.html"><img class="rust-logo" src="../../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1090,8 +1091,9 @@
 <span id="1089">1089</span>
 <span id="1090">1090</span>
 <span id="1091">1091</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::check</span>::{<span class="ident">check_message</span>, <span class="ident">inappropriate_message</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::conn</span>::{<span class="ident">CommonState</span>, <span class="ident">ConnectionRandoms</span>, <span class="ident">State</span>};
+<span id="1092">1092</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::check</span>::{<span class="ident">inappropriate_handshake_message</span>, <span class="ident">inappropriate_message</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::conn</span>::{<span class="ident">CommonState</span>, <span class="ident">ConnectionRandoms</span>, <span class="ident">Side</span>, <span class="ident">State</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::Error</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::hash_hs::HandshakeHash</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;logging&quot;</span>)]</span>
@@ -1106,6 +1108,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::msgs::handshake</span>::{<span class="ident">HandshakeMessagePayload</span>, <span class="ident">HandshakePayload</span>, <span class="ident">NewSessionTicketPayload</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::msgs::message</span>::{<span class="ident">Message</span>, <span class="ident">MessagePayload</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::msgs::persist</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::sign::Signer</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::suites::SupportedCipherSuite</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ticketer::TimeBase</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tls12</span>::{<span class="self">self</span>, <span class="ident">ConnectionSecrets</span>, <span class="ident">Tls12CipherSuite</span>};
@@ -1117,6 +1120,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::client::common::ServerCertDetails</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::client</span>::{<span class="ident">hs</span>, <span class="ident">ClientConfig</span>, <span class="ident">ServerName</span>};
 
+<span class="kw">use</span> <span class="ident">ring::agreement::PublicKey</span>;
 <span class="kw">use</span> <span class="ident">ring::constant_time</span>;
 
 <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
@@ -1152,11 +1156,10 @@
                 .<span class="ident">write_slice</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">randoms</span>.<span class="ident">server</span>);
 
             <span class="comment">// Look for TLS1.3 downgrade signal in server random</span>
-            <span class="kw">if</span> <span class="ident">tls13_supported</span>
-                <span class="op">&amp;&amp;</span> <span class="self">self</span>
-                    .<span class="ident">randoms</span>
-                    .<span class="ident">has_tls12_downgrade_marker</span>()
-            {
+            <span class="comment">// both the server random and TLS12_DOWNGRADE_SENTINEL are</span>
+            <span class="comment">// public values and don&#39;t require constant time comparison</span>
+            <span class="kw">let</span> <span class="ident">has_downgrade_marker</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">randoms</span>.<span class="ident">server</span>[<span class="number">24</span>..] <span class="op">==</span> <span class="ident">tls12::DOWNGRADE_SENTINEL</span>;
+            <span class="kw">if</span> <span class="ident">tls13_supported</span> <span class="op">&amp;&amp;</span> <span class="ident">has_downgrade_marker</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">cx</span>
                     .<span class="ident">common</span>
                     .<span class="ident">illegal_param</span>(<span class="string">&quot;downgrade to TLS1.2 when TLS1.3 is supported&quot;</span>));
@@ -1217,14 +1220,14 @@
                     }
 
                     <span class="kw">let</span> <span class="ident">secrets</span> <span class="op">=</span>
-                        <span class="ident">ConnectionSecrets::new_resume</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">randoms</span>, <span class="ident">suite</span>, <span class="ident">resuming</span>.<span class="ident">secret</span>());
+                        <span class="ident">ConnectionSecrets::new_resume</span>(<span class="self">self</span>.<span class="ident">randoms</span>, <span class="ident">suite</span>, <span class="ident">resuming</span>.<span class="ident">secret</span>());
                     <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">key_log</span>.<span class="ident">log</span>(
                         <span class="string">&quot;CLIENT_RANDOM&quot;</span>,
                         <span class="kw-2">&amp;</span><span class="ident">secrets</span>.<span class="ident">randoms</span>.<span class="ident">client</span>,
                         <span class="kw-2">&amp;</span><span class="ident">secrets</span>.<span class="ident">master_secret</span>,
                     );
                     <span class="ident">cx</span>.<span class="ident">common</span>
-                        .<span class="ident">start_encryption_tls12</span>(<span class="kw-2">&amp;</span><span class="ident">secrets</span>);
+                        .<span class="ident">start_encryption_tls12</span>(<span class="kw-2">&amp;</span><span class="ident">secrets</span>, <span class="ident">Side::Client</span>);
 
                     <span class="comment">// Since we&#39;re resuming, we verified the certificate and</span>
                     <span class="comment">// proof of possession in the prior session.</span>
@@ -1357,17 +1360,11 @@
 
 <span class="kw">impl</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">ClientConnectionData</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ExpectCertificateStatusOrServerKx</span> {
     <span class="kw">fn</span> <span class="ident">handle</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ClientContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">m</span>: <span class="ident">Message</span>) -&gt; <span class="ident">hs::NextStateOrError</span> {
-        <span class="ident">check_message</span>(
-            <span class="kw-2">&amp;</span><span class="ident">m</span>,
-            <span class="kw-2">&amp;</span>[<span class="ident">ContentType::Handshake</span>],
-            <span class="kw-2">&amp;</span>[
-                <span class="ident">HandshakeType::ServerKeyExchange</span>,
-                <span class="ident">HandshakeType::CertificateStatus</span>,
-            ],
-        )<span class="question-mark">?</span>;
-
-        <span class="kw">if</span> <span class="ident">m</span>.<span class="ident">is_handshake_type</span>(<span class="ident">HandshakeType::ServerKeyExchange</span>) {
-            <span class="ident">Box::new</span>(<span class="ident">ExpectServerKx</span> {
+        <span class="kw">match</span> <span class="ident">m</span>.<span class="ident">payload</span> {
+            <span class="ident">MessagePayload::Handshake</span>(<span class="ident">HandshakeMessagePayload</span> {
+                <span class="ident">payload</span>: <span class="ident">HandshakePayload::ServerKeyExchange</span>(..),
+                ..
+            }) =&gt; <span class="ident">Box::new</span>(<span class="ident">ExpectServerKx</span> {
                 <span class="ident">config</span>: <span class="self">self</span>.<span class="ident">config</span>,
                 <span class="ident">resuming_session</span>: <span class="self">self</span>.<span class="ident">resuming_session</span>,
                 <span class="ident">session_id</span>: <span class="self">self</span>.<span class="ident">session_id</span>,
@@ -1383,9 +1380,11 @@
                 ),
                 <span class="ident">must_issue_new_ticket</span>: <span class="self">self</span>.<span class="ident">must_issue_new_ticket</span>,
             })
-            .<span class="ident">handle</span>(<span class="ident">cx</span>, <span class="ident">m</span>)
-        } <span class="kw">else</span> {
-            <span class="ident">Box::new</span>(<span class="ident">ExpectCertificateStatus</span> {
+            .<span class="ident">handle</span>(<span class="ident">cx</span>, <span class="ident">m</span>),
+            <span class="ident">MessagePayload::Handshake</span>(<span class="ident">HandshakeMessagePayload</span> {
+                <span class="ident">payload</span>: <span class="ident">HandshakePayload::CertificateStatus</span>(..),
+                ..
+            }) =&gt; <span class="ident">Box::new</span>(<span class="ident">ExpectCertificateStatus</span> {
                 <span class="ident">config</span>: <span class="self">self</span>.<span class="ident">config</span>,
                 <span class="ident">resuming_session</span>: <span class="self">self</span>.<span class="ident">resuming_session</span>,
                 <span class="ident">session_id</span>: <span class="self">self</span>.<span class="ident">session_id</span>,
@@ -1398,7 +1397,15 @@
                 <span class="ident">server_cert_chain</span>: <span class="self">self</span>.<span class="ident">server_cert_chain</span>,
                 <span class="ident">must_issue_new_ticket</span>: <span class="self">self</span>.<span class="ident">must_issue_new_ticket</span>,
             })
-            .<span class="ident">handle</span>(<span class="ident">cx</span>, <span class="ident">m</span>)
+            .<span class="ident">handle</span>(<span class="ident">cx</span>, <span class="ident">m</span>),
+            <span class="ident">payload</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">inappropriate_handshake_message</span>(
+                <span class="kw-2">&amp;</span><span class="ident">payload</span>,
+                <span class="kw-2">&amp;</span>[<span class="ident">ContentType::Handshake</span>],
+                <span class="kw-2">&amp;</span>[
+                    <span class="ident">HandshakeType::ServerKeyExchange</span>,
+                    <span class="ident">HandshakeType::CertificateStatus</span>,
+                ],
+            )),
         }
     }
 }
@@ -1530,13 +1537,9 @@
     <span class="ident">common</span>.<span class="ident">send_msg</span>(<span class="ident">cert</span>, <span class="bool-val">false</span>);
 }
 
-<span class="kw">fn</span> <span class="ident">emit_clientkx</span>(
-    <span class="ident">transcript</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HandshakeHash</span>,
-    <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CommonState</span>,
-    <span class="ident">kxd</span>: <span class="kw-2">&amp;</span><span class="ident">kx::KeyExchangeResult</span>,
-) {
+<span class="kw">fn</span> <span class="ident">emit_clientkx</span>(<span class="ident">transcript</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HandshakeHash</span>, <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CommonState</span>, <span class="ident">pubkey</span>: <span class="kw-2">&amp;</span><span class="ident">PublicKey</span>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">let</span> <span class="ident">ecpoint</span> <span class="op">=</span> <span class="ident">PayloadU8::new</span>(<span class="ident">Vec::from</span>(<span class="ident">kxd</span>.<span class="ident">pubkey</span>.<span class="ident">as_ref</span>()));
+    <span class="kw">let</span> <span class="ident">ecpoint</span> <span class="op">=</span> <span class="ident">PayloadU8::new</span>(<span class="ident">Vec::from</span>(<span class="ident">pubkey</span>.<span class="ident">as_ref</span>()));
     <span class="ident">ecpoint</span>.<span class="ident">encode</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>);
     <span class="kw">let</span> <span class="ident">pubkey</span> <span class="op">=</span> <span class="ident">Payload::new</span>(<span class="ident">buf</span>);
 
@@ -1554,21 +1557,12 @@
 
 <span class="kw">fn</span> <span class="ident">emit_certverify</span>(
     <span class="ident">transcript</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HandshakeHash</span>,
-    <span class="ident">client_auth</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ClientAuthDetails</span>,
+    <span class="ident">signer</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Signer</span>,
     <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CommonState</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> (<span class="ident">signer</span>, <span class="ident">message</span>) <span class="op">=</span> <span class="kw">match</span> (<span class="ident">client_auth</span>.<span class="ident">signer</span>.<span class="ident">take</span>(), <span class="ident">transcript</span>.<span class="ident">take_handshake_buf</span>()) {
-        (<span class="prelude-val">Some</span>(<span class="ident">signer</span>), <span class="prelude-val">Some</span>(<span class="ident">msg</span>)) =&gt; (<span class="ident">signer</span>, <span class="ident">msg</span>),
-        (<span class="prelude-val">None</span>, <span class="kw">_</span>) =&gt; {
-            <span class="macro">trace!</span>(<span class="string">&quot;Not sending CertificateVerify, no key&quot;</span>);
-            <span class="ident">transcript</span>.<span class="ident">abandon_client_auth</span>();
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
-        }
-        (<span class="kw">_</span>, <span class="prelude-val">None</span>) =&gt; {
-            <span class="macro">trace!</span>(<span class="string">&quot;Not sending CertificateVerify, no transcript&quot;</span>);
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
-        }
-    };
+    <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">transcript</span>
+        .<span class="ident">take_handshake_buf</span>()
+        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Error::General</span>(<span class="string">&quot;Expected transcript&quot;</span>.<span class="ident">to_owned</span>()))<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="ident">scheme</span> <span class="op">=</span> <span class="ident">signer</span>.<span class="ident">scheme</span>();
     <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <span class="ident">signer</span>.<span class="ident">sign</span>(<span class="kw-2">&amp;</span><span class="ident">message</span>)<span class="question-mark">?</span>;
@@ -1721,37 +1715,21 @@
         <span class="self">self</span>.<span class="ident">transcript</span>.<span class="ident">add_message</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>);
         <span class="macro">debug!</span>(<span class="string">&quot;Got CertificateRequest {:?}&quot;</span>, <span class="ident">certreq</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">client_auth</span> <span class="op">=</span> <span class="ident">ClientAuthDetails::new</span>();
-
         <span class="comment">// The RFC jovially describes the design here as &#39;somewhat complicated&#39;</span>
         <span class="comment">// and &#39;somewhat underspecified&#39;.  So thanks for that.</span>
         <span class="comment">//</span>
         <span class="comment">// We ignore certreq.certtypes as a result, since the information it contains</span>
         <span class="comment">// is entirely duplicated in certreq.sigschemes.</span>
 
-        <span class="kw">let</span> <span class="ident">canames</span> <span class="op">=</span> <span class="ident">certreq</span>
-            .<span class="ident">canames</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="number">0</span>.<span class="ident">as_slice</span>())
-            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">maybe_certkey</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">config</span>
-            .<span class="ident">client_auth_cert_resolver</span>
-            .<span class="ident">resolve</span>(<span class="kw-2">&amp;</span><span class="ident">canames</span>, <span class="kw-2">&amp;</span><span class="ident">certreq</span>.<span class="ident">sigschemes</span>);
-
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">certkey</span>) <span class="op">=</span> <span class="ident">maybe_certkey</span> {
-            <span class="kw">let</span> <span class="ident">maybe_signer</span> <span class="op">=</span> <span class="ident">certkey</span>
-                .<span class="ident">key</span>
-                .<span class="ident">choose_scheme</span>(<span class="kw-2">&amp;</span><span class="ident">certreq</span>.<span class="ident">sigschemes</span>);
-
-            <span class="kw">if</span> <span class="ident">maybe_signer</span>.<span class="ident">is_some</span>() {
-                <span class="macro">debug!</span>(<span class="string">&quot;Attempting client auth&quot;</span>);
-                <span class="ident">client_auth</span>.<span class="ident">certkey</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">certkey</span>);
-            }
-            <span class="ident">client_auth</span>.<span class="ident">signer</span> <span class="op">=</span> <span class="ident">maybe_signer</span>;
-        } <span class="kw">else</span> {
-            <span class="macro">debug!</span>(<span class="string">&quot;Client auth requested but no cert/sigscheme available&quot;</span>);
-        }
+        <span class="kw">const</span> <span class="ident">NO_CONTEXT</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>; <span class="comment">// TLS 1.2 doesn&#39;t use a context.</span>
+        <span class="kw">let</span> <span class="ident">client_auth</span> <span class="op">=</span> <span class="ident">ClientAuthDetails::resolve</span>(
+            <span class="self">self</span>.<span class="ident">config</span>
+                .<span class="ident">client_auth_cert_resolver</span>
+                .<span class="ident">as_ref</span>(),
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">certreq</span>.<span class="ident">canames</span>),
+            <span class="kw-2">&amp;</span><span class="ident">certreq</span>.<span class="ident">sigschemes</span>,
+            <span class="ident">NO_CONTEXT</span>,
+        );
 
         <span class="prelude-val">Ok</span>(<span class="ident">Box::new</span>(<span class="ident">ExpectServerDone</span> {
             <span class="ident">config</span>: <span class="self">self</span>.<span class="ident">config</span>,
@@ -1787,12 +1765,21 @@
 
 <span class="kw">impl</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">ClientConnectionData</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ExpectServerDone</span> {
     <span class="kw">fn</span> <span class="ident">handle</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ClientContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">m</span>: <span class="ident">Message</span>) -&gt; <span class="ident">hs::NextStateOrError</span> {
+        <span class="kw">match</span> <span class="ident">m</span>.<span class="ident">payload</span> {
+            <span class="ident">MessagePayload::Handshake</span>(<span class="ident">HandshakeMessagePayload</span> {
+                <span class="ident">payload</span>: <span class="ident">HandshakePayload::ServerHelloDone</span>,
+                ..
+            }) =&gt; {}
+            <span class="ident">payload</span> =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">inappropriate_handshake_message</span>(
+                    <span class="kw-2">&amp;</span><span class="ident">payload</span>,
+                    <span class="kw-2">&amp;</span>[<span class="ident">ContentType::Handshake</span>],
+                    <span class="kw-2">&amp;</span>[<span class="ident">HandshakeType::ServerHelloDone</span>],
+                ));
+            }
+        }
+
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">st</span> <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span>;
-        <span class="ident">check_message</span>(
-            <span class="kw-2">&amp;</span><span class="ident">m</span>,
-            <span class="kw-2">&amp;</span>[<span class="ident">ContentType::Handshake</span>],
-            <span class="kw-2">&amp;</span>[<span class="ident">HandshakeType::ServerHelloDone</span>],
-        )<span class="question-mark">?</span>;
         <span class="ident">st</span>.<span class="ident">transcript</span>.<span class="ident">add_message</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>);
 
         <span class="ident">cx</span>.<span class="ident">common</span>.<span class="ident">check_aligned_handshake</span>()<span class="question-mark">?</span>;
@@ -1863,12 +1850,12 @@
         <span class="ident">cx</span>.<span class="ident">common</span>.<span class="ident">peer_certificates</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">st</span>.<span class="ident">server_cert</span>.<span class="ident">cert_chain</span>);
 
         <span class="comment">// 4.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">client_auth</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">st</span>.<span class="ident">client_auth</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cert_key</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">client_auth</span>.<span class="ident">certkey</span> {
-                <span class="ident">emit_certificate</span>(<span class="kw-2">&amp;mut</span> <span class="ident">st</span>.<span class="ident">transcript</span>, <span class="ident">cert_key</span>.<span class="ident">cert</span>.<span class="ident">clone</span>(), <span class="ident">cx</span>.<span class="ident">common</span>);
-            } <span class="kw">else</span> {
-                <span class="ident">emit_certificate</span>(<span class="kw-2">&amp;mut</span> <span class="ident">st</span>.<span class="ident">transcript</span>, <span class="ident">Vec::new</span>(), <span class="ident">cx</span>.<span class="ident">common</span>);
-            }
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">client_auth</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">st</span>.<span class="ident">client_auth</span> {
+            <span class="kw">let</span> <span class="ident">certs</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">client_auth</span> {
+                <span class="ident">ClientAuthDetails::Empty</span> { .. } =&gt; <span class="ident">Vec::new</span>(),
+                <span class="ident">ClientAuthDetails::Verify</span> { <span class="ident">certkey</span>, .. } =&gt; <span class="ident">certkey</span>.<span class="ident">cert</span>.<span class="ident">clone</span>(),
+            };
+            <span class="ident">emit_certificate</span>(<span class="kw-2">&amp;mut</span> <span class="ident">st</span>.<span class="ident">transcript</span>, <span class="ident">certs</span>, <span class="ident">cx</span>.<span class="ident">common</span>);
         }
 
         <span class="comment">// 5a.</span>
@@ -1880,40 +1867,45 @@
                     <span class="ident">Error::PeerMisbehavedError</span>(<span class="string">&quot;peer chose an unsupported group&quot;</span>.<span class="ident">to_string</span>())
                 })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">kx</span> <span class="op">=</span> <span class="ident">kx::KeyExchange::start</span>(<span class="ident">group</span>).<span class="ident">ok_or</span>(<span class="ident">Error::FailedToGetRandomBytes</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">kxd</span> <span class="op">=</span> <span class="ident">tls12::complete_ecdh</span>(<span class="ident">kx</span>, <span class="kw-2">&amp;</span><span class="ident">ecdh_params</span>.<span class="ident">public</span>.<span class="number">0</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 5b.</span>
-        <span class="ident">emit_clientkx</span>(<span class="kw-2">&amp;mut</span> <span class="ident">st</span>.<span class="ident">transcript</span>, <span class="ident">cx</span>.<span class="ident">common</span>, <span class="kw-2">&amp;</span><span class="ident">kxd</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">transcript</span> <span class="op">=</span> <span class="ident">st</span>.<span class="ident">transcript</span>;
+        <span class="ident">emit_clientkx</span>(<span class="kw-2">&amp;mut</span> <span class="ident">transcript</span>, <span class="ident">cx</span>.<span class="ident">common</span>, <span class="kw-2">&amp;</span><span class="ident">kx</span>.<span class="ident">pubkey</span>);
         <span class="comment">// nb. EMS handshake hash only runs up to ClientKeyExchange.</span>
-        <span class="kw">let</span> <span class="ident">handshake_hash</span> <span class="op">=</span> <span class="ident">st</span>.<span class="ident">transcript</span>.<span class="ident">get_current_hash</span>();
+        <span class="kw">let</span> <span class="ident">ems_seed</span> <span class="op">=</span> <span class="ident">st</span>
+            .<span class="ident">using_ems</span>
+            .<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">transcript</span>.<span class="ident">get_current_hash</span>());
 
         <span class="comment">// 5c.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">client_auth</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">st</span>.<span class="ident">client_auth</span> {
-            <span class="ident">emit_certverify</span>(<span class="kw-2">&amp;mut</span> <span class="ident">st</span>.<span class="ident">transcript</span>, <span class="ident">client_auth</span>, <span class="ident">cx</span>.<span class="ident">common</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ClientAuthDetails::Verify</span> { <span class="ident">signer</span>, .. }) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">st</span>.<span class="ident">client_auth</span> {
+            <span class="ident">emit_certverify</span>(<span class="kw-2">&amp;mut</span> <span class="ident">transcript</span>, <span class="ident">signer</span>.<span class="ident">as_ref</span>(), <span class="ident">cx</span>.<span class="ident">common</span>)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// 5d.</span>
         <span class="ident">emit_ccs</span>(<span class="ident">cx</span>.<span class="ident">common</span>);
 
         <span class="comment">// 5e. Now commit secrets.</span>
-        <span class="kw">let</span> <span class="ident">secrets</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">st</span>.<span class="ident">using_ems</span> {
-            <span class="ident">ConnectionSecrets::new_ems</span>(<span class="kw-2">&amp;</span><span class="ident">st</span>.<span class="ident">randoms</span>, <span class="kw-2">&amp;</span><span class="ident">handshake_hash</span>, <span class="ident">suite</span>, <span class="kw-2">&amp;</span><span class="ident">kxd</span>.<span class="ident">shared_secret</span>)
-        } <span class="kw">else</span> {
-            <span class="ident">ConnectionSecrets::new</span>(<span class="kw-2">&amp;</span><span class="ident">st</span>.<span class="ident">randoms</span>, <span class="ident">suite</span>, <span class="kw-2">&amp;</span><span class="ident">kxd</span>.<span class="ident">shared_secret</span>)
-        };
+        <span class="kw">let</span> <span class="ident">secrets</span> <span class="op">=</span> <span class="ident">ConnectionSecrets::from_key_exchange</span>(
+            <span class="ident">kx</span>,
+            <span class="kw-2">&amp;</span><span class="ident">ecdh_params</span>.<span class="ident">public</span>.<span class="number">0</span>,
+            <span class="ident">ems_seed</span>,
+            <span class="ident">st</span>.<span class="ident">randoms</span>,
+            <span class="ident">suite</span>,
+        )<span class="question-mark">?</span>;
+
         <span class="ident">st</span>.<span class="ident">config</span>.<span class="ident">key_log</span>.<span class="ident">log</span>(
             <span class="string">&quot;CLIENT_RANDOM&quot;</span>,
             <span class="kw-2">&amp;</span><span class="ident">secrets</span>.<span class="ident">randoms</span>.<span class="ident">client</span>,
             <span class="kw-2">&amp;</span><span class="ident">secrets</span>.<span class="ident">master_secret</span>,
         );
         <span class="ident">cx</span>.<span class="ident">common</span>
-            .<span class="ident">start_encryption_tls12</span>(<span class="kw-2">&amp;</span><span class="ident">secrets</span>);
+            .<span class="ident">start_encryption_tls12</span>(<span class="kw-2">&amp;</span><span class="ident">secrets</span>, <span class="ident">Side::Client</span>);
         <span class="ident">cx</span>.<span class="ident">common</span>
             .<span class="ident">record_layer</span>
             .<span class="ident">start_encrypting</span>();
 
         <span class="comment">// 6.</span>
-        <span class="ident">emit_finished</span>(<span class="kw-2">&amp;</span><span class="ident">secrets</span>, <span class="kw-2">&amp;mut</span> <span class="ident">st</span>.<span class="ident">transcript</span>, <span class="ident">cx</span>.<span class="ident">common</span>);
+        <span class="ident">emit_finished</span>(<span class="kw-2">&amp;</span><span class="ident">secrets</span>, <span class="kw-2">&amp;mut</span> <span class="ident">transcript</span>, <span class="ident">cx</span>.<span class="ident">common</span>);
 
         <span class="kw">if</span> <span class="ident">st</span>.<span class="ident">must_issue_new_ticket</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">Box::new</span>(<span class="ident">ExpectNewTicket</span> {
@@ -1923,7 +1915,7 @@
                 <span class="ident">session_id</span>: <span class="ident">st</span>.<span class="ident">session_id</span>,
                 <span class="ident">server_name</span>: <span class="ident">st</span>.<span class="ident">server_name</span>,
                 <span class="ident">using_ems</span>: <span class="ident">st</span>.<span class="ident">using_ems</span>,
-                <span class="ident">transcript</span>: <span class="ident">st</span>.<span class="ident">transcript</span>,
+                <span class="ident">transcript</span>,
                 <span class="ident">resuming</span>: <span class="bool-val">false</span>,
                 <span class="ident">cert_verified</span>,
                 <span class="ident">sig_verified</span>,
@@ -1936,7 +1928,7 @@
                 <span class="ident">session_id</span>: <span class="ident">st</span>.<span class="ident">session_id</span>,
                 <span class="ident">server_name</span>: <span class="ident">st</span>.<span class="ident">server_name</span>,
                 <span class="ident">using_ems</span>: <span class="ident">st</span>.<span class="ident">using_ems</span>,
-                <span class="ident">transcript</span>: <span class="ident">st</span>.<span class="ident">transcript</span>,
+                <span class="ident">transcript</span>,
                 <span class="ident">ticket</span>: <span class="prelude-val">None</span>,
                 <span class="ident">resuming</span>: <span class="bool-val">false</span>,
                 <span class="ident">cert_verified</span>,
@@ -2006,7 +1998,15 @@
 
 <span class="kw">impl</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">ClientConnectionData</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ExpectCcs</span> {
     <span class="kw">fn</span> <span class="ident">handle</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ClientContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">m</span>: <span class="ident">Message</span>) -&gt; <span class="ident">hs::NextStateOrError</span> {
-        <span class="ident">check_message</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>, <span class="kw-2">&amp;</span>[<span class="ident">ContentType::ChangeCipherSpec</span>], <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
+        <span class="kw">match</span> <span class="ident">m</span>.<span class="ident">payload</span> {
+            <span class="ident">MessagePayload::ChangeCipherSpec</span>(..) =&gt; {}
+            <span class="ident">payload</span> =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">inappropriate_message</span>(
+                    <span class="kw-2">&amp;</span><span class="ident">payload</span>,
+                    <span class="kw-2">&amp;</span>[<span class="ident">ContentType::ChangeCipherSpec</span>],
+                ));
+            }
+        }
         <span class="comment">// CCS should not be received interleaved with fragmented handshake-level</span>
         <span class="comment">// message.</span>
         <span class="ident">cx</span>.<span class="ident">common</span>.<span class="ident">check_aligned_handshake</span>()<span class="question-mark">?</span>;
@@ -2163,8 +2163,11 @@
             <span class="ident">MessagePayload::ApplicationData</span>(<span class="ident">payload</span>) =&gt; <span class="ident">cx</span>
                 .<span class="ident">common</span>
                 .<span class="ident">take_received_plaintext</span>(<span class="ident">payload</span>),
-            <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">inappropriate_message</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>, <span class="kw-2">&amp;</span>[<span class="ident">ContentType::ApplicationData</span>]));
+            <span class="ident">payload</span> =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">inappropriate_message</span>(
+                    <span class="kw-2">&amp;</span><span class="ident">payload</span>,
+                    <span class="kw-2">&amp;</span>[<span class="ident">ContentType::ApplicationData</span>],
+                ));
             }
         }
         <span class="prelude-val">Ok</span>(<span class="self">self</span>)
@@ -2182,5 +2185,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rustls" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rustls" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
 </body></html>
