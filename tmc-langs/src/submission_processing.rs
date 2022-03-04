@@ -11,7 +11,8 @@ use walkdir::{DirEntry, WalkDir};
 lazy_static! {
     static ref FILES_TO_SKIP_ALWAYS: Regex = Regex::new(r"\.tmcrc|^metadata\.yml$").unwrap();
     static ref NON_TEXT_TYPES: Regex =
-        Regex::new("class|jar|exe|jpg|jpeg|gif|png|zip|tar|gz|db|bin|csv|tsv|sqlite3|^$").unwrap();
+        Regex::new("class|jar|exe|jpg|jpeg|gif|png|zip|tar|gz|db|bin|csv|tsv|sqlite3|spacy|^$")
+            .unwrap();
 }
 
 // Filter for hidden directories (directories with names starting with '.')
