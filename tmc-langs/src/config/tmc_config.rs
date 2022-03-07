@@ -96,11 +96,13 @@ impl TmcConfig {
                 match toml::from_slice(&buf) {
                     // successfully read file, try to deserialize
                     Ok(config) => config, // successfully read and deserialized the config
-                    Err(_) => {
+                    Err(e) => {
                         log::error!(
-                            "Failed to deserialize config at {}, resetting",
+                            "Failed to deserialize config at {} due to {e}, resetting",
                             path.display()
                         );
+                        drop(guard);
+                        drop(lock);
                         Self::init_at(client_name, &path)?
                     }
                 }

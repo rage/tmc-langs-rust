@@ -214,14 +214,22 @@ pub fn prepare_submission(
             let config = plugin.get_exercise_packaging_configuration(config)?;
             for path in config.student_file_paths {
                 let student_file = project_root.join(&path);
-                if student_file.exists() {
+                if student_file.is_file() {
                     file_util::copy(student_file, &dest)?;
+                } else if student_file.is_dir() {
+                    let mut dest = dest.join(path);
+                    dest.pop(); // the dest will include the target dir, pop to avoid copying a/b/c to a/b/c/c
+                    file_util::copy(&student_file, dest)?;
                 }
             }
             for path in config.exercise_file_paths {
                 let exercise_file = tests_dir.join(&path);
-                if exercise_file.exists() {
-                    // todo --no-target-directory?
+                // todo --no-target-directory?
+                if exercise_file.is_file() {
+                    file_util::copy(exercise_file, &dest)?;
+                } else if exercise_file.is_dir() {
+                    let mut dest = dest.join(path);
+                    dest.pop(); // the dest will include the target dir, pop to avoid copying a/b/c to a/b/c/c
                     file_util::copy(exercise_file, &dest)?;
                 }
             }
